@@ -67,6 +67,14 @@ scan_grep() {
     git grep -I -n -E -f "$regex" "$@" | report "credential or device id" || true
 }
 
+# scan_text <label> <file>: scans a file outside git (a commit message); reports
+# "<label>:<line>"
+scan_text() {
+    { [ ! -s "$fixed" ] || grep -n -F -f "$fixed" "$2" || true; } | sed "s/^/$1:/" | report "personal value"
+    { [ ! -s "$words" ] || grep -n -i -w -F -f "$words" "$2" || true; } | sed "s/^/$1:/" | report "private string"
+    { grep -n -E -f "$regex" "$2" || true; } | sed "s/^/$1:/" | report "credential or device id"
+}
+
 scan_names() {
     grep -E "$files_regex" | sed 's/$/: key, profile, or personal file/' >> "$found" || true
 }
@@ -83,9 +91,7 @@ staged)
 message)
     file="${2:?usage: check-private message <file>}"
     grep -v '^#' "$file" > "$work/message" || true
-    { [ ! -s "$fixed" ] || grep -n -F -f "$fixed" "$work/message" || true; } | sed 's/^/message:/' | report "personal value"
-    { [ ! -s "$words" ] || grep -n -i -w -F -f "$words" "$work/message" || true; } | sed 's/^/message:/' | report "private string"
-    { grep -n -E -f "$regex" "$work/message" || true; } | sed 's/^/message:/' | report "credential or device id"
+    scan_text message "$work/message"
     ;;
 push)
     zero=0000000000000000000000000000000000000000
@@ -96,9 +102,7 @@ push)
         if [ "$remote_sha" = "$zero" ]; then range="$local_sha"; else range="$remote_sha..$local_sha"; fi
         for commit in $(git rev-list "$range"); do
             git log -1 --format=%B "$commit" > "$work/message"
-            { [ ! -s "$fixed" ] || grep -n -F -f "$fixed" "$work/message" || true; } | sed "s/^/commit $commit message:/" | report "personal value"
-            { [ ! -s "$words" ] || grep -n -i -w -F -f "$words" "$work/message" || true; } | sed "s/^/commit $commit message:/" | report "private string"
-            { grep -n -E -f "$regex" "$work/message" || true; } | sed "s/^/commit $commit message:/" | report "credential or device id"
+            scan_text "commit $commit message" "$work/message"
         done
     done
     ;;
