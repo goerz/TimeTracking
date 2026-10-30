@@ -25,6 +25,8 @@ final class AppModel {
     let tracker: TrackerStatusModel
     let trackerSettings: TrackerSettingsModel
 
+    /// Sync and live updates; `nil` under `-UITesting` and in tests.
+    var live: LiveUpdates?
     /// The first-launch tracker alert (spec_timer_window.md §8.2).
     var showsTrackerOnboarding = false
     /// Bumped on every change the menu bar must render at once.

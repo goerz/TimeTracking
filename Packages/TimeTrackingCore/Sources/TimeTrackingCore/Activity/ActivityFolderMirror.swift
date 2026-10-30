@@ -22,6 +22,18 @@ public struct ActivityFolderMirror: Sendable {
         self.container = container
     }
 
+    /// The `shared_folder` reason of an agent that cannot write the container.
+    public static let fallbackReason = "Copied by the Mac app"
+
+    /// Whether `state` says the agent writes the local folder and relies on
+    /// the Mac app's copy.
+    public static func isNeeded(for state: TrackerState?) -> Bool {
+        guard let source = state?.health.sources.first(where: { $0.id == "shared_folder" }) else {
+            return false
+        }
+        return source.status == .fallback && source.reason == fallbackReason
+    }
+
     /// What one `sync()` copied.
     public struct Report: Sendable, Hashable {
         /// Month files copied into the container, e.g. `2024-03.jsonl`.

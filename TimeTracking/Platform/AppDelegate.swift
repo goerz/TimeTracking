@@ -62,8 +62,32 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         Self.logger.notice("Store open")
         wire(app)
         await app.start(observing: true)
+        if !uiTesting, let identity {
+            await startLiveUpdates(app, identity: identity, folders: folders, activity: activity)
+        }
         Self.logger.notice("Launched")
         app.showTrackerOnboardingIfNeeded()
+    }
+
+    /// Sync through CloudKit, `LiveState` publication, widget pushes, and
+    /// the block-log copy (never under `-UITesting`).
+    private func startLiveUpdates(_ app: AppModel, identity: AppIdentity, folders: ActivityFolders?, activity: FileActivityStore?) async {
+        let live = LiveUpdates(
+            store: app.store,
+            clock: app.clock,
+            engineFactory: CloudKitSyncEngineFactory(containerIdentifier: identity.cloudKitContainer),
+            pushClient: APNsClient(
+                credentials: KeychainAPNsCredentials(service: identity.apnsKeychainService),
+                topic: identity.widgetPushTopic,
+                clock: app.clock
+            ),
+            readTrackerState: { await activity?.currentState() },
+            mirror: folders.flatMap { $0.isFallback ? nil : ActivityFolderMirror(local: $0.local, container: $0.shared) },
+            deviceName: Host.current().localizedName ?? "Mac",
+            confirmAccountSwitch: { await MainActor.run { AccountSwitchAlert.confirm() } }
+        )
+        app.live = live
+        await live.start()
     }
 
     private static func activityFolders(_ identity: AppIdentity?) async -> ActivityFolders? {
@@ -147,6 +171,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationWillTerminate(_: Notification) {
         // Quitting ends the Pomodoro; the running entry keeps running.
         host.model?.pomodoro.reset()
+        host.model?.live?.stop()
         host.model?.stop()
     }
 }

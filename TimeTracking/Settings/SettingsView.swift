@@ -60,6 +60,9 @@ struct GeneralPane: View {
             }
             Toggle("Show Dock icon", isOn: $settings.showDockIcon)
                 .accessibilityIdentifier("settings.showDockIcon")
+            if let live = app.live {
+                LiveStatusSection(live: live)
+            }
             if !notificationsAllowed {
                 HStack {
                     Text("Notifications are off for this app.").foregroundStyle(.secondary)

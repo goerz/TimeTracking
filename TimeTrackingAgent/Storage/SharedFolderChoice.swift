@@ -29,7 +29,7 @@ nonisolated struct SharedFolderChoice: Hashable {
         if canWrite(folders.shared) {
             return Self(activityFolder: folders.shared, status: .active, reason: "")
         }
-        return Self(activityFolder: folders.local, status: .fallback, reason: "Copied by the Mac app")
+        return Self(activityFolder: folders.local, status: .fallback, reason: ActivityFolderMirror.fallbackReason)
     }
 
     /// Whether a file can be created in `folder`.
