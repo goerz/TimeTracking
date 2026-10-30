@@ -92,6 +92,12 @@ public struct WidgetSharedState: @unchecked Sendable {
         }
     }
 
+    /// The push handler's write: the hex token while widgets are installed,
+    /// `.some(nil)` when none is.
+    public func recordPushToken(_ token: Data, widgetCount: Int) {
+        pushToken = .some(widgetCount == 0 ? nil : token.hexString)
+    }
+
     /// Whether the first sync has delivered the store (spec_ios.md §11).
     public var setupComplete: Bool {
         get { defaults.bool(forKey: Key.setupComplete) }

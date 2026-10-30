@@ -6,26 +6,14 @@ import SwiftUI
 import TimeTrackingCore
 import WidgetKit
 
-/// The toggle's value: running, and the label while on.
-struct TimerControlValue: Sendable {
-    var isRunning: Bool
-    /// The running task, else the project name, else "Tracking".
-    var label: String
-}
-
 /// Shares the widgets' resolver, so the control follows a push without its own token.
 nonisolated struct TimerValueProvider: ControlValueProvider {
-    var previewValue: TimerControlValue {
-        TimerControlValue(isRunning: false, label: "Tracking")
+    var previewValue: WidgetControlValue {
+        WidgetControlValue(isRunning: false, label: "Tracking")
     }
 
-    func currentValue() async -> TimerControlValue {
-        let snapshot = await WidgetEnvironment().snapshot()
-        guard let running = snapshot.running else {
-            return TimerControlValue(isRunning: false, label: "Start")
-        }
-        let label = running.row.task.isEmpty ? (running.row.projectName ?? "Tracking") : running.row.task
-        return TimerControlValue(isRunning: true, label: label)
+    func currentValue() async -> WidgetControlValue {
+        await WidgetEnvironment().snapshot().control
     }
 }
 

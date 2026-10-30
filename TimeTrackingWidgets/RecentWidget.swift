@@ -60,7 +60,7 @@ struct RecentWidgetView: View {
         var all: [AnyView] = []
         if let running = snapshot.running {
             all.append(AnyView(RecentRow(row: running.row) {
-                LiveTimer(start: running.chainStart).font(.subheadline)
+                LiveTimer(snapshot: snapshot).font(.subheadline)
                 CircleIntentButton(intent: snapshot.stopIntent, systemImage: "stop.fill", color: .stopRed, diameter: 30)
             }))
         }

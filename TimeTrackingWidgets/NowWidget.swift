@@ -62,7 +62,7 @@ struct NowSmall: View {
                 Text(running.row.task).lineLimit(2).privacySensitive()
                 Spacer(minLength: 0)
                 HStack(alignment: .center) {
-                    LiveTimer(start: running.chainStart).font(.system(size: 28, weight: .semibold))
+                    LiveTimer(snapshot: snapshot).font(.system(size: 28, weight: .semibold))
                     Spacer(minLength: 4)
                     CircleIntentButton(intent: snapshot.stopIntent, systemImage: "stop.fill", color: .stopRed, diameter: 40)
                 }
@@ -90,7 +90,7 @@ struct NowMedium: View {
             HStack(alignment: .firstTextBaseline) {
                 Text(running.row.task.isEmpty ? "No task" : running.row.task).font(.headline).lineLimit(1).privacySensitive()
                 Spacer()
-                LiveTimer(start: running.chainStart).font(.title2.weight(.semibold))
+                LiveTimer(snapshot: snapshot).font(.title2.weight(.semibold))
             }
             ProjectLine(row: running.row)
             HStack {
@@ -161,7 +161,7 @@ struct NowInline: View {
 
     var body: some View {
         if let running = snapshot.running {
-            let elapsed = Text(timerInterval: running.chainStart ... Date.distantFuture, countsDown: false)
+            let elapsed = Text(timerInterval: snapshot.elapsedTimer ?? running.chainStart ... running.chainStart, countsDown: false)
             Text("▶ \(elapsed) · \(running.row.projectName ?? "TimeTracking")")
         } else {
             Text("Not tracking")
@@ -175,11 +175,11 @@ struct NowCircular: View {
     var body: some View {
         ZStack {
             AccessoryWidgetBackground()
-            if let running = snapshot.running {
+            if snapshot.running != nil {
                 Button(intent: snapshot.stopIntent) {
                     VStack(spacing: 2) {
                         Image(systemName: "stop.fill").accessibilityLabel("Stop")
-                        LiveTimer(start: running.chainStart).font(.caption2).minimumScaleFactor(0.6)
+                        LiveTimer(snapshot: snapshot).font(.caption2).minimumScaleFactor(0.6)
                     }
                 }
                 .buttonStyle(.plain)
@@ -202,7 +202,7 @@ struct NowRectangular: View {
                 if let running = snapshot.running {
                     Text(running.row.task.isEmpty ? "No task" : running.row.task).font(.headline).lineLimit(1).privacySensitive()
                     Text(running.row.projectName ?? "No project").lineLimit(1)
-                    LiveTimer(start: running.chainStart).font(.headline)
+                    LiveTimer(snapshot: snapshot).font(.headline)
                 } else {
                     Text("Not tracking").font(.headline)
                     Text(snapshot.latest?.task ?? "").lineLimit(1).privacySensitive()

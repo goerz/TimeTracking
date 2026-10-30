@@ -24,7 +24,8 @@ struct TestPhone {
         settings: PhoneSettings = .ephemeral(),
         scheduler: RecordingScheduler = RecordingScheduler(),
         sync: (TimeStore) -> SyncDriving? = { _ in nil },
-        collection: (ManualClock, WidgetSharedState) -> CollectionFlushing = { _, _ in NoCollection() }
+        collection: (ManualClock, WidgetSharedState) -> CollectionFlushing = { _, _ in NoCollection() },
+        pad: (TimeStore, ManualClock, DeviceSettings) -> PadPlanner? = { _, _, _ in nil }
     ) async throws {
         let clock = try ManualClock(Self.date(now))
         self.clock = clock
@@ -48,7 +49,8 @@ struct TestPhone {
             widgets: widgets,
             shortcuts: shortcuts,
             shared: shared,
-            collection: collection(clock, shared)
+            collection: collection(clock, shared),
+            pad: pad(store, clock, settings.device)
         )
         model.sync = sync(store)
         model.timer.debounce = { _ in }

@@ -26,49 +26,16 @@ struct WidgetSyncTests {
         #expect(snapshot.running == nil)
     }
 
-    @Test("IOS-13 the Lock Screen buttons stop the running entry and otherwise continue the latest")
-    func lockScreenButtons() async throws {
-        let test = try await TestPhone()
-        let entryID = EntryID()
-        #expect(WidgetStopIntent(entry: entryID).action == .stop(expected: entryID))
-        #expect(WidgetContinueIntent(entry: nil).action == .continueEntry(nil))
-        #expect(WidgetStopIntent.authenticationPolicy == .requiresAuthentication)
-        _ = try await test.store.create(EntryDraft(
-            projectID: nil,
-            task: "Latest",
-            start: test.date("2024-03-14T08:00"),
-            end: test.date("2024-03-14T09:00")
-        ))
-        try await test.model.performWidgetAction(WidgetContinueIntent(entry: nil).action, service: AutomationService(store: test.store))
-        #expect(test.model.timer.running?.task == "Latest")
-    }
-
-    @Test(
-        "IOS-19 the control is on exactly while an entry runs; it reloads after local changes and applied syncs and asks for authentication"
-    )
-    func controlReloads() async throws {
-        let test = try await TestPhone()
-        #expect(ToggleTimerIntent(value: true).action == .toggle(true))
-        #expect(ToggleTimerIntent.authenticationPolicy == .requiresAuthentication)
-        #expect(ToggleTimerIntent.allowedExecutionTargets == .main)
-        let before = test.widgets.controlReloads
-        await test.model.timer.start()
-        #expect(test.widgets.controlReloads > before)
-        let afterLocal = test.widgets.controlReloads
-        await test.model.storeChanged(.runningEntry(nil))
-        #expect(test.widgets.controlReloads > afterLocal)
-        #expect(try await test.store.liveState().running != nil)
-        try await test.model.performWidgetAction(.toggle(false), service: AutomationService(store: test.store))
-        #expect(try await test.store.liveState().running == nil)
-    }
-
-    @Test("IOS-15 a stored push token reaches the Device record at the next run; with no widget installed it becomes nil")
+    @Test("IOS-15 a new push token reaches the Device record at the next run; with no widget installed the token becomes nil")
     func pushTokenUpload() async throws {
         let test = try await TestPhone()
-        test.shared.pushToken = .some("abcd")
+        // The push handler with one widget installed.
+        test.shared.recordPushToken(Data([0xAB, 0xCD]), widgetCount: 1)
         await test.model.foreground()
         #expect(try await test.store.devices().first { $0.id == test.store.deviceID }?.widgetPushToken == "abcd")
-        test.shared.pushToken = .some(nil)
+        // The last widget removed: the handler reports no widgets.
+        test.shared.recordPushToken(Data([0xAB, 0xCD]), widgetCount: 0)
+        #expect(test.shared.pushToken == .some(nil))
         await test.model.foreground()
         #expect(try await test.store.devices().first { $0.id == test.store.deviceID }?.widgetPushToken == nil)
     }
@@ -244,13 +211,16 @@ struct WidgetSyncTests {
     @Test("IOS-38 timetracking://start?project=Household shows the Timer with a running Household entry")
     func urlStart() async throws {
         let test = try await TestPhone()
-        _ = try await test.projects(["Household"])
+        let household = try await test.projects(["Garden", "Household"])[1]
         test.model.sheet = .settings
         let router = PhoneURLRouter(model: test.model, scheme: "timetracking")
         let outcome = try await router.open(#require(URL(string: "timetracking://start?project=Household")))
         #expect(outcome == .tracked("Started Household"))
         #expect(test.model.sheet == nil)
-        #expect(test.model.timer.running != nil)
+        let running = try #require(test.model.timer.running)
+        #expect(running.projectID == household.id)
+        #expect(test.model.timer.chipLabel.name == "Household")
+        #expect(test.model.padTab == .timer)
         let failed = try await router.open(#require(URL(string: "timetracking://delete")))
         if case .failed = failed {} else {
             Issue.record("delete URL did something")

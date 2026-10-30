@@ -39,11 +39,23 @@ struct WidgetAreaDot: View {
 
 /// An elapsed time counting up from `start`.
 struct LiveTimer: View {
-    var start: Date
+    var interval: ClosedRange<Date>?
+
+    /// The running entry's elapsed time (`WidgetSnapshot.elapsedTimer`).
+    init(snapshot: WidgetSnapshot) {
+        self.interval = snapshot.elapsedTimer
+    }
+
+    /// A time counting up from `start`.
+    init(start: Date) {
+        self.interval = start ... Date.distantFuture
+    }
 
     var body: some View {
-        Text(timerInterval: start ... Date.distantFuture, countsDown: false)
-            .monospacedDigit()
+        if let interval {
+            Text(timerInterval: interval, countsDown: false)
+                .monospacedDigit()
+        }
     }
 }
 
@@ -69,7 +81,10 @@ struct CircleIntentButton<Intent: AppIntent>: View {
 extension WidgetSnapshot {
     /// The Stop button's intent for the running entry.
     var stopIntent: WidgetStopIntent {
-        WidgetStopIntent(entry: running?.entryID)
+        if case let .stop(expected) = primaryAction {
+            return WidgetStopIntent(entry: expected)
+        }
+        return WidgetStopIntent(entry: nil)
     }
 
     /// The Continue button's intent for the latest entry.

@@ -73,7 +73,7 @@ struct PinnedWidgetView: View {
             } else {
                 LazyVGrid(columns: columns, spacing: 10) {
                     ForEach(snapshot.pinned.prefix(capacity)) { button in
-                        PinnedButtonView(button: button, stopIntent: snapshot.stopIntent)
+                        PinnedButtonView(button: button, action: snapshot.action(of: button))
                     }
                 }
             }
@@ -86,12 +86,13 @@ struct PinnedWidgetView: View {
 
 struct PinnedButtonView: View {
     var button: WidgetSnapshot.PinnedButton
-    var stopIntent: WidgetStopIntent
+    /// `WidgetSnapshot.action(of:)`.
+    var action: WidgetAction
 
     var body: some View {
         Group {
-            if button.isRunning {
-                Button(intent: stopIntent) { label }
+            if case let .stop(expected) = action {
+                Button(intent: WidgetStopIntent(entry: expected)) { label }
             } else {
                 Button(intent: WidgetStartIntent(project: button.projectID, task: button.task)) { label }
                     .disabled(button.isArchived)

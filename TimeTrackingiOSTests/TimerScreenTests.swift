@@ -69,10 +69,17 @@ struct TimerScreenTests {
         await test.model.choose(.create("Garden"))
         let dialog = try #require(test.model.dialogModel)
         await dialog.load()
-        // What the dialog's client and area forms do on Create.
-        let (client, general) = try await test.store.createClient(name: "Family")
+        // "New Client…" and "New Area…" in the dialog: the forms' Create.
+        let clientForm = await ClientFormModel.create(store: test.store)
+        clientForm.name = "Family"
+        await clientForm.validate()
+        let (client, general) = try #require(await clientForm.submit())
         await dialog.clientCreated(client, general: general)
-        let area = try await test.store.createArea(AreaDraft(clientID: client.id, name: "Outdoors", color: "#3A7D44"))
+        let areaForm = await AreaFormModel.create(store: test.store, client: client.id)
+        areaForm.name = "Outdoors"
+        areaForm.color = "#3A7D44"
+        await areaForm.validate()
+        let area = try #require(await areaForm.submit())
         await dialog.areaCreated(area)
         let project = try #require(await dialog.submit())
         await test.model.dialogFinished(project)
@@ -81,6 +88,8 @@ struct TimerScreenTests {
         let row = try #require(rows.first { $0.project.name == "Garden" })
         #expect(row.client?.name == "Family")
         #expect(row.area?.name == "Outdoors")
+        #expect(row.area?.color == "#3A7D44")
+        #expect(try await test.store.clients(includeRetired: true).map(\.name).contains("Family"))
         #expect(try await test.store.runningEntry()?.projectID == project.id)
     }
 
