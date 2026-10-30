@@ -52,27 +52,14 @@ struct OnboardingView: View {
         NavigationStack {
             Form {
                 Section {
+                    deviceNameHeader
+                        .listRowBackground(Color.clear)
+                }
+                Section {
                     TextField("Device name", text: $onboarding.deviceName)
                         .submitLabel(.continue)
                         .onSubmit(confirm)
                         .accessibilityIdentifier("onboarding.deviceName")
-                } header: {
-                    VStack(spacing: Design.Spacing.small) {
-                        Image(systemName: DeviceInfo.isPad ? "ipad" : "iphone")
-                            .font(.largeTitle)
-                            .foregroundStyle(.tint)
-                            .accessibilityHidden(true)
-                        Text("Name This Device")
-                            .font(.title.weight(.bold))
-                            .foregroundStyle(.primary)
-                        Text("Entries show where they were created.")
-                            .font(.body)
-                            .foregroundStyle(.secondary)
-                    }
-                    .multilineTextAlignment(.center)
-                    .frame(maxWidth: .infinity)
-                    .textCase(nil)
-                    .padding(.bottom, Design.Spacing.large)
                 }
             }
             .frame(maxWidth: 560)
@@ -88,6 +75,25 @@ struct OnboardingView: View {
                 .accessibilityIdentifier("onboarding.continue")
             }
         }
+    }
+
+    /// The device symbol, the title, and what the name is for.
+    private var deviceNameHeader: some View {
+        VStack(spacing: Design.Spacing.small) {
+            Image(systemName: DeviceInfo.isPad ? "ipad" : "iphone")
+                .font(.largeTitle)
+                .foregroundStyle(.tint)
+                .accessibilityHidden(true)
+            Text("Name This Device")
+                .font(.title.weight(.bold))
+                .foregroundStyle(.primary)
+            Text("Entries show where they were created.")
+                .font(.body)
+                .foregroundStyle(.secondary)
+        }
+        .multilineTextAlignment(.center)
+        .frame(maxWidth: .infinity)
+        .padding(.top, Design.Spacing.large)
     }
 
     private func confirm() {

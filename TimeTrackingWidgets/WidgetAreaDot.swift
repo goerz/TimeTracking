@@ -86,6 +86,7 @@ struct CircleGlyph: View {
     var body: some View {
         let glyph = Image(systemName: systemImage)
             .font(.system(size: diameter * 0.4, weight: .semibold))
+            .accessibilityHidden(true)
         Group {
             if mode == .fullColor {
                 Circle().fill(color)

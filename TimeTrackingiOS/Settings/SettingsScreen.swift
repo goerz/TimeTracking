@@ -77,16 +77,10 @@ struct SettingsScreen: View {
 
     private var pomodoroSection: some View {
         Section {
-            Stepper(value: Binding(
-                get: { model.pomodoro.focusMinutes },
-                set: { value in Task { await model.pomodoro.setFocusMinutes(value) } }
-            ), in: 1 ... 180) {
+            Stepper(value: focusMinutes, in: 1 ... 180) {
                 LabeledContent("Focus", value: "\(model.pomodoro.focusMinutes) min")
             }
-            Stepper(value: Binding(
-                get: { model.pomodoro.breakMinutes },
-                set: { value in Task { await model.pomodoro.setBreakMinutes(value) } }
-            ), in: 1 ... 60) {
+            Stepper(value: breakMinutes, in: 1 ... 60) {
                 LabeledContent("Break", value: "\(model.pomodoro.breakMinutes) min")
             }
             Toggle("Play sounds at phase changes", isOn: Bindable(model.settings).pomodoroSounds)
@@ -94,6 +88,22 @@ struct SettingsScreen: View {
             Text("Pomodoro")
         } footer: {
             Text("The durations are the same on all your devices.")
+        }
+    }
+
+    private var focusMinutes: Binding<Int> {
+        Binding {
+            model.pomodoro.focusMinutes
+        } set: { value in
+            Task { await model.pomodoro.setFocusMinutes(value) }
+        }
+    }
+
+    private var breakMinutes: Binding<Int> {
+        Binding {
+            model.pomodoro.breakMinutes
+        } set: { value in
+            Task { await model.pomodoro.setBreakMinutes(value) }
         }
     }
 

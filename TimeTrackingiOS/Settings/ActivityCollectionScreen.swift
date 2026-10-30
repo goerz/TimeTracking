@@ -44,26 +44,7 @@ struct ActivityCollectionScreen: View {
                 .accessibilityIdentifier("collection.requestScreenTime")
             }
             if collection.screenTime == .approved {
-                ForEach(collection.sets) { set in
-                    NavigationLink(set.label) {
-                        LadderSetEditor(collection: collection, set: set)
-                    }
-                    .deleteDisabled(set.isEverything)
-                }
-                .onDelete { offsets in
-                    for index in offsets where !collection.sets[index].isEverything {
-                        collection.removeSet(id: collection.sets[index].id)
-                    }
-                }
-                Menu {
-                    ForEach(LadderSet.suggestedLabels, id: \.self) { label in
-                        Button(label) { collection.addSet(label: label) }
-                    }
-                    Divider()
-                    Button("Other") { collection.addSet(label: "Apps") }
-                } label: {
-                    Label("Add App Set", systemImage: "plus")
-                }
+                appSets
             }
             if let error = collection.ladderError {
                 ErrorLine(text: error)
@@ -76,6 +57,30 @@ struct ActivityCollectionScreen: View {
             } else {
                 Text("Minutes of daily use per set. Only the set's label reaches the log, never the apps in it.")
             }
+        }
+    }
+
+    /// The app sets, each opening its editor, and the Add menu.
+    @ViewBuilder private var appSets: some View {
+        ForEach(collection.sets) { set in
+            NavigationLink(set.label) {
+                LadderSetEditor(collection: collection, set: set)
+            }
+            .deleteDisabled(set.isEverything)
+        }
+        .onDelete { offsets in
+            for index in offsets where !collection.sets[index].isEverything {
+                collection.removeSet(id: collection.sets[index].id)
+            }
+        }
+        Menu {
+            ForEach(LadderSet.suggestedLabels, id: \.self) { label in
+                Button(label) { collection.addSet(label: label) }
+            }
+            Divider()
+            Button("Other") { collection.addSet(label: "Apps") }
+        } label: {
+            Label("Add App Set", systemImage: "plus")
         }
     }
 

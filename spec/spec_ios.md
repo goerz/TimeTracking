@@ -81,20 +81,22 @@ What iOS adds:
 
 ### 2.9 Settings
 
-A screen pushed from the toolbar.
+A sheet from the toolbar: an inset-grouped `Form` with the inline title "Settings" and Done. The first screen holds short sections; longer settings are rows that push a screen of their own, with their current value trailing ("Pinned projects  3", "Activity collection  Off"). Explanations are section footers. Numbers are a row with the label, the value trailing, and a stepper ("Focus  25 min  − +").
 
 | Section | Setting | Default | Scope |
 |---|---|---|---|
-| iCloud | Account and sync status, pending changes, "Sync Now"; this device's name (`Device.name`) | | Device |
-| Pomodoro | Focus duration (1 to 180 min), break duration (1 to 60 min) | 25, 5 | Synced |
+| iCloud | Status, pending changes, "Device name" (`Device.name`, a trailing text field), "Sync Now" | | Device |
+| Pomodoro | Focus (1 to 180 min), Break (1 to 60 min) | 25, 5 | Synced |
 | Pomodoro | Play sounds at phase changes (`pomodoro.sounds`) | On | Device |
-| Notifications | Long-running entry reminder, after N hours (1 to 12) | On, 4 h (iPhone); off, 4 h (iPad) | Device |
-| Widgets | Pinned projects: ordered list over `pinnedProjectIDs` (add from the picker, reorder, remove) | Empty | Synced |
-| Widgets | Task on pinned buttons: the project's last task, or none | Last task | Device |
-| Activity collection | Master switch; Screen Time authorization status and request; app sets (9.2); Focus filter and automation instructions with a `ShortcutsLink`; Safari extension status; last flush, pending events, "Flush Now" | Off | Device |
-| Privacy | Read-only view of the exclusions from `Activity/settings.toml`, with the note that they are edited in the Mac's Tracker pane | | Shared file |
+| Notifications | Long-running entry reminder, "Remind after" N hours (1 to 12) | On, 4 h (iPhone); off, 4 h (iPad) | Device |
+| Widgets | "Pinned projects" pushes an ordered list over `pinnedProjectIDs`: add (`plus` in the navigation bar, the picker as a sheet), reorder and remove (Edit), an empty state with "Add Project" | Empty | Synced |
+| Widgets | "Pinned buttons start": Last task, or No task | Last task | Device |
+| Activity | "Activity collection" pushes the master switch; Screen Time authorization status and request; app sets (9.2); setup steps for the Focus filter, automations, and the Safari extension with their check marks and a `ShortcutsLink`; last upload, pending events, "Upload Now" | Off | Device |
+| Activity | "Privacy" pushes a read-only view of the exclusions from `Activity/settings.toml` in three sections (websites, apps, files and terminals), with the note that they are edited in the Mac's Tracker pane | | Shared file |
 | Calendars (iPad) | Which external calendars the Calendar tab shows, grouped by account | None | Device |
-| About | Version, build, link to the app's Shortcuts page | | |
+| About | Version and build ("1.0 (12)"), the app's Shortcuts link | | |
+
+An app set's screen has its label as a trailing text field and the chosen apps, categories, and sites with "Choose Apps…", which presents the system's `familyActivityPicker`.
 
 ## 3. Widgets
 
@@ -102,14 +104,16 @@ A screen pushed from the toolbar.
 
 Widgets read the store and the `LiveState` row (4) and act through the wrapper intents of 6.1. Each timeline is one entry at the current time with the policy `.after(date)`: the next Pomodoro phase end when a Pomodoro is active on this device, otherwise the next local midnight. Elapsed times are live timers (`Text(timerInterval:)`) from the running entry's chain start, which `LiveState` carries; the Today total counts the running entry from the later of its start and today's midnight.
 
-The accented rendering mode is supported (the area dot desaturated), `systemSmall` has a removable background for StandBy, and task text is `privacySensitive()`. Tapping outside a button opens the Timer (`timetracking://show`). Smart Stack relevance is 100 while an entry runs, 60 for one hour after one stops, 10 otherwise; the app donates the start and continue intents it performs. Buttons do nothing on a locked device. Before the first sync has delivered the store, every widget shows "Open TimeTracking to finish setup".
+Look (`spec_design.md` §6, §7 at widget scale): system text styles (task `.headline`, project line `.subheadline` with the 8 pt area dot and " · client" in `.secondary`, elapsed time `.title2.weight(.semibold)` with monospaced digits, totals and the Pomodoro `.caption` in `.secondary`); the start and stop circles of `CircleButtonStyle` (44 pt in Now, 32 pt in Recent rows, 24 pt as the Pinned stop mark) in system green and red; the background is `.background` through `containerBackground`, which the system removes in StandBy, on the Lock Screen, and in the tinted and clear Home Screen styles. In the accented and vibrant rendering modes the circles become one shape with the glyph cut out, marked `widgetAccentable()` with the area dot, the Pomodoro glyph, and the Lock Screen buttons. Live times use the system timer format (`m:ss` under an hour, `h:mm:ss` from one hour). A widget without content shows a centered symbol, title, and line ("No Pinned Projects", "No Recent Entries"). Task text is `privacySensitive()`. The gallery shows a running sample with recent rows and pinned projects.
+
+Wherever a Pomodoro shows, the elapsed time stays the primary number and the countdown is a secondary line: the phase glyph (`timer`, `cup.and.saucer`) in the accent color and the remaining time, or `+` and the time since the phase ended while its confirmation is pending (`spec_design.md` §11). Tapping outside a button opens the Timer (`timetracking://show`). Smart Stack relevance is 100 while an entry runs, 60 for one hour after one stops, 10 otherwise; the app donates the start and continue intents it performs. Buttons do nothing on a locked device. Before the first sync has delivered the store, every widget shows "Open TimeTracking to finish setup".
 
 ### 3.2 Running entry widget ("Now")
 
 | Family | Running | Idle |
 |---|---|---|
-| `systemSmall` | Area dot and project; task (two lines at most); elapsed time in large monospaced digits; red Stop button bottom trailing | "Not tracking"; the most recent entry's task and project; Continue button |
-| `systemMedium` | Task and elapsed time; area dot, project, client; "Today" total (live) and Stop; when a Pomodoro is active on this device, the phase glyph and countdown as a second live timer; footer with the Mac activity line of 2.3 | "Not tracking"; "Today" total; the most recent entry with Continue; Mac activity footer |
+| `systemSmall` | Area dot and project; task (two lines at most); the Pomodoro line when one is active on this device; elapsed time and the Stop circle bottom trailing | "Not tracking"; the most recent entry's task and project; "Today" total and the Continue circle |
+| `systemMedium` | Task (one line with a Mac activity footer, else two); area dot, project, client; elapsed time; under it the "Today" total (live) and the Pomodoro line; Stop circle bottom trailing; footer with the Mac activity line of 2.3 | "Not tracking" and the "Today" total; the most recent entry with the Continue circle; Mac activity footer |
 
 ### 3.3 Recent entries widget ("Recent")
 
@@ -117,15 +121,15 @@ Families `systemMedium` (3 rows), `systemLarge` (7), and `systemExtraLarge` on t
 
 ### 3.4 Pinned projects widget ("Pinned")
 
-Configurable with `PinnedProjectsConfigurationIntent`: "Use pinned list" (default, the synced `pinnedProjectIDs`) or an explicit ordered list of 1 to 12 projects, and the task mode (default from Settings). Families `systemSmall` (2 buttons), `systemMedium` (4), `systemLarge` (8), `systemExtraLarge` (12). Each button shows the area dot and project and starts it (in "last task" mode with its most recent task); the running project's button shows a stop glyph and stops it. An archived project renders disabled with "Archived".
+Configurable with `PinnedProjectsConfigurationIntent`: "Use pinned list" (default, the synced `pinnedProjectIDs`) or an explicit ordered list of 1 to 12 projects, and the task mode (default from Settings). Families `systemSmall` (2 buttons), `systemMedium` (4), `systemLarge` (8), `systemExtraLarge` (12). Each button is a rounded rectangle (12 pt corners, `.fill.secondary`) with the area dot and project and starts it (in "last task" mode with its most recent task); the running project's button takes a light tint of its area color, shows the 24 pt stop circle, and stops it. An archived project renders disabled with "Archived".
 
 ### 3.5 Lock Screen families
 
 | Family | Running | Idle | Button |
 |---|---|---|---|
-| `accessoryInline` | "▶ 0:12:34 · TimeTracking", live | "Not tracking" | None; opens the app |
+| `accessoryInline` | `stopwatch` and "12:34 · Project", live | `stopwatch` and "Not tracking" | None; opens the app |
 | `accessoryCircular` | Stop glyph above the live time ("12:34", hours from 60 minutes) | Play glyph | Stop, or Continue Latest |
-| `accessoryRectangular` | Task, project, live time, Stop | "Not tracking", the most recent task, Continue | Yes |
+| `accessoryRectangular` | Task, project, live time; `stop.circle.fill` trailing | "Not tracking", the most recent task; `play.circle.fill` trailing | Yes |
 
 ## 4. Live updates
 
@@ -245,7 +249,7 @@ The non-persistent background script listens to `tabs.onActivated` and `tabs.onU
 
 ### 9.6 Flush
 
-The app process alone calls `flush()`: at every foreground and every 5 minutes while open, on every CloudKit push, in every refresh task, from the wrapper intents when the last flush is over 5 minutes old, and on "Flush Now". The widget extension never flushes.
+The app process alone calls `flush()`: at every foreground and every 5 minutes while open, on every CloudKit push, in every refresh task, from the wrapper intents when the last flush is over 5 minutes old, and on "Upload Now" in Settings. The widget extension never flushes.
 
 ### 9.7 The app's own time
 
@@ -296,8 +300,8 @@ The iPad reads the block log through `ActivityReading` and the Mac's activity fr
 
 ## 11. Onboarding
 
-1. Account. The iCloud account status must be `.available`; otherwise a full-screen explanation (the app needs the Mac's iCloud account with iCloud Drive on) with a button to the system settings and "Try Again" blocks everything else. The device name is asked here, prefilled with the system name, and written to the `Device` record.
-2. Initial sync. The library fetches the zone before anything else shows, with record counts as progress. The iPad's tab bar appears after this step.
+1. Account. The iCloud account status must be `.available`; otherwise a full-screen `ContentUnavailableView` ("iCloud Needed", `icloud.slash`; the app needs the Mac's iCloud account with iCloud Drive on) with the prominent "Open Settings" and "Try Again" blocks everything else. The device name is asked here, prefilled with the system name, and written to the `Device` record: a grouped form with the device symbol, the title "Name This Device", the line "Entries show where they were created.", the name field, and a full-width prominent "Continue" at the bottom (disabled while the name is empty).
+2. Initial sync. The library fetches the zone before anything else shows: "Receiving Your Data" (`icloud.and.arrow.down`) with a progress indicator and the record count. The iPad's tab bar appears after this step.
 3. Nothing else is asked at launch. Notification permission comes at the first start, Screen Time authorization from the Activity collection screen, calendar access when the iPad's Calendar tab first opens. The Activity collection screen has step-by-step instructions for the Safari extension, Focus filter, and automations, each checked off when the app detects it (extension messages received, Focus events received, authorization granted).
 
 ## 12. Testable behaviors
