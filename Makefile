@@ -32,8 +32,12 @@ LSREGISTER := /System/Library/Frameworks/CoreServices.framework/Frameworks/Launc
 
 PRODUCTS = $(DERIVED)/Build/Products
 MAC_RELEASE_APP = $(PRODUCTS)/Release/$(APP_NAME).app
-MAC_DEBUG_APP = $(PRODUCTS)/Debug/$(APP_NAME).app
-DEBUG_AGENT = $(MAC_DEBUG_APP)/Contents/Library/LoginItems/TimeTrackingAgent.app
+# Debug Mac bundles carry " Debug" in their file names (spec_architecture.md §2.2).
+MAC_DEBUG_APP = $(PRODUCTS)/Debug/$(APP_NAME) Debug.app
+DEBUG_AGENT = $(MAC_DEBUG_APP)/Contents/Library/LoginItems/TimeTrackingAgent Debug.app
+# Debug products built before the rename; mac-debug-unregister cleans them up too.
+LEGACY_DEBUG_APP = $(PRODUCTS)/Debug/$(APP_NAME).app
+LEGACY_DEBUG_AGENT = $(LEGACY_DEBUG_APP)/Contents/Library/LoginItems/TimeTrackingAgent.app
 IOS_RELEASE_APP = $(PRODUCTS)/Release-iphoneos/$(APP_NAME).app
 SIM_APP = $(PRODUCTS)/Debug-iphonesimulator/$(APP_NAME).app
 INSTALLED_APP = /Applications/$(APP_NAME).app
@@ -115,14 +119,18 @@ demo: secrets ## Load FIXTURE (small, large, running) moved to today into the De
 	scripts/demo.sh "$(FIXTURE)" "$(MAC_DEBUG_APP)" "$(DEBUG_SUPPORT)" "$(BUNDLE_ID).debug" "$(SIM_APP)" "$(SIM_IPHONE)" "$(SIM_IPAD)"
 
 mac-debug-unregister: ## Quit the Debug app and agent, unregister the agent, reset its TCC grants
-	@[ ! -x "$(DEBUG_AGENT)/Contents/MacOS/TimeTrackingAgent" ] || "$(DEBUG_AGENT)/Contents/MacOS/TimeTrackingAgent" --unregister || true
+	@for agent in "$(DEBUG_AGENT)" "$(LEGACY_DEBUG_AGENT)"; do \
+		if [ -x "$$agent/Contents/MacOS/TimeTrackingAgent" ]; then "$$agent/Contents/MacOS/TimeTrackingAgent" --unregister || true; break; fi; \
+	done
 	@osascript -e 'if application id "$(BUNDLE_ID).debug" is running then tell application id "$(BUNDLE_ID).debug" to quit' >/dev/null 2>&1 || true
 	@$(LAUNCHCTL) bootout "gui/$$(id -u)/$(BUNDLE_ID).debug.agent" >/dev/null 2>&1 || true
 	@for service in Accessibility AppleEvents SystemPolicyAllFiles; do \
 		tccutil reset $$service "$(BUNDLE_ID).debug.agent" >/dev/null 2>&1 || true; \
 	done
-	@[ ! -d "$(DEBUG_AGENT)" ] || $(LSREGISTER) -u "$(DEBUG_AGENT)" 2>/dev/null || true
-	@[ ! -d "$(PRODUCTS)/Debug/TimeTrackingAgent.app" ] || $(LSREGISTER) -u "$(PRODUCTS)/Debug/TimeTrackingAgent.app" 2>/dev/null || true
+	@for bundle in "$(DEBUG_AGENT)" "$(PRODUCTS)/Debug/TimeTrackingAgent Debug.app" \
+		"$(LEGACY_DEBUG_AGENT)" "$(PRODUCTS)/Debug/TimeTrackingAgent.app"; do \
+		[ ! -d "$$bundle" ] || $(LSREGISTER) -u "$$bundle" 2>/dev/null || true; \
+	done
 	@echo "The Debug agent is unregistered."
 
 logs: ## Stream the unified log of the installed Mac app, agent, and tools

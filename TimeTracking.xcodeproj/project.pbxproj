@@ -19,7 +19,7 @@
 		84BCC1F38F6299DA5C775E36 /* TimeTrackingCore in Frameworks */ = {isa = PBXBuildFile; productRef = 3283E7AFBDEFC2680B5614D6 /* TimeTrackingCore */; };
 		B8E925F76E1EC79A74F8089C /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = 4F9B73071CE725C584D62957 /* KeyboardShortcuts */; };
 		C35916C4471818482A8BF83C /* timetracking in Embed Helpers */ = {isa = PBXBuildFile; fileRef = 51328CB683DBB45C08D94672 /* timetracking */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		CBDAD4BF48B9E599E0E9D227 /* TimeTrackingAgent.app in Embed Login Items */ = {isa = PBXBuildFile; fileRef = 4BC2C899112A3D0FF1706B10 /* TimeTrackingAgent.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		CBDAD4BF48B9E599E0E9D227 /* $(TT_AGENT_NAME).app in Embed Login Items */ = {isa = PBXBuildFile; fileRef = 0A1B2C3D4E5F60718293A4B5 /* $(TT_AGENT_NAME).app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		D8B692EF2BA06BEEEB73202C /* TimeTrackingMonitor.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = AC20818DDF6CACC2BCF5B1BA /* TimeTrackingMonitor.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		DA5A539B9C851EF1A9EEA31D /* TimeTrackingCore in Frameworks */ = {isa = PBXBuildFile; productRef = BA1583758AD6C11671CB2BD6 /* TimeTrackingCore */; };
 		EEE132E83BE88968D66DAEB3 /* TimeTrackingCore in Frameworks */ = {isa = PBXBuildFile; productRef = 2021806177EE5A3D80502DC2 /* TimeTrackingCore */; };
@@ -159,7 +159,7 @@
 			dstPath = Contents/Library/LoginItems;
 			dstSubfolderSpec = 1;
 			files = (
-				CBDAD4BF48B9E599E0E9D227 /* TimeTrackingAgent.app in Embed Login Items */,
+				CBDAD4BF48B9E599E0E9D227 /* $(TT_AGENT_NAME).app in Embed Login Items */,
 			);
 			name = "Embed Login Items";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -179,6 +179,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		0A1B2C3D4E5F60718293A4B5 /* $(TT_AGENT_NAME).app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "$(TT_AGENT_NAME).app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		19C24C4D68B176A69042BBB7 /* TimeTrackingTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TimeTrackingTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		29F4769D1F19CB90994AE36E /* TimeTrackingIntents.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.extensionkit-extension"; includeInIndex = 0; path = TimeTrackingIntents.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		2E5B5E110C7894EBBE22A208 /* TimeTrackingiOSUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TimeTrackingiOSUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -421,6 +422,7 @@
 			children = (
 				8F1F26A4A5CFE7FC86365190 /* TimeTracking.app */,
 				4BC2C899112A3D0FF1706B10 /* TimeTrackingAgent.app */,
+				0A1B2C3D4E5F60718293A4B5 /* $(TT_AGENT_NAME).app */,
 				51328CB683DBB45C08D94672 /* timetracking */,
 				42DDB581F99578F5DD0C592A /* tracker-event */,
 				A7330266BFD687EDFBC99CBC /* TimeTrackingiOS.app */,
@@ -1468,7 +1470,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				SDKROOT = macosx;
 				SUPPORTED_PLATFORMS = macosx;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/$(TT_APP_NAME).app/Contents/MacOS/TimeTracking";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/$(TT_MAC_APP_NAME).app/Contents/MacOS/TimeTracking";
 			};
 			name = Debug;
 		};
@@ -1633,7 +1635,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				SDKROOT = macosx;
 				SUPPORTED_PLATFORMS = macosx;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TimeTrackingAgent.app/Contents/MacOS/TimeTrackingAgent";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/$(TT_AGENT_NAME).app/Contents/MacOS/TimeTrackingAgent";
 			};
 			name = Release;
 		};
@@ -1655,7 +1657,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				SDKROOT = macosx;
 				SUPPORTED_PLATFORMS = macosx;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TimeTrackingAgent.app/Contents/MacOS/TimeTrackingAgent";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/$(TT_AGENT_NAME).app/Contents/MacOS/TimeTrackingAgent";
 			};
 			name = Debug;
 		};
@@ -1687,7 +1689,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				SDKROOT = macosx;
 				SUPPORTED_PLATFORMS = macosx;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/$(TT_APP_NAME).app/Contents/MacOS/TimeTracking";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/$(TT_MAC_APP_NAME).app/Contents/MacOS/TimeTracking";
 			};
 			name = Release;
 		};

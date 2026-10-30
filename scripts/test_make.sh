@@ -11,6 +11,7 @@
 #   --build     a compiler warning fails the build (ARCH-15; ~30 s); swift test
 #               in a copy without local.mk and without network (ARCH-1; ~3 min)
 #   --products  checks of the Release products (ARCH-4, ARCH-5; needs make build-mac build-ios)
+#               and the Debug products' names (ARCH-24; also needs make mac-debug build-sim)
 #   --sim       recreates the two simulators (ARCH-18; ~1 min)
 #   --install   make install / uninstall into a temporary PREFIX (ARCH-20; needs TEAM; reinstalls)
 set -u
@@ -175,8 +176,9 @@ test_app_name() {
     local base="$scratch/base.settings" renamed="$scratch/renamed.settings" target name
     build_settings Debug > "$base"
     build_settings Debug TT_APP_NAME=Renamed > "$renamed"
+    check "the Debug Mac bundle is Renamed Debug.app" [ "$(setting "$renamed" TimeTracking FULL_PRODUCT_NAME)" = "Renamed Debug.app" ]
+    check "the iOS bundle is Renamed.app" [ "$(setting "$renamed" TimeTrackingiOS FULL_PRODUCT_NAME)" = Renamed.app ]
     for target in TimeTracking TimeTrackingiOS; do
-        check "$target bundle is Renamed.app" [ "$(setting "$renamed" $target FULL_PRODUCT_NAME)" = Renamed.app ]
         check "$target display name" [ "$(setting "$renamed" $target TT_DISPLAY_NAME)" = "Renamed Debug" ]
         for name in PRODUCT_MODULE_NAME EXECUTABLE_NAME PRODUCT_BUNDLE_IDENTIFIER; do
             check "$target $name unchanged" [ "$(setting "$renamed" $target $name)" = "$(setting "$base" $target $name)" ]
@@ -189,6 +191,43 @@ test_app_name() {
         check "$target product name unchanged" \
             [ "$(setting "$renamed" $target FULL_PRODUCT_NAME)" = "$(setting "$base" $target FULL_PRODUCT_NAME)" ]
     done
+}
+
+# --- ARCH-24
+
+display_name_is_setting() {
+    grep -A1 CFBundleDisplayName "$1" | grep -qE '\$\((TT_DISPLAY_NAME|TT_AGENT_NAME)\)'
+}
+
+# Debug Mac bundles carry " Debug" in their file names, all Debug bundles in
+# their display names; no Release name contains Debug.
+test_debug_names() {
+    local debug="$scratch/names.debug" release="$scratch/names.release" target plist
+    build_settings Debug TT_APP_NAME=Test > "$debug"
+    build_settings Release TT_APP_NAME=Test > "$release"
+    check "Debug Mac app file name" [ "$(setting "$debug" TimeTracking FULL_PRODUCT_NAME)" = "Test Debug.app" ]
+    check "Debug agent file name" [ "$(setting "$debug" TimeTrackingAgent FULL_PRODUCT_NAME)" = "TimeTrackingAgent Debug.app" ]
+    check "Debug agent name" [ "$(setting "$debug" TimeTrackingAgent TT_AGENT_NAME)" = "TimeTrackingAgent Debug" ]
+    check "Release Mac app file name" [ "$(setting "$release" TimeTracking FULL_PRODUCT_NAME)" = Test.app ]
+    check "Release agent file name" [ "$(setting "$release" TimeTrackingAgent FULL_PRODUCT_NAME)" = TimeTrackingAgent.app ]
+    for target in TimeTracking TimeTrackingAgent; do
+        check "$target Debug executable unchanged" \
+            [ "$(setting "$debug" $target EXECUTABLE_NAME)" = "$(setting "$release" $target EXECUTABLE_NAME)" ]
+    done
+    for target in TimeTracking TimeTrackingiOS TimeTrackingWidgets TimeTrackingIntents TimeTrackingMonitor TimeTrackingWebExtension; do
+        check "$target Debug display name" [ "$(setting "$debug" $target TT_DISPLAY_NAME)" = "Test Debug" ]
+    done
+    check "the agent's Info.plist names come from TT_AGENT_NAME" \
+        [ "$(grep -c '<string>$(TT_AGENT_NAME)</string>' "$root/Config/TimeTrackingAgent-Info.plist")" = 2 ]
+    for plist in "$root"/Config/*-Info.plist; do
+        if grep -q CFBundleDisplayName "$plist"; then
+            check "$(basename "$plist") display name is a Debug-aware setting" display_name_is_setting "$plist"
+        fi
+    done
+    if grep -E $'\t(FULL_PRODUCT_NAME|TT_DISPLAY_NAME|TT_AGENT_NAME|TT_MAC_APP_NAME) = .*Debug' "$release"; then
+        echo "a Release name contains Debug"
+        return 1
+    fi
 }
 
 # --- ARCH-9, ARCH-10
@@ -509,6 +548,53 @@ test_ios_products() {
     check "the Release iOS products pass" "$root/scripts/check_products.sh" ios "$app" "$(local_value BUNDLE_ID)" "$(local_value TEAM)"
 }
 
+# plist_value <plist> <key>
+plist_value() {
+    plutil -extract "$2" raw "$1" 2>/dev/null
+}
+
+# The built Debug and Release bundles' file and display names (ARCH-24).
+test_product_names() {
+    local name debug_app agent release_app_path sim_app ios_app plist program extension
+    name=$(local_value APP_NAME)
+    name=${name:-TimeTracking}
+    debug_app=$(release_app Debug)
+    debug_app="${debug_app%.app} Debug.app"
+    agent="$debug_app/Contents/Library/LoginItems/TimeTrackingAgent Debug.app"
+    check "a Debug Mac build exists (run make mac-debug)" [ -d "$debug_app" ]
+    check "the Debug app's bundle name" [ "$(plist_value "$debug_app/Contents/Info.plist" CFBundleName)" = "$name Debug" ]
+    check "the Debug app's display name" [ "$(plist_value "$debug_app/Contents/Info.plist" CFBundleDisplayName)" = "$name Debug" ]
+    check "the Debug app's executable" [ -x "$debug_app/Contents/MacOS/TimeTracking" ]
+    check "the Debug agent is TimeTrackingAgent Debug.app" [ -d "$agent" ]
+    check "the Debug agent's bundle name" [ "$(plist_value "$agent/Contents/Info.plist" CFBundleName)" = "TimeTrackingAgent Debug" ]
+    check "the Debug agent's display name" [ "$(plist_value "$agent/Contents/Info.plist" CFBundleDisplayName)" = "TimeTrackingAgent Debug" ]
+    check "the Debug agent's executable" [ -x "$agent/Contents/MacOS/TimeTrackingAgent" ]
+    plist=$(ls "$debug_app"/Contents/Library/LaunchAgents/*.plist)
+    program=$(plist_value "$plist" BundleProgram)
+    check "the Debug launchd plist names the Debug agent" \
+        [ "$program" = "Contents/Library/LoginItems/TimeTrackingAgent Debug.app/Contents/MacOS/TimeTrackingAgent" ]
+    check "the Debug BundleProgram is an executable" [ -x "$debug_app/$program" ]
+    release_app_path=$(release_app Release)
+    check "a Release Mac build exists (run make build-mac)" [ -d "$release_app_path" ]
+    check "the Release app is $name.app" [ "$(basename "$release_app_path")" = "$name.app" ]
+    check "the Release agent is TimeTrackingAgent.app" [ -d "$release_app_path/Contents/Library/LoginItems/TimeTrackingAgent.app" ]
+    check "the Release Mac bundles' names lack Debug" not sh -c "find '$release_app_path' -name Info.plist \
+        -exec plutil -extract CFBundleName raw {} \; -exec plutil -extract CFBundleDisplayName raw {} \; 2>/dev/null | grep Debug"
+    check "no Release Mac bundle file name contains Debug" [ -z "$(find "$release_app_path" -name '*Debug*')" ]
+    sim_app=$(release_app Debug-iphonesimulator)
+    check "a simulator build exists (run make build-sim)" [ -d "$sim_app" ]
+    check "the simulator app's display name" [ "$(plist_value "$sim_app/Info.plist" CFBundleDisplayName)" = "$name Debug" ]
+    for extension in "$sim_app"/PlugIns/*.appex "$sim_app"/Extensions/*.appex; do
+        [ -d "$extension" ] || continue
+        check "$(basename "$extension") Debug display name" \
+            [ "$(plist_value "$extension/Info.plist" CFBundleDisplayName)" = "$name Debug" ]
+    done
+    ios_app=$(release_app Release-iphoneos)
+    check "a Release iOS build exists (run make build-ios)" [ -d "$ios_app" ]
+    check "the Release iOS bundles' display names lack Debug" not sh -c "find '$ios_app' -name Info.plist \
+        -exec plutil -extract CFBundleDisplayName raw {} \; 2>/dev/null | grep Debug"
+}
+
 # --- ARCH-18 (--sim)
 
 sim_udid() {
@@ -608,10 +694,12 @@ behavior "ARCH-14 make clean keeps the products; make distclean removes build.no
 behavior "ARCH-15 make lint fails on a SwiftLint finding, a formatting difference, or #available, without building" test_lint_fails
 behavior "ARCH-22 the pre-commit hook refuses a staged TEAM value" test_pre_commit
 behavior "ARCH-23 make demo seeds only the Debug container after building both Debug apps; an unknown fixture stops first" test_demo
+behavior "ARCH-24 Debug Mac bundle file names and all Debug display names contain Debug; Release names do not" test_debug_names
 [ "$run_build" = 0 ] || behavior "ARCH-15 a compiler warning fails the build" test_warning_fails_build
 [ "$run_build" = 0 ] || behavior "ARCH-1 swift test passes in a copy of the checkout without local.mk, signing, or network" test_package_without_local_mk
 [ "$run_products" = 0 ] || behavior "ARCH-4 the Release Mac app holds the agent, launchd plist, and tools, and no Frameworks" test_mac_products
 [ "$run_products" = 0 ] || behavior "ARCH-5 the Release iOS bundles have the entitlements of the table" test_ios_products
+[ "$run_products" = 0 ] || behavior "ARCH-24 the built Debug bundles carry Debug in their file and display names, the Release ones nowhere" test_product_names
 [ "$run_sim" = 0 ] || behavior "ARCH-18 make sim-create creates the simulators once; tests pass on fresh ones" test_sim_create
 [ "$run_install" = 0 ] || behavior "ARCH-20 make install links a tool that prints the app's version; uninstall removes only its files" test_install
 

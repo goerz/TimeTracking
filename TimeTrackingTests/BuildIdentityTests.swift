@@ -1,4 +1,5 @@
-// The Debug Mac app's identity as built (spec_architecture.md §1.4, §1.5).
+// The Debug Mac app's identity and names as built (spec_architecture.md §1.4,
+// §1.5, §2.2).
 
 import Foundation
 import Testing
@@ -20,12 +21,26 @@ struct BuildIdentityTests {
     func debugAgent() throws {
         let identity = try AppIdentity(infoDictionary: Bundle.main.infoDictionary ?? [:])
         let contents = Bundle.main.bundleURL.appending(path: "Contents")
-        let agent = try #require(Bundle(url: contents.appending(path: "Library/LoginItems/TimeTrackingAgent.app")))
+        let agent = try #require(Bundle(url: contents.appending(path: "Library/LoginItems/TimeTrackingAgent Debug.app")))
         #expect(agent.bundleIdentifier == identity.appID + ".agent")
         let plistURL = contents.appending(path: "Library/LaunchAgents/\(identity.agentPlistName)")
         let data = try Data(contentsOf: plistURL)
         let plist = try #require(PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any])
         #expect(plist["Label"] as? String == identity.agentBundleID)
-        #expect(plist["BundleProgram"] as? String == "Contents/Library/LoginItems/TimeTrackingAgent.app/Contents/MacOS/TimeTrackingAgent")
+        #expect(plist["BundleProgram"] as? String ==
+            "Contents/Library/LoginItems/TimeTrackingAgent Debug.app/Contents/MacOS/TimeTrackingAgent")
+    }
+
+    @Test("ARCH-24 the Debug app and agent carry Debug in their file, bundle, and display names; executables keep theirs")
+    func debugNames() throws {
+        let app = Bundle.main
+        let agent = try #require(Bundle(url: app.bundleURL.appending(path: "Contents/Library/LoginItems/TimeTrackingAgent Debug.app")))
+        for (bundle, executable) in [(app, "TimeTracking"), (agent, "TimeTrackingAgent")] {
+            let name = bundle.bundleURL.deletingPathExtension().lastPathComponent
+            #expect(name.hasSuffix(" Debug"))
+            #expect(bundle.infoDictionary?["CFBundleName"] as? String == name)
+            #expect(bundle.infoDictionary?["CFBundleDisplayName"] as? String == name)
+            #expect(bundle.executableURL?.lastPathComponent == executable)
+        }
     }
 }

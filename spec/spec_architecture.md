@@ -13,8 +13,8 @@ One Xcode project, `TimeTracking.xcodeproj`, plus one local Swift package, `Pack
 | Target | Kind | Product | Bundle identifier | Spec |
 |---|---|---|---|---|
 | `TimeTrackingCore` | Swift package library (macOS, iOS) | `TimeTrackingCore` module | (none) | `spec_data_and_sync.md` |
-| `TimeTracking` | Mac app | `<APP_NAME>.app`, module `TimeTracking` | `<APP_ID>` | `spec_timer_window.md`, `spec_menubar.md`, `spec_planner_*.md` |
-| `TimeTrackingAgent` | Mac login item (helper app) | `TimeTrackingAgent.app` at `Contents/Library/LoginItems/` | `<APP_ID>.agent` | `spec_activity_tracking.md` |
+| `TimeTracking` | Mac app | `<APP_NAME>.app` (Debug: `<APP_NAME> Debug.app`), module `TimeTracking` | `<APP_ID>` | `spec_timer_window.md`, `spec_menubar.md`, `spec_planner_*.md` |
+| `TimeTrackingAgent` | Mac login item (helper app) | `TimeTrackingAgent.app` (Debug: `TimeTrackingAgent Debug.app`) at `Contents/Library/LoginItems/` | `<APP_ID>.agent` | `spec_activity_tracking.md` |
 | `TimeTrackingCLI` | Mac command-line tool | `timetracking` at `Contents/Helpers/` | (none) | `spec_automation.md` |
 | `TrackerEvent` | Mac command-line tool | `tracker-event` at `Contents/Helpers/` | (none) | `spec_activity_tracking.md` |
 | `TimeTrackingiOS` | iOS app (iPhone and iPad) | `<APP_NAME>.app`, module `TimeTrackingiOS` | `<APP_ID>` | `spec_ios.md` |
@@ -61,7 +61,7 @@ User interface targets hold views, view state, and platform glue only. A view mo
 
 ### 1.4 The agent as a login item
 
-The agent is embedded at `Contents/Library/LoginItems/TimeTrackingAgent.app` and registered with `SMAppService.agent(plistName: "<APP_ID>.agent.plist")`. A build phase generates that plist into `Contents/Library/LaunchAgents/`: `Label` and the Mach service are the agent's bundle identifier, `BundleProgram` is `Contents/Library/LoginItems/TimeTrackingAgent.app/Contents/MacOS/TimeTrackingAgent`, `AssociatedBundleIdentifiers` names the app, `KeepAlive` is true, `ProcessType` is `Background`.
+The agent is embedded at `Contents/Library/LoginItems/TimeTrackingAgent.app` and registered with `SMAppService.agent(plistName: "<APP_ID>.agent.plist")`. A build phase generates that plist into `Contents/Library/LaunchAgents/`: `Label` and the Mach service are the agent's bundle identifier, `BundleProgram` is `Contents/Library/LoginItems/TimeTrackingAgent.app/Contents/MacOS/TimeTrackingAgent` (in Debug `TimeTrackingAgent Debug.app`, 2.2), `AssociatedBundleIdentifiers` names the app, `KeepAlive` is true, `ProcessType` is `Background`.
 
 The agent is unsandboxed with the hardened runtime and always signed with the team's development certificate, because TCC keys Accessibility and Full Disk Access grants to the signing identity.
 
@@ -108,7 +108,8 @@ The only place for identifiers and signing; no target sets `PRODUCT_BUNDLE_IDENT
 
 - `TT_BUNDLE_SUFFIX_Debug = .debug`, `TT_BUNDLE_SUFFIX_Release =`, `TT_APP_ID = $(TT_BUNDLE_ID)$(TT_BUNDLE_SUFFIX_$(CONFIGURATION))`; bundle identifiers as in 1.1.
 - `TT_CLOUDKIT_CONTAINER = iCloud.$(TT_APP_ID)`, `TT_APP_GROUP[sdk=iphone*] = group.$(TT_APP_ID)`, `TT_APP_GROUP[sdk=macosx*] = $(DEVELOPMENT_TEAM).$(TT_APP_ID)`, `TT_URL_SCHEME_Release = timetracking`, `TT_URL_SCHEME_Debug = timetracking-debug`; written into the Info.plists as `TTCloudKitContainer`, `TTAppGroup`, `TTURLScheme`, `TTTeamID`, `TTBundleID`.
-- `PRODUCT_NAME = $(TT_APP_NAME)` for the two apps only; module and executable names stay `TimeTracking` and `TimeTrackingiOS`. The display name (`CFBundleDisplayName`) is `$(TT_APP_NAME)` for user-visible bundles, with " Debug" appended in Debug.
+- `PRODUCT_NAME = $(TT_APP_NAME)` for the two apps; module and executable names stay `TimeTracking`, `TimeTrackingiOS`, and `TimeTrackingAgent`. The display name (`CFBundleDisplayName`) is `$(TT_APP_NAME)` for user-visible bundles, with " Debug" appended in Debug.
+- In Debug the two Mac bundles also carry " Debug" in their file names: `PRODUCT_NAME` is `$(TT_APP_NAME) Debug` for the Mac app and `TimeTrackingAgent Debug` for the agent (`TT_MAC_APP_NAME`, `TT_AGENT_NAME`), whose `CFBundleName` and `CFBundleDisplayName` follow. System Settings lists apps by bundle file name in Privacy & Security and names the app of `AssociatedBundleIdentifiers` in Login Items, and Finder shows file names, so without the suffix a permission granted to a development build looks like one granted to the installed app. Release names are unchanged; the iOS bundle file name is never shown and stays `<APP_NAME>.app`. The copy phase that embeds the agent refers to `$(BUILT_PRODUCTS_DIR)/$(TT_AGENT_NAME).app` by a plain file reference, because Xcode resolves a product reference under one configuration's name for every configuration.
 - `MACOSX_DEPLOYMENT_TARGET = 27.0`, `IPHONEOS_DEPLOYMENT_TARGET = 27.0`, `TARGETED_DEVICE_FAMILY = 1,2`, no Mac Catalyst, no "Designed for iPad", `ARCHS[sdk=macosx*] = arm64`.
 - `SWIFT_VERSION = 6.0`, `SWIFT_STRICT_CONCURRENCY = complete`, `SWIFT_APPROACHABLE_CONCURRENCY = YES`, `SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES`, `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor` for executables, `SWIFT_TREAT_WARNINGS_AS_ERRORS = YES`.
 - `CODE_SIGN_STYLE = Automatic`, hardened runtime on the Mac, `ENABLE_APP_SANDBOX = NO` for Mac targets, `CODE_SIGN_INJECT_BASE_ENTITLEMENTS[config=Release][sdk=macosx*] = NO` (no `get-task-allow` in Release; Mac entitlements files list everything explicitly), `CODE_SIGN_ENTITLEMENTS = Config/$(TARGET_NAME).entitlements`.
@@ -343,6 +344,7 @@ Each step ends with its behaviors green and with `make install` producing a usab
 21. A `tracker-event` invocation with the agent not running exits non-zero within 100 ms.
 22. A `git commit` whose staged change contains the value of `TEAM` is refused by the pre-commit hook.
 23. Seeding fixture `running` at 15:00 local time on 2026-10-30 (`make demo FIXTURE=running`) puts the entries of 2024-03-13 on 2026-10-29 at the same local times, starts the running entry at 14:35, and leaves no entry after 15:00; `make demo` names only the Debug container, and a store outside a Debug or simulator container is refused and left unchanged.
+24. In Debug the Mac app is `<APP_NAME> Debug.app` and the agent `Contents/Library/LoginItems/TimeTrackingAgent Debug.app`, both with "Debug" in `CFBundleName` and `CFBundleDisplayName`, the launchd plist's `BundleProgram` names the renamed agent, and every iOS bundle's display name ends in " Debug"; executable names are unchanged, and no Release bundle's file name, `CFBundleName`, or `CFBundleDisplayName` contains "Debug".
 
 ## 9. Decisions
 

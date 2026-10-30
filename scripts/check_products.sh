@@ -1,7 +1,7 @@
 #!/bin/sh
 # Verifies Release products after `make build-mac` / `make build-ios`
-# (spec_architecture.md §1.4, §2.3, ARCH-4, ARCH-5). Exits non-zero on any
-# violation and lists them all.
+# (spec_architecture.md §1.4, §2.2, §2.3, ARCH-4, ARCH-5, ARCH-24). Exits
+# non-zero on any violation and lists them all.
 #
 #   scripts/check_products.sh mac <APP_NAME>.app <BUNDLE_ID> <TEAM>
 #   scripts/check_products.sh ios <APP_NAME>.app <BUNDLE_ID> <TEAM>
@@ -94,6 +94,20 @@ bundle_id_of() {
     plutil -extract CFBundleIdentifier raw "$1/$2" 2>/dev/null
 }
 
+# check_release_names <bundle> <Info.plist path in the bundle> <target name>:
+# Debug bundles carry "Debug" in their file and display names (§2.2,
+# ARCH-24), Release bundles never do.
+check_release_names() {
+    case "$(basename "$1")" in
+    *Debug*) fail "$3 bundle file name $(basename "$1") contains Debug" ;;
+    esac
+    for key in CFBundleName CFBundleDisplayName; do
+        case "$(plutil -extract "$key" raw "$1/$2" 2>/dev/null)" in
+        *Debug*) fail "$3 $key contains Debug" ;;
+        esac
+    done
+}
+
 [ -d "$app" ] || { echo "check_products: no product at $app" >&2; exit 1; }
 
 if [ "$platform" = mac ]; then
@@ -109,6 +123,8 @@ if [ "$platform" = mac ]; then
     [ ! -e "$app/Contents/Frameworks" ] || fail "$app/Contents/Frameworks exists (the package must link statically)"
     [ "$(bundle_id_of "$app" Contents/Info.plist)" = "$bundle_id" ] || fail "app bundle identifier is not $bundle_id"
     [ "$(bundle_id_of "$agent" Contents/Info.plist)" = "$bundle_id.agent" ] || fail "agent bundle identifier is not $bundle_id.agent"
+    check_release_names "$app" Contents/Info.plist TimeTracking
+    check_release_names "$agent" Contents/Info.plist TimeTrackingAgent
 
     if [ -f "$plist" ]; then
         [ "$(plutil -extract Label raw "$plist" 2>/dev/null)" = "$bundle_id.agent" ] || fail "launchd Label is not $bundle_id.agent"
@@ -135,6 +151,7 @@ if [ "$platform" = mac ]; then
     done
 else
     [ "$(bundle_id_of "$app" Info.plist)" = "$bundle_id" ] || fail "iOS app bundle identifier is not $bundle_id"
+    check_release_names "$app" Info.plist TimeTrackingiOS
     [ ! -e "$app/Frameworks/TimeTrackingCore.framework" ] || fail "TimeTrackingCore is embedded as a framework"
     check_signature "$app" TimeTrackingiOS
     check_entitlements "$app" TimeTrackingiOS

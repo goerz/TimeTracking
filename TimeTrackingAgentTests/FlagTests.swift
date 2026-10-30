@@ -113,14 +113,15 @@ struct FlagTests {
         #expect(text.contains("github.com"))
     }
 
-    /// `<root>/Host.app` whose executable records its arguments in
+    /// `<root>/Host Debug.app` whose executable records its arguments in
     /// `<root>/arguments` and exits with `status`, and the agent bundle
     /// embedded in it.
     private static func fakeHostApp(status: Int32) throws -> (root: URL, agent: URL) {
         let manager = FileManager.default
         let root = manager.temporaryDirectory.appending(path: "host-\(UUID().uuidString)", directoryHint: .isDirectory)
-        let contents = root.appending(path: "Host.app/Contents", directoryHint: .isDirectory)
-        let agent = contents.appending(path: "Library/LoginItems/TimeTrackingAgent.app", directoryHint: .isDirectory)
+        // The Debug layout: both bundle names contain a space (spec_architecture.md §2.2).
+        let contents = root.appending(path: "Host Debug.app/Contents", directoryHint: .isDirectory)
+        let agent = contents.appending(path: "Library/LoginItems/TimeTrackingAgent Debug.app", directoryHint: .isDirectory)
         try manager.createDirectory(at: agent, withIntermediateDirectories: true)
         try manager.createDirectory(at: contents.appending(path: "MacOS"), withIntermediateDirectories: true)
         let plist: [String: Any] = ["CFBundleExecutable": "Host", "CFBundleIdentifier": "test.host", "CFBundlePackageType": "APPL"]
@@ -136,14 +137,14 @@ struct FlagTests {
     func unregister() throws {
         let (root, agent) = try Self.fakeHostApp(status: 0)
         defer { try? FileManager.default.removeItem(at: root) }
-        #expect(Unregistration.hostApp(of: agent)?.lastPathComponent == "Host.app")
+        #expect(Unregistration.hostApp(of: agent)?.lastPathComponent == "Host Debug.app")
         #expect(Unregistration.run(agentBundle: agent) == 0)
         let arguments = try String(contentsOf: root.appending(path: "arguments"), encoding: .utf8)
         #expect(arguments == "--unregister\n")
         let (stuckRoot, stuckAgent) = try Self.fakeHostApp(status: 1)
         defer { try? FileManager.default.removeItem(at: stuckRoot) }
         #expect(Unregistration.run(agentBundle: stuckAgent) == 1)
-        let standalone = root.appending(path: "Debug/TimeTrackingAgent.app", directoryHint: .isDirectory)
+        let standalone = root.appending(path: "Debug/TimeTrackingAgent Debug.app", directoryHint: .isDirectory)
         #expect(Unregistration.hostApp(of: standalone) == nil)
         #expect(Unregistration.run(agentBundle: standalone) == 0)
     }

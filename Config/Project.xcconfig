@@ -29,6 +29,18 @@ TT_URL_SCHEME = $(TT_URL_SCHEME_$(CONFIGURATION))
 TT_DISPLAY_NAME_Release = $(TT_APP_NAME)
 TT_DISPLAY_NAME_Debug = $(TT_APP_NAME) Debug
 TT_DISPLAY_NAME = $(TT_DISPLAY_NAME_$(CONFIGURATION))
+// Bundle file names of the two Mac bundles that System Settings (Privacy &
+// Security, Login Items) and Finder list by file name: " Debug" in Debug, so
+// a permission granted to a development build says so (§2.2). The agent's
+// Info.plist takes CFBundleName and CFBundleDisplayName from TT_AGENT_NAME.
+// Xcode names a product reference after one configuration only, so the copy
+// phase "Embed Login Items" refers to $(BUILT_PRODUCTS_DIR)/$(TT_AGENT_NAME).app
+// by a plain file reference instead of the agent's product reference; the
+// tests' TEST_HOST and the launchd plist phase use these names too.
+TT_MAC_APP_NAME = $(TT_APP_NAME)
+TT_MAC_APP_NAME[config=Debug] = $(TT_APP_NAME) Debug
+TT_AGENT_NAME = TimeTrackingAgent
+TT_AGENT_NAME[config=Debug] = TimeTrackingAgent Debug
 TT_REFRESH_TASK_ID = $(TT_APP_ID).refresh
 
 MARKETING_VERSION = 1.0
@@ -54,15 +66,17 @@ TT_BUNDLE_IDENTIFIER_TimeTrackingAgentTests = $(TT_APP_ID).agent-tests
 TT_BUNDLE_IDENTIFIER_TimeTrackingCLITests = $(TT_APP_ID).cli-tests
 PRODUCT_BUNDLE_IDENTIFIER = $(TT_BUNDLE_IDENTIFIER_$(TARGET_NAME))
 
-// Product names: the two apps carry the personal name; module and executable
-// names stay fixed (§2.2).
-TT_PRODUCT_NAME_TimeTracking = $(TT_APP_NAME)
+// Product names: the two apps carry the personal name, the Mac app " Debug"
+// in Debug; module and executable names stay fixed (§2.2).
+TT_PRODUCT_NAME_TimeTracking = $(TT_MAC_APP_NAME)
+TT_PRODUCT_NAME_TimeTrackingAgent = $(TT_AGENT_NAME)
 TT_PRODUCT_NAME_TimeTrackingiOS = $(TT_APP_NAME)
 TT_PRODUCT_NAME_TimeTrackingCLI = timetracking
 TT_PRODUCT_NAME_TrackerEvent = tracker-event
 PRODUCT_NAME = $(TT_PRODUCT_NAME_$(TARGET_NAME):default=$(TARGET_NAME))
 TT_EXECUTABLE_NAME_TimeTracking = TimeTracking
 TT_EXECUTABLE_NAME_TimeTrackingiOS = TimeTrackingiOS
+TT_EXECUTABLE_NAME_TimeTrackingAgent = TimeTrackingAgent
 EXECUTABLE_NAME = $(EXECUTABLE_PREFIX)$(TT_EXECUTABLE_NAME_$(TARGET_NAME):default=$(PRODUCT_NAME))$(EXECUTABLE_SUFFIX)
 PRODUCT_MODULE_NAME = $(TARGET_NAME:c99extidentifier)
 

@@ -29,7 +29,7 @@ Everything derives from `TT_APP_ID`: `<BUNDLE_ID>` in Release, `<BUNDLE_ID>.debu
 
 | Identifier | Value |
 |---|---|
-| Agent | `<APP_ID>.agent`, launchd plist `Contents/Library/LaunchAgents/<APP_ID>.agent.plist` |
+| Agent | `<APP_ID>.agent`, launchd plist `Contents/Library/LaunchAgents/<APP_ID>.agent.plist`; bundle `TimeTrackingAgent.app`, Debug `TimeTrackingAgent Debug.app` |
 | Extensions | `<APP_ID>.widgets`, `.intents`, `.monitor`, `.web-extension` |
 | App Group | iOS `group.<APP_ID>`; Mac `<TEAM>.<APP_ID>` |
 | CloudKit and ubiquity container | `iCloud.<APP_ID>` |
@@ -46,7 +46,7 @@ Code reads these through `AppIdentity.main` (from the `TT*` Info.plist keys: `TT
 
 Nothing personal is committed. `local.mk` (git-ignored; template `local.mk.example`) holds `TEAM`, `BUNDLE_ID`, `APP_NAME`, `DEVICE_<name>`, `PREFIX`, `ALIAS`. Every building make target first writes `Config/Local.xcconfig` (git-ignored) with `TT_BUNDLE_ID`, `TT_APP_NAME`, and `DEVELOPMENT_TEAM`, only when the content changes.
 
-`Config/Project.xcconfig` is the only place for identifiers and signing. No target in the project file sets `PRODUCT_BUNDLE_IDENTIFIER`, `DEVELOPMENT_TEAM`, `CODE_SIGN_*`, `PROVISIONING_PROFILE*`, or `PRODUCT_NAME`; per-target values come from tables keyed by `TARGET_NAME` (`TT_BUNDLE_IDENTIFIER_<target>`, `TT_PRODUCT_NAME_<target>`, `TT_PRODUCT_<target>`). The apps' `PRODUCT_NAME` is `$(TT_APP_NAME)`; module and executable names stay `TimeTracking` and `TimeTrackingiOS`. Swift 6.0 language mode, complete strict concurrency, approachable concurrency, member import visibility, warnings as errors, `MainActor` default isolation for shipping products (the package and test bundles default to nonisolated). Mac targets are unsandboxed with the hardened runtime; Release Mac builds carry no `get-task-allow`. Deployment targets are macOS 27.0 and iOS 27.0.
+`Config/Project.xcconfig` is the only place for identifiers and signing. No target in the project file sets `PRODUCT_BUNDLE_IDENTIFIER`, `DEVELOPMENT_TEAM`, `CODE_SIGN_*`, `PROVISIONING_PROFILE*`, or `PRODUCT_NAME`; per-target values come from tables keyed by `TARGET_NAME` (`TT_BUNDLE_IDENTIFIER_<target>`, `TT_PRODUCT_NAME_<target>`, `TT_PRODUCT_<target>`). The apps' `PRODUCT_NAME` is `$(TT_APP_NAME)`; module and executable names stay `TimeTracking`, `TimeTrackingiOS`, and `TimeTrackingAgent`. In Debug the Mac bundles are `<APP_NAME> Debug.app` and `TimeTrackingAgent Debug.app` (`TT_MAC_APP_NAME`, `TT_AGENT_NAME`; their `CFBundleName` and `CFBundleDisplayName` follow), because System Settings (Privacy & Security, Login Items) and Finder show bundle file names; every Debug display name ends in " Debug". Never hard-code a Debug bundle path: use those settings, the Makefile's `MAC_DEBUG_APP` and `DEBUG_AGENT`, or list `Contents/Library/LoginItems`. Swift 6.0 language mode, complete strict concurrency, approachable concurrency, member import visibility, warnings as errors, `MainActor` default isolation for shipping products (the package and test bundles default to nonisolated). Mac targets are unsandboxed with the hardened runtime; Release Mac builds carry no `get-task-allow`. Deployment targets are macOS 27.0 and iOS 27.0.
 
 ## Building
 
@@ -56,7 +56,7 @@ Always use the Makefile; it sets `DEVELOPER_DIR=/Applications/Xcode.app/Contents
 |---|---|
 | `make build-mac` | Release Mac app with agent and tools, then `scripts/check_products.sh` (bundle layout, entitlements, hardened runtime, launchd plist) |
 | `make build-ios` / `make build-sim` | Release iOS for devices / Debug for the "TimeTracking iPhone" simulator |
-| `make mac-debug` | Debug Mac app from `build.noindex/` |
+| `make mac-debug` | Debug Mac app (`<APP_NAME> Debug.app`) from `build.noindex/` |
 | `make demo [FIXTURE=small]` | The store fixture (`small`, `large`, `running`) moved to today into the Debug store and both simulators' stores, then the Debug Mac app and simulators launched; Debug containers only |
 | `make sim` | Build, install, and launch on both simulators |
 | `make install` | Install into `/Applications`, link `timetracking` and `tracker-event` into `$(PREFIX)/bin`, write completions |

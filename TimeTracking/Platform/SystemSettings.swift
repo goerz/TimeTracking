@@ -16,9 +16,12 @@ enum SystemSettings {
         open(URL(string: "x-apple.systempreferences:com.apple.Notifications-Settings.extension?id=\(id)"))
     }
 
-    /// "Show Tracker in Finder": reveals `TimeTrackingAgent.app`.
+    /// "Show Tracker in Finder": reveals the agent, `TimeTrackingAgent.app`
+    /// or in Debug `TimeTrackingAgent Debug.app` (spec_architecture.md §2.2).
     static func revealAgent() {
-        reveal(Bundle.main.bundleURL.appending(path: "Contents/Library/LoginItems/TimeTrackingAgent.app"))
+        let loginItems = Bundle.main.bundleURL.appending(path: "Contents/Library/LoginItems", directoryHint: .isDirectory)
+        let bundles = (try? FileManager.default.contentsOfDirectory(at: loginItems, includingPropertiesForKeys: nil)) ?? []
+        reveal(bundles.first { $0.pathExtension == "app" } ?? loginItems)
     }
 
     static func open(_ url: URL?) {

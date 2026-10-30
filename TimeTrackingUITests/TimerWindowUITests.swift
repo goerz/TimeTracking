@@ -230,12 +230,14 @@ final class TimerWindowUITests: XCTestCase {
         app.terminate()
     }
 
-    /// The Debug agent embedded in the app next to the test runner.
+    /// The Debug agent embedded in the Debug app next to the test runner
+    /// (`<APP_NAME> Debug.app/…/TimeTrackingAgent Debug.app`, spec_architecture.md §2.2).
     private static func debugAgentExecutable() throws -> URL {
         let products = Bundle.main.bundleURL.deletingLastPathComponent()
-        let agent = "Contents/Library/LoginItems/TimeTrackingAgent.app/Contents/MacOS/TimeTrackingAgent"
+        let agent = "Contents/Library/LoginItems/TimeTrackingAgent Debug.app/Contents/MacOS/TimeTrackingAgent"
         let apps = try FileManager.default.contentsOfDirectory(at: products, includingPropertiesForKeys: nil)
-        return try XCTUnwrap(apps.map { $0.appending(path: agent) }.first { FileManager.default.isExecutableFile(atPath: $0.path) })
+        return try XCTUnwrap(apps.filter { $0.lastPathComponent.hasSuffix(" Debug.app") }.map { $0.appending(path: agent) }
+            .first { FileManager.default.isExecutableFile(atPath: $0.path) })
     }
 
     @MainActor

@@ -5,6 +5,8 @@
 set -eu
 
 label="${TT_APP_ID:?}.agent"
+# The agent is TimeTrackingAgent.app, in Debug TimeTrackingAgent Debug.app (§2.2).
+program="Contents/Library/LoginItems/${TT_AGENT_NAME:?}.app/Contents/MacOS/TimeTrackingAgent"
 dir="${TARGET_BUILD_DIR:?}/${CONTENTS_FOLDER_PATH:?}/Library/LaunchAgents"
 plist="$dir/$label.plist"
 
@@ -23,7 +25,7 @@ cat > "$tmp" <<PLIST
 		<string>${TT_APP_ID}</string>
 	</array>
 	<key>BundleProgram</key>
-	<string>Contents/Library/LoginItems/TimeTrackingAgent.app/Contents/MacOS/TimeTrackingAgent</string>
+	<string>${program}</string>
 	<key>KeepAlive</key>
 	<true/>
 	<key>Label</key>
