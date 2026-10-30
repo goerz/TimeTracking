@@ -495,7 +495,7 @@ test_mac_products() {
     printf '<?xml version="1.0" encoding="UTF-8"?>\n<plist version="1.0"><dict><key>com.apple.security.get-task-allow</key><true/></dict></plist>\n' \
         > "$entitlements"
     codesign -f -s - -o runtime --entitlements "$entitlements" "$copy/Contents/Helpers/timetracking" 2> /dev/null
-    check "get-task-allow fails" sh -c "! '$root/scripts/check_products.sh' mac '$copy' '$bundle_id' '$team' 2>&1 | grep -q get-task-allow || exit 1"
+    check "get-task-allow fails" sh -c "'$root/scripts/check_products.sh' mac '$copy' '$bundle_id' '$team' 2>&1 | grep -q 'TimeTrackingCLI carries com.apple.security.get-task-allow'"
     rm -rf "$copy"
     ditto "$app" "$copy"
     mkdir "$copy/Contents/Frameworks"
