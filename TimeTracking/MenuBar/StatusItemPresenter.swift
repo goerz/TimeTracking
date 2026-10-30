@@ -9,7 +9,7 @@ struct StatusItemContent: Equatable {
     /// The Pomodoro countdown after the title: the phase glyph and `m:ss`
     /// (`+m:ss` once the phase has ended).
     struct PomodoroSegment: Equatable {
-        /// Symbol name, template: `AppSymbol.pomodoro` or `cup.and.saucer`.
+        /// Symbol name, template: `AppSymbol.phase(isFocus:)`.
         var symbol: String
         var text: String
     }
@@ -165,7 +165,7 @@ extension MenuCommand {
         case .stop: "stop.fill"
         // The phase glyph for the items that start a phase.
         case .pomodoro(.start), .pomodoro(.startFocus): AppSymbol.pomodoro
-        case .pomodoro(.startBreak): "cup.and.saucer"
+        case .pomodoro(.startBreak): AppSymbol.pomodoroBreak
         case .showTimer: "stopwatch"
         case .openPlanner: "calendar"
         case .settings: "gearshape"
@@ -237,7 +237,7 @@ enum StatusItemPresenter {
         if let remaining = pomodoroRemaining {
             let focus = state.pomodoro.state.isFocusPhase
             let phase = focus ? "focus" : "break"
-            let glyph = focus ? AppSymbol.pomodoro : "cup.and.saucer"
+            let glyph = AppSymbol.phase(isFocus: focus)
             if state.pomodoro.state.isPendingConfirmation || remaining < 0 {
                 let over = -min(remaining, 0)
                 segment = .init(symbol: glyph, text: "+" + DurationText.minutesSeconds(over))
@@ -299,7 +299,7 @@ enum StatusItemPresenter {
             } else {
                 "\(phase) · \(DurationText.minutesSeconds(remaining)) left"
             }
-            lines.append(MenuHeaderLine(text, style: .primary, symbol: focus ? AppSymbol.pomodoro : "cup.and.saucer"))
+            lines.append(MenuHeaderLine(text, style: .primary, symbol: AppSymbol.phase(isFocus: focus)))
         }
         return lines
     }

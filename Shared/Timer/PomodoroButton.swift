@@ -126,7 +126,7 @@ struct PomodoroButton: View {
             perform(action)
         } label: {
             capsule(fill: AnyShapeStyle(Color.accentColor.opacity(0.18))) {
-                Image(symbol: isBreak ? "cup.and.saucer" : AppSymbol.pomodoro)
+                Image(symbol: AppSymbol.phase(isFocus: !isBreak))
                     .resizable()
                     .scaledToFit()
                     .fontWeight(.semibold)
