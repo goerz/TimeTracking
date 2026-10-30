@@ -58,7 +58,7 @@ struct PomodoroButton: View {
         }
         .labelStyle(.iconOnly)
         .font(.system(size: diameter * 0.45))
-        .foregroundStyle(.secondary)
+        .foregroundStyle(.primary)
         .frame(width: diameter, height: diameter)
         .background(Circle().fill(Self.fill))
         .contentShape(Circle())
