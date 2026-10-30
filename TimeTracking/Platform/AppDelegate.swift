@@ -175,7 +175,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// Applies "Show Dock icon" at launch and on every change.
     private func followDockIconSetting(_ app: AppModel) {
         withObservationTracking {
-            ActivationPolicy.apply(showDockIcon: app.settings.showDockIcon, keyWindow: timerWindow?.window)
+            // The window that is key now (Settings, when the toggle changes
+            // there) stays key, rather than the Timer window coming forward.
+            ActivationPolicy.apply(showDockIcon: app.settings.showDockIcon, keyWindow: NSApp.keyWindow ?? timerWindow?.window)
         } onChange: { [weak self, weak app] in
             Task { @MainActor in
                 if let app {
