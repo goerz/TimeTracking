@@ -3,35 +3,51 @@
 
 import Foundation
 import os
-import ServiceManagement
 import TimeTrackingCore
 
-/// The login item registration the agent can remove.
-protocol LoginItemService {
-    var isRegistered: Bool { get }
-
-    func unregister() throws
-}
-
-extension SMAppService: LoginItemService {
-    var isRegistered: Bool {
-        status == .enabled || status == .requiresApproval
-    }
-}
-
-/// `--unregister`: not being registered is the goal, so it is never a failure.
+/// `--unregister`. `SMAppService` acts on the calling process's bundle, and
+/// the launchd plist lives in the host app's `Contents/Library/LaunchAgents`,
+/// so the agent runs the host app's executable with `--unregister` and
+/// returns its exit status.
 enum Unregistration {
-    /// Unregisters `service`; returns the exit status (0, or 1 when the
-    /// registration is still there afterwards).
-    static func run(_ service: some LoginItemService) -> Int32 {
-        guard service.isRegistered else {
+    /// The app bundle that embeds `agentBundle` at
+    /// `Contents/Library/LoginItems/`, or `nil` for a standalone agent.
+    static func hostApp(of agentBundle: URL) -> URL? {
+        let loginItems = agentBundle.deletingLastPathComponent()
+        let library = loginItems.deletingLastPathComponent()
+        let contents = library.deletingLastPathComponent()
+        let app = contents.deletingLastPathComponent()
+        guard loginItems.lastPathComponent == "LoginItems", library.lastPathComponent == "Library",
+              contents.lastPathComponent == "Contents", app.pathExtension == "app"
+        else {
+            return nil
+        }
+        return app
+    }
+
+    /// Runs the host app of `agentBundle` with `--unregister`; returns its
+    /// exit status, 0 for a standalone agent (it has no registration to
+    /// remove), 1 when the app cannot run.
+    static func run(agentBundle: URL = Bundle.main.bundleURL) -> Int32 {
+        let logger = Logging.logger(category: "Agent")
+        guard let app = hostApp(of: agentBundle) else {
+            logger.info("unregister: not inside an app bundle")
             return 0
         }
-        do {
-            try service.unregister()
-        } catch {
-            Logging.logger(category: "Agent").info("unregister: \(error.localizedDescription, privacy: .public)")
+        guard let executable = Bundle(url: app)?.executableURL else {
+            logger.error("unregister: no executable in \(app.path, privacy: .public)")
+            return 1
         }
-        return service.isRegistered ? 1 : 0
+        let process = Process()
+        process.executableURL = executable
+        process.arguments = ["--unregister"]
+        do {
+            try process.run()
+        } catch {
+            logger.error("unregister: \(error.localizedDescription, privacy: .public)")
+            return 1
+        }
+        process.waitUntilExit()
+        return process.terminationStatus
     }
 }

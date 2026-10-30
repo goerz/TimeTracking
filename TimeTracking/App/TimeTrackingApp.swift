@@ -1,10 +1,22 @@
 // TimeTrackingApp: the Mac app's entry point and scenes
-// (spec_timer_window.md §1, §8, §9; spec_menubar.md; spec_planner_projects.md §1).
+// (spec_timer_window.md §1, §8, §9; spec_menubar.md; spec_planner_projects.md §1;
+// `--unregister`: spec_activity_tracking.md §5).
 
 import SwiftUI
 import TimeTrackingCore
 
+/// The entry point: `--unregister` removes the agent's registration and
+/// exits before any scene exists; anything else runs the app.
 @main
+enum AppMain {
+    static func main() {
+        if LaunchArguments.current.unregister {
+            exit(LoginItemAgentService.unregisterAgent())
+        }
+        TimeTrackingApp.main()
+    }
+}
+
 struct TimeTrackingApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
 

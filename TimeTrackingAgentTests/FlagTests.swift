@@ -113,35 +113,38 @@ struct FlagTests {
         #expect(text.contains("github.com"))
     }
 
-    @MainActor
-    private final class FakeService: LoginItemService {
-        var isRegistered: Bool
-        var fails = false
-        private(set) var calls = 0
-
-        init(registered: Bool) {
-            self.isRegistered = registered
-        }
-
-        func unregister() throws {
-            calls += 1
-            guard !fails else {
-                throw CocoaError(.featureUnsupported)
-            }
-            isRegistered = false
-        }
+    /// `<root>/Host.app` whose executable records its arguments in
+    /// `<root>/arguments` and exits with `status`, and the agent bundle
+    /// embedded in it.
+    private static func fakeHostApp(status: Int32) throws -> (root: URL, agent: URL) {
+        let manager = FileManager.default
+        let root = manager.temporaryDirectory.appending(path: "host-\(UUID().uuidString)", directoryHint: .isDirectory)
+        let contents = root.appending(path: "Host.app/Contents", directoryHint: .isDirectory)
+        let agent = contents.appending(path: "Library/LoginItems/TimeTrackingAgent.app", directoryHint: .isDirectory)
+        try manager.createDirectory(at: agent, withIntermediateDirectories: true)
+        try manager.createDirectory(at: contents.appending(path: "MacOS"), withIntermediateDirectories: true)
+        let plist: [String: Any] = ["CFBundleExecutable": "Host", "CFBundleIdentifier": "test.host", "CFBundlePackageType": "APPL"]
+        try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)
+            .write(to: contents.appending(path: "Info.plist"))
+        let script = contents.appending(path: "MacOS/Host")
+        try "#!/bin/sh\necho \"$@\" > '\(root.path)/arguments'\nexit \(status)\n".write(to: script, atomically: true, encoding: .utf8)
+        try manager.setAttributes([.posixPermissions: 0o755], ofItemAtPath: script.path)
+        return (root, agent)
     }
 
-    @Test("--unregister removes the registration; not being registered is success")
-    func unregister() {
-        let registered = FakeService(registered: true)
-        #expect(Unregistration.run(registered) == 0)
-        #expect(!registered.isRegistered)
-        let absent = FakeService(registered: false)
-        #expect(Unregistration.run(absent) == 0)
-        #expect(absent.calls == 0)
-        let stuck = FakeService(registered: true)
-        stuck.fails = true
-        #expect(Unregistration.run(stuck) == 1)
+    @Test("--unregister runs the host app's --unregister and returns its status; a standalone agent has nothing to remove")
+    func unregister() throws {
+        let (root, agent) = try Self.fakeHostApp(status: 0)
+        defer { try? FileManager.default.removeItem(at: root) }
+        #expect(Unregistration.hostApp(of: agent)?.lastPathComponent == "Host.app")
+        #expect(Unregistration.run(agentBundle: agent) == 0)
+        let arguments = try String(contentsOf: root.appending(path: "arguments"), encoding: .utf8)
+        #expect(arguments == "--unregister\n")
+        let (stuckRoot, stuckAgent) = try Self.fakeHostApp(status: 1)
+        defer { try? FileManager.default.removeItem(at: stuckRoot) }
+        #expect(Unregistration.run(agentBundle: stuckAgent) == 1)
+        let standalone = root.appending(path: "Debug/TimeTrackingAgent.app", directoryHint: .isDirectory)
+        #expect(Unregistration.hostApp(of: standalone) == nil)
+        #expect(Unregistration.run(agentBundle: standalone) == 0)
     }
 }

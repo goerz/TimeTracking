@@ -8,7 +8,8 @@ public import Foundation
 ///
 /// The apps understand `-UITesting YES`, `-Fixture <name>`, and
 /// `-ResetState YES` (the `-Key value` form of `UserDefaults`); the agent
-/// understands `--record <folder>`, `--replay <file>`, and `--unregister`;
+/// understands `--record <folder>`, `--replay <file>`, and `--unregister`,
+/// which it hands to the Mac app's own `--unregister`;
 /// the tool reads `TIMETRACKING_STORE`, `TIMETRACKING_NOW`, and
 /// `TIMETRACKING_BUSY_TIMEOUT`. Unknown
 /// arguments are ignored, so the system's own launch arguments pass through.
@@ -23,7 +24,7 @@ public struct LaunchArguments: Sendable, Equatable {
     public var recordFolder: URL?
     /// `--replay <file>` (agent).
     public var replayFile: URL?
-    /// `--unregister` (agent).
+    /// `--unregister` (agent, and the Mac app on the agent's behalf).
     public var unregister: Bool
     /// `TIMETRACKING_STORE`: the store file to open instead of the default.
     public var storePath: String?
