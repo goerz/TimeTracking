@@ -1,8 +1,9 @@
 // DurationText: durations and times of day as the Timer window, menu bar, and
 // entry editor write and read them (spec_timer_window.md §2, §4.1, §5.1;
-// spec_menubar.md §1.1).
+// spec_menubar.md §1.1), and the `HH:mm` of the tool's refusals and the Mac
+// activity line (spec_automation.md §3.5, spec_ios.md §2.3).
 
-import Foundation
+public import Foundation
 
 /// Formats and parses durations and times of day. Formatting truncates to
 /// whole seconds; durations are never rounded.
@@ -37,6 +38,14 @@ public enum DurationText {
     /// `+m:ss` (`+h:mm:ss` from one hour), counting up in overtime.
     public static func overtime(_ seconds: Int) -> String {
         "+" + countdown(seconds)
+    }
+
+    /// `HH:mm` of `date` in `zone` (`09:05`, `14:02`).
+    public static func timeOfDay(_ date: Date, in zone: TimeZone) -> String {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = zone
+        let parts = calendar.dateComponents([.hour, .minute], from: date)
+        return String(format: "%02d:%02d", parts.hour ?? 0, parts.minute ?? 0)
     }
 
     /// Parses a duration: `h:mm:ss`, `h:mm` (`1:30`), `25m`, `1h 30m`,

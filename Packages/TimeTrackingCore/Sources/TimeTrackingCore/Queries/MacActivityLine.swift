@@ -50,10 +50,6 @@ public enum MacActivityLine {
         guard ["idle", "locked", "asleep"].contains(presence), let since = activity.since else {
             return presence
         }
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.timeZone = timeZone
-        formatter.dateFormat = "HH:mm"
-        return "\(presence) since \(formatter.string(from: since))"
+        return "\(presence) since \(DurationText.timeOfDay(since, in: timeZone))"
     }
 }

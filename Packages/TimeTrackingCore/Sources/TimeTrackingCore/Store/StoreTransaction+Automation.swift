@@ -16,14 +16,15 @@ extension StoreTransaction {
     public func checkedStart(projectID: ProjectID?, task: String, at: Date?, force: Bool) throws -> StartOutcome {
         let at = at.map { Time.whole($0) } ?? now
         guard at <= now else {
-            throw AutomationError.refused("The start \(Self.clockTime(at, timeZone)) lies in the future.")
+            throw AutomationError.refused("The start \(DurationText.timeOfDay(at, in: timeZone)) lies in the future.")
         }
         guard now.timeIntervalSince(at) <= Self.maximumBackdate else {
             throw AutomationError.refused("A start may lie at most 24 hours back.")
         }
         let running = try runningEntries()
         if let first = running.first, at < first.start {
-            throw AutomationError.refused("The start lies before the running entry's start at \(Self.clockTime(first.start, timeZone)).")
+            let start = DurationText.timeOfDay(first.start, in: timeZone)
+            throw AutomationError.refused("The start lies before the running entry's start at \(start).")
         }
         if let projectID, let project = try project(projectID), project.isArchived {
             throw AutomationError.refused("Project \"\(project.name)\" is archived; unarchive it first.")
@@ -45,10 +46,10 @@ extension StoreTransaction {
             throw AutomationError.refused("No entry running.")
         }
         guard at <= now else {
-            throw AutomationError.refused("The end \(Self.clockTime(at, timeZone)) lies in the future.")
+            throw AutomationError.refused("The end \(DurationText.timeOfDay(at, in: timeZone)) lies in the future.")
         }
         guard at >= running.start else {
-            throw AutomationError.refused("The end lies before the start at \(Self.clockTime(running.start, timeZone)).")
+            throw AutomationError.refused("The end lies before the start at \(DurationText.timeOfDay(running.start, in: timeZone)).")
         }
         guard let stopped = try stop(at: at) else {
             throw AutomationError.refused("No entry running.")
@@ -112,18 +113,10 @@ extension StoreTransaction {
         if let first = overlapping.first {
             let zone = timeZone
             throw AutomationError.refused(
-                "The time overlaps the entry from \(Self.clockTime(first.start, zone)) to "
-                    + "\(first.end.map { Self.clockTime($0, zone) } ?? "now") (\(first.id.rawValue)); add --force to allow it."
+                "The time overlaps the entry from \(DurationText.timeOfDay(first.start, in: zone)) to "
+                    + "\(first.end.map { DurationText.timeOfDay($0, in: zone) } ?? "now") (\(first.id.rawValue)); add --force to allow it."
             )
         }
-    }
-
-    /// `HH:mm` in `zone`.
-    static func clockTime(_ date: Date, _ zone: TimeZone) -> String {
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = zone
-        let parts = calendar.dateComponents([.hour, .minute], from: date)
-        return String(format: "%02d:%02d", parts.hour ?? 0, parts.minute ?? 0)
     }
 }
 
