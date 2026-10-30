@@ -56,4 +56,4 @@ for name in "$@"; do
     seed "$group/Library/Application Support/TimeTracking/store.sqlite"
     xcrun simctl launch "$name" "$app_id" >/dev/null
 done
-[ "$#" = 0 ] || open -a Simulator
+[ "$#" = 0 ] || open -a Simulator 2>/dev/null || echo "No Simulator app found; the simulators run without a window (make screenshots captures them)."

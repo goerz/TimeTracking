@@ -85,7 +85,7 @@ sim: build-sim ## Install and launch on "TimeTracking iPhone" and "TimeTracking 
 		xcrun simctl install "$$name" "$(SIM_APP)" && \
 		xcrun simctl launch --terminate-running-process "$$name" "$(BUNDLE_ID).debug" $(ARGS) || exit 1; \
 	done
-	@open -a Simulator
+	@open -a Simulator 2>/dev/null || echo "No Simulator app found; the simulators run without a window (make screenshots captures them)."
 
 sim-create: ## Create the two simulators unless they exist
 	@runtime=$$(xcrun simctl list runtimes | awk '/^iOS / && !/unavailable/ { r = $$NF } END { print r }'); \
