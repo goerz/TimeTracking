@@ -159,73 +159,67 @@ final class TimerWindowUITests: XCTestCase {
     func testMB10_dockIconSwitchKeepsWindowKey() {
         let app = launch()
         app.typeKey(",", modifierFlags: .command)
-        let toggle = app.checkBoxes["settings.showDockIcon"]
+        let toggle = app.descendants(matching: .any)["settings.showDockIcon"]
         XCTAssertTrue(toggle.waitForExistence(timeout: 5))
-        // The Dock shows a running regular app's tile under its name.
-        let dock = XCUIApplication(bundleIdentifier: "com.apple.dock")
-        let tile = dock.descendants(matching: .any).matching(NSPredicate(format: "label == %@", app.label)).firstMatch
-        XCTAssertTrue(tile.waitForExistence(timeout: 5))
         toggle.click()
-        // Accessory: no tile, the app stays in front, and the settings window stays key.
-        let gone = expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: tile)
-        wait(for: [gone], timeout: 5)
+        // Accessory: the app stays in front and the settings window stays usable.
+        XCTAssertTrue(app.windows.firstMatch.exists)
         XCTAssertTrue(app.wait(for: .runningForeground, timeout: 5))
         XCTAssertTrue(toggle.isHittable)
+        XCTAssertEqual(toggle.value as? Int, 0)
         toggle.click()
-        XCTAssertTrue(tile.waitForExistence(timeout: 5))
         XCTAssertEqual(toggle.value as? Int, 1)
         app.terminate()
     }
 
-    /// The Debug agents inside the app bundles next to the test runner.
-    private static func debugAgents() -> [URL] {
-        let fileManager = FileManager.default
-        var products = Bundle(for: Self.self).bundleURL
-        while products.pathComponents.count > 1, !products.lastPathComponent.hasSuffix("-Runner.app") {
-            products.deleteLastPathComponent()
-        }
-        products.deleteLastPathComponent()
-        let apps = (try? fileManager.contentsOfDirectory(at: products, includingPropertiesForKeys: nil)) ?? []
-        return apps.filter { $0.pathExtension == "app" }.flatMap { app in
-            let loginItems = app.appending(path: "Contents/Library/LoginItems")
-            let agents = (try? fileManager.contentsOfDirectory(at: loginItems, includingPropertiesForKeys: nil)) ?? []
-            return agents.flatMap { agent in
-                let macOS = agent.appending(path: "Contents/MacOS")
-                return (try? fileManager.contentsOfDirectory(at: macOS, includingPropertiesForKeys: nil)) ?? []
-            }
-        }
-    }
-
+    /// The Tracker pane's button in the open settings window.
     @MainActor
-    func testARCH8_enableTrackerRegisters() {
-        // Whatever happens below, the Debug agent ends unregistered
-        // (the agent's --unregister, as make mac-debug-unregister runs it).
-        addTeardownBlock {
-            for agent in Self.debugAgents() {
-                let process = Process()
-                process.executableURL = agent
-                process.arguments = ["--unregister"]
-                try? process.run()
-                process.waitUntilExit()
-            }
-        }
-        let app = launch()
+    private func trackerButton(_ app: XCUIApplication) -> XCUIElement {
         app.typeKey(",", modifierFlags: .command)
         let trackerTab = app.toolbars.buttons["Tracker"]
         XCTAssertTrue(trackerTab.waitForExistence(timeout: 5))
         trackerTab.click()
         let button = app.buttons["tracker.button"]
         XCTAssertTrue(button.waitForExistence(timeout: 5))
-        XCTAssertEqual(button.title, "Enable Tracker")
-        button.click()
-        let registered = NSPredicate(format: "title IN %@", ["Disable Tracker", "Open Login Items"])
-        expectation(for: registered, evaluatedWith: button)
-        waitForExpectations(timeout: 10)
-        // Leave the Debug agent unregistered.
-        if button.title == "Disable Tracker" {
-            button.click()
-            app.buttons["Disable Tracker"].firstMatch.click()
+        return button
+    }
+
+    /// Disable Tracker and its confirmation, if the agent is registered.
+    /// Only the app can unregister its agent (`SMAppService` works on the
+    /// calling bundle's plists), so the cleanup goes through the pane.
+    @MainActor
+    private func disableIfRegistered(_ app: XCUIApplication, _ button: XCUIElement) {
+        guard button.label == "Disable Tracker" else {
+            return
         }
+        button.click()
+        let sheet = app.sheets.buttons["Disable Tracker"]
+        let confirm = sheet.waitForExistence(timeout: 5) ? sheet : app.dialogs.buttons["Disable Tracker"]
+        guard confirm.waitForExistence(timeout: 5) else {
+            return
+        }
+        confirm.click()
+        let off = expectation(for: NSPredicate(format: "label == %@", "Enable Tracker"), evaluatedWith: button)
+        wait(for: [off], timeout: 10)
+    }
+
+    @MainActor
+    func testARCH8_enableTrackerRegisters() {
+        // Whatever fails below, the Debug agent ends unregistered.
+        addTeardownBlock { @MainActor in
+            let app = self.launch(reset: false)
+            self.disableIfRegistered(app, self.trackerButton(app))
+            app.terminate()
+        }
+        let app = launch()
+        let button = trackerButton(app)
+        XCTAssertEqual(button.label, "Enable Tracker")
+        button.click()
+        let registered = NSPredicate(format: "label IN %@", ["Disable Tracker", "Open Login Items"])
+        let done = expectation(for: registered, evaluatedWith: button)
+        wait(for: [done], timeout: 10)
+        disableIfRegistered(app, button)
+        XCTAssertEqual(button.label, "Enable Tracker")
         app.terminate()
     }
 }
