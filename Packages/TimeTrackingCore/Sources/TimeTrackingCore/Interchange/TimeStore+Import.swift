@@ -1,6 +1,7 @@
 // importDocument on the store, with dry runs (spec_data_and_sync.md §5.2).
 
 public import Foundation
+import GRDB
 
 extension TimeStore {
     /// Imports an export-format document in one transaction followed by the
@@ -24,6 +25,24 @@ extension TimeStore {
 }
 
 /// Thrown to roll back a dry-run import.
+extension TimeStore {
+    /// An in-memory copy of this store's database (SQLite's backup), so a
+    /// dry run leaves the file untouched; GRDB's write setup alone would
+    /// change a WAL file's header.
+    public func inMemoryCopy() throws -> TimeStore {
+        let copy = try TimeStore(Configuration(location: .inMemory, clock: clock, deviceID: deviceID, timeZone: timeZone))
+        guard let target = copy.writer else {
+            throw StoreError.readOnly
+        }
+        do {
+            try reader.backup(to: target)
+        } catch let error as DatabaseError {
+            throw StoreError(error)
+        }
+        return copy
+    }
+}
+
 private struct DryRun: Error {
     var report: ImportReport
 }

@@ -18,11 +18,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var systemEvents: SystemEvents?
     private var notifications: UserNotifications?
     private var launchedAsLoginItem = false
+    private let urlEvents = URLEventHandler()
 
     func applicationWillFinishLaunching(_: Notification) {
         let event = NSAppleEventManager.shared().currentAppleEvent
         launchedAsLoginItem = event?.eventID == kAEOpenApplication
             && event?.paramDescriptor(forKeyword: keyAEPropData)?.enumCodeValue == keyAELaunchedAsLogInItem
+        if !AppHost.isTestHost {
+            urlEvents.install()
+        }
     }
 
     func applicationDidFinishLaunching(_: Notification) {
@@ -61,6 +65,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         Self.logger.notice("Store open")
         wire(app)
+        IntentBridge.shared.attach(app)
+        if let identity {
+            urlEvents.attach(URLRouter(app: app, scheme: identity.urlScheme))
+        }
         await app.start(observing: true)
         if !uiTesting, let identity {
             await startLiveUpdates(app, identity: identity, folders: folders, activity: activity)

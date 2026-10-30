@@ -26,7 +26,7 @@ struct ImportCommand: AsyncParsableCommand {
             throw AutomationError.failure("Cannot read \(file).")
         }
         let context = ToolContext(global)
-        let service = try await context.service(writing: true)
+        let service = try await context.service(writing: !dryRun)
         let report = try await service.importDocument(data, dryRun: dryRun, includeSettings: includeSettings)
         if global.csv {
             throw AutomationError.usage("import has no CSV form.")

@@ -1,0 +1,51 @@
+// IntentBridge: hands the library's App Intents the Mac app's store, its
+// re-read after a change, and the Timer window (spec_automation.md §5).
+
+import AppIntents
+import Foundation
+import TimeTrackingCore
+
+/// The app's side of `IntentEnvironment`: intents wait until the store is
+/// open, so an intent that launches the app in the background works too.
+@MainActor
+final class IntentBridge {
+    static let shared = IntentBridge()
+
+    private var model: AppModel?
+    private var waiting: [CheckedContinuation<AppModel, Never>] = []
+
+    /// The environment registered with `AppDependencyManager` at launch.
+    nonisolated static var environment: IntentEnvironment {
+        IntentEnvironment(
+            service: { await AutomationService(store: shared.awaitModel().store) },
+            didChange: { await shared.model?.afterChange() },
+            showTimer: { await shared.showTimer() }
+        )
+    }
+
+    /// Registers the environment; call once from `App.init`.
+    static func register() {
+        AppDependencyManager.shared.add(dependency: environment)
+    }
+
+    /// The model is ready: resumes every waiting intent.
+    func attach(_ model: AppModel) {
+        self.model = model
+        let waiting = waiting
+        self.waiting = []
+        for continuation in waiting {
+            continuation.resume(returning: model)
+        }
+    }
+
+    func showTimer() {
+        model?.router?.showTimer(focusTask: false)
+    }
+
+    func awaitModel() async -> AppModel {
+        if let model {
+            return model
+        }
+        return await withCheckedContinuation { waiting.append($0) }
+    }
+}

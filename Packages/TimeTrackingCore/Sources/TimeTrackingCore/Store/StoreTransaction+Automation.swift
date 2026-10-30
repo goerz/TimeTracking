@@ -69,16 +69,19 @@ extension StoreTransaction {
         return try create(draft)
     }
 
-    /// Changes one entry with the refusals of `checkedCreate`; the entry's
-    /// own chain does not count as an overlap.
+    /// Changes one entry with the refusals of `checkedCreate` when its times
+    /// change; the entry's own chain does not count as an overlap.
     public func checkedUpdate(_ id: EntryID, _ change: EntryChange, force: Bool) throws -> [TimeEntry] {
         guard let entry = try entry(id) else {
             throw AutomationError.notFound("No entry with id \(id.rawValue).")
         }
         let start = change.start ?? entry.start
         let end = change.end ?? entry.end
-        try refuseTimes(start: start, end: end ?? now)
-        if !force {
+        let timesChange = change.start != nil || change.end != nil
+        if timesChange {
+            try refuseTimes(start: start, end: end ?? now)
+        }
+        if timesChange, !force {
             let chain = try chainEntries(root: entry.rootID).map(\.id)
             try refuseOverlap(start: start, end: end ?? now, excluding: Set(chain + [id]))
         }

@@ -12,11 +12,15 @@ extension AutomationService {
     }
 
     /// Imports the product's JSON export; validation failures are exit 7
-    /// and write nothing.
+    /// and write nothing. A dry run imports into an in-memory copy, so the
+    /// store may be opened read-only and its file stays untouched.
     public func importDocument(_ data: Data, dryRun: Bool, includeSettings: Bool) async throws(AutomationError) -> ImportReport {
         let store = store
-        let options = ImportOptions(includeSettings: includeSettings, dryRun: dryRun, defaultTimeZone: timeZone.identifier)
-        return try await run { try await store.importDocument(data, options: options) }
+        let options = ImportOptions(includeSettings: includeSettings, defaultTimeZone: timeZone.identifier)
+        return try await run {
+            let target = dryRun ? try await store.inMemoryCopy() : store
+            return try await target.importDocument(data, options: options)
+        }
     }
 
     /// The JSON export (`spec_data_and_sync.md` §5.1).

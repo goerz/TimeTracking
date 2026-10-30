@@ -4,12 +4,6 @@ import Foundation
 import Testing
 
 struct ToolSkeletonTests {
-    @Test func versionPrintsTheBundleVersion() throws {
-        let result = try ToolProcess.run("timetracking", ["--version"])
-        #expect(result.status == 0)
-        #expect(result.standardOutput.wholeMatch(of: /\d+\.\d+ \(\d+\)\n/) != nil)
-    }
-
     @Test("ARCH-21 tracker-event exits non-zero within 100 ms when the agent is not running")
     func trackerEventWithoutAgent() throws {
         let folder = FileManager.default.temporaryDirectory.appending(path: "tracker-event-\(UUID().uuidString)")

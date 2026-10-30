@@ -123,7 +123,7 @@ public struct LaunchArguments: Sendable, Equatable {
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.calendar = Calendar(identifier: .gregorian)
         formatter.timeZone = timeZone
-        for format in ["yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd'T'HH:mm"] {
+        for format in ["yyyy-MM-dd'T'HH:mmXXXXX", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd'T'HH:mm"] {
             formatter.dateFormat = format
             if let date = formatter.date(from: text) {
                 return date

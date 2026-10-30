@@ -10,6 +10,8 @@ enum NotificationCategory: String, CaseIterable, Sendable {
     case pomodoroBreakDone
     case idle
     case reminder
+    /// The banner of a start, stop, or continue from a URL (spec_automation.md §6).
+    case tracking
 
     /// Exactly the actions of §10, in order.
     var actions: [NotificationAction] {
@@ -18,6 +20,7 @@ enum NotificationCategory: String, CaseIterable, Sendable {
         case .pomodoroBreakDone: [.startFocus, .endPomodoro]
         case .idle: [.keep, .discard, .discardAndContinue, .split]
         case .reminder: [.startNew, .continueLatest, .snooze]
+        case .tracking: []
         }
     }
 }

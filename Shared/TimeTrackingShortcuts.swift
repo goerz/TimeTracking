@@ -1,16 +1,14 @@
-// TimeTrackingShortcuts: the App Shortcut phrase table both apps use, and
-// the library's AppIntentsPackage (spec_ios.md §6.2, spec_automation.md §5).
-// Every "in" phrase also exists with "with".
+// TimeTrackingShortcuts: the App Shortcut phrase table both apps use
+// (spec_ios.md §6.2). Every "in" phrase also exists with "with". It lives in
+// Shared/ because App Shortcuts are extracted only from an app target, not
+// from the library; the intents it names come from the library.
 
-public import AppIntents
-
-/// The intents, entities, and App Shortcuts of the library; each app's own
-/// `AppIntentsPackage` includes it.
-public struct TimeTrackingCoreIntents: AppIntentsPackage {}
+import AppIntents
+import TimeTrackingCore
 
 /// The App Shortcuts and their phrases.
-public struct TimeTrackingShortcuts: AppShortcutsProvider {
-    public static var appShortcuts: [AppShortcut] {
+struct TimeTrackingShortcuts: AppShortcutsProvider {
+    static var appShortcuts: [AppShortcut] {
         AppShortcut(
             intent: StartTimerIntent(inferProject: true),
             phrases: [

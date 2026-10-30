@@ -8,6 +8,11 @@ import TimeTrackingCore
 struct TimeTrackingApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
 
+    init() {
+        // Before any intent can run, also when one launches the app.
+        IntentBridge.register()
+    }
+
     var body: some Scene {
         Window("Timer", id: "timer") {
             HostedContent(host: delegate.host) { app in

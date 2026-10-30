@@ -75,9 +75,13 @@ public actor TimeStore {
             self.writer = queue
         case let .file(url):
             if configuration.readOnly {
-                let pool = try DatabasePool(path: url.path, configuration: options)
-                try Schema.check(pool)
-                self.reader = pool
+                let reader: any DatabaseReader = if Self.isImmutable(url) {
+                    try DatabaseQueue(path: url.absoluteString + "?immutable=1", configuration: options)
+                } else {
+                    try DatabasePool(path: url.path, configuration: options)
+                }
+                try Schema.check(reader)
+                self.reader = reader
                 self.writer = nil
             } else {
                 try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
@@ -110,6 +114,14 @@ public actor TimeStore {
         }
         await store.listenForExternalChanges()
         return store
+    }
+
+    /// Whether a file can only be read: its folder is not writable and it
+    /// has no `-wal` file, so no writer can exist and SQLite (which cannot
+    /// create the `-shm` file there) must open it as immutable.
+    static func isImmutable(_ url: URL) -> Bool {
+        let folder = url.deletingLastPathComponent().path
+        return !FileManager.default.isWritableFile(atPath: folder) && !FileManager.default.fileExists(atPath: url.path + "-wal")
     }
 
     /// The schema version this library reads and writes.
