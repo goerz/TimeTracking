@@ -32,6 +32,31 @@ struct EditorLookupTests {
         #expect(try await test.store.projectRow(ProjectID()) == nil)
     }
 
+    @Test("projectListing keeps the names of a deleted project and its deleted area, as listings(for:) does")
+    func projectListingWithTombstones() async throws {
+        let test = try await TestStore()
+        let structure = try await test.structure(projects: ["Noise"])
+        let noise = structure.projects[0].id
+        let entry = try await test.store.create(EntryDraft(
+            projectID: noise,
+            task: "Model",
+            start: test.date("2024-03-14T08:00"),
+            end: test.date("2024-03-14T09:00")
+        ))[0]
+        try await test.store.delete([entry.id])
+        try await test.store.deleteProject(noise)
+        try await test.store.deleteArea(structure.area.id)
+        let found = try #require(try await test.store.projectListing(noise))
+        let listing = try #require(try await test.store.listings(for: [entry]).first)
+        #expect(found.project.name == "Noise")
+        #expect(found.area?.name == "Research")
+        #expect(found.client?.id == structure.client.id)
+        #expect(found.project == listing.project)
+        #expect(found.area == listing.area)
+        #expect(found.client == listing.client)
+        #expect(try await test.store.projectListing(ProjectID()) == nil)
+    }
+
     @Test("overlaps(for:outsideChainOf:) leaves out the edited entry's own chain")
     func overlapsOutsideChain() async throws {
         let test = try await TestStore()

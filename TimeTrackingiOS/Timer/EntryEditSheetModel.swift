@@ -56,7 +56,7 @@ final class EntryEditSheetModel {
 
     func setProject(_ id: ProjectID?) async {
         projectID = id
-        label = await ProjectLabel.load(id, from: store)
+        label = await ProjectLabel.loadLive(id, from: store)
     }
 
     /// The duration line: the draft's, or the live time of a running entry.

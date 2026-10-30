@@ -128,4 +128,18 @@ struct TaskFieldTests {
         await dialog.validate()
         #expect(dialog.canSubmit)
     }
+
+    @Test("A chip label keeps the names of a deleted project and area that an entry still references")
+    func labelOfDeletedProject() async throws {
+        let test = try await TestApp()
+        let project = try await test.projects(["Noise Model"])[0]
+        let entry = try await test.entry("Clarify noise model", project, from: "06:00", to: "06:30")
+        try await test.store.delete([entry.id])
+        try await test.store.deleteProject(project.id)
+        try await test.store.deleteArea(project.areaID)
+        let label = await ProjectLabel.load(project.id, from: test.store)
+        #expect(label == ProjectLabel(name: "Noise Model", client: "University", area: "Research", color: label.color))
+        #expect(await ProjectLabel.loadLive(project.id, from: test.store) == .noProject)
+        #expect(await ProjectLabel.load(nil, from: test.store) == .noProject)
+    }
 }
