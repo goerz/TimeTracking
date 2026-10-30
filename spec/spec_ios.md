@@ -121,7 +121,7 @@ Families `systemMedium` (3 rows), `systemLarge` (7), and `systemExtraLarge` on t
 
 ### 3.4 Pinned projects widget ("Pinned")
 
-Configurable with `PinnedProjectsConfigurationIntent`: "Use pinned list" (default, the synced `pinnedProjectIDs`) or an explicit ordered list of 1 to 12 projects, and the task mode (default from Settings). Families `systemSmall` (2 buttons), `systemMedium` (4), `systemLarge` (8), `systemExtraLarge` (12). Each button is a rounded rectangle (12 pt corners, `.fill.secondary`) with the area dot and project and starts it (in "last task" mode with its most recent task); the running project's button takes a light tint of its area color, shows the 24 pt stop circle, and stops it. An archived project renders disabled with "Archived".
+Configurable with `PinnedProjectsConfigurationIntent`: "Use pinned list" (default, the synced `pinnedProjectIDs`) or an explicit ordered list of 1 to 12 projects, and the task mode (default from Settings). Families `systemSmall` (2 buttons), `systemMedium` (4), `systemLarge` (8), `systemExtraLarge` (12). The buttons fill a fixed grid of the family's capacity (1, 2, 2, and 3 columns), so a family's buttons have one size however many are pinned. Each button is a rounded rectangle (12 pt corners, `.fill.secondary`) with the area dot and project and starts it (in "last task" mode with its most recent task); the running project's button takes a light tint of its area color, shows the 24 pt stop circle, and stops it. An archived project renders disabled with "Archived".
 
 ### 3.5 Lock Screen families
 

@@ -145,15 +145,14 @@ private struct SetupStep: View {
     var detail: String
 
     var body: some View {
-        Label {
+        HStack(alignment: .firstTextBaseline, spacing: Design.Spacing.medium) {
+            Image(systemName: done ? "checkmark.circle.fill" : "circle")
+                .foregroundStyle(done ? AnyShapeStyle(Color.startTint) : AnyShapeStyle(.tertiary))
+                .accessibilityLabel(done ? "Done" : "Not done")
             VStack(alignment: .leading, spacing: Design.Spacing.tight) {
                 Text(title)
                 Text(detail).font(.footnote).foregroundStyle(.secondary)
             }
-        } icon: {
-            Image(systemName: done ? "checkmark.circle.fill" : "circle")
-                .foregroundStyle(done ? AnyShapeStyle(Color.startTint) : AnyShapeStyle(.tertiary))
-                .accessibilityLabel(done ? "Done" : "Not done")
         }
     }
 }

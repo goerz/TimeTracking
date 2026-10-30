@@ -59,9 +59,28 @@ struct PinnedWidgetView: View {
         }
     }
 
-    private var columns: [GridItem] {
-        let count = family == .systemSmall ? 1 : (family == .systemExtraLarge ? 3 : 2)
-        return Array(repeating: GridItem(.flexible(), spacing: 8), count: count)
+    /// Columns per family: 1, 2, 2, 3; the rows fill the height, so a
+    /// family's buttons have one size however many are pinned.
+    private var columns: Int {
+        family == .systemSmall ? 1 : (family == .systemExtraLarge ? 3 : 2)
+    }
+
+    private var grid: some View {
+        let buttons = Array(snapshot.pinned.prefix(capacity))
+        return VStack(spacing: 8) {
+            ForEach(0 ..< capacity / columns, id: \.self) { row in
+                HStack(spacing: 8) {
+                    ForEach(0 ..< columns, id: \.self) { column in
+                        let index = row * columns + column
+                        if index < buttons.count {
+                            PinnedButtonView(button: buttons[index], action: snapshot.action(of: buttons[index]))
+                        } else {
+                            Color.clear
+                        }
+                    }
+                }
+            }
+        }
     }
 
     var body: some View {
@@ -75,12 +94,7 @@ struct PinnedWidgetView: View {
                     message: family == .systemSmall ? nil : "Pin projects in TimeTracking's Settings."
                 )
             } else {
-                LazyVGrid(columns: columns, spacing: 8) {
-                    ForEach(snapshot.pinned.prefix(capacity)) { button in
-                        PinnedButtonView(button: button, action: snapshot.action(of: button))
-                    }
-                }
-                .frame(maxHeight: .infinity, alignment: .top)
+                grid
             }
         }
         .widgetBackground()
@@ -123,7 +137,7 @@ struct PinnedButtonView: View {
         }
         .padding(.leading, 12)
         .padding(.trailing, 8)
-        .frame(maxWidth: .infinity, minHeight: 44)
+        .frame(maxWidth: .infinity, minHeight: 44, maxHeight: .infinity)
         .background(background)
         .opacity(button.isArchived ? 0.5 : 1)
     }

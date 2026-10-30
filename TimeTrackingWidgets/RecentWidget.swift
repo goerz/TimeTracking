@@ -62,7 +62,8 @@ struct RecentWidgetView: View {
             all.append(AnyView(RecentRow(row: running.row) {
                 LiveTimer(snapshot: snapshot)
                     .font(.subheadline.weight(.medium))
-                    .fixedSize()
+                    .multilineTextAlignment(.trailing)
+                    .frame(width: 64, alignment: .trailing)
                 CircleIntentButton(
                     intent: snapshot.stopIntent,
                     systemImage: "stop.fill",

@@ -112,7 +112,7 @@ nonisolated struct WidgetEnvironment {
                 areaColor: "#F4A261"
             ),
         ]
-        snapshot.recent += samples
+        snapshot.recent = samples
         snapshot.pinned = samples.map { sample in
             WidgetSnapshot.PinnedButton(
                 projectID: ProjectID(),
