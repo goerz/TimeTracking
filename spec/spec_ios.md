@@ -83,7 +83,7 @@ What iOS adds:
 
 1. The state (`phase`, `focusEnd`, `breakEnd`) is persisted in the device settings at every transition, and the phase's notification (8) is scheduled when the phase starts.
 2. Whenever the app's process runs, it replays the persisted state: a passed phase end becomes the over-state, and if nothing runs the Pomodoro becomes `off` and its pending notifications are removed. The replay never changes an entry.
-3. Sounds play at phase changes in the foreground; in the background the notification carries them.
+3. Sounds play at phase ends in the foreground; in the background the notification carries them.
 
 ### 2.9 Settings
 
@@ -93,7 +93,7 @@ A sheet from the toolbar: an inset-grouped `Form` with the inline title "Setting
 |---|---|---|---|
 | iCloud | Status, pending changes, "Device name" (`Device.name`, a trailing text field), "Sync Now" | | Device |
 | Pomodoro | Focus (1 to 180 min), Break (1 to 60 min) | 25, 5 | Synced |
-| Pomodoro | Play sounds at phase changes (`pomodoro.sounds`) | On | Device |
+| Pomodoro | Play sounds at phase ends (`pomodoro.sounds`) | On | Device |
 | Notifications | Long-running entry reminder, "Remind after" N hours (1 to 12) | On, 4 h (iPhone); off, 4 h (iPad) | Device |
 | Widgets | "Pinned projects" pushes an ordered list over `pinnedProjectIDs`: add (`plus` in the navigation bar, the picker as a sheet), reorder and remove (Edit), an empty state with "Add Project" | Empty | Synced |
 | Widgets | "Pinned buttons start": Last task, or No task | Last task | Device |

@@ -78,7 +78,7 @@ struct SettingsScreen: View {
     private var pomodoroSection: some View {
         Section {
             PomodoroDurationRows(pomodoro: model.pomodoro, focusTitle: "Focus", breakTitle: "Break")
-            Toggle("Play sounds at phase changes", isOn: Bindable(model.settings).pomodoroSounds)
+            Toggle("Play sounds at phase ends", isOn: Bindable(model.settings).pomodoroSounds)
         } header: {
             Text("Pomodoro")
         } footer: {
