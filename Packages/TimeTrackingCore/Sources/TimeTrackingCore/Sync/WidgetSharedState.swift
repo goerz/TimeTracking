@@ -104,10 +104,11 @@ public struct WidgetSharedState: @unchecked Sendable {
         nonmutating set { defaults.set(newValue, forKey: Key.lastFlushAt) }
     }
 
-    /// The app wrote the running entry: record its `LiveState` and the time,
-    /// so providers reuse it for 5 seconds instead of fetching.
+    /// The app wrote the running entry: record the store's `LiveState` (it
+    /// already merges what sync applied) and the time, so providers reuse it
+    /// for 5 seconds instead of fetching.
     public func recordAppWrite(_ state: LiveState, at now: Date) {
-        liveState = liveState.map { $0.merged(with: state) } ?? state
+        liveState = state
         lastAppWriteAt = now
     }
 }

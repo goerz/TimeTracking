@@ -8,7 +8,7 @@ import Foundation
 @MainActor
 struct SilentPushHandler {
     /// The longest wait for the engine's fetch.
-    static let timeout: TimeInterval = 25
+    nonisolated static let timeout: TimeInterval = 25
 
     /// Fetches the changes the push announced.
     var fetch: @Sendable () async -> Void
