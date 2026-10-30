@@ -12,10 +12,23 @@ extension SyntheticDataset {
         let store = try await populatedStore(withTombstones: false)
         let calendar = TrackingCalendar(timeZone: zone)
         let entries = try await store.entries(in: calendar.interval(of: days), includeDeleted: false)
+        let switchDay = days.lowerBound.adding(days: days.lowerBound.distance(to: days.upperBound) / 2)
+        try activityLog(of: entries, timeZone: zone, travelFrom: switchDay, to: folder, device: device)
+    }
+
+    /// Writes the block log of `entries` (the finished ones) with the
+    /// offsets of `timeZone`, from day `travelFrom` on one hour east.
+    /// `make demo` passes the entries of a store moved to today.
+    public func activityLog(
+        of entries: [TimeEntry],
+        timeZone: TimeZone,
+        travelFrom: TrackingDay? = nil,
+        to folder: URL,
+        device: String = "macbook"
+    ) throws {
         var writer = BlockLogWriter(folder: folder.appending(path: "blocks", directoryHint: .isDirectory), device: device)
         try FileManager.default.createDirectory(at: writer.folder, withIntermediateDirectories: true)
         var generator = SeededGenerator(seed: seed ^ 0xB10C)
-        let switchDay = days.lowerBound.adding(days: days.lowerBound.distance(to: days.upperBound) / 2)
         let names = Self.contexts.keys.sorted()
         for entry in entries where entry.end != nil && generator.chance(0.7) {
             let end = entry.end ?? entry.start
@@ -24,7 +37,7 @@ extension SyntheticDataset {
                 continue
             }
             let context = names[Int.random(in: 0 ..< names.count, using: &generator)]
-            let shift = entry.day >= switchDay ? 3600 : 0
+            let shift = travelFrom.map { entry.day >= $0 ? 3600 : 0 } ?? 0
             let block = ActivityBlock(
                 start: entry.start,
                 end: end,
@@ -33,7 +46,7 @@ extension SyntheticDataset {
                 groupKey: context,
                 groupShare: 1,
                 items: [ActivityItem(context: context, subject: entry.task, detail: "", seconds: seconds)],
-                utcOffset: zone.secondsFromGMT(for: entry.start) + shift
+                utcOffset: timeZone.secondsFromGMT(for: entry.start) + shift
             )
             try writer.append(block, contexts: Self.contexts)
         }

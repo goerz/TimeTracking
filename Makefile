@@ -11,6 +11,7 @@ PREFIX ?= $(HOME)/.local
 ALIAS ?=
 ARGS ?=
 D ?=
+FIXTURE ?= small
 
 DEVELOPER_DIR ?= /Applications/Xcode.app/Contents/Developer
 export DEVELOPER_DIR
@@ -36,6 +37,7 @@ DEBUG_AGENT = $(MAC_DEBUG_APP)/Contents/Library/LoginItems/TimeTrackingAgent.app
 IOS_RELEASE_APP = $(PRODUCTS)/Release-iphoneos/$(APP_NAME).app
 SIM_APP = $(PRODUCTS)/Debug-iphonesimulator/$(APP_NAME).app
 INSTALLED_APP = /Applications/$(APP_NAME).app
+DEBUG_SUPPORT = $(HOME)/Library/Group Containers/$(TEAM).$(BUNDLE_ID).debug/Library/Application Support/TimeTracking
 
 SIM_IPHONE := TimeTracking iPhone
 SIM_IPAD := TimeTracking iPad
@@ -50,7 +52,7 @@ LOCAL_XCCONFIG := Config/Local.xcconfig
 # The first line of every recipe that builds an app (spec_architecture.md §2.3).
 require_team = @if [ -z "$(TEAM)" ]; then echo "set TEAM in local.mk" >&2; exit 1; fi
 
-.PHONY: all build build-mac build-ios build-sim sim sim-create stop mac-debug mac-debug-unregister \
+.PHONY: all build build-mac build-ios build-sim sim sim-create stop mac-debug mac-debug-unregister demo \
 	logs sim-logs screenshots install mac uninstall apns-key device iphone ipad devices console \
 	unit-test agent-test ui-test test test-sync lint check-behaviors check-private check hooks \
 	secrets xcode skills clean distclean help
@@ -103,6 +105,14 @@ mac-debug: secrets ## Build and open the Debug Mac app from build.noindex/
 	$(require_team)
 	$(XCB) build -scheme TimeTracking -configuration Debug $(MAC_DEST) $(SIGN)
 	open "$(MAC_DEBUG_APP)" --args $(ARGS)
+
+demo: secrets ## Load FIXTURE (small, large, running) moved to today into the Debug stores; open the Mac app and simulators
+	$(require_team)
+	@[ -f "Fixtures/Store/$(FIXTURE).json" ] || { echo "no store fixture $(FIXTURE) (small, large, running)" >&2; exit 1; }
+	$(XCB) build -scheme TimeTracking -configuration Debug $(MAC_DEST) $(SIGN)
+	@$(MAKE) --no-print-directory sim-create
+	$(XCB) build -scheme TimeTrackingiOS -configuration Debug $(IPHONE_DEST) $(SIGN)
+	scripts/demo.sh "$(FIXTURE)" "$(MAC_DEBUG_APP)" "$(DEBUG_SUPPORT)" "$(BUNDLE_ID).debug" "$(SIM_APP)" "$(SIM_IPHONE)" "$(SIM_IPAD)"
 
 mac-debug-unregister: ## Quit the Debug app and agent, unregister the agent, reset its TCC grants
 	@[ ! -x "$(DEBUG_AGENT)/Contents/MacOS/TimeTrackingAgent" ] || "$(DEBUG_AGENT)/Contents/MacOS/TimeTrackingAgent" --unregister || true

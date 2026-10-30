@@ -123,7 +123,7 @@ test_team_guard() {
     local sb fake target output
     sb=$(sandbox "")
     fake=$(fake_tool xcodebuild 0)
-    for target in build-mac build-ios sim install "device D=x"; do
+    for target in build-mac build-ios sim demo install "device D=x"; do
         rm -f "$scratch/calls"
         # shellcheck disable=SC2086
         if output=$(make -C "$sb" --no-print-directory XCODEBUILD="$fake" $target 2>&1); then
@@ -314,7 +314,7 @@ test_help() {
     local output group target expected
     output=$(make -C "$root" --no-print-directory help)
     expected="Build:all build build-mac build-ios build-sim
-Develop:sim sim-create stop mac-debug mac-debug-unregister logs sim-logs screenshots
+Develop:sim sim-create stop mac-debug demo mac-debug-unregister logs sim-logs screenshots
 Use:install mac uninstall apns-key device iphone ipad devices console
 Test:unit-test agent-test ui-test test test-sync
 Check:lint check-behaviors check-private check hooks
@@ -534,6 +534,32 @@ test_sim_create() {
         -skipPackagePluginValidation -skipMacroValidation -allowProvisioningUpdates test
 }
 
+# --- ARCH-23
+
+test_demo() {
+    local sb fake output line
+    sb=$(sandbox)
+    fake=$(fake_tool xcodebuild 0)
+    rm -f "$scratch/calls"
+    if output=$(make -C "$sb" --no-print-directory XCODEBUILD="$fake" demo FIXTURE=nonexistent 2>&1); then
+        echo "make demo succeeded with an unknown fixture"
+        return 1
+    fi
+    check "an unknown fixture is named" grep -q 'no store fixture nonexistent' <<< "$output"
+    check "an unknown fixture stops before xcodebuild" [ ! -e "$scratch/calls" ]
+    mkdir -p "$sb/Fixtures/Store"
+    printf '{}\n' > "$sb/Fixtures/Store/running.json"
+    output=$(make -C "$sb" --no-print-directory -n demo FIXTURE=running HOME=/home/test)
+    line=$(grep '^scripts/demo.sh ' <<< "$output")
+    check "the Mac app is built before seeding" grep -q 'build -scheme TimeTracking -configuration Debug' <<< "$output"
+    check "the simulator app is built before seeding" grep -q 'build -scheme TimeTrackingiOS -configuration Debug' <<< "$output"
+    check "the fixture is passed" grep -q '^scripts/demo.sh "running" ' <<< "$line"
+    check "the seeded store is the Debug container's" \
+        grep -qF '"/home/test/Library/Group Containers/TESTTEAM01.com.example.test.debug/Library/Application Support/TimeTracking"' <<< "$line"
+    check "the Release container is never named" not grep -qF 'TESTTEAM01.com.example.test/' <<< "$output"
+    check "the simulators get the Debug app id" grep -qF '"com.example.test.debug" "build.noindex/Build/Products/Debug-iphonesimulator/Test.app" "TimeTracking iPhone" "TimeTracking iPad"' <<< "$line"
+}
+
 # --- ARCH-20 (--install)
 
 test_install() {
@@ -581,6 +607,7 @@ behavior "ARCH-13 make help lists every target under its group" test_help
 behavior "ARCH-14 make clean keeps the products; make distclean removes build.noindex unless the Debug agent is registered" test_clean
 behavior "ARCH-15 make lint fails on a SwiftLint finding, a formatting difference, or #available, without building" test_lint_fails
 behavior "ARCH-22 the pre-commit hook refuses a staged TEAM value" test_pre_commit
+behavior "ARCH-23 make demo seeds only the Debug container after building both Debug apps; an unknown fixture stops first" test_demo
 [ "$run_build" = 0 ] || behavior "ARCH-15 a compiler warning fails the build" test_warning_fails_build
 [ "$run_build" = 0 ] || behavior "ARCH-1 swift test passes in a copy of the checkout without local.mk, signing, or network" test_package_without_local_mk
 [ "$run_products" = 0 ] || behavior "ARCH-4 the Release Mac app holds the agent, launchd plist, and tools, and no Frameworks" test_mac_products

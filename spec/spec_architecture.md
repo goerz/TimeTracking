@@ -162,6 +162,7 @@ The `help` target prints the targets grouped as below, from `##@` and `##` lines
 | | `sim-create` | Creates the two simulators (2.6) unless they exist |
 | | `stop` | Quits the app on both simulators |
 | | `mac-debug` | Builds and opens the Debug Mac app from `build.noindex/` |
+| | `demo` | Builds the Debug Mac and simulator apps; replaces the Debug store, its block log, and each simulator's store with the store fixture `FIXTURE` (`small`, `large`, `running`; default `small`) moved by whole days so that its 2024-03-14 is today (times of day kept, today's entries cut or dropped at now, a running entry keeps its age); opens the Mac app and launches it on both simulators; refuses any store outside a Debug or simulator container |
 | | `mac-debug-unregister` | Quits the Debug app and agent, runs the Debug agent's `--unregister`, resets its TCC grants (`tccutil reset Accessibility\|AppleEvents\|SystemPolicyAllFiles <BUNDLE_ID>.debug.agent`), unregisters it from LaunchServices |
 | | `logs`, `sim-logs` | Stream the unified log of the installed Mac app and agent, or of the simulator app |
 | | `screenshots` | Simulator screenshots to `build.noindex/screenshots/` |
@@ -341,6 +342,7 @@ Each step ends with its behaviors green and with `make install` producing a usab
 20. Running `make install` then `$(PREFIX)/bin/timetracking --version` prints the installed app's version; `make uninstall` removes only the symlinks and completion files it wrote under `$(PREFIX)` and keeps the `<BUNDLE_ID>.apns` Keychain item.
 21. A `tracker-event` invocation with the agent not running exits non-zero within 100 ms.
 22. A `git commit` whose staged change contains the value of `TEAM` is refused by the pre-commit hook.
+23. Seeding fixture `running` at 15:00 local time on 2026-10-30 (`make demo FIXTURE=running`) puts the entries of 2024-03-13 on 2026-10-29 at the same local times, starts the running entry at 14:35, and leaves no entry after 15:00; `make demo` names only the Debug container, and a store outside a Debug or simulator container is refused and left unchanged.
 
 ## 9. Decisions
 

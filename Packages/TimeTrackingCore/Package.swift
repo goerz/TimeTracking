@@ -38,6 +38,12 @@ let package = Package(
             dependencies: ["TimeTrackingCore"],
             swiftSettings: swiftSettings
         ),
+        // Development tool behind `make demo`; not linked by any app.
+        .executableTarget(
+            name: "DemoStore",
+            dependencies: ["TimeTrackingCore"],
+            swiftSettings: swiftSettings
+        ),
         .testTarget(
             name: "TimeTrackingCoreTests",
             dependencies: ["TimeTrackingCore"],

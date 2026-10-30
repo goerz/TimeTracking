@@ -57,6 +57,7 @@ Always use the Makefile; it sets `DEVELOPER_DIR=/Applications/Xcode.app/Contents
 | `make build-mac` | Release Mac app with agent and tools, then `scripts/check_products.sh` (bundle layout, entitlements, hardened runtime, launchd plist) |
 | `make build-ios` / `make build-sim` | Release iOS for devices / Debug for the "TimeTracking iPhone" simulator |
 | `make mac-debug` | Debug Mac app from `build.noindex/` |
+| `make demo [FIXTURE=small]` | The store fixture (`small`, `large`, `running`) moved to today into the Debug store and both simulators' stores, then the Debug Mac app and simulators launched; Debug containers only |
 | `make sim` | Build, install, and launch on both simulators |
 | `make install` | Install into `/Applications`, link `timetracking` and `tracker-event` into `$(PREFIX)/bin`, write completions |
 | `make lint` | SwiftFormat `--lint` and SwiftLint `--strict`; no build |
