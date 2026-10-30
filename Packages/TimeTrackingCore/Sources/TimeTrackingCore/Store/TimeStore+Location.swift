@@ -12,7 +12,7 @@ extension TimeStore.Location {
             return .inMemory
         }
         if let path = arguments.storePath {
-            let expanded = path.hasPrefix("~/") ? FileManager.default.homeDirectoryForCurrentUser.path + path.dropFirst() : path
+            let expanded = path.hasPrefix("~/") ? NSHomeDirectory() + path.dropFirst() : path
             return .file(URL(filePath: expanded))
         }
         return identity.flatMap(defaultFile).map { .file($0) }
