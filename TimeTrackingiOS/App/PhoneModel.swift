@@ -71,6 +71,7 @@ final class PhoneModel {
     var padTab: PadTab = .timer
 
     @ObservationIgnored private var changeTask: Task<Void, Never>?
+    @ObservationIgnored private var midnightTask: Task<Void, Never>?
     @ObservationIgnored private var lastRunningID: EntryID?
     @ObservationIgnored var lastLongRunningKey: String?
 
@@ -123,12 +124,31 @@ final class PhoneModel {
                     await self?.storeChanged(change)
                 }
             }
+            midnightTask = Task { [weak self] in
+                await self?.splitAtMidnights()
+            }
+        }
+    }
+
+    /// The midnight split while the app runs (spec_ios.md §7 item 5): wake
+    /// at the running entry's next midnight, run the pass, and fan out.
+    private func splitAtMidnights() async {
+        while !Task.isCancelled {
+            guard let midnight = try? await store.nextMidnightSplit() else {
+                try? await Task.sleep(for: .seconds(60))
+                continue
+            }
+            try? await Task.sleep(for: .seconds(max(1, midnight.timeIntervalSince(clock.now))))
+            try? await store.checkInvariants()
+            await fanOut(structureChanged: false)
         }
     }
 
     func stop() {
         changeTask?.cancel()
         changeTask = nil
+        midnightTask?.cancel()
+        midnightTask = nil
         sync?.stop()
     }
 

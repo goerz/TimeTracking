@@ -64,7 +64,11 @@ struct RunningEntryCard: View {
                     return
                 }
                 if let trigger = TaskFieldModel.trigger(in: text) {
-                    model.openPicker(search: trigger.query)
+                    if case let .picker(picker) = model.sheet {
+                        picker.search = trigger.query
+                    } else {
+                        model.openPicker(search: trigger.query)
+                    }
                     return
                 }
                 timer.taskTextChanged()

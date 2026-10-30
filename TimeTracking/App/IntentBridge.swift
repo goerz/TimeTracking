@@ -13,6 +13,7 @@ final class IntentBridge {
 
     private var model: AppModel?
     private var waiting: [CheckedContinuation<AppModel, Never>] = []
+    private var shortcutTask: Task<Void, Never>?
 
     /// The environment registered with `AppDependencyManager` at launch.
     nonisolated static var environment: IntentEnvironment {
@@ -28,9 +29,17 @@ final class IntentBridge {
         AppDependencyManager.shared.add(dependency: environment)
     }
 
-    /// The model is ready: resumes every waiting intent.
+    /// The model is ready: resumes every waiting intent and keeps the App
+    /// Shortcut parameters current with the project list (spec_ios.md §6.2).
     func attach(_ model: AppModel) {
         self.model = model
+        let stream = model.store.changes
+        shortcutTask?.cancel()
+        shortcutTask = Task {
+            for await change in stream where change == .structure {
+                TimeTrackingShortcuts.updateAppShortcutParameters()
+            }
+        }
         let waiting = waiting
         self.waiting = []
         for continuation in waiting {
