@@ -48,8 +48,8 @@ struct CalendarView: View {
             .task(id: model.router?.calendarRequest) {
                 await model.router?.consumeCalendarRequest()
             }
-            .task { await followActivity() }
-            .task { await followEvents() }
+            .task { await model.followActivity() }
+            .task { await model.followEvents() }
             .onChange(of: model.scrollRequest?.serial) { _, _ in
                 if let hour = model.scrollRequest?.hour {
                     scrollPosition.scrollTo(y: hour * model.pointsPerHour)
@@ -147,24 +147,6 @@ struct CalendarView: View {
         let axis = model.axis(model.today)
         if let offset = axis.nowOffset(model.clock.now) {
             scrollPosition.scrollTo(y: max(0, offset - viewportHeight / 3))
-        }
-    }
-
-    /// Follows the block log; a changed month file also updates the
-    /// suggestions index (throttled like entry changes).
-    private func followActivity() async {
-        for await change in model.activity.changes {
-            await model.reload()
-            if case .blocks = change {
-                await model.engine.entriesChanged(titles: model.trainingTitles())
-            }
-        }
-    }
-
-    /// Follows EventKit (`EKEventStoreChanged`).
-    private func followEvents() async {
-        for await _ in model.events.changes {
-            await model.reload()
         }
     }
 

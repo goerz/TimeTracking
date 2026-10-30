@@ -269,12 +269,7 @@ private struct ActivityFooter: View {
         .padding(.horizontal, Design.Spacing.content)
         .padding(.vertical, Design.Spacing.small)
         .help(model.health?.tooltip.joined(separator: "\n") ?? "")
-        .task {
-            while !Task.isCancelled {
-                await model.loadHealth()
-                try? await Task.sleep(for: .seconds(10))
-            }
-        }
+        .task { await model.followHealth() }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("activity.footer")
     }

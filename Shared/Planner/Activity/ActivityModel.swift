@@ -127,7 +127,24 @@ final class ActivityModel {
         }
     }
 
-    /// The footer, every 10 seconds while visible.
+    /// The footer's re-read period while visible (§1.10).
+    static let healthRefreshInterval: Duration = .seconds(10)
+
+    /// While the footer is visible: reads the health now and after every
+    /// `healthRefreshInterval`, until the task is cancelled. `sleep` is the
+    /// tests' seam.
+    func followHealth(sleep: (Duration) async throws -> Void = { try await Task.sleep(for: $0) }) async {
+        while !Task.isCancelled {
+            await loadHealth()
+            do {
+                try await sleep(Self.healthRefreshInterval)
+            } catch {
+                return
+            }
+        }
+    }
+
+    /// The footer's dot, status line, and sources.
     func loadHealth() async {
         if isRecordingMac {
             health = await ActivityHealth(registration: registration(), state: activity.currentState(), now: clock.now)

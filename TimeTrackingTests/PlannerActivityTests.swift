@@ -121,6 +121,38 @@ struct PlannerActivityTests {
         #expect(router.activity.health?.activeSources.isEmpty == true)
     }
 
+    @Test("PA-16 while the footer is visible it re-reads the tracker's status every 10 seconds")
+    func footerRefreshLoop() async throws {
+        let now = try TestApp.date("2024-03-14T10:00")
+        let state = TrackerState(
+            device: "macbook",
+            openBlock: nil,
+            primary: nil,
+            presence: TrackerPresence(state: .active, since: now - 600),
+            health: TrackerHealth(lastTick: now - 12, version: "1.0", sources: [])
+        )
+        let test = try await TestApp(trackerState: state)
+        let (router, _) = Self.router(test, blocks: [], state: state)
+        let model = router.activity
+        var registration = AgentRegistration.notRegistered
+        model.registration = { registration }
+        let gate = SleepGate()
+        let loop = Task { await model.followHealth(sleep: { try await gate.sleep($0) }) }
+        await gate.waitForSleep(1)
+        let before = model.health?.dot
+        #expect(before != .green)
+        // Enabled meanwhile: the next pass, one period later, shows it.
+        registration = .enabled
+        #expect(model.health?.dot == before)
+        gate.release()
+        await gate.waitForSleep(2)
+        #expect(model.health?.dot == .green)
+        #expect(gate.durations == [.seconds(10), .seconds(10)])
+        loop.cancel()
+        gate.cancel()
+        await loop.value
+    }
+
     @Test("PA-17 clicking a cell opens the Calendar at that day and hour with the hour's blocks pulsed; ⌘4 returns unchanged")
     func drillIntoCalendar() async throws {
         let test = try await TestApp()
