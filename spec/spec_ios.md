@@ -32,11 +32,11 @@ A navigation bar with the large title "Timer" and a settings button (`gearshape`
 
 The card is the Timer window's running-entry bar ([spec_timer_window.md](spec_timer_window.md) §2) in pocket form, with the 44 pt circle buttons of `spec_design.md` §7, in three rows:
 
-1. The Pomodoro button (2.8) and the borderless task field (`.title2`, placeholder "What are you working on?").
-2. The project chip.
-3. The time (`.title2`, medium weight, monospaced digits), then at the trailing edge the Discard button while running and the Start or Stop button.
+1. The borderless task field, full width (`.title2`, placeholder "What are you working on?").
+2. The project chip, at the card's leading edge.
+3. The Pomodoro button (2.8), the elapsed time (`.title2`, medium weight, monospaced digits), then at the trailing edge the borderless Discard button while running and the Start or Stop button.
 
-The chip and the time line up with the task field's text.
+The Pomodoro countdown thus sits next to the elapsed time.
 
 | State | Time shown | Actions |
 |---|---|---|
@@ -60,7 +60,7 @@ Continuing an entry whose project is archived shows the Timer window's alert ("R
 
 ### 2.6 The recent list
 
-Grouping, headers, day totals (today's live with the running entry), the 14-day paging, and the row content are those of [spec_timer_window.md](spec_timer_window.md) §3. Section headers use `.headline` in the primary color, without uppercasing. The running entry is not a row. Each row has a 32 pt continue button at the trailing edge.
+Grouping, headers, day totals (today's live with the running entry), the 14-day paging, and the row content are those of [spec_timer_window.md](spec_timer_window.md) §3. Section headers use `.headline` in the primary color, without uppercasing. The running entry is the first row of Today, its live duration in the accent color, without a continue button or swipes; a tap opens its edit sheet. Each other row has a 32 pt continue button at the trailing edge.
 
 | Gesture | Action |
 |---|---|

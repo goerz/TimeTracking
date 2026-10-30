@@ -5,19 +5,27 @@ import GRDB
 
 /// One day of the Timer list: its stopped entries, newest first, and the
 /// running entry when it belongs to the day and matches the filter. The
-/// running entry is not a row but counts toward the total.
+/// running entry shows as the day's first row (not selectable, no continue
+/// button) and counts toward the total.
 public struct TimerListDay: Hashable, Sendable, Identifiable {
     public var day: TrackingDay
+    /// The stopped entries, newest first.
     public var rows: [EntryListing]
     /// The seconds of `rows`.
     public var stoppedSeconds: Int
-    public var running: TimeEntry?
+    /// The running entry with its project, client, and area.
+    public var runningListing: EntryListing?
 
-    public init(day: TrackingDay, rows: [EntryListing], stoppedSeconds: Int, running: TimeEntry?) {
+    public init(day: TrackingDay, rows: [EntryListing], stoppedSeconds: Int, runningListing: EntryListing?) {
         self.day = day
         self.rows = rows
         self.stoppedSeconds = stoppedSeconds
-        self.running = running
+        self.runningListing = runningListing
+    }
+
+    /// The running entry, if it belongs to the day.
+    public var running: TimeEntry? {
+        runningListing?.entry
     }
 
     public var id: TrackingDay {
@@ -59,12 +67,12 @@ extension TimeStore {
         return days.compactMap { day in
             let all = byDay[day] ?? []
             let stopped = all.filter { !$0.entry.isRunning }.sorted { ($0.entry.start, $0.id) > ($1.entry.start, $1.id) }
-            let running = all.first(where: \.entry.isRunning)?.entry
+            let running = all.first(where: \.entry.isRunning)
             guard !stopped.isEmpty || running != nil else {
                 return nil
             }
             let seconds = stopped.reduce(0) { $0 + $1.entry.seconds(at: clock.now) }
-            return TimerListDay(day: day, rows: stopped, stoppedSeconds: seconds, running: running)
+            return TimerListDay(day: day, rows: stopped, stoppedSeconds: seconds, runningListing: running)
         }
     }
 

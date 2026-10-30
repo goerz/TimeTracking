@@ -18,6 +18,9 @@ final class TimerUIState {
     private(set) var focusListRequest = 0
     /// Whether the list has keyboard focus (⌘⌫ applies to the selection).
     var listFocused = false
+    /// The task field's leading edge in the window; the suggestions popup
+    /// lines up with it.
+    var taskFieldLeading: CGFloat = Design.Spacing.window + Design.CircleDiameter.bar + Design.Spacing.medium
 
     func focusList() {
         focusListRequest += 1

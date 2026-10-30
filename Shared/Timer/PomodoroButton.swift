@@ -25,6 +25,13 @@ struct PomodoroButton: View {
     var perform: (PomodoroAction) -> Void
     var openSettings: () -> Void
 
+    // The light fill of the off circle and the running capsule.
+    #if os(macOS)
+        private static let fill = AnyShapeStyle(.quaternary)
+    #else
+        private static let fill = AnyShapeStyle(.fill.tertiary)
+    #endif
+
     private var pomodoro: Pomodoro {
         state.pomodoro
     }
@@ -49,7 +56,7 @@ struct PomodoroButton: View {
             .font(.system(size: diameter * 0.45))
             .foregroundStyle(.secondary)
             .frame(width: diameter, height: diameter)
-            .background(Circle().fill(.quaternary))
+            .background(Circle().fill(Self.fill))
             .contentShape(Circle())
         if state.isRunning {
             Menu {
@@ -89,18 +96,11 @@ struct PomodoroButton: View {
             Text(title)
             menuItems
         } label: {
-            HStack(spacing: Design.Spacing.tight + 2) {
+            capsule(fill: Self.fill) {
                 PomodoroRing(progress: progress, tint: tint)
-                    .frame(width: diameter * 0.42, height: diameter * 0.42)
-                Text(pomodoro.countdownText(at: now) ?? "")
-                    .font(.subheadline.monospacedDigit())
-                    .foregroundStyle(.primary)
+            } text: {
+                Text(pomodoro.countdownText(at: now) ?? "").foregroundStyle(.primary)
             }
-            .padding(.leading, diameter * 0.29)
-            .padding(.trailing, diameter * 0.36)
-            .frame(height: diameter)
-            .background(Capsule().fill(.quaternary))
-            .contentShape(Capsule())
         }
         .modifier(PomodoroMenuStyle())
         .help(title)
@@ -109,28 +109,68 @@ struct PomodoroButton: View {
         .accessibilityIdentifier("timer.pomodoroButton")
     }
 
+    /// The confirmation in the same capsule: the next phase's glyph and
+    /// name on an accent tint.
     private func confirmation(_ title: String, _ action: PomodoroAction) -> some View {
-        Button {
+        let isBreak = action == .startBreak
+        #if os(macOS)
+            let help = "\(title) (⌘↩)"
+        #else
+            let help = title
+        #endif
+        return Button {
             perform(action)
         } label: {
-            HStack(spacing: Design.Spacing.tight + 1) {
-                Image(systemName: "play.fill").imageScale(.small).accessibilityHidden(true)
-                Text(title)
+            capsule(fill: AnyShapeStyle(Color.accentColor.opacity(0.18))) {
+                Image(systemName: isBreak ? "cup.and.saucer" : "timer")
+                    .resizable()
+                    .scaledToFit()
+                    .fontWeight(.semibold)
+            } text: {
+                Text(isBreak ? "Break" : "Focus").fontWeight(.semibold)
             }
-            .font(.subheadline.weight(.semibold))
-            .foregroundStyle(.white)
-            .padding(.horizontal, diameter * 0.36)
-            .frame(height: diameter)
-            .background(Capsule().fill(Color.accentColor))
-            .contentShape(Capsule())
+            .foregroundStyle(Color.accentColor)
         }
         .buttonStyle(.plain)
         #if os(macOS)
             .keyboardShortcut(.return, modifiers: .command)
         #endif
-            .help("\(title) (\(pomodoro.buttonTitle(at: now())))")
+            .help(help)
             .contextMenu { menuItems }
+            .accessibilityLabel(help)
+            .accessibilityValue(pomodoro.buttonTitle(at: now()))
             .accessibilityIdentifier("timer.pomodoroConfirm")
+    }
+
+    /// The capsule of the on and pending states: a glyph and a text in a
+    /// fixed width that fits the longest countdown, so the task field next
+    /// to it stays put through focus, break, overtime, and confirmation.
+    private func capsule(
+        fill: AnyShapeStyle,
+        @ViewBuilder glyph: () -> some View,
+        @ViewBuilder text: () -> some View
+    ) -> some View {
+        HStack(spacing: Design.Spacing.tight + 2) {
+            glyph()
+                .frame(width: diameter * 0.42, height: diameter * 0.42)
+            ZStack(alignment: .leading) {
+                Text(widestCountdown).hidden()
+                text()
+            }
+            .font(.subheadline.monospacedDigit())
+            .lineLimit(1)
+        }
+        .padding(.leading, diameter * 0.29)
+        .padding(.trailing, diameter * 0.36)
+        .frame(height: diameter)
+        .background(Capsule().fill(fill))
+        .contentShape(Capsule())
+    }
+
+    /// The widest countdown the durations can show: `+88:88`, or `8:88:88`
+    /// with a phase of an hour or more.
+    private var widestCountdown: String {
+        max(state.focusMinutes, state.breakMinutes) >= 60 ? "8:88:88" : "+88:88"
     }
 
     // MARK: Menu

@@ -32,7 +32,7 @@ struct TimerWindowView: View {
             }
             .overlay(alignment: .topLeading) {
                 TaskFieldPopup()
-                    .padding(.leading, RunningEntryBar.taskLeading - Design.Spacing.medium)
+                    .padding(.leading, app.presentation.taskFieldLeading - Design.Spacing.medium)
                     .offset(y: RunningEntryBar.titleRowHeight + Design.CircleDiameter.bar + Design.Spacing.tight)
                     .zIndex(2)
             }

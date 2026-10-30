@@ -128,9 +128,45 @@ private struct DaySection: View {
         .padding(.top, Design.Spacing.large)
         .padding(.bottom, Design.Spacing.tight)
         .accessibilityIdentifier("timer.day.\(day.day)")
+        if let running = day.runningListing {
+            RunningRowView(listing: running)
+        }
         ForEach(day.rows) { listing in
             EntryRowView(listing: listing)
         }
+    }
+}
+
+/// The running entry as Today's first row: its live duration in the accent
+/// color, no continue button; a click opens its edit popover on the bar.
+private struct RunningRowView: View {
+    @Environment(AppModel.self) private var app
+    var listing: EntryListing
+    @State private var hovering = false
+
+    var body: some View {
+        HStack(spacing: Design.Spacing.small) {
+            EntryRowLabels(listing: listing)
+            Spacer(minLength: Design.Spacing.small)
+            TimelineView(.periodic(from: .now, by: 1)) { _ in
+                Text(DurationText.clock(listing.entry.seconds(at: app.clock.now)))
+                    .monospacedDigit()
+                    .foregroundStyle(Color.accentColor)
+            }
+            Color.clear.frame(width: Design.CircleDiameter.row, height: 1)
+        }
+        .padding(.vertical, Design.Spacing.small)
+        .padding(.horizontal, Design.Spacing.small)
+        .background(RoundedRectangle(cornerRadius: Design.Radius.small)
+            .fill(hovering ? AnyShapeStyle(.fill.quaternary) : AnyShapeStyle(.clear)))
+        .contentShape(Rectangle())
+        .onHover { hovering = $0 }
+        .help("Running since \(listing.entry.start.formatted(date: .omitted, time: .shortened))")
+        .onTapGesture { app.presentation.editing = listing.id }
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isButton)
+        .accessibilityValue("running")
+        .accessibilityIdentifier("timer.runningRow")
     }
 }
 

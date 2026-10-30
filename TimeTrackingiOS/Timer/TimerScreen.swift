@@ -72,10 +72,17 @@ struct TimerScreen: View {
     static let twoColumnWidth: CGFloat = 900
 
     @ViewBuilder private var cardSection: some View {
-        Section {
-            RunningEntryCard(model: model)
-        } footer: {
-            statusLines
+        if model.macLines.isEmpty, model.syncPill(at: .distantFuture) == nil {
+            // No footer at all, so the tip sits close under the card.
+            Section {
+                RunningEntryCard(model: model)
+            }
+        } else {
+            Section {
+                RunningEntryCard(model: model)
+            } footer: {
+                statusLines
+            }
         }
         if !model.settings.siriTipDismissed {
             Section {
@@ -96,7 +103,7 @@ struct TimerScreen: View {
                 RecentListSections(model: model)
             }
             .listStyle(.insetGrouped)
-            .listSectionSpacing(.compact)
+            .listSectionSpacing(Design.Spacing.medium)
             .accessibilityIdentifier("timer.list")
             .onChange(of: model.list.scrollToTopRequest) {
                 // ⌘↑ (spec_ios.md §10.3).

@@ -11,6 +11,9 @@ struct RecentListSections: View {
     var body: some View {
         ForEach(model.list.days) { day in
             Section {
+                if let running = day.runningListing {
+                    RunningRow(model: model, listing: running)
+                }
                 ForEach(day.rows) { listing in
                     EntryRow(model: model, listing: listing)
                 }
@@ -36,6 +39,33 @@ struct RecentListSections: View {
             }
             .accessibilityIdentifier("timer.loadMore")
         }
+    }
+}
+
+/// The running entry as Today's first row: its live duration in the accent
+/// color, no play button; a tap opens the edit sheet.
+struct RunningRow: View {
+    @Bindable var model: PhoneModel
+    var listing: EntryListing
+
+    var body: some View {
+        HStack(spacing: Design.Spacing.medium) {
+            EntryRowLabels(listing: listing, badged: model.badged.contains(listing.id))
+            Spacer(minLength: Design.Spacing.small)
+            TimelineView(.periodic(from: .now, by: 1)) { _ in
+                Text(DurationText.clock(listing.entry.seconds(at: model.clock.now)))
+                    .monospacedDigit()
+                    .foregroundStyle(Color.accentColor)
+            }
+            Color.clear.frame(width: Design.CircleDiameter.row, height: 1)
+        }
+        .padding(.vertical, Design.Spacing.tight)
+        .contentShape(Rectangle())
+        .onTapGesture { model.openEditor(listing.id) }
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isButton)
+        .accessibilityValue("running")
+        .accessibilityIdentifier("timer.runningRow")
     }
 }
 

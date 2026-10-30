@@ -3,34 +3,44 @@
 
 import SwiftUI
 
-/// A bordered capsule: area dot, project, " · client" in secondary, and the
-/// popup chevron. "No project" shows a hollow dot.
+/// A capsule: area dot, project, " · client" in secondary, and the popup
+/// chevron. "No project" shows a hollow dot. On the Mac a small bordered
+/// button; on iOS the same light fill as the Pomodoro button.
 struct ProjectChipButton: View {
     var label: ProjectLabel
     var action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: Design.Spacing.tight + 2) {
-                AreaDot(color: label.color)
-                label.text(dimmed: label.isNone).lineLimit(1)
-                Image(systemName: "chevron.up.chevron.down")
-                    .imageScale(.small)
-                    .foregroundStyle(.secondary)
-                    .accessibilityHidden(true)
-            }
-            .truncationMode(.tail)
+            content
         }
+        #if os(macOS)
         .buttonStyle(.bordered)
         .buttonBorderShape(.capsule)
-        #if os(macOS)
-            .controlSize(.small)
+        .controlSize(.small)
         #else
-            // Gray, not the accent color: the chip shows data, not a link.
-            .tint(.primary)
+        .buttonStyle(.plain)
         #endif
-            .accessibilityLabel(label.projectAndClient)
-            .accessibilityHint("Choose a project")
+        .accessibilityLabel(label.projectAndClient)
+        .accessibilityHint("Choose a project")
+    }
+
+    private var content: some View {
+        HStack(spacing: Design.Spacing.tight + 2) {
+            AreaDot(color: label.color)
+            label.text(dimmed: label.isNone).lineLimit(1)
+            Image(systemName: "chevron.up.chevron.down")
+                .imageScale(.small)
+                .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
+        }
+        .truncationMode(.tail)
+        #if os(iOS)
+            .padding(.horizontal, Design.Spacing.medium)
+            .padding(.vertical, Design.Spacing.small)
+            .background(Capsule().fill(.fill.tertiary))
+            .contentShape(Capsule())
+        #endif
     }
 }
 

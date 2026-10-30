@@ -228,6 +228,23 @@ struct TimerQueryTests {
         #expect(days[0].totalSeconds == 301)
     }
 
+    @Test("TW-14 the running entry is Today's first row with its project; today's total includes it")
+    func runningRow() async throws {
+        let test = try await TestStore(now: "2024-03-14T10:00")
+        try await test.store.start(projectID: nil, task: "Earlier", at: test.date("2024-03-14T09:00"))
+        let running = try await test.store.start(projectID: nil, task: "Now", at: test.date("2024-03-14T09:30"))
+        let list = try await test.store.timerList(dayLimit: 14)
+        let today = try #require(list.first)
+        #expect(today.runningListing?.id == running.id)
+        #expect(today.runningListing?.project == nil)
+        #expect(today.rows.map(\.entry.task) == ["Earlier"])
+        #expect(today.totalSeconds(at: test.clock.now) == 3600)
+        // A filter that misses the running entry hides its row and its seconds.
+        let filtered = try #require(try await test.store.timerList(dayLimit: 14, filter: "earl").first)
+        #expect(filtered.runningListing == nil)
+        #expect(filtered.totalSeconds(at: test.clock.now) == 1800)
+    }
+
     @Test("durations and times of day format and parse as the editor and bar read them")
     func durationText() {
         #expect(DurationText.clock(2547) == "0:42:27")

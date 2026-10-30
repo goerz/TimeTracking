@@ -33,9 +33,9 @@ Launched as a login item, the app shows only the menu bar item unless "Show the 
 
 ## 2. The running-entry bar
 
-Below the title-bar row, using the full width between the window's 20 pt insets, from left: the Pomodoro button (5.1); the borderless task field (placeholder "What are you working on?", `.title3`), which takes the remaining width; the timer label (`h:mm:ss` in `.title3`, medium weight, monospaced digits; `0:00:00` in the secondary color when idle); the start button, which becomes the stop button while an entry runs; and the discard button, only while running. The buttons are the 32 pt circle buttons of `spec_design.md` §7.
+Below the title-bar row, using the full width between the window's 20 pt insets, from left: the Pomodoro button (5.1, 32 pt circle while off, a fixed-width capsule while on); the borderless task field (placeholder "What are you working on?", `.title3`), which takes the remaining width; the timer label (`h:mm:ss` in `.title3`, medium weight, monospaced digits; `0:00:00` in the secondary color when idle); the start button (32 pt circle), which becomes the stop button while an entry runs; and the borderless discard button, only while running (`spec_design.md` §7).
 
-Below that row, the project chip (`spec_design.md` §7: area dot, project, " · " and client in secondary color, `chevron.up.chevron.down`; "No project" with a hollow dot), its leading edge aligned with the task field's text.
+Below that row, the project chip (`spec_design.md` §7: area dot, project, " · " and client in secondary color, `chevron.up.chevron.down`; "No project" with a hollow dot). The chip shares the task field's column, so its leading edge stays aligned with the task text in every Pomodoro state; both move only when the Pomodoro turns on or off.
 
 The timer label always shows the elapsed time, also during a Pomodoro, and counts from the running entry's chain start (the earliest start among the live entries sharing its `splitRootID` root, `spec_data_and_sync.md` 1.5), so it does not reset when the library splits the entry at midnight.
 
@@ -67,7 +67,7 @@ The picker's "Create Project" row opens the project dialog (`spec_planner_projec
 
 ## 3. The list
 
-Entries are grouped by day. Headers read "Today", "Yesterday", then "EEE, MMM d" ("Tue, Oct 27"), with the year for other years, and show the day total `h:mm:ss` at the right. The running entry is not a row, but counts toward today's total, which ticks every second. Empty days are omitted. The list loads the 14 most recent days with entries; "Load Earlier Entries" (or scrolling to the end) appends 14 more. Each entry is its own row.
+Entries are grouped by day. Headers read "Today", "Yesterday", then "EEE, MMM d" ("Tue, Oct 27"), with the year for other years, and show the day total `h:mm:ss` at the right. The running entry is the first row of its day, with its live duration in the accent color and no continue button; it is not selectable, and a click opens its edit popover (4). It counts toward today's total, which ticks every second; a filter it does not match hides its row and its seconds. Empty days are omitted. The list loads the 14 most recent days with entries; "Load Earlier Entries" (or scrolling to the end) appends 14 more. Each entry is its own row.
 
 A row shows the task ("No task" in placeholder style), below it the project line (area dot, project, " · client" in secondary), and the duration at the right; every row has the same height. The continue button (24 pt circle) shows on hover and on the selected row, in space the row always reserves, so the duration never moves; the tooltip shows the range ("9:10 to 9:35"). Without entries the list shows "No Entries"; a filter without matches shows the system's search empty state.
 
@@ -135,7 +135,7 @@ The Pomodoro button is the countdown's only place; the timer label keeps the ela
 | Off, an entry runs | `timer` in a 32 pt circle | Start Pomodoro | Press and hold: "Start Pomodoro (25 min)" (the focus duration) |
 | Off, idle | The same | The menu | "Start Pomodoro (25 min)", disabled |
 | Focus, break | A capsule: progress ring (accent color in focus, secondary on a break) and the countdown `m:ss` (`h:mm:ss` from one hour) | The menu | The phase and countdown ("Focus 24:59", "Break 4:30"), then the actions 5.3 allows and "Cancel Pomodoro" |
-| Focus over, break over | An accent capsule reading "Start Break" or "Start Focus" with `play.fill` | The confirmation; ⌘↩ anywhere in the window | Secondary click: the actions 5.3 allows and "Cancel Pomodoro" |
+| Focus over, break over | The same capsule tinted with the accent color: `cup.and.saucer` and "Break", or `timer` and "Focus"; tooltip "Start Break (⌘↩)" or "Start Focus (⌘↩)" | The confirmation; ⌘↩ anywhere in the window | Secondary click: the actions 5.3 allows and "Cancel Pomodoro" |
 
 Every menu ends with "Pomodoro Settings…". The tooltip and the accessibility value name the phase and the countdown, in overtime as `+m:ss` counting up ("Focus +1:20").
 
@@ -304,7 +304,7 @@ Clicking a notification shows the Timer window (with the idle prompt for `idle`)
 - TW-11. A project created from the picker is assigned to the running entry, or to the draft.
 - TW-12. Discard deletes the running entry after the alert and ⌘Z restores it; continuing an archived project's entry starts nothing unless "Restore Project and Continue" is chosen.
 - TW-13. With an entry running since 23:10, at 00:05 the timer label reads `0:55:00`, and the list later shows its two pieces under their own days.
-- TW-14. Today's total includes the running entry's elapsed time and rises one second per second.
+- TW-14. Today's total includes the running entry's elapsed time and rises one second per second; the running entry is Today's first row with its project, and a filter it does not match removes both.
 - TW-15. Two identical consecutive entries appear as two rows; the list shows 14 days with entries and "Load Earlier Entries" appends 14.
 - TW-16. The list inputs of §3 act as listed.
 - TW-17. ⌘F with "noise" leaves only matching entries, and day totals sum them.

@@ -3,12 +3,14 @@
 
 import SwiftUI
 
-/// A filled circle with a glyph at 40% of its diameter: white on a color
-/// (start, stop, continue), or secondary on a quaternary fill (discard).
+/// A filled circle with a white glyph at 40% of its diameter (start, stop,
+/// continue), or a borderless secondary glyph with the same hit area
+/// (discard).
 struct CircleButtonStyle: ButtonStyle {
     var fill: AnyShapeStyle
     var glyph: AnyShapeStyle
     var diameter: CGFloat
+    var weight: Font.Weight = .semibold
 
     /// A white glyph on `color`.
     init(color: Color, diameter: CGFloat) {
@@ -17,21 +19,23 @@ struct CircleButtonStyle: ButtonStyle {
         self.diameter = diameter
     }
 
-    /// The secondary circle of the discard button.
-    static func secondary(diameter: CGFloat) -> Self {
+    /// The discard button: a secondary glyph without a fill, its hit area
+    /// the full circle.
+    static func borderless(diameter: CGFloat) -> Self {
         var style = Self(color: .clear, diameter: diameter)
-        style.fill = AnyShapeStyle(.quaternary)
         style.glyph = AnyShapeStyle(.secondary)
+        style.weight = .medium
         return style
     }
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .labelStyle(.iconOnly)
-            .font(.system(size: diameter * 0.4, weight: .semibold))
+            .font(.system(size: diameter * 0.4, weight: weight))
             .foregroundStyle(glyph)
             .frame(width: diameter, height: diameter)
-            .background(Circle().fill(fill).opacity(configuration.isPressed ? 0.75 : 1))
+            .background(Circle().fill(fill))
+            .opacity(configuration.isPressed ? 0.6 : 1)
             .contentShape(Circle())
     }
 }

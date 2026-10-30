@@ -12,30 +12,34 @@ struct RunningEntryBar: View {
 
     /// The height of the title-bar row (the traffic lights' row).
     static let titleRowHeight: CGFloat = 32
-    /// The leading inset of the task field's text: window inset, the
-    /// Pomodoro circle, and the spacing after it.
-    static let taskLeading: CGFloat = Design.Spacing.window + Design.CircleDiameter.bar + Design.Spacing.medium
-
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             titleRow
-            HStack(spacing: Design.Spacing.medium) {
+            HStack(alignment: .top, spacing: Design.Spacing.medium) {
                 pomodoroButton
-                TaskFieldView()
-                timerLabel
-                HStack(spacing: Design.Spacing.small) {
-                    startStopButton
-                    if app.timer.isRunning {
-                        discardButton
+                // The chip shares the task field's column, so it follows the
+                // field's leading edge whatever the Pomodoro button's width.
+                VStack(alignment: .leading, spacing: Design.Spacing.small) {
+                    HStack(spacing: Design.Spacing.medium) {
+                        TaskFieldView()
+                        timerLabel
+                        HStack(spacing: Design.Spacing.tight) {
+                            startStopButton
+                            if app.timer.isRunning {
+                                discardButton
+                            }
+                        }
                     }
+                    .frame(height: Design.CircleDiameter.bar)
+                    TimerProjectChip()
+                }
+                .onGeometryChange(for: CGFloat.self) { proxy in
+                    proxy.frame(in: .global).minX
+                } action: { leading in
+                    app.presentation.taskFieldLeading = leading
                 }
             }
-            .frame(height: Design.CircleDiameter.bar)
             .padding(.horizontal, Design.Spacing.window)
-            TimerProjectChip()
-                .padding(.leading, Self.taskLeading)
-                .padding(.trailing, Design.Spacing.window)
-                .padding(.top, Design.Spacing.small)
             Spacer(minLength: 0)
         }
         .frame(height: TimerWindowGeometry.barHeight)
@@ -113,7 +117,7 @@ struct RunningEntryBar: View {
         } label: {
             Label("Discard", systemImage: "xmark")
         }
-        .buttonStyle(CircleButtonStyle.secondary(diameter: Design.CircleDiameter.bar))
+        .buttonStyle(CircleButtonStyle.borderless(diameter: Design.CircleDiameter.bar))
         .help("Discard Running Entry")
         .accessibilityIdentifier("timer.discardButton")
     }

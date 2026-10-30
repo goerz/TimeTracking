@@ -1,5 +1,5 @@
 // RunningEntryCard: the Timer window's running-entry bar in rows
-// (spec_ios.md §2.2): Pomodoro button and task field; project chip; time,
+// (spec_ios.md §2.2): task field; project chip; Pomodoro button, time,
 // Discard while running, and Start or Stop.
 
 import SwiftUI
@@ -10,25 +10,19 @@ struct RunningEntryCard: View {
 
     @FocusState private var taskFocused: Bool
 
-    /// The leading inset of the task field's text: the Pomodoro circle and
-    /// the spacing after it. The chip and the time line up with it.
-    private static let taskLeading = Design.CircleDiameter.bar + Design.Spacing.medium
-
     private var timer: TimerModel {
         model.timer
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Design.Spacing.small) {
-            HStack(spacing: Design.Spacing.medium) {
-                pomodoroButton
-                taskField
-            }
+        VStack(alignment: .leading, spacing: Design.Spacing.medium) {
+            taskField
             if taskFocused, !model.taskField.suggestions.isEmpty {
-                suggestions.padding(.leading, Self.taskLeading)
+                suggestions
             }
-            projectChip.padding(.leading, Self.taskLeading)
+            projectChip
             HStack(spacing: Design.Spacing.small) {
+                pomodoroButton
                 timeLabel
                 Spacer(minLength: Design.Spacing.small)
                 if timer.isRunning {
@@ -37,12 +31,11 @@ struct RunningEntryCard: View {
                     } label: {
                         Label("Discard", systemImage: "xmark")
                     }
-                    .buttonStyle(CircleButtonStyle.secondary(diameter: Design.CircleDiameter.bar))
+                    .buttonStyle(CircleButtonStyle.borderless(diameter: Design.CircleDiameter.bar))
                     .accessibilityIdentifier("timer.discardButton")
                 }
                 startStopButton
             }
-            .padding(.leading, Self.taskLeading)
         }
         .padding(.vertical, Design.Spacing.small)
         .onChange(of: timer.focusTaskFieldRequest) { taskFocused = true }
