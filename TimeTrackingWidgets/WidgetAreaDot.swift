@@ -1,7 +1,8 @@
-// WidgetParts: the pieces the widgets share: the area dot, live timers, the
-// start and stop circles, the Pomodoro line, and the empty notices
-// (spec_ios.md §3, spec_design.md §6, §7). The extension does not compile
-// `Shared/`, so it keeps its own copy of the start and stop tints.
+// WidgetAreaDot and the other pieces the widgets share: the metrics, live
+// timers, the start and stop circles, the Pomodoro line, the empty notices,
+// and the project line (spec_ios.md §3, spec_design.md §6, §7). The extension
+// does not compile `Shared/`, so it keeps its own copy of the start and stop
+// tints.
 
 import AppIntents
 import SwiftUI
@@ -106,13 +107,15 @@ struct CircleGlyph: View {
 struct CircleIntentButton<Intent: AppIntent>: View {
     var intent: Intent
     var systemImage: String
+    /// The accessibility label.
+    var label: LocalizedStringKey
     var color: Color
     var diameter: CGFloat = WidgetMetrics.button
 
     var body: some View {
         Button(intent: intent) {
             CircleGlyph(systemImage: systemImage, color: color, diameter: diameter)
-                .accessibilityLabel(systemImage == "stop.fill" ? "Stop" : "Start")
+                .accessibilityLabel(label)
         }
         .buttonStyle(.plain)
     }
@@ -196,13 +199,25 @@ struct ProjectLine: View {
             WidgetAreaDot(color: row.areaColor)
             Group {
                 if showsClient, let client = row.clientName {
-                    Text("\(row.projectName ?? "No project")\(Text(" · \(client)").foregroundStyle(.secondary))")
+                    Text("\(row.projectText)\(Text(" · \(client)").foregroundStyle(.secondary))")
                 } else {
-                    Text(row.projectName ?? "No project")
+                    Text(row.projectText)
                 }
             }
             .lineLimit(1)
         }
+    }
+}
+
+extension WidgetSnapshot.Row {
+    /// The task, or "No task".
+    var taskText: String {
+        task.isEmpty ? "No task" : task
+    }
+
+    /// The project's name, or "No project".
+    var projectText: String {
+        projectName ?? "No project"
     }
 }
 

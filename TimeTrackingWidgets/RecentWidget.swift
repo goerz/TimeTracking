@@ -67,6 +67,7 @@ struct RecentWidgetView: View {
                 CircleIntentButton(
                     intent: snapshot.stopIntent,
                     systemImage: "stop.fill",
+                    label: "Stop",
                     color: .stopTint,
                     diameter: WidgetMetrics.rowButton
                 )
@@ -77,6 +78,7 @@ struct RecentWidgetView: View {
                 CircleIntentButton(
                     intent: WidgetStartIntent(project: row.projectID, task: row.task),
                     systemImage: "play.fill",
+                    label: "Start",
                     color: .startTint,
                     diameter: WidgetMetrics.rowButton
                 )
@@ -98,7 +100,7 @@ struct RecentRow<Trailing: View>: View {
     var body: some View {
         HStack(spacing: 8) {
             VStack(alignment: .leading, spacing: 1) {
-                Text(row.task.isEmpty ? "No task" : row.task)
+                Text(row.taskText)
                     .font(.subheadline.weight(.medium))
                     .lineLimit(1)
                     .privacySensitive()

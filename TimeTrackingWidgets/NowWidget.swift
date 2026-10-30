@@ -19,10 +19,11 @@ struct NowWidget: Widget {
     }
 }
 
-/// `timetracking://show`, the tap outside a button (spec_ios.md §3.1).
+/// `timetracking://show`, the tap outside a button (spec_ios.md §3.1); nil
+/// without the app's identity, which a build always carries.
 enum WidgetLinks {
     static var show: URL? {
-        URL(string: "\(AppIdentity.main?.urlScheme ?? "timetracking")://show")
+        AppIdentity.main.flatMap { URL(string: "\($0.urlScheme)://show") }
     }
 }
 
@@ -83,7 +84,7 @@ struct NowSmall: View {
     private func runningContent(_ running: WidgetSnapshot.Running) -> some View {
         ProjectLine(row: running.row, showsClient: false)
             .font(.subheadline)
-        Text(running.row.task.isEmpty ? "No task" : running.row.task)
+        Text(running.row.taskText)
             .font(.headline)
             .lineLimit(2)
             .privacySensitive()
@@ -97,7 +98,7 @@ struct NowSmall: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
                 .frame(maxWidth: .infinity, alignment: .leading)
-            CircleIntentButton(intent: snapshot.stopIntent, systemImage: "stop.fill", color: .stopTint)
+            CircleIntentButton(intent: snapshot.stopIntent, systemImage: "stop.fill", label: "Stop", color: .stopTint)
         }
     }
 
@@ -106,7 +107,7 @@ struct NowSmall: View {
             .font(.subheadline)
             .foregroundStyle(.secondary)
         if let latest = snapshot.latest {
-            Text(latest.task.isEmpty ? "No task" : latest.task)
+            Text(latest.taskText)
                 .font(.headline)
                 .lineLimit(2)
                 .privacySensitive()
@@ -119,7 +120,7 @@ struct NowSmall: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
-            CircleIntentButton(intent: snapshot.continueIntent, systemImage: "play.fill", color: .startTint)
+            CircleIntentButton(intent: snapshot.continueIntent, systemImage: "play.fill", label: "Start", color: .startTint)
         }
     }
 }
@@ -146,7 +147,7 @@ struct NowMedium: View {
 
     @ViewBuilder
     private func runningContent(_ running: WidgetSnapshot.Running) -> some View {
-        Text(running.row.task.isEmpty ? "No task" : running.row.task)
+        Text(running.row.taskText)
             .font(.headline)
             .lineLimit(snapshot.macLines.isEmpty ? 2 : 1)
             .privacySensitive()
@@ -167,7 +168,7 @@ struct NowMedium: View {
                 .foregroundStyle(.secondary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            CircleIntentButton(intent: snapshot.stopIntent, systemImage: "stop.fill", color: .stopTint)
+            CircleIntentButton(intent: snapshot.stopIntent, systemImage: "stop.fill", label: "Stop", color: .stopTint)
         }
     }
 
@@ -184,7 +185,7 @@ struct NowMedium: View {
         if let latest = snapshot.latest {
             HStack(alignment: .bottom, spacing: 8) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(latest.task.isEmpty ? "No task" : latest.task)
+                    Text(latest.taskText)
                         .font(.headline)
                         .lineLimit(1)
                         .privacySensitive()
@@ -192,7 +193,7 @@ struct NowMedium: View {
                         .font(.subheadline)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                CircleIntentButton(intent: snapshot.continueIntent, systemImage: "play.fill", color: .startTint)
+                CircleIntentButton(intent: snapshot.continueIntent, systemImage: "play.fill", label: "Start", color: .startTint)
             }
         }
     }
@@ -205,7 +206,7 @@ struct NowInline: View {
         if let running = snapshot.running {
             let elapsed = Text(timerInterval: snapshot.elapsedTimer ?? running.chainStart ... running.chainStart, countsDown: false)
             Label {
-                Text("\(elapsed) · \(running.row.projectName ?? "No project")")
+                Text("\(elapsed) · \(running.row.projectText)")
             } icon: {
                 Image(systemName: "stopwatch")
             }
@@ -221,29 +222,23 @@ struct NowCircular: View {
     var body: some View {
         ZStack {
             AccessoryWidgetBackground()
-            if snapshot.running != nil {
-                Button(intent: snapshot.stopIntent) {
-                    VStack(spacing: 1) {
-                        Image(systemName: "stop.fill")
-                            .font(.body)
-                            .widgetAccentable()
-                            .accessibilityLabel("Stop")
-                        LiveTimer(snapshot: snapshot)
-                            .font(.caption.weight(.semibold))
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.6)
-                            .padding(.horizontal, 4)
-                    }
-                }
-                .buttonStyle(.plain)
-            } else {
-                Button(intent: snapshot.continueIntent) {
-                    Image(systemName: "play.fill")
-                        .font(.title2)
+            StopOrContinueButton(snapshot: snapshot) {
+                VStack(spacing: 1) {
+                    Image(systemName: "stop.fill")
+                        .font(.body)
                         .widgetAccentable()
-                        .accessibilityLabel("Continue")
+                        .accessibilityLabel("Stop")
+                    LiveTimer(snapshot: snapshot)
+                        .font(.caption.weight(.semibold))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.6)
+                        .padding(.horizontal, 4)
                 }
-                .buttonStyle(.plain)
+            } continueLabel: {
+                Image(systemName: "play.fill")
+                    .font(.title2)
+                    .widgetAccentable()
+                    .accessibilityLabel("Continue")
             }
         }
     }
@@ -256,11 +251,11 @@ struct NowRectangular: View {
         HStack(spacing: 6) {
             VStack(alignment: .leading, spacing: 0) {
                 if let running = snapshot.running {
-                    Text(running.row.task.isEmpty ? "No task" : running.row.task)
+                    Text(running.row.taskText)
                         .font(.headline)
                         .lineLimit(1)
                         .privacySensitive()
-                    Text(running.row.projectName ?? "No project")
+                    Text(running.row.projectText)
                         .lineLimit(1)
                     LiveTimer(snapshot: snapshot)
                         .font(.headline)
@@ -274,12 +269,10 @@ struct NowRectangular: View {
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            if snapshot.running != nil {
-                Button(intent: snapshot.stopIntent) { glyph("stop.circle.fill", label: "Stop") }
-                    .buttonStyle(.plain)
-            } else {
-                Button(intent: snapshot.continueIntent) { glyph("play.circle.fill", label: "Continue") }
-                    .buttonStyle(.plain)
+            StopOrContinueButton(snapshot: snapshot) {
+                glyph("stop.circle.fill", label: "Stop")
+            } continueLabel: {
+                glyph("play.circle.fill", label: "Continue")
             }
         }
     }
@@ -289,5 +282,23 @@ struct NowRectangular: View {
             .font(.title)
             .widgetAccentable()
             .accessibilityLabel(label)
+    }
+}
+
+/// The plain Stop button while an entry runs, otherwise the plain Continue
+/// button (the Lock Screen families).
+struct StopOrContinueButton<StopLabel: View, ContinueLabel: View>: View {
+    var snapshot: WidgetSnapshot
+    @ViewBuilder var stopLabel: () -> StopLabel
+    @ViewBuilder var continueLabel: () -> ContinueLabel
+
+    var body: some View {
+        if snapshot.running != nil {
+            Button(intent: snapshot.stopIntent, label: stopLabel)
+                .buttonStyle(.plain)
+        } else {
+            Button(intent: snapshot.continueIntent, label: continueLabel)
+                .buttonStyle(.plain)
+        }
     }
 }
