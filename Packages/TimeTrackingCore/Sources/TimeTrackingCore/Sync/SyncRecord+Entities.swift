@@ -16,7 +16,8 @@ extension SyncRecord {
         fields[key]?.date.map { Time.whole($0) }
     }
 
-    func millis(_: String) -> Date {
+    /// The record's `modifiedAt`, from its millisecond field.
+    var modifiedAt: Date {
         Time.date(millis: modifiedMillis)
     }
 
@@ -58,7 +59,7 @@ extension Client {
             id: id,
             name: name,
             createdAt: record.instant("createdAt") ?? .distantPast,
-            modifiedAt: record.millis("modifiedAt"),
+            modifiedAt: record.modifiedAt,
             deletedAt: record.instant("deletedAt")
         )
     }
@@ -88,7 +89,7 @@ extension Area {
             sortOrder: Int(record.fields["sortOrder"]?.int ?? 0),
             isRetired: record.flag("retired"),
             createdAt: record.instant("createdAt") ?? .distantPast,
-            modifiedAt: record.millis("modifiedAt"),
+            modifiedAt: record.modifiedAt,
             deletedAt: record.instant("deletedAt")
         )
     }
@@ -115,7 +116,7 @@ extension Project {
             isArchived: record.flag("archived"),
             archivedAt: record.instant("archivedAt"),
             createdAt: record.instant("createdAt") ?? .distantPast,
-            modifiedAt: record.millis("modifiedAt"),
+            modifiedAt: record.modifiedAt,
             deletedAt: record.instant("deletedAt")
         )
     }
@@ -146,7 +147,7 @@ extension TimeEntry {
             deviceID: deviceID,
             splitRootID: record.id("splitRootID"),
             createdAt: record.instant("createdAt") ?? start,
-            modifiedAt: record.millis("modifiedAt"),
+            modifiedAt: record.modifiedAt,
             deletedAt: record.instant("deletedAt")
         )
     }
@@ -171,7 +172,7 @@ extension Device {
             lastSeenAt: record.instant("lastSeenAt") ?? .distantPast,
             widgetPushToken: record.text("widgetPushToken"),
             createdAt: record.instant("createdAt") ?? .distantPast,
-            modifiedAt: record.millis("modifiedAt")
+            modifiedAt: record.modifiedAt
         )
     }
 }
@@ -210,7 +211,7 @@ extension SuggestionFeedback {
             chosenTask: record.text("chosenTask"),
             entryID: record.id("entryID"),
             createdAt: record.instant("createdAt"),
-            modifiedAt: record.millis("modifiedAt"),
+            modifiedAt: record.modifiedAt,
             deletedAt: record.instant("deletedAt")
         )
     }
