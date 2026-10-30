@@ -12,6 +12,8 @@ public protocol ActivityReading: Sendable {
     // swiftlint:enable discouraged_optional_collection
     /// URLs, files, and presence of a block; `nil` off the recording Mac.
     func detail(for id: ActivityBlock.ID) async throws -> ActivityBlockDetail?
+    /// The details found for `ids` (each month file read once where it matters).
+    func details(for ids: [ActivityBlock.ID]) async throws -> [ActivityBlock.ID: ActivityBlockDetail]
     /// The parsed `current.json`, Mac only.
     func currentState() async -> TrackerState?
     /// Seconds per context, subject, group key, hour of day, or day.
@@ -25,6 +27,14 @@ public protocol ActivityReading: Sendable {
 }
 
 extension ActivityReading {
+    public func details(for ids: [ActivityBlock.ID]) async throws -> [ActivityBlock.ID: ActivityBlockDetail] {
+        var result: [ActivityBlock.ID: ActivityBlockDetail] = [:]
+        for id in ids {
+            result[id] = try await detail(for: id)
+        }
+        return result
+    }
+
     /// The blocks of every device overlapping `interval`.
     public func blocks(in interval: DateInterval) async throws -> [ActivityBlock] {
         try await blocks(in: interval, devices: nil)

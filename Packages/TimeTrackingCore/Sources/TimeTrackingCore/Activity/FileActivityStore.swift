@@ -102,6 +102,31 @@ public actor FileActivityStore: ActivityReading {
         return Self.applying(exclusions, to: detail, contexts: entry.contexts.merging(file.contexts) { own, _ in own })
     }
 
+    public func details(for ids: [ActivityBlock.ID]) throws(ActivityError) -> [ActivityBlock.ID: ActivityBlockDetail] {
+        let wanted = Set(ids)
+        let months = Set(ids.compactMap { id -> String? in
+            guard let slash = id.lastIndex(of: "/") else {
+                return nil
+            }
+            let month = String(id[id.index(after: slash)...].prefix(7))
+            return month.count == 7 ? month : nil
+        })
+        var result: [ActivityBlock.ID: ActivityBlockDetail] = [:]
+        let rules = exclusions
+        for month in months.sorted() {
+            let url = folders.detailFolder.appending(path: "\(month).jsonl", directoryHint: .notDirectory)
+            guard FileManager.default.fileExists(atPath: url.path) else {
+                continue
+            }
+            let file = try BlockLogFile(contentsOf: url)
+            for entry in file.entries where wanted.contains(entry.block.id) && result[entry.block.id] == nil {
+                let detail = entry.detail ?? ActivityBlockDetail(blockID: entry.block.id, items: entry.block.items)
+                result[entry.block.id] = Self.applying(rules, to: detail, contexts: entry.contexts.merging(file.contexts) { own, _ in own })
+            }
+        }
+        return result
+    }
+
     public func currentState() -> TrackerState? {
         let url = folders.currentStateURL
         guard let stamp = FileStamp(url: url) else {

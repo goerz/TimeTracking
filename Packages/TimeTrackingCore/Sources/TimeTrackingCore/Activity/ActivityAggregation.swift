@@ -44,13 +44,13 @@ enum ActivityAggregation {
         }
     }
 
-    /// The active seconds of `block` per local hour, by the largest
-    /// remainder method so the parts add up to `activeSeconds`.
-    static func hourShares(of block: ActivityBlock) -> [Int: Int] {
+    /// The active seconds of `block` (or `total`) per local hour, by the
+    /// largest remainder method so the parts add up to the total.
+    static func hourShares(of block: ActivityBlock, total: Int? = nil) -> [Int: Int] {
         let local = LocalTimestamp(date: block.start, utcOffset: block.utcOffset)
         let start = local.secondOfDay
         let span = max(0, Int(block.end.timeIntervalSince(block.start).rounded()))
-        let total = block.activeSeconds
+        let total = total ?? block.activeSeconds
         guard span > 0 else {
             return [local.hour: total]
         }
@@ -79,4 +79,24 @@ private struct HourPart {
     var hour: Int
     var seconds: Int
     var remainder: Int
+}
+
+extension ActivityAggregation {
+    /// The fraction of `block`'s span in each local hour.
+    static func hourFractions(of block: ActivityBlock) -> [Int: Double] {
+        let start = LocalTimestamp(date: block.start, utcOffset: block.utcOffset).secondOfDay
+        let span = block.end.timeIntervalSince(block.start)
+        guard span > 0 else {
+            return [start / 3600: 1]
+        }
+        let end = Double(start) + span
+        var result: [Int: Double] = [:]
+        var hour = start / 3600
+        while Double(hour * 3600) < end {
+            let overlap = min(end, Double((hour + 1) * 3600)) - max(Double(start), Double(hour * 3600))
+            result[hour % 24, default: 0] += overlap / span
+            hour += 1
+        }
+        return result
+    }
 }
