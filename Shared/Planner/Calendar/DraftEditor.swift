@@ -28,6 +28,9 @@ struct DraftEditor: View {
                         .keyboardShortcut(.cancelAction)
                     Spacer()
                     Button("Save") { Task { await model.commitDraft() } }
+                    #if os(macOS)
+                        .buttonStyle(.borderedProminent)
+                    #endif
                         .keyboardShortcut(.defaultAction)
                         .accessibilityIdentifier("calendar.draft.save")
                 }
@@ -39,27 +42,20 @@ struct DraftEditor: View {
     }
 
     private func projectButton(_ draft: CalendarDraft) -> some View {
-        Button {
-            showsPicker = true
-        } label: {
-            HStack {
-                AreaDot(color: model.entries.first { $0.project?.id == draft.projectID }?.area?.color)
-                Text(model.project(draft.projectID)?.name ?? "No project")
-            }
-        }
-        .popover(isPresented: $showsPicker) {
-            ProjectPickerView(model: ProjectPickerModel(
-                store: model.store,
-                currentProject: draft.projectID,
-                taskMatching: false
-            )) { choice in
-                if case let .project(id) = choice {
-                    model.draft?.projectID = id
+        ProjectChipButton(label: model.label(draft.projectID)) { showsPicker = true }
+            .popover(isPresented: $showsPicker) {
+                ProjectPickerView(model: ProjectPickerModel(
+                    store: model.store,
+                    currentProject: draft.projectID,
+                    taskMatching: false
+                )) { choice in
+                    if case let .project(id) = choice {
+                        model.draft?.projectID = id
+                    }
+                    showsPicker = false
                 }
-                showsPicker = false
             }
-        }
-        .accessibilityIdentifier("calendar.draft.project")
+            .accessibilityIdentifier("calendar.draft.project")
     }
 
     @ViewBuilder
@@ -216,8 +212,9 @@ struct TimeBlockEditor: View {
             VStack(alignment: .leading, spacing: 10) {
                 TextField("Title", text: Binding { model.blockDraft?.title ?? "" } set: { model.blockDraft?.title = $0 })
                     .accessibilityIdentifier("calendar.block.title")
-                Button(model.project(draft.projectID)?.name ?? "No project") { showsPicker = true }
+                ProjectChipButton(label: model.label(draft.projectID)) { showsPicker = true }
                     .popover(isPresented: $showsPicker) { picker(draft) }
+                    .accessibilityIdentifier("calendar.block.project")
                 DatePicker("Start", selection: startBinding(draft), displayedComponents: [.date, .hourAndMinute])
                 DatePicker("End", selection: endBinding(draft), displayedComponents: [.date, .hourAndMinute])
                 TextField("Notes", text: Binding { model.blockDraft?.notes ?? "" } set: { model.blockDraft?.notes = $0 }, axis: .vertical)
@@ -228,7 +225,11 @@ struct TimeBlockEditor: View {
                     }
                     Spacer()
                     Button("Cancel") { model.blockDraft = nil }.keyboardShortcut(.cancelAction)
-                    Button("Save") { Task { await model.saveTimeBlock() } }.keyboardShortcut(.defaultAction)
+                    Button("Save") { Task { await model.saveTimeBlock() } }
+                        .keyboardShortcut(.defaultAction)
+                    #if os(macOS)
+                        .buttonStyle(.borderedProminent)
+                    #endif
                 }
             }
             .padding()

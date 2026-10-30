@@ -105,6 +105,8 @@ final class CalendarModel {
     private(set) var externalEvents: [CalendarEvent] = []
     private(set) var calendars: [CalendarInfo] = []
     private(set) var projects: [Project] = []
+    /// Each project with its area and client, for chips and labels.
+    private(set) var projectRows: [ProjectID: ProjectRow] = [:]
     private(set) var summary: CalendarSummary?
     private(set) var timeBlockState: TimeBlockCalendarState?
     /// Gap causes per day ("idle 22m"), Mac only.
@@ -224,7 +226,9 @@ final class CalendarModel {
             let interval = visibleInterval
             let found = try await store.entries(in: interval, includeDeleted: false)
             entries = try await store.listings(for: found)
-            projects = try await store.projects(filter: ProjectFilter(state: .all)).map(\.project)
+            let rows = try await store.projects(filter: ProjectFilter(state: .all))
+            projects = rows.map(\.project)
+            projectRows = Dictionary(rows.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
             let loaded = try await activity.blocks(in: interval, devices: nil)
             blocks = isRecordingMac ? loaded : loaded.filter { !$0.isOpen }
             await loadEvents(around: interval)
@@ -347,6 +351,14 @@ final class CalendarModel {
 
     func project(_ id: ProjectID?) -> Project? {
         id.flatMap { id in projects.first { $0.id == id } }
+    }
+
+    /// The chip label of a project: name, client, area, color.
+    func label(_ id: ProjectID?) -> ProjectLabel {
+        guard let id, let row = projectRows[id] else {
+            return .noProject
+        }
+        return ProjectLabel(name: row.project.name, client: row.client?.name, area: row.area?.name, color: row.area?.color)
     }
 
     /// Waits for a pending undo (tests).

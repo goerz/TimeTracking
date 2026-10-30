@@ -12,7 +12,7 @@ struct FillDaySheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Fill \(DayText.weekdayShortDate(model.day))").font(.headline)
+            Text("Fill \(DayText.weekdayShortDate(model.day))").font(.headline).frame(maxWidth: .infinity)
             if model.rows.isEmpty {
                 ContentUnavailableView(
                     "Nothing Left to Fill",
@@ -29,17 +29,22 @@ struct FillDaySheet: View {
                     }
                 }
             }
+            // The dialog footer of DialogScaffold: Cancel, then the
+            // confirming action, at the trailing edge.
             HStack {
-                Button("Cancel") { calendar.cancelFillDay() }
-                    .keyboardShortcut(.cancelAction)
                 Spacer()
+                Button("Cancel", role: .cancel) { calendar.cancelFillDay() }
+                    .keyboardShortcut(.cancelAction)
                 Button(model.logTitle) { Task { await calendar.logFillDay() } }
                     .keyboardShortcut(.defaultAction)
+                #if os(macOS)
+                    .buttonStyle(.borderedProminent)
+                #endif
                     .disabled(!model.rows.contains(where: \.checked))
                     .accessibilityIdentifier("fillDay.log")
             }
         }
-        .padding()
+        .padding(Design.Spacing.content)
         .frame(minWidth: 640, minHeight: 360)
         .accessibilityIdentifier("fillDay")
     }
@@ -74,7 +79,7 @@ struct FillDaySheet: View {
                 pickerRow = nil
             }
         }
-        return Button(calendar.project(row.projectID)?.name ?? "No project") { pickerRow = row.id }
+        return ProjectChipButton(label: calendar.label(row.projectID)) { pickerRow = row.id }
             .popover(isPresented: shown) {
                 ProjectPickerView(model: ProjectPickerModel(
                     store: calendar.store,
@@ -136,7 +141,7 @@ struct SuggestionsSheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Suggestions").font(.headline)
+            Text("Suggestions").font(.headline).frame(maxWidth: .infinity)
             Table(model.rules) {
                 TableColumn("Kind") { rule in Text(rule.kind.title) }
                 TableColumn("Pattern") { rule in Text(rule.pattern) }
@@ -159,15 +164,24 @@ struct SuggestionsSheet: View {
                 )
                 .foregroundStyle(.secondary)
             }
-            HStack {
-                Button("Rebuild Suggestions Index") { Task { await model.rebuildIndex() } }
-                Spacer()
-                Button("Done") { model.showsSuggestions = false }.keyboardShortcut(.defaultAction)
-            }
+            footer
         }
-        .padding()
+        .padding(Design.Spacing.content)
         .frame(minWidth: 560, minHeight: 420)
         .task { await loadReport() }
+    }
+
+    /// Rebuild leading; Done, the confirming action, trailing.
+    private var footer: some View {
+        HStack {
+            Button("Rebuild Suggestions Index") { Task { await model.rebuildIndex() } }
+            Spacer()
+            Button("Done") { model.showsSuggestions = false }
+                .keyboardShortcut(.defaultAction)
+            #if os(macOS)
+                .buttonStyle(.borderedProminent)
+            #endif
+        }
     }
 
     private var fillMinimum: Binding<Int> {
