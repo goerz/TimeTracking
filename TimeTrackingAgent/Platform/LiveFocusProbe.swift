@@ -69,7 +69,8 @@ struct LiveFocusProbe: FocusProbe {
             }
             var children: CFTypeRef?
             if AXUIElementCopyAttributeValue(next, kAXChildrenAttribute as CFString, &children) == .success,
-               let list = children as? [AXUIElement] {
+               let list = children as? [AXUIElement]
+            {
                 queue += list
             }
         }

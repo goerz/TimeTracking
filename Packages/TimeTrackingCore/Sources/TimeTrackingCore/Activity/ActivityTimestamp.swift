@@ -53,7 +53,7 @@ public enum ActivityTimestamp {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = timeZone
         let start = calendar.startOfDay(for: date)
-        return calendar.date(byAdding: .day, value: 1, to: start) ?? start.addingTimeInterval(86400)
+        return calendar.date(byAdding: .day, value: 1, to: start) ?? start.addingTimeInterval(86_400)
     }
 
     /// Local midnight at the start of the local date of `date` in `timeZone`.

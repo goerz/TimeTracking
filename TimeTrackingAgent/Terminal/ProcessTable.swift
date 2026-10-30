@@ -47,7 +47,8 @@ nonisolated struct ProcessTable: Hashable, Sendable {
             guard fields.count == 5, let pid = Int32(fields[0]), let ppid = Int32(fields[1]) else {
                 continue
             }
-            rows.append(ProcessEntry(pid: pid, ppid: ppid, tty: String(fields[2]), foreground: fields[3].contains("+"), path: String(fields[4])))
+            let path = fields[4].trimmingCharacters(in: .whitespaces)
+            rows.append(ProcessEntry(pid: pid, ppid: ppid, tty: String(fields[2]), foreground: fields[3].contains("+"), path: path))
         }
         self.init(rows)
     }

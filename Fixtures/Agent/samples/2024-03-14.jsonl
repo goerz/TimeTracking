@@ -1,0 +1,606 @@
+{"type":"header","format":1,"tz":"-04:00","dev":"macbook"}
+{"t":"2024-03-14T08:58:00","state":"active","p":["tmux:paper","draft","nvim intro.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T08:58:30","state":"active","p":["tmux:paper","draft","nvim intro.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T08:59:00","state":"active","p":["tmux:paper","draft","nvim intro.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T08:59:30","state":"active","p":["tmux:paper","draft","nvim intro.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:00:00","state":"active","p":["tmux:paper","draft","nvim intro.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:00:30","state":"active","p":["tmux:paper","draft","nvim intro.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:01:00","state":"active","p":["tmux:paper","draft","nvim intro.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:01:30","state":"active","p":["tmux:paper","draft","nvim intro.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:02:00","state":"active","p":["tmux:paper","draft","nvim intro.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:02:30","state":"active","p":["tmux:paper","draft","nvim intro.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:03:00","state":"active","p":["tmux:paper","draft","nvim methods.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:03:30","state":"active","p":["tmux:paper","draft","nvim methods.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:04:00","state":"active","p":["tmux:paper","draft","nvim methods.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:04:30","state":"active","p":["tmux:paper","draft","nvim methods.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:05:00","state":"active","p":["tmux:paper","draft","nvim methods.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:05:30","state":"active","p":["tmux:paper","draft","nvim methods.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:06:00","state":"active","p":["tmux:paper","draft","nvim methods.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:06:30","state":"active","p":["tmux:paper","draft","nvim methods.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:07:00","state":"active","p":["tmux:paper","draft","nvim methods.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:07:30","state":"active","p":["tmux:paper","draft","nvim methods.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:08:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:08:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:09:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:09:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:10:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"bg":[["claude","refactor-parser","","claude","claude"]],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:10:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"bg":[["claude","refactor-parser","","claude","claude"]],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:11:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"bg":[["claude","refactor-parser","","claude","claude"]],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:11:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"bg":[["claude","refactor-parser","","claude","claude"]],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:12:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"bg":[["claude","refactor-parser","","claude","claude"]],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:12:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"bg":[["claude","refactor-parser","","claude","claude"]],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:13:00","state":"active","p":["tmux:paper","draft","nvim notes.tex","tmux:paper","com.github.wez.wezterm"],"bg":[["claude","refactor-parser","","claude","claude"]],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:13:30","state":"active","p":["tmux:paper","draft","nvim notes.tex","tmux:paper","com.github.wez.wezterm"],"bg":[["claude","refactor-parser","","claude","claude"]],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:14:00","state":"active","p":["tmux:paper","draft","nvim notes.tex","tmux:paper","com.github.wez.wezterm"],"bg":[["claude","refactor-parser","","claude","claude"]],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:14:30","state":"active","p":["tmux:paper","draft","nvim notes.tex","tmux:paper","com.github.wez.wezterm"],"bg":[["claude","refactor-parser","","claude","claude"]],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:15:00","state":"active","p":["tmux:paper","draft","nvim notes.tex","tmux:paper","com.github.wez.wezterm"],"bg":[["claude","refactor-parser","","claude","claude"]],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:15:30","state":"active","p":["tmux:paper","draft","nvim notes.tex","tmux:paper","com.github.wez.wezterm"],"bg":[["claude","refactor-parser","","claude","claude"]],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:16:00","state":"active","p":["tmux:paper","draft","nvim notes.tex","tmux:paper","com.github.wez.wezterm"],"bg":[["claude","refactor-parser","","claude","claude"]],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:16:30","state":"active","p":["tmux:paper","draft","nvim notes.tex","tmux:paper","com.github.wez.wezterm"],"bg":[["claude","refactor-parser","","claude","claude"]],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:17:00","state":"active","p":["tmux:paper","draft","nvim notes.tex","tmux:paper","com.github.wez.wezterm"],"bg":[["claude","refactor-parser","","claude","claude"]],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:17:30","state":"active","p":["tmux:paper","draft","nvim notes.tex","tmux:paper","com.github.wez.wezterm"],"bg":[["claude","refactor-parser","","claude","claude"]],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:18:00","state":"active","p":["tmux:paper","draft","nvim appendix.tex","tmux:paper","com.github.wez.wezterm"],"bg":[["claude","refactor-parser","","claude","claude"]],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:18:30","state":"active","p":["tmux:paper","draft","nvim appendix.tex","tmux:paper","com.github.wez.wezterm"],"bg":[["claude","refactor-parser","","claude","claude"]],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:19:00","state":"active","p":["tmux:paper","draft","nvim appendix.tex","tmux:paper","com.github.wez.wezterm"],"bg":[["claude","refactor-parser","","claude","claude"]],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:19:30","state":"active","p":["tmux:paper","draft","nvim appendix.tex","tmux:paper","com.github.wez.wezterm"],"bg":[["claude","refactor-parser","","claude","claude"]],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:20:00","state":"active","p":["tmux:paper","draft","nvim appendix.tex","tmux:paper","com.github.wez.wezterm"],"bg":[["claude","refactor-parser","","claude","claude"]],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:20:30","state":"active","p":["tmux:paper","draft","nvim appendix.tex","tmux:paper","com.github.wez.wezterm"],"bg":[["claude","refactor-parser","","claude","claude"]],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:21:00","state":"active","p":["tmux:paper","draft","nvim appendix.tex","tmux:paper","com.github.wez.wezterm"],"bg":[["claude","refactor-parser","","claude","claude"]],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:21:30","state":"active","p":["tmux:paper","draft","nvim appendix.tex","tmux:paper","com.github.wez.wezterm"],"bg":[["claude","refactor-parser","","claude","claude"]],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:22:00","state":"active","p":["tmux:paper","draft","nvim appendix.tex","tmux:paper","com.github.wez.wezterm"],"bg":[["claude","refactor-parser","","claude","claude"]],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:22:30","state":"active","p":["tmux:paper","draft","nvim appendix.tex","tmux:paper","com.github.wez.wezterm"],"bg":[["claude","refactor-parser","","claude","claude"]],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:23:00","state":"active","p":["tmux:paper","draft","nvim intro.tex","tmux:paper","com.github.wez.wezterm"],"bg":[["claude","refactor-parser","","claude","claude"]],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:23:30","state":"active","p":["tmux:paper","draft","nvim intro.tex","tmux:paper","com.github.wez.wezterm"],"bg":[["claude","refactor-parser","","claude","claude"]],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:24:00","state":"active","p":["tmux:paper","draft","nvim intro.tex","tmux:paper","com.github.wez.wezterm"],"bg":[["claude","refactor-parser","","claude","claude"]],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:24:30","state":"active","p":["tmux:paper","draft","nvim intro.tex","tmux:paper","com.github.wez.wezterm"],"bg":[["claude","refactor-parser","","claude","claude"]],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:25:00","state":"active","p":["tmux:paper","draft","nvim intro.tex","tmux:paper","com.github.wez.wezterm"],"bg":[["claude","refactor-parser","","claude","claude"]],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:25:30","state":"active","p":["tmux:paper","draft","nvim intro.tex","tmux:paper","com.github.wez.wezterm"],"bg":[["claude","refactor-parser","","claude","claude"]],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:26:00","state":"active","p":["tmux:paper","draft","nvim intro.tex","tmux:paper","com.github.wez.wezterm"],"bg":[["claude","refactor-parser","","claude","claude"]],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:26:30","state":"active","p":["tmux:paper","draft","nvim intro.tex","tmux:paper","com.github.wez.wezterm"],"bg":[["claude","refactor-parser","","claude","claude"]],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:27:00","state":"active","p":["tmux:paper","draft","nvim intro.tex","tmux:paper","com.github.wez.wezterm"],"bg":[["claude","refactor-parser","","claude","claude"]],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:27:30","state":"active","p":["tmux:paper","draft","nvim intro.tex","tmux:paper","com.github.wez.wezterm"],"bg":[["claude","refactor-parser","","claude","claude"]],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:28:00","state":"active","p":["tmux:paper","draft","nvim methods.tex","tmux:paper","com.github.wez.wezterm"],"bg":[["claude","refactor-parser","","claude","claude"]],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:28:30","state":"active","p":["tmux:paper","draft","nvim methods.tex","tmux:paper","com.github.wez.wezterm"],"bg":[["claude","refactor-parser","","claude","claude"]],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:29:00","state":"active","p":["tmux:paper","draft","nvim methods.tex","tmux:paper","com.github.wez.wezterm"],"bg":[["claude","refactor-parser","","claude","claude"]],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:29:30","state":"active","p":["tmux:paper","draft","nvim methods.tex","tmux:paper","com.github.wez.wezterm"],"bg":[["claude","refactor-parser","","claude","claude"]],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:30:00","state":"active","p":["tmux:paper","draft","nvim methods.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:30:30","state":"active","p":["tmux:paper","draft","nvim methods.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:31:00","state":"active","p":["tmux:paper","draft","nvim methods.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:31:30","state":"active","p":["tmux:paper","draft","nvim methods.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:32:00","state":"active","p":["tmux:paper","draft","nvim methods.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:32:30","state":"active","p":["tmux:paper","draft","nvim methods.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:33:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:33:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:34:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:34:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:35:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:35:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:36:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:36:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:37:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:37:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:38:00","state":"active","p":["tmux:paper","draft","nvim notes.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:38:30","state":"active","p":["tmux:paper","draft","nvim notes.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:39:00","state":"active","p":["tmux:paper","draft","nvim notes.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:39:30","state":"active","p":["tmux:paper","draft","nvim notes.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T09:40:00","state":"active","p":["safari","github.com/owner/repo","pull/123","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/pull/123"}
+{"t":"2024-03-14T09:40:30","state":"active","p":["safari","github.com/owner/repo","pull/123","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/pull/123"}
+{"t":"2024-03-14T09:41:00","state":"active","p":["safari","github.com/owner/repo","pull/123","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/pull/123"}
+{"t":"2024-03-14T09:41:30","state":"active","p":["safari","github.com/owner/repo","pull/123","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/pull/123"}
+{"t":"2024-03-14T09:42:00","state":"active","p":["safari","github.com/owner/repo","pull/123","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/pull/123"}
+{"t":"2024-03-14T09:42:30","state":"active","p":["safari","github.com/owner/repo","pull/123","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/pull/123"}
+{"t":"2024-03-14T09:43:00","state":"active","p":["safari","github.com/owner/repo","pull/123","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/pull/123"}
+{"t":"2024-03-14T09:43:30","state":"active","p":["safari","github.com/owner/repo","pull/123","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/pull/123"}
+{"t":"2024-03-14T09:44:00","state":"active","p":["safari","github.com/owner/repo","pull/123","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/pull/123"}
+{"t":"2024-03-14T09:44:30","state":"active","p":["safari","github.com/owner/repo","pull/123","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/pull/123"}
+{"t":"2024-03-14T09:45:00","state":"active","p":["safari","github.com/owner/repo","pull/123","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/pull/123"}
+{"t":"2024-03-14T09:45:30","state":"active","p":["safari","github.com/owner/repo","pull/123","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/pull/123"}
+{"t":"2024-03-14T09:46:00","state":"active","p":["safari","github.com/owner/repo","pull/123","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/pull/123"}
+{"t":"2024-03-14T09:46:30","state":"active","p":["safari","github.com/owner/repo","pull/123","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/pull/123"}
+{"t":"2024-03-14T09:47:00","state":"active","p":["safari","github.com/owner/repo","pull/123","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/pull/123"}
+{"t":"2024-03-14T09:47:30","state":"active","p":["safari","github.com/owner/repo","pull/123","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/pull/123"}
+{"t":"2024-03-14T09:48:00","state":"active","p":["safari","github.com/owner/repo","pull/123","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/pull/123"}
+{"t":"2024-03-14T09:48:30","state":"active","p":["safari","github.com/owner/repo","pull/123","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/pull/123"}
+{"t":"2024-03-14T09:49:00","state":"active","p":["safari","github.com/owner/repo","pull/123","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/pull/123"}
+{"t":"2024-03-14T09:49:30","state":"active","p":["safari","github.com/owner/repo","pull/123","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/pull/123"}
+{"t":"2024-03-14T09:50:00","state":"active","p":["safari","github.com/owner/repo","pull/123","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/pull/123"}
+{"t":"2024-03-14T09:50:30","state":"active","p":["safari","github.com/owner/repo","pull/123","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/pull/123"}
+{"t":"2024-03-14T09:51:00","state":"active","p":["safari","github.com/owner/repo","pull/123","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/pull/123"}
+{"t":"2024-03-14T09:51:30","state":"active","p":["safari","github.com/owner/repo","pull/123","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/pull/123"}
+{"t":"2024-03-14T09:52:00","state":"active","p":["safari","github.com/owner/repo","pull/123","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/pull/123"}
+{"t":"2024-03-14T09:52:30","state":"active","p":["safari","github.com/owner/repo","pull/123","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/pull/123"}
+{"t":"2024-03-14T09:53:00","state":"active","p":["safari","github.com/owner/repo","pull/123","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/pull/123"}
+{"t":"2024-03-14T09:53:30","state":"active","p":["safari","github.com/owner/repo","pull/123","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/pull/123"}
+{"t":"2024-03-14T09:54:00","state":"active","p":["safari","github.com/owner/repo","pull/123","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/pull/123"}
+{"t":"2024-03-14T09:54:30","state":"active","p":["safari","github.com/owner/repo","pull/123","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/pull/123"}
+{"t":"2024-03-14T09:55:00","state":"active","p":["safari","github.com/owner/repo","issues/7","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/issues/7"}
+{"t":"2024-03-14T09:55:30","state":"active","p":["safari","github.com/owner/repo","issues/7","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/issues/7"}
+{"t":"2024-03-14T09:56:00","state":"active","p":["safari","github.com/owner/repo","issues/7","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/issues/7"}
+{"t":"2024-03-14T09:56:30","state":"active","p":["safari","github.com/owner/repo","issues/7","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/issues/7"}
+{"t":"2024-03-14T09:57:00","state":"active","p":["safari","github.com/owner/repo","issues/7","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/issues/7"}
+{"t":"2024-03-14T09:57:30","state":"active","p":["safari","github.com/owner/repo","issues/7","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/issues/7"}
+{"t":"2024-03-14T09:58:00","state":"active","p":["safari","github.com/owner/repo","issues/7","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/issues/7"}
+{"t":"2024-03-14T09:58:30","state":"active","p":["safari","github.com/owner/repo","issues/7","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/issues/7"}
+{"t":"2024-03-14T09:59:00","state":"active","p":["safari","github.com/owner/repo","issues/7","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/issues/7"}
+{"t":"2024-03-14T09:59:30","state":"active","p":["safari","github.com/owner/repo","issues/7","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/issues/7"}
+{"t":"2024-03-14T10:00:00","state":"active","p":["safari","github.com/owner/repo","issues/7","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/issues/7"}
+{"t":"2024-03-14T10:00:30","state":"active","p":["safari","github.com/owner/repo","issues/7","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/issues/7"}
+{"t":"2024-03-14T10:01:00","state":"active","p":["safari","github.com/owner/repo","issues/7","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/issues/7"}
+{"t":"2024-03-14T10:01:30","state":"active","p":["safari","github.com/owner/repo","issues/7","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/issues/7"}
+{"t":"2024-03-14T10:02:00","state":"active","p":["safari","github.com/owner/repo","issues/7","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/issues/7"}
+{"t":"2024-03-14T10:02:30","state":"active","p":["safari","github.com/owner/repo","issues/7","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/issues/7"}
+{"t":"2024-03-14T10:03:00","state":"active","p":["safari","github.com/owner/repo","issues/7","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/issues/7"}
+{"t":"2024-03-14T10:03:30","state":"active","p":["safari","github.com/owner/repo","issues/7","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/issues/7"}
+{"t":"2024-03-14T10:04:00","state":"active","p":["safari","github.com/owner/repo","issues/7","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/issues/7"}
+{"t":"2024-03-14T10:04:30","state":"active","p":["safari","github.com/owner/repo","issues/7","github.com/owner","com.apple.Safari"],"app":"com.apple.Safari","title":"Pull request","url":"https://github.com/owner/repo/issues/7"}
+{"t":"2024-03-14T10:05:00","state":"idle"}
+{"t":"2024-03-14T10:05:30","state":"idle"}
+{"t":"2024-03-14T10:06:00","state":"idle"}
+{"t":"2024-03-14T10:06:30","state":"idle"}
+{"t":"2024-03-14T10:07:00","state":"idle"}
+{"t":"2024-03-14T10:07:30","state":"idle"}
+{"t":"2024-03-14T10:08:00","state":"active","p":["mail","Inbox","","mail","com.apple.mail"],"app":"com.apple.mail","title":"Inbox"}
+{"t":"2024-03-14T10:08:30","state":"active","p":["mail","Inbox","","mail","com.apple.mail"],"app":"com.apple.mail","title":"Inbox"}
+{"t":"2024-03-14T10:09:00","state":"active","p":["mail","Inbox","","mail","com.apple.mail"],"app":"com.apple.mail","title":"Inbox"}
+{"t":"2024-03-14T10:09:30","state":"active","p":["mail","Inbox","","mail","com.apple.mail"],"app":"com.apple.mail","title":"Inbox"}
+{"t":"2024-03-14T10:10:00","state":"active","p":["mail","Inbox","","mail","com.apple.mail"],"app":"com.apple.mail","title":"Inbox"}
+{"t":"2024-03-14T10:10:30","state":"active","p":["mail","Inbox","","mail","com.apple.mail"],"app":"com.apple.mail","title":"Inbox"}
+{"t":"2024-03-14T10:11:00","state":"active","p":["mail","Inbox","","mail","com.apple.mail"],"app":"com.apple.mail","title":"Inbox"}
+{"t":"2024-03-14T10:11:30","state":"active","p":["mail","Inbox","","mail","com.apple.mail"],"app":"com.apple.mail","title":"Inbox"}
+{"t":"2024-03-14T10:12:00","state":"active","p":["mail","Inbox","","mail","com.apple.mail"],"app":"com.apple.mail","title":"Inbox"}
+{"t":"2024-03-14T10:12:30","state":"active","p":["mail","Inbox","","mail","com.apple.mail"],"app":"com.apple.mail","title":"Inbox"}
+{"t":"2024-03-14T10:13:00","state":"active","p":["mail","Inbox","","mail","com.apple.mail"],"app":"com.apple.mail","title":"Inbox"}
+{"t":"2024-03-14T10:13:30","state":"active","p":["mail","Inbox","","mail","com.apple.mail"],"app":"com.apple.mail","title":"Inbox"}
+{"t":"2024-03-14T10:14:00","state":"active","p":["tmux:paper","draft","nvim notes.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T10:14:30","state":"active","p":["tmux:paper","draft","nvim notes.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T10:15:00","state":"active","p":["tmux:paper","draft","nvim notes.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T10:15:30","state":"active","p":["tmux:paper","draft","nvim notes.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T10:16:00","state":"active","p":["tmux:paper","draft","nvim notes.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T10:16:30","state":"active","p":["tmux:paper","draft","nvim notes.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T10:17:00","state":"active","p":["tmux:paper","draft","nvim notes.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T10:17:30","state":"active","p":["tmux:paper","draft","nvim notes.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T10:18:00","state":"active","p":["tmux:paper","draft","nvim notes.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T10:18:30","state":"active","p":["tmux:paper","draft","nvim notes.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T10:19:00","state":"active","p":["tmux:paper","draft","nvim notes.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T10:19:30","state":"active","p":["tmux:paper","draft","nvim notes.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T10:20:00","state":"active","p":["tmux:paper","draft","nvim notes.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T10:20:30","state":"active","p":["tmux:paper","draft","nvim notes.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T10:21:00","state":"active","p":["tmux:paper","draft","nvim notes.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T10:21:30","state":"active","p":["tmux:paper","draft","nvim notes.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T10:22:00","state":"active","p":["tmux:paper","draft","nvim notes.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T10:22:30","state":"active","p":["tmux:paper","draft","nvim notes.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T10:23:00","state":"active","p":["tmux:paper","draft","nvim notes.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T10:23:30","state":"active","p":["tmux:paper","draft","nvim notes.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T10:24:00","state":"active","p":["tmux:paper","draft","nvim notes.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T10:24:30","state":"active","p":["tmux:paper","draft","nvim notes.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T10:25:00","state":"active","p":["tmux:paper","draft","nvim notes.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T10:25:30","state":"active","p":["tmux:paper","draft","nvim notes.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T10:26:00","state":"active","p":["tmux:paper","draft","nvim notes.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T10:26:30","state":"active","p":["tmux:paper","draft","nvim notes.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T10:27:00","state":"active","p":["tmux:paper","draft","nvim notes.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T10:27:30","state":"active","p":["tmux:paper","draft","nvim notes.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T10:28:00","state":"active","p":["tmux:paper","draft","nvim notes.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T10:28:30","state":"active","p":["tmux:paper","draft","nvim notes.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T10:29:00","state":"active","p":["tmux:paper","draft","nvim notes.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T10:29:30","state":"active","p":["tmux:paper","draft","nvim notes.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T10:30:10","state":"locked","event":"lock"}
+{"t":"2024-03-14T10:30:30","state":"locked"}
+{"t":"2024-03-14T10:31:00","state":"locked"}
+{"t":"2024-03-14T10:31:30","state":"locked"}
+{"t":"2024-03-14T10:32:00","state":"locked"}
+{"t":"2024-03-14T10:32:30","state":"locked"}
+{"t":"2024-03-14T10:33:00","state":"locked"}
+{"t":"2024-03-14T10:33:30","state":"locked"}
+{"t":"2024-03-14T10:34:00","state":"locked"}
+{"t":"2024-03-14T10:34:30","state":"locked"}
+{"t":"2024-03-14T10:35:00","state":"locked"}
+{"t":"2024-03-14T10:35:30","state":"locked"}
+{"t":"2024-03-14T10:36:00","state":"locked"}
+{"t":"2024-03-14T10:36:30","state":"locked"}
+{"t":"2024-03-14T10:37:00","state":"locked"}
+{"t":"2024-03-14T10:37:30","state":"locked"}
+{"t":"2024-03-14T10:38:00","state":"locked"}
+{"t":"2024-03-14T10:38:30","state":"locked"}
+{"t":"2024-03-14T10:39:00","state":"locked"}
+{"t":"2024-03-14T10:39:30","state":"locked"}
+{"t":"2024-03-14T10:40:00","state":"locked"}
+{"t":"2024-03-14T10:40:30","state":"locked"}
+{"t":"2024-03-14T10:41:00","state":"locked"}
+{"t":"2024-03-14T10:41:30","state":"locked"}
+{"t":"2024-03-14T10:42:00","state":"locked"}
+{"t":"2024-03-14T10:42:30","state":"locked"}
+{"t":"2024-03-14T10:43:00","state":"locked"}
+{"t":"2024-03-14T10:43:30","state":"locked"}
+{"t":"2024-03-14T10:44:00","state":"locked"}
+{"t":"2024-03-14T10:44:30","state":"locked"}
+{"t":"2024-03-14T10:45:00","state":"locked"}
+{"t":"2024-03-14T10:45:30","state":"locked"}
+{"t":"2024-03-14T10:46:00","state":"locked"}
+{"t":"2024-03-14T10:46:30","state":"locked"}
+{"t":"2024-03-14T10:47:00","state":"locked"}
+{"t":"2024-03-14T10:47:30","state":"locked"}
+{"t":"2024-03-14T10:48:00","state":"locked"}
+{"t":"2024-03-14T10:48:30","state":"locked"}
+{"t":"2024-03-14T10:49:00","state":"locked"}
+{"t":"2024-03-14T10:49:30","state":"locked"}
+{"t":"2024-03-14T10:50:00","state":"locked"}
+{"t":"2024-03-14T10:50:30","state":"locked"}
+{"t":"2024-03-14T10:51:00","state":"locked"}
+{"t":"2024-03-14T10:51:30","state":"locked"}
+{"t":"2024-03-14T10:52:00","state":"locked"}
+{"t":"2024-03-14T10:52:30","state":"locked"}
+{"t":"2024-03-14T10:53:00","state":"locked"}
+{"t":"2024-03-14T10:53:30","state":"locked"}
+{"t":"2024-03-14T10:54:00","state":"locked"}
+{"t":"2024-03-14T10:54:30","state":"locked"}
+{"t":"2024-03-14T10:55:00","state":"locked"}
+{"t":"2024-03-14T10:55:30","state":"locked"}
+{"t":"2024-03-14T10:56:00","state":"locked"}
+{"t":"2024-03-14T10:56:30","state":"locked"}
+{"t":"2024-03-14T10:57:00","state":"locked"}
+{"t":"2024-03-14T10:57:30","state":"locked"}
+{"t":"2024-03-14T10:58:00","state":"locked"}
+{"t":"2024-03-14T10:58:30","state":"locked"}
+{"t":"2024-03-14T10:59:00","state":"locked"}
+{"t":"2024-03-14T10:59:30","state":"locked"}
+{"t":"2024-03-14T11:00:05","state":"locked","event":"unlock"}
+{"t":"2024-03-14T11:00:30","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:01:00","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:01:30","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:02:00","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:02:30","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:03:00","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:03:30","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:04:00","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:04:30","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:05:00","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:05:30","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:06:00","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:06:30","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:07:00","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:07:30","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:08:00","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:08:30","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:09:00","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:09:30","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:10:00","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:10:30","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:11:00","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:11:30","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:12:00","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:12:30","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:13:00","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:13:30","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:14:00","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:14:30","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:15:00","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:15:30","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:16:00","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:16:30","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:17:00","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:17:30","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:18:00","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:18:30","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:19:00","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:19:30","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:20:00","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:20:30","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:21:00","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:21:30","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:22:00","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:22:30","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:23:00","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:23:30","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:24:00","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:24:30","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:25:00","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:25:30","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:26:00","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:26:30","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:27:00","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:27:30","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:28:00","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:28:30","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:29:00","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:29:30","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:30:00","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:30:30","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:31:00","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:31:30","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:32:00","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:32:30","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:33:00","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:33:30","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:34:00","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:34:30","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:35:00","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:35:30","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:36:00","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:36:30","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:37:00","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:37:30","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:38:00","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:38:30","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:39:00","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:39:30","state":"active","p":["tmux:tools","~/Documents/Code/parser","make","tmux:tools","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","tmux":"tools:1.0"}
+{"t":"2024-03-14T11:40:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T11:40:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T11:41:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T11:41:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T11:42:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T11:42:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T11:43:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T11:43:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T11:44:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T11:44:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T11:45:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T11:45:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T11:46:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T11:46:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T11:47:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T11:47:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T11:48:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T11:48:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T11:49:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T11:49:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T11:50:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T11:50:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T11:51:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T11:51:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T11:52:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T11:52:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T11:53:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T11:53:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T11:54:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T11:54:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T11:55:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T11:55:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T11:56:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T11:56:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T11:57:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T11:57:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T11:58:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T11:58:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T11:59:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T11:59:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T12:00:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T12:00:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T12:01:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T12:01:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T12:02:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T12:02:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T12:03:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T12:03:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T12:04:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T12:04:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T12:05:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T12:05:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T12:06:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T12:06:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T12:07:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T12:07:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T12:08:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T12:08:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T12:09:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T12:09:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T12:10:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T12:10:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T12:11:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T12:11:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T12:12:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T12:12:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T12:13:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T12:13:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T12:14:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T12:14:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T12:15:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T12:15:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T12:16:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T12:16:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T12:17:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T12:17:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T12:18:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T12:18:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T12:19:00","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T12:19:30","state":"active","p":["tmux:paper","draft","nvim results.tex","tmux:paper","com.github.wez.wezterm"],"app":"com.github.wez.wezterm","title":"nvim","tmux":"paper:0.0"}
+{"t":"2024-03-14T12:20:00","state":"idle"}
+{"t":"2024-03-14T12:20:30","state":"idle"}
+{"t":"2024-03-14T12:21:00","state":"idle"}
+{"t":"2024-03-14T12:21:30","state":"idle"}
+{"t":"2024-03-14T12:22:00","state":"idle"}
+{"t":"2024-03-14T12:22:30","state":"idle"}
+{"t":"2024-03-14T12:23:00","state":"idle"}
+{"t":"2024-03-14T12:23:30","state":"idle"}
+{"t":"2024-03-14T12:24:00","state":"idle"}
+{"t":"2024-03-14T12:24:30","state":"idle"}
+{"t":"2024-03-14T12:25:00","state":"idle"}
+{"t":"2024-03-14T12:25:30","state":"idle"}
+{"t":"2024-03-14T12:26:00","state":"idle"}
+{"t":"2024-03-14T12:26:30","state":"idle"}
+{"t":"2024-03-14T12:27:00","state":"idle"}
+{"t":"2024-03-14T12:27:30","state":"idle"}
+{"t":"2024-03-14T12:28:00","state":"idle"}
+{"t":"2024-03-14T12:28:30","state":"idle"}
+{"t":"2024-03-14T12:29:00","state":"idle"}
+{"t":"2024-03-14T12:29:30","state":"idle"}
+{"t":"2024-03-14T12:30:00","state":"idle"}
+{"t":"2024-03-14T12:30:30","state":"idle"}
+{"t":"2024-03-14T12:31:00","state":"idle"}
+{"t":"2024-03-14T12:31:30","state":"idle"}
+{"t":"2024-03-14T12:32:00","state":"idle"}
+{"t":"2024-03-14T12:32:30","state":"idle"}
+{"t":"2024-03-14T12:33:00","state":"idle"}
+{"t":"2024-03-14T12:33:30","state":"idle"}
+{"t":"2024-03-14T12:34:00","state":"idle"}
+{"t":"2024-03-14T12:34:30","state":"idle"}
+{"t":"2024-03-14T12:35:00","state":"idle"}
+{"t":"2024-03-14T12:35:30","state":"idle"}
+{"t":"2024-03-14T12:36:00","state":"idle"}
+{"t":"2024-03-14T12:36:30","state":"idle"}
+{"t":"2024-03-14T12:37:00","state":"idle"}
+{"t":"2024-03-14T12:37:30","state":"idle"}
+{"t":"2024-03-14T12:38:00","state":"idle"}
+{"t":"2024-03-14T12:38:30","state":"idle"}
+{"t":"2024-03-14T12:39:00","state":"idle"}
+{"t":"2024-03-14T12:39:30","state":"idle"}
+{"t":"2024-03-14T12:40:00","state":"idle"}
+{"t":"2024-03-14T12:40:30","state":"idle"}
+{"t":"2024-03-14T12:41:00","state":"idle"}
+{"t":"2024-03-14T12:41:30","state":"idle"}
+{"t":"2024-03-14T12:42:00","state":"idle"}
+{"t":"2024-03-14T12:42:30","state":"idle"}
+{"t":"2024-03-14T12:43:00","state":"idle"}
+{"t":"2024-03-14T12:43:30","state":"idle"}
+{"t":"2024-03-14T12:44:00","state":"idle"}
+{"t":"2024-03-14T12:44:30","state":"idle"}
+{"t":"2024-03-14T12:45:00","state":"idle"}
+{"t":"2024-03-14T12:45:30","state":"idle"}
+{"t":"2024-03-14T12:46:00","state":"idle"}
+{"t":"2024-03-14T12:46:30","state":"idle"}
+{"t":"2024-03-14T12:47:00","state":"idle"}
+{"t":"2024-03-14T12:47:30","state":"idle"}
+{"t":"2024-03-14T12:48:00","state":"idle"}
+{"t":"2024-03-14T12:48:30","state":"idle"}
+{"t":"2024-03-14T12:49:00","state":"idle"}
+{"t":"2024-03-14T12:49:30","state":"idle"}
+{"t":"2024-03-14T12:50:00","state":"idle"}
+{"t":"2024-03-14T12:50:30","state":"idle"}
+{"t":"2024-03-14T12:51:00","state":"idle"}
+{"t":"2024-03-14T12:51:30","state":"idle"}
+{"t":"2024-03-14T12:52:00","state":"idle"}
+{"t":"2024-03-14T12:52:30","state":"idle"}
+{"t":"2024-03-14T12:53:00","state":"idle"}
+{"t":"2024-03-14T12:53:30","state":"idle"}
+{"t":"2024-03-14T12:54:00","state":"idle"}
+{"t":"2024-03-14T12:54:30","state":"idle"}
+{"t":"2024-03-14T12:55:00","state":"idle"}
+{"t":"2024-03-14T12:55:30","state":"idle"}
+{"t":"2024-03-14T12:56:00","state":"idle"}
+{"t":"2024-03-14T12:56:30","state":"idle"}
+{"t":"2024-03-14T12:57:00","state":"idle"}
+{"t":"2024-03-14T12:57:30","state":"idle"}
+{"t":"2024-03-14T12:58:00","state":"idle"}
+{"t":"2024-03-14T12:58:30","state":"idle"}
+{"t":"2024-03-14T12:59:00","state":"idle"}
+{"t":"2024-03-14T12:59:30","state":"idle"}
+{"t":"2024-03-14T13:00:00","state":"active","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:00:30","state":"active","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:01:00","state":"active","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:01:30","state":"active","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:02:00","state":"active","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:02:30","state":"active","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:03:00","state":"active","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:03:30","state":"active","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:04:00","state":"active","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:04:30","state":"active","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:05:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:05:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:06:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:06:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:07:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:07:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:08:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:08:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:09:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:09:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:10:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:10:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:11:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:11:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:12:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:12:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:13:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:13:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:14:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:14:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:15:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:15:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:16:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:16:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:17:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:17:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:18:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:18:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:19:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:19:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:20:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:20:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:21:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:21:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:22:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:22:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:23:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:23:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:24:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:24:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:25:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:25:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:26:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:26:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:27:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:27:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:28:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:28:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:29:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:29:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:30:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:30:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:31:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:31:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:32:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:32:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:33:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:33:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:34:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:34:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:35:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:35:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:36:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:36:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:37:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:37:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:38:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:38:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:39:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:39:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:40:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:40:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:41:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:41:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:42:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:42:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:43:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:43:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:44:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:44:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:45:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:45:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:46:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:46:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:47:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:47:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:48:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:48:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:49:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:49:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:50:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:50:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:51:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:51:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:52:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:52:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:53:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:53:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:54:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:54:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:55:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:55:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:56:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:56:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:57:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:57:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:58:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:58:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:59:00","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T13:59:30","state":"passive","p":["zoom","Weekly sync","","zoom","us.zoom.xos"],"app":"us.zoom.xos","title":"Weekly sync"}
+{"t":"2024-03-14T14:00:20","state":"idle","event":"display_sleep"}

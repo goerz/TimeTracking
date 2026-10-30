@@ -42,24 +42,31 @@ final class FileEventStream {
                 return
             }
             let box = Unmanaged<Box>.fromOpaque(info).takeUnretainedValue()
+            // With kFSEventStreamCreateFlagUseCFTypes the paths are a CFArray of CFString.
+            // swiftlint:disable:next legacy_objc_type
             let list = unsafeBitCast(paths, to: NSArray.self)
             var modified: [String] = []
             for index in 0 ..< count {
                 let flag = Int(flags[index])
                 let isFile = flag & kFSEventStreamEventFlagItemIsFile != 0
-                let changed = flag & (kFSEventStreamEventFlagItemModified | kFSEventStreamEventFlagItemCreated | kFSEventStreamEventFlagItemRenamed) != 0
+                let changed = flag &
+                    (kFSEventStreamEventFlagItemModified | kFSEventStreamEventFlagItemCreated | kFSEventStreamEventFlagItemRenamed) != 0
                 if isFile, changed, let path = list[index] as? String {
                     modified.append(path)
                 }
             }
             MainActor.assumeIsolated { box.handler(modified) }
         }
-        let flags = FSEventStreamCreateFlags(kFSEventStreamCreateFlagFileEvents | kFSEventStreamCreateFlagUseCFTypes | kFSEventStreamCreateFlagNoDefer)
+        let flags =
+            FSEventStreamCreateFlags(kFSEventStreamCreateFlagFileEvents | kFSEventStreamCreateFlagUseCFTypes |
+                kFSEventStreamCreateFlagNoDefer)
         guard let created = FSEventStreamCreate(
             nil,
             callback,
             &context,
             existing as CFArray,
+            // The SDK spells these with "Id".
+            // swiftformat:disable:next acronyms
             FSEventStreamEventId(kFSEventStreamEventIdSinceNow),
             2,
             flags

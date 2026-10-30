@@ -8,7 +8,8 @@ import TimeTrackingCore
 ///
 /// ```json
 /// {"type":"header","format":1,"tz":"-04:00","dev":"macbook"}
-/// {"t":"2024-03-14T09:00:00","state":"active","p":["tmux:paper","draft","nvim notes.tex","tmux:paper","com.github.wez.wezterm"],"bg":[],"app":"com.github.wez.wezterm"}
+/// {"t":"2024-03-14T09:00:00","state":"active","p":["tmux:paper","draft","nvim
+/// notes.tex","tmux:paper","com.github.wez.wezterm"],"bg":[],"app":"com.github.wez.wezterm"}
 /// ```
 ///
 /// Times are local times at the `tz` of the latest header. Items are
@@ -39,7 +40,9 @@ nonisolated enum SampleCodec {
         if !sample.secondaries.isEmpty {
             writer.add("bg", sample.secondaries.map(fields))
         }
-        for (key, value) in [("app", sample.bundleID), ("title", sample.title), ("tmux", sample.tmuxTarget), ("url", sample.url)] where !value.isEmpty {
+        for (key, value) in [("app", sample.bundleID), ("title", sample.title), ("tmux", sample.tmuxTarget), ("url", sample.url)]
+            where !value.isEmpty
+        {
             writer.add(key, value)
         }
         return writer.text
@@ -58,7 +61,7 @@ nonisolated enum SampleCodec {
             state: state,
             event: record.event.flatMap(PresenceEvent.init(rawValue:)),
             primary: record.primary.flatMap(item),
-            secondaries: (record.background ?? []).compactMap(item),
+            secondaries: record.background.compactMap(item),
             bundleID: record.app ?? "",
             title: record.title ?? "",
             tmuxTarget: record.tmux ?? "",
@@ -106,29 +109,46 @@ nonisolated enum SampleCodec {
         let group = field(3).isEmpty ? fields[0] : field(3)
         return SampleItem(context: fields[0], subject: fields[1], detail: field(2), groupKey: group, app: field(4))
     }
+}
 
-    private struct Record: Decodable {
-        enum CodingKeys: String, CodingKey {
-            case type, dev, state, event, app, title, tmux, url
-            case zone = "tz"
-            case time = "t"
-            case primary = "p"
-            case background = "bg"
-        }
+/// Every key a sample or header line may carry.
+private nonisolated struct Record: Decodable {
+    enum CodingKeys: String, CodingKey {
+        case type, dev, state, event, app, title, tmux, url
+        case zone = "tz"
+        case time = "t"
+        case primary = "p"
+        case background = "bg"
+    }
 
-        var type: String?
-        var dev: String?
-        var zone: String?
-        var time: String?
-        var state: String?
-        var event: String?
-        var primary: [String]?
-        // A missing key is distinct from an empty list in the file format.
-        // swiftlint:disable:next discouraged_optional_collection
-        var background: [[String]]?
-        var app: String?
-        var title: String?
-        var tmux: String?
-        var url: String?
+    var type: String?
+    var dev: String?
+    var zone: String?
+    var time: String?
+    var state: String?
+    var event: String?
+    // A missing primary (idle) differs from an empty one.
+    // swiftlint:disable:next discouraged_optional_collection
+    var primary: [String]?
+    var background: [[String]]
+    var app: String?
+    var title: String?
+    var tmux: String?
+    var url: String?
+
+    init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.type = try container.decodeIfPresent(String.self, forKey: .type)
+        self.dev = try container.decodeIfPresent(String.self, forKey: .dev)
+        self.zone = try container.decodeIfPresent(String.self, forKey: .zone)
+        self.time = try container.decodeIfPresent(String.self, forKey: .time)
+        self.state = try container.decodeIfPresent(String.self, forKey: .state)
+        self.event = try container.decodeIfPresent(String.self, forKey: .event)
+        self.primary = try container.decodeIfPresent([String].self, forKey: .primary)
+        self.background = try container.decodeIfPresent([[String]].self, forKey: .background) ?? []
+        self.app = try container.decodeIfPresent(String.self, forKey: .app)
+        self.title = try container.decodeIfPresent(String.self, forKey: .title)
+        self.tmux = try container.decodeIfPresent(String.self, forKey: .tmux)
+        self.url = try container.decodeIfPresent(String.self, forKey: .url)
     }
 }

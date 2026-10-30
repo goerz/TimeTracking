@@ -32,8 +32,8 @@ public enum UnixSocket {
                 unlink(name)
                 var address = try address(name)
                 let result = withUnsafePointer(to: &address) { pointer in
-                    pointer.withMemoryRebound(to: sockaddr.self, capacity: 1) {
-                        bind(descriptor, $0, socklen_t(MemoryLayout<sockaddr_un>.size))
+                    pointer.withMemoryRebound(to: sockaddr.self, capacity: 1) { generic in
+                        bind(descriptor, generic, socklen_t(MemoryLayout<sockaddr_un>.size))
                     }
                 }
                 guard result == 0 else {
@@ -57,8 +57,8 @@ public enum UnixSocket {
             try inFolder(of: url) { name throws(Failure) in
                 var address = try address(name)
                 let result = withUnsafePointer(to: &address) { pointer in
-                    pointer.withMemoryRebound(to: sockaddr.self, capacity: 1) {
-                        Darwin.connect(descriptor, $0, socklen_t(MemoryLayout<sockaddr_un>.size))
+                    pointer.withMemoryRebound(to: sockaddr.self, capacity: 1) { generic in
+                        Darwin.connect(descriptor, generic, socklen_t(MemoryLayout<sockaddr_un>.size))
                     }
                 }
                 guard result == 0 else {
@@ -96,7 +96,7 @@ public enum UnixSocket {
 
     /// Reads up to the first newline (excluded) or the end of the stream,
     /// at most `limit` bytes; `nil` if nothing arrived.
-    public static func readLine(from descriptor: Int32, limit: Int = 65536) -> String? {
+    public static func readLine(from descriptor: Int32, limit: Int = 65_536) -> String? {
         var bytes: [UInt8] = []
         var byte: UInt8 = 0
         while bytes.count < limit {

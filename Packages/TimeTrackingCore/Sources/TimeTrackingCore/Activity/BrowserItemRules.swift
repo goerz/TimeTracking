@@ -60,7 +60,14 @@ public struct BrowserItemRules: Sendable, Hashable {
             return Parts(subject: "", detail: "", groupKey: domain, domain: domain, isExcluded: true, loggedURL: nil)
         }
         if exclusions.isPrivateDomain(rawHost) {
-            return Parts(subject: domain, detail: "", groupKey: domain, domain: domain, isExcluded: false, loggedURL: "\(scheme)://\(rawHost)")
+            return Parts(
+                subject: domain,
+                detail: "",
+                groupKey: domain,
+                domain: domain,
+                isExcluded: false,
+                loggedURL: "\(scheme)://\(rawHost)"
+            )
         }
         let path = components.path.split(separator: "/").map(String.init)
         if domainOnly(rawHost) {

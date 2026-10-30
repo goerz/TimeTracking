@@ -36,7 +36,7 @@ public enum TrackerCommand: Sendable, Hashable {
     }
 
     /// Parses one line (without or with its newline).
-    public static func parse(_ line: String) throws(ParseError) -> Self {
+    public static func parse(_ line: String) throws(ParseError) -> Self { // swiftlint:disable:this cyclomatic_complexity
         let words = try split(line)
         guard let name = words.first else {
             throw .empty
@@ -121,7 +121,7 @@ public enum TrackerCommand: Sendable, Hashable {
     }
 
     /// Splits a line into words, honoring double quotes.
-    public static func split(_ line: String) throws(ParseError) -> [String] {
+    public static func split(_ line: String) throws(ParseError) -> [String] { // swiftlint:disable:this cyclomatic_complexity
         var words: [String] = []
         var current = ""
         var inWord = false
@@ -170,14 +170,14 @@ public enum TrackerCommand: Sendable, Hashable {
 
 /// The agent's answer to a line.
 public enum TrackerReply: Sendable, Hashable {
-    case ok
+    case success
     case error(String)
 
     /// Parses `ok` or `error <reason>`.
     public init(line: String) {
         let text = line.trimmingCharacters(in: .newlines)
         if text == "ok" {
-            self = .ok
+            self = .success
         } else if text.hasPrefix("error") {
             self = .error(String(text.dropFirst(5)).trimmingCharacters(in: .whitespaces))
         } else {
@@ -188,7 +188,7 @@ public enum TrackerReply: Sendable, Hashable {
     /// The reply line without the newline.
     public var line: String {
         switch self {
-        case .ok:
+        case .success:
             "ok"
         case let .error(reason):
             reason.isEmpty ? "error" : "error \(reason.replacing("\n", with: " "))"

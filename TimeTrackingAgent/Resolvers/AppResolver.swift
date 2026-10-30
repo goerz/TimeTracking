@@ -57,7 +57,12 @@ struct AppResolver {
         if app.bundleID == "com.apple.finder" {
             if case let .value(folder) = environment.scripts.run(Self.finderScript), !folder.isEmpty {
                 let path = ResolveContext.plainPath(folder)
-                let item = SampleItem(context: name, subject: context.tilde(path), groupKey: context.workFolder(ofFolder: path), app: app.bundleID)
+                let item = SampleItem(
+                    context: name,
+                    subject: context.tilde(path),
+                    groupKey: context.workFolder(ofFolder: path),
+                    app: app.bundleID
+                )
                 return context.exclusions.excludesPath(path) ? ResolveContext.privatePath(item) : item
             }
             return plain
@@ -65,7 +70,13 @@ struct AppResolver {
         if let document = window?.document, !document.isEmpty {
             let path = ResolveContext.plainPath(document)
             let folder = context.workFolder(ofFile: path)
-            let item = SampleItem(context: name, subject: folder, detail: (path as NSString).lastPathComponent, groupKey: folder, app: app.bundleID)
+            let item = SampleItem(
+                context: name,
+                subject: folder,
+                detail: PathText.lastComponent(path),
+                groupKey: folder,
+                app: app.bundleID
+            )
             return context.exclusions.excludesPath(path) ? ResolveContext.privatePath(item) : item
         }
         if Self.chatApps.contains(app.bundleID), let parsed = Self.chatTitle(title, appName: app.name) {
@@ -77,9 +88,8 @@ struct AppResolver {
     /// Workspace and channel of titles such as `general (Channel) - Acme - Slack`
     /// or `#general | Acme - Discord`.
     static func chatTitle(_ title: String, appName: String) -> (workspace: String, channel: String)? {
-        var parts = title.components(separatedBy: " - ").flatMap { $0.components(separatedBy: " | ") }.map {
-            $0.trimmingCharacters(in: .whitespaces)
-        }
+        var parts = title.components(separatedBy: " - ").flatMap { $0.components(separatedBy: " | ") }
+            .map { $0.trimmingCharacters(in: .whitespaces) }
         if parts.last?.caseInsensitiveCompare(appName) == .orderedSame {
             parts.removeLast()
         }

@@ -41,14 +41,14 @@ public struct ActivityFolderMirror: Sendable {
         for name in names {
             let source = localBlocks.appending(path: name, directoryHint: .notDirectory)
             let target = containerBlocks.appending(path: name, directoryHint: .notDirectory)
-            if try !Self.sameContents(source, target) {
+            if !Self.sameContents(source, target) {
                 try Self.replace(target, with: source)
                 report.months.append(name)
             }
         }
         let localSettings = local.appending(path: "settings.toml", directoryHint: .notDirectory)
         let containerSettings = container.appending(path: "settings.toml", directoryHint: .notDirectory)
-        if try !Self.sameContents(localSettings, containerSettings) {
+        if !Self.sameContents(localSettings, containerSettings) {
             let localDate = Self.modificationDate(localSettings)
             let containerDate = Self.modificationDate(containerSettings)
             if let localDate, containerDate.map({ localDate > $0 }) ?? true {
@@ -62,7 +62,7 @@ public struct ActivityFolderMirror: Sendable {
         return report
     }
 
-    private static func sameContents(_ first: URL, _ second: URL) throws(ActivityError) -> Bool {
+    private static func sameContents(_ first: URL, _ second: URL) -> Bool {
         let manager = FileManager.default
         let firstExists = manager.fileExists(atPath: first.path)
         let secondExists = manager.fileExists(atPath: second.path)

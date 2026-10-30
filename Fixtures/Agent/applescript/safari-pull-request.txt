@@ -1,0 +1,3 @@
+normal
+https://github.com/owner/repo/pull/123?diff=split#discussion
+Fix the parser by owner · Pull Request #123

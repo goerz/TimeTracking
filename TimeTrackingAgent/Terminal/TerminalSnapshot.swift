@@ -1,6 +1,9 @@
 // TerminalSnapshot: the process table, tmux, and agent sessions read once
 // per tick (spec_activity_tracking.md §2.4 steps 3 and 4, §3.1).
 
+// nil means "cannot read", which differs from an empty answer.
+// swiftlint:disable discouraged_optional_collection
+
 import Foundation
 import TimeTrackingCore
 
@@ -14,16 +17,31 @@ struct TerminalSnapshot {
     var tmuxExecutable: String?
 
     /// Reads the table, every tmux server under the socket folder, and the sessions.
-    static func read(environment: AgentEnvironment, settings: TrackerSettings) async -> Self {
-        let table = ProcessTable(psOutput: await environment.commands.run(ProcessTable.command) ?? "")
+    static func read(environment: AgentEnvironment, settings _: TrackerSettings) async -> Self {
+        let table = await ProcessTable(psOutput: environment.commands.run(ProcessTable.command) ?? "")
         var tmux = TmuxSnapshot()
         let executable = TmuxSnapshot.executables.first { environment.files.exists($0) }
         if let executable {
             let folder = environment.tmuxSocketFolder
             for name in (environment.files.list(folder) ?? []).sorted() {
                 let socket = folder + "/" + name
-                guard let clients = await environment.commands.run([executable, "-S", socket, "list-clients", "-F", TmuxSnapshot.clientFormat]),
-                      let panes = await environment.commands.run([executable, "-S", socket, "list-panes", "-a", "-F", TmuxSnapshot.paneFormat])
+                guard let clients = await environment.commands.run([
+                    executable,
+                    "-S",
+                    socket,
+                    "list-clients",
+                    "-F",
+                    TmuxSnapshot.clientFormat,
+                ]),
+                    let panes = await environment.commands.run([
+                        executable,
+                        "-S",
+                        socket,
+                        "list-panes",
+                        "-a",
+                        "-F",
+                        TmuxSnapshot.paneFormat,
+                    ])
                 else {
                     continue
                 }
@@ -49,3 +67,5 @@ struct TerminalSnapshot {
         return processes.descendants(of: pid).lazy.compactMap { sessions[$0.pid] }.first
     }
 }
+
+// swiftlint:enable discouraged_optional_collection

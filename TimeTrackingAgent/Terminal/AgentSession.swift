@@ -1,6 +1,9 @@
 // AgentSessions: Claude Code's session files (spec_activity_tracking.md §2.3
 // `agents`, §3.1). The format is undocumented; unknown keys are ignored.
 
+// nil means "cannot read", which differs from an empty answer.
+// swiftlint:disable discouraged_optional_collection
+
 import Foundation
 
 /// A coding agent session from `~/.claude/sessions/<pid>.json`.
@@ -55,3 +58,5 @@ enum AgentSessionReader {
         var status: String?
     }
 }
+
+// swiftlint:enable discouraged_optional_collection

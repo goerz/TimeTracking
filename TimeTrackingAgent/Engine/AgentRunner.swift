@@ -44,7 +44,7 @@ final class AgentRunner {
             scripts = RecordingScripts(base: scripts, recorder: created)
             recorder = created
         }
-        let tmuxBase = ProcessInfo.processInfo.environment["TMUX_TMPDIR"].map { $0 } ?? "/private/tmp"
+        let tmuxBase = ProcessInfo.processInfo.environment["TMUX_TMPDIR"].map(\.self) ?? "/private/tmp"
         let environment = AgentEnvironment(
             clock: clock,
             timeZone: .current,

@@ -6,7 +6,7 @@ import os
 import TimeTrackingCore
 
 extension AgentEngine {
-    static let purgeInterval: TimeInterval = 86400
+    static let purgeInterval: TimeInterval = 86_400
     static let knowledgeInterval: TimeInterval = 900
     static let syncedSafariInterval: TimeInterval = 300
 
@@ -48,12 +48,12 @@ extension AgentEngine {
     /// The Knowledge watermark: everything before it was considered.
     static let knowledgeWatermarkKey = "knowledge.watermark"
     /// How far back the first backfill looks.
-    static let knowledgeLookback: TimeInterval = 7 * 86400
+    static let knowledgeLookback: TimeInterval = 7 * 86_400
 
     /// Reconstructs `knowledge` blocks for the periods since the watermark
     /// in which the agent took no sample, from `/app/usage`.
     func backfillFromKnowledge(now: Date) {
-        let watermark = ((try? store.date(Self.knowledgeWatermarkKey)) ?? nil) ?? now.addingTimeInterval(-Self.knowledgeLookback)
+        let watermark = (try? store.date(Self.knowledgeWatermarkKey)) ?? now.addingTimeInterval(-Self.knowledgeLookback)
         let from = max(watermark, now.addingTimeInterval(-Self.knowledgeLookback))
         // The current open stretch is the live agent's; stop one tick before now.
         let until = now.addingTimeInterval(-Self.tickInterval)
@@ -70,9 +70,16 @@ extension AgentEngine {
         health.set("knowledge", .active)
         let gaps = downPeriods(from: from, to: until)
         let rules = resolveContext().exclusions
-        var knowledgeBlocker = Blocker(settings: settings.blocks, timeZone: environment.timeZone, device: configuration.device, source: .knowledge)
+        var knowledgeBlocker = Blocker(
+            settings: settings.blocks,
+            timeZone: environment.timeZone,
+            device: configuration.device,
+            source: .knowledge
+        )
         for gap in gaps {
-            for sample in KnowledgeBackfill.samples(apps: apps, displayOff: displayOff, in: gap, rules: rules, interval: Self.tickInterval) {
+            for sample in KnowledgeBackfill
+                .samples(apps: apps, displayOff: displayOff, in: gap, rules: rules, interval: Self.tickInterval)
+            {
                 for closed in knowledgeBlocker.add(sample) {
                     writeKnowledge(closed)
                 }
@@ -116,7 +123,7 @@ extension AgentEngine {
             return
         }
         syncedSafari.poll(history: environment.history, now: now)
-        let watermark = ((try? store.date(Self.syncedSafariWatermarkKey)) ?? nil) ?? now.addingTimeInterval(-86400)
+        let watermark = (try? store.date(Self.syncedSafariWatermarkKey)) ?? now.addingTimeInterval(-86_400)
         // Visits younger than the gap may still belong to an open block.
         let until = now.addingTimeInterval(-SyncedSafariCollector.gap)
         guard until > watermark, let visits = environment.history.safariVisits(from: watermark, to: until, origin: 1) else {

@@ -16,7 +16,7 @@ struct SyncedSafariCollector {
     /// Tabs per device at the last poll.
     private var lastTabs: [String: Set<String>] = [:]
     /// URLs that appeared in a device's tab set, with the poll time.
-    private(set) var additions: [(time: Date, device: String, url: String)] = []
+    private(set) var additions: [TabAddition] = []
 
     /// Polls `CloudTabs.db` and records which device gained which tab.
     mutating func poll(history: any BrowserHistory, now: Date) {
@@ -27,12 +27,12 @@ struct SyncedSafariCollector {
             let previous = lastTabs[device.name]
             if let previous {
                 for url in device.urls.subtracting(previous) {
-                    additions.append((now, device.name, url))
+                    additions.append(TabAddition(time: now, device: device.name, url: url))
                 }
             }
             lastTabs[device.name] = device.urls
         }
-        additions.removeAll { now.timeIntervalSince($0.time) > 2 * 86400 }
+        additions.removeAll { now.timeIntervalSince($0.time) > 2 * 86_400 }
     }
 
     /// The closed blocks of `visits` (time-ordered or not).
@@ -50,7 +50,13 @@ struct SyncedSafariCollector {
             }
             let item = parts.isExcluded
                 ? SampleItem(context: "safari", subject: ExclusionRules.privateMarker, groupKey: "safari", app: "com.apple.Safari")
-                : SampleItem(context: "safari", subject: parts.subject, detail: parts.detail, groupKey: parts.groupKey, app: "com.apple.Safari")
+                : SampleItem(
+                    context: "safari",
+                    subject: parts.subject,
+                    detail: parts.detail,
+                    groupKey: parts.groupKey,
+                    app: "com.apple.Safari"
+                )
             if !parts.isExcluded {
                 urlsByTime.append((visit.time, visit.url))
             }
@@ -87,4 +93,11 @@ struct SyncedSafariCollector {
         )
         return result
     }
+}
+
+/// A URL that appeared in a device's tab set at a poll.
+struct TabAddition: Hashable {
+    var time: Date
+    var device: String
+    var url: String
 }

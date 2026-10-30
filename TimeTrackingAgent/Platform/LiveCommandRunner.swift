@@ -1,6 +1,9 @@
 // LiveSystem: commands, AppleScript, files, and process facts of the real
 // system (spec_activity_tracking.md §3.1, §3.3).
 
+// nil means "cannot read", which differs from an empty answer.
+// swiftlint:disable discouraged_optional_collection
+
 import AppKit
 import Darwin
 import Foundation
@@ -45,6 +48,8 @@ final class LiveAppleScripting: AppleScripting {
             return .failed
         }
         compiled[source] = script
+        // NSAppleScript reports errors in an NSDictionary.
+        // swiftlint:disable:next legacy_objc_type
         var error: NSDictionary?
         let result = script.executeAndReturnError(&error)
         if let error {
@@ -131,3 +136,5 @@ struct LiveProcessProbe: ProcessProbe {
         kill(pid, 0) == 0 || errno == EPERM
     }
 }
+
+// swiftlint:enable discouraged_optional_collection

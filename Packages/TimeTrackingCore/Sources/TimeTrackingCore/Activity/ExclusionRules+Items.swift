@@ -69,7 +69,8 @@ extension ExclusionRules {
         if let key = reappliedGroupKey(block.groupKey, items: items, contexts: contexts), key != block.groupKey {
             result.groupKey = key
             let seconds = items.filter { $0.context == key }.reduce(0) { $0 + $1.seconds }
-            result.groupShare = result.activeSeconds > 0 ? min(1, (Double(seconds) / Double(result.activeSeconds) * 100).rounded() / 100) : 0
+            result.groupShare = result
+                .activeSeconds > 0 ? min(1, (Double(seconds) / Double(result.activeSeconds) * 100).rounded() / 100) : 0
         }
         return result
     }
@@ -107,7 +108,9 @@ extension ExclusionRules {
             guard let kept = reapplied(to: item, bundleIdentifier: contexts[item.context]) else {
                 continue
             }
-            if let index = merged.firstIndex(where: { $0.context == kept.context && $0.subject == kept.subject && $0.detail == kept.detail }) {
+            if let index = merged
+                .firstIndex(where: { $0.context == kept.context && $0.subject == kept.subject && $0.detail == kept.detail })
+            {
                 merged[index].seconds += kept.seconds
             } else {
                 merged.append(kept)

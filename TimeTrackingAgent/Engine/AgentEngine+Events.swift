@@ -33,15 +33,15 @@ extension AgentEngine {
         switch command {
         case .tick:
             await tick()
-            return .ok
+            return .success
         case .tmuxEvent:
             try? store.setDate(now, for: "event.tmux")
             await tick()
-            return .ok
+            return .success
         case .agentEvent:
             try? store.setDate(now, for: "event.agent")
             await tick()
-            return .ok
+            return .success
         case .deleteBlock, .forgetDay, .reapplyExclusions:
             return rewrite(command)
         }

@@ -12,7 +12,7 @@ nonisolated enum BrowserScripting: Hashable, Sendable {
     /// Arc: like Chromium, with `incognito` instead of `mode`.
     case arc
     /// No scripting dictionary: `AXURL` and the title.
-    case none
+    case unscriptable
 }
 
 /// A browser: context name and scripting.
@@ -29,7 +29,7 @@ nonisolated struct BrowserApp: Hashable, Sendable {
         "com.brave.Browser": Self(context: "brave", scripting: .chromium),
         "com.microsoft.edgemac": Self(context: "edge", scripting: .chromium),
         "com.vivaldi.Vivaldi": Self(context: "vivaldi", scripting: .chromium),
-        "org.mozilla.firefox": Self(context: "firefox", scripting: .none),
+        "org.mozilla.firefox": Self(context: "firefox", scripting: .unscriptable),
     ]
 
     /// The script for the active tab, answering `mode`, URL, and title on three lines.
@@ -38,7 +38,8 @@ nonisolated struct BrowserApp: Hashable, Sendable {
         case .safari:
             """
             with timeout of 1 seconds
-                tell application id "\(bundleID)" to tell current tab of front window to return "normal" & linefeed & (URL as text) & linefeed & (name as text)
+                tell application id "\(bundleID)" to tell current tab of front window ¬
+                    to return "normal" & linefeed & (URL as text) & linefeed & (name as text)
             end timeout
             """
         case .chromium:
@@ -66,7 +67,7 @@ nonisolated struct BrowserApp: Hashable, Sendable {
                 end tell
             end timeout
             """
-        case .none:
+        case .unscriptable:
             nil
         }
     }

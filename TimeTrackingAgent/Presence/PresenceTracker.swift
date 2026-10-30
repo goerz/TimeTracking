@@ -63,7 +63,9 @@ nonisolated struct PresenceTracker: Hashable, Sendable {
         guard !audioOnlyApps.contains(where: { $0.lowercased() == folded }) else {
             return false
         }
-        if meetingApps.contains(where: { $0.lowercased() == folded }) || settings.passiveApps.contains(where: { $0.lowercased() == folded }) {
+        if meetingApps.contains(where: { $0.lowercased() == folded }) || settings.passiveApps
+            .contains(where: { $0.lowercased() == folded })
+        {
             return true
         }
         if let domain {

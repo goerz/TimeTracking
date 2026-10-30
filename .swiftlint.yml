@@ -47,6 +47,9 @@ disabled_rules:
   - variable_shadowing                # `let name = name.trimmed` and parameters named like properties are idiomatic
   - switch_case_on_newline            # one-line cases in switch expressions (SwiftFormat keeps them)
 
+# SwiftFormat puts the brace of a multi-line `if`/`for`/`while` condition on its own line.
+opening_brace:
+  ignore_multiline_statement_conditions: true
 number_separator:
   minimum_length: 5
 

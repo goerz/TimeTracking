@@ -32,8 +32,8 @@ nonisolated struct BlockSummary {
     init(segments: [Blocker.Segment], background: [Blocker.Segment], settings: TrackerBlockSettings) {
         let summed = Self.sum(segments)
         let total = summed.reduce(0) { $0 + $1.seconds }
-        detailItems = summed.map(\.activityItem)
-        activeSeconds = total
+        self.detailItems = summed.map(\.activityItem)
+        self.activeSeconds = total
         var groups: [String: Int] = [:]
         var groupOrder: [String] = []
         for entry in summed {
@@ -43,8 +43,8 @@ nonisolated struct BlockSummary {
             groups[entry.groupKey, default: 0] += entry.seconds
         }
         let dominant = groupOrder.max { groups[$0, default: 0] < groups[$1, default: 0] } ?? ""
-        groupKey = dominant
-        groupShare = total > 0 ? (Double(groups[dominant, default: 0]) / Double(total) * 100).rounded() / 100 : 0
+        self.groupKey = dominant
+        self.groupShare = total > 0 ? (Double(groups[dominant, default: 0]) / Double(total) * 100).rounded() / 100 : 0
         let merged = Self.merge(summed)
         var kept = merged.filter { entry in
             entry.seconds >= Self.minimumSeconds && (total == 0 || Double(entry.seconds) / Double(total) >= settings.summaryMinShare)
@@ -56,7 +56,7 @@ nonisolated struct BlockSummary {
             }
         }
         kept.sort { $0.first < $1.first }
-        items = Array(kept.prefix(max(0, settings.summaryLines))).map(\.activityItem)
+        self.items = Array(kept.prefix(max(0, settings.summaryLines))).map(\.activityItem)
         self.background = Self.sum(background).filter { $0.seconds >= Self.backgroundSeconds }.map(\.activityItem)
     }
 
@@ -69,7 +69,12 @@ nonisolated struct BlockSummary {
                 entries[position].seconds += segment.seconds
             } else {
                 index[segment.item.key] = entries.count
-                entries.append(Entry(key: segment.item.key, groupKey: segment.item.groupKey, seconds: segment.seconds, first: segment.start))
+                entries.append(Entry(
+                    key: segment.item.key,
+                    groupKey: segment.item.groupKey,
+                    seconds: segment.seconds,
+                    first: segment.start
+                ))
             }
         }
         return entries

@@ -2,6 +2,9 @@
 // protocols so tests use fakes and fixtures (spec_activity_tracking.md §5,
 // spec_architecture.md §3.1).
 
+// The seams answer nil for "cannot read", which differs from an empty answer.
+// swiftlint:disable discouraged_optional_collection
+
 import Foundation
 import TimeTrackingCore
 
@@ -36,6 +39,7 @@ nonisolated struct WindowInfo: Hashable, Sendable {
 protocol FocusProbe {
     /// Whether the agent has the Accessibility grant.
     var isTrusted: Bool { get }
+
     func frontmostApp() -> FrontApp?
     /// The focused window; `nil` without Accessibility.
     func focusedWindow(of app: FrontApp) -> WindowInfo?
@@ -98,3 +102,5 @@ struct AgentEnvironment {
     var history: any BrowserHistory
     var knowledge: any KnowledgeSource
 }
+
+// swiftlint:enable discouraged_optional_collection

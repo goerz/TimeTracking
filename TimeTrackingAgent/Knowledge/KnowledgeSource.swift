@@ -64,30 +64,33 @@ struct KnowledgeStoreReader: KnowledgeSource {
         }
         do {
             let queue = try DatabaseQueue(path: copy.path)
-            return try queue.read { db in try Self.query(db, from: from, to: to) }
+            return try queue.read { database in try Self.query(database, from: from, to: to) }
         } catch {
             return .unavailable("The Knowledge store cannot be read")
         }
     }
 
     /// Checks the schema and reads the three streams.
-    static func query(_ db: Database, from: Date, to: Date) throws -> KnowledgeRead {
-        guard try db.tableExists("ZOBJECT") else {
+    static func query(_ database: Database, from: Date, to: Date) throws -> KnowledgeRead { // swiftlint:disable:this cyclomatic_complexity
+        guard try database.tableExists("ZOBJECT") else {
             return .unavailable("Unexpected Knowledge store schema: no ZOBJECT table")
         }
-        let objectColumns = Set(try db.columns(in: "ZOBJECT").map { $0.name.uppercased() })
+        let objectColumns = try Set(database.columns(in: "ZOBJECT").map { $0.name.uppercased() })
         guard requiredObjectColumns.isSubset(of: objectColumns) else {
-            return .unavailable("Unexpected Knowledge store schema: ZOBJECT lacks \(requiredObjectColumns.subtracting(objectColumns).sorted().joined(separator: ", "))")
+            return .unavailable(
+                "Unexpected Knowledge store schema: ZOBJECT lacks " + requiredObjectColumns.subtracting(objectColumns).sorted()
+                    .joined(separator: ", ")
+            )
         }
         var hasWeb = false
-        if try db.tableExists("ZSTRUCTUREDMETADATA") {
-            hasWeb = try db.columns(in: "ZSTRUCTUREDMETADATA").contains { $0.name.uppercased() == webURLColumn }
+        if try database.tableExists("ZSTRUCTUREDMETADATA") {
+            hasWeb = try database.columns(in: "ZSTRUCTUREDMETADATA").contains { $0.name.uppercased() == webURLColumn }
         }
         let urlColumn = hasWeb ? "m.\(webURLColumn)" : "NULL"
         let flagColumn = objectColumns.contains("ZVALUEINTEGER") ? "o.ZVALUEINTEGER" : "NULL"
         let join = hasWeb ? "LEFT JOIN ZSTRUCTUREDMETADATA m ON o.ZSTRUCTUREDMETADATA = m.Z_PK" : ""
         let rows = try Row.fetchAll(
-            db,
+            database,
             sql: """
             SELECT o.ZSTREAMNAME AS stream, o.ZSTARTDATE AS start, o.ZENDDATE AS end, o.ZVALUESTRING AS value,
                    \(flagColumn) AS flag, \(urlColumn) AS url

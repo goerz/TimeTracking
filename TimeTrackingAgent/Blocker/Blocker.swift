@@ -65,7 +65,10 @@ nonisolated struct Blocker: Sendable {
     mutating func add(_ sample: Sample) -> [ClosedBlock] {
         var closed: [ClosedBlock] = []
         let time = sample.time
-        if let block = open, ActivityTimestamp.startOfDay(time, timeZone: timeZone) > ActivityTimestamp.startOfDay(block.start, timeZone: timeZone) {
+        if let block = open, ActivityTimestamp.startOfDay(time, timeZone: timeZone) > ActivityTimestamp.startOfDay(
+            block.start,
+            timeZone: timeZone
+        ) {
             let midnight = ActivityTimestamp.nextMidnight(after: block.start, timeZone: timeZone)
             if sample.isAttentive, time.timeIntervalSince(block.lastAttentive) < settings.idleClose {
                 credit(until: min(midnight, time))
@@ -140,7 +143,7 @@ nonisolated struct Blocker: Sendable {
         guard let pending = open?.pending else {
             return
         }
-        let seconds = Int(min(creditCap,max(0, time.timeIntervalSince(pending.time))))
+        let seconds = Int(min(creditCap, max(0, time.timeIntervalSince(pending.time))))
         open?.pending = nil
         guard seconds > 0 else {
             return
@@ -157,7 +160,13 @@ nonisolated struct Blocker: Sendable {
             return []
         }
         open = nil
-        return finish(start: block.start, end: max(block.start, end), segments: block.segments, background: block.background, contexts: block.contexts)
+        return finish(
+            start: block.start,
+            end: max(block.start, end),
+            segments: block.segments,
+            background: block.background,
+            contexts: block.contexts
+        )
     }
 
     private func finish(start: Date, end: Date, segments: [Segment], background: [Segment], contexts: [String: String]) -> [ClosedBlock] {

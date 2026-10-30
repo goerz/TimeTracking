@@ -68,7 +68,7 @@ struct Anonymizer {
         if let known = components[value] {
             return known
         }
-        let ext = (value as NSString).pathExtension
+        let ext = PathText.pathExtension(value)
         let number = components.count + 1
         let placeholder = ext.isEmpty || ext.count > 5 ? "d\(number)" : "f\(number).\(ext)"
         components[value] = placeholder

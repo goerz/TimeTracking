@@ -1,6 +1,9 @@
 // HistoryDatabases: Safari's History.db and CloudTabs.db and Chromium's
 // History files, read from copies (spec_activity_tracking.md §3.3, §6.1).
 
+// The seams answer nil for "cannot read", which differs from an empty answer.
+// swiftlint:disable discouraged_optional_collection discouraged_optional_boolean
+
 import Foundation
 import GRDB
 
@@ -15,7 +18,7 @@ final class HistoryDatabases: BrowserHistory {
     let cloudTabsPaths: [String]
     /// Context and `History` file of each Chromium profile.
     let chromiumProfiles: () -> [(context: String, path: String)]
-    private var copies: [String: (copy: URL, source: Date?, checked: TimeInterval)] = [:]
+    private var copies: [String: DatabaseCopy] = [:]
     private let folder: URL
 
     init(safariPath: String, cloudTabsPaths: [String], chromiumProfiles: @escaping () -> [(context: String, path: String)]) {
@@ -53,9 +56,9 @@ final class HistoryDatabases: BrowserHistory {
     }
 
     func safariVisits(from: Date, to: Date, origin: Int) -> [HistoryVisit]? {
-        query(safariPath) { db in
+        query(safariPath) { database in
             try Row.fetchAll(
-                db,
+                database,
                 sql: """
                 SELECT v.visit_time AS time, i.url AS url, COALESCE(v.title, '') AS title
                 FROM history_visits v JOIN history_items i ON v.history_item = i.id
@@ -64,15 +67,20 @@ final class HistoryDatabases: BrowserHistory {
                 """,
                 arguments: [from.timeIntervalSinceReferenceDate, to.timeIntervalSinceReferenceDate, origin]
             ).map { row in
-                HistoryVisit(time: Date(timeIntervalSinceReferenceDate: row["time"]), browser: "safari", url: row["url"], title: row["title"])
+                HistoryVisit(
+                    time: Date(timeIntervalSinceReferenceDate: row["time"]),
+                    browser: "safari",
+                    url: row["url"],
+                    title: row["title"]
+                )
             }
         }
     }
 
     func hasSafariVisit(url: String, since: Date) -> Bool? {
-        query(safariPath) { db in
+        query(safariPath) { database in
             try Bool.fetchOne(
-                db,
+                database,
                 sql: """
                 SELECT 1 FROM history_visits v JOIN history_items i ON v.history_item = i.id
                 WHERE i.url = ? AND v.visit_time >= ? AND v.origin = 0 LIMIT 1
@@ -85,9 +93,9 @@ final class HistoryDatabases: BrowserHistory {
     func chromiumVisits(from: Date, to: Date) -> [HistoryVisit] {
         var result: [HistoryVisit] = []
         for profile in chromiumProfiles() {
-            let visits = query(profile.path) { db in
+            let visits = query(profile.path) { database in
                 try Row.fetchAll(
-                    db,
+                    database,
                     sql: """
                     SELECT v.visit_time AS time, u.url AS url, COALESCE(u.title, '') AS title
                     FROM visits v JOIN urls u ON v.url = u.id
@@ -109,9 +117,9 @@ final class HistoryDatabases: BrowserHistory {
         guard let path = cloudTabsPaths.first(where: { FileManager.default.fileExists(atPath: $0) }) else {
             return nil
         }
-        return query(path) { db in
+        return query(path) { database in
             let rows = try Row.fetchAll(
-                db,
+                database,
                 sql: """
                 SELECT d.device_name AS name, t.url AS url FROM cloud_tabs t
                 JOIN cloud_tab_devices d ON t.device_uuid = d.device_uuid
@@ -148,7 +156,10 @@ final class HistoryDatabases: BrowserHistory {
         if let cached = copies[path], cached.source == source || now - cached.checked < Self.refreshInterval {
             return cached.copy
         }
-        let target = folder.appending(path: UUID().uuidString, directoryHint: .isDirectory).appending(path: "db.sqlite", directoryHint: .notDirectory)
+        let target = folder.appending(path: UUID().uuidString, directoryHint: .isDirectory).appending(
+            path: "db.sqlite",
+            directoryHint: .notDirectory
+        )
         do {
             try manager.createDirectory(at: target.deletingLastPathComponent(), withIntermediateDirectories: true)
             try manager.copyItem(atPath: path, toPath: target.path)
@@ -161,7 +172,18 @@ final class HistoryDatabases: BrowserHistory {
         if let old = copies[path] {
             try? manager.removeItem(at: old.copy.deletingLastPathComponent())
         }
-        copies[path] = (target, source, now)
+        copies[path] = DatabaseCopy(copy: target, source: source, checked: now)
         return target
     }
+}
+
+// swiftlint:enable discouraged_optional_collection discouraged_optional_boolean
+
+/// A copy of a history database and when it was made.
+private struct DatabaseCopy {
+    var copy: URL
+    /// The live file's modification date at copy time.
+    var source: Date?
+    /// System uptime at copy time.
+    var checked: TimeInterval
 }

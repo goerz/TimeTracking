@@ -54,7 +54,7 @@ public struct LaunchArguments: Sendable, Equatable {
     public init(
         arguments: [String],
         environment: [String: String],
-        currentDirectory: URL = URL(filePath: FileManager.default.currentDirectoryPath),
+        currentDirectory: URL = URL(filePath: FileManager.default.currentDirectoryPath, directoryHint: .isDirectory),
         timeZone: TimeZone = .current
     ) {
         self.init()

@@ -1,6 +1,9 @@
 // ResolveContext: settings, exclusions, and path rules shared by the
 // resolvers (spec_activity_tracking.md §2.2 rule 3, §7.2).
 
+// nil means "cannot read", which differs from an empty answer.
+// swiftlint:disable discouraged_optional_collection
+
 import Foundation
 import TimeTrackingCore
 
@@ -79,7 +82,7 @@ struct ResolveContext {
     /// The work folder of a file's folder.
     mutating func workFolder(ofFile file: String) -> String {
         let absolute = expand(file)
-        let folder = (absolute as NSString).deletingLastPathComponent
+        let folder = PathText.parent(absolute)
         return workFolder(ofFolder: folder.isEmpty ? "/" : folder)
     }
 
@@ -93,7 +96,7 @@ struct ResolveContext {
             if current == home {
                 break
             }
-            current = (current as NSString).deletingLastPathComponent
+            current = PathText.parent(current)
         }
         for deep in settings.files.deepFolders.map(expand) {
             if let rest = Self.relative(folder, to: deep), let first = rest.first {
@@ -146,3 +149,5 @@ struct ResolveContext {
         )
     }
 }
+
+// swiftlint:enable discouraged_optional_collection

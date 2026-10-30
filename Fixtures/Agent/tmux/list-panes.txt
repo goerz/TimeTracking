@@ -1,0 +1,4 @@
+paper	0	draft	1	0	1	nvim	/Users/alex/Documents/Papers/2026_Noise	701	/dev/ttys010	0	nvim /Users/alex/Documents/Papers/2026_Noise/notes.tex
+tools	0	agent	1	0	1	claude	/Users/alex/Documents/Code/parser	711	/dev/ttys011	0	refactor-parser
+tools	1	make	0	0	1	make	/Users/alex/Documents/Code/parser	721	/dev/ttys012	1	host
+lab	0	julia	1	0	1	julia	/Users/alex/Documents/Notebooks/qsl	731	/dev/ttys013	1	host

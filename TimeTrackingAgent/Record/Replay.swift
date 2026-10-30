@@ -105,7 +105,8 @@ nonisolated enum Replay {
                 return 1
             }
             if let line = outcome.firstDifference {
-                FileHandle.standardError.write(Data("replay: line \(line) differs from \(expectedURL(for: fixture).lastPathComponent)\n".utf8))
+                FileHandle.standardError
+                    .write(Data("replay: line \(line) differs from \(expectedURL(for: fixture).lastPathComponent)\n".utf8))
                 return 1
             }
             return 0

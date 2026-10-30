@@ -16,8 +16,16 @@ extension TerminalResolver {
         now: Date,
         context: inout ResolveContext
     ) -> [SampleItem] {
-        var result: [SampleItem] = []
+        let primarySession = primary?.context.hasPrefix("tmux:") == true ? String(primary?.context.dropFirst(5) ?? "") : nil
+        return busyAgents(snapshot, context: context)
+            + otherClients(snapshot, primarySession: primarySession, now: now, context: context)
+            + jobs(snapshot, primarySession: primarySession, primaryTarget: primaryTarget, context: context)
+    }
+
+    /// Every busy coding agent session, by name.
+    private func busyAgents(_ snapshot: TerminalSnapshot, context: ResolveContext) -> [SampleItem] {
         let exclusions = context.exclusions
+        var result: [SampleItem] = []
         for session in (snapshot.sessions ?? [:]).values.sorted(by: { $0.pid < $1.pid }) where session.busy {
             if !session.tmuxSession.isEmpty, exclusions.excludesTmuxSession(session.tmuxSession) {
                 continue
@@ -31,11 +39,19 @@ extension TerminalResolver {
             }
             result.append(SampleItem(context: "claude", subject: subject, groupKey: "claude", app: "claude"))
         }
-        let primarySession = primary?.context.hasPrefix("tmux:") == true ? String(primary?.context.dropFirst(5) ?? "") : nil
-        var seenSessions = Set<String>()
-        for client in snapshot.tmux.clients.sorted(by: { $0.session < $1.session })
-            where now.timeIntervalSince(client.activity) <= Self.otherClientWindow && client.session != primarySession {
-            guard seenSessions.insert(client.session).inserted, !exclusions.excludesTmuxSession(client.session),
+        return result
+    }
+
+    /// The active pane of every tmux client with input in the last 30 s, in another session.
+    private func otherClients(_ snapshot: TerminalSnapshot, primarySession: String?, now: Date, context: ResolveContext) -> [SampleItem] {
+        let exclusions = context.exclusions
+        var result: [SampleItem] = []
+        var seen = Set<String>()
+        let recent = snapshot.tmux.clients.filter { client in
+            now.timeIntervalSince(client.activity) <= Self.otherClientWindow && client.session != primarySession
+        }
+        for client in recent.sorted(by: { $0.session < $1.session }) {
+            guard seen.insert(client.session).inserted, !exclusions.excludesTmuxSession(client.session),
                   let pane = snapshot.tmux.activePane(session: client.session, server: client.server)
             else {
                 continue
@@ -56,27 +72,33 @@ extension TerminalResolver {
             }
             result.append(item)
         }
-        let jobs = Set(context.settings.terminal.jobCommands)
-        for pane in snapshot.tmux.panes where pane.target != primaryTarget || primaryTarget.isEmpty {
+        return result
+    }
+
+    /// `job_commands` running in panes other than the primary's.
+    private func jobs(
+        _ snapshot: TerminalSnapshot,
+        primarySession: String?,
+        primaryTarget: String,
+        context: ResolveContext
+    ) -> [SampleItem] {
+        let exclusions = context.exclusions
+        let commands = Set(context.settings.terminal.jobCommands)
+        return snapshot.tmux.panes.compactMap { pane in
             let program = Self.programName(pane.command)
-            guard jobs.contains(program), !exclusions.excludesTmuxSession(pane.session) else {
-                continue
+            let isPrimary = primaryTarget.isEmpty ? pane.windowActive && pane.paneActive && primarySession == pane.session : pane
+                .target == primaryTarget
+            guard commands.contains(program), !isPrimary, !exclusions.excludesTmuxSession(pane.session) else {
+                return nil
             }
-            if primaryTarget.isEmpty, pane.windowActive, pane.paneActive, primarySession == pane.session {
-                continue
-            }
-            var item = SampleItem(
+            let item = SampleItem(
                 context: "tmux:\(pane.session)",
                 subject: context.tilde(pane.path),
                 detail: program,
                 groupKey: "tmux:\(pane.session)",
                 app: "tmux"
             )
-            if exclusions.excludesPath(pane.path) {
-                item = ResolveContext.privatePath(item, keepGroup: true)
-            }
-            result.append(item)
+            return exclusions.excludesPath(pane.path) ? ResolveContext.privatePath(item, keepGroup: true) : item
         }
-        return result
     }
 }

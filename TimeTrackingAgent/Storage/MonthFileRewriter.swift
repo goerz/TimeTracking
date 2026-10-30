@@ -18,6 +18,8 @@ nonisolated enum MonthFileRewriter {
     /// dropped or replaced (their original form). A file without changes is
     /// not touched.
     @discardableResult
+    // One switch over the line kinds and decisions.
+    // swiftlint:disable:next cyclomatic_complexity
     static func rewrite(
         _ url: URL,
         decide: (ActivityBlock, ActivityBlockDetail?, [String: String]) -> LineDecision
@@ -72,8 +74,7 @@ nonisolated enum MonthFileRewriter {
         let names = (try? FileManager.default.contentsOfDirectory(atPath: folder.path)) ?? []
         let first = String(fromDay.prefix(7))
         let last = String(toDay.prefix(7))
-        return names.filter { $0.hasSuffix(".jsonl") }.map { String($0.dropLast(6)) }.filter { $0 >= first && $0 <= last }.sorted().map {
-            folder.appending(path: "\($0).jsonl", directoryHint: .notDirectory)
-        }
+        let months = names.filter { $0.hasSuffix(".jsonl") }.map { String($0.dropLast(6)) }.filter { $0 >= first && $0 <= last }
+        return months.sorted().map { month in folder.appending(path: "\(month).jsonl", directoryHint: .notDirectory) }
     }
 }

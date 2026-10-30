@@ -116,7 +116,7 @@ nonisolated enum MessagePack {
         }
 
         /// A str value; `nil` when not a string or incomplete.
-        mutating func string() -> String? {
+        mutating func string() -> String? { // swiftlint:disable:this cyclomatic_complexity
             guard let marker = next() else {
                 return nil
             }

@@ -278,6 +278,12 @@
 			path = TimeTrackingAgentTests;
 			sourceTree = "<group>";
 		};
+		F1A7E0C93B5D4E2A8C6B1D07 /* AgentFixtures */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			name = AgentFixtures;
+			path = Fixtures/Agent;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -441,6 +447,7 @@
 				2CB5BF39188A1D741CE51890 /* TimeTrackingiOSTests */,
 				25F9F9EE40EEFA6C8264509B /* TimeTrackingiOSUITests */,
 				DC1320E08B780356A9D25768 /* TimeTrackingAgentTests */,
+				F1A7E0C93B5D4E2A8C6B1D07 /* AgentFixtures */,
 				2BA50DFEDA2395B518E140EC /* TimeTrackingCLITests */,
 				2F3A6B1E78F896718625FF06 /* Products */,
 			);
@@ -791,6 +798,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				DC1320E08B780356A9D25768 /* TimeTrackingAgentTests */,
+				F1A7E0C93B5D4E2A8C6B1D07 /* AgentFixtures */,
 			);
 			name = TimeTrackingAgentTests;
 			packageProductDependencies = (

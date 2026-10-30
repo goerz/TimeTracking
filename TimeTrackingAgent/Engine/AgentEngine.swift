@@ -14,7 +14,7 @@ final class AgentEngine {
     /// The tick interval of §2.1.
     static let tickInterval: TimeInterval = 30
     /// How recent a pushed event must be for its source to be `active`.
-    static let eventSourceWindow: TimeInterval = 7 * 86400
+    static let eventSourceWindow: TimeInterval = 7 * 86_400
 
     let environment: AgentEnvironment
     let configuration: AgentConfiguration
@@ -89,7 +89,8 @@ final class AgentEngine {
             sample = Sample(time: now, state: state)
         } else {
             let focus = await resolveFocus(snapshot: snapshot, context: &context)
-            let passive = focus.map { PresenceTracker.isPassive(bundleID: $0.bundleID, domain: $0.domain, settings: settings.presence) } ?? false
+            let passive = focus
+                .map { PresenceTracker.isPassive(bundleID: $0.bundleID, domain: $0.domain, settings: settings.presence) } ?? false
             let state = presence.update(reading: reading, now: now, passiveCandidate: passive, settings: settings.presence)
             if let focus, state == .active || state == .passive {
                 let secondaries = terminal.secondaries(
@@ -157,8 +158,8 @@ final class AgentEngine {
     /// Rewrites `current.json` from the open block, the last sample, presence, and health.
     func writeCurrentState() {
         let now = environment.clock.now
-        let primary = lastSample.flatMap { $0.isAttentive ? $0.primary : nil }.map {
-            TrackerPrimaryItem(context: $0.context, subject: $0.subject, detail: $0.detail)
+        let primary = lastSample.flatMap { $0.isAttentive ? $0.primary : nil }.map { item in
+            TrackerPrimaryItem(context: item.context, subject: item.subject, detail: item.detail)
         }
         let state = TrackerState(
             device: configuration.device,
@@ -215,7 +216,15 @@ final class AgentEngine {
         if TerminalApp.known[app.bundleID] != nil {
             let observation = await terminal.resolve(app: app, title: title, snapshot: snapshot, context: &context)
             apply(observation.health)
-            return Focus(item: observation.item, bundleID: app.bundleID, title: title, tmuxTarget: observation.tmuxTarget, url: "", domain: nil)
+            let kept = Self.debugTitle(title, item: observation.item, exclusions: exclusions)
+            return Focus(
+                item: observation.item,
+                bundleID: app.bundleID,
+                title: kept,
+                tmuxTarget: observation.tmuxTarget,
+                url: "",
+                domain: nil
+            )
         }
         if BrowserApp.known[app.bundleID] != nil {
             let observation = browser.resolve(app: app, window: window, ports: terminal.ports, context: &context)
@@ -223,57 +232,20 @@ final class AgentEngine {
             return Focus(
                 item: observation.item,
                 bundleID: app.bundleID,
-                title: observation.title,
+                title: Self.debugTitle(observation.title, item: observation.item, exclusions: exclusions),
                 tmuxTarget: "",
                 url: observation.url,
                 domain: observation.domain
             )
         }
         let item = AppResolver(environment: environment).resolve(app: app, window: window, context: &context)
-        return Focus(item: item, bundleID: app.bundleID, title: title, tmuxTarget: "", url: "", domain: nil)
-    }
-
-    func apply(_ entries: [(id: String, status: TrackerSourceStatus, reason: String)]) {
-        for entry in entries {
-            health.set(entry.id, entry.status, entry.reason)
-        }
-    }
-
-    /// Health of the sources checked at every tick.
-    private func updateStaticHealth(snapshot: TerminalSnapshot, now: Date) {
-        if snapshot.sessions == nil {
-            health.set("agents", .fallback, "No Claude Code sessions folder; busy state unknown")
-        } else {
-            health.set("agents", .active)
-        }
-        for (id, key, reason) in [
-            ("tmux_events", "event.tmux", "No tmux hook event in the last 7 days; the tick alone"),
-            ("agent_events", "event.agent", "No agent hook event in the last 7 days; the tick alone"),
-        ] {
-            let seen = (try? store.date(key)) ?? nil
-            if let seen, now.timeIntervalSince(seen) < Self.eventSourceWindow {
-                health.set(id, .active)
-            } else {
-                health.set(id, .fallback, reason)
-            }
-        }
-        if environment.history.canReadSafari {
-            health.set("history", .active)
-        } else {
-            health.set("history", .fallback, "Full Disk Access not granted; Safari URLs keep only the domain")
-        }
-        let roots = settings.files.roots.map { resolveContext().expand($0) }
-        if roots.contains(where: environment.files.exists) {
-            health.set("files", .active)
-        } else {
-            health.set("files", .off, "No watched folder exists")
-        }
-        if !settings.devices.syncedSafariHistory {
-            health.set("synced_safari", .off, "Turned off in the settings")
-        } else if !environment.history.canReadSafari {
-            health.set("synced_safari", .off, "Full Disk Access not granted")
-        } else {
-            health.set("synced_safari", .active)
-        }
+        return Focus(
+            item: item,
+            bundleID: app.bundleID,
+            title: Self.debugTitle(title, item: item, exclusions: exclusions),
+            tmuxTarget: "",
+            url: "",
+            domain: nil
+        )
     }
 }

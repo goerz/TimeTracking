@@ -34,7 +34,10 @@ final class Recorder {
     /// Appends one sample to its day's file.
     func record(_ sample: Sample, utcOffset: Int, device _: String) {
         let day = ActivityTimestamp.day(sample.time, utcOffset: utcOffset)
-        let url = folder.appending(path: "samples", directoryHint: .isDirectory).appending(path: "\(day).jsonl", directoryHint: .notDirectory)
+        let url = folder.appending(path: "samples", directoryHint: .isDirectory).appending(
+            path: "\(day).jsonl",
+            directoryHint: .notDirectory
+        )
         var text = ""
         if sampleHeaders[day] != utcOffset {
             sampleHeaders[day] = utcOffset
@@ -90,8 +93,9 @@ struct RecordingCommandRunner: CommandRunning {
     func run(_ arguments: [String]) async -> String? {
         let output = await base.run(arguments)
         if let output {
-            let adapter = arguments.first.map { ($0 as NSString).lastPathComponent } ?? "command"
-            let name = arguments.dropFirst().filter { !$0.hasPrefix("-") && !$0.contains("/") && !$0.contains("#") }.prefix(2).joined(separator: "-")
+            let adapter = arguments.first.map(PathText.lastComponent) ?? "command"
+            let name = arguments.dropFirst().filter { !$0.hasPrefix("-") && !$0.contains("/") && !$0.contains("#") }.prefix(2)
+                .joined(separator: "-")
             recorder.record(output: output, adapter: adapter, name: name.isEmpty ? "output" : name)
         }
         return output

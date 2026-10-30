@@ -1,6 +1,9 @@
 // PortRegistry: notebook server ports and the panes that own them
 // (spec_activity_tracking.md §2.2 rule 2, §3.1, §3.3).
 
+// nil means "cannot read", which differs from an empty answer.
+// swiftlint:disable discouraged_optional_collection
+
 import Foundation
 
 /// Maps a `localhost` port to the item of the interpreter pane listening on it.
@@ -55,3 +58,5 @@ struct PortRegistry {
         }
     }
 }
+
+// swiftlint:enable discouraged_optional_collection

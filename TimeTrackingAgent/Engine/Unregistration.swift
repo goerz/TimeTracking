@@ -9,6 +9,7 @@ import TimeTrackingCore
 /// The login item registration the agent can remove.
 protocol LoginItemService {
     var isRegistered: Bool { get }
+
     func unregister() throws
 }
 

@@ -13,10 +13,10 @@ extension AgentEngine {
                 return try deleteBlock(device: device, start: start)
             case let .forgetDay(day):
                 try forgetDay(day)
-                return .ok
+                return .success
             case let .reapplyExclusions(from, to):
                 try reapplyExclusions(fromDay: from, toDay: to)
-                return .ok
+                return .success
             case .tick, .tmuxEvent, .agentEvent:
                 return .error("not a rewrite command")
             }
@@ -42,11 +42,12 @@ extension AgentEngine {
             }
         }
         if let open = blocker.open, device == configuration.device,
-           ActivityTimestamp.text(open.start, timeZone: environment.timeZone) == start {
+           ActivityTimestamp.text(open.start, timeZone: environment.timeZone) == start
+        {
             try store.delete(from: open.start, to: environment.clock.now.addingTimeInterval(1))
             blocker.discardOpenBlock()
             writeCurrentState()
-            return .ok
+            return .success
         }
         guard let block = removed.first else {
             return .error("no block of \(device) at \(start)")
@@ -54,7 +55,7 @@ extension AgentEngine {
         if device == configuration.device {
             try store.delete(from: block.start, to: block.end.addingTimeInterval(1))
         }
-        return .ok
+        return .success
     }
 
     private func forgetDay(_ day: String) throws {
@@ -145,7 +146,9 @@ nonisolated enum SampleRewrite {
         result.detail = kept.detail
         if kept.context != item.context {
             result.groupKey = kept.context
-        } else if kept.subject == ExclusionRules.privateMarker, kept.detail == ExclusionRules.privateMarker, !item.context.hasPrefix("tmux:") {
+        } else if kept.subject == ExclusionRules.privateMarker, kept.detail == ExclusionRules.privateMarker,
+                  !item.context.hasPrefix("tmux:")
+        {
             result.groupKey = ExclusionRules.privateGroupKey
         } else if kept.subject == ExclusionRules.privateMarker {
             result.groupKey = item.context.hasPrefix("tmux:") ? item.groupKey : item.context

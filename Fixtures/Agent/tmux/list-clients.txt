@@ -1,0 +1,3 @@
+/dev/ttys001	1710424790	paper
+/dev/ttys002	1710424500	tools
+/dev/ttys003	1710424780	lab
