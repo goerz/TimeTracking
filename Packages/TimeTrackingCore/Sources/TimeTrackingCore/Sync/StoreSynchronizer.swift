@@ -1,7 +1,7 @@
 // StoreSynchronizer: drains the outbox through a transport and applies
 // fetched changes (spec_data_and_sync.md §3.1). It drives the in-memory
-// transport in tests and `-UITesting`; the CKSyncEngine coordinator (step 5)
-// uses the same store calls.
+// transport in tests and `-UITesting`; the CKSyncEngine coordinator
+// (`SyncCoordinator`) uses the same store calls.
 
 import Foundation
 
@@ -10,11 +10,18 @@ public actor StoreSynchronizer {
     public let store: TimeStore
     public let transport: any SyncTransport
     public private(set) var status: SyncStatus = .idle
+    private var liveStateHandler: (@Sendable (LiveStateSyncEvent) async -> Void)?
     static let tokenKey = "serverChangeToken"
 
     public init(store: TimeStore, transport: any SyncTransport) {
         self.store = store
         self.transport = transport
+    }
+
+    /// Receives the confirmed and applied `LiveState` records (the widget pushes).
+    @preconcurrency
+    public func onLiveState(_ handler: @escaping @Sendable (LiveStateSyncEvent) async -> Void) {
+        liveStateHandler = handler
     }
 
     /// Sends pending changes, then fetches. Without network the status
@@ -39,30 +46,22 @@ public actor StoreSynchronizer {
                 return
             }
             setStatus(.sending(pending.records.count + pending.deletions.count))
-            let results = try await transport.send(saving: pending.records, deleting: pending.deletions)
-            var saved: [SyncRecord] = []
-            var unknown: [SyncRecordRef] = []
-            var zoneMissing = false
-            for result in results {
-                switch result {
-                case let .saved(record):
-                    saved.append(record)
-                case .deleted:
-                    break
-                case let .conflict(server):
-                    try await store.resolveConflict(server: server)
-                case let .unknownItem(ref):
-                    unknown.append(ref)
-                case .zoneNotFound:
-                    zoneMissing = true
-                }
+            let results = try await SendResults(transport.send(saving: pending.records, deleting: pending.deletions))
+            for server in results.conflicts {
+                try await store.resolveConflict(server: server)
             }
-            try await store.confirmSent(pending, saved: saved)
-            if !unknown.isEmpty {
-                try await store.requeueWithoutSystemFields(unknown)
+            let event = try await store.confirmSent(pending, saved: results.saved)
+            if !results.unknown.isEmpty {
+                try await store.requeueWithoutSystemFields(results.unknown)
             }
-            if zoneMissing {
+            if !results.retry.isEmpty {
+                try await store.requeue(results.retry)
+            }
+            if results.zoneMissing {
                 try await recreateZone()
+            }
+            if let event {
+                await liveStateHandler?(event)
             }
         }
     }
@@ -80,8 +79,10 @@ public actor StoreSynchronizer {
                 try await send()
                 continue
             }
-            if !result.records.isEmpty || !result.deletions.isEmpty {
-                try await store.applyFetched(result.records, deletions: result.deletions)
+            if !result.records.isEmpty || !result.deletions.isEmpty,
+               let event = try await store.applyFetched(result.records, deletions: result.deletions)
+            {
+                await liveStateHandler?(event)
             }
             try await store.setSyncState(Self.tokenKey, result.token)
             guard result.moreComing else {
@@ -102,5 +103,27 @@ public actor StoreSynchronizer {
         }
         self.status = status
         store.publish(status)
+    }
+}
+
+/// The per-record results of one send, sorted by what follows from them.
+struct SendResults {
+    var saved: [SyncRecord] = []
+    var conflicts: [SyncRecord] = []
+    var unknown: [SyncRecordRef] = []
+    var retry: [SyncRecordRef] = []
+    var zoneMissing = false
+
+    init(_ results: [SyncSaveResult]) {
+        for result in results {
+            switch result {
+            case let .saved(record): saved.append(record)
+            case .deleted: break
+            case let .conflict(server): conflicts.append(server)
+            case let .unknownItem(ref): unknown.append(ref)
+            case let .retry(ref): retry.append(ref)
+            case .zoneNotFound: zoneMissing = true
+            }
+        }
     }
 }

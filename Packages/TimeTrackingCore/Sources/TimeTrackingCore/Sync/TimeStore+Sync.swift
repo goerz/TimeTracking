@@ -60,24 +60,37 @@ extension TimeStore {
 
     /// After a send: removes the covered outbox rows and stores the system
     /// fields the server returned for the saved records.
-    public func confirmSent(_ pending: PendingChanges, saved: [SyncRecord]) throws {
-        _ = try perform { transaction in
+    /// Returns `.saved` when the server confirmed this device's `LiveState`.
+    @discardableResult
+    public func confirmSent(_ pending: PendingChanges, saved: [SyncRecord]) throws -> LiveStateSyncEvent? {
+        let (state, _) = try perform { transaction -> LiveState? in
             try transaction.database.execute(sql: "DELETE FROM outbox WHERE seq <= ?", arguments: [pending.throughSequence])
             for record in saved {
                 try transaction.setSystemFields(record.ref, record.systemFields)
             }
+            return try saved.contains { $0.ref.type == .liveState } ? transaction.liveState() : nil
         }
+        return state.map { .saved($0) }
     }
 
-    /// Applies a fetched batch in one transaction followed by the invariant pass.
-    public func applyFetched(_ records: [SyncRecord], deletions: [SyncRecordRef]) throws {
-        try write { transaction in
+    /// Applies a fetched batch in one transaction followed by the invariant
+    /// pass. Returns `.fetched` when the batch held `LiveState`.
+    @discardableResult
+    public func applyFetched(_ records: [SyncRecord], deletions: [SyncRecordRef]) throws -> LiveStateSyncEvent? {
+        try write { transaction -> LiveStateSyncEvent? in
+            let before = try transaction.liveState()
             for record in records {
                 try transaction.applyRemote(record)
             }
             for ref in deletions {
                 try transaction.applyRemoteDeletion(ref)
             }
+            guard records.contains(where: { $0.ref.type == .liveState }) else {
+                return nil
+            }
+            let after = try transaction.liveState()
+            let changed = LiveState.runningJSON(after.running) != LiveState.runningJSON(before.running)
+            return .fetched(after, runningChanged: changed)
         }
     }
 
@@ -96,6 +109,15 @@ extension TimeStore {
         try write { transaction in
             for ref in refs {
                 try transaction.setSystemFields(ref, nil)
+                transaction.queue(ref)
+            }
+        }
+    }
+
+    /// Records the server did not save for a transient reason: queued again unchanged.
+    public func requeue(_ refs: [SyncRecordRef]) throws {
+        try write { transaction in
+            for ref in refs {
                 transaction.queue(ref)
             }
         }

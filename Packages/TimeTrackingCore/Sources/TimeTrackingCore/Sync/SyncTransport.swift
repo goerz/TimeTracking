@@ -13,6 +13,9 @@ public enum SyncSaveResult: Hashable, Sendable {
     case unknownItem(SyncRecordRef)
     /// `zoneNotFound`.
     case zoneNotFound(SyncRecordRef)
+    /// Not saved because another record of an atomic batch failed, or a
+    /// transient error; sent again unchanged.
+    case retry(SyncRecordRef)
 }
 
 /// The changes since a token.
