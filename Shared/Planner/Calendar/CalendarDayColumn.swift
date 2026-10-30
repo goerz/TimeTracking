@@ -87,11 +87,7 @@ private struct TrackedColumn: View {
         let lanes = model.lanes(on: day)
         ZStack(alignment: .topLeading) {
             futureHatch(axis)
-            Color.clear
-                .contentShape(Rectangle())
-                .gesture(drawGesture(axis))
-                .accessibilityAddTraits(.isButton)
-                .onTapGesture { model.selection = [] }
+            drawArea(axis)
             ForEach(model.entries(on: day)) { listing in
                 if let frame = axis.frame(of: listing.entry.interval(at: model.clock.now)) {
                     let lane = lanes[listing.entry.id] ?? CalendarLane(index: 0, count: 1)
@@ -121,6 +117,8 @@ private struct TrackedColumn: View {
             Task { await drop(item, at: axis.date(atY: Double(location.y))) }
             return true
         }
+        // The cards inside keep their own identifiers.
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("calendar.tracked.\(day)")
     }
 
@@ -135,17 +133,20 @@ private struct TrackedColumn: View {
         }
     }
 
-    private func drawGesture(_ axis: CalendarDayAxis) -> some Gesture {
-        DragGesture(minimumDistance: 3)
-            .onChanged { value in
-                drawing = DrawState(start: axis.date(atY: Double(value.startLocation.y)), end: axis.date(atY: Double(value.location.y)))
-            }
-            .onEnded { value in
+    /// The empty slots: tap deselects, a drag draws (§2.3; spec_ios.md §10.2).
+    private func drawArea(_ axis: CalendarDayAxis) -> some View {
+        Color.clear
+            .contentShape(Rectangle())
+            .accessibilityAddTraits(.isButton)
+            .onTapGesture { model.selection = [] }
+            .calendarDrag(minimumDistance: 3) { drag in
+                drawing = DrawState(start: axis.date(atY: Double(drag.start.y)), end: axis.date(atY: Double(drag.location.y)))
+            } onEnded: { drag in
                 drawing = nil
                 model.draw(
                     on: day,
-                    from: axis.date(atY: Double(value.startLocation.y)),
-                    to: axis.date(atY: Double(value.location.y)),
+                    from: axis.date(atY: Double(drag.start.y)),
+                    to: axis.date(atY: Double(drag.location.y)),
                     option: ModifierState.optionDown()
                 )
             }
@@ -197,6 +198,8 @@ private struct ActivityColumn: View {
             }
         }
         .frame(width: width, height: axis.height, alignment: .topLeading)
+        // The cards inside keep their own identifiers.
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("calendar.activity.\(day)")
     }
 }
@@ -215,9 +218,7 @@ private struct EventsColumn: View {
         let items = pieces()
         let lanes = CalendarLane.assign(items.map { ($0.id, $0.interval) })
         ZStack(alignment: .topLeading) {
-            Color.clear
-                .contentShape(Rectangle())
-                .gesture(drawGesture(axis))
+            drawArea(axis)
             notice
             ForEach(items, id: \.self) { piece in
                 if let frame = axis.frame(of: piece.interval) {
@@ -246,7 +247,29 @@ private struct EventsColumn: View {
             }
         }
         .frame(width: width, height: axis.height, alignment: .topLeading)
+        // The cards inside keep their own identifiers.
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("calendar.events.\(day)")
+    }
+
+    /// The empty slots: a drag draws a time block (§4.2; spec_ios.md §10.2).
+    private func drawArea(_ axis: CalendarDayAxis) -> some View {
+        Color.clear
+            .contentShape(Rectangle())
+            .calendarDrag(minimumDistance: 3) { drag in
+                guard model.canDrawTimeBlocks else {
+                    return
+                }
+                drawing = DrawState(start: axis.date(atY: Double(drag.start.y)), end: axis.date(atY: Double(drag.location.y)))
+            } onEnded: { drag in
+                drawing = nil
+                model.drawTimeBlock(
+                    on: day,
+                    from: axis.date(atY: Double(drag.start.y)),
+                    to: axis.date(atY: Double(drag.location.y)),
+                    option: ModifierState.optionDown()
+                )
+            }
     }
 
     /// Every time block and event piece on this day (one per day for events crossing midnight).
@@ -274,24 +297,5 @@ private struct EventsColumn: View {
         default:
             EmptyView()
         }
-    }
-
-    private func drawGesture(_ axis: CalendarDayAxis) -> some Gesture {
-        DragGesture(minimumDistance: 3)
-            .onChanged { value in
-                guard model.canDrawTimeBlocks else {
-                    return
-                }
-                drawing = DrawState(start: axis.date(atY: Double(value.startLocation.y)), end: axis.date(atY: Double(value.location.y)))
-            }
-            .onEnded { value in
-                drawing = nil
-                model.drawTimeBlock(
-                    on: day,
-                    from: axis.date(atY: Double(value.startLocation.y)),
-                    to: axis.date(atY: Double(value.location.y)),
-                    option: ModifierState.optionDown()
-                )
-            }
     }
 }

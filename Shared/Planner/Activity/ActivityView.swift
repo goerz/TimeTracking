@@ -82,8 +82,12 @@ struct ActivityView: View {
             }
         case .setup:
             card {
-                Text("Set up the tracker to see where your time goes. Nothing is recorded until you enable it.")
-                Button("Open Tracker Settings…") { model.router?.showTrackerSettings() }
+                if model.isRecordingMac {
+                    Text("Set up the tracker to see where your time goes. Nothing is recorded until you enable it.")
+                    Button("Open Tracker Settings…") { model.router?.showTrackerSettings() }
+                } else {
+                    Text("The tracker runs on your Mac. Set it up in the Mac app's Settings, Tracker pane.")
+                }
             }
             .accessibilityIdentifier("activity.setup")
         case let .noActivity(notRunning):
@@ -91,7 +95,9 @@ struct ActivityView: View {
                 Text(ActivityEmptyState.noActivityText(model.days))
                 if notRunning {
                     Text("The tracker was not running.").foregroundStyle(.secondary)
-                    Button("Tracker Settings…") { model.router?.showTrackerSettings() }
+                    if model.isRecordingMac {
+                        Button("Tracker Settings…") { model.router?.showTrackerSettings() }
+                    }
                 }
             }
             .accessibilityIdentifier("activity.empty")
@@ -218,6 +224,9 @@ private struct ActivityFooter: View {
                     Text("· " + health.problems.joined(separator: ", ")).foregroundStyle(.orange)
                 }
             }
+            if model.iCloudWaiting {
+                Text(waitingText).foregroundStyle(.secondary).accessibilityIdentifier("activity.waitingForICloud")
+            }
             Spacer()
             if model.isRecordingMac {
                 Button("Tracker Settings…") { model.router?.showTrackerSettings() }
@@ -234,6 +243,16 @@ private struct ActivityFooter: View {
             }
         }
         .accessibilityIdentifier("activity.footer")
+    }
+}
+
+extension ActivityFooter {
+    /// "Waiting for iCloud · newest block 14:02".
+    private var waitingText: String {
+        guard let newest = model.newestBlockEnd else {
+            return "Waiting for iCloud"
+        }
+        return "Waiting for iCloud · newest block \(CalendarText.clock(newest, zone: model.range.calendar.timeZone))"
     }
 }
 

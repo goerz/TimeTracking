@@ -68,7 +68,10 @@ final class PlannerRouter {
     @ObservationIgnored let device: DeviceSettings
 
     var section: PlannerSection {
-        didSet { device[.plannerSection] = section }
+        didSet {
+            device[.plannerSection] = section
+            sectionChanged(section)
+        }
     }
 
     /// The range shared by Reports and Activity.
@@ -84,6 +87,8 @@ final class PlannerRouter {
 
     /// Opens the Planner window (Mac) or does nothing (iPad tabs).
     @ObservationIgnored var openWindow: () -> Void = {}
+    /// After every section change (the iPad selects the matching tab).
+    @ObservationIgnored var sectionChanged: (PlannerSection) -> Void = { _ in }
     /// Opens Settings on the Tracker pane with an exclusion prefilled.
     @ObservationIgnored var openTrackerSettings: (TrackerExclusionDraft?) -> Void = { _ in }
     /// Puts text on the pasteboard (⌘C in the tables).

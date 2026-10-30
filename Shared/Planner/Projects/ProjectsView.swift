@@ -13,11 +13,20 @@ struct ProjectsView: View {
 
     var body: some View {
         Group {
-            if model.showsClientsAndAreas {
-                ClientsAreasView(model: model.clientsAndAreas, projects: model)
-            } else {
+            #if os(iOS)
+                // The iPad pushes Clients & Areas (spec_planner_projects.md §1.4).
                 ProjectsTableView(model: model, now: now)
-            }
+                    .navigationDestination(isPresented: $model.showsClientsAndAreas) {
+                        ClientsAreasView(model: model.clientsAndAreas, projects: model)
+                            .navigationTitle("Clients & Areas")
+                    }
+            #else
+                if model.showsClientsAndAreas {
+                    ClientsAreasView(model: model.clientsAndAreas, projects: model)
+                } else {
+                    ProjectsTableView(model: model, now: now)
+                }
+            #endif
         }
         .navigationTitle("Projects")
         .onChange(of: now) {

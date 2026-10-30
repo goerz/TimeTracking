@@ -25,6 +25,10 @@ struct EntryCard: View {
     @State private var dragOffset: CGSize = .zero
     @State private var hovering = false
     @State private var editor: EntryEditorModel?
+    /// The iPad's long-press menu.
+    @State private var showsMenu = false
+    /// The iPad's resize preview offsets of the top and bottom edges.
+    @State private var edgeOffsets: (top: CGFloat, bottom: CGFloat) = (0, 0)
 
     private var entry: TimeEntry {
         listing.entry
@@ -38,24 +42,39 @@ struct EntryCard: View {
             RoundedRectangle(cornerRadius: 5)
                 .fill(color.map { Color(hex: $0) } ?? Color.gray.opacity(0.5))
             content(textColor: cardTextColor(color))
-            if hovering || entry.isRunning {
+            if hovering || entry.isRunning || (Self.touch && selected) {
                 hoverButtons.frame(maxWidth: .infinity, alignment: .topTrailing).padding(3)
             }
             if overlaps {
                 Text("⚠").font(.caption).help(overlapHelp).frame(maxWidth: .infinity, alignment: .topTrailing).padding(.trailing, 24)
             }
-            edgeHandles
+            if !Self.touch {
+                edgeHandles
+            }
         }
-        .frame(width: max(2, size.width - 2), height: size.height)
+        .frame(width: max(2, size.width - 2), height: max(4, size.height - edgeOffsets.top + edgeOffsets.bottom))
+        .offset(y: edgeOffsets.top)
         .overlay(RoundedRectangle(cornerRadius: 5).strokeBorder(Color.accentColor, lineWidth: selected ? 2 : 0))
         .overlay(RoundedRectangle(cornerRadius: 5).strokeBorder(Color.white.opacity(entry.isRunning ? 0.9 : 0), lineWidth: 2))
+        .overlay {
+            if Self.touch, selected {
+                touchHandles
+            }
+        }
         .offset(dragOffset)
         .onHover { hovering = $0 }
-        .gesture(moveGesture)
         .accessibilityAddTraits(.isButton)
         .onTapGesture(count: 2) { model.editingEntry = entry.id }
         .onTapGesture { model.select(.entry(entry.id), extend: ModifierState.optionDown()) }
-        .contextMenu { menu }
+        .calendarDrag(minimumDistance: 4, onLongPress: longPressed) { drag in
+            dragOffset = drag.translation
+        } onEnded: { drag in
+            dragOffset = .zero
+            let days = Int((drag.translation.width / dayWidth).rounded())
+            let seconds = Double(drag.translation.height) / model.pointsPerHour * 3600
+            Task { await model.move(entry.id, by: seconds, to: entry.day.adding(days: days)) }
+        }
+        .modifier(EntryMenu(showsMenu: $showsMenu) { menu })
         .popover(isPresented: editingBinding, arrowEdge: .trailing) {
             if let editor {
                 EntryEditorView(model: editor, makePicker: makePicker) { model.editingEntry = nil }
@@ -129,24 +148,69 @@ struct EntryCard: View {
         }
     }
 
-    private var moveGesture: some Gesture {
-        DragGesture(minimumDistance: 4)
-            .onChanged { dragOffset = $0.translation }
-            .onEnded { value in
-                dragOffset = .zero
-                let days = Int((value.translation.width / dayWidth).rounded())
-                let seconds = Double(value.translation.height) / model.pointsPerHour * 3600
-                Task { await model.move(entry.id, by: seconds, to: entry.day.adding(days: days)) }
+    /// Whether the touch equivalents apply (spec_ios.md §10.2).
+    static var touch: Bool {
+        #if os(iOS)
+            true
+        #else
+            false
+        #endif
+    }
+
+    /// The iPad's long press without a drag: select and open the menu.
+    private var longPressed: (() -> Void)? {
+        guard Self.touch else {
+            return nil
+        }
+        return {
+            model.select(.entry(entry.id))
+            showsMenu = true
+        }
+    }
+
+    /// The iPad's 44-point handles centered on the top and bottom edges
+    /// (none at the bottom while running).
+    private var touchHandles: some View {
+        VStack(spacing: 0) {
+            handle(top: true).offset(y: -CalendarTouch.handleHeight / 2 + edgeOffsets.top)
+            Spacer(minLength: 0)
+            if !entry.isRunning {
+                handle(top: false).offset(y: CalendarTouch.handleHeight / 2 + edgeOffsets.bottom)
             }
+        }
+    }
+
+    private func handle(top: Bool) -> some View {
+        Capsule()
+            .fill(Color.accentColor)
+            .frame(width: 28, height: 6)
+            .frame(maxWidth: .infinity)
+            .frame(height: CalendarTouch.handleHeight)
+            .contentShape(Rectangle())
+            .calendarDirectDrag { drag in
+                if top {
+                    edgeOffsets.top = drag.translation.height
+                } else {
+                    edgeOffsets.bottom = drag.translation.height
+                }
+            } onEnded: { drag in
+                edgeOffsets = (0, 0)
+                resize(top: top, by: drag.translation.height)
+            }
+            .accessibilityIdentifier(top ? "calendar.entry.topHandle" : "calendar.entry.bottomHandle")
     }
 
     private func resizeGesture(top: Bool) -> some Gesture {
         DragGesture(minimumDistance: 2).onEnded { value in
-            let interval = entry.interval(at: model.clock.now)
-            let edge = top ? interval.start : interval.end
-            let date = edge + Double(value.translation.height) / model.pointsPerHour * 3600
-            Task { await model.resize(entry.id, top: top, to: date) }
+            resize(top: top, by: value.translation.height)
         }
+    }
+
+    private func resize(top: Bool, by translation: CGFloat) {
+        let interval = entry.interval(at: model.clock.now)
+        let edge = top ? interval.start : interval.end
+        let date = edge + Double(translation) / model.pointsPerHour * 3600
+        Task { await model.resize(entry.id, top: top, to: date) }
     }
 
     @ViewBuilder private var menu: some View {
@@ -354,6 +418,7 @@ struct EventCard: View {
     var piece: CalendarPiece<CalendarEvent.ID>
     var size: CGSize
     @State private var dragOffset: CGFloat = 0
+    @State private var showsMenu = false
 
     var body: some View {
         if let block = model.timeBlocks.first(where: { $0.id == piece.id }) {
@@ -385,20 +450,22 @@ struct EventCard: View {
         .overlay(RoundedRectangle(cornerRadius: 4).strokeBorder(Color.accentColor, lineWidth: selected ? 2 : 0))
         .clipped()
         .offset(y: dragOffset)
-        .gesture(DragGesture(minimumDistance: 4).onChanged { dragOffset = $0.translation.height }.onEnded { value in
-            dragOffset = 0
-            Task { await model.moveTimeBlock(block.id, by: Double(value.translation.height) / model.pointsPerHour * 3600) }
-        })
         .accessibilityAddTraits(.isButton)
         .onTapGesture(count: 2) { model.editTimeBlock(block) }
         .onTapGesture { model.select(.timeBlock(block.id)) }
+        .calendarDrag(minimumDistance: 4, onLongPress: EntryCard.touch ? { showsMenu = true } : nil) { drag in
+            dragOffset = drag.translation.height
+        } onEnded: { drag in
+            dragOffset = 0
+            Task { await model.moveTimeBlock(block.id, by: Double(drag.translation.height) / model.pointsPerHour * 3600) }
+        }
         .draggable("timeBlock:\(block.id)")
         .help(timeBlockHelp(block))
-        .contextMenu {
+        .modifier(EntryMenu(showsMenu: $showsMenu) {
             Button("Create Entry…") { Task { await model.createEntry(fromEvent: block.event, timeBlock: block) } }
             Button("Edit…") { model.editTimeBlock(block) }
             Button("Delete", role: .destructive) { Task { await model.deleteTimeBlocks([block.id]) } }
-        }
+        })
         .accessibilityIdentifier("calendar.timeBlock")
     }
 
@@ -437,5 +504,34 @@ struct EventCard: View {
             Button("Hide This Calendar") { Task { await model.hideCalendar(of: event) } }
         }
         .accessibilityIdentifier("calendar.event")
+    }
+}
+
+/// The context menu on the Mac; on the iPad, where a long press lifts the
+/// item, the same buttons in a popover that a long press without a drag
+/// opens (spec_ios.md §10.2).
+private struct EntryMenu<Items: View>: ViewModifier {
+    @Binding var showsMenu: Bool
+    @ViewBuilder var items: () -> Items
+
+    func body(content: Content) -> some View {
+        #if os(iOS)
+            content.popover(isPresented: $showsMenu) {
+                VStack(alignment: .leading, spacing: 0) {
+                    Group { items() }
+                        .buttonStyle(.borderless)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .simultaneousGesture(TapGesture().onEnded { showsMenu = false })
+                }
+                .frame(minWidth: 220)
+                .padding(.vertical, 6)
+                .presentationCompactAdaptation(.popover)
+                .accessibilityIdentifier("calendar.menu")
+            }
+        #else
+            content.contextMenu { items() }
+        #endif
     }
 }

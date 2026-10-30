@@ -11,6 +11,7 @@ struct CalendarView: View {
     @State private var scrollPosition = ScrollPosition(y: 0)
     @State private var viewportHeight: CGFloat = 600
     @State private var pinchBase: Double?
+    @State private var daysBase: Int?
 
     static let gutter: CGFloat = 56
 
@@ -80,6 +81,8 @@ struct CalendarView: View {
                 CalendarDayHeader(model: model, day: day, width: dayWidth)
             }
         }
+        // The gutter's clear color must not take half the height.
+        .fixedSize(horizontal: false, vertical: true)
         .gesture(DragGesture(minimumDistance: 20).onEnded { value in
             Task { await model.scrolled(dayWidths: -Double(value.translation.width / dayWidth)) }
         })
@@ -96,11 +99,38 @@ struct CalendarView: View {
             }
         }
         .scrollPosition($scrollPosition)
-        .gesture(MagnifyGesture().onChanged { value in
+        #if os(iOS)
+            // Pinch vertically to zoom, horizontally to change the number of
+            // days; two fingers sideways scroll days (spec_ios.md §10.2).
+            .gesture(CalendarPinch { scale, horizontal in
+                pinch(scale: scale, horizontal: horizontal)
+            } onEnd: {
+                pinchBase = nil
+                daysBase = nil
+            })
+            .gesture(CalendarTwoFingerSwipe { translation in
+                Task { await model.scrolled(dayWidths: -Double(translation / dayWidth)) }
+            })
+        #else
+            .gesture(MagnifyGesture().onChanged { value in
+                pinch(scale: value.magnification, horizontal: false)
+            }.onEnded { _ in pinchBase = nil })
+        #endif
+    }
+
+    private func pinch(scale: Double, horizontal: Bool) {
+        if horizontal {
+            let base = daysBase ?? model.visibleDays
+            daysBase = base
+            let count = min(7, max(1, Int((Double(base) / max(scale, 0.01)).rounded())))
+            if count != model.visibleDays {
+                Task { await model.setVisibleDays(count) }
+            }
+        } else {
             let base = pinchBase ?? model.pointsPerHour
             pinchBase = base
-            model.pointsPerHour = CalendarZoom.clamped(base * value.magnification)
-        }.onEnded { _ in pinchBase = nil })
+            model.pointsPerHour = CalendarZoom.clamped(base * scale)
+        }
     }
 
     /// On opening, the current time sits one third down the viewport.

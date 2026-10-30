@@ -89,12 +89,20 @@ struct ReportsView: View {
             }
             .pickerStyle(.menu)
             .accessibilityIdentifier("reports.granularity")
-            if let onPrint {
-                Button(action: onPrint) {
+            #if os(iOS)
+                // The share sheet's Print (spec_ios.md §10.2).
+                ShareLink(item: ReportPDF(model: model), preview: SharePreview(model.range.label)) {
                     Label("Print", systemImage: "printer")
                 }
                 .accessibilityIdentifier("reports.print")
-            }
+            #else
+                if let onPrint {
+                    Button(action: onPrint) {
+                        Label("Print", systemImage: "printer")
+                    }
+                    .accessibilityIdentifier("reports.print")
+                }
+            #endif
             Menu {
                 Button("Breakdown (CSV)…") { export(entries: false) }
                 Button("Entries (CSV)…") { export(entries: true) }

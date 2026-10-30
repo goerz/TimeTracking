@@ -24,6 +24,8 @@ final class ActivityModel {
     /// The app name of a bundle identifier (Mac: installed apps).
     @ObservationIgnored var appName: (String) -> String? = { _ in nil }
     @ObservationIgnored var isRecordingMac = true
+    /// Whether the current month's block file has not arrived (iPad).
+    @ObservationIgnored var waitingForICloud: () async -> Bool = { false }
     @ObservationIgnored var homeDirectory = NSHomeDirectory()
 
     let range: DateRangeModel
@@ -53,6 +55,9 @@ final class ActivityModel {
     private(set) var emptyState: ActivityEmptyState = .panels
     private(set) var contextColors: [String: Int] = [:]
     private(set) var isLoading = false
+    /// "Waiting for iCloud" (iPad), with the newest block's end.
+    private(set) var iCloudWaiting = false
+    private(set) var newestBlockEnd: Date?
     /// The range revision the figures belong to; arrows keep the filter.
     @ObservationIgnored private var seenRevision = -1
     @ObservationIgnored private var arrowRevision = -1
@@ -90,7 +95,10 @@ final class ActivityModel {
         do {
             let days = days
             let interval = range.calendar.interval(of: days)
-            let blocks = try await activity.blocks(in: interval, devices: nil)
+            let loaded = try await activity.blocks(in: interval, devices: nil)
+            // Only the recording Mac shows the open block.
+            let blocks = isRecordingMac ? loaded : loaded.filter { !$0.isOpen }
+            newestBlockEnd = blocks.map(\.end).max()
             let details = isRecordingMac ? try await activity.details(for: blocks.map(\.id)) : [:]
             let input = ActivitySummaryInput(
                 blocks: blocks,
@@ -123,10 +131,9 @@ final class ActivityModel {
     func loadHealth() async {
         if isRecordingMac {
             health = await ActivityHealth(registration: registration(), state: activity.currentState(), now: clock.now)
-        } else if let remote = await remoteActivity() {
-            health = ActivityHealth(remote: remote, now: clock.now)
         } else {
-            health = nil
+            iCloudWaiting = await waitingForICloud()
+            health = await remoteActivity().map { ActivityHealth(remote: $0, now: clock.now) }
         }
     }
 
