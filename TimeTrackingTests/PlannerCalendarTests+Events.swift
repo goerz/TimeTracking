@@ -30,7 +30,7 @@ extension PlannerCalendarTests {
     }
 
     @Test(
-        "PC-20 dragging a 09:00 to 11:00 time block into Tracked at 10:00 gives 09:00 to 10:00 with its project and title; events give their title"
+        "PC-20 a 09:00 to 11:00 time block dropped at 10:00 gives 09:00 to 10:00 with project and title; events give their title"
     )
     func entriesFromEvents() async throws {
         let world = try await World()
@@ -87,7 +87,7 @@ extension PlannerCalendarTests {
     }
 
     @Test(
-        "PC-23 showCalendar(day: Oct 29, hour: 9, highlight: hour) makes Oct 29 leftmost with 09:00 at the top, Activity on, the hour's blocks pulsed"
+        "PC-23 showCalendar(day:hour:highlight:) puts the day leftmost, the hour on top, Activity on, the hour's blocks pulsed"
     )
     func showCalendarRequest() async throws {
         let morning = try Self.block("09:10", "09:40")

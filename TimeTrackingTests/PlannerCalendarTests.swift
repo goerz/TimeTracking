@@ -212,7 +212,7 @@ struct PlannerCalendarTests {
     }
 
     @Test(
-        "PC-16 Fill Day with untracked 12, 3, and 40 minutes proposes two rows; Log is one transaction and one undo step; Cancel writes nothing"
+        "PC-16 untracked 12, 3, and 40 minutes give two rows; Log is one transaction and one undo step; Cancel writes nothing"
     )
     func fillDay() async throws {
         let blocks = try [
