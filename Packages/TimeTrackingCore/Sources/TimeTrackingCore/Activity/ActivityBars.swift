@@ -20,8 +20,8 @@ public struct ActivityBars: Sendable {
         public var title: String {
             switch self {
             case let .context(name): ActivityContext(name).displayName()
-            case .otherContexts: "Other contexts"
-            case .notItemized: "Not itemized"
+            case .otherContexts: "Other apps"
+            case .notItemized: "Brief activity"
             }
         }
     }

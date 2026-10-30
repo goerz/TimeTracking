@@ -24,13 +24,13 @@ public enum TimeBlockLink: Sendable, Hashable {
             return .project(id)
         }
         guard let name = projectName(inNotes: notes) else {
-            return .unlinked(reason: url.flatMap { projectID(in: $0) } == nil ? nil : "Unknown project")
+            return .unlinked(reason: url.flatMap { projectID(in: $0) } == nil ? nil : "The linked project no longer exists")
         }
         let matches = projects.filter { !$0.isDeleted && !$0.isArchived && $0.name.folded == name.folded }
         switch matches.count {
         case 1: return .project(matches[0].id)
-        case 0: return .unlinked(reason: "Unknown project")
-        default: return .unlinked(reason: "Project name '\(name)' is ambiguous")
+        case 0: return .unlinked(reason: "No project named “\(name)”")
+        default: return .unlinked(reason: "Several projects are named “\(name)”")
         }
     }
 
@@ -157,7 +157,7 @@ public enum TimeBlockCalendar {
         return create(store: store, source: source)
     }
 
-    /// "Recreate": a new calendar in the iCloud account.
+    /// "Create New Calendar": a new calendar in the iCloud account.
     public static func recreate(store: any CalendarEventStore) -> Resolution {
         guard store.access() == .fullAccess else {
             return Resolution(state: .noAccess)

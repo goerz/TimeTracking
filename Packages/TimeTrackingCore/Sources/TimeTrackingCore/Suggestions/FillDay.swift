@@ -29,13 +29,24 @@ public struct FillDayProposal: Sendable, Hashable, Identifiable {
         blocks.flatMap(\.items)
     }
 
-    /// "tmux:paper 71%" of the first block, plus "+2" for more blocks.
+    /// The first block's group key as Activity names it, plus "and 2 more"
+    /// for more blocks: "paper (tmux) and 2 more".
     public var summary: String {
         guard let first = blocks.first else {
             return ""
         }
-        let text = "\(first.groupKey) \(Int((first.groupShare * 100).rounded()))%"
-        return blocks.count > 1 ? "\(text) +\(blocks.count - 1)" : text
+        let text = ActivityContext.groupKeyName(first.groupKey)
+        return blocks.count > 1 ? "\(text) and \(blocks.count - 1) more" : text
+    }
+
+    /// The tooltip: one line per item, "paper (tmux) draft 31m".
+    public var itemsText: String {
+        items.map { item in
+            [ActivityContext(item.context).label(), item.subject, ActivityText.duration(item.seconds)]
+                .filter { !$0.isEmpty }
+                .joined(separator: " ")
+        }
+        .joined(separator: "\n")
     }
 }
 

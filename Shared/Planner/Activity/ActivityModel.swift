@@ -55,7 +55,7 @@ final class ActivityModel {
     private(set) var emptyState: ActivityEmptyState = .panels
     private(set) var contextColors: [String: Int] = [:]
     private(set) var isLoading = false
-    /// "Waiting for iCloud" (iPad), with the newest block's end.
+    /// "Waiting for iCloud" (iPad), with the newest activity's end.
     private(set) var iCloudWaiting = false
     private(set) var newestBlockEnd: Date?
     /// The range revision the figures belong to; arrows keep the filter.
@@ -271,7 +271,7 @@ final class ActivityModel {
 
     // MARK: Exclusions (§4)
 
-    /// "Exclude <name> from tracking…" for a context (apps and sessions).
+    /// "Exclude <name> from Tracking…" for a context (apps and sessions).
     func exclude(context: String) {
         guard let draft = TrackerExclusionDraft.forContext(context, bundleIdentifier: activity.bundleIdentifier(forContext: context)) else {
             return
@@ -279,7 +279,7 @@ final class ActivityModel {
         router?.showTrackerSettings(exclusion: draft)
     }
 
-    /// "Exclude <site> from tracking…" for a site row.
+    /// "Exclude <site> from Tracking…" for a site row.
     func exclude(site: String) {
         router?.showTrackerSettings(exclusion: .forSite(site))
     }

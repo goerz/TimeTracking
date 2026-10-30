@@ -30,7 +30,7 @@ struct SubjectsPanel: View {
         ForEach(rows.prefix(model.showsAllSubjects ? rows.count : 20)) { row in
             HStack {
                 ForEach(row.contexts.prefix(2), id: \.self) { ContextGlyph(context: $0) }
-                Text(row.subject ?? "Other (not itemized)").foregroundStyle(row.subject == nil ? .secondary : .primary).lineLimit(1)
+                Text(row.subject ?? "Other (brief activity)").foregroundStyle(row.subject == nil ? .secondary : .primary).lineLimit(1)
                 Spacer()
                 Capsule().fill(Color.accentColor).frame(width: 140 * CGFloat(row.seconds) / CGFloat(max(largest, 1)), height: 8)
                 Text(ActivityText.duration(row.seconds)).frame(width: 64, alignment: .trailing)
@@ -43,7 +43,7 @@ struct SubjectsPanel: View {
             .onTapGesture { model.open(row) }
             .contextMenu {
                 if model.isRecordingMac, let subject = row.subject, row.contexts.contains(where: { ActivityContext($0).kind == .browser }) {
-                    Button("Exclude \(ActivityContext.domain(ofSite: subject)) from tracking…") { model.exclude(site: subject) }
+                    Button("Exclude \(ActivityContext.domain(ofSite: subject)) from Tracking…") { model.exclude(site: subject) }
                 }
             }
         }

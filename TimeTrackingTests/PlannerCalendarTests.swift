@@ -1,5 +1,5 @@
 // The Calendar section's view model: Today, scrolling, deleting, splitting,
-// Log, Delete Block from Log, Fill Day, time blocks, calendar access, the
+// Add Entry, Delete This Activity, Fill Day, time blocks, calendar access, the
 // router request, and the key commands (spec_planner_calendar.md §8).
 
 import Foundation
@@ -164,7 +164,7 @@ struct PlannerCalendarTests {
         #expect(try await world.test.store.entries(on: Self.day("2024-03-14")).count == 1)
     }
 
-    @Test("PC-14 Log above 0.8 with project and task creates the entry and records accepted; otherwise the popover; below 0.35 nothing")
+    @Test("PC-14 Add Entry above 0.8 with project and task creates the entry, records accepted; else the popover; below 0.35 nothing")
     func log() async throws {
         let block = try Self.block("08:00", "08:30")
         let world = try await World(blocks: [block])
@@ -192,7 +192,7 @@ struct PlannerCalendarTests {
     }
 
     @Test(
-        "PC-15 a confirmed Delete Block from Log sends one delete-block; Cancel sends nothing; the open block and the iPad do not offer it"
+        "PC-15 a confirmed Delete This Activity sends one delete-block; Cancel sends nothing; the open block and the iPad do not offer it"
     )
     func deleteBlockFromLog() async throws {
         let closed = try Self.block("08:00", "08:30")

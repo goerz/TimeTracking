@@ -104,13 +104,13 @@ nonisolated struct BlockSummary {
         return result
     }
 
-    /// `nvim (5 files)` when the details share their program, else `(5 items)`.
+    /// `nvim (5 files)` when the details share their program, else `(5 different)`.
     static func mergedDetail(_ details: [String]) -> String {
         let programs = Set(details.map { $0.split(separator: " ", maxSplits: 1).first.map(String.init) ?? "" })
         if programs.count == 1, let program = programs.first, !program.isEmpty, details.allSatisfy({ $0.contains(" ") }) {
             return "\(program) (\(details.count) files)"
         }
-        return "(\(details.count) items)"
+        return "(\(details.count) different)"
     }
 
     private struct Entry: Hashable {

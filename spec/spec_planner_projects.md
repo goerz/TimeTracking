@@ -112,7 +112,7 @@ Rows support extended selection and ⌘A. Right-click or ⋯ opens the context m
 | Edit… | One project | Dialog in edit mode | ↩, double-click |
 | Rename | One project | In-place edit; ↩ commits, Escape reverts; validation of 3.1 | ⌥↩ |
 | Archive | Active projects | Archives them; entries untouched; a running entry keeps running | ⌫ |
-| Restore | Archived projects | Activates them; if an area is retired, a confirmation names it and un-retires it | ⌫ on archived rows |
+| Restore | Archived projects | Activates them; if an area is retired, a confirmation names it ("Restore and reactivate “Research”?") and reactivates it | ⌫ on archived rows |
 | Merge Into… | One project | Picker of all other projects (any state, any client), then "Move N entries of “X” to “Y” and delete “X”?"; calls `merge(project:into:)` | |
 | Delete… | Projects without entries | "Delete “X”? This cannot be undone."; disabled with tooltip "Has N entries; archive it instead" otherwise | ⌘⌫ |
 | Show in Reports | One project | `showReports` with this project as the only filter and range "All time" | ⇧⌘R |
@@ -155,7 +155,7 @@ Entries store only the project id, so a rename shows everywhere without touching
 
 The Clients & Areas toolbar button (⌥⌘1) replaces the table with this outline, titled "Clients & Areas"; the leading back button (`chevron.left`, "Projects") or ⌘1 returns, and New Client (`plus`) is the trailing item. Clients are listed alphabetically, each followed by its areas in order (general area first) and an "+ Add Area" row.
 
-Client rows show the name, the number of areas, and "N active · M archived" project counts (a zero archived count is omitted). Area rows show a 16 pt swatch, the name, a "general" or "retired" tag in secondary label color, and the counts. Double-click or ↩ edits. Context menus: on a client, Rename…, New Area…, Show Projects, Remove…; on an area, Edit…, Move Up, Move Down, Retire or Un-retire, Show Projects, Delete…. "Show Projects" returns to the table filtered to that client or area. ⌥⌘N creates a client here.
+Client rows show the name, the number of areas, and "N active · M archived" project counts (a zero archived count is omitted). Area rows show a 16 pt swatch, the name, a "general" or "retired" tag in secondary label color, and the counts. Double-click or ↩ edits. Context menus: on a client, Rename…, New Area…, Show Projects, Remove…; on an area, Edit…, Move Up, Move Down, Retire or Reactivate, Show Projects, Delete…. "Show Projects" returns to the table filtered to that client or area. ⌥⌘N creates a client here.
 
 ### 4.1 The general area
 
@@ -175,14 +175,14 @@ Clients are not archived; a client leaves the picker when it has no active proje
 
 | Action | Rule |
 |---|---|
-| Add ("+ Add Area", ⇧⌥⌘N with a client or its area selected) | Area sheet: Name (required, unique within the client case- and diacritic-insensitively, not the client's name) and Color, prefilled with the default (4.4). Goes last in the client's order |
+| Add ("+ Add Area", ⇧⌥⌘N with a client or its area selected) | Area sheet: Name (required, unique within the client case- and diacritic-insensitively, not the client's name: "This name is used by the client's general area") and Color, prefilled with the default (4.4). Goes last in the client's order |
 | Edit | Same sheet; for the general area Name is disabled with the note "Named after the client". Recoloring recolors every entry of the area's projects at once |
 | Reorder | Drag within the client, or ⌥⌘↑ / ⌥⌘↓ (Move Up, Move Down); the general area stays first. This order applies in the picker, Group by Area, and Reports |
-| Retire | Only without active projects. Hidden from the Area popup and the picker; archived projects keep area and color. Restoring one of its projects un-retires it |
-| Un-retire | Always available on a retired area |
+| Retire | Only without active projects. Hidden from the Area popup and the picker; archived projects keep area and color. Restoring one of its projects reactivates it |
+| Reactivate | Always available on a retired area |
 | Delete | Only without projects in any state; otherwise disabled with tooltip "Has N projects". Never for the general area. Confirmed |
 
-Areas do not move between clients; projects do (3.3). Rename, recolor, reorder, retire, and un-retire are undoable. Retired areas still appear in the Filters popover, for archived projects in the table, and in Reports.
+Areas do not move between clients; projects do (3.3). Rename, recolor, reorder, retire, and reactivate are undoable. Retired areas still appear in the Filters popover, for archived projects in the table, and in Reports.
 
 ### 4.4 Area colors
 
@@ -232,7 +232,7 @@ Archived projects and retired areas never appear. The entry's current project ha
 - PP-16. A project name differing from another of the same client only in case or diacritics is rejected with the inline message; under another client it is accepted.
 - PP-17. "Create Project" from the picker with search "noise" opens the dialog with Name "noise"; Create assigns the project to the owner's entry.
 - PP-18. A general area offers no Rename, Retire, or Delete and cannot be dragged from first place.
-- PP-19. Retire is disabled for an area with an active project and enabled after archiving it; retiring hides the area from the Area popup and the picker. Restoring a project in a retired area asks for confirmation and un-retires the area.
+- PP-19. Retire is disabled for an area with an active project and enabled after archiving it; retiring hides the area from the Area popup and the picker. Restoring a project in a retired area asks for confirmation and reactivates the area.
 - PP-20. The client and area sheets prefill the color of `AreaColor.defaultColor(existing:)`; a Display P3 color outside sRGB is stored clamped as uppercase `#RRGGBB`.
 - PP-21. Text on an area color is white for `#1F3A93` and black for `#F5D76E`.
 - PP-22. The picker lists "No Project", then with an empty search Recent (five active projects by latest entry, newest first, an archived one skipped and replaced by the sixth, two rows with two tracked projects), then client groups alphabetically, projects by area order then name, without a trailing name for general-area projects.

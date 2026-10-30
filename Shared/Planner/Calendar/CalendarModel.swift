@@ -73,7 +73,7 @@ final class CalendarModel {
     @ObservationIgnored var openEvent: (CalendarEvent) -> Void = { _ in }
     /// Called after entry writes (the Timer re-reads).
     @ObservationIgnored var entriesChanged: () async -> Void = {}
-    /// Whether this device shows the open block, gap labels, and Delete Block from Log.
+    /// Whether this device shows the open block, gap labels, and Delete This Activity.
     @ObservationIgnored var isRecordingMac = true
 
     var calendar = TrackingCalendar(timeZone: .current)
@@ -129,7 +129,7 @@ final class CalendarModel {
     var notice: CalendarNotice?
     /// "Discard the running entry?"
     var confirmsRunningDelete = false
-    /// "Delete this block from the activity log?"
+    /// "Delete this activity?"
     var blockToDelete: ActivityBlock?
     var trackerError: String?
     var fillDay: FillDayModel?
@@ -335,7 +335,7 @@ final class CalendarModel {
     // MARK: Helpers
 
     func report(_ error: any Error) {
-        lastError = String(describing: error)
+        lastError = UserMessage.text(for: error)
         Logging.logger(category: "Planner").error("Calendar: \(String(describing: error), privacy: .public)")
     }
 

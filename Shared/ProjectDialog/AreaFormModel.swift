@@ -99,7 +99,7 @@ final class AreaFormModel {
         }
         let siblings = await (try? store.areas(of: clientID, includeRetired: true)) ?? []
         if name.folded == clientName.folded {
-            nameError = "An area cannot have the client's name"
+            nameError = "This name is used by the client's general area"
         } else if siblings.contains(where: { $0.id != excluded && $0.name.folded == name.folded }) {
             nameError = "An area with this name already exists for \(clientName)"
         } else {
@@ -110,6 +110,7 @@ final class AreaFormModel {
     /// Create or Save; returns the area. Rename and recolor are undoable.
     func submit() async -> Area? {
         await validate()
+        lastError = nil
         guard canSubmit else {
             return nil
         }
@@ -136,7 +137,7 @@ final class AreaFormModel {
                 return try await store.areas(of: area.clientID, includeRetired: true).first { $0.id == area.id }
             }
         } catch {
-            lastError = error.localizedDescription
+            lastError = UserMessage.logged(error, category: "Planner")
             return nil
         }
     }

@@ -296,7 +296,7 @@ final class ReportsModel {
     }
 
     private func report(_ error: any Error) {
-        lastError = String(describing: error)
+        lastError = UserMessage.text(for: error)
         Logging.logger(category: "Planner").error("Reports failed: \(String(describing: error), privacy: .public)")
     }
 }

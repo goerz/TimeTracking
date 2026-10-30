@@ -78,7 +78,7 @@ public struct ActivitySummary: Sendable {
 
         /// The header's name: `remote` reads "Other devices (Safari)".
         public var displayName: String {
-            device == "remote" ? "Other devices (Safari)" : device
+            ActivityContext.deviceName(device)
         }
     }
 

@@ -46,9 +46,9 @@ public struct ActivityAway: Sendable, Hashable {
             self.count = count
         }
 
-        /// "idle 57m (3)".
+        /// "idle 57m (3 times)".
         public var text: String {
-            "\(cause.title) \(ActivityText.duration(seconds)) (\(count))"
+            "\(cause.title) \(ActivityText.duration(seconds)) (\(count) \(count == 1 ? "time" : "times"))"
         }
     }
 
@@ -63,10 +63,11 @@ public struct ActivityAway: Sendable, Hashable {
         "\(ActivityText.duration(seconds)) during the day"
     }
 
-    /// "idle 57m (3) · asleep 7h 18m (3)", plus "(not classified on this device)".
+    /// "idle 57m (3 times) · asleep 7h 18m (3 times)", plus "(cause known
+    /// only on the Mac that recorded it)".
     public var partsText: String {
         let text = parts.map(\.text).joined(separator: " · ")
-        return hasUnclassified ? text + " (not classified on this device)" : text
+        return hasUnclassified ? text + " (cause known only on the Mac that recorded it)" : text
     }
 }
 

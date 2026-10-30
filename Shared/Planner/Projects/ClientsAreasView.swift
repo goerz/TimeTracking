@@ -147,7 +147,7 @@ struct ClientsAreasView: View {
                     .disabled(!area.canMoveDown)
                 if !area.area.isGeneral {
                     if area.area.isRetired {
-                        Button("Un-retire") { Task { await model.setRetired(id, false) } }
+                        Button("Reactivate") { Task { await model.setRetired(id, false) } }
                     } else {
                         Button("Retire") { Task { await model.setRetired(id, true) } }
                             .disabled(!area.canRetire)

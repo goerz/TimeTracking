@@ -41,6 +41,9 @@ struct ProjectDialogView: View {
                 if let error = model.nameError {
                     Text(error).foregroundStyle(.red).accessibilityIdentifier("projectDialog.nameError")
                 }
+                if let error = model.lastError {
+                    Text(error).foregroundStyle(.red).accessibilityIdentifier("projectDialog.error")
+                }
             }
             Section {
                 clientPicker

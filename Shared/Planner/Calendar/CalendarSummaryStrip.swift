@@ -4,7 +4,7 @@
 import SwiftUI
 import TimeTrackingCore
 
-/// "Tracked ▇▇▇ 18h 51m   Blocks 1h 30m   Activity 25h 02m".
+/// "Tracked ▇▇▇ 18h 51m   Time blocks 1h 30m   Activity 25h 02m".
 struct CalendarSummaryStrip: View {
     var model: CalendarModel
 
@@ -17,7 +17,7 @@ struct CalendarSummaryStrip: View {
                     value(summary.tracked)
                 }
                 HStack(spacing: Design.Spacing.tight) {
-                    Text("Blocks").foregroundStyle(.secondary)
+                    Text("Time blocks").foregroundStyle(.secondary)
                     value(summary.blocks)
                 }
                 HStack(spacing: Design.Spacing.tight) {

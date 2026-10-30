@@ -90,7 +90,7 @@ struct ReportsView: View {
         }
         .visibilityPriority(.high)
         ToolbarItem(placement: .primaryAction) {
-            Picker("Granularity", selection: Binding(get: { model.state.granularity }, set: { value in
+            Picker("Show Totals By", selection: Binding(get: { model.state.granularity }, set: { value in
                 Task { await model.setGranularity(value) }
             })) {
                 Text("Automatic").tag(Granularity?.none)
@@ -99,7 +99,7 @@ struct ReportsView: View {
                 }
             }
             .pickerStyle(.menu)
-            .help("Granularity")
+            .help("Show Totals By")
             .accessibilityIdentifier("reports.granularity")
         }
         ToolbarItemGroup(placement: .primaryAction) {

@@ -83,8 +83,9 @@ struct TimeBlockAndFillDayTests {
         #expect(TimeBlockLink.resolve(url: nil, notes: "Agenda\nproject: noise model\n", projects: [noise, archived]) == .project(noise.id))
         #expect(TimeBlockLink
             .resolve(url: nil, notes: "Project: Admin", projects: [admin1, admin2]) ==
-            .unlinked(reason: "Project name 'Admin' is ambiguous"))
-        #expect(TimeBlockLink.resolve(url: nil, notes: "Project: Nothing", projects: [noise]) == .unlinked(reason: "Unknown project"))
+            .unlinked(reason: "Several projects are named “Admin”"))
+        #expect(TimeBlockLink.resolve(url: nil, notes: "Project: Nothing", projects: [noise]) ==
+            .unlinked(reason: "No project named “Nothing”"))
         let url = TimeBlockLink.url(for: admin1.id, scheme: "timetracking-debug")
         #expect(TimeBlockLink.resolve(url: url, notes: "Project: Noise Model", projects: [noise, admin1]) == .project(admin1.id))
         #expect(TimeBlockLink.resolve(url: nil, notes: nil, projects: [noise]) == .unlinked(reason: nil))

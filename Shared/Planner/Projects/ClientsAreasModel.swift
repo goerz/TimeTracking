@@ -154,9 +154,9 @@ final class ClientsAreasModel {
         }
     }
 
-    /// Retire (only without active projects) or Un-retire; undoable.
+    /// Retire (only without active projects) or Reactivate; undoable.
     func setRetired(_ id: AreaID, _ retired: Bool) async {
-        await perform(name: retired ? "Retire" : "Un-retire") { store in
+        await perform(name: retired ? "Retire" : "Reactivate") { store in
             try await store.updateArea(id, AreaChange(retired: retired))
         } undo: { store in
             try await store.updateArea(id, AreaChange(retired: !retired))
@@ -223,7 +223,7 @@ final class ClientsAreasModel {
     }
 
     private func report(_ error: any Error) {
-        lastError = String(describing: error)
+        lastError = UserMessage.text(for: error)
         Logging.logger(category: "Planner").error("Clients & Areas command failed: \(String(describing: error), privacy: .public)")
     }
 

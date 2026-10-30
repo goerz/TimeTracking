@@ -44,7 +44,7 @@ extension ActivitySummary {
                     context: item.context,
                     text: isDay ? detail : "",
                     seconds: 0,
-                    device: isDay && severalDevices ? block.device : nil
+                    device: isDay && severalDevices ? ActivityContext.deviceName(block.device) : nil
                 )
                 seconds[key, default: 0] += Double(item.seconds) * fraction
             }
@@ -60,7 +60,7 @@ extension ActivitySummary {
         let cellSeconds = Int((row.minutes[hour] * 60).rounded())
         let summary: String
         if row.days.count == 1, let day = row.days.first {
-            let devices = Set(cellBlocks.map(\.device)).sorted().joined(separator: ", ")
+            let devices = Set(cellBlocks.map { ActivityContext.deviceName($0.device) }).sorted().joined(separator: ", ")
             let about = cellBlocks.count > 1 ? "about " : ""
             summary = "\(about)\(ActivityText.duration(cellSeconds)) active" + (devices.isEmpty ? "" : " (\(devices))")
             return ActivityCellTooltip(

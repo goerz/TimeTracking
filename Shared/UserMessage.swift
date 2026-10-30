@@ -2,6 +2,7 @@
 // library's error text, which is written for logs (spec_design.md §12).
 
 import Foundation
+import os
 import TimeTrackingCore
 
 /// User-facing sentences for errors. The library's `errorDescription`s name
@@ -33,6 +34,12 @@ enum UserMessage {
         case .newerSchema: "Your data was saved by a newer version of the app. Update the app on this device."
         case .readOnly, .busy, .database: couldNotSave
         }
+    }
+
+    /// Logs `error` under `category` and returns the message for it.
+    static func logged(_ error: any Error, category: String) -> String {
+        Logging.logger(category: category).error("\(String(describing: error), privacy: .public)")
+        return text(for: error)
     }
 
     /// Any failure without a more specific message.

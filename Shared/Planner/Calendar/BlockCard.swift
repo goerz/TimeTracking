@@ -67,12 +67,11 @@ struct BlockCard: View {
         }
     }
 
-    /// The group key and share, then (full height) the dominant item.
+    /// The group key's name, then (full height) the dominant item.
     private func label(_ style: CalendarZoom.CardStyle) -> some View {
         VStack(alignment: .leading, spacing: 1) {
             HStack(spacing: Design.Spacing.tight) {
-                Text(block.groupKey).fontWeight(.semibold)
-                Text("\(Int((block.groupShare * 100).rounded()))%").foregroundStyle(.secondary).monospacedDigit()
+                Text(ActivityContext.groupKeyName(block.groupKey)).fontWeight(.semibold)
                 glyphs
             }
             if style == .full {
@@ -113,19 +112,20 @@ struct BlockCard: View {
     }
 
     @ViewBuilder private var menu: some View {
+        let name = ActivityContext.groupKeyName(block.groupKey)
         Button("Create Entry…") { Task { await model.createEntry(from: block) } }
         if block.isOpen {
-            Button("Start Now") { Task { await model.startNow(block) } }
+            Button("Start Timer Now") { Task { await model.startNow(block) } }
         }
-        Menu("Always Use Project…") {
+        Menu("Always Suggest for “\(name)”") {
             ForEach(model.projects.filter { !$0.isArchived && !$0.isDeleted }) { project in
                 Button(project.name) { Task { await model.alwaysUseProject(project.id, for: block) } }
             }
         }
-        Button("Ignore This Group Key…") { Task { await model.ignoreGroupKey(of: block) } }
+        Button("Don't Suggest for “\(name)”") { Task { await model.ignoreGroupKey(of: block) } }
         if model.canDeleteFromLog(block) {
             Divider()
-            Button("Delete Block from Log…", role: .destructive) { model.confirmDeleteFromLog(block) }
+            Button("Delete This Activity…", role: .destructive) { model.confirmDeleteFromLog(block) }
         }
     }
 }

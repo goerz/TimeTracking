@@ -14,7 +14,9 @@ struct AwayPanel: View {
             if !away.parts.isEmpty {
                 Text(away.partsText).foregroundStyle(.secondary)
             }
-            Text("Night (before the first and after the last block of a day) is not counted.").font(.caption).foregroundStyle(.secondary)
+            Text("Time before your first and after your last activity of the day is not counted.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
         .accessibilityIdentifier("activity.away")
     }

@@ -12,7 +12,7 @@ struct ContextsPanel: View {
     var body: some View {
         let rows = summary.contextRows
         let largest = rows.map(\.seconds).max() ?? 1
-        ActivityPanel(title: "Contexts") {
+        ActivityPanel(title: "Apps") {
             ForEach(rows.prefix(model.showsAllContexts ? rows.count : 20)) { row in
                 rowView(row, largest: largest)
             }
@@ -29,10 +29,11 @@ struct ContextsPanel: View {
                 ContextGlyph(context: context)
                 Text(model.displayName(context))
                 if ActivityContext(context).kind == .session {
-                    Text("session").font(.caption2).padding(.horizontal, 4).overlay(Capsule().stroke(.secondary))
+                    Text("tmux").font(.caption2).padding(.horizontal, 4).overlay(Capsule().stroke(.secondary))
                 }
             } else {
-                Text("Not itemized").foregroundStyle(.secondary)
+                Text("Brief activity").foregroundStyle(.secondary)
+                    .help("Activity too short to list separately")
             }
             Spacer()
             Capsule().fill(row.context == nil || row.isPrivate ? Color.gray : colors.color(row.context))
@@ -52,7 +53,7 @@ struct ContextsPanel: View {
                 Button("Show Only \(model.displayName(context))") { Task { await model.showOnly(context) } }
                 Button("Show in Calendar") { model.showContextInCalendar(context) }
                 if model.isRecordingMac, ActivityContext(context).kind != .browser {
-                    Button("Exclude \(model.displayName(context)) from tracking…") { model.exclude(context: context) }
+                    Button("Exclude \(model.displayName(context)) from Tracking…") { model.exclude(context: context) }
                 }
             }
         }

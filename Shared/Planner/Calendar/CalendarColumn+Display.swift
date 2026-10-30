@@ -12,6 +12,10 @@ extension CalendarColumn {
     }
 
     var title: String {
-        rawValue.prefix(1).uppercased() + rawValue.dropFirst()
+        switch self {
+        case .activity: "Activity"
+        case .tracked: "Tracked"
+        case .calendar: "Calendar"
+        }
     }
 }

@@ -304,7 +304,7 @@ final class TimerModel {
     }
 
     func report(_ error: any Error) {
-        lastError = String(describing: error)
+        lastError = UserMessage.text(for: error)
         logger.error("Timer command failed: \(String(describing: error), privacy: .public)")
     }
 }

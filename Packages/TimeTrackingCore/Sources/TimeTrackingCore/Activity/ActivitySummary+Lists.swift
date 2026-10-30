@@ -3,14 +3,14 @@
 
 /// A row of the Contexts panel.
 public struct ActivityContextRow: Sendable, Hashable, Identifiable {
-    /// The context, or `nil` for "Not itemized".
+    /// The context, or `nil` for "Brief activity".
     public var context: String?
     public var seconds: Int
     /// The share of the unfiltered total, 0 to 1.
     public var share: Double
 
     public var id: String {
-        context ?? "(not itemized)"
+        context ?? "(brief activity)"
     }
 
     public var isPrivate: Bool {
@@ -26,7 +26,12 @@ public enum ActivitySubjectKind: String, Sendable, Hashable, CaseIterable {
     case folders
 
     public var title: String {
-        rawValue.prefix(1).uppercased() + rawValue.dropFirst()
+        switch self {
+        case .all: "All"
+        case .sites: "Sites"
+        case .sessions: "Sessions"
+        case .folders: "Folders"
+        }
     }
 
     /// The kind the control switches to when the filter changes (§1.6).
@@ -45,7 +50,7 @@ public enum ActivitySubjectKind: String, Sendable, Hashable, CaseIterable {
 
 /// A row of the Subjects panel.
 public struct ActivitySubjectRow: Sendable, Hashable, Identifiable {
-    /// The subject, or `nil` for "Other (not itemized)".
+    /// The subject, or `nil` for "Other (brief activity)".
     public var subject: String?
     /// Its contexts, largest first.
     public var contexts: [String]
@@ -88,19 +93,25 @@ public struct ActivityBackgroundRow: Sendable, Hashable, Identifiable {
         "\(context)\u{1F}\(subject)"
     }
 
-    /// "claude refactor-parser" or "make (~/Code/app)".
+    /// "Claude refactor-parser" or "paper (tmux) in ~/Code/app".
     public var title: String {
-        let name = ActivityContext(context).kind == .session ? ActivityContext(context).displayName() : context
+        Self.title(context: context, subject: subject)
+    }
+
+    /// The name of a secondary: its context as Activity names it, then its
+    /// subject, a folder after "in".
+    public static func title(context: String, subject: String) -> String {
+        let name = ActivityContext(context).label()
         guard !subject.isEmpty else {
             return name
         }
-        return subject.hasPrefix("/") || subject.hasPrefix("~") ? "\(name) (\(subject))" : "\(name) \(subject)"
+        return subject.hasPrefix("/") || subject.hasPrefix("~") ? "\(name) in \(subject)" : "\(name) \(subject)"
     }
 }
 
 extension ActivitySummary {
     /// The Contexts panel (§1.6): the selected contexts, shares of the
-    /// unfiltered total, and "Not itemized" without a filter.
+    /// unfiltered total, and "Brief activity" without a filter.
     public var contextRows: [ActivityContextRow] {
         let total = Double(max(unfilteredTotal, 1))
         var rows = ranking.filter { input.contexts.isEmpty || input.contexts.contains($0.context) }
@@ -120,7 +131,7 @@ extension ActivitySummary {
     }
 
     /// The Subjects panel's rows under the filter, largest first, plus
-    /// "Other (not itemized)" without a filter.
+    /// "Other (brief activity)" without a filter.
     public var subjectRows: [ActivitySubjectRow] {
         var seconds: [String: Int] = [:]
         var contexts: [String: [String: Int]] = [:]

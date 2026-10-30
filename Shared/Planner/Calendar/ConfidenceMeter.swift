@@ -16,6 +16,6 @@ struct ConfidenceMeter: View {
                     .frame(width: 6, height: 8)
             }
         }
-        .help(candidate.map { "Confidence \(Int(($0.confidence * 100).rounded()))%" } ?? "No confident suggestion")
+        .help(candidate.map { "Confidence \(Int(($0.confidence * 100).rounded()))%" } ?? "No suggestion")
     }
 }

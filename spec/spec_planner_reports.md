@@ -6,7 +6,7 @@ The Reports section of the Planner window shows where the time went in a date ra
 
 From top to bottom: the filter bar while filters are active (3), four tiles, the chart card (fixed 280 pt high), and a card holding either the breakdown table or the entry list, chosen by a segmented control. The lower card fills the rest and scrolls. Below 700 pt of content height the tiles collapse into one line and the chart shrinks to 180 pt. Tiles and cards are filled cards of [spec_design.md](spec_design.md) §3; tile values use the metric style (§1 there).
 
-The window title is "Reports" and its subtitle the range label ("This week · W44"). Toolbar ([spec_design.md](spec_design.md) §4): leading the previous- and next-period arrows and Today with the date menu (2.2); trailing Filters, the granularity menu, Print, and Export. The chart card's header holds "Logged time" and "Stack by"; the lower card's header the segmented control (Breakdown | Entries), the level chain, and Expand All / Collapse All.
+The window title is "Reports" and its subtitle the range label ("This week · W44"). Toolbar ([spec_design.md](spec_design.md) §4): leading the previous- and next-period arrows and Today with the date menu (2.2); trailing Filters, the granularity menu ("Show Totals By"), Print, and Export. The chart card's header holds "Logged time" and "Stack by"; the lower card's header the segmented control (Breakdown | Entries), the level chain, and Expand All / Collapse All.
 
 ## 2. Date range
 
@@ -186,7 +186,7 @@ The commands live in a "Report" submenu of the View menu (Export and Print in Fi
 | Find Task | ⌘F (focus in the Task filter) |
 | Clear Filters | ⌥⇧⌘F |
 | Show Breakdown / Show Entries | ⌃⌘1 / ⌃⌘2 |
-| Granularity: Automatic, Day, Week, Month, Year | None |
+| Show Totals By: Automatic, Day, Week, Month, Year | None |
 | Stack By: None, Client, Area, Project | None |
 | Expand All / Collapse All | ⇧⌘→ / ⇧⌘← |
 | Export… | ⇧⌘E |

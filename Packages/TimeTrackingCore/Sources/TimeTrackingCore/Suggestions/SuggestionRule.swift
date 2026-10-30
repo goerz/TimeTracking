@@ -14,10 +14,10 @@ public struct SuggestionRule: Sendable, Hashable, Codable, Identifiable {
 
         public var title: String {
             switch self {
-            case .groupKey: "Group key"
-            case .context: "Context"
-            case .subjectPrefix: "Subject prefix"
-            case .titleKeyword: "Calendar title keyword"
+            case .groupKey: "Session, site, or folder"
+            case .context: "App"
+            case .subjectPrefix: "Starts with"
+            case .titleKeyword: "Event title contains"
             }
         }
     }
@@ -46,6 +46,16 @@ public struct SuggestionRule: Sendable, Hashable, Codable, Identifiable {
         case .context: item.context == pattern
         case .subjectPrefix: !pattern.isEmpty && item.subject.hasPrefix(pattern)
         case .titleKeyword: false
+        }
+    }
+
+    /// The pattern as the Suggestions sheet shows it: a group key or context
+    /// by its display name, other patterns as written.
+    public var patternText: String {
+        switch kind {
+        case .groupKey: ActivityContext.groupKeyName(pattern)
+        case .context: ActivityContext(pattern).label()
+        case .subjectPrefix, .titleKeyword: pattern
         }
     }
 

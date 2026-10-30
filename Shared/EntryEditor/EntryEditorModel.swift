@@ -182,7 +182,7 @@ final class EntryEditorModel {
             await onChange?()
             onDelete?()
         } catch {
-            message = error.localizedDescription
+            message = UserMessage.logged(error, category: "Editor")
         }
     }
 
@@ -210,7 +210,7 @@ final class EntryEditorModel {
             }
             await onChange?()
         } catch {
-            message = error.localizedDescription
+            message = UserMessage.logged(error, category: "Editor")
             resetTimeFields()
         }
     }

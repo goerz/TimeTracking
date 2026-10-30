@@ -22,6 +22,9 @@ struct ClientFormView: View {
             if let error = model.nameError {
                 Text(error).font(.caption).foregroundStyle(.red)
             }
+            if let error = model.lastError {
+                Text(error).font(.caption).foregroundStyle(.red).accessibilityIdentifier("clientForm.error")
+            }
             if model.showsColor {
                 AreaColorWell(hex: $model.color).accessibilityIdentifier("clientForm.color")
             }

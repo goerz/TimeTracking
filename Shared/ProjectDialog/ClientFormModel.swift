@@ -69,6 +69,7 @@ final class ClientFormModel {
     /// Create or Rename; returns the client and its general area.
     func submit() async -> (Client, Area?)? {
         await validate()
+        lastError = nil
         guard canSubmit else {
             return nil
         }
@@ -89,7 +90,7 @@ final class ClientFormModel {
                 return (renamed, nil)
             }
         } catch {
-            lastError = error.localizedDescription
+            lastError = UserMessage.logged(error, category: "Planner")
             return nil
         }
     }

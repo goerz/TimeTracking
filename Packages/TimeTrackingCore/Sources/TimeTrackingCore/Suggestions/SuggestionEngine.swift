@@ -47,7 +47,7 @@ public actor SuggestionEngine {
         await rebuild(titles: titles)
     }
 
-    /// "Rebuild Suggestions Index", a changed month file, and the daily rebuild.
+    /// "Relearn Suggestions", a changed month file, and the daily rebuild.
     public func rebuild(titles: [SuggestionCalendarTitle]) async {
         do {
             let now = store.clock.now

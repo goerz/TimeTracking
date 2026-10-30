@@ -197,7 +197,7 @@ struct ActivitySummaryTests {
         #expect(bars[3].isToday)
     }
 
-    @Test("PA-10 bars merge contexts beyond the twelfth into Other contexts and, without a filter, equal the day's a")
+    @Test("PA-10 bars merge contexts beyond the twelfth into Other apps and, without a filter, equal the day's a")
     func barsStack() throws {
         let items = (1 ... 14).map { Self.item("app\($0)", 3000 - $0 * 100) }
         let block = try Self.block("2026-10-26", "08:00", "18:00", items, active: 40_000)
@@ -205,6 +205,8 @@ struct ActivitySummaryTests {
         #expect(bars.series.count == 14)
         #expect(bars.series[12] == .otherContexts)
         #expect(bars.series[13] == .notItemized)
+        #expect(bars.series[12].title == "Other apps")
+        #expect(bars.series[13].title == "Brief activity")
         #expect(bars.bars[0].seconds == 40_000)
         #expect(bars.axisHours == 12)
         #expect(bars.bars[0].tooltip(for: .context("app1")) == "Mon Oct 26 · App1 · 48m of 11h 06m")
@@ -233,7 +235,7 @@ struct ActivitySummaryTests {
         #expect(summary.bars.bars[3].seconds == 1200)
     }
 
-    @Test("PA-12 context shares stay relative to the unfiltered total; Not itemized equals a minus item seconds")
+    @Test("PA-12 context shares stay relative to the unfiltered total; Brief activity equals a minus item seconds")
     func contextShares() throws {
         let block = try Self.block(
             "2026-10-26",

@@ -81,7 +81,7 @@ final class ProjectDialogModel {
                 await select(client: client.id, area: nil)
             }
         } catch {
-            lastError = error.localizedDescription
+            lastError = UserMessage.logged(error, category: "Planner")
         }
     }
 
@@ -132,6 +132,7 @@ final class ProjectDialogModel {
     /// is pending or on failure.
     func submit(confirmed: Bool = false) async -> Project? {
         await validate()
+        lastError = nil
         guard canSubmit, let areaID else {
             return nil
         }
@@ -151,7 +152,7 @@ final class ProjectDialogModel {
                 return try await store.project(project.id)
             }
         } catch {
-            lastError = error.localizedDescription
+            lastError = UserMessage.logged(error, category: "Planner")
             return nil
         }
     }
@@ -176,7 +177,7 @@ final class ProjectDialogModel {
         }
         if project.isArchived, !isArchived, let newArea, newArea.isRetired {
             return Confirmation(
-                title: "Restore “\(name.trimmed)” and un-retire “\(newArea.name)”?",
+                title: "Restore “\(name.trimmed)” and reactivate “\(newArea.name)”?",
                 message: "The area “\(newArea.name)” is retired. Restoring the project makes it active again.",
                 confirmTitle: "Restore"
             )

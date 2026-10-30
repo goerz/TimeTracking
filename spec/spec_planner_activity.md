@@ -8,7 +8,7 @@ Vocabulary: an item has a context (an app, a terminal session such as `tmux:pape
 
 ## 1. Layout
 
-The window title is "Activity" and its subtitle the range label. The toolbar follows [spec_design.md](spec_design.md) §4: leading the period arrows and Today with its date menu, trailing the device popup (1.2). Below it, from top to bottom: the header (1.2), the context chips (1.3), the panels, and the health footer (1.10). The footer stays fixed; the rest scrolls. Panels are cards (12 point corner radius, 16 point padding, 16 point gaps), in two columns above 1100 points of content width and one column below, in the order heatmap, by-day chart, Contexts, Subjects, In the background, Away.
+The window title is "Activity" and its subtitle the range label. The toolbar follows [spec_design.md](spec_design.md) §4: leading the period arrows and Today with its date menu, trailing the device popup (1.2). Below it, from top to bottom: the header (1.2), the context chips (1.3), the panels, and the health footer (1.10). The footer stays fixed; the rest scrolls. Panels are cards (12 point corner radius, 16 point padding, 16 point gaps), in two columns above 1100 points of content width and one column below, in the order heatmap, by-day chart, Apps (the contexts), Subjects, In the background, Away.
 
 ### 1.1 Date range
 
@@ -26,10 +26,12 @@ An "All" chip, then one chip per context ranked by time: the first eight on the 
 
 | Context | Kind | Display | Glyph |
 |---|---|---|---|
-| `tmux:<name>` | session | `<name>` with a "session" badge in lists | terminal |
+| `tmux:<name>` | session | `<name>` with a "tmux" badge in lists, else "`<name>` (tmux)" | terminal |
 | `tmux:(private)` | session | "(private session)" | terminal, gray |
 | `safari`, `arc`, `chrome`, `brave`, `edge`, `vivaldi`, `firefox` | browser | the browser's name | the browser's icon |
-| any other | app | the app's name for the bundle identifier of the month header's `contexts` map, else the string capitalized | the app's icon, else a generic app glyph |
+| any other | app | the app's name for the bundle identifier of the month header's `contexts` map, else the name of a table of known apps ("VS Code", "PowerPoint"), else a lowercase string with each word capitalized | the app's icon, else a generic app glyph |
+
+A raw context or group key never shows. A group key (Calendar cards, Fill Day, the Suggestions sheet) reads like its context ("paper (tmux)", "Safari", "VS Code"), a site or folder key as written ("github.com/owner", "~/Papers/2026_Noise"); the library's `ActivityContext.label()` and `ActivityContext.groupKeyName(_:)` give these names.
 
 Context colors are automatic and separate from area colors. A context seen for the first time (here or in the Calendar's activity column) gets the index used by the fewest contexts so far, lowest on ties, stored in the synced, append-only `activity.contextColors`; it never changes and the user cannot pick one. Contexts marked `(private)` are gray (secondary label color) and take no index.
 
@@ -71,33 +73,33 @@ Up to five items ranked by minutes, then "+ N more"; "about" when more than one 
 
 ### 1.5 Active time by day
 
-One stacked bar per day up to 31 days, per ISO week up to 53 weeks, per month beyond. Bars stack item seconds per context in the Contexts ranking, bottom up, in context colors; contexts beyond the twelfth merge into gray "Other contexts"; without a filter a gray "Not itemized" top segment makes the bar equal `a`. The y axis is hours with whole-hour gridlines, labels every 2 hours, scaled to the tallest bar rounded up to an even hour. X labels: weekday (day number and weekday initial over 7 days), ISO week, or month. Totals sit above bars. On the Mac today's bar includes the open block with a hatched top, and a dot under its label marks today.
+One stacked bar per day up to 31 days, per ISO week up to 53 weeks, per month beyond. Bars stack item seconds per context in the Contexts ranking, bottom up, in context colors; contexts beyond the twelfth merge into gray "Other apps"; without a filter a gray "Brief activity" top segment makes the bar equal `a`. The y axis is hours with whole-hour gridlines, labels every 2 hours, scaled to the tallest bar rounded up to an even hour. X labels: weekday (day number and weekday initial over 7 days), ISO week, or month. Totals sit above bars. On the Mac today's bar includes the open block with a hatched top, and a dot under its label marks today.
 
 Hovering a segment shows "Thu Oct 29 · paper · 4h 12m of 6h 38m"; a label or empty bar area shows the day's total and three largest contexts. Clicking drills into the Calendar.
 
 ### 1.6 Contexts and subjects
 
-Contexts lists the range's contexts by time: glyph, display name, a bar relative to the largest, item-second duration, and share of the unfiltered total. Private contexts are gray at their rank. Without a filter a last gray row "Not itemized" holds `a` minus item seconds. Clicking a row toggles it like its chip. Right-click or the hover "…" offers "Show Only <name>", "Show in Calendar" (first day of the range, this context's blocks highlighted), and "Exclude <name> from tracking…" (section 4; apps and sessions; browsers are excluded per site from a site row).
+The Apps panel lists the range's contexts by time: glyph, display name, a bar relative to the largest, item-second duration, and share of the unfiltered total. Private contexts are gray at their rank. Without a filter a last gray row "Brief activity" (tooltip "Activity too short to list separately") holds `a` minus item seconds. Clicking a row toggles it like its chip. Right-click or the hover "…" offers "Show Only <name>", "Show in Calendar" (first day of the range, this context's blocks highlighted), and "Exclude <name> from Tracking…" (section 4; apps and sessions; browsers are excluded per site from a site row).
 
-Subjects ("Where the time went") lists the selected contexts' subjects under a segmented control All, Sites (browser subjects), Sessions (session subjects), Folders (subjects starting with `/` or `~`); other subjects appear under All only. When the filter changes and every selected context is of one kind, the control switches to it (Sites for browsers, Sessions for sessions), otherwise to All; the user may change it afterwards. A row shows the subject, the glyphs of its contexts, the duration, and a bar. Without a filter a last gray row "Other (not itemized)" holds the remainder and is not clickable.
+Subjects ("Where the time went") lists the selected contexts' subjects under a segmented control All, Sites (browser subjects), Sessions (session subjects), Folders (subjects starting with `/` or `~`); other subjects appear under All only. When the filter changes and every selected context is of one kind, the control switches to it (Sites for browsers, Sessions for sessions), otherwise to All; the user may change it afterwards. A row shows the subject, the glyphs of its contexts, the duration, and a bar. Without a filter a last gray row "Other (brief activity)" holds the remainder and is not clickable.
 
-On the Mac that holds detail records for at least one of a subject's blocks (`detail(for:)`), its row has a chevron. Clicking it replaces the list with the subject's details from the detail log's complete items, ranked by seconds, under a breadcrumb "paper › ~/Papers/2026_Noise" that also gives the count of visited pages (site) or modified files (folder), and "details for 31 of 34 blocks" when some blocks lack a record. Escape or the breadcrumb's first element returns. Elsewhere rows have no chevron and the panel ends with "Details stay on the Mac that recorded them". Subjects under `private_domains` show no details.
+On the Mac that holds detail records for at least one of a subject's blocks (`detail(for:)`), its row has a chevron. Clicking it replaces the list with the subject's details from the detail log's complete items, ranked by seconds (items without a detail as "(no file or page)"), under a breadcrumb "paper › ~/Papers/2026_Noise" that also gives the count of visited pages (site) or modified files (folder), and "details for 31 of 34 periods" when some blocks lack a record. Escape or the breadcrumb's first element returns. Elsewhere rows have no chevron and the panel ends with "Details stay on the Mac that recorded them". Subjects under `private_domains` show no details.
 
 Both lists show twenty rows and a "Show all (48)" link.
 
 ### 1.7 In the background
 
-The secondaries, ranked by seconds, each with a gear glyph, context and subject ("claude refactor-parser", "make (~/Code/app)"), and duration, under the subtitle "Does not count as active time". The filter applies by the secondary's context. Hidden when there are none.
+The secondaries, ranked by seconds, each with a gear glyph, context by name and subject, a folder after "in" ("Claude refactor-parser", "paper (tmux) in ~/Code/app"), and duration, under the subtitle "Does not count as active time". The filter applies by the secondary's context. Hidden when there are none.
 
 ### 1.8 Away
 
-Away time is a gap longer than the tracker's `idle_close` (5 minutes) between consecutive blocks of one device on one day; time before a device's first block and after its last is night, not away. The panel shows the total ("4h 12m during the day") and per cause the time and number of gaps: idle, asleep, locked, another user, and unknown when no presence transition covers the gap. Causes come from the detail log on the recording Mac; elsewhere and for other devices' blocks all gaps are unknown, and the line adds "(not classified on this device)". The filter does not apply.
+Away time is a gap longer than the tracker's `idle_close` (5 minutes) between consecutive blocks of one device on one day; time before a device's first block and after its last is night, not away. The panel shows the total ("4h 12m during the day"), per cause the time and number of gaps ("idle 1h 10m (3 times)"): idle, asleep, locked, another user, and unknown when no presence transition covers the gap, and the note "Time before your first and after your last activity of the day is not counted." Causes come from the detail log on the recording Mac; elsewhere and for other devices' blocks all gaps are unknown, and the line adds "(cause known only on the Mac that recorded it)". The filter does not apply.
 
 ### 1.9 Live updates and empty states
 
-The section follows the reader's change stream: an appended block updates the aggregates within 2 seconds. On the Mac today's figures include the open block (`isOpen`), drawn like a closed block with "running" in tooltips, until the closed block replaces it. Blocks with `src` `knowledge` count normally and say "reconstructed" in tooltips. Block times are shown as recorded in the device's time zone. Aggregation runs off the main thread and keeps the previous figures until the new ones are ready.
+The section follows the reader's change stream: an appended block updates the aggregates within 2 seconds. On the Mac today's figures include the open block (`isOpen`), drawn like a closed block with "running" in tooltips, until the closed block replaces it. Blocks with `src` `knowledge` count normally and say "Reconstructed from macOS app usage history" in the Calendar's popover. Block times are shown as recorded in the device's time zone. Aggregation runs off the main thread and keeps the previous figures until the new ones are ready.
 
-With no blocks after filtering, the panels give way to one message (an empty-state view with the section's symbol): "No activity recorded between Oct 20 and Oct 26" (plus "The tracker was not running." and "Tracker Settings…" when the footer is red), or "Nothing recorded for the selected contexts" with "Show All Contexts". With an empty block log and the tracker not set up on this Mac (not enabled, no `current.json`, or Accessibility missing), an empty-state view titled "No Activity Yet" reads "Set up the tracker to see where your time goes. Nothing is recorded until you enable it." with "Open Tracker Settings…"; once a block exists it never returns.
+With no blocks after filtering, the panels give way to one message (an empty-state view with the section's symbol): "No activity recorded between Oct 20 and Oct 26" (plus "The tracker was not running." and "Tracker Settings…" when the footer is red), or "Nothing recorded for the selected apps" with "Show All Apps". With an empty block log and the tracker not set up on this Mac (not enabled, no `current.json`, or Accessibility missing), an empty-state view titled "No Activity Yet" reads "Set up the tracker to see where your time goes. Nothing is recorded until you enable it." with "Open Tracker Settings…"; once a block exists it never returns.
 
 ### 1.10 Health footer
 
@@ -123,13 +125,13 @@ A heatmap cell, bar, or segment calls `PlannerRouter.showCalendar(day:hour:highl
 
 ## 4. Exclusions
 
-"Exclude <name> from tracking…" (Mac only) calls `showTrackerSettings(exclusion:)`, which opens the Tracker pane with an unsaved, focused draft that "Add to Settings File" inserts into `settings.toml` ([spec_activity_tracking.md](spec_activity_tracking.md) §7.4): the bundle identifier under `exclude_apps` for an app (left for the user to pick when the `contexts` map has none), the session name under `exclude_tmux_sessions`, or the bare domain under `exclude_domains` for a site. This view saves nothing.
+"Exclude <name> from Tracking…" (Mac only) calls `showTrackerSettings(exclusion:)`, which opens the Tracker pane with an unsaved, focused draft that "Add to Settings File" inserts into `settings.toml` ([spec_activity_tracking.md](spec_activity_tracking.md) §7.4): the bundle identifier under `exclude_apps` for an app (left for the user to pick when the `contexts` map has none), the session name under `exclude_tmux_sessions`, or the bare domain under `exclude_domains` for a site. This view saves nothing.
 
 The reader applies the current rules to past data at read time on every device, with the effects of [spec_activity_tracking.md](spec_activity_tracking.md) §7.2, without rewriting the logs; time removed by a rule leaves every total, and a block left empty is not shown. Items written as `(private)` show as one gray row per context with their time kept. Rewriting past logs is `tracker-event reapply-exclusions <from> <to>` (§7.3 there).
 
 ## 5. iPad
 
-The Activity tab shows the same panels from the synced block log, without subject drill-down, away classification, app icons, exclusion shortcut, or open block. Its footer shows each Mac's tracker from the activity part of `LiveState` ([spec_data_and_sync.md](spec_data_and_sync.md) §4.1): "Mac tracker: last tick 2 min ago" from `lastTick`, the presence state and since, and the health summary; the dot is green while `agentRunning` is true, else gray with "last seen 2 h ago"; no source list. "Waiting for iCloud" with the newest block's time shows while the current month has not arrived. With no blocks the empty state reads "The tracker runs on your Mac. Set it up in the Mac app's Settings, Tracker pane."
+The Activity tab shows the same panels from the synced block log, without subject drill-down, away classification, app icons, exclusion shortcut, or open block. Its footer shows each Mac's tracker from the activity part of `LiveState` ([spec_data_and_sync.md](spec_data_and_sync.md) §4.1): "Mac tracker: last tick 2 min ago" from `lastTick`, the presence state and since, and the health summary; the dot is green while `agentRunning` is true, else gray with "last seen 2 h ago"; no source list. "Waiting for iCloud · activity up to 14:02", with the newest block's end, shows while the current month has not arrived. With no blocks the empty state reads "The tracker runs on your Mac. Set it up in the Mac app's Settings, Tracker pane."
 
 ## 6. Testable behaviors
 
@@ -142,16 +144,16 @@ The Activity tab shows the same panels from the synced block log, without subjec
 7. A 09:40 to 10:20 block with `a` 2400 adds 20 minutes to the 9 cell and 20 to the 10 cell, its items split alike.
 8. A cell tooltip lists at most five items, then "+ N more", with "about" when several blocks overlap the cell.
 9. In This week on Thursday, Friday to Sunday are empty rows and bars, excluded from the per-day average.
-10. Bars merge contexts beyond the twelfth into "Other contexts" and, without a filter, equal the day's `a`.
+10. Bars merge contexts beyond the twelfth into "Other apps" and, without a filter, equal the day's `a`.
 11. On the Mac today's bar includes the open block, replaced by the closed block within 2 seconds of the append.
-12. Context shares stay relative to the unfiltered total; "Not itemized" and "Other (not itemized)" equal `a` minus item seconds.
+12. Context shares stay relative to the unfiltered total; "Brief activity" and "Other (brief activity)" equal `a` minus item seconds.
 13. Selecting only browsers switches Subjects to Sites, only sessions to Sessions, a mix or All to All.
-14. A subject has a chevron only on the Mac holding a detail record for one of its blocks, with "details for N of M blocks" when some lack one; elsewhere the note shows.
+14. A subject has a chevron only on the Mac holding a detail record for one of its blocks, with "details for N of M periods" when some lack one; elsewhere the note shows.
 15. Away counts only gaps over `idle_close` between same-device blocks of one day, classified on the recording Mac and unknown elsewhere.
 16. The Mac footer's dot matches the Tracker pane's status for the same `current.json`; the iPad footer shows `lastTick` from `LiveState` without sources.
 17. Clicking a cell opens the Calendar at that day and hour with the hour's blocks pulsed; ⌘4 returns with range, filter, and scroll unchanged.
 18. With an empty log and no tracker set up the setup card shows and opens the Tracker pane; after a block exists it does not return.
-19. "Exclude from tracking…" opens the Tracker pane with the right list and value and saves nothing; after saving, past items of that rule disappear from every total while the log files stay byte-identical.
+19. "Exclude <name> from Tracking…" opens the Tracker pane with the right list and value and saves nothing; after saving, past items of that rule disappear from every total while the log files stay byte-identical.
 20. The view never modifies the block log, detail log, `current.json`, or `settings.toml`.
 
 ## 7. Decisions

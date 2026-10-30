@@ -44,7 +44,7 @@ struct CalendarDayHeader: View {
             Spacer(minLength: 0)
             if overlaps > 0 {
                 Button { model.selectOverlaps(on: day) } label: {
-                    Label("\(overlaps) overlaps", systemImage: "exclamationmark.triangle")
+                    Label("\(overlaps) \(overlaps == 1 ? "overlap" : "overlaps")", systemImage: "exclamationmark.triangle")
                 }
                 .buttonStyle(.borderless)
                 .labelStyle(.titleAndIcon)

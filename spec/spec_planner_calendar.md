@@ -1,6 +1,6 @@
 # Spec: Planner Calendar
 
-The Calendar section of the Planner window shows one to seven days side by side. Each day has up to three columns: Activity (the tracker's blocks), Tracked (time entries), and Calendar (time blocks and events from system calendars the user selects). Entries are drawn, moved, and resized here, made from activity blocks and calendar events with a suggested project, and filled in for a day of untracked activity through a review sheet. The section also holds the suggestion engine (section 5). The iPad's Calendar tab is the same view with the touch equivalents of [spec_ios.md](spec_ios.md) §10.2, without the open activity block, gap labels, or "Delete Block from Log…"; the iPhone has no calendar view and never requests calendar access.
+The Calendar section of the Planner window shows one to seven days side by side. Each day has up to three columns: Activity (the tracker's blocks), Tracked (time entries), and Calendar (time blocks and events from system calendars the user selects). Entries are drawn, moved, and resized here, made from activity blocks and calendar events with a suggested project, and filled in for a day of untracked activity through a review sheet. The section also holds the suggestion engine (section 5). The iPad's Calendar tab is the same view with the touch equivalents of [spec_ios.md](spec_ios.md) §10.2, without the open activity block, gap labels, or "Delete This Activity…"; the iPhone has no calendar view and never requests calendar access.
 
 ## 1. Layout
 
@@ -20,7 +20,7 @@ The window title is "Calendar" and its subtitle the visible range, "Mon, Oct 26 
 
 In a narrow window Columns, zoom, and options move into the toolbar's overflow menu first.
 
-Below the toolbar a summary strip shows the visible days' tracked time as a bar stacked by project in area colors with its total, then "Blocks 6h 20m" (time blocks only) and "Activity 34h 10m" (the tracker's active time). Hovering a segment shows the project and its time.
+Below the toolbar a summary strip shows the visible days' tracked time as a bar stacked by project in area colors with its total, then "Time blocks 6h 20m" and "Activity 34h 10m" (the tracker's active time). Hovering a segment shows the project and its time.
 
 ### 1.2 Days and scrolling
 
@@ -68,7 +68,7 @@ Dragging a card's body moves it with its duration, the start snapping like drawi
 
 ### 2.5 Selecting, editing, deleting
 
-A click selects (2 point accent ring); ⇧-click or ⌘-click extends; Tab and ⇧Tab step through entries by start. Return or a double-click opens the edit popover, with its own overlap handling. Delete or ⌫ deletes the selection, undoable ("Undo Delete Entry"), with a notice "Deleted 'Clarify noise model' (1h 33m). Undo" for 8 seconds. Deleting the running entry asks "Discard the running entry?" first; undo restores it stopped at the deletion time. Duplicate to Next Day (⌘D) copies an entry to the same time next day as a stopped entry, refused unless that interval is entirely past. Split Here (context menu) splits at the pointer's snapped time with `split(_:at:)`, refused within 1 minute of either end; on the running entry the later part keeps running. Starting an entry here (continue, Start Now) stops the running one, as every library start does.
+A click selects (2 point accent ring); ⇧-click or ⌘-click extends; Tab and ⇧Tab step through entries by start. Return or a double-click opens the edit popover, with its own overlap handling. Delete or ⌫ deletes the selection, undoable ("Undo Delete Entry"), with a notice "Deleted 'Clarify noise model' (1h 33m). Undo" for 8 seconds. Deleting the running entry asks "Discard the running entry?" first; undo restores it stopped at the deletion time. Duplicate to Next Day (⌘D) copies an entry to the same time next day as a stopped entry, refused unless that interval is entirely past. Split Here (context menu) splits at the pointer's snapped time with `split(_:at:)`, refused within 1 minute of either end; on the running entry the later part keeps running. Starting an entry here (continue, Start Timer Now) stops the running one, as every library start does.
 
 ### 2.6 Overlaps
 
@@ -79,38 +79,38 @@ Overlaps "Standup" (11:00 to 11:30) by 12 min.
 [Trim]   [Overlap]   [Cancel]
 ```
 
-Trim (default) shortens the changed entry to abut the neighbor; Overlap forces the change; Cancel (Escape) restores. An overlap of 1 minute or less is trimmed silently. Overlapping entries from any source are drawn side by side in start order, each with a ⚠ badge whose tooltip names the others and the minutes; the day header shows "⚠ 2 overlaps", and clicking it selects them.
+Trim (default) shortens the changed entry to abut the neighbor; Overlap forces the change; Cancel (Escape) restores. An overlap of 1 minute or less is trimmed silently. Overlapping entries from any source are drawn side by side in start order, each with a ⚠ badge whose tooltip names the others and the minutes; the day header shows "⚠ 2 overlaps" ("⚠ 1 overlap" for one), and clicking it selects them.
 
 ## 3. Activity column
 
 ### 3.1 Blocks
 
-The column shows the day's blocks from `ActivityReading`, plus on the Mac today's open block, which grows with the now-line. A card is a light tint of the dominant item's context color with a 3 point left border in that color ([spec_planner_activity.md](spec_planner_activity.md) §1.3). Line 1 is the group key with its share ("tmux:paper 71%") and the active seconds `a`; line 2 is the dominant item's subject and detail. Secondaries add a "+1" badge; `src` `knowledge` blocks are hatched; `src` `device` blocks carry a phone or tablet glyph by the platform of the `Device` named by `dev`; `dev` `remote` blocks carry a cloud glyph. Parts covered by entries are dimmed to 50% opacity. On the Mac, a gap over 15 minutes shows its cause from the detail log as a faint label ("idle 22m", "asleep 1h 10m", "locked 15m") when the log covers it.
+The column shows the day's blocks from `ActivityReading`, plus on the Mac today's open block, which grows with the now-line. A card is a light tint of the dominant item's context color with a 3 point left border in that color ([spec_planner_activity.md](spec_planner_activity.md) §1.3). Line 1 is the group key as the Activity section names it ("paper (tmux)", "github.com/owner"; [spec_planner_activity.md](spec_planner_activity.md) §1.3), never the raw key; line 2 is the dominant item's subject and detail. Secondaries add a "+1" badge; `src` `knowledge` blocks are hatched; `src` `device` blocks carry a phone or tablet glyph by the platform of the `Device` named by `dev`; `dev` `remote` blocks carry a cloud glyph. Parts covered by entries are dimmed to 50% opacity. On the Mac, a gap over 15 minutes shows its cause from the detail log as a faint label ("idle 22m", "asleep 1h 10m", "locked 15m") when the log covers it.
 
 ### 3.2 Hover popover
 
 After 400 ms of hover a popover opens beside the block (left of it in the rightmost day):
 
-- Time range, duration, device ("09:10 – 09:44 · 34m · MacBook"), and "34m, 31m active" when `a` is less than the span;
-- Items in log order (context, subject and detail, minutes), then secondaries ("+ claude refactor-parser (busy 12m)");
-- "Suggested": top candidate as "Project · Task" with a four-segment meter, Log (3.3), and "Other suggestions" disclosing two more; "No confident suggestion" below `suggestMin`;
-- "Create Entry…" and, on the open block only, "Start Now" (an entry now with the top suggestion).
+- Time range, duration, device ("09:10 – 09:44 · 34m · MacBook"; `remote` reads "Other devices (Safari)"), the group key's name and share ("paper (tmux), 71% of this time"), "34m, 31m active" when `a` is less than the span, and for `src` `knowledge` "Reconstructed from macOS app usage history";
+- Items in log order (app by name, a session as "paper (tmux)"; subject and detail; minutes), then secondaries ("In the background: Claude refactor-parser, 12m");
+- "Suggested": top candidate as "Project · Task" with a four-segment meter, Add Entry (3.3), and "Other suggestions" disclosing two more; "No suggestion" below `suggestMin`;
+- "Create Entry…" and, on the open block only, "Start Timer Now" (an entry now with the top suggestion).
 
 It closes on Escape or when the pointer leaves block and popover. A click selects the block and keeps the popover open; Space on a selected block equals "Create Entry…".
 
 ### 3.3 Entries from a block
 
-The hover "+" button, a drag into the Tracked column (vertical position ignored), "Create Entry…", Space, and Log at confidence up to `suggestAuto` (or a candidate lacking project or task) create a provisional entry over the block's longest untracked stretch, clamped at now, and open the edit popover with the top suggestion filled in and the other candidates under the task field. Log above `suggestAuto` with project and task creates the entry directly. Committing records feedback (5.5): `accepted` if project and task equal the top candidate, else `edited`.
+The hover "+" button, a drag into the Tracked column (vertical position ignored), "Create Entry…", Space, and Add Entry at confidence up to `suggestAuto` (or a candidate lacking project or task) create a provisional entry over the block's longest untracked stretch, clamped at now, and open the edit popover with the top suggestion filled in and the other candidates under the task field. Add Entry above `suggestAuto` with project and task creates the entry directly. Committing records feedback (5.5): `accepted` if project and task equal the top candidate, else `edited`.
 
-### 3.4 Delete Block from Log
+### 3.4 Delete This Activity
 
-On the Mac, a closed block's context menu has "Delete Block from Log…". It asks "Delete this block from the activity log?" with the block's range and group key and "This removes it on every device and cannot be undone.", buttons Delete (destructive) and Cancel (default). Delete sends `delete-block <dev> <s>` to the tracker agent ([spec_activity_tracking.md](spec_activity_tracking.md) §7.3); the card disappears when the rewritten month file arrives, and an `error` answer shows in an alert. Entries are untouched.
+On the Mac, a closed block's context menu has "Delete This Activity…". It asks "Delete this activity?" with the block's range and group key name ("09:10 – 09:44 · paper (tmux)") and "This removes it on every device and cannot be undone.", buttons Delete (destructive) and Cancel (default). Delete sends `delete-block <dev> <s>` to the tracker agent ([spec_activity_tracking.md](spec_activity_tracking.md) §7.3); the card disappears when the rewritten month file arrives, and an `error` answer shows in an alert titled "Couldn't Delete This Activity" with the app's sentence for the reply, never the reply itself. Entries are untouched.
 
 ### 3.5 Fill Day
 
 Fill Day… (⇧⌘F, the toolbar's sparkles button, or the sparkle button in a day header) works on the header's day, or from the toolbar on today when visible, else the first visible day. It subtracts tracked intervals from the day's closed blocks, keeps segments of at least `fillMinMinutes`, queries the engine for each, merges neighbors (gap of 5 minutes or less) with the same top project and task, and opens a review sheet.
 
-Each row has a checkbox, time range and duration, block summary (all items in a tooltip), project picker and task field prefilled with the suggestion, confidence meter, and Skip (removes the row). Rows below `suggestMin` start unchecked and empty ("No confident suggestion"); others start checked; editing a row checks it. "Log 5 entries (3h 40m)" creates the checked rows in one `transaction(_:)` and one undo step ("Undo Fill Day"), records feedback per row (`skipped` for unchecked and removed rows), and closes. Cancel (Escape) writes nothing. A segment skipped within 30 days is not proposed again for that day.
+Each row has a checkbox, time range and duration, block summary (the first block's group key name, plus the number of further blocks: "paper (tmux) and 2 more"; all items by name in a tooltip), project picker and task field prefilled with the suggestion, confidence meter, and Skip (removes the row). Rows below `suggestMin` start unchecked and empty ("No suggestion"); others start checked; editing a row checks it. "Log 5 entries (3h 40m)" creates the checked rows in one `transaction(_:)` and one undo step ("Undo Fill Day"), records feedback per row (`skipped` for unchecked and removed rows), and closes. Cancel (Escape) writes nothing. A segment skipped within 30 days is not proposed again for that day. Without rows the sheet reads "Nothing Left to Fill" and "All activity on this day is tracked or too short to suggest."
 
 ## 4. Calendar column
 
@@ -131,7 +131,7 @@ A time block is an informational plan: the app creates, moves, resizes, edits, a
 | `notes` | Free notes; a line `Project: <name>` links by name |
 | `startDate`, `endDate` | The interval |
 
-A URL naming an existing project wins. Otherwise the first notes line `Project: <name>` (key case-insensitive, trimmed) links the single active project with that name, ignoring case and diacritics. Otherwise the block is unlinked, with the reason in its tooltip ("Unknown project", "Project name 'Admin' is ambiguous"). The app writes only the URL, hides the `Project:` line, and never rewrites notes.
+A URL naming an existing project wins. Otherwise the first notes line `Project: <name>` (key case-insensitive, trimmed) links the single active project with that name, ignoring case and diacritics. Otherwise the block is unlinked, with the reason in its tooltip ("No project named “Admin”", "Several projects are named “Admin”", or "The linked project no longer exists" for a URL naming no project). The app writes only the URL, hides the `Project:` line, and never rewrites notes.
 
 A block card is a light tint of its area color with a dashed 1.5 point area-color border, showing title, "Project · Client", and a calendar glyph with duration; unlinked blocks are gray. Drawing in empty space (as 2.3, not limited to the past) opens the block editor (title, project, start, end, notes); Return saves, Escape cancels. Blocks move and resize like entries, across days, unlimited by the now-line, and a block crossing midnight moves whole. Return or double-click opens the editor, which has Delete; Delete or ⌫ removes selected blocks, and ⌘Z saves an identical event again. Changes to a recurring event apply to that occurrence. Overlapping blocks and events sit side by side without warning.
 
@@ -166,7 +166,7 @@ Strings split on whitespace, `/`, `:`, `.`, `_`, `-`, and camel-case boundaries;
 
 ### 5.3 Rules and model
 
-A rule maps a group key, context, subject prefix, or calendar-title keyword to a project and optional task, or to Ignore. Rules are made in the Suggestions sheet or from a block's context menu ("Always Use Project…" for a group-key rule, "Ignore This Group Key…"). A matching project rule makes its project the top candidate at confidence 1.0 (reason "rule"), with tasks from the model. An ignore rule removes matching items from the query and empty blocks from Fill Day.
+A rule maps a group key, context, subject prefix, or calendar-title keyword to a project and optional task, or to Ignore. Rules are made in the Suggestions sheet or from a block's context menu ("Always Suggest for “paper (tmux)”", a submenu of projects, for a group-key rule; "Don't Suggest for “paper (tmux)”" for a group-key ignore rule, applied at once). A matching project rule makes its project the top candidate at confidence 1.0 (reason "rule"), with tasks from the model. An ignore rule removes matching items from the query and empty blocks from Fill Day.
 
 The model is k-nearest-neighbors, k = 9, with a composite distance in [0, 1]:
 
@@ -185,13 +185,13 @@ Each neighbor votes 1 / (distance + 0.05) times its feedback weight, summed per 
 
 ### 5.4 Candidates and confidence
 
-Up to five candidates, each with project, task (either may be none), confidence in [0, 1], and reasons (matched group keys, tokens, contexts; hour and weekday matches, meaning cyclic distance under 0.2; title match; rule). Project share is its fraction of all votes, task share its fraction of the project's votes. Confidence is 0.6 · project share + 0.4 · task share, or 0.6 · project share for a project-only candidate, offered when the best task share is under 0.5. Below `suggestMin` (0.35) nothing is prefilled; Log skips the popover only above `suggestAuto` (0.8). With fewer than 5 examples the engine returns nothing.
+Up to five candidates, each with project, task (either may be none), confidence in [0, 1], and reasons (matched group keys, tokens, contexts; hour and weekday matches, meaning cyclic distance under 0.2; title match; rule). Project share is its fraction of all votes, task share its fraction of the project's votes. Confidence is 0.6 · project share + 0.4 · task share, or 0.6 · project share for a project-only candidate, offered when the best task share is under 0.5. Below `suggestMin` (0.35) nothing is prefilled; Add Entry skips the popover only above `suggestAuto` (0.8). With fewer than 5 examples the engine returns nothing.
 
 ### 5.5 Feedback and index
 
-Each decision is a `SuggestionFeedback` record ([spec_data_and_sync.md](spec_data_and_sync.md)): time, query start and end, item count, source (`block`, `event`, `fill`), originating block, top candidate with confidence, outcome (`accepted`, `edited`, `skipped`), chosen project and task when edited, and the entry created. Examples from accepted suggestions weigh 2, others 1. The Suggestions sheet shows 30-day counts per outcome and the top-1 acceptance rate.
+Each decision is a `SuggestionFeedback` record ([spec_data_and_sync.md](spec_data_and_sync.md)): time, query start and end, item count, source (`block`, `event`, `fill`), originating block, top candidate with confidence, outcome (`accepted`, `edited`, `skipped`), chosen project and task when edited, and the entry created. Examples from accepted suggestions weigh 2, others 1. The Suggestions sheet shows 30-day counts per outcome and the top-1 acceptance rate ("first suggestion used 72% of the time").
 
-The index is built in memory at launch, after entry changes (at most every 5 minutes), when a block-log month file changes, and daily after midnight. A cache file keyed by the newest entry's `modifiedAt` and the newest block's end spares the launch rebuild; "Rebuild Suggestions Index" forces one.
+The index is built in memory at launch, after entry changes (at most every 5 minutes), when a block-log month file changes, and daily after midnight. A cache file keyed by the newest entry's `modifiedAt` and the newest block's end spares the launch rebuild; "Relearn Suggestions" forces one.
 
 ### 5.6 Module and fixtures
 
@@ -204,7 +204,7 @@ Fixtures (a synthetic week of blocks in block-log format, entries, calendar titl
 | Right-click on | Items |
 |---|---|
 | Entry | Continue, Edit…, Split Here, Duplicate to Next Day, Delete |
-| Activity block | Create Entry…, Start Now (open block), Always Use Project…, Ignore This Group Key…, Delete Block from Log… (Mac, closed block) |
+| Activity block | Create Entry…, Start Timer Now (open block), Always Suggest for “<name>”, Don't Suggest for “<name>”, Delete This Activity… (Mac, closed block) |
 | Time block | Create Entry…, Edit…, Delete |
 | External event | Create Entry…, Open in Calendar, Hide This Calendar |
 
@@ -216,7 +216,7 @@ Each key is an item of the Planner's View or Entry menu while the section is sho
 | ⌘+ / ⌘− / ⌘0 | Zoom in / out / reset |
 | ⌥⌘[ / ⌥⌘] | One visible day fewer / more |
 | ← / → | Previous / next day |
-| ⇧← / ⇧→ | Back / forward by the visible span |
+| ⇧← / ⇧→ | Back / forward by the visible span (Previous Days / Next Days) |
 | ⌥⌘A / ⌥⌘K | Toggle the Activity / Calendar column |
 | ⇧⌘F | Fill Day… |
 | Tab / ⇧Tab | Next / previous entry by start |
@@ -231,7 +231,7 @@ Each key is an item of the Planner's View or Entry menu while the section is sho
 
 ## 7. Settings and view state
 
-The options popover holds Snap to (1, 5, 10, 15 minutes), Calendars to show (4.3), the time-block calendar's name with "Recreate" (a new calendar in the iCloud account; updates the setting), and "Suggestions…", a sheet with the rules table (kind, pattern, project and task or Ignore), the Fill Day minimum, the training window, the feedback report, and "Rebuild Suggestions Index".
+The options popover holds Snap to (1, 5, 10, 15 minutes), Calendars to show (4.3), the time-block calendar's name ("No calendar for time blocks" without one) with "Create New Calendar" (a new calendar in the iCloud account; updates the setting), and "Suggestions…", a sheet with the rules table (columns Rule: "Session, site, or folder", "App", "Starts with", or "Event title contains"; Matches, a group key or context by its name; project and task or Ignore), the Fill Day minimum ("Fill Day skips activity under 5 min"), the training window ("Learn from the last 180 days"), the feedback report, and "Relearn Suggestions".
 
 | Synced setting | Default | Range |
 |---|---|---|
@@ -258,12 +258,12 @@ Per device: `pointsPerHour` (72), `visibleDays` (5), column toggles (on), calend
 11. Split Here at 10:00 on 09:00 to 11:00 gives two abutting entries; at 10:59:30 it is refused. Duplicate to Next Day is refused when the copy would not be entirely past.
 12. A block half covered by entries is dimmed on that half; device and remote blocks show their glyphs; a block's border equals its context's Activity color.
 13. The "+" on a 09:10 to 09:44 block with its first 20 minutes covered opens the popover for 09:30 to 09:44.
-14. Log at 0.85 with project and task creates the entry directly and records `accepted`; at 0.8 it opens the popover; below 0.35 nothing is prefilled.
-15. A confirmed "Delete Block from Log…" sends one `delete-block <dev> <s>`; Cancel sends nothing; the open block and the iPad do not offer it.
+14. Add Entry at 0.85 with project and task creates the entry directly and records `accepted`; at 0.8 it opens the popover; below 0.35 nothing is prefilled.
+15. A confirmed "Delete This Activity…" sends one `delete-block <dev> <s>`; Cancel sends nothing; the open block and the iPad do not offer it.
 16. Fill Day with untracked segments of 12, 3, and 40 minutes proposes two rows; logging the checked rows is one transaction and one undo step, unchecked rows record `skipped`, Cancel writes nothing.
 17. With no time-block calendar the app creates "Time Blocks" in the iCloud source and writes `calendar.timeBlockCalendarID`; a second device whose identifier lookup fails finds it by title.
 18. A drawn time block is saved as an event with title, project URL, start, and end, and no store record; ⌘Z after Delete recreates it with the same fields.
-19. Notes "Project: noise model" link the one active "Noise Model"; with two matches the block is unlinked and says ambiguous; a URL wins over the notes.
+19. Notes "Project: noise model" link the one active "Noise Model"; with two matches the block is unlinked and says "Several projects are named “noise model”"; a URL wins over the notes.
 20. Dragging a 09:00 to 11:00 time block into Tracked at 10:00 opens the popover for 09:00 to 10:00 with its project and title; an event uses its title as fallback task; external events cannot be moved or deleted.
 21. Without calendar access, or without an iCloud calendar account, the column shows its notice and the rest of the view works.
 22. The 5.6 fixtures pass; feedback is written for each outcome and source; examples from accepted suggestions weigh 2.

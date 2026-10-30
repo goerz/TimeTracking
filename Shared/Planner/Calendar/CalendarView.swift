@@ -65,16 +65,16 @@ struct CalendarView: View {
                 Button("Discard", role: .destructive) { Task { await model.deleteSelection(confirmed: true) } }
                 Button("Cancel", role: .cancel) {}
             }
-            .alert("Delete this block from the activity log?", isPresented: blockDeleteBinding, presenting: model.blockToDelete) { _ in
+            .alert("Delete this activity?", isPresented: blockDeleteBinding, presenting: model.blockToDelete) { _ in
                 Button("Delete", role: .destructive) { Task { await model.deleteBlockFromLog(confirmed: true) } }
                 Button("Cancel", role: .cancel) { Task { await model.deleteBlockFromLog(confirmed: false) } }
                     .keyboardShortcut(.defaultAction)
             } message: { block in
                 let range = CalendarText.range(block.start, block.end, zone: model.calendar.timeZone)
-                Text("\(range) · \(block.groupKey)\nThis removes it on every device and cannot be undone.")
+                Text("\(range) · \(ActivityContext.groupKeyName(block.groupKey))\nThis removes it on every device and cannot be undone.")
             }
             .alert(
-                "The tracker could not delete the block",
+                "Couldn't Delete This Activity",
                 isPresented: .isPresent($model.trackerError),
                 presenting: model.trackerError
             ) { _ in

@@ -32,13 +32,13 @@ extension ProjectsModel {
         await restore(Set(selectedRows.filter(\.project.isArchived).map(\.id)), confirmed: false)
     }
 
-    /// Restores projects; a retired area is named and un-retired after confirmation.
+    /// Restores projects; a retired area is named and reactivated after confirmation.
     func restore(_ ids: Set<ProjectID>, confirmed: Bool) async {
         let retired = Set(rows.filter { ids.contains($0.id) }.compactMap(\.area).filter(\.isRetired).map(\.name))
         if !confirmed, !retired.isEmpty {
             let names = retired.sorted().map { "“\($0)”" }.joined(separator: ", ")
             confirmation = PlannerConfirmation(
-                title: "Restore and un-retire \(names)?",
+                title: "Restore and reactivate \(names)?",
                 message: "The area \(names) is retired. Restoring makes it active again.",
                 confirmTitle: "Restore",
                 action: .restore(ids)

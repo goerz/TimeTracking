@@ -50,7 +50,7 @@ public struct ActivityContext: Sendable, Hashable {
             if let bundleIdentifier, let app = appName(bundleIdentifier) {
                 return app
             }
-            return name.prefix(1).uppercased() + name.dropFirst()
+            return Self.appDisplayName(name)
         }
     }
 

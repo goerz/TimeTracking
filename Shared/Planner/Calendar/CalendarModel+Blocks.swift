@@ -1,5 +1,5 @@
-// Entries from activity blocks, time blocks, and events; Log, Start Now,
-// rules from a block, and Delete Block from Log (spec_planner_calendar.md
+// Entries from activity blocks, time blocks, and events; Add Entry, Start
+// Timer Now, rules from a block, and Delete This Activity (spec_planner_calendar.md
 // §3.2 to §3.4, §4.4, §5.3).
 
 import Foundation
@@ -64,7 +64,7 @@ extension CalendarModel {
         )
     }
 
-    /// Log: above `suggestAuto` with project and task the entry is created
+    /// Add Entry: above `suggestAuto` with project and task the entry is created
     /// directly (`accepted`); otherwise the popover opens.
     func log(_ block: ActivityBlock) async {
         guard let stretch = untrackedStretch(of: block) else {
@@ -88,7 +88,7 @@ extension CalendarModel {
         await commitDraft()
     }
 
-    /// Start Now on the open block: an entry now with the top suggestion.
+    /// Start Timer Now on the open block: an entry now with the top suggestion.
     func startNow(_ block: ActivityBlock) async {
         let top = await suggestions(for: block).first.flatMap { $0.isConfident ? $0 : nil }
         do {
@@ -161,12 +161,12 @@ extension CalendarModel {
 
     // MARK: Rules from a block (§5.3)
 
-    /// "Always Use Project…": a group-key rule.
+    /// "Always Suggest for “<name>”": a group-key rule.
     func alwaysUseProject(_ project: ProjectID, for block: ActivityBlock, task: String? = nil) async {
         await setRules(rules + [SuggestionRule(kind: .groupKey, pattern: block.groupKey, projectID: project, task: task)])
     }
 
-    /// "Ignore This Group Key…".
+    /// "Don't Suggest for “<name>”": a group-key ignore rule.
     func ignoreGroupKey(of block: ActivityBlock) async {
         await setRules(rules + [SuggestionRule(kind: .groupKey, pattern: block.groupKey, ignore: true)])
     }
@@ -180,9 +180,9 @@ extension CalendarModel {
         }
     }
 
-    // MARK: Delete Block from Log (§3.4)
+    // MARK: Delete This Activity (§3.4)
 
-    /// Whether the block's menu offers "Delete Block from Log…" (Mac, closed blocks).
+    /// Whether the block's menu offers "Delete This Activity…" (Mac, closed blocks).
     func canDeleteFromLog(_ block: ActivityBlock) -> Bool {
         sendTrackerCommand != nil && isRecordingMac && !block.isOpen
     }

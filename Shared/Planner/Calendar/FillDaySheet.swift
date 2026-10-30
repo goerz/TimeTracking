@@ -17,7 +17,7 @@ struct FillDaySheet: View {
                 ContentUnavailableView(
                     "Nothing Left to Fill",
                     systemImage: "sparkles",
-                    description: Text("No untracked activity on this day is long enough to propose.")
+                    description: Text("All activity on this day is tracked or too short to suggest.")
                 )
                 .frame(maxHeight: .infinity)
             } else {
@@ -62,10 +62,10 @@ struct FillDaySheet: View {
             Text(row.proposal.summary)
                 .lineLimit(1)
                 .frame(width: 140, alignment: .leading)
-                .help(row.proposal.items.map { "\($0.context) \($0.subject) \(ActivityText.duration($0.seconds))" }.joined(separator: "\n"))
+                .help(row.proposal.itemsText)
             projectButton(row)
             TextField(
-                row.proposal.startsChecked ? "Task" : "No confident suggestion",
+                row.proposal.startsChecked ? "Task" : "No suggestion",
                 text: Binding { row.task } set: { model.setTask($0, row: row.id) }
             )
             ConfidenceMeter(candidate: row.proposal.top)
@@ -118,9 +118,9 @@ struct CalendarOptionsPopover: View {
             }
             Section("Time blocks") {
                 HStack {
-                    Text(model.timeBlockCalendar?.title ?? "No time-block calendar")
+                    Text(model.timeBlockCalendar?.title ?? "No calendar for time blocks")
                     Spacer()
-                    Button("Recreate") { Task { await model.recreateTimeBlockCalendar() } }
+                    Button("Create New Calendar") { Task { await model.recreateTimeBlockCalendar() } }
                 }
             }
             Button("Suggestions…") {
@@ -134,7 +134,7 @@ struct CalendarOptionsPopover: View {
 }
 
 /// The Suggestions sheet: rules, Fill Day minimum, training window, the
-/// feedback report, and Rebuild (§5.5, §7).
+/// feedback report, and Relearn Suggestions (§5.5, §7).
 struct SuggestionsSheet: View {
     @Bindable var model: CalendarModel
     @State private var report: SuggestionFeedbackReport?
@@ -143,8 +143,8 @@ struct SuggestionsSheet: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Suggestions").font(.headline).frame(maxWidth: .infinity)
             Table(model.rules) {
-                TableColumn("Kind") { rule in Text(rule.kind.title) }
-                TableColumn("Pattern") { rule in Text(rule.pattern) }
+                TableColumn("Rule") { rule in Text(rule.kind.title) }
+                TableColumn("Matches") { rule in Text(rule.patternText) }
                 TableColumn("Project and task") { rule in
                     Text(rule.ignore ? "Ignore" : [model.project(rule.projectID)?.name, rule.task].compactMap(\.self)
                         .joined(separator: " · "))
@@ -154,13 +154,13 @@ struct SuggestionsSheet: View {
                 }
             }
             .frame(minHeight: 160)
-            Stepper("Fill Day minimum: \(model.fillMinMinutes) min", value: fillMinimum, in: 1 ... 30)
-            Stepper("Training window: \(model.trainDays) days", value: trainDays, in: 30 ... 730, step: 30)
+            Stepper("Fill Day skips activity under \(model.fillMinMinutes) min", value: fillMinimum, in: 1 ... 30)
+            Stepper("Learn from the last \(model.trainDays) days", value: trainDays, in: 30 ... 730, step: 30)
             if let report {
                 let rate = Int((report.acceptanceRate * 100).rounded())
                 Text(
                     "Last 30 days: \(report.accepted) accepted, \(report.edited) edited, \(report.skipped) skipped; "
-                        + "top-1 acceptance \(rate)%"
+                        + "first suggestion used \(rate)% of the time"
                 )
                 .foregroundStyle(.secondary)
             }
@@ -171,10 +171,10 @@ struct SuggestionsSheet: View {
         .task { await loadReport() }
     }
 
-    /// Rebuild leading; Done, the confirming action, trailing.
+    /// Relearn Suggestions leading; Done, the confirming action, trailing.
     private var footer: some View {
         HStack {
-            Button("Rebuild Suggestions Index") { Task { await model.rebuildIndex() } }
+            Button("Relearn Suggestions") { Task { await model.rebuildIndex() } }
             Spacer()
             Button("Done") { model.showsSuggestions = false }
                 .keyboardShortcut(.defaultAction)

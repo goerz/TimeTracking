@@ -101,8 +101,8 @@ struct ActivityView: View {
             EmptyView()
         case .nothingForContexts:
             card {
-                Text("Nothing recorded for the selected contexts")
-                Button("Show All Contexts") { Task { await model.selectAll() } }
+                Text("Nothing recorded for the selected apps")
+                Button("Show All Apps") { Task { await model.selectAll() } }
             }
         }
     }
@@ -249,9 +249,6 @@ private struct ActivityFooter: View {
             if let health = model.health {
                 Circle().fill(health.dot.color).frame(width: 8, height: 8)
                 Text(health.statusLine)
-                if !health.activeSources.isEmpty {
-                    Text("· " + health.activeSources.joined(separator: ", ")).foregroundStyle(.secondary)
-                }
                 if !health.problems.isEmpty {
                     Text("· " + health.problems.joined(separator: ", ")).foregroundStyle(.orange)
                 }
@@ -276,12 +273,12 @@ private struct ActivityFooter: View {
 }
 
 extension ActivityFooter {
-    /// "Waiting for iCloud · newest block 14:02".
+    /// "Waiting for iCloud · activity up to 14:02".
     private var waitingText: String {
         guard let newest = model.newestBlockEnd else {
             return "Waiting for iCloud"
         }
-        return "Waiting for iCloud · newest block \(CalendarText.clock(newest, zone: model.range.calendar.timeZone))"
+        return "Waiting for iCloud · activity up to \(CalendarText.clock(newest, zone: model.range.calendar.timeZone))"
     }
 }
 

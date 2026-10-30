@@ -12,20 +12,11 @@ struct BlockPopover: View {
     @State private var showsOthers = false
 
     var body: some View {
-        let zone = model.calendar.timeZone
-        let span = Int(block.end.timeIntervalSince(block.start))
         VStack(alignment: .leading, spacing: 8) {
-            Text("\(CalendarText.range(block.start, block.end, zone: zone)) · \(ActivityText.duration(span)) · \(block.device)")
-                .font(.headline)
-            if block.activeSeconds < span {
-                Text("\(ActivityText.duration(span)), \(ActivityText.duration(block.activeSeconds)) active").foregroundStyle(.secondary)
-            }
-            if block.source == .knowledge {
-                Text("reconstructed").font(.caption).foregroundStyle(.secondary)
-            }
+            header
             ForEach(Array(block.items.enumerated()), id: \.offset) { _, item in
                 HStack {
-                    Text(item.context).fontWeight(.semibold)
+                    Text(ActivityContext(item.context).label()).fontWeight(.semibold)
                     Text([item.subject, item.detail].filter { !$0.isEmpty }.joined(separator: " ")).lineLimit(1)
                     Spacer()
                     Text(ActivityText.duration(item.seconds)).monospacedDigit()
@@ -33,7 +24,8 @@ struct BlockPopover: View {
                 .font(.caption)
             }
             ForEach(Array(block.background.enumerated()), id: \.offset) { _, item in
-                Text("+ \(item.context) \(item.subject) (busy \(ActivityText.duration(item.seconds)))").font(.caption)
+                let title = ActivityBackgroundRow.title(context: item.context, subject: item.subject)
+                Text("In the background: \(title), \(ActivityText.duration(item.seconds))").font(.caption)
                     .foregroundStyle(.secondary)
             }
             Divider()
@@ -41,13 +33,29 @@ struct BlockPopover: View {
             HStack {
                 Button("Create Entry…") { Task { await model.createEntry(from: block) } }
                 if block.isOpen {
-                    Button("Start Now") { Task { await model.startNow(block) } }
+                    Button("Start Timer Now") { Task { await model.startNow(block) } }
                 }
             }
         }
         .padding()
         .frame(width: 340)
         .task { candidates = await model.suggestions(for: block) }
+    }
+
+    /// Range, duration, device; the group key's share; active time; the source.
+    @ViewBuilder private var header: some View {
+        let zone = model.calendar.timeZone
+        let span = Int(block.end.timeIntervalSince(block.start))
+        Text("\(CalendarText.range(block.start, block.end, zone: zone)) · \(ActivityText.duration(span)) · \(device)")
+            .font(.headline)
+        Text("\(ActivityContext.groupKeyName(block.groupKey)), \(Int((block.groupShare * 100).rounded()))% of this time")
+            .foregroundStyle(.secondary)
+        if block.activeSeconds < span {
+            Text("\(ActivityText.duration(span)), \(ActivityText.duration(block.activeSeconds)) active").foregroundStyle(.secondary)
+        }
+        if block.source == .knowledge {
+            Text("Reconstructed from macOS app usage history").font(.caption).foregroundStyle(.secondary)
+        }
     }
 
     @ViewBuilder private var suggestion: some View {
@@ -57,7 +65,7 @@ struct BlockPopover: View {
                 Text(CandidateText.title(top, model: model))
                 Spacer()
                 ConfidenceMeter(candidate: top)
-                Button("Log") { Task { await model.log(block) } }
+                Button("Add Entry") { Task { await model.log(block) } }
                     .accessibilityIdentifier("calendar.block.log")
             }
             DisclosureGroup("Other suggestions", isExpanded: $showsOthers) {
@@ -71,7 +79,12 @@ struct BlockPopover: View {
             }
             .font(.caption)
         } else {
-            Text("No confident suggestion").foregroundStyle(.secondary)
+            Text("No suggestion").foregroundStyle(.secondary)
         }
+    }
+
+    /// The recording device; `remote` reads "Other devices (Safari)".
+    private var device: String {
+        ActivityContext.deviceName(block.device)
     }
 }

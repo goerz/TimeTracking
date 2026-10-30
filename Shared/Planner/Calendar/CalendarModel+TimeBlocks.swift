@@ -59,10 +59,10 @@ extension CalendarModel {
         do {
             if let id = draft.eventID, let old = timeBlocks.first(where: { $0.id == id })?.event {
                 let updated = try events.update(id, fields)
-                registerEventUndo("Undo Edit Block") { store in _ = try store.update(updated.id, old.draft) }
+                registerEventUndo("Undo Edit Time Block") { store in _ = try store.update(updated.id, old.draft) }
             } else {
                 let created = try events.create(fields)
-                registerEventUndo("Undo New Block") { store in try store.remove(created.id) }
+                registerEventUndo("Undo New Time Block") { store in try store.remove(created.id) }
             }
         } catch {
             report(error)
@@ -98,7 +98,7 @@ extension CalendarModel {
         do {
             let updated = try events.update(block.id, fields)
             let old = block.event.draft
-            registerEventUndo("Undo Move Block") { store in _ = try store.update(updated.id, old) }
+            registerEventUndo("Undo Move Time Block") { store in _ = try store.update(updated.id, old) }
         } catch {
             report(error)
         }
@@ -115,7 +115,7 @@ extension CalendarModel {
                 report(error)
             }
         }
-        registerEventUndo("Undo Delete Block") { store in
+        registerEventUndo("Undo Delete Time Block") { store in
             for fields in removed {
                 _ = try store.create(fields)
             }
@@ -182,7 +182,7 @@ extension CalendarModel {
         }
     }
 
-    /// "Recreate": a new calendar in the iCloud account; updates the setting.
+    /// "Create New Calendar": a new calendar in the iCloud account; updates the setting.
     func recreateTimeBlockCalendar() async {
         let resolution = TimeBlockCalendar.recreate(store: events)
         if let id = resolution.settingToWrite {
@@ -204,7 +204,7 @@ extension CalendarModel {
         return found.map { SuggestionCalendarTitle(title: $0.title, interval: $0.interval) }
     }
 
-    /// "Rebuild Suggestions Index".
+    /// "Relearn Suggestions": rebuilds the index.
     func rebuildIndex() async {
         await engine.rebuild(titles: trainingTitles())
     }

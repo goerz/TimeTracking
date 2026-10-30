@@ -22,7 +22,7 @@ struct EntryRowLabels: View {
                     Image(systemName: "exclamationmark.circle.fill")
                         .foregroundStyle(.orange)
                         .imageScale(.small)
-                        .accessibilityLabel("Adjusted")
+                        .accessibilityLabel("Changed by another device")
                         .accessibilityIdentifier("row.badge.\(listing.id)")
                 }
             }

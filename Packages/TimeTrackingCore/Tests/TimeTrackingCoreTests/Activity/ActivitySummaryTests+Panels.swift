@@ -6,7 +6,7 @@ import Testing
 import TimeTrackingCore
 
 extension ActivitySummaryTests {
-    @Test("PA-14 a subject has a chevron only with a detail record, and says details for N of M blocks")
+    @Test("PA-14 a subject has a chevron only with a detail record, and says details for N of M periods")
     func subjectDetails() throws {
         let first = try Self.block("2026-10-26", "09:00", "10:00", [Self.item("tmux:paper", "~/Papers/Noise", "nvim a.tex", 600)])
         let second = try Self.block("2026-10-27", "09:00", "10:00", [Self.item("tmux:paper", "~/Papers/Noise", "nvim b.tex", 300)])
@@ -24,7 +24,7 @@ extension ActivitySummaryTests {
         #expect(row.hasDetails)
         let drill = try #require(summary.subjectDetail(row, homeDirectory: "/Users/alex"))
         #expect(drill.lines.map(\.detail) == ["nvim a.tex", "nvim c.tex"])
-        #expect(drill.coverageText == "details for 1 of 2 blocks")
+        #expect(drill.coverageText == "details for 1 of 2 periods")
         #expect(drill.visitedText == "1 modified file")
         // Elsewhere (no details): no chevron.
         let elsewhere = Self.summary([first, second])
@@ -42,7 +42,7 @@ extension ActivitySummaryTests {
         let unknown = Self.summary(blocks).away
         #expect(unknown.seconds == 3600)
         #expect(unknown.parts == [ActivityAway.Part(cause: .unknown, seconds: 3600, count: 1)])
-        #expect(unknown.partsText == "unknown 1h (1) (not classified on this device)")
+        #expect(unknown.partsText == "unknown 1h (1 time) (cause known only on the Mac that recorded it)")
         let detail = ActivityBlockDetail(
             blockID: shortGap.id,
             items: shortGap.items,

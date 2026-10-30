@@ -26,10 +26,13 @@ public struct ActivitySubjectDetail: Sendable, Hashable {
     public var coveredBlocks: Int
     public var totalBlocks: Int
 
-    /// "details for 31 of 34 blocks", or `nil` when every block has one.
+    /// "details for 31 of 34 periods", or `nil` when every block has one.
     public var coverageText: String? {
-        coveredBlocks < totalBlocks ? "details for \(coveredBlocks) of \(totalBlocks) blocks" : nil
+        coveredBlocks < totalBlocks ? "details for \(coveredBlocks) of \(totalBlocks) periods" : nil
     }
+
+    /// The line of an item without a detail.
+    public static let noDetail = "(no file or page)"
 
     /// "12 visited pages" or "8 modified files".
     public var visitedText: String? {
@@ -50,7 +53,7 @@ extension ActivitySummary {
         var seconds: [String: Int] = [:]
         for detail in details {
             for item in detail.items where item.subject == subject && (input.contexts.isEmpty || input.contexts.contains(item.context)) {
-                seconds[item.detail.isEmpty ? "(no detail)" : item.detail, default: 0] += item.seconds
+                seconds[item.detail.isEmpty ? ActivitySubjectDetail.noDetail : item.detail, default: 0] += item.seconds
             }
         }
         let isSite = row.contexts.contains { ActivityContext($0).kind == .browser }

@@ -176,7 +176,7 @@ struct PlannerProjectsTests {
         #expect(try await test.store.project(moved.id)?.areaID == moved.areaID)
     }
 
-    @Test("PP-19 restoring a project in a retired area asks first and un-retires the area; retired areas leave the dialog's Area popup")
+    @Test("PP-19 restoring a project in a retired area asks first and reactivates the area; retired areas leave the dialog's Area popup")
     func restoreRetired() async throws {
         let test = try await TestApp()
         let projects = try await test.projects(["Paper"])
@@ -190,7 +190,7 @@ struct PlannerProjectsTests {
         model.options.state = .all
         model.selection = [projects[0].id]
         await model.restoreSelection()
-        #expect(model.confirmation?.title == "Restore and un-retire “Research”?")
+        #expect(model.confirmation?.title == "Restore and reactivate “Research”?")
         #expect(try await test.store.project(projects[0].id)?.isArchived == true)
         await model.confirm()
         #expect(try await test.store.project(projects[0].id)?.isArchived == false)
@@ -211,7 +211,7 @@ struct PlannerProjectsTests {
         #expect(Color(hex: "#1F3A93").hexString == "#1F3A93")
         areaForm.name = "Consulting"
         await areaForm.validate()
-        #expect(areaForm.nameError == "An area cannot have the client's name")
+        #expect(areaForm.nameError == "This name is used by the client's general area")
         clientForm.name = "CONSULTING"
         await clientForm.validate()
         #expect(clientForm.nameError == "A client with this name already exists")
