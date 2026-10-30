@@ -1,5 +1,6 @@
 // Full and compact mode, restoration, and the list (spec_timer_window.md §1, §3).
 
+import AppKit
 import CoreGraphics
 import Foundation
 import Testing
@@ -56,6 +57,42 @@ struct TimerWindowTests {
         #expect(AppSettings(device: settings.device).timerPinned)
         settings.device[.timerFrame] = StoredFrame(stored)
         #expect(AppSettings(device: settings.device).device[.timerFrame]?.rect == stored)
+    }
+
+    @Test("TW-3 a relaunched Timer window takes the compact mode, frame, and pin from quit; pinned it floats above normal windows")
+    func relaunch() async throws {
+        let test = try await TestApp()
+        let screen = try #require(NSScreen.main?.visibleFrame)
+        let quitFrame = CGRect(x: screen.minX + 120, y: screen.minY + 140, width: 420, height: TimerWindowGeometry.barHeight)
+        // State at quit: compact at quitFrame, pinned.
+        test.app.settings.device[.timerFrame] = StoredFrame(quitFrame)
+        test.app.setPinned(true)
+        // Relaunch: new settings over the same defaults, a new window.
+        let settings = AppSettings(device: test.app.settings.device)
+        #expect(settings.timerPinned)
+        let controller = TimerWindowController(settings: settings)
+        let window = NSWindow(
+            contentRect: CGRect(x: 0, y: 0, width: 440, height: 620),
+            styleMask: [.titled, .resizable],
+            backing: .buffered,
+            defer: true
+        )
+        window.isReleasedWhenClosed = false
+        controller.attach(window)
+        #expect(window.frame == quitFrame)
+        #expect(controller.isCompact)
+        // .floating is above every app's normal-level windows, the other app's key window included.
+        #expect(window.level == .floating)
+        #expect(window.level.rawValue > NSWindow.Level.normal.rawValue)
+        controller.applyPin(false)
+        #expect(window.level == .normal)
+        // Unpinned at quit: the next launch is at the normal level.
+        test.app.settings.timerPinned = false
+        let unpinned = TimerWindowController(settings: AppSettings(device: test.app.settings.device))
+        let second = NSWindow(contentRect: quitFrame, styleMask: [.titled, .resizable], backing: .buffered, defer: true)
+        second.isReleasedWhenClosed = false
+        unpinned.attach(second)
+        #expect(second.level == .normal)
     }
 
     @Test("TW-15 two identical consecutive entries are two rows; 14 days with entries, Load Earlier appends 14")
@@ -119,6 +156,35 @@ struct TimerWindowTests {
         let before = list.scrollToTopRequest
         list.scrollToTop()
         #expect(list.scrollToTopRequest == before + 1)
+    }
+
+    @Test("TW-16 a click selects and edits, a double-click continues, the context menu has Continue, Edit…, Delete…")
+    func rowPointerInputs() async throws {
+        let test = try await TestApp()
+        let projects = try await test.projects(["Household"])
+        try await test.entry("Order toner", projects[0], from: "08:00", to: "08:25")
+        try await test.entry("Plan", from: "09:00", to: "09:30")
+        let list = test.app.list
+        let toner = try #require(list.rows.first { $0.entry.task == "Order toner" })
+        test.app.rowClicked(toner.id)
+        #expect(list.selection == toner.id)
+        #expect(test.app.presentation.editing == toner.id)
+        test.app.presentation.editing = nil
+        await test.app.rowDoubleClicked(toner.id).value
+        #expect(test.app.timer.running?.task == "Order toner")
+        #expect(test.app.timer.running?.projectID == projects[0].id)
+        await test.app.timer.stop()
+        #expect(TimerRowMenuItem.allCases.map(\.title) == ["Continue", "Edit…", "Delete…"])
+        let plan = try #require(list.rows.first { $0.entry.task == "Plan" })
+        await test.app.performRowMenu(.continueEntry, on: plan.id)?.value
+        #expect(test.app.timer.running?.task == "Plan")
+        await test.app.timer.stop()
+        #expect(test.app.performRowMenu(.edit, on: plan.id) == nil)
+        #expect(test.app.presentation.editing == plan.id)
+        #expect(list.selection == plan.id)
+        test.app.performRowMenu(.delete, on: toner.id)
+        #expect(test.app.timer.alert == list.deleteAlert(for: toner.id))
+        #expect(test.app.timer.alert?.message == "Delete this entry? 0:25:00, Household")
     }
 
     @Test("TW-17 ⌘F with noise leaves only matching entries, and day totals sum them; Escape clears the filter")

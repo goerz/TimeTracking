@@ -161,20 +161,16 @@ struct EntryRowView: View {
         .onHover { hovering = $0 }
         .help(Self.range(entry))
         .onTapGesture(count: 2) {
-            Task { await app.timer.continueEntry(entry.id) }
+            app.rowDoubleClicked(entry.id)
         }
         .accessibilityAddTraits(.isButton)
         .onTapGesture {
-            app.list.selection = entry.id
-            app.presentation.editing = entry.id
+            app.rowClicked(entry.id)
         }
         .contextMenu {
-            Button("Continue") { Task { await app.timer.continueEntry(entry.id) } }
-            Button("Edit…") {
-                app.list.selection = entry.id
-                app.presentation.editing = entry.id
+            ForEach(TimerRowMenuItem.allCases, id: \.self) { item in
+                Button(item.title) { app.performRowMenu(item, on: entry.id) }
             }
-            Button("Delete…") { app.timer.alert = app.list.deleteAlert(for: entry.id) }
         }
         .id(entry.id)
         .accessibilityElement(children: .combine)

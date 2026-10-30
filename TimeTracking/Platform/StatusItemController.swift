@@ -81,6 +81,23 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         tick = timer
     }
 
+    /// The title the item shows now.
+    var renderedTitle: String {
+        item.button?.attributedTitle.string ?? ""
+    }
+
+    /// When the scheduled tick fires; `nil` without one.
+    var nextTickDate: Date? {
+        tick?.fireDate
+    }
+
+    /// Takes the item off the menu bar (tests).
+    func remove() {
+        tick?.invalidate()
+        tick = nil
+        NSStatusBar.system.removeStatusItem(item)
+    }
+
     /// Sleep cancels the tick; wake re-renders from the clock and re-arms it.
     func setAsleep(_ asleep: Bool) {
         self.asleep = asleep

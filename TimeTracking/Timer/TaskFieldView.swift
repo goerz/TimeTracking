@@ -76,24 +76,7 @@ struct TaskFieldView: View {
     }
 
     private func submit() {
-        if let choice = app.taskField.choosePickerHighlight() {
-            app.timer.taskText = TaskFieldModel.removingTrigger(from: app.timer.taskText)
-            Task {
-                await app.choose(choice)
-                await app.timer.commitTask()
-            }
-            return
-        }
-        if let suggestion = app.taskField.acceptSuggestion() {
-            Task {
-                await app.timer.accept(suggestion)
-                if !app.timer.isRunning {
-                    await app.timer.start()
-                }
-            }
-            return
-        }
-        Task { await app.timer.submitTask() }
+        app.taskFieldReturn()
     }
 
     private func escape() {
@@ -113,12 +96,7 @@ struct TaskFieldPopup: View {
     var body: some View {
         if let picker = app.taskField.picker {
             ProjectPickerView(model: picker, showsSearchField: false) { choice in
-                app.timer.taskText = TaskFieldModel.removingTrigger(from: app.timer.taskText)
-                app.taskField.reset()
-                Task {
-                    await app.choose(choice)
-                    await app.timer.commitTask()
-                }
+                app.taskFieldPicked(choice)
             }
             .popupBackground()
         } else if app.taskField.isShowingSuggestions {

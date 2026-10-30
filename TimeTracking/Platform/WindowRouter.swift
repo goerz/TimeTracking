@@ -46,18 +46,43 @@ final class WindowRouter: AppRouting {
     }
 }
 
+/// What `ActivationPolicy` needs of the application; tests pass a fake.
+protocol ActivationTarget: AnyObject {
+    var keyWindowTarget: (any KeyWindowTarget)? { get }
+
+    func activationPolicy() -> NSApplication.ActivationPolicy
+    @discardableResult
+    func setActivationPolicy(_ activationPolicy: NSApplication.ActivationPolicy) -> Bool
+    func activate()
+}
+
+/// What `ActivationPolicy` needs of a window.
+protocol KeyWindowTarget: AnyObject {
+    var isVisible: Bool { get }
+
+    func makeKeyAndOrderFront(_ sender: Any?)
+}
+
+extension NSApplication: ActivationTarget {
+    var keyWindowTarget: (any KeyWindowTarget)? {
+        keyWindow
+    }
+}
+
+extension NSWindow: KeyWindowTarget {}
+
 /// Applies "Show Dock icon" (spec_menubar.md §4).
 enum ActivationPolicy {
-    static func apply(showDockIcon: Bool, keyWindow: NSWindow?) {
+    static func apply(showDockIcon: Bool, keyWindow: (any KeyWindowTarget)?, application: any ActivationTarget = NSApp) {
         let policy: NSApplication.ActivationPolicy = showDockIcon ? .regular : .accessory
-        guard NSApp.activationPolicy() != policy else {
+        guard application.activationPolicy() != policy else {
             return
         }
-        let window = keyWindow ?? NSApp.keyWindow
-        NSApp.setActivationPolicy(policy)
+        let window = keyWindow ?? application.keyWindowTarget
+        application.setActivationPolicy(policy)
         if !showDockIcon, let window, window.isVisible {
             // Switching to accessory deactivates the app; keep the window key.
-            NSApp.activate()
+            application.activate()
             window.makeKeyAndOrderFront(nil)
         }
     }

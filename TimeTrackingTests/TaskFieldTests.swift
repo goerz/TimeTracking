@@ -48,12 +48,18 @@ struct TaskFieldTests {
         #expect(picker.search == "noi")
         #expect(picker.taskMatching)
         #expect(picker.highlight == .project(projects[0].id))
-        let choice = try #require(field.choosePickerHighlight())
-        #expect(choice == .project(projects[0].id))
-        test.app.timer.taskText = TaskFieldModel.removingTrigger(from: test.app.timer.taskText)
-        await test.app.choose(choice)
+        // Return in the field: the highlight is assigned and "@noi" removed.
+        await test.app.taskFieldReturn().value
+        #expect(field.picker == nil)
         #expect(test.app.timer.taskText == "Clarify")
         #expect(test.app.timer.draftProjectID == projects[0].id)
+        // A click in the list does the same.
+        test.app.timer.taskText = "Fix @web"
+        await field.userEdited("Fix @web", chipProject: nil)
+        await test.app.taskFieldPicked(.project(projects[1].id)).value
+        #expect(field.picker == nil)
+        #expect(test.app.timer.taskText == "Fix")
+        #expect(test.app.timer.draftProjectID == projects[1].id)
 
         // Escape closes the picker and leaves the text.
         await field.userEdited("@noi", chipProject: nil)

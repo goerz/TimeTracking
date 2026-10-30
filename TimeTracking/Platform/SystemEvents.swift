@@ -14,15 +14,26 @@ final class SystemEvents {
     private var sampling: Task<Void, Never>?
     private var checking: Task<Void, Never>?
     private(set) var isLocked = false
+    private let workspace: NotificationCenter
+    private let distributed: NotificationCenter
 
-    init(app: AppModel, statusItem: StatusItemController?) {
+    /// `workspace` and `distributed` default to the system's centers; tests
+    /// pass their own to post sleep and wake.
+    init(
+        app: AppModel,
+        statusItem: StatusItemController?,
+        workspace: NotificationCenter = NSWorkspace.shared.notificationCenter,
+        distributed: NotificationCenter = DistributedNotificationCenter.default()
+    ) {
         self.app = app
         self.statusItem = statusItem
+        self.workspace = workspace
+        self.distributed = distributed
     }
 
-    func start() {
-        let workspace = NSWorkspace.shared.notificationCenter
-        let distributed = DistributedNotificationCenter.default()
+    /// Observes the system events; `polling` also starts the 10-second
+    /// idle sampling and the 30-second check.
+    func start(polling: Bool = true) {
         observers = [
             workspace.addObserver(forName: NSWorkspace.willSleepNotification, object: nil, queue: .main) { [weak self] _ in
                 MainActor.assumeIsolated { self?.event(.sleep) }
@@ -46,6 +57,9 @@ final class SystemEvents {
                 MainActor.assumeIsolated { self?.event(.unlock) }
             },
         ]
+        guard polling else {
+            return
+        }
         sampling = Task { [weak self] in
             while !Task.isCancelled {
                 await self?.sample()
