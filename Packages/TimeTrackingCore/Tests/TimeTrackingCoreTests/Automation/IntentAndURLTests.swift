@@ -142,9 +142,9 @@ struct IntentAndURLTests {
     /// checks the menu bar against the real tool.
     @Test("AUTO-40 a write by another process reaches an observing store's changes by notification, without a clock advance")
     func crossProcessChange() async throws {
-        let folder = FileManager.default.temporaryDirectory.appending(path: "auto40-\(UUID().uuidString)")
-        defer { try? FileManager.default.removeItem(at: folder) }
-        let url = folder.appending(path: "store.sqlite")
+        let folder = try TemporaryFolder()
+        defer { folder.remove() }
+        let url = folder.url.appending(path: "store.sqlite")
         let name = "auto40.\(UUID().uuidString).changed"
         let clock = ManualClock(Date(timeIntervalSince1970: 1_800_000_000))
         func open() async throws -> TimeStore {

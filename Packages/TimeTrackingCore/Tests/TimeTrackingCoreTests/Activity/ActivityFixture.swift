@@ -1,19 +1,10 @@
-// Helpers for the Activity tests (spec_data_and_sync.md §6): temporary
-// folders and fixed instants. Tests never touch the real containers.
+// Helpers for the Activity tests (spec_data_and_sync.md §6): activity
+// folders in a temporary folder, fixed instants, and file writes.
 
 import Foundation
 import TimeTrackingCore
 
-/// A fresh folder under the temporary directory.
-struct TemporaryFolder {
-    let url: URL
-
-    init() throws {
-        self.url = FileManager.default.temporaryDirectory
-            .appending(path: "TimeTrackingCoreTests-\(UUID().uuidString)", directoryHint: .isDirectory)
-        try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
-    }
-
+extension TemporaryFolder {
     /// Activity folders `shared/` and `local/` inside this folder.
     var folders: ActivityFolders {
         ActivityFolders(
@@ -21,25 +12,14 @@ struct TemporaryFolder {
             local: url.appending(path: "local", directoryHint: .isDirectory)
         )
     }
-
-    func remove() {
-        try? FileManager.default.removeItem(at: url)
-    }
-}
-
-/// Runs `body` with a temporary folder that is removed afterwards.
-func withTemporaryFolder<Value>(_ body: (TemporaryFolder) async throws -> Value) async throws -> Value {
-    let folder = try TemporaryFolder()
-    defer { folder.remove() }
-    return try await body(folder)
 }
 
 enum ActivityFixture {
-    static let newYork = TimeZone(identifier: "America/New_York") ?? .gmt
+    static let newYork = TestTime.newYork
 
     /// An instant from an RFC 3339 string.
     static func instant(_ text: String) throws -> Date {
-        try Date(text, strategy: .iso8601)
+        try TestTime.instant(text)
     }
 
     /// Writes `text` to `url`, creating folders, and sets the modification

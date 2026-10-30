@@ -207,9 +207,9 @@ struct MultiStoreSyncTests {
 
     @Test("DATA-31 outbox rows of a second instance without an engine are sent by the engine's instance")
     func secondInstance() async throws {
-        let folder = FileManager.default.temporaryDirectory.appending(path: "tt-\(UUID().uuidString)")
-        defer { try? FileManager.default.removeItem(at: folder) }
-        let url = folder.appending(path: "store.sqlite")
+        let folder = try TemporaryFolder()
+        defer { folder.remove() }
+        let url = folder.url.appending(path: "store.sqlite")
         let zone = try #require(TimeZone(identifier: "Europe/Berlin"))
         let clock = try ManualClock(TestStore.date("2024-03-14T10:00", zone))
         let device = DeviceID()

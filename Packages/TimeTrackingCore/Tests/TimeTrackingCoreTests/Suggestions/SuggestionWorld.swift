@@ -34,7 +34,7 @@ struct SuggestionWorld {
         var titles: [TitleSpec]
     }
 
-    static let zone = TimeZone(identifier: "America/New_York") ?? .gmt
+    static let zone = TestTime.newYork
     static let firstDay = TrackingDay(year: 2024, month: 1, day: 29)
     static let dayCount = 56
     /// The held-out last week starts here.
@@ -78,8 +78,10 @@ struct SuggestionWorld {
         )
     }
 
+    /// A local time in `zone`. A bad text fails the running test (`#require`
+    /// records the issue) and reads as `.distantPast`.
     static func date(_ text: String) -> Date {
-        LaunchArguments.parseInstant(text, timeZone: zone) ?? .distantPast
+        (try? TestTime.local(text, in: zone)) ?? .distantPast
     }
 
     // MARK: Files
@@ -108,9 +110,10 @@ struct SuggestionWorld {
     /// The committed fixture: `world.json` and the block log read back.
     static func load() async throws -> Self {
         let document = try JSONDecoder().decode(Document.self, from: Data(contentsOf: folder.appending(path: "world.json")))
-        let local = FileManager.default.temporaryDirectory.appending(path: "SuggestionWorld-\(UUID().uuidString)")
+        let local = try TemporaryFolder()
+        defer { local.remove() }
         let reader = FileActivityStore(
-            folders: ActivityFolders(shared: folder, local: local),
+            folders: ActivityFolders(shared: folder, local: local.url),
             timeZone: zone,
             clock: ManualClock(date("2024-03-25T00:00"))
         )

@@ -30,7 +30,7 @@ struct TestStore {
 
     /// A local time `yyyy-MM-dd'T'HH:mm[:ss]` in `zone`.
     static func date(_ text: String, _ zone: TimeZone) throws -> Date {
-        try #require(LaunchArguments.parseInstant(text, timeZone: zone), "bad date \(text)")
+        try TestTime.local(text, in: zone)
     }
 
     /// A local time in this store's zone.

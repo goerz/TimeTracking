@@ -11,9 +11,9 @@ struct StoreBusyTests {
     func busyTimeout() async throws {
         #expect(TimeStore.defaultBusyTimeout == 5)
         #expect(TimeStore.defaultBusyTimeout > 2 && TimeStore.defaultBusyTimeout < 10)
-        let folder = FileManager.default.temporaryDirectory.appending(path: "busy-\(UUID().uuidString)")
-        defer { try? FileManager.default.removeItem(at: folder) }
-        let url = folder.appending(path: "store.sqlite")
+        let folder = try TemporaryFolder()
+        defer { folder.remove() }
+        let url = folder.url.appending(path: "store.sqlite")
         let clock = ManualClock(Date(timeIntervalSince1970: 1_800_000_000))
         let configuration = TimeStore.Configuration(location: .file(url), clock: clock, deviceID: DeviceID())
         #expect(configuration.busyTimeout == TimeStore.defaultBusyTimeout)

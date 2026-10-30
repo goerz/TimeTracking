@@ -17,12 +17,11 @@ struct StorePerformanceTests {
         var dataset = SyntheticDataset.large()
         dataset.runningMinutes = 25
         let document = try await dataset.exportDocument()
-        let folder = FileManager.default.temporaryDirectory.appending(path: "perf-\(UUID().uuidString)", directoryHint: .isDirectory)
-        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: folder) }
+        let folder = try TemporaryFolder()
+        defer { folder.remove() }
         let zone = try #require(TimeZone(identifier: dataset.timeZone))
         let configuration = TimeStore.Configuration(
-            location: .file(folder.appending(path: "store.sqlite")),
+            location: .file(folder.url.appending(path: "store.sqlite")),
             clock: ManualClock(dataset.nowDate),
             deviceID: dataset.deviceID,
             timeZone: { zone }
@@ -71,11 +70,11 @@ struct StorePerformanceTests {
     @Test("blocks(in:) for 7 days under 50 ms with the month files cached, on the large dataset's block log")
     func blockTargets() async throws {
         let dataset = SyntheticDataset.large()
-        let folder = FileManager.default.temporaryDirectory.appending(path: "perf-\(UUID().uuidString)", directoryHint: .isDirectory)
-        defer { try? FileManager.default.removeItem(at: folder) }
-        try await dataset.activityLog(to: folder)
+        let folder = try TemporaryFolder()
+        defer { folder.remove() }
+        try await dataset.activityLog(to: folder.url)
         let zone = try #require(TimeZone(identifier: dataset.timeZone))
-        let reader = FileActivityStore(folders: ActivityFolders(shared: folder, local: folder, isFallback: true), timeZone: zone)
+        let reader = FileActivityStore(folders: ActivityFolders(shared: folder.url, local: folder.url, isFallback: true), timeZone: zone)
         let last = dataset.days.upperBound
         let week = TrackingCalendar(timeZone: zone).interval(of: last.adding(days: -6) ... last)
         #expect(try await !reader.blocks(in: week, devices: nil).isEmpty)

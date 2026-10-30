@@ -6,10 +6,10 @@ import Testing
 import TimeTrackingCore
 
 struct IdleAndReminderTests {
-    let zone = TimeZone(identifier: "Europe/Berlin") ?? .current
+    let zone = TestTime.berlin
 
     func date(_ text: String) throws -> Date {
-        try #require(LaunchArguments.parseInstant(text, timeZone: zone))
+        try TestTime.local(text, in: zone)
     }
 
     @Test(

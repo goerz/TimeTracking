@@ -108,10 +108,10 @@ struct ActivityAgentSupportTests {
     }
 
     @Test func mirrorCopiesChangedMonthsAndNewerSettings() throws {
-        let root = FileManager.default.temporaryDirectory.appending(path: "mirror-\(UUID().uuidString)")
-        defer { try? FileManager.default.removeItem(at: root) }
-        let local = root.appending(path: "local")
-        let container = root.appending(path: "container")
+        let root = try TemporaryFolder()
+        defer { root.remove() }
+        let local = root.url.appending(path: "local")
+        let container = root.url.appending(path: "container")
         try FileManager.default.createDirectory(at: local.appending(path: "blocks"), withIntermediateDirectories: true)
         try Data("a\n".utf8).write(to: local.appending(path: "blocks/2024-03.jsonl"))
         try "[presence]\nidle_after = \"3m\"\n".write(to: local.appending(path: "settings.toml"), atomically: true, encoding: .utf8)

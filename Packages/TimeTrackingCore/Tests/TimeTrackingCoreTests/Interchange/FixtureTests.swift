@@ -119,11 +119,11 @@ struct FixtureTests {
     }
 
     @Test func syntheticActivityLog() async throws {
-        let folder = FileManager.default.temporaryDirectory.appending(path: "tt-\(UUID().uuidString)")
-        defer { try? FileManager.default.removeItem(at: folder) }
+        let folder = try TemporaryFolder()
+        defer { folder.remove() }
         let dataset = try #require(SyntheticDataset.fixture(named: "small"))
-        try await dataset.activityLog(to: folder)
-        let reader = FileActivityStore(folders: ActivityFolders(shared: folder, local: folder, isFallback: true))
+        try await dataset.activityLog(to: folder.url)
+        let reader = FileActivityStore(folders: ActivityFolders(shared: folder.url, local: folder.url, isFallback: true))
         let calendar = try TrackingCalendar(timeZone: #require(TimeZone(identifier: "America/New_York")))
         let blocks = try await reader.blocks(in: calendar.interval(of: dataset.days), devices: nil)
         #expect(blocks.count > 40)

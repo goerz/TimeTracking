@@ -7,12 +7,12 @@ import TimeTrackingCore
 
 @Suite("Calendar geometry")
 struct CalendarGeometryTests {
-    static let zone = TimeZone(identifier: "America/New_York") ?? .gmt
+    static let zone = TestTime.newYork
     static let calendar = TrackingCalendar(timeZone: zone)
     static let thursday = TrackingDay(year: 2026, month: 10, day: 29)
 
     static func time(_ text: String) throws -> Date {
-        try #require(LaunchArguments.parseInstant(text, timeZone: zone))
+        try TestTime.local(text, in: zone)
     }
 
     static func editing(now: String = "2026-10-29T14:20", snap: Int = 5) throws -> CalendarEditing {

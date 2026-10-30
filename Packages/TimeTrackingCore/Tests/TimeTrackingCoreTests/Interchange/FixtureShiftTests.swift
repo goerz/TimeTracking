@@ -5,15 +5,11 @@ import Testing
 import TimeTrackingCore
 
 struct FixtureShiftTests {
-    private static let newYork = TimeZone(identifier: "America/New_York") ?? .gmt
+    private static let newYork = TestTime.newYork
 
     /// `text` (`2026-10-30T15:00`) as local time in New York.
     private func local(_ text: String) throws -> Date {
-        let parts = text.split(whereSeparator: { "-T:".contains($0) }).compactMap { Int($0) }
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = Self.newYork
-        let components = DateComponents(year: parts[0], month: parts[1], day: parts[2], hour: parts[3], minute: parts[4])
-        return try #require(calendar.date(from: components))
+        try TestTime.local(text, in: Self.newYork)
     }
 
     /// `date` as `yyyy-MM-ddTHH:mm` in New York.
@@ -135,8 +131,10 @@ struct FixtureShiftTests {
         let fixture = try #require(StoreFixture.url(named: "running"))
         let data = try Data(contentsOf: fixture)
         let dataset = try #require(SyntheticDataset.fixture(named: "running"))
-        let folder = FileManager.default.temporaryDirectory.appending(path: "demo-\(UUID().uuidString).debug", directoryHint: .isDirectory)
-        defer { try? FileManager.default.removeItem(at: folder) }
+        let temporary = try TemporaryFolder()
+        defer { temporary.remove() }
+        // A Debug group container: a folder whose name ends in `.debug`.
+        let folder = temporary.url.appending(path: "demo.debug", directoryHint: .isDirectory)
         let storeURL = folder.appending(path: "Library/Application Support/TimeTracking/store.sqlite")
         let activity = folder.appending(path: "Library/Application Support/TimeTracking/Activity", directoryHint: .isDirectory)
         try FileManager.default.createDirectory(at: activity.appending(path: "blocks"), withIntermediateDirectories: true)
@@ -174,9 +172,9 @@ struct FixtureShiftTests {
         let months = try FileManager.default.contentsOfDirectory(atPath: activity.appending(path: "blocks").path).sorted()
         #expect(months == ["2026-10.jsonl"])
 
-        let release = FileManager.default.temporaryDirectory
-            .appending(path: "demo-\(UUID().uuidString)/TEAM000000.com.example.timetracking")
-        defer { try? FileManager.default.removeItem(at: release.deletingLastPathComponent()) }
+        let releaseFolder = try TemporaryFolder()
+        defer { releaseFolder.remove() }
+        let release = releaseFolder.url.appending(path: "TEAM000000.com.example.timetracking")
         let releaseStore = release.appending(path: "Library/Application Support/TimeTracking/store.sqlite")
         try FileManager.default.createDirectory(at: releaseStore.deletingLastPathComponent(), withIntermediateDirectories: true)
         try Data("real".utf8).write(to: releaseStore)

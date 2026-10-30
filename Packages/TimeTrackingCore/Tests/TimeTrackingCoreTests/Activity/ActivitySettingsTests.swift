@@ -67,7 +67,9 @@ struct ActivitySettingsTests {
     }
 
     @Test func aMissingFileGivesTheDefaults() throws {
-        let url = FileManager.default.temporaryDirectory.appending(path: "missing-\(UUID().uuidString).toml")
+        let folder = try TemporaryFolder()
+        defer { folder.remove() }
+        let url = folder.url.appending(path: "missing.toml")
         #expect(try TrackerSettings(contentsOf: url) == TrackerSettings.defaults)
     }
 

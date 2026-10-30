@@ -108,9 +108,9 @@ struct ReportTests {
             items: [],
             utcOffset: 3600
         )
-        let folder = FileManager.default.temporaryDirectory.appending(path: "tt-\(UUID().uuidString)")
-        defer { try? FileManager.default.removeItem(at: folder) }
-        let reader = FileActivityStore(folders: ActivityFolders(shared: folder, local: folder, isFallback: true))
+        let folder = try TemporaryFolder()
+        defer { folder.remove() }
+        let reader = FileActivityStore(folders: ActivityFolders(shared: folder.url, local: folder.url, isFallback: true))
         let data = StoreSuggestionData(store: test.store, activity: reader)
         let result = try await data.entriesOverlapping([block], minOverlap: 600)
         #expect(result.first?.1.map(\.0.id) == [entry.id])
