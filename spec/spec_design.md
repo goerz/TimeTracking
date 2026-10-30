@@ -176,3 +176,28 @@ Every surface is checked in screenshots in light and dark appearance, on the Mac
 - System green and red for start and stop: they adapt to dark mode and Increase Contrast; the accent color is free to carry the brand.
 - Reports tables and tooltips keep seconds: rows must add up to the footer and to the CSV export exactly, and the running row visibly counts up (PR-13, PR-17). Every other summary rounds to the minute.
 - The Pomodoro countdown lives on its button, and the timer label always shows the elapsed time, so the running entry's duration is never hidden.
+
+## 12. Words
+
+User-visible text names what the user sees and gets, never how the code works. The specs and the code use internal terms; this table gives the word on screen for each. Text a user reads never contains a case name, a raw value, a setting key, a file the user did not open, or an error's `errorDescription` from the library, which is written for logs; `UserMessage` (`Shared/UserMessage.swift`) turns store errors into sentences, and the log keeps the details.
+
+| Internal term | On screen |
+|---|---|
+| Pomodoro phase | focus, break ("when a focus or break ends") |
+| tick, sample | how recent or how soon: "updated 12 s ago", "within 30 seconds" |
+| agent (the tracker process) | tracker ("Tracker version") |
+| health record, source | what the tracker records ("Window titles", "Browser history") |
+| source status `active`, `fallback`, `off` | On, Limited, Off |
+| Knowledge store | app usage history |
+| activity block | activity ("Delete This Activity…"); counted, "periods of activity" |
+| time block | time block (only these are "blocks") |
+| context | app; a tmux session keeps its name and a tmux badge |
+| group key, `kind:name` key | the app, session, or folder name as Activity shows it |
+| not itemized | brief activity |
+| store, database, record | your entries, your data |
+| outbox, pending changes | waiting to sync |
+| app set (iOS Screen Time ladder) | app group |
+| activity log (the files) | Activity (the section) wherever the user's view is meant; "activity logs" only for the files, in the Tracker pane |
+| event, labeled event (iOS collection) | what was recorded ("when a Focus turns on") |
+| fetch, upload, flush | check, send |
+
