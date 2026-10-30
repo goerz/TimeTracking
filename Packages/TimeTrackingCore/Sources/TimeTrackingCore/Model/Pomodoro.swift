@@ -96,7 +96,7 @@ public struct Pomodoro: Hashable, Sendable, Codable {
         }
     }
 
-    /// The action of "Next Pomodoro Phase" (⌃⌘P), if any.
+    /// The action of ⌃⌘P, which the Timer menu titles with it, if any.
     public var nextPhaseAction: PomodoroAction? {
         switch state {
         case .off: nil

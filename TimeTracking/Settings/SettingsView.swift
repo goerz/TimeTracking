@@ -159,7 +159,7 @@ struct PomodoroPane: View {
                 Text("The durations are the same on all your devices.")
             }
             Section {
-                Toggle("Play sounds at phase ends", isOn: $settings.pomodoroSounds)
+                Toggle("Play a sound when a focus or break ends", isOn: $settings.pomodoroSounds)
             }
         }
         .settingsForm()

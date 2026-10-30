@@ -93,7 +93,7 @@ A sheet from the toolbar: an inset-grouped `Form` with the inline title "Setting
 |---|---|---|---|
 | iCloud | Status, pending changes, "Device name" (`Device.name`, a trailing text field), "Sync Now" | | Device |
 | Pomodoro | Focus (1 to 180 min), Break (1 to 60 min) | 25, 5 | Synced |
-| Pomodoro | Play sounds at phase ends (`pomodoro.sounds`) | On | Device |
+| Pomodoro | Play a sound when a focus or break ends (`pomodoro.sounds`) | On | Device |
 | Notifications | Long-running entry reminder, "Remind after" N hours (1 to 12) | On, 4 h (iPhone); off, 4 h (iPad) | Device |
 | Widgets | "Pinned projects" pushes an ordered list over `pinnedProjectIDs`: add (`plus` in the navigation bar, the picker as a sheet), reorder and remove (Edit), an empty state with "Add Project" | Empty | Synced |
 | Widgets | "Pinned buttons start": Last task, or No task | Last task | Device |
@@ -296,7 +296,7 @@ The iPad uses the Mac's keys, listed in the iPadOS menu bar and the ⌘-hold ove
 | ⌥⌘1 | Clients & Areas |
 | ⌘N, ⌘O, ⌘S, ⌥⌘⌫ | New, Continue, Stop, Discard |
 | ⌘P, ⌘E, ⌘⌫, ⌘F, ⌘↑ | Set Project, Edit, Delete, filter, scroll to today (Timer tab only) |
-| ⇧⌘P, ⌃⌘P, ⌘↩ | Pomodoro start or cancel, next phase, confirm |
+| ⇧⌘P, ⌃⌘P, ⌘↩ | Start or Cancel Pomodoro, End Focus or Break Now, Start Break or Focus |
 | ⌘Z, ⇧⌘Z, ⌘, | Undo, Redo, Settings |
 | Esc | Close a sheet or popover, clear a search |
 

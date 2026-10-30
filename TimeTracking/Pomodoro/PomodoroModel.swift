@@ -21,7 +21,7 @@ final class PomodoroModel: PomodoroDriver {
         perform(pomodoro.state.isOn ? .cancel : .start, isRunning: isRunning)
     }
 
-    /// ⌃⌘P: Next Pomodoro Phase.
+    /// ⌃⌘P: the next step (End Focus Now, Start Break, End Break Now, Start Focus).
     func nextPhase(isRunning: Bool) {
         if let action = pomodoro.nextPhaseAction {
             perform(action, isRunning: isRunning)

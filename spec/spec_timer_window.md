@@ -145,7 +145,7 @@ Every menu ends with "Pomodoro Settings…". The tooltip and the accessibility v
 |---|---|---|---|---|
 | Focus duration | `pomodoro.focusMinutes` | 25 min | 1 to 180 | synced |
 | Break duration | `pomodoro.breakMinutes` | 5 min | 1 to 60 | synced |
-| Play sounds at phase ends | `pomodoro.sounds` | on | | device |
+| Play a sound when a focus or break ends | `pomodoro.sounds` | on | | device |
 
 A duration change applies from the next phase. Phase-end notifications use two bundled sounds when sounds are on, else the default. Phase ends are absolute times (`focusEnd`, `breakEnd`), so a Mac that sleeps through one wakes into overtime and notifies at wake.
 
@@ -268,7 +268,7 @@ Window > Timer Window and the menu bar's "Show Timer Window" display the show/hi
 | Timer | Edit Entry… | ⌘E | Timer key: running entry from the bar, selected row from the list |
 | Timer | Delete Entry… | ⌘⌫ | Timer key, list focus |
 | Timer | Start Pomodoro / Cancel Pomodoro | ⇧⌘P | App |
-| Timer | Next Pomodoro Phase | ⌃⌘P | App: End Focus Now, Start Break, End Break Now, or Start Focus |
+| Timer | The next step, titled by its action: End Focus Now, Start Break, End Break Now, or Start Focus (End Focus Now, disabled, while the Pomodoro is off) | ⌃⌘P | App |
 | View | Compact Mode | ⇧⌘M | Timer key |
 | View | Float on Top | | Timer key |
 | View | Scroll to Today | ⌘↑ | Timer key |

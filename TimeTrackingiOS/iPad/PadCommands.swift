@@ -26,8 +26,8 @@ extension PadCommand {
         case .find: "Find"
         case .scrollToToday: "Scroll to Today"
         case .pomodoro: "Start or Cancel Pomodoro"
-        case .nextPhase: "Next Pomodoro Phase"
-        case .confirm: "Confirm Pomodoro Phase"
+        case .nextPhase: "End Focus or Break Now"
+        case .confirm: "Start Break or Focus"
         case .settings: "Settings…"
         case .today: "Go to Today"
         }

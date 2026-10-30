@@ -79,7 +79,7 @@ struct TimerCommands: Commands {
         }
     }
 
-    /// Start/Cancel Pomodoro and Next Pomodoro Phase.
+    /// Start/Cancel Pomodoro, and the next step titled by what it does.
     @ViewBuilder private var pomodoroCommands: some View {
         Button(app?.pomodoro.state.isOn == true ? "Cancel Pomodoro" : "Start Pomodoro") {
             if let app {
@@ -88,7 +88,9 @@ struct TimerCommands: Commands {
         }
         .keyboardShortcut("p", modifiers: [.command, .shift])
         .disabled(app?.pomodoro.state.isOn != true && app?.timer.isRunning != true)
-        Button("Next Pomodoro Phase") {
+        // "End Focus Now", "Start Break", "End Break Now", or "Start Focus";
+        // disabled under the first while the Pomodoro is off.
+        Button(app?.pomodoro.pomodoro.nextPhaseAction?.title ?? PomodoroAction.endFocusNow.title) {
             if let app {
                 app.pomodoro.nextPhase(isRunning: app.timer.isRunning)
             }
