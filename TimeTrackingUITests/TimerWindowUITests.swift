@@ -79,7 +79,13 @@ final class TimerWindowUITests: XCTestCase {
         app.terminate()
         app = launch(reset: false)
         XCTAssertEqual(app.buttons["timer.pinButton"].value as? String, "pinned")
-        XCTAssertEqual(app.windows.firstMatch.frame.height, frame.height, accuracy: 2)
+        // Compact mode, origin, and size all come back.
+        let restored = app.windows.firstMatch.frame
+        XCTAssertEqual(restored.height, frame.height, accuracy: 2)
+        XCTAssertEqual(restored.width, frame.width, accuracy: 2)
+        XCTAssertEqual(restored.minX, frame.minX, accuracy: 2)
+        XCTAssertEqual(restored.minY, frame.minY, accuracy: 2)
+        XCTAssertLessThan(restored.height, 200)
         app.terminate()
     }
 
@@ -122,6 +128,16 @@ final class TimerWindowUITests: XCTestCase {
         field.typeKey(.escape, modifierFlags: [])
         XCTAssertFalse(app.descendants(matching: .any)["picker"].exists)
         XCTAssertEqual(field.value as? String, "Review @noi")
+        // Deleting the @ and typing it again reopens it; Return assigns the
+        // highlighted project and removes "@noi".
+        for _ in 0 ..< 4 {
+            field.typeKey(.delete, modifierFlags: [])
+        }
+        field.typeText("@noi")
+        XCTAssertTrue(app.descendants(matching: .any)["picker"].waitForExistence(timeout: 5))
+        field.typeKey(.return, modifierFlags: [])
+        XCTAssertFalse(app.descendants(matching: .any)["picker"].waitForExistence(timeout: 1))
+        XCTAssertEqual(field.value as? String, "Review")
         app.terminate()
     }
 
@@ -145,10 +161,19 @@ final class TimerWindowUITests: XCTestCase {
         app.typeKey(",", modifierFlags: .command)
         let toggle = app.checkBoxes["settings.showDockIcon"]
         XCTAssertTrue(toggle.waitForExistence(timeout: 5))
+        // The Dock shows a running regular app's tile under its name.
+        let dock = XCUIApplication(bundleIdentifier: "com.apple.dock")
+        let tile = dock.descendants(matching: .any).matching(NSPredicate(format: "label == %@", app.label)).firstMatch
+        XCTAssertTrue(tile.waitForExistence(timeout: 5))
         toggle.click()
-        XCTAssertTrue(app.windows.firstMatch.exists)
+        // Accessory: no tile, the app stays in front, and the settings window stays key.
+        let gone = expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: tile)
+        wait(for: [gone], timeout: 5)
         XCTAssertTrue(app.wait(for: .runningForeground, timeout: 5))
+        XCTAssertTrue(toggle.isHittable)
         toggle.click()
+        XCTAssertTrue(tile.waitForExistence(timeout: 5))
+        XCTAssertEqual(toggle.value as? Int, 1)
         app.terminate()
     }
 
