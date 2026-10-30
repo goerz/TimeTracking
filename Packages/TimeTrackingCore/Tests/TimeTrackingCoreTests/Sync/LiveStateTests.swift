@@ -73,7 +73,7 @@ struct LiveStateTests {
         try await store.checkInvariants()
         let continued = try #require(try await store.liveState().running)
         #expect(continued.entryID != entry.id)
-        #expect(continued.entryID == (try await store.runningEntry())?.id)
+        #expect(try await continued.entryID == (store.runningEntry())?.id)
         #expect(continued.chainStart == start)
 
         _ = try await store.stop(at: test.clock.now)
@@ -93,7 +93,7 @@ struct LiveStateTests {
         _ = try await peerA.store.start(projectID: made.projects[0].id, task: "Draft", at: net.date("2024-03-14T09:00"))
         try await net.converge()
         #expect(try await peerB.store.outboxCount() == 0)
-        #expect(try await peerB.store.liveState() == (try await peerA.store.liveState()))
+        #expect(try await peerB.store.liveState() == (peerA.store.liveState()))
         let changedAt = try await peerB.store.liveState().changedAt
 
         net.clock.advance(by: 30)

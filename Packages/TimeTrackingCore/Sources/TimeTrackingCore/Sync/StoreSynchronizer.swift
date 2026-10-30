@@ -122,7 +122,7 @@ struct SendResults {
             case let .conflict(server): conflicts.append(server)
             case let .unknownItem(ref): unknown.append(ref)
             case let .retry(ref): retry.append(ref)
-            case .zoneNotFound: zoneMissing = true
+            case .zoneNotFound: self.zoneMissing = true
             }
         }
     }

@@ -114,6 +114,75 @@ extension TimeStore {
         }
     }
 
+    /// The record named `name` (a CloudKit record name), from the live and
+    /// tombstoned rows or the purged ids; `nil` when the store never had it.
+    public func recordRef(named name: String) throws -> SyncRecordRef? {
+        if name == StoreTransaction.liveStateRef.name {
+            return StoreTransaction.liveStateRef
+        }
+        return try read { database in
+            for type in SyncRecordType.allCases {
+                guard let (table, key) = StoreTransaction.table(of: type) else {
+                    continue
+                }
+                if try Bool.fetchOne(database, sql: "SELECT 1 FROM \(table) WHERE \(key) = ?", arguments: [name]) != nil {
+                    return SyncRecordRef(type, name)
+                }
+            }
+            let purged = try String.fetchOne(database, sql: "SELECT record_type FROM purged_record WHERE record_id = ?", arguments: [name])
+            return purged.flatMap(SyncRecordType.init(rawValue:)).map { SyncRecordRef($0, name) }
+        }
+    }
+
+    /// The newest outbox sequence number (0 for an empty outbox).
+    public func outboxMaxSequence() throws -> Int64 {
+        try read { try Int64.fetchOne($0, sql: "SELECT MAX(seq) FROM outbox") ?? 0 }
+    }
+
+    /// The current record of `ref` with its system fields, or `nil` when the
+    /// row no longer exists (the engine builds its batches from these).
+    public func syncRecord(_ ref: SyncRecordRef) throws -> SyncRecord? {
+        try read { database in
+            try StoreTransaction(database: database, now: clock.now, deviceID: deviceID, timeZone: timeZone()).syncRecord(ref)
+        }
+    }
+
+    /// After the engine's send: removes the outbox rows of each ref up to
+    /// the sequence number its batch was built at, and stores the saved
+    /// records' system fields. Returns `.saved` for a confirmed `LiveState`.
+    @discardableResult
+    public func confirmSent(_ through: [SyncRecordRef: Int64], saved: [SyncRecord]) throws -> LiveStateSyncEvent? {
+        let (state, _) = try perform { transaction -> LiveState? in
+            for (ref, sequence) in through {
+                try transaction.database.execute(
+                    sql: "DELETE FROM outbox WHERE record_type = ? AND record_id = ? AND seq <= ?",
+                    arguments: [ref.type.rawValue, ref.name, sequence]
+                )
+            }
+            for record in saved {
+                try transaction.setSystemFields(record.ref, record.systemFields)
+            }
+            return try saved.contains { $0.ref.type == .liveState } ? transaction.liveState() : nil
+        }
+        return state.map { .saved($0) }
+    }
+
+    /// A switch to another iCloud account, after confirmation: the store
+    /// becomes empty (the meta table and the store id stay).
+    public func resetForAccountSwitch() throws {
+        _ = try perform { transaction in
+            for table in [
+                "client", "area", "project", "time_entry", "setting", "device", "live_state", "suggestion_feedback",
+                "outbox", "sync_state", "purged_record",
+            ] {
+                try transaction.database.execute(sql: "DELETE FROM \(table)")
+            }
+        }
+        notifier?.post()
+        externalChange()
+        broadcaster.yield(.liveState)
+    }
+
     /// Records the server did not save for a transient reason: queued again unchanged.
     public func requeue(_ refs: [SyncRecordRef]) throws {
         try write { transaction in
