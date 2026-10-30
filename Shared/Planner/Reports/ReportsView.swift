@@ -147,11 +147,7 @@ struct ReportTilesView: View {
         let summary = model.snapshot?.summary
         let tiles = [
             ("Logged time", ReportText.tile(summary?.loggedSeconds ?? 0), nil as String?),
-            (
-                "Average per day",
-                ReportText.tile(summary?.averagePerDay ?? 0),
-                "over \(summary?.daysWithEntries ?? 0) of \(summary?.elapsedDays ?? 0) days"
-            ),
+            ("Average per day", ReportText.tile(summary?.averagePerDay ?? 0), ReportText.averageCaption(summary)),
             ("Entries", String(summary?.entryCount ?? 0), summary?.includesRunning == true ? "1 running" : nil),
             ("Days with entries", String(summary?.daysWithEntries ?? 0), "of \(summary?.elapsedDays ?? 0)"),
         ]

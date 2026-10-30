@@ -21,6 +21,8 @@ struct ReportSnapshotTests {
         #expect(without.daysWithEntries == 3)
         #expect(without.elapsedDays == 4)
         #expect(without.averagePerDay == 21_000 / 3)
+        #expect(ReportText.averageCaption(summary) == "over 4 of 4 days")
+        #expect(ReportText.averageCaption(without) == "over 3 of 4 days")
         let none = try await world.snapshot(filters: ReportFilters(task: "nothing matches")).summary
         #expect(none.averagePerDay == 0)
         #expect(ReportText.tile(0) == "0h")
@@ -154,6 +156,12 @@ struct ReportSnapshotTests {
         let noise = try #require(byProject.legend.first { $0.value == .project(world.noise.id) })
         #expect(grant.color == .area(research.hex, hatched: false))
         #expect(noise.color == .area(research.lightnessStep(1).hex, hatched: false))
+        // The second project's color is the area's at HSL lightness +0.12, same hue.
+        let base = try Self.hsl(research.hex)
+        let second = try Self.hsl(research.lightnessStep(1).hex)
+        #expect(abs(second.lightness - base.lightness - 0.12) < 0.005)
+        #expect(abs(second.hue - base.hue) < 1.5)
+        #expect(abs(second.saturation - base.saturation) < 0.02)
         #expect(byProject.legend.map(\.name) == ["Website", "Grant", "Noise Model", "Lectures", "Old Course", "No project"])
         let none = try await world.snapshot(stack: .unstacked).chart
         #expect(none.legend.isEmpty)
@@ -206,5 +214,28 @@ struct ReportSnapshotTests {
         #expect(tree.children.last?.displayName(level: .area) == "No area")
         #expect(ReportNode(key: .task("")).displayName(level: .task) == "(no task)")
         #expect(try await world.store.earliestEntryDay() == TrackingDay(year: 2026, month: 10, day: 26))
+    }
+
+    /// Hue (degrees), saturation, and lightness of `#RRGGBB`, computed
+    /// independently of `AreaColor`.
+    static func hsl(_ hex: String) throws -> (hue: Double, saturation: Double, lightness: Double) {
+        let value = try #require(UInt32(hex.dropFirst(), radix: 16))
+        let red = Double(value >> 16 & 0xFF) / 255
+        let green = Double(value >> 8 & 0xFF) / 255
+        let blue = Double(value & 0xFF) / 255
+        let maximum = max(red, green, blue)
+        let minimum = min(red, green, blue)
+        let delta = maximum - minimum
+        let lightness = (maximum + minimum) / 2
+        let saturation = delta == 0 ? 0 : delta / (1 - abs(2 * lightness - 1))
+        var hue = 0.0
+        if delta > 0 {
+            switch maximum {
+            case red: hue = 60 * ((green - blue) / delta).truncatingRemainder(dividingBy: 6)
+            case green: hue = 60 * ((blue - red) / delta + 2)
+            default: hue = 60 * ((red - green) / delta + 4)
+            }
+        }
+        return (hue < 0 ? hue + 360 : hue, saturation, lightness)
     }
 }

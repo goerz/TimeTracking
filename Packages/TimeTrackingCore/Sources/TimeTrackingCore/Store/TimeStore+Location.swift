@@ -36,7 +36,8 @@ extension TimeStore {
         deviceID: DeviceID,
         clock: any Clock,
         timeZone: @escaping @Sendable () -> TimeZone = { .current },
-        readOnly: Bool = false
+        readOnly: Bool = false,
+        busyTimeout: TimeInterval = TimeStore.defaultBusyTimeout
     ) async throws -> TimeStore {
         guard let location = Location.resolve(arguments: arguments, identity: identity) else {
             throw StoreError.database("No App Group container")
@@ -48,7 +49,8 @@ extension TimeStore {
             deviceID: deviceID,
             timeZone: timeZone,
             notifier: notifier,
-            readOnly: readOnly
+            readOnly: readOnly,
+            busyTimeout: busyTimeout
         ))
         if arguments.uiTesting, let name = arguments.fixture {
             try await StoreFixture.load(named: name, into: store, timeZone: timeZone())

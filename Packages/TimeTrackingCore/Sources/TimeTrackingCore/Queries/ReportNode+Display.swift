@@ -91,6 +91,11 @@ public enum ReportText {
         return minutes.isMultiple(of: 60) ? "\(hours)h" : "\(hours)h \(minutes % 60)m"
     }
 
+    /// The caption under the Average per day tile: "over 4 of 4 days".
+    public static func averageCaption(_ summary: ReportSummary?) -> String {
+        "over \(summary?.daysWithEntries ?? 0) of \(summary?.elapsedDays ?? 0) days"
+    }
+
     /// Bar totals and the average rule: "9h 26m", "0h".
     public static func bar(_ seconds: Int) -> String {
         tile(seconds)

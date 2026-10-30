@@ -9,7 +9,8 @@ public import Foundation
 /// The apps understand `-UITesting YES`, `-Fixture <name>`, and
 /// `-ResetState YES` (the `-Key value` form of `UserDefaults`); the agent
 /// understands `--record <folder>`, `--replay <file>`, and `--unregister`;
-/// the tool reads `TIMETRACKING_STORE` and `TIMETRACKING_NOW`. Unknown
+/// the tool reads `TIMETRACKING_STORE`, `TIMETRACKING_NOW`, and
+/// `TIMETRACKING_BUSY_TIMEOUT`. Unknown
 /// arguments are ignored, so the system's own launch arguments pass through.
 public struct LaunchArguments: Sendable, Equatable {
     /// `-UITesting YES`: in-memory store and transport, fixture, no animations.
@@ -28,6 +29,9 @@ public struct LaunchArguments: Sendable, Equatable {
     public var storePath: String?
     /// `TIMETRACKING_NOW`, if set and valid. Only Debug builds honor it.
     public var fixedNow: Date?
+    /// `TIMETRACKING_BUSY_TIMEOUT` in seconds, if set and valid: the store's
+    /// busy timeout, for tests. Only Debug builds honor it.
+    public var busyTimeout: TimeInterval?
 
     public init(
         uiTesting: Bool = false,
@@ -37,7 +41,8 @@ public struct LaunchArguments: Sendable, Equatable {
         replayFile: URL? = nil,
         unregister: Bool = false,
         storePath: String? = nil,
-        fixedNow: Date? = nil
+        fixedNow: Date? = nil,
+        busyTimeout: TimeInterval? = nil
     ) {
         self.uiTesting = uiTesting
         self.fixture = fixture
@@ -47,6 +52,7 @@ public struct LaunchArguments: Sendable, Equatable {
         self.unregister = unregister
         self.storePath = storePath
         self.fixedNow = fixedNow
+        self.busyTimeout = busyTimeout
     }
 
     /// Parses `arguments` (including the program name at index 0) and
@@ -94,6 +100,9 @@ public struct LaunchArguments: Sendable, Equatable {
         }
         if let now = environment["TIMETRACKING_NOW"] {
             self.fixedNow = Self.parseInstant(now, timeZone: timeZone)
+        }
+        if let seconds = environment["TIMETRACKING_BUSY_TIMEOUT"].flatMap(TimeInterval.init), seconds >= 0 {
+            self.busyTimeout = seconds
         }
     }
 

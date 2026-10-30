@@ -249,6 +249,37 @@ struct MultiStoreSyncTests {
         }
     }
 
+    @Test("DATA-19 a device asleep from Monday 22:00 to Wednesday 10:00 and one that split night by night hold identical pieces after sync")
+    func wakeSplitConverges() async throws {
+        let net = try await Network(now: "2026-10-26T22:00")
+        let (sleeper, nightly) = (net.peers[0], net.peers[1])
+        let entry = try await sleeper.store.start(projectID: nil, task: "Long", at: net.date("2026-10-26T22:00"))
+        try await net.converge()
+        #expect(try await nightly.store.runningEntry()?.id == entry.id)
+        // The sleeper neither syncs nor runs the invariant pass until it wakes.
+        for time in ["2026-10-27T00:00:01", "2026-10-28T00:00:01"] {
+            try net.clock.set(net.date(time))
+            try await nightly.store.checkInvariants()
+            try await nightly.sync.sync()
+        }
+        try net.clock.set(net.date("2026-10-28T10:00"))
+        try await sleeper.store.checkInvariants()
+        try await net.converge()
+        let piece = { (date: String) in EntryID(UUID.version5(namespace: entry.id.uuid, name: "split:\(date)")) }
+        let interval = try DateInterval(start: net.date("2026-10-26T00:00"), end: net.date("2026-10-29T00:00"))
+        let pieces = try await sleeper.store.entries(in: interval)
+        #expect(pieces.map(\.id) == [entry.id, piece("2026-10-27"), piece("2026-10-28")])
+        #expect(try pieces.map(\.start) == [
+            net.date("2026-10-26T22:00"), net.date("2026-10-27T00:00"), net.date("2026-10-28T00:00"),
+        ])
+        #expect(try pieces.map(\.end) == [net.date("2026-10-27T00:00"), net.date("2026-10-28T00:00"), nil])
+        #expect(try await nightly.store.entries(in: interval) == pieces)
+        for peer in net.peers {
+            #expect(try await peer.store.runningEntry()?.id == piece("2026-10-28"))
+            #expect(try await peer.store.outboxCount() == 0)
+        }
+    }
+
     @Test("DATA-24 .adjusted with stoppedByLaterStart reaches only the device that created the entry, never for splits")
     func adjustedEvents() async throws {
         let net = try await Network(["A", "B", "C"], now: "2026-10-28T23:50")

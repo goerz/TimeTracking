@@ -30,6 +30,9 @@ public actor TimeStore {
         public var notifier: (any ChangeNotifier)?
         /// Opens the file read-only (`?mode=ro` semantics); writes fail.
         public var readOnly: Bool
+        /// How long a write waits for another process's write lock before
+        /// failing with `StoreError.busy` (spec_data_and_sync.md §2.2).
+        public var busyTimeout: TimeInterval
 
         @preconcurrency
         public init(
@@ -38,8 +41,10 @@ public actor TimeStore {
             deviceID: DeviceID,
             timeZone: @escaping @Sendable () -> TimeZone = { .current },
             notifier: (any ChangeNotifier)? = nil,
-            readOnly: Bool = false
+            readOnly: Bool = false,
+            busyTimeout: TimeInterval = TimeStore.defaultBusyTimeout
         ) {
+            self.busyTimeout = busyTimeout
             self.location = location
             self.clock = clock
             self.deviceID = deviceID
@@ -61,11 +66,14 @@ public actor TimeStore {
     var lastRunning: TimeEntry?
     private var externalChanges: Task<Void, Never>?
     static let logger = Logging.logger(category: "Store")
+    /// The busy timeout of §2.2: a write outlasts another writer's 2-second
+    /// transaction but not a 10-second one.
+    public static let defaultBusyTimeout: TimeInterval = 5
 
     /// Opens the database and migrates it; prefer `open(_:)`.
     public init(_ configuration: Configuration) throws {
         var options = GRDB.Configuration()
-        options.busyMode = .timeout(5)
+        options.busyMode = .timeout(configuration.busyTimeout)
         options.readonly = configuration.readOnly
         options.foreignKeysEnabled = false
         switch configuration.location {
