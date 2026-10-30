@@ -237,14 +237,13 @@ enum StatusItemPresenter {
         if let remaining = pomodoroRemaining {
             let focus = state.pomodoro.state.isFocusPhase
             let phase = focus ? "focus" : "break"
-            let glyph = AppSymbol.phase(isFocus: focus)
-            if state.pomodoro.state.isPendingConfirmation || remaining < 0 {
-                let over = -min(remaining, 0)
-                segment = .init(symbol: glyph, text: "+" + DurationText.minutesSeconds(over))
+            let phaseSeconds = (focus ? state.focusMinutes : state.breakMinutes) * 60
+            if let text = state.pomodoro.menuBarCountdown(at: now, paddedTo: phaseSeconds) {
+                segment = .init(symbol: AppSymbol.phase(isFocus: focus), text: text)
+            }
+            if let over = state.pomodoro.overtime(at: now) {
                 spoken += ", Pomodoro \(phase) ended \(spokenDuration(over, seconds: true)) ago"
             } else {
-                let phaseSeconds = (focus ? state.focusMinutes : state.breakMinutes) * 60
-                segment = .init(symbol: glyph, text: paddedCountdown(remaining, phaseSeconds: phaseSeconds))
                 spoken += ", Pomodoro \(phase), \(spokenDuration(remaining, seconds: true)) left"
             }
         }
@@ -291,14 +290,10 @@ enum StatusItemPresenter {
                 ))
             }
         }
-        if let remaining = state.pomodoro.remaining(at: now) {
+        if let countdown = state.pomodoro.menuBarCountdown(at: now) {
             let focus = state.pomodoro.state.isFocusPhase
             let phase = focus ? "Focus" : "Break"
-            let text = if state.pomodoro.state.isPendingConfirmation || remaining < 0 {
-                "\(phase) ended · +\(DurationText.minutesSeconds(-min(remaining, 0)))"
-            } else {
-                "\(phase) · \(DurationText.minutesSeconds(remaining)) left"
-            }
+            let text = state.pomodoro.overtime(at: now) == nil ? "\(phase) · \(countdown) left" : "\(phase) ended · \(countdown)"
             lines.append(MenuHeaderLine(text, style: .primary, symbol: AppSymbol.phase(isFocus: focus)))
         }
         return lines
