@@ -1,5 +1,5 @@
 // The timetracking tool as a subprocess: status, start, stop, continue,
-// concurrency, notifications (spec_automation.md §3.5, §9 items 1 to 6, 32, 33).
+// concurrency, notifications (spec_automation.md §3.5, §9 items 1 to 6, 32, 33, 36).
 
 import Darwin
 import Foundation
@@ -165,6 +165,41 @@ struct ToolTests {
         #expect(try fixture.run(["start", "--project", "Old paper"]).status == 4)
         #expect(posts.count() == 0)
         #expect(try fixture.count("SELECT COUNT(*) FROM outbox") == outbox + 3)
+    }
+
+    @Test("AUTO-33 AUTO-36 a write command with --csv exits 2 before it opens the store, so it changes nothing and posts nothing")
+    func writeWithCSV() throws {
+        let fixture = try ToolFixture()
+        defer { fixture.remove() }
+        let posts = ChangeSignalCounter()
+        let outbox = try fixture.count("SELECT COUNT(*) FROM outbox")
+        let entries = try fixture.count("SELECT COUNT(*) FROM time_entry WHERE deleted_at IS NULL")
+        let modified = fixture.modificationDate
+        let start = try fixture.run(["start", "Task", "--csv"])
+        #expect(start.status == 2)
+        #expect(start.standardError == "error: Write commands have no CSV form.\n")
+        #expect(start.standardOutput.isEmpty)
+        let delete = try fixture.run(["entry", "delete", ToolFixture.entryID(1), "--yes", "--csv"])
+        #expect(delete.status == 2)
+        #expect(delete.standardError == "error: Write commands have no CSV form.\n")
+        let description = try fixture.write(ToolCheckTests.threeDifferences, named: "fix.toml")
+        let fix = try fixture.run(["check", description, "--fix", "--csv"])
+        #expect(fix.status == 2)
+        #expect(fix.standardError == "error: check has no CSV form.\n")
+        var document = ToolFixture.document(running: false)
+        document["clients"] = [ToolFixture.client("c1000000-0000-4000-8000-000000000009", "Lab")]
+        let file = try fixture.write(
+            String(decoding: JSONSerialization.data(withJSONObject: document), as: UTF8.self),
+            named: "import.json"
+        )
+        let imported = try fixture.run(["import", file, "--csv"])
+        #expect(imported.status == 2)
+        #expect(imported.standardError == "error: import has no CSV form.\n")
+        #expect(posts.count() == 0)
+        #expect(try fixture.count("SELECT COUNT(*) FROM outbox") == outbox)
+        #expect(try fixture.count("SELECT COUNT(*) FROM time_entry WHERE deleted_at IS NULL") == entries)
+        #expect(try fixture.count("SELECT COUNT(*) FROM time_entry WHERE \"end\" IS NULL AND task = 'Review'") == 1)
+        #expect(fixture.modificationDate == modified)
     }
 }
 

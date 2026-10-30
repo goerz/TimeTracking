@@ -20,7 +20,7 @@ struct StopCommand: AsyncParsableCommand {
         let end = stopped.entry.end ?? service.now
         let line = "Stopped \(ToolFormat.subject(stopped)) at \(ToolFormat.time(end, context.timeZone)) "
             + "after \(ToolFormat.duration(stopped.entry.seconds(at: end)))."
-        try context.changed(line) {
+        context.changed(line) {
             AutomationRecords.entry(stopped, now: service.now, timeZone: context.timeZone)
         }
     }

@@ -12,9 +12,9 @@ struct ProjectCommand: AsyncParsableCommand {
         subcommands: [Create.self, Archive.self, Unarchive.self, Rename.self, Move.self]
     )
 
-    static func changed(_ verb: String, _ row: ProjectRow, service _: AutomationService, context: ToolContext) throws(AutomationError) {
+    static func changed(_ verb: String, _ row: ProjectRow, service _: AutomationService, context: ToolContext) {
         let place = [row.client?.name, row.area?.name].compactMap(\.self).joined(separator: " / ")
-        try context.changed("\(verb) project \(row.project.name) in \(place).") {
+        context.changed("\(verb) project \(row.project.name) in \(place).") {
             AutomationRecords.project(row, timeZone: context.timeZone)
         }
     }

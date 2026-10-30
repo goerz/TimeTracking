@@ -12,9 +12,9 @@ struct AreaCommand: AsyncParsableCommand {
         subcommands: [Create.self, Rename.self, SetColor.self]
     )
 
-    static func changed(_ verb: String, _ summary: AreaSummary, context: ToolContext) throws(AutomationError) {
+    static func changed(_ verb: String, _ summary: AreaSummary, context: ToolContext) {
         let place = summary.client.map { "\($0.name) / " } ?? ""
-        try context.changed("\(verb) area \(place)\(summary.area.name) \(summary.area.color.uppercased()).") {
+        context.changed("\(verb) area \(place)\(summary.area.name) \(summary.area.color.uppercased()).") {
             AutomationRecords.area(summary)
         }
     }

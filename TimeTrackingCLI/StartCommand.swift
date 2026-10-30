@@ -36,7 +36,7 @@ struct StartCommand: AsyncParsableCommand {
         let at = try at.map { text throws(AutomationError) in try service.instant(text) }
         let project = try await service.project(name: project, id: projectID, client: client)
         let result = try await service.start(task: task ?? "", projectID: project?.project.id, at: at, force: force)
-        try context.changed(Self.line(result, zone: context.timeZone)) {
+        context.changed(Self.line(result, zone: context.timeZone)) {
             AutomationRecords.entry(result.entry, now: service.now, timeZone: context.timeZone)
         }
     }

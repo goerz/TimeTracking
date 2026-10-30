@@ -33,7 +33,15 @@ nonisolated struct ToolContext {
     }
 
     /// Opens the store (read-only for read commands) and returns its service.
-    func service(writing: Bool) async throws(AutomationError) -> AutomationService {
+    /// A writing command rejects `--csv` with `csvMessage` before the store
+    /// opens, so the usage error writes nothing.
+    func service(
+        writing: Bool,
+        csvMessage: String = "Write commands have no CSV form."
+    ) async throws(AutomationError) -> AutomationService {
+        if writing, options.csv {
+            throw .usage(csvMessage)
+        }
         guard let url = storeURL else {
             throw .storeUnavailable("No store: the App Group container is unavailable; pass --store.")
         }
@@ -97,11 +105,9 @@ nonisolated struct ToolContext {
     }
 
     /// The output of a write command: the changed record with `--json`,
-    /// else the line; nothing with `--quiet`.
-    func changed(_ line: String, json: () -> JSONValue) throws(AutomationError) {
-        if options.csv {
-            throw .usage("Write commands have no CSV form.")
-        }
+    /// else the line; nothing with `--quiet`. `service(writing: true)` has
+    /// already rejected `--csv`.
+    func changed(_ line: String, json: () -> JSONValue) {
         guard !options.quiet else {
             return
         }

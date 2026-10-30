@@ -21,13 +21,15 @@ struct CheckCommand: AsyncParsableCommand {
 
     @OptionGroup var global: GlobalOptions
 
+    private static let noCSV = "check has no CSV form."
+
     func run() async throws {
         let description = try DescriptionFile(contentsOf: URL(filePath: file))
         let context = ToolContext(global)
-        let service = try await context.service(writing: fix)
+        let service = try await context.service(writing: fix, csvMessage: Self.noCSV)
         let result = try await fix ? service.fix(description, client: client) : service.check(description, client: client)
         if global.csv {
-            throw AutomationError.usage("check has no CSV form.")
+            throw AutomationError.usage(Self.noCSV)
         }
         if global.json {
             context.write(result.json(fixed: fix).text())

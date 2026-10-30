@@ -43,7 +43,7 @@ struct ContinueCommand: AsyncParsableCommand {
             .latest
         }
         let result = try await service.continue(source)
-        try context.changed(StartCommand.line(result, zone: context.timeZone)) {
+        context.changed(StartCommand.line(result, zone: context.timeZone)) {
             AutomationRecords.entry(result.entry, now: service.now, timeZone: context.timeZone)
         }
     }

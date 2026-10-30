@@ -74,7 +74,7 @@ struct EntryCommand: AsyncParsableCommand {
                 timeZone: context.timeZone.identifier
             )
             let pieces = try await service.createEntry(draft, force: force)
-            try EntryCommand.changed("Created", pieces, service: service, context: context)
+            EntryCommand.changed("Created", pieces, service: service, context: context)
         }
     }
 
@@ -129,7 +129,7 @@ struct EntryCommand: AsyncParsableCommand {
             change.start = try start.map { text throws(AutomationError) in try service.instant(text) }
             change.end = try end.map { text throws(AutomationError) in try service.instant(text) }
             let pieces = try await service.editEntry(entry.id, change, force: force)
-            try EntryCommand.changed("Changed", pieces, service: service, context: context)
+            EntryCommand.changed("Changed", pieces, service: service, context: context)
         }
     }
 
@@ -157,7 +157,7 @@ struct EntryCommand: AsyncParsableCommand {
                 throw AutomationError.usage("Add --yes to delete this entry.")
             }
             try await service.deleteEntry(listing.entry.id)
-            try context.changed("Deleted \(ToolFormat.subject(listing)) of \(ToolFormat.date(listing.entry.start, context.timeZone)).") {
+            context.changed("Deleted \(ToolFormat.subject(listing)) of \(ToolFormat.date(listing.entry.start, context.timeZone)).") {
                 .object(["deleted": .string(listing.entry.id.rawValue)])
             }
         }
@@ -169,7 +169,7 @@ struct EntryCommand: AsyncParsableCommand {
         _ pieces: [EntryListing],
         service: AutomationService,
         context: ToolContext
-    ) throws(AutomationError) {
+    ) {
         let zone = context.timeZone
         let lines = pieces.map { piece in
             let entry = piece.entry
@@ -177,7 +177,7 @@ struct EntryCommand: AsyncParsableCommand {
             return "\(verb) \(ToolFormat.subject(piece)) on \(ToolFormat.date(entry.start, zone)) "
                 + "from \(ToolFormat.time(entry.start, zone)) to \(end) (\(entry.id.rawValue))."
         }
-        try context.changed(lines.joined(separator: "\n")) {
+        context.changed(lines.joined(separator: "\n")) {
             AutomationRecords.entryList(pieces, now: service.now, timeZone: zone)
         }
     }

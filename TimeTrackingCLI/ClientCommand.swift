@@ -12,8 +12,8 @@ struct ClientCommand: AsyncParsableCommand {
         subcommands: [Create.self, Rename.self]
     )
 
-    static func changed(_ verb: String, _ summary: ClientSummary, context: ToolContext) throws(AutomationError) {
-        try context.changed("\(verb) client \(summary.client.name).") {
+    static func changed(_ verb: String, _ summary: ClientSummary, context: ToolContext) {
+        context.changed("\(verb) client \(summary.client.name).") {
             AutomationRecords.client(summary)
         }
     }
