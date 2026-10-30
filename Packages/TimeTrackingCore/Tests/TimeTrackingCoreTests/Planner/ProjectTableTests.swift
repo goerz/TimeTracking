@@ -214,11 +214,21 @@ struct ProjectTableTests {
         }
         #expect(try await !teaching().canRetire)
         #expect(try await teaching().deleteTooltip == "Has 1 project")
+        // The picker finds the area by name while it is active.
+        func pickerAreas(_ search: String) async throws -> Set<AreaID> {
+            let content = try await world.store.pickerContent(search: search, taskMatching: false)
+            return Set((content.recent + content.groups.flatMap(\.rows)).map(\.area.id))
+        }
+        #expect(try await pickerAreas("Teaching").contains(world.teaching.id))
         try await world.store.archive(project.id)
         #expect(try await teaching().canRetire)
         #expect(try await teaching().countsText == "0 active · 1 archived")
         try await world.store.updateArea(world.teaching.id, AreaChange(retired: true))
         #expect(try await teaching().tag == "retired")
+        // Retired: gone from the picker, searched or not, and from the Area popup's list.
+        #expect(try await !pickerAreas("").contains(world.teaching.id))
+        #expect(try await !pickerAreas("Teaching").contains(world.teaching.id))
+        #expect(try await !world.store.areas(of: world.university.id, includeRetired: false).contains { $0.id == world.teaching.id })
         #expect(try await teaching().canUnretire)
         let client = try await #require(ClientAreaOutline.build(
             clients: world.store.clients(includeRetired: true),

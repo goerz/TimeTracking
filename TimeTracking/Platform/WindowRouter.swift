@@ -32,9 +32,12 @@ final class WindowRouter: AppRouting {
         }
     }
 
+    /// Where the Settings window's `@AppStorage` reads its last pane.
+    var paneDefaults: UserDefaults = .standard
+
     func openSettings(pane: SettingsPane?) {
         if let pane {
-            UserDefaults.standard.set(pane.rawValue, forKey: SettingsPane.storageKey)
+            paneDefaults.set(pane.rawValue, forKey: SettingsPane.storageKey)
         }
         NSApp.activate()
         openSettingsAction?()

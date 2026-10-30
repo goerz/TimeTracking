@@ -152,8 +152,38 @@ final class TimerWindowUITests: XCTestCase {
         app.terminate()
     }
 
+    /// The Debug agents inside the app bundles next to the test runner.
+    private static func debugAgents() -> [URL] {
+        let fileManager = FileManager.default
+        var products = Bundle(for: Self.self).bundleURL
+        while products.pathComponents.count > 1, !products.lastPathComponent.hasSuffix("-Runner.app") {
+            products.deleteLastPathComponent()
+        }
+        products.deleteLastPathComponent()
+        let apps = (try? fileManager.contentsOfDirectory(at: products, includingPropertiesForKeys: nil)) ?? []
+        return apps.filter { $0.pathExtension == "app" }.flatMap { app in
+            let loginItems = app.appending(path: "Contents/Library/LoginItems")
+            let agents = (try? fileManager.contentsOfDirectory(at: loginItems, includingPropertiesForKeys: nil)) ?? []
+            return agents.flatMap { agent in
+                let macOS = agent.appending(path: "Contents/MacOS")
+                return (try? fileManager.contentsOfDirectory(at: macOS, includingPropertiesForKeys: nil)) ?? []
+            }
+        }
+    }
+
     @MainActor
     func testARCH8_enableTrackerRegisters() {
+        // Whatever happens below, the Debug agent ends unregistered
+        // (the agent's --unregister, as make mac-debug-unregister runs it).
+        addTeardownBlock {
+            for agent in Self.debugAgents() {
+                let process = Process()
+                process.executableURL = agent
+                process.arguments = ["--unregister"]
+                try? process.run()
+                process.waitUntilExit()
+            }
+        }
         let app = launch()
         app.typeKey(",", modifierFlags: .command)
         let trackerTab = app.toolbars.buttons["Tracker"]

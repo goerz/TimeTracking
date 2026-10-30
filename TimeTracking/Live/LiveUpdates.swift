@@ -32,6 +32,8 @@ final class LiveUpdates {
     /// The last failure of the folder copy, if any.
     private(set) var mirrorError: String?
 
+    /// Waits between ticks; tests replace it.
+    @ObservationIgnored var sleep: (Duration) async throws -> Void = { try await Task.sleep(for: $0) }
     @ObservationIgnored private var loop: Task<Void, Never>?
     @ObservationIgnored private var statusTask: Task<Void, Never>?
     @ObservationIgnored private var lastRegistration: Date?
@@ -84,7 +86,10 @@ final class LiveUpdates {
         }
         loop = Task { [weak self] in
             while !Task.isCancelled {
-                try? await Task.sleep(for: Self.interval)
+                try? await self?.sleep(Self.interval)
+                guard !Task.isCancelled else {
+                    return
+                }
                 await self?.tick()
             }
         }

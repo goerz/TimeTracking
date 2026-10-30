@@ -73,7 +73,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             urlEvents.attach(URLRouter(app: app, scheme: identity.urlScheme))
         }
         await app.start(observing: true)
-        if !uiTesting, let identity {
+        if host.startsLiveUpdates, let identity {
             await startLiveUpdates(app, identity: identity, folders: folders, activity: activity)
         }
         Self.logger.notice("Launched")

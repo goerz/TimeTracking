@@ -51,23 +51,6 @@ struct PlannerProjectsTests {
         #expect(again.search.isEmpty)
     }
 
-    @Test("PP-4 hidden columns stay hidden; State shows only on All")
-    func columns() async throws {
-        let test = try await TestApp()
-        let model = test.app.planner.projects
-        var customization = TableColumnCustomization<ProjectTableItem>()
-        customization[visibility: "client"] = .hidden
-        model.columnData = try JSONEncoder().encode(customization)
-        let again = ProjectsModel(store: test.store, clock: test.clock, device: test.app.settings.device)
-        let restored = try JSONDecoder().decode(TableColumnCustomization<ProjectTableItem>.self, from: again.columnData)
-        #expect(restored[visibility: "client"] == .hidden)
-        #expect(!model.showsStateColumn)
-        model.options.state = .all
-        #expect(model.showsStateColumn)
-        model.options.state = .archived
-        #expect(!model.showsStateColumn)
-    }
-
     @Test("PP-10 archiving three projects removes them under Active; ⌘Z restores all three")
     func archiveAndUndo() async throws {
         let test = try await TestApp()

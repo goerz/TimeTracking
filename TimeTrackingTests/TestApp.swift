@@ -18,10 +18,28 @@ struct TestApp {
     let commands: RecordingTrackerCommands
     let undo = UndoManager()
 
-    init(now: String = "2024-03-14T10:00", trackerState: TrackerState? = nil) async throws {
+    /// With `storeFile`, the store is that file and listens to the Debug
+    /// app's change notification, as the bundled tool posts it; `observing`
+    /// follows the store's changes as the running app does.
+    init(
+        now: String = "2024-03-14T10:00",
+        trackerState: TrackerState? = nil,
+        storeFile: URL? = nil,
+        observing: Bool = false
+    ) async throws {
         let clock = try ManualClock(Self.date(now))
         self.clock = clock
-        self.store = try await TimeStore.inMemory(clock: clock, timeZone: .current)
+        if let storeFile {
+            self.store = try await TimeStore.open(TimeStore.Configuration(
+                location: .file(storeFile),
+                clock: clock,
+                deviceID: DeviceID(),
+                timeZone: { .current },
+                notifier: AppIdentity.main.map { DarwinChangeNotifier(identity: $0) }
+            ))
+        } else {
+            self.store = try await TimeStore.inMemory(clock: clock, timeZone: .current)
+        }
         self.notifier = RecordingNotifier()
         self.router = RecordingRouter()
         self.agent = FakeAgentService()
@@ -40,7 +58,7 @@ struct TestApp {
         app.timer.debounce = { _ in }
         app.timer.undoManager = undo
         app.list.undoManager = undo
-        await app.start(observing: false)
+        await app.start(observing: observing)
     }
 
     /// A local time `yyyy-MM-dd'T'HH:mm[:ss]` in the current zone.

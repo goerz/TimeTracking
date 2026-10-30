@@ -41,11 +41,18 @@ final class PlannerUITests: XCTestCase {
         var app = launch()
         _ = openPlanner(app)
         app.descendants(matching: .any)["planner.sidebar.reports"].click()
+        // Move the window by its title bar; the frame is the one to come back.
+        let window = app.windows["planner"]
+        XCTAssertTrue(window.waitForExistence(timeout: 5))
+        let titleBar = window.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0)).withOffset(CGVector(dx: 0, dy: 12))
+        titleBar.press(forDuration: 0.2, thenDragTo: titleBar.withOffset(CGVector(dx: -60, dy: 40)))
+        let moved = window.frame
         app.terminate()
         app = launch(reset: false)
         XCTAssertFalse(app.descendants(matching: .any)["planner.sidebar"].exists)
         _ = openPlanner(app)
         XCTAssertTrue(app.descendants(matching: .any)["reports.chart"].waitForExistence(timeout: 5))
+        XCTAssertEqual(app.windows["planner"].frame, moved)
     }
 
     @MainActor

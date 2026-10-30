@@ -11,7 +11,17 @@ import TimeTrackingCore
 final class AppHost {
     private(set) var model: AppModel?
     private(set) var failure: String?
-    @ObservationIgnored let arguments = LaunchArguments.current
+    @ObservationIgnored let arguments: LaunchArguments
+
+    init(arguments: LaunchArguments = .current) {
+        self.arguments = arguments
+    }
+
+    /// Whether the launch starts sync through CloudKit, `LiveState`, and
+    /// widget pushes: never under `-UITesting YES` (ARCH-17).
+    var startsLiveUpdates: Bool {
+        !arguments.uiTesting
+    }
 
     /// Whether the process hosts unit tests (no store, no status item).
     static var isTestHost: Bool {

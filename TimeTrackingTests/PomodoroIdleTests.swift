@@ -173,7 +173,7 @@ struct PomodoroIdleTests {
     }
 
     @Test("TW-32 each notification category offers exactly its actions; Settings reopens on the last pane shown")
-    func categoriesAndPane() {
+    func categoriesAndPane() throws {
         #expect(NotificationCategory.pomodoroFocusDone.actions.map(\.title) == ["Start Break", "Skip Break"])
         #expect(NotificationCategory.pomodoroBreakDone.actions.map(\.title) == ["Start Focus", "End Pomodoro"])
         #expect(NotificationCategory.idle.actions.map(\.title) == ["Keep", "Discard", "Discard and Continue", "Split"])
@@ -182,11 +182,15 @@ struct PomodoroIdleTests {
         #expect(category.actions.map(\.identifier) == ["keep", "discard", "discardAndContinue", "split"])
         // The pane selection is stored under one key that the Settings view reads.
         let router = WindowRouter(timerWindow: TimerWindowController(settings: AppSettings.ephemeral()))
+        #expect(router.paneDefaults == .standard)
+        let suite = "PomodoroIdleTests." + UUID().uuidString
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        router.paneDefaults = defaults
         router.openSettings(pane: .reminders)
-        #expect(UserDefaults.standard.string(forKey: SettingsPane.storageKey) == "reminders")
+        #expect(defaults.string(forKey: SettingsPane.storageKey) == "reminders")
         router.openSettings(pane: nil)
-        #expect(UserDefaults.standard.string(forKey: SettingsPane.storageKey) == "reminders")
-        UserDefaults.standard.removeObject(forKey: SettingsPane.storageKey)
+        #expect(defaults.string(forKey: SettingsPane.storageKey) == "reminders")
         #expect(SettingsPane.allCases.map(\.symbol) == ["gearshape", "timer", "moon.zzz", "bell", "keyboard", "waveform.path.ecg"])
     }
 

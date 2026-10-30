@@ -61,6 +61,30 @@ struct TrackerPaneTests {
         #expect(test.agent.openedLoginItems == 1)
     }
 
+    @Test("TRK-31 while the pane is visible the status is re-read every 5 seconds, so a change shows within 5 seconds")
+    func paneRefreshLoop() async throws {
+        let now = try TestApp.date("2024-03-14T10:00")
+        let test = try await TestApp(trackerState: Self.state(lastTick: now - 12, sources: []))
+        let tracker = test.app.tracker
+        let gate = SleepGate()
+        let loop = Task { await tracker.refreshWhileVisible(sleep: { try await gate.sleep($0) }) }
+        await gate.waitForSleep(1)
+        #expect(tracker.dotColor == "gray")
+        #expect(tracker.buttonTitle == "Enable Tracker")
+        // Registered elsewhere (Login Items): the next pass, one period later, shows it.
+        test.agent.registration = .enabled
+        #expect(tracker.dotColor == "gray")
+        gate.release()
+        await gate.waitForSleep(2)
+        #expect(tracker.dotColor == "green")
+        #expect(tracker.buttonTitle == "Disable Tracker")
+        #expect(gate.durations == [.seconds(5), .seconds(5)])
+        #expect(TrackerStatusModel.paneRefreshInterval <= .seconds(5))
+        loop.cancel()
+        gate.cancel()
+        await loop.value
+    }
+
     @Test("TRK-32 the pane writes only settings.toml; confirming Also remove it from past logs sends one reapply-exclusions")
     func exclusions() async throws {
         let folder = FileManager.default.temporaryDirectory.appending(path: "TrackerPaneTests-\(UUID().uuidString)")
@@ -85,12 +109,22 @@ struct TrackerPaneTests {
         #expect(model.offerReapply == nil)
     }
 
-    @Test("ARCH-8 the launched Debug app has not registered the agent")
-    func agentNotRegistered() throws {
+    /// An app in /Applications reports `notRegistered`; the test host runs
+    /// from derived data, where the system reports `notFound` for the same
+    /// unregistered agent. Both offer "Enable Tracker"; neither is enabled.
+    @Test("ARCH-8 the launched Debug app has not registered the agent; the pane offers Enable Tracker")
+    func agentNotRegistered() async throws {
         let identity = try AppIdentity(infoDictionary: Bundle.main.infoDictionary ?? [:])
+        let plist = Bundle.main.bundleURL.appending(path: "Contents/Library/LaunchAgents/\(identity.agentPlistName)")
+        #expect(FileManager.default.fileExists(atPath: plist.path))
+        let service = LoginItemAgentService(identity: identity)
         let status = SMAppService.agent(plistName: identity.agentPlistName).status
-        #expect(status != .enabled)
-        #expect(LoginItemAgentService.registration(of: status) != .enabled)
+        #expect([.notRegistered, .notFound].contains(status))
+        #expect([.notRegistered, .notFound].contains(service.registration))
         #expect(LoginItemAgentService.registration(of: .notRegistered) == .notRegistered)
+        let model = TrackerStatusModel(agent: service, clock: ManualClock.fixture(), readState: { nil })
+        await model.refresh()
+        #expect(model.buttonTitle == "Enable Tracker")
+        #expect(model.dotColor == "gray")
     }
 }

@@ -64,6 +64,23 @@ final class TrackerStatusModel {
         warningActive = TrackerWarning.isActive(registration: registration, state: state, presentSince: presentSince, now: clock.now)
     }
 
+    /// The Tracker pane's re-read period (spec_activity_tracking.md §7.4).
+    static let paneRefreshInterval: Duration = .seconds(5)
+
+    /// While the Tracker pane is visible: refreshes now and after every
+    /// `paneRefreshInterval`, until the task is cancelled. `sleep` is the
+    /// tests' seam.
+    func refreshWhileVisible(sleep: (Duration) async throws -> Void = { try await Task.sleep(for: $0) }) async {
+        while !Task.isCancelled {
+            await refresh()
+            do {
+                try await sleep(Self.paneRefreshInterval)
+            } catch {
+                return
+            }
+        }
+    }
+
     /// Wake, unlock, or session activation.
     func becamePresent(at time: Date) async {
         presentSince = time

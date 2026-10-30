@@ -22,11 +22,7 @@ struct TrackerPane: View {
         .formStyle(.grouped)
         .frame(minHeight: 520)
         .task {
-            // Re-read the status every 5 seconds while visible.
-            while !Task.isCancelled {
-                await app.tracker.refresh()
-                try? await Task.sleep(for: .seconds(5))
-            }
+            await app.tracker.refreshWhileVisible()
         }
         .alert("Disable the tracker?", isPresented: $tracker.confirmDisable) {
             Button("Disable Tracker", role: .destructive) { Task { await app.tracker.disable() } }

@@ -107,8 +107,14 @@ struct PlannerReportsTests {
         editor.onChange = { await reports.editorChanged() }
         await editor.load()
         editor.durationText = "2:00"
+        let tuesdayBefore = try #require(reports.snapshot?.chart.buckets[1].total)
+        let grantBefore = try #require(reports.breakdownRows.first { $0.node.name == "Research" }?.node.seconds)
         await editor.commitDuration()
+        // Tiles, chart, and table all follow the saved edit.
         #expect(reports.snapshot?.summary.loggedSeconds == before + 3600)
+        #expect(reports.snapshot?.chart.buckets[1].total == tuesdayBefore + 3600)
+        #expect(reports.breakdownRows.first { $0.node.name == "Research" }?.node.seconds == grantBefore + 3600)
+        #expect(reports.listings.first { $0.id == draft.id }?.entry.end == draft.entry.start + 7200)
         await reports.continueListing(draft.id)
         #expect(test.app.timer.running?.task == "Draft")
         reports.showInCalendar(draft)
@@ -161,6 +167,58 @@ struct PlannerReportsTests {
         #expect(planner.reports.state.card == .breakdown)
         #expect(planner.range.range == .preset(.allTime))
         #expect(planner.reports.snapshot?.summary.loggedSeconds == 3600)
+    }
+
+    @Test("PR-5 an archived project's breakdown row reads (archived); excluding archived projects removes it and its time")
+    func archivedRow() async throws {
+        let test = try await TestApp()
+        let projects = try await week(test)
+        try await test.store.archive(projects[1].id)
+        let reports = test.app.planner.reports
+        await reports.reload()
+        reports.expandAll()
+        let grant = try #require(reports.breakdownRows.first { $0.node.key == .project(projects[1].id) })
+        #expect(grant.title == "Grant (archived)")
+        let paper = try #require(reports.breakdownRows.first { $0.node.key == .project(projects[0].id) })
+        #expect(!paper.title.contains("archived"))
+        let before = try #require(reports.snapshot?.summary.loggedSeconds)
+        await reports.setFilters(ReportFilters(includeArchived: false))
+        reports.expandAll()
+        #expect(!reports.breakdownRows.contains { $0.node.key == .project(projects[1].id) })
+        #expect(reports.snapshot?.summary.loggedSeconds == before - 3600)
+        #expect(!reports.breakdownCSV.contains("Grant"))
+    }
+
+    @Test("PR-19 both Reports CSV exports are byte-identical to the bundled tool's output for the same range, filters, and levels")
+    func csvMatchesTool() async throws {
+        let folder = FileManager.default.temporaryDirectory.appending(path: "pr19-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let url = folder.appending(path: "store.sqlite")
+        let test = try await TestApp(storeFile: url)
+        _ = try await week(test)
+        let university = try #require(try await test.store.clients(includeRetired: false).first { $0.name == "University" })
+        let reports = test.app.planner.reports
+        await reports.setFilters(ReportFilters(clients: [university.id], task: "a"))
+        await reports.reload()
+        #expect(reports.state.levels == [.area, .project, .task])
+        let week = ["--from", "2024-03-11", "--to", "2024-03-18"]
+        let breakdown = try HelperTool.run(
+            ["report", "--csv"] + week + ["--group-by", "area,project,task", "--client", "University", "--task", "a"],
+            store: url,
+            now: test.clock.now
+        )
+        #expect(breakdown.status == 0, "\(breakdown.error)")
+        #expect(breakdown.output.hasPrefix("area,project,task,seconds,duration,share,entries\n"))
+        #expect(breakdown.output == reports.breakdownCSV)
+        // The tool's Entries CSV has no filters: compare with the unfiltered Reports export.
+        await reports.setFilters(ReportFilters())
+        await reports.reload()
+        let entries = try HelperTool.run(["export", "--format", "csv"] + week, store: url, now: test.clock.now)
+        #expect(entries.status == 0, "\(entries.error)")
+        #expect(entries.output.split(separator: "\n").count == 5)
+        #expect(entries.output == reports.entriesCSV)
+        await test.store.close()
     }
 
     @Test func exportsAndNames() async throws {
