@@ -24,6 +24,32 @@ extension AgentEngine {
         if isDue("synced_safari", every: Self.syncedSafariInterval, now: now) {
             collectSyncedSafari(now: now)
         }
+        if isDue("knowledge_check", every: Self.purgeInterval, now: now) {
+            crossCheckKnowledge(now: now)
+        }
+    }
+
+    /// Compares yesterday's per-app time of the samples with the Knowledge
+    /// store's `/app/usage` and logs a difference over a quarter (§3.2).
+    func crossCheckKnowledge(now: Date) {
+        let today = ActivityTimestamp.startOfDay(now, timeZone: environment.timeZone)
+        let yesterday = ActivityTimestamp.startOfDay(today.addingTimeInterval(-3600), timeZone: environment.timeZone)
+        guard case let .data(apps, _, _) = environment.knowledge.read(from: yesterday, to: today) else {
+            return
+        }
+        let knowledgeSeconds = apps.reduce(0.0) { total, app in
+            total + max(0, min(app.end, today).timeIntervalSince(max(app.start, yesterday)))
+        }
+        let attentive = ((try? store.rows(from: yesterday, to: today)) ?? []).filter(\.sample.isAttentive)
+        let sampleSeconds = Double(attentive.count) * Self.tickInterval
+        let larger = max(knowledgeSeconds, sampleSeconds)
+        guard larger > 0 else {
+            return
+        }
+        let difference = abs(knowledgeSeconds - sampleSeconds) / larger
+        if difference > 0.25 {
+            logger.notice("Knowledge cross-check: app time differs by \(Int(difference * 100), privacy: .public)% from the samples")
+        }
     }
 
     private func isDue(_ key: String, every interval: TimeInterval, now: Date) -> Bool {
