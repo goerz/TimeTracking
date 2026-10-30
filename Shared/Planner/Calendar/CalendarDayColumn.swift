@@ -165,13 +165,6 @@ private struct TrackedColumn: View {
     }
 }
 
-extension String {
-    /// The rest after `prefix`, or `nil`.
-    func dropPrefix(_ prefix: String) -> String? {
-        hasPrefix(prefix) ? String(dropFirst(prefix.count)) : nil
-    }
-}
-
 // MARK: Activity
 
 /// The tracker's blocks, covered parts dimmed, gap labels (§3.1).
