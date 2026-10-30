@@ -20,8 +20,11 @@ nonisolated struct BrowserApp: Hashable, Sendable {
     var context: String
     var scripting: BrowserScripting
 
+    /// Safari on the Mac.
+    static let safariBundleID = "com.apple.Safari"
+
     static let known: [String: Self] = [
-        "com.apple.Safari": Self(context: "safari", scripting: .safari),
+        safariBundleID: Self(context: "safari", scripting: .safari),
         "com.apple.SafariTechnologyPreview": Self(context: "safari", scripting: .safari),
         "com.google.Chrome": Self(context: "chrome", scripting: .chromium),
         "com.google.Chrome.canary": Self(context: "chrome", scripting: .chromium),

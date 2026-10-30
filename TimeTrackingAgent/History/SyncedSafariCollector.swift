@@ -48,19 +48,11 @@ struct SyncedSafariCollector {
             guard let parts = rules.parts(for: visit.url) else {
                 continue
             }
-            let item = parts.isExcluded
-                ? SampleItem(context: "safari", subject: ExclusionRules.privateMarker, groupKey: "safari", app: "com.apple.Safari")
-                : SampleItem(
-                    context: "safari",
-                    subject: parts.subject,
-                    detail: parts.detail,
-                    groupKey: parts.groupKey,
-                    app: "com.apple.Safari"
-                )
+            let item = SampleItem(browser: "safari", parts: parts, app: BrowserApp.safariBundleID)
             if !parts.isExcluded {
                 urlsByTime.append((visit.time, visit.url))
             }
-            closed += blocker.add(Sample(time: visit.time, state: .active, primary: item, bundleID: "com.apple.Safari"))
+            closed += blocker.add(Sample(time: visit.time, state: .active, primary: item, bundleID: BrowserApp.safariBundleID))
         }
         closed += blocker.flush()
         return closed.map { attribute($0, urls: urlsByTime) }

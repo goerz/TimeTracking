@@ -96,9 +96,7 @@ nonisolated struct DeviceEventMerger {
             guard let parts = rules.parts(for: "https://" + event.label) else {
                 return nil
             }
-            let item = parts.isExcluded
-                ? SampleItem(context: "safari", subject: ExclusionRules.privateMarker, groupKey: "safari", app: Self.safariApp)
-                : SampleItem(context: "safari", subject: parts.subject, detail: parts.detail, groupKey: parts.groupKey, app: Self.safariApp)
+            let item = SampleItem(browser: "safari", parts: parts, app: Self.safariApp)
             var end = event.time.addingTimeInterval(Self.pointLength)
             if index + 1 < tabs.count {
                 end = min(end, tabs[index + 1].time)
