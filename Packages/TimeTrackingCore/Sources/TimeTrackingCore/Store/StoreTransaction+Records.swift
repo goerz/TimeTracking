@@ -13,14 +13,7 @@ extension StoreTransaction {
 
     /// The value of a synced setting, or its default.
     public func value<T>(_ key: SyncedSettingKey<T>) throws -> T {
-        guard let json = try String.fetchOne(
-            database,
-            sql: "SELECT value FROM setting WHERE key = ? AND deleted_at IS NULL",
-            arguments: [key.name]
-        ) else {
-            return key.defaultValue
-        }
-        return (try? JSONDecoder().decode(T.self, from: Data(json.utf8))) ?? key.defaultValue
+        try StoreQueries.settingValue(key, in: database)
     }
 
     func setSettingJSON(_ key: String, _ json: String) throws {

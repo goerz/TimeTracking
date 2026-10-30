@@ -87,21 +87,12 @@ extension TimeStore: StructureReading {
     }
 
     public func project(_ id: ProjectID) throws -> Project? {
-        try read { database in
-            try Row.fetchOne(database, sql: "SELECT * FROM project WHERE id = ? AND deleted_at IS NULL", arguments: [id.rawValue])
-                .map(Project.init(row:))
-        }
+        try project(id, includeDeleted: false)
     }
 
     /// Any project, also a tombstone (for display of history).
     public func project(_ id: ProjectID, includeDeleted: Bool) throws -> Project? {
-        try read { database in
-            try Row.fetchOne(
-                database,
-                sql: "SELECT * FROM project WHERE id = ?" + (includeDeleted ? "" : " AND deleted_at IS NULL"),
-                arguments: [id.rawValue]
-            ).map(Project.init(row:))
-        }
+        try read { try StoreQueries.project(id, includeDeleted: includeDeleted, in: $0) }
     }
 
     public func projectTree(includeArchived: Bool) throws -> [ClientNode] {

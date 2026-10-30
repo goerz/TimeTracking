@@ -18,26 +18,20 @@ extension TimeStore: TimeStoreReading {
 
     public func chainStart(of id: EntryID) throws -> Date {
         try read { database in
-            guard let entry = try Self.entry(id, includeDeleted: true, in: database) else {
+            guard let entry = try StoreQueries.entry(id, includeDeleted: true, in: database) else {
                 throw StoreError.unknownID
             }
-            let root = entry.rootID.rawValue
-            let start = try Int64.fetchOne(
-                database,
-                sql: "SELECT MIN(start) FROM time_entry WHERE deleted_at IS NULL AND (id = ? OR split_root_id = ?)",
-                arguments: [root, root]
-            )
-            return start.map { Time.date($0) } ?? entry.start
+            return try StoreQueries.chainStart(root: entry.rootID, in: database) ?? entry.start
         }
     }
 
     public func entry(_ id: EntryID) throws -> TimeEntry? {
-        try read { try Self.entry(id, includeDeleted: false, in: $0) }
+        try read { try StoreQueries.entry(id, includeDeleted: false, in: $0) }
     }
 
     /// An entry, also a tombstone.
     public func entry(_ id: EntryID, includeDeleted: Bool) throws -> TimeEntry? {
-        try read { try Self.entry(id, includeDeleted: includeDeleted, in: $0) }
+        try read { try StoreQueries.entry(id, includeDeleted: includeDeleted, in: $0) }
     }
 
     public func entries(in interval: DateInterval, includeDeleted: Bool = false) throws -> [TimeEntry] {
@@ -207,11 +201,6 @@ extension TimeStore: TimeStoreReading {
                 arguments: StatementArguments(arguments)
             ).map(TimeEntry.init(row:))
         }
-    }
-
-    static func entry(_ id: EntryID, includeDeleted: Bool, in database: Database) throws -> TimeEntry? {
-        let sql = "SELECT * FROM time_entry WHERE id = ?" + (includeDeleted ? "" : " AND deleted_at IS NULL")
-        return try Row.fetchOne(database, sql: sql, arguments: [id.rawValue]).map(TimeEntry.init(row:))
     }
 
     static func escapeLike(_ text: String) -> String {

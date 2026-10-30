@@ -29,11 +29,7 @@ extension StoreTransaction {
 
     /// The earliest start of the live entries of the chain `root`.
     func chainStart(root: EntryID) throws -> Date? {
-        try Int64.fetchOne(
-            database,
-            sql: "SELECT MIN(start) FROM time_entry WHERE deleted_at IS NULL AND (id = ? OR split_root_id = ?)",
-            arguments: [root.rawValue, root.rawValue]
-        ).map { Time.date($0) }
+        try StoreQueries.chainStart(root: root, in: database)
     }
 
     /// Several running entries: ordered by chain start, then root id, the

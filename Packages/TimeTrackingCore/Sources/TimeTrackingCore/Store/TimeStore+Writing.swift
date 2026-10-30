@@ -104,16 +104,7 @@ extension TimeStore: TimeStoreWriting {
 
     /// The value of a synced setting, or its default.
     public func value<T>(_ key: SyncedSettingKey<T>) throws -> T {
-        try read { database in
-            guard let json = try String.fetchOne(
-                database,
-                sql: "SELECT value FROM setting WHERE key = ? AND deleted_at IS NULL",
-                arguments: [key.name]
-            ) else {
-                return key.defaultValue
-            }
-            return (try? JSONDecoder().decode(T.self, from: Data(json.utf8))) ?? key.defaultValue
-        }
+        try read { try StoreQueries.settingValue(key, in: $0) }
     }
 
     /// Creates or refreshes this device's record (at most hourly).

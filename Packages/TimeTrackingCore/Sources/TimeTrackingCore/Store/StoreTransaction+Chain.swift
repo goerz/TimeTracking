@@ -37,15 +37,10 @@ extension TimeStore {
     /// The live pieces of the chain of `id`, by start.
     public func chain(of id: EntryID) throws -> [TimeEntry] {
         try read { database in
-            guard let entry = try Self.entry(id, includeDeleted: true, in: database) else {
+            guard let entry = try StoreQueries.entry(id, includeDeleted: true, in: database) else {
                 throw StoreError.unknownID
             }
-            let root = entry.rootID.rawValue
-            return try Row.fetchAll(
-                database,
-                sql: "SELECT * FROM time_entry WHERE deleted_at IS NULL AND (id = ? OR split_root_id = ?) ORDER BY start, id",
-                arguments: [root, root]
-            ).map(TimeEntry.init(row:))
+            return try StoreQueries.chainEntries(root: entry.rootID, in: database)
         }
     }
 }

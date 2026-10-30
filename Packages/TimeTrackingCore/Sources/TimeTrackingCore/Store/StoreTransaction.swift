@@ -107,8 +107,7 @@ public final class StoreTransaction {
     // MARK: Lookups
 
     func entry(_ id: EntryID, includeDeleted: Bool = false) throws -> TimeEntry? {
-        let sql = "SELECT * FROM time_entry WHERE id = ?" + (includeDeleted ? "" : " AND deleted_at IS NULL")
-        return try Row.fetchOne(database, sql: sql, arguments: [id.rawValue]).map(TimeEntry.init(row:))
+        try StoreQueries.entry(id, includeDeleted: includeDeleted, in: database)
     }
 
     func liveEntry(_ id: EntryID) throws -> TimeEntry {
@@ -126,11 +125,7 @@ public final class StoreTransaction {
     }
 
     func chainEntries(root: EntryID) throws -> [TimeEntry] {
-        try Row.fetchAll(
-            database,
-            sql: "SELECT * FROM time_entry WHERE deleted_at IS NULL AND (id = ? OR split_root_id = ?) ORDER BY start, id",
-            arguments: [root.rawValue, root.rawValue]
-        ).map(TimeEntry.init(row:))
+        try StoreQueries.chainEntries(root: root, in: database)
     }
 
     func client(_ id: ClientID, includeDeleted: Bool = false) throws -> Client? {
@@ -144,8 +139,7 @@ public final class StoreTransaction {
     }
 
     func project(_ id: ProjectID, includeDeleted: Bool = false) throws -> Project? {
-        let sql = "SELECT * FROM project WHERE id = ?" + (includeDeleted ? "" : " AND deleted_at IS NULL")
-        return try Row.fetchOne(database, sql: sql, arguments: [id.rawValue]).map(Project.init(row:))
+        try StoreQueries.project(id, includeDeleted: includeDeleted, in: database)
     }
 
     func liveAreas(of client: ClientID) throws -> [Area] {
