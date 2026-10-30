@@ -102,6 +102,7 @@ final class AppModel {
     /// The Planner window closed: its undo stack goes with it.
     func plannerClosed() {
         plannerIsOpen = false
+        planner.projects.undoManager?.removeAllActions()
     }
 
     /// Loads everything; with `observing`, follows the store's changes.

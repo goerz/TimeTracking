@@ -31,31 +31,45 @@ struct ProjectsTable: View {
 
     var body: some View {
         ScrollViewReader { proxy in
-            Table(of: ProjectTableItem.self, selection: selection, columnCustomization: columns) {
-                nameColumns
-                dateColumns
-            } rows: {
-                rows
-            }
-            .contextMenu(forSelectionType: String.self) { ids in
-                menu(for: ids)
-            } primaryAction: { _ in
-                model.editSelection()
-            }
-            .onKeyPress(.leftArrow) {
-                model.setSelectionGroupExpanded(false)
-                return .handled
-            }
-            .onKeyPress(.rightArrow) {
-                model.setSelectionGroupExpanded(true)
-                return .handled
-            }
-            .onChange(of: model.scrollTarget) { _, target in
-                if let target {
-                    proxy.scrollTo("project:\(target.rawValue)")
+            table
+                .onChange(of: model.scrollTarget) { _, target in
+                    if let target {
+                        proxy.scrollTo("project:\(target.rawValue)")
+                    }
+                }
+                .accessibilityIdentifier("projects.table")
+        }
+    }
+
+    private var table: some View {
+        Table(of: ProjectTableItem.self, selection: selection, columnCustomization: columns) {
+            nameColumns
+            dateColumns
+        } rows: {
+            rows
+        }
+        .contextMenu(forSelectionType: String.self) { ids in
+            menu(for: ids)
+        } primaryAction: { _ in
+            model.editSelection()
+        }
+        .onDeleteCommand {
+            // ⌫: Archive on active rows, Restore on archived ones.
+            Task {
+                if model.canArchive {
+                    await model.archiveSelection()
+                } else {
+                    await model.restoreSelection()
                 }
             }
-            .accessibilityIdentifier("projects.table")
+        }
+        .onKeyPress(keys: [.return, .leftArrow, .rightArrow]) { press in
+            switch press.key {
+            case .return: model.editSelection()
+            case .leftArrow: model.setSelectionGroupExpanded(false)
+            default: model.setSelectionGroupExpanded(true)
+            }
+            return .handled
         }
     }
 
@@ -201,6 +215,7 @@ private struct ProjectNameCell: View {
     var item: ProjectTableItem
 
     @State private var renameText = ""
+    @State private var hovering = false
 
     var body: some View {
         switch item {
@@ -249,8 +264,10 @@ private struct ProjectNameCell: View {
             .buttonStyle(.borderless)
             .menuIndicator(.hidden)
             .fixedSize()
-            .opacity(model.selection.contains(row.id) ? 1 : 0)
+            .opacity(hovering ? 1 : 0)
         }
+        .contentShape(Rectangle())
+        .onHover { hovering = $0 }
         .accessibilityIdentifier("projects.row")
     }
 }

@@ -114,7 +114,6 @@ private struct ProjectMenuItems: View {
                 }
             }
         }
-        .keyboardShortcut(.delete, modifiers: [])
         .disabled(!enabled || !(model.canArchive || model.canRestore))
         Button("Merge Into…") { model.mergeSource = model.single?.id }
             .disabled(!enabled || model.single == nil)
