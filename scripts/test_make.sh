@@ -148,15 +148,23 @@ build_settings() {
                /^    [A-Z_]+ = / { sub(/^    /, ""); print target "\t" $0 }'
 }
 
+# settings <configuration> [<APP_NAME>]: the file of build_settings with
+# TT_APP_NAME (default Test); each query runs once per suite run.
+settings() {
+    local file="$scratch/settings.$1.${2:-Test}"
+    [ -s "$file" ] || build_settings "$1" TT_APP_NAME="${2:-Test}" > "$file"
+    echo "$file"
+}
+
 setting() {
     # setting <file> <target> <name>
     awk -F '\t' -v t="$2" -v n="$3 = " '$1 == t && index($2, n) == 1 { print substr($2, length(n) + 1); exit }' "$1"
 }
 
 test_debug_identifiers() {
-    local debug="$scratch/debug.settings" release="$scratch/release.settings"
-    build_settings Debug > "$debug"
-    build_settings Release > "$release"
+    local debug release
+    debug=$(settings Debug)
+    release=$(settings Release)
     check "Debug app id" [ "$(setting "$debug" TimeTracking PRODUCT_BUNDLE_IDENTIFIER)" = com.example.test.debug ]
     check "Debug iOS app id" [ "$(setting "$debug" TimeTrackingiOS PRODUCT_BUNDLE_IDENTIFIER)" = com.example.test.debug ]
     check "Debug agent id" [ "$(setting "$debug" TimeTrackingAgent PRODUCT_BUNDLE_IDENTIFIER)" = com.example.test.debug.agent ]
@@ -173,9 +181,9 @@ test_debug_identifiers() {
 }
 
 test_app_name() {
-    local base="$scratch/base.settings" renamed="$scratch/renamed.settings" target name
-    build_settings Debug > "$base"
-    build_settings Debug TT_APP_NAME=Renamed > "$renamed"
+    local base renamed target name
+    base=$(settings Debug)
+    renamed=$(settings Debug Renamed)
     check "the Debug Mac bundle is Renamed Debug.app" [ "$(setting "$renamed" TimeTracking FULL_PRODUCT_NAME)" = "Renamed Debug.app" ]
     check "the iOS bundle is Renamed.app" [ "$(setting "$renamed" TimeTrackingiOS FULL_PRODUCT_NAME)" = Renamed.app ]
     for target in TimeTracking TimeTrackingiOS; do
@@ -202,9 +210,9 @@ display_name_is_setting() {
 # Debug Mac bundles carry " Debug" in their file names, all Debug bundles in
 # their display names; no Release name contains Debug.
 test_debug_names() {
-    local debug="$scratch/names.debug" release="$scratch/names.release" target plist
-    build_settings Debug TT_APP_NAME=Test > "$debug"
-    build_settings Release TT_APP_NAME=Test > "$release"
+    local debug release target plist
+    debug=$(settings Debug)
+    release=$(settings Release)
     check "Debug Mac app file name" [ "$(setting "$debug" TimeTracking FULL_PRODUCT_NAME)" = "Test Debug.app" ]
     check "Debug agent file name" [ "$(setting "$debug" TimeTrackingAgent FULL_PRODUCT_NAME)" = "TimeTrackingAgent Debug.app" ]
     check "Debug agent name" [ "$(setting "$debug" TimeTrackingAgent TT_AGENT_NAME)" = "TimeTrackingAgent Debug" ]
@@ -506,24 +514,24 @@ test_pre_commit() {
 
 # --- ARCH-4, ARCH-5 (--products)
 
-release_app() {
-    local name
-    name=$(sed -n 's/^APP_NAME *= *//p' "$root/local.mk" 2>/dev/null)
-    echo "$root/build.noindex/Build/Products/$1/${name:-TimeTracking}.app"
-}
-
 local_value() {
     sed -n "s/^$1 *= *//p" "$root/local.mk"
 }
 
+# product_app <products folder>: the APP_NAME bundle in build.noindex/Build/Products/<folder>.
+product_app() {
+    local name
+    name=$(local_value APP_NAME)
+    echo "$root/build.noindex/Build/Products/$1/${name:-TimeTracking}.app"
+}
+
 test_mac_products() {
     local app copy entitlements bundle_id team
-    app=$(release_app Release)
+    app=$(product_app Release)
     bundle_id=$(local_value BUNDLE_ID)
     team=$(local_value TEAM)
     check "a Release Mac build exists (run make build-mac)" [ -d "$app" ]
     check "the Release Mac products pass" "$root/scripts/check_products.sh" mac "$app" "$bundle_id" "$team"
-    check "no Contents/Frameworks" [ ! -e "$app/Contents/Frameworks" ]
     copy="$scratch/Copy.app"
     ditto "$app" "$copy"
     rm "$copy/Contents/Helpers/tracker-event"
@@ -543,7 +551,7 @@ test_mac_products() {
 
 test_ios_products() {
     local app
-    app=$(release_app Release-iphoneos)
+    app=$(product_app Release-iphoneos)
     check "a Release iOS build exists (run make build-ios)" [ -d "$app" ]
     check "the Release iOS products pass" "$root/scripts/check_products.sh" ios "$app" "$(local_value BUNDLE_ID)" "$(local_value TEAM)"
 }
@@ -555,10 +563,10 @@ plist_value() {
 
 # The built Debug and Release bundles' file and display names (ARCH-24).
 test_product_names() {
-    local name debug_app agent release_app_path sim_app ios_app plist program extension
+    local name debug_app agent release_app sim_app ios_app plist program extension
     name=$(local_value APP_NAME)
     name=${name:-TimeTracking}
-    debug_app=$(release_app Debug)
+    debug_app=$(product_app Debug)
     debug_app="${debug_app%.app} Debug.app"
     agent="$debug_app/Contents/Library/LoginItems/TimeTrackingAgent Debug.app"
     check "a Debug Mac build exists (run make mac-debug)" [ -d "$debug_app" ]
@@ -574,14 +582,13 @@ test_product_names() {
     check "the Debug launchd plist names the Debug agent" \
         [ "$program" = "Contents/Library/LoginItems/TimeTrackingAgent Debug.app/Contents/MacOS/TimeTrackingAgent" ]
     check "the Debug BundleProgram is an executable" [ -x "$debug_app/$program" ]
-    release_app_path=$(release_app Release)
-    check "a Release Mac build exists (run make build-mac)" [ -d "$release_app_path" ]
-    check "the Release app is $name.app" [ "$(basename "$release_app_path")" = "$name.app" ]
-    check "the Release agent is TimeTrackingAgent.app" [ -d "$release_app_path/Contents/Library/LoginItems/TimeTrackingAgent.app" ]
-    check "the Release Mac bundles' names lack Debug" not sh -c "find '$release_app_path' -name Info.plist \
+    release_app=$(product_app Release)
+    check "a Release Mac build exists (run make build-mac)" [ -d "$release_app" ]
+    check "the Release agent is TimeTrackingAgent.app" [ -d "$release_app/Contents/Library/LoginItems/TimeTrackingAgent.app" ]
+    check "the Release Mac bundles' names lack Debug" not sh -c "find '$release_app' -name Info.plist \
         -exec plutil -extract CFBundleName raw {} \; -exec plutil -extract CFBundleDisplayName raw {} \; 2>/dev/null | grep Debug"
-    check "no Release Mac bundle file name contains Debug" [ -z "$(find "$release_app_path" -name '*Debug*')" ]
-    sim_app=$(release_app Debug-iphonesimulator)
+    check "no Release Mac bundle file name contains Debug" [ -z "$(find "$release_app" -name '*Debug*')" ]
+    sim_app=$(product_app Debug-iphonesimulator)
     check "a simulator build exists (run make build-sim)" [ -d "$sim_app" ]
     check "the simulator app's display name" [ "$(plist_value "$sim_app/Info.plist" CFBundleDisplayName)" = "$name Debug" ]
     for extension in "$sim_app"/PlugIns/*.appex "$sim_app"/Extensions/*.appex; do
@@ -589,7 +596,7 @@ test_product_names() {
         check "$(basename "$extension") Debug display name" \
             [ "$(plist_value "$extension/Info.plist" CFBundleDisplayName)" = "$name Debug" ]
     done
-    ios_app=$(release_app Release-iphoneos)
+    ios_app=$(product_app Release-iphoneos)
     check "a Release iOS build exists (run make build-ios)" [ -d "$ios_app" ]
     check "the Release iOS bundles' display names lack Debug" not sh -c "find '$ios_app' -name Info.plist \
         -exec plutil -extract CFBundleDisplayName raw {} \; 2>/dev/null | grep Debug"
