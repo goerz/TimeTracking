@@ -77,6 +77,7 @@ public actor StoreSynchronizer {
                 result = try await transport.fetchChanges(since: token)
             } catch SyncTransportError.zoneNotFound {
                 try await recreateZone()
+                try await send()
                 continue
             }
             if !result.records.isEmpty || !result.deletions.isEmpty {

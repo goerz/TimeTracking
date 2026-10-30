@@ -126,8 +126,11 @@ extension TimeStore: Reporting {
 
     private static func node(_ key: GroupKeyValue, name: String?, color: String?, rows: [ReportRow], query: ReportQuery) -> ReportNode {
         var buckets: [TrackingPeriod: Int] = [:]
+        var entryBuckets: [TrackingPeriod: Int] = [:]
         for row in rows {
-            buckets[period(of: row, query: query), default: 0] += row.seconds
+            let period = period(of: row, query: query)
+            buckets[period, default: 0] += row.seconds
+            entryBuckets[period, default: 0] += 1
         }
         return ReportNode(
             key: key,
@@ -135,7 +138,8 @@ extension TimeStore: Reporting {
             color: color,
             seconds: rows.reduce(0) { $0 + $1.seconds },
             entryCount: rows.count,
-            buckets: buckets
+            buckets: buckets,
+            entryBuckets: entryBuckets
         )
     }
 

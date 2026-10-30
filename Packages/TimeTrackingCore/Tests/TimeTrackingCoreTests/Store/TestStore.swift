@@ -16,11 +16,13 @@ struct TestStore {
         now: String = "2024-03-14T10:00",
         zone: String = "Europe/Berlin",
         deviceID: DeviceID = DeviceID(),
-        hub: InMemoryChangeNotifier.Hub = .init()
+        hub: InMemoryChangeNotifier.Hub = .init(),
+        clock: ManualClock? = nil
     ) async throws {
         let zone = try #require(TimeZone(identifier: zone))
         self.zone = zone
-        self.clock = try ManualClock(Self.date(now, zone))
+        let clock = try clock ?? ManualClock(Self.date(now, zone))
+        self.clock = clock
         self.notifier = InMemoryChangeNotifier(hub: hub)
         self.deviceID = deviceID
         self.store = try await TimeStore.inMemory(clock: clock, deviceID: deviceID, timeZone: zone, notifier: notifier)

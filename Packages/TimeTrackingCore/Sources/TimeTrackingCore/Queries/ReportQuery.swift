@@ -85,6 +85,8 @@ public struct ReportNode: Hashable, Sendable {
     public var seconds: Int
     public var entryCount: Int
     public var buckets: [TrackingPeriod: Int]
+    /// Entries per period.
+    public var entryBuckets: [TrackingPeriod: Int]
     public var children: [Self]
 
     public init(
@@ -94,6 +96,7 @@ public struct ReportNode: Hashable, Sendable {
         seconds: Int = 0,
         entryCount: Int = 0,
         buckets: [TrackingPeriod: Int] = [:],
+        entryBuckets: [TrackingPeriod: Int] = [:],
         children: [Self] = []
     ) {
         self.key = key
@@ -102,6 +105,7 @@ public struct ReportNode: Hashable, Sendable {
         self.seconds = seconds
         self.entryCount = entryCount
         self.buckets = buckets
+        self.entryBuckets = entryBuckets
         self.children = children
     }
 
