@@ -154,9 +154,7 @@ struct PomodoroPane: View {
         @Bindable var settings = app.settings
         Form {
             Section {
-                StepperRow(title: "Focus duration", value: "\(app.pomodoro.focusMinutes) min", amount: focusMinutes, range: 1 ... 180)
-                    .accessibilityIdentifier("settings.focusMinutes")
-                StepperRow(title: "Break duration", value: "\(app.pomodoro.breakMinutes) min", amount: breakMinutes, range: 1 ... 60)
+                PomodoroDurationRows(pomodoro: app.pomodoro, focusTitle: "Focus duration", breakTitle: "Break duration")
             } footer: {
                 Text("The durations are the same on all your devices.")
             }
@@ -165,22 +163,6 @@ struct PomodoroPane: View {
             }
         }
         .settingsForm()
-    }
-
-    private var focusMinutes: Binding<Int> {
-        Binding {
-            app.pomodoro.focusMinutes
-        } set: { value in
-            Task { await app.pomodoro.setFocusMinutes(value) }
-        }
-    }
-
-    private var breakMinutes: Binding<Int> {
-        Binding {
-            app.pomodoro.breakMinutes
-        } set: { value in
-            Task { await app.pomodoro.setBreakMinutes(value) }
-        }
     }
 }
 
