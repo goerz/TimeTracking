@@ -4,8 +4,8 @@
 public import AppIntents
 public import Foundation
 
-/// A project, identified by its UUID.
-public struct ProjectEntity: AppEntity {
+/// A project, identified by its UUID; indexed for Spotlight (spec_ios.md §6.1).
+public struct ProjectEntity: AppEntity, IndexedEntity {
     public static let typeDisplayRepresentation: TypeDisplayRepresentation = "Project"
     public static let defaultQuery = ProjectEntityQuery()
 
@@ -96,7 +96,7 @@ public struct ProjectEntityQuery: EntityStringQuery, EntityPropertyQuery {
     }
 
     public func entities(matching string: String) async throws -> [ProjectEntity] {
-        try await Self.matching(string, in: Self.rows(environment)).map(ProjectEntity.init)
+        try await Self.resolve(string, in: Self.rows(environment)).map(ProjectEntity.init)
     }
 
     public func suggestedEntities() async throws -> [ProjectEntity] {
@@ -144,6 +144,18 @@ public struct ProjectEntityQuery: EntityStringQuery, EntityPropertyQuery {
         let prefix = active.filter { $0.project.name.folded.hasPrefix(needle) }
         let substring = active.filter { !$0.project.name.folded.hasPrefix(needle) && $0.project.name.folded.contains(needle) }
         return prefix + substring
+    }
+
+    /// `matching(_:in:)` for Siri: a name matching nothing fails with "I
+    /// couldn't find a project called X in TimeTracking." (spec_ios.md §6.3);
+    /// several matches are returned for Siri to disambiguate by subtitle.
+    public static func resolve(_ string: String, in rows: [ProjectRow]) throws(AutomationError) -> [ProjectRow] {
+        let found = matching(string, in: rows)
+        let name = string.trimmed
+        guard found.isEmpty, !name.isEmpty else {
+            return found
+        }
+        throw .notFound("I couldn't find a project called \(name) in TimeTracking.")
     }
 
     /// Active projects, most recently used first.
