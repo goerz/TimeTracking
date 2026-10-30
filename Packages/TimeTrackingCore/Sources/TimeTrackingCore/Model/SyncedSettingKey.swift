@@ -49,6 +49,21 @@ extension SyncedSettingKey<Int> {
     public static var pomodoroBreakMinutes: Self {
         Self("pomodoro.breakMinutes", default: 5)
     }
+
+    /// The values the setting allows (spec_timer_window.md §5.2): 1 to 180
+    /// focus minutes, 1 to 60 break minutes; any value for other keys.
+    public var range: ClosedRange<Int> {
+        switch self {
+        case .pomodoroFocusMinutes: 1 ... 180
+        case .pomodoroBreakMinutes: 1 ... 60
+        default: Int.min ... Int.max
+        }
+    }
+
+    /// `value` moved into `range`.
+    public func clamped(_ value: Int) -> Int {
+        min(max(value, range.lowerBound), range.upperBound)
+    }
 }
 
 extension SyncedSettingKey<[ProjectID]> {
