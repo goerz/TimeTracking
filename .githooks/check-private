@@ -98,6 +98,7 @@ push)
             git log -1 --format=%B "$commit" > "$work/message"
             { [ ! -s "$fixed" ] || grep -n -F -f "$fixed" "$work/message" || true; } | sed "s/^/commit $commit message:/" | report "personal value"
             { [ ! -s "$words" ] || grep -n -i -w -F -f "$words" "$work/message" || true; } | sed "s/^/commit $commit message:/" | report "private string"
+            { grep -n -E -f "$regex" "$work/message" || true; } | sed "s/^/commit $commit message:/" | report "credential or device id"
         done
     done
     ;;

@@ -512,6 +512,23 @@ test_pre_commit() {
     fi
 }
 
+# A commit made while the hooks were off meets check-private when it is pushed.
+test_pre_push() {
+    local sb token head zero=0000000000000000000000000000000000000000
+    sb=$(sandbox)
+    # Built at run time, so this file holds no token.
+    token="ghp_$(printf '%036d' 0)"
+    git -C "$sb" commit -q --allow-empty -m "Add the token $token"
+    head=$(git -C "$sb" rev-parse HEAD)
+    if printf 'refs/heads/master %s refs/heads/master %s\n' "$head" "$zero" |
+        (cd "$sb" && .githooks/check-private push) > "$scratch/push.out" 2>&1; then
+        echo "check-private push let a token in a commit message through"
+        return 1
+    fi
+    check "the hook names the commit message" grep -qF "commit $head message:1: credential or device id" "$scratch/push.out"
+    check "the hook does not print the token" not grep -qF "$token" "$scratch/push.out"
+}
+
 # --- ARCH-4, ARCH-5 (--products)
 
 local_value() {
@@ -700,6 +717,7 @@ behavior "ARCH-13 make help lists every target under its group" test_help
 behavior "ARCH-14 make clean keeps the products; make distclean removes build.noindex unless the Debug agent is registered" test_clean
 behavior "ARCH-15 make lint fails on a SwiftLint finding, a formatting difference, or #available, without building" test_lint_fails
 behavior "ARCH-22 the pre-commit hook refuses a staged TEAM value" test_pre_commit
+behavior "ARCH-22 check-private push refuses a credential in a pushed commit message" test_pre_push
 behavior "ARCH-23 make demo seeds only the Debug container after building both Debug apps; an unknown fixture stops first" test_demo
 behavior "ARCH-24 Debug Mac bundle file names and all Debug display names contain Debug; Release names do not" test_debug_names
 [ "$run_build" = 0 ] || behavior "ARCH-15 a compiler warning fails the build" test_warning_fails_build
