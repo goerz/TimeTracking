@@ -19,12 +19,17 @@ extension StackColor {
         }
     }
 
-    /// From the seventh project of an area (the hatch is drawn lighter).
+    /// From the seventh project of an area.
     var isHatched: Bool {
         if case let .area(_, hatched) = self {
             return hatched
         }
         return false
+    }
+
+    /// The color, with a light diagonal hatch from the seventh project.
+    var fill: AnyShapeStyle {
+        isHatched ? AnyShapeStyle(Hatch.paint(.white.opacity(0.55), on: color)) : AnyShapeStyle(color)
     }
 }
 
@@ -113,7 +118,7 @@ struct ReportChartCard: View {
         ForEach(chart.buckets) { bucket in
             ForEach(bucket.segments, id: \.key.value) { segment in
                 BarMark(x: .value("Period", bucket.id.description), y: .value("Hours", Double(segment.seconds) / 3600))
-                    .foregroundStyle(segment.key.color.color.opacity(segment.key.color.isHatched ? 0.55 : 1))
+                    .foregroundStyle(segment.key.color.fill)
                     .opacity(opacity(bucket: bucket, key: segment.key.value))
                     .accessibilityLabel(tooltipText(bucket))
             }
@@ -178,7 +183,7 @@ struct ReportChartCard: View {
                     model.toggleHighlight(key.value)
                 } label: {
                     HStack(spacing: 5) {
-                        RoundedRectangle(cornerRadius: 3).fill(key.color.color).frame(width: 12, height: 12)
+                        RoundedRectangle(cornerRadius: 3).fill(key.color.fill).frame(width: 12, height: 12)
                         Text(key.name)
                     }
                     .opacity(model.highlightedKey == nil || model.highlightedKey == key.value ? 1 : 0.4)
@@ -210,7 +215,7 @@ struct ReportTooltip: View {
             }
             ForEach(bucket.segments, id: \.key.value) { segment in
                 HStack {
-                    RoundedRectangle(cornerRadius: 2).fill(segment.key.color.color).frame(width: 10, height: 10)
+                    RoundedRectangle(cornerRadius: 2).fill(segment.key.color.fill).frame(width: 10, height: 10)
                     Text(segment.key.name)
                     Spacer(minLength: 16)
                     Text(ReportText.seconds(segment.seconds, padded: true)).monospacedDigit()

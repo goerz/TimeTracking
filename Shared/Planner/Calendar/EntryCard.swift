@@ -122,18 +122,25 @@ struct EntryCard: View {
         }
     }
 
+    /// The running entry's red stop button (always), Continue and Edit on hover.
     private var hoverButtons: some View {
         HStack(spacing: 3) {
             if entry.isRunning {
                 Button { Task { await model.stopRunning() } } label: { Image(systemName: "stop.circle.fill") }
+                    .foregroundStyle(.white, Color.stopRed)
                     .accessibilityLabel("Stop")
             } else {
                 Button { Task { await model.continueEntry(entry.id) } } label: { Image(systemName: "play.circle.fill") }
+                    .foregroundStyle(.white.opacity(0.9))
                     .accessibilityLabel("Continue")
             }
-            Button { model.editingEntry = entry.id } label: { Image(systemName: "ellipsis.circle.fill") }
-                .accessibilityLabel("Edit")
+            if hovering || Self.touch {
+                Button { model.editingEntry = entry.id } label: { Image(systemName: "ellipsis.circle.fill") }
+                    .foregroundStyle(.white.opacity(0.9))
+                    .accessibilityLabel("Edit")
+            }
         }
+        .font(.body)
         .buttonStyle(.plain)
     }
 
@@ -319,7 +326,11 @@ struct BlockCard: View {
         let selected = model.selection.contains(.block(block.id))
         let border = ContextPalette.hex(model.contextColors[block.items.first?.context ?? block.groupKey], dark: false)
         ZStack(alignment: .topLeading) {
-            RoundedRectangle(cornerRadius: 4).fill(Color.gray.opacity(block.source == .knowledge ? 0.1 : 0.16))
+            if block.source == .knowledge {
+                RoundedRectangle(cornerRadius: 4).fill(Hatch.paint(.gray.opacity(0.22), on: .gray.opacity(0.08)))
+            } else {
+                RoundedRectangle(cornerRadius: 4).fill(Color.gray.opacity(0.16))
+            }
             coveredDimming
             Rectangle().fill(border.map { Color(hex: $0) } ?? .gray).frame(width: 3)
             if CalendarZoom.cardStyle(height: Double(size.height)) == .full, !CalendarColumn.drawsBars(width: Double(size.width)) {

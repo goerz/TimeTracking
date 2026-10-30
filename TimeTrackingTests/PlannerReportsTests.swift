@@ -233,4 +233,17 @@ struct PlannerReportsTests {
         #expect(reports.entriesCSV.split(separator: "\n").count == 5)
         #expect(reports.listFooter(at: test.clock.now) == "Total 4h 30m 0s · 4 entries")
     }
+
+    @Test("A printout repeats the column header on each page: rows split by page capacity, the footer on the last page")
+    func printPages() {
+        // Everything fits on the first page, footer included.
+        #expect(ReportPrintPages.split(rows: 3, firstCapacity: 4, capacity: 10) == [0 ..< 3])
+        // The rows fill the first page exactly: the footer moves on.
+        #expect(ReportPrintPages.split(rows: 4, firstCapacity: 4, capacity: 10) == [0 ..< 4, 4 ..< 4])
+        #expect(ReportPrintPages.split(rows: 25, firstCapacity: 5, capacity: 10) == [0 ..< 5, 5 ..< 15, 15 ..< 25, 25 ..< 25])
+        #expect(ReportPrintPages.split(rows: 20, firstCapacity: 5, capacity: 10) == [0 ..< 5, 5 ..< 15, 15 ..< 20])
+        // A first page taken by the chart starts the table on page two.
+        #expect(ReportPrintPages.split(rows: 2, firstCapacity: 0, capacity: 10) == [0 ..< 0, 0 ..< 2])
+        #expect(ReportPrintPages.capacity(height: 160) == 9)
+    }
 }

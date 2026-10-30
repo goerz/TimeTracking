@@ -126,7 +126,7 @@ private struct TrackedColumn: View {
     private func futureHatch(_ axis: CalendarDayAxis) -> some View {
         if let offset = axis.nowOffset(model.clock.now) {
             Rectangle()
-                .fill(.secondary.opacity(0.06))
+                .fill(Hatch.paint(.gray.opacity(0.14)))
                 .frame(height: max(0, axis.height - offset))
                 .offset(y: offset)
                 .allowsHitTesting(false)
