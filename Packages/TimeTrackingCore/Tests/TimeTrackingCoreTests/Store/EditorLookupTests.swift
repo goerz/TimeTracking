@@ -12,7 +12,12 @@ struct EditorLookupTests {
         let test = try await TestStore()
         let structure = try await test.structure(projects: ["Noise", "Paper"])
         let noise = structure.projects[0].id
-        _ = try await test.store.create(EntryDraft(projectID: noise, task: "Model", start: test.date("2024-03-14T08:00"), end: test.date("2024-03-14T09:00")))
+        _ = try await test.store.create(EntryDraft(
+            projectID: noise,
+            task: "Model",
+            start: test.date("2024-03-14T08:00"),
+            end: test.date("2024-03-14T09:00")
+        ))
         let listed = try await test.store.projects(filter: ProjectFilter(state: .all)).first { $0.id == noise }
         let row = try #require(try await test.store.projectRow(noise))
         #expect(row == listed)
@@ -30,9 +35,19 @@ struct EditorLookupTests {
     @Test("overlaps(for:outsideChainOf:) leaves out the edited entry's own chain")
     func overlapsOutsideChain() async throws {
         let test = try await TestStore()
-        let pieces = try await test.store.create(EntryDraft(projectID: nil, task: "Late", start: test.date("2024-03-12T23:00"), end: test.date("2024-03-13T01:00")))
+        let pieces = try await test.store.create(EntryDraft(
+            projectID: nil,
+            task: "Late",
+            start: test.date("2024-03-12T23:00"),
+            end: test.date("2024-03-13T01:00")
+        ))
         #expect(pieces.count == 2)
-        let other = try await test.store.create(EntryDraft(projectID: nil, task: "Early", start: test.date("2024-03-13T00:30"), end: test.date("2024-03-13T02:00")))
+        let other = try await test.store.create(EntryDraft(
+            projectID: nil,
+            task: "Early",
+            start: test.date("2024-03-13T00:30"),
+            end: test.date("2024-03-13T02:00")
+        ))
         let draft = try EntryDraft(projectID: nil, task: "Late", start: test.date("2024-03-12T22:00"), end: test.date("2024-03-13T01:30"))
         let all = try await test.store.overlaps(for: draft, excluding: pieces[0].id)
         #expect(Set(all.map(\.id)) == [pieces[1].id, other[0].id])
@@ -41,8 +56,8 @@ struct EditorLookupTests {
     }
 
     @Test("A saved start and end: future first, then the order; a running end is not checked")
-    func draftCheck() throws {
-        let now = Date(timeIntervalSinceReferenceDate: 10000)
+    func draftCheck() {
+        let now = Date(timeIntervalSinceReferenceDate: 10_000)
         #expect(EntryEditRules.check(start: now + 60, end: now - 60, now: now) == .failure(.inFuture))
         #expect(EntryEditRules.check(start: now - 60, end: now + 1, now: now) == .failure(.inFuture))
         #expect(EntryEditRules.check(start: now - 60, end: now - 60, now: now) == .failure(.endBeforeStart))
