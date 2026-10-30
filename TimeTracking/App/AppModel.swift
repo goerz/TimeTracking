@@ -27,7 +27,7 @@ final class AppModel {
     /// The Planner's sections and router.
     let planner: PlannerRouter
     /// Whether the Planner window is open (its sections follow store changes).
-    private(set) var plannerIsOpen = false
+    var plannerIsOpen = false
 
     /// Sync and live updates; `nil` under `-UITesting` and in tests.
     var live: LiveUpdates?
@@ -53,7 +53,10 @@ final class AppModel {
         agent: AgentService,
         readTrackerState: @escaping () async -> TrackerState? = { nil },
         trackerCommands: TrackerCommandSending = RecordingTrackerCommands(),
-        trackerSettingsURL: URL? = nil
+        trackerSettingsURL: URL? = nil,
+        activity: any ActivityReading = InMemoryActivityStore(),
+        calendarEvents: any CalendarEventStore = InMemoryCalendarEventStore(access: .denied),
+        suggestionsCache: URL? = nil
     ) {
         self.store = store
         self.clock = clock
@@ -67,7 +70,14 @@ final class AppModel {
         self.reminders = ReminderModel(store: store, clock: clock, notifier: notifier, settings: settings)
         self.tracker = TrackerStatusModel(agent: agent, clock: clock, readState: readTrackerState)
         self.trackerSettings = TrackerSettingsModel(settingsURL: trackerSettingsURL, commands: trackerCommands, clock: clock)
-        self.planner = PlannerRouter(store: store, clock: clock, device: settings.device)
+        self.planner = PlannerRouter(
+            store: store,
+            clock: clock,
+            device: settings.device,
+            activity: activity,
+            events: calendarEvents,
+            suggestionsCache: suggestionsCache
+        )
         timer.onChange = { [weak self] in await self?.afterChange() }
         list.onChange = { [weak self] in await self?.afterChange() }
         idle.onChange = { [weak self] in await self?.afterChange() }
@@ -77,7 +87,7 @@ final class AppModel {
         planner.reports.continueEntry = { [weak self] id in await self?.timer.continueEntry(id) }
         planner.reports.entriesChanged = { [weak self] in await self?.afterChange() }
         planner.openWindow = { [weak self] in self?.router?.openPlanner() }
-        planner.openTrackerSettings = { [weak self] _ in self?.router?.openSettings(pane: .tracker) }
+        wirePlannerSections(trackerCommands: trackerCommands)
         planner.copyText = { Pasteboard.copy($0) }
         planner.projects.optionKeyDown = { ModifierKeys.optionIsDown }
         ModifierState.optionDown = { ModifierKeys.optionIsDown }
@@ -92,17 +102,6 @@ final class AppModel {
             timer.report(error)
         }
         await afterChange()
-    }
-
-    /// The Planner window appeared.
-    func plannerOpened() {
-        plannerIsOpen = true
-    }
-
-    /// The Planner window closed: its undo stack goes with it.
-    func plannerClosed() {
-        plannerIsOpen = false
-        planner.projects.undoManager?.removeAllActions()
     }
 
     /// Loads everything; with `observing`, follows the store's changes.
@@ -142,6 +141,9 @@ final class AppModel {
             if plannerIsOpen {
                 await planner.projects.reload()
                 await planner.reports.reload()
+                if planner.section == .calendar {
+                    await planner.calendar.reload()
+                }
             }
         }
     }

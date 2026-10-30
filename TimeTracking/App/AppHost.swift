@@ -35,12 +35,14 @@ final class AppHost {
 
     /// Opens the store (in memory with the fixture under `-UITesting YES`)
     /// and builds the model with the live services.
-    func load(
+    func load( // swiftlint:disable:this function_parameter_count
         notifier: NotificationPosting,
         agent: AgentService,
         readTrackerState: @escaping () async -> TrackerState?,
         trackerCommands: TrackerCommandSending,
-        trackerSettingsURL: URL?
+        trackerSettingsURL: URL?,
+        activity: any ActivityReading,
+        calendarEvents: any CalendarEventStore
     ) async -> AppModel? {
         let identity = AppIdentity.main
         let device = deviceSettings(identity: identity)
@@ -55,7 +57,12 @@ final class AppHost {
                 agent: agent,
                 readTrackerState: readTrackerState,
                 trackerCommands: trackerCommands,
-                trackerSettingsURL: trackerSettingsURL
+                trackerSettingsURL: trackerSettingsURL,
+                activity: activity,
+                calendarEvents: calendarEvents,
+                suggestionsCache: identity.flatMap { identity in
+                    identity.groupContainerURL.map { identity.supportDirectory(in: $0).appending(path: "suggestions-index.json") }
+                }
             )
             self.model = model
             return model

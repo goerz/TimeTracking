@@ -59,12 +59,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             agent: agent,
             readTrackerState: { await activity?.currentState() },
             trackerCommands: uiTesting || socket == nil ? RecordingTrackerCommands() : TrackerSocket(url: socket ?? URL(filePath: "/")),
-            trackerSettingsURL: folders?.settingsURL
+            trackerSettingsURL: folders?.settingsURL,
+            activity: activity ?? InMemoryActivityStore(),
+            calendarEvents: uiTesting ? InMemoryCalendarEventStore(access: .denied) : EventKitCalendarStore()
         ) else {
             return
         }
         Self.logger.notice("Store open")
         wire(app)
+        await activity?.startWatching()
         IntentBridge.shared.attach(app)
         if let identity {
             urlEvents.attach(URLRouter(app: app, scheme: identity.urlScheme))

@@ -81,6 +81,8 @@ final class TrackerSettingsModel {
     var reapplyTo: Date
     var forgetDay: Date
     private(set) var message: String?
+    /// An unsaved, focused exclusion from the Activity section (spec_planner_activity.md §4).
+    var pendingExclusion: PendingExclusion?
 
     init(settingsURL: URL?, commands: TrackerCommandSending, clock: any Clock, firstLogDay: Date? = nil) {
         self.settingsURL = settingsURL

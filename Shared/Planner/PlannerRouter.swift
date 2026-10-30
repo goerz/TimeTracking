@@ -75,27 +75,52 @@ final class PlannerRouter {
     let range: DateRangeModel
     let projects: ProjectsModel
     let reports: ReportsModel
-    /// The latest `showCalendar` request, for the Calendar section (step 7b).
+    let calendar: CalendarModel
+    let activity: ActivityModel
+    /// The latest `showCalendar` request; the Calendar section consumes it.
     var calendarRequest: CalendarRequest?
-    /// Bumped by `showActivity`, for the Activity section (step 7b).
+    /// Bumped by `showActivity`, for the Activity section.
     private(set) var activityRequests = 0
 
     /// Opens the Planner window (Mac) or does nothing (iPad tabs).
     @ObservationIgnored var openWindow: () -> Void = {}
     /// Opens Settings on the Tracker pane with an exclusion prefilled.
-    @ObservationIgnored var openTrackerSettings: (String?) -> Void = { _ in }
+    @ObservationIgnored var openTrackerSettings: (TrackerExclusionDraft?) -> Void = { _ in }
     /// Puts text on the pasteboard (⌘C in the tables).
     @ObservationIgnored var copyText: (String) -> Void = { _ in }
 
-    init(store: TimeStore, clock: any Clock, device: DeviceSettings) {
+    /// `activity` reads the block log; `events` is EventKit (Mac, iPad) or
+    /// an in-memory store; `suggestionsCache` spares the launch rebuild.
+    init(
+        store: TimeStore,
+        clock: any Clock,
+        device: DeviceSettings,
+        activity: any ActivityReading = InMemoryActivityStore(),
+        events: any CalendarEventStore = InMemoryCalendarEventStore(access: .denied),
+        suggestionsCache: URL? = nil
+    ) {
         self.device = device
         self.section = device[.plannerSection]
         let range = DateRangeModel(clock: clock, device: device)
         self.range = range
         self.projects = ProjectsModel(store: store, clock: clock, device: device)
         self.reports = ReportsModel(store: store, clock: clock, device: device, range: range)
+        let engine = SuggestionEngine(store: store, activity: activity, cacheURL: suggestionsCache)
+        self.calendar = CalendarModel(store: store, clock: clock, device: device, activity: activity, events: events, engine: engine)
+        self.activity = ActivityModel(store: store, clock: clock, device: device, activity: activity, range: range)
         projects.router = self
         reports.router = self
+        calendar.router = self
+        self.activity.router = self
+    }
+
+    /// Applies a pending `showCalendar` request to the Calendar section.
+    func consumeCalendarRequest() async {
+        guard let request = calendarRequest else {
+            return
+        }
+        calendarRequest = nil
+        await calendar.apply(request)
     }
 
     /// ⌘1 to ⌘4 and the sidebar.
@@ -148,8 +173,8 @@ final class PlannerRouter {
         activityRequests += 1
     }
 
-    /// Opens Settings on the Tracker pane.
-    func showTrackerSettings(exclusion: String? = nil) {
+    /// Opens Settings on the Tracker pane, with an unsaved exclusion draft.
+    func showTrackerSettings(exclusion: TrackerExclusionDraft? = nil) {
         openTrackerSettings(exclusion)
     }
 }

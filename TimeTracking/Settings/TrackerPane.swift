@@ -14,6 +14,7 @@ struct TrackerPane: View {
             statusSection
             setupSection
             sourcesSection
+            PendingExclusionSection()
             ExclusionsSection()
             OptionsSection()
             MaintenanceSection()
@@ -228,6 +229,37 @@ private struct MaintenanceSection: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("Every block of the day is removed from the logs.")
+        }
+    }
+}
+
+/// The unsaved exclusion from the Activity section, focused (spec_planner_activity.md §4).
+private struct PendingExclusionSection: View {
+    @Environment(AppModel.self) private var app
+    @FocusState private var focused: Bool
+
+    var body: some View {
+        @Bindable var model = app.trackerSettings
+        if let pending = model.pendingExclusion {
+            Section("New Exclusion") {
+                LabeledContent(pending.list.title) {
+                    TextField(pending.list.title, text: Binding {
+                        model.pendingExclusion?.value ?? ""
+                    } set: { value in
+                        model.pendingExclusion?.value = value
+                    })
+                    .focused($focused)
+                    .accessibilityIdentifier("tracker.pendingExclusion")
+                }
+                HStack {
+                    Spacer()
+                    Button("Cancel") { model.pendingExclusion = nil }
+                    Button("Add") { model.addPendingExclusion() }
+                        .disabled(pending.value.trimmed.isEmpty)
+                        .keyboardShortcut(.defaultAction)
+                }
+            }
+            .onAppear { focused = true }
         }
     }
 }

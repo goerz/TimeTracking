@@ -1,7 +1,7 @@
 // ActivityAway: gaps between one device's blocks of a day and their causes
 // (spec_planner_activity.md §1.8).
 
-import Foundation
+public import Foundation
 
 /// The Away panel.
 public struct ActivityAway: Sendable, Hashable {
@@ -101,7 +101,7 @@ extension ActivitySummary {
     }
 
     /// The first absence transition near the gap's start, else unknown.
-    static func cause(of gap: DateInterval, details: [ActivityBlockDetail], idleClose: TimeInterval) -> ActivityAway.Cause {
+    public static func cause(of gap: DateInterval, details: [ActivityBlockDetail], idleClose: TimeInterval) -> ActivityAway.Cause {
         let transitions = details.flatMap(\.presence)
             .filter { $0.time >= gap.start - idleClose && $0.time < gap.end }
             .sorted { abs($0.time.timeIntervalSince(gap.start)) < abs($1.time.timeIntervalSince(gap.start)) }
