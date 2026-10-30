@@ -1,0 +1,58 @@
+// BlockLogLine+Encoding: writing block-log and detail-log lines
+// (spec_activity_tracking.md §4.2, §4.3).
+
+import Foundation
+
+extension BlockLogLine {
+    /// The line's JSON text without the newline, keys in the order of the
+    /// spec's examples. A block's local times use its own `utcOffset`, which
+    /// must equal the `tz` of the header in effect.
+    public var jsonText: String {
+        switch self {
+        case let .header(header):
+            Self.headerText(header)
+        case let .block(block, detail):
+            Self.blockText(block, detail: detail)
+        case let .other(type):
+            Self.otherText(type)
+        }
+    }
+
+    private static func headerText(_ header: BlockLogHeader) -> String {
+        var writer = JSONObjectWriter()
+        writer.add("type", "header")
+        writer.add("format", header.format)
+        writer.add("tz", LocalTimestamp.offsetText(header.utcOffset))
+        writer.add("dev", header.device)
+        writer.add("contexts", header.contexts)
+        return writer.text
+    }
+
+    private static func otherText(_ type: String) -> String {
+        var writer = JSONObjectWriter()
+        writer.add("type", type)
+        return writer.text
+    }
+
+    private static func blockText(_ block: ActivityBlock, detail: ActivityBlockDetail?) -> String {
+        func local(_ date: Date) -> String {
+            LocalTimestamp(date: date, utcOffset: block.utcOffset).text
+        }
+        var writer = JSONObjectWriter()
+        writer.add("s", local(block.start))
+        writer.add("e", local(block.end))
+        writer.add("a", block.activeSeconds)
+        writer.add("dev", block.device)
+        writer.add("g", block.groupKey)
+        writer.add("gs", block.groupShare)
+        writer.add("items", detail?.items ?? block.items)
+        writer.add("bg", block.background)
+        writer.add("src", block.source)
+        if let detail {
+            writer.add("urls", detail.urls.map { [local($0.time), $0.browser, $0.url, $0.title] })
+            writer.add("files", detail.files.map { [local($0.time), $0.path] })
+            writer.add("presence", detail.presence.map { [local($0.time), $0.state.rawValue] })
+        }
+        return writer.text
+    }
+}
