@@ -24,9 +24,8 @@ struct TimeTrackingiOSApp: App {
                 .task { await host.load() }
                 .onOpenURL { url in
                     Task {
-                        guard let model = host.model else {
-                            return
-                        }
+                        // A URL that launches the app waits for the store.
+                        let model = await PhoneIntentBridge.shared.awaitModel()
                         await PhoneURLRouter(model: model, scheme: AppIdentity.main?.urlScheme ?? "timetracking").open(url)
                     }
                 }

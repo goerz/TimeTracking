@@ -99,7 +99,7 @@ final class TimerUITests: XCTestCase {
         XCTAssertTrue(app.buttons["timer.startButton"].waitForExistence(timeout: 10))
         let url = try XCTUnwrap(URL(string: "timetracking-debug://start?project=Noise%20paper"))
         app.open(url)
-        XCTAssertTrue(app.buttons["timer.stopButton"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.buttons["timer.stopButton"].waitForExistence(timeout: 20))
         XCTAssertTrue(app.buttons["timer.projectChip"].label.contains("Noise paper"))
     }
 }
