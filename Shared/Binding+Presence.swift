@@ -1,5 +1,5 @@
 // Binding+Presence: an optional's presence as a Bool binding for alerts,
-// sheets, and popovers of the Planner.
+// sheets, and popovers.
 
 import SwiftUI
 

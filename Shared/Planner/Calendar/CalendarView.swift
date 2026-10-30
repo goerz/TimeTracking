@@ -73,7 +73,11 @@ struct CalendarView: View {
                 let range = CalendarText.range(block.start, block.end, zone: model.calendar.timeZone)
                 Text("\(range) · \(block.groupKey)\nThis removes it on every device and cannot be undone.")
             }
-            .alert("The tracker could not delete the block", isPresented: trackerErrorBinding, presenting: model.trackerError) { _ in
+            .alert(
+                "The tracker could not delete the block",
+                isPresented: .isPresent($model.trackerError),
+                presenting: model.trackerError
+            ) { _ in
                 Button("OK") { model.trackerError = nil }
             } message: { Text($0) }
             .overlay(alignment: .bottom) { CalendarNoticeView(model: model) }
@@ -176,14 +180,6 @@ struct CalendarView: View {
         Binding { model.blockToDelete != nil } set: { shown in
             if !shown, model.blockToDelete != nil {
                 Task { await model.deleteBlockFromLog(confirmed: false) }
-            }
-        }
-    }
-
-    private var trackerErrorBinding: Binding<Bool> {
-        Binding { model.trackerError != nil } set: { shown in
-            if !shown {
-                model.trackerError = nil
             }
         }
     }
