@@ -16,7 +16,7 @@ public struct SuggestionCalendarTitle: Sendable, Hashable, Codable {
     /// The title covering at least half of `interval`, the largest overlap first.
     public static func covering(_ interval: DateInterval, in titles: [Self]) -> String? {
         titles.map { title in
-            (title.title, min(title.interval.end, interval.end).timeIntervalSince(max(title.interval.start, interval.start)))
+            (title.title, title.interval.overlapDuration(with: interval))
         }
         .filter { $0.1 > 0 && $0.1 * 2 >= interval.duration }
         .max { ($0.1, $1.0) < ($1.1, $0.0) }?.0
@@ -98,7 +98,7 @@ public enum SuggestionTraining {
         var index = low
         while index < sorted.count, sorted[index].start < interval.end {
             let block = sorted[index]
-            if min(block.end, interval.end).timeIntervalSince(max(block.start, interval.start)) >= minimumOverlap {
+            if interval.overlapDuration(start: block.start, end: block.end) >= minimumOverlap {
                 result.append(block)
             }
             index += 1

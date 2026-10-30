@@ -147,7 +147,7 @@ public enum FillDay {
             guard record.source == .fill, record.outcome == .skipped, record.deletedAt == nil, record.recordedAt >= since else {
                 return false
             }
-            let overlap = min(record.queryEnd, segment.end).timeIntervalSince(max(record.queryStart, segment.start))
+            let overlap = segment.overlapDuration(start: record.queryStart, end: record.queryEnd)
             return overlap * 2 >= segment.duration
         }
     }

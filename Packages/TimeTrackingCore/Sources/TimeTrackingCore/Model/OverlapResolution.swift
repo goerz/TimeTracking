@@ -51,7 +51,7 @@ public enum OverlapResolution: Sendable, Hashable {
     /// The resolution of changing an entry to `interval` next to `neighbors`.
     public static func resolve(_ interval: DateInterval, neighbors: [OverlapNeighbor]) -> Self {
         let overlapping = neighbors.compactMap { neighbor -> (OverlapNeighbor, TimeInterval)? in
-            let overlap = min(interval.end, neighbor.interval.end).timeIntervalSince(max(interval.start, neighbor.interval.start))
+            let overlap = interval.overlapDuration(with: neighbor.interval)
             return overlap > 0 ? (neighbor, overlap) : nil
         }
         guard let largest = overlapping.max(by: { $0.1 < $1.1 }) else {

@@ -72,7 +72,7 @@ public struct SuggestionFeatures: Sendable, Hashable, Codable {
         var groupKeys: [String: Double] = [:]
         for block in blocks {
             let span = block.end.timeIntervalSince(block.start)
-            let overlap = min(block.end, interval.end).timeIntervalSince(max(block.start, interval.start))
+            let overlap = interval.overlapDuration(start: block.start, end: block.end)
             guard span > 0, overlap > 0 else {
                 continue
             }
