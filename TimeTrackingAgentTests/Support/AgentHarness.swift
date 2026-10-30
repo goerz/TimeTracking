@@ -34,7 +34,7 @@ final class AgentHarness {
 
     /// A harness whose `settings.toml` holds `settings` (the defaults when `nil`).
     init(settings: String? = nil, canWriteShared: Bool = true, recordFolder: URL? = nil, editorRPC: (any EditorRPC)? = nil) throws {
-        self.root = FileManager.default.temporaryDirectory.appending(path: "agent-tests-\(UUID().uuidString)", directoryHint: .isDirectory)
+        self.root = try TemporaryFolder.make("agent-tests")
         let shared = root.appending(path: "iCloud/Activity", directoryHint: .isDirectory)
         let local = root.appending(path: "Group/Activity", directoryHint: .isDirectory)
         self.folders = ActivityFolders(shared: shared, local: local)
@@ -77,8 +77,7 @@ final class AgentHarness {
                 userName: "alex",
                 hostNames: ["alex-mbp.local", "alex-mbp"]
             )
-            environment.commands = RecordingCommandRunner(base: commands, recorder: created)
-            environment.scripts = RecordingScripts(base: scripts, recorder: created)
+            environment = environment.recording(with: created)
             recorder = created
         }
         self.engine = try AgentEngine(environment: environment, configuration: configuration, store: SampleStore(url: nil))
@@ -132,8 +131,7 @@ final class AgentHarness {
 
     /// A temporary folder with copies of the sample day and its expected blocks; returns the day's file.
     static func sampleDayCopy() throws -> URL {
-        let folder = FileManager.default.temporaryDirectory.appending(path: "samples-\(UUID().uuidString)", directoryHint: .isDirectory)
-        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        let folder = try TemporaryFolder.make("samples")
         for name in ["2024-03-14.jsonl", "2024-03-14.expected.jsonl"] {
             try FileManager.default.copyItem(at: fixtureURL(name), to: folder.appending(path: name, directoryHint: .notDirectory))
         }
@@ -178,18 +176,12 @@ final class AgentHarness {
         (try? engine.store.lines()) ?? []
     }
 
-    private func text(in folder: URL) -> String {
-        let names = ((try? FileManager.default.contentsOfDirectory(atPath: folder.path)) ?? []).filter { $0.hasSuffix(".jsonl") }.sorted()
-        return names.map { (try? String(contentsOf: folder.appending(path: $0, directoryHint: .notDirectory), encoding: .utf8)) ?? "" }
-            .joined()
-    }
-
     var blockLogText: String {
-        text(in: engine.logs.blocksFolder)
+        (try? Replay.monthFilesText(in: engine.logs.blocksFolder)) ?? ""
     }
 
     var detailLogText: String {
-        text(in: engine.logs.detailFolder)
+        (try? Replay.monthFilesText(in: engine.logs.detailFolder)) ?? ""
     }
 
     var blocks: [ActivityBlock] {

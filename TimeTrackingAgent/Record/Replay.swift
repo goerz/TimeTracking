@@ -58,6 +58,11 @@ nonisolated enum Replay {
         for block in closed {
             try writer.append(block.block, contexts: block.contexts)
         }
+        return try monthFilesText(in: folder)
+    }
+
+    /// The `.jsonl` month files of a log folder, concatenated oldest first.
+    static func monthFilesText(in folder: URL) throws -> String {
         let names = (try? FileManager.default.contentsOfDirectory(atPath: folder.path))?.filter { $0.hasSuffix(".jsonl") }.sorted() ?? []
         var output = ""
         for name in names {

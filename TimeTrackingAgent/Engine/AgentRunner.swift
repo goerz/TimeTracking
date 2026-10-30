@@ -35,18 +35,8 @@ final class AgentRunner {
             return nil
         }
         let home = NSHomeDirectory()
-        var commands: any CommandRunning = LiveCommandRunner()
-        var scripts: any AppleScripting = LiveAppleScripting()
-        var recorder: Recorder?
-        if let recordFolder {
-            let names = Host.current().names + [Host.current().localizedName ?? "", ProcessInfo.processInfo.hostName]
-            let created = Recorder(folder: recordFolder, homeDirectory: home, userName: NSUserName(), hostNames: names)
-            commands = RecordingCommandRunner(base: commands, recorder: created)
-            scripts = RecordingScripts(base: scripts, recorder: created)
-            recorder = created
-        }
         let tmuxBase = ProcessInfo.processInfo.environment["TMUX_TMPDIR"].map(\.self) ?? "/private/tmp"
-        let environment = AgentEnvironment(
+        var environment = AgentEnvironment(
             clock: clock,
             timeZone: .current,
             homeDirectory: home,
@@ -54,14 +44,21 @@ final class AgentRunner {
             neovimSocketFolder: FileManager.default.temporaryDirectory.path + "/nvim.\(NSUserName())",
             presence: LivePresenceProbe(),
             focus: LiveFocusProbe(),
-            commands: commands,
-            scripts: scripts,
+            commands: LiveCommandRunner(),
+            scripts: LiveAppleScripting(),
             files: LiveFileProbe(),
             processes: LiveProcessProbe(),
             editorRPC: NeovimRPCClient(),
             history: HistoryDatabases.live(home: home),
             knowledge: KnowledgeStoreReader(databasePath: KnowledgeStoreReader.defaultPath(home: home))
         )
+        var recorder: Recorder?
+        if let recordFolder {
+            let names = Host.current().names + [Host.current().localizedName ?? "", ProcessInfo.processInfo.hostName]
+            let created = Recorder(folder: recordFolder, homeDirectory: home, userName: NSUserName(), hostNames: names)
+            environment = environment.recording(with: created)
+            recorder = created
+        }
         do {
             let engine = try AgentEngine(environment: environment, configuration: configuration)
             engine.recorder = recorder

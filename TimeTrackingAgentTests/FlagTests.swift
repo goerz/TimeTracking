@@ -21,8 +21,7 @@ struct FlagTests {
     /// environment whose `HOME` is an empty temporary folder.
     private func runAgent(_ arguments: [String]) async throws -> AgentRun {
         let executable = try #require(Bundle.main.executableURL)
-        let home = FileManager.default.temporaryDirectory.appending(path: "agent-home-\(UUID().uuidString)", directoryHint: .isDirectory)
-        try FileManager.default.createDirectory(at: home, withIntermediateDirectories: true)
+        let home = try TemporaryFolder.make("agent-home")
         defer { try? FileManager.default.removeItem(at: home) }
         return try await Task.detached {
             let process = Process()
@@ -59,8 +58,7 @@ struct FlagTests {
 
     @Test("TRK-29 a changed threshold makes --replay exit non-zero")
     func replayDiffers() async throws {
-        let folder = FileManager.default.temporaryDirectory.appending(path: "replay-\(UUID().uuidString)", directoryHint: .isDirectory)
-        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        let folder = try TemporaryFolder.make("replay")
         defer { try? FileManager.default.removeItem(at: folder) }
         let copy = folder.appending(path: "2024-03-14.jsonl")
         try FileManager.default.copyItem(at: Self.fixture, to: copy)
@@ -78,7 +76,7 @@ struct FlagTests {
 
     @Test("TRK-30 --record output contains no home path, host name, or URL path of the live run")
     func recordAnonymizes() async throws {
-        let record = FileManager.default.temporaryDirectory.appending(path: "record-\(UUID().uuidString)", directoryHint: .isDirectory)
+        let record = try TemporaryFolder.make("record")
         defer { try? FileManager.default.removeItem(at: record) }
         let harness = try AgentHarness(recordFolder: record)
         harness.loadTerminalFixtures()
@@ -118,7 +116,7 @@ struct FlagTests {
     /// embedded in it.
     private static func fakeHostApp(status: Int32) throws -> (root: URL, agent: URL) {
         let manager = FileManager.default
-        let root = manager.temporaryDirectory.appending(path: "host-\(UUID().uuidString)", directoryHint: .isDirectory)
+        let root = try TemporaryFolder.make("host")
         // The Debug layout: both bundle names contain a space (spec_architecture.md §2.2).
         let contents = root.appending(path: "Host Debug.app/Contents", directoryHint: .isDirectory)
         let agent = contents.appending(path: "Library/LoginItems/TimeTrackingAgent Debug.app", directoryHint: .isDirectory)
