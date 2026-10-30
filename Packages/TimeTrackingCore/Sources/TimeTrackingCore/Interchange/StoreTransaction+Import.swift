@@ -1,4 +1,5 @@
-// importDocument: upsert by id in one transaction (spec_data_and_sync.md §5.2).
+// StoreTransaction+Import: `importDocument` upserts by id in one transaction
+// (spec_data_and_sync.md §5.2).
 
 public import Foundation
 import GRDB

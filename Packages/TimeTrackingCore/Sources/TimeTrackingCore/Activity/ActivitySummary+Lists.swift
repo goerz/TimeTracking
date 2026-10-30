@@ -1,4 +1,4 @@
-// ActivityLists: the Contexts, Subjects, and In the background panels
+// ActivitySummary+Lists: the Contexts, Subjects, and In the background panels
 // (spec_planner_activity.md §1.6, §1.7).
 
 /// A row of the Contexts panel.
