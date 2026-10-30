@@ -37,6 +37,41 @@ struct BrowserTests {
         #expect(visible.url == Self.pullRequest)
     }
 
+    /// History.db is written late, so a normal window's visit may show up
+    /// minutes after the tab is first sampled. Until it does, samples are
+    /// private (stricter than the spec, which leaves 3 minutes: the URL
+    /// never enters the samples unverified).
+    @Test("TRK-7 a Safari URL stays safari (private) through 4 minutes without a visit; a visit showing up after 2 minutes reveals it")
+    func safariVisitWindow() async throws {
+        let privateItem = SampleItem(context: "safari", subject: "(private)", groupKey: "safari", app: "com.apple.Safari")
+        let harness = try AgentHarness()
+        harness.frontmost("com.apple.Safari", name: "Safari")
+        harness.scripts.results["com.apple.Safari"] = .value(AgentHarness.fixture("applescript/safari-pull-request.txt"))
+        let firstSample = harness.clock.now
+        for tick in 0 ..< 4 {
+            if tick > 0 {
+                harness.advance(30)
+            }
+            let sample = await harness.engine.tick()
+            #expect(sample.primary == privateItem)
+            #expect(sample.url.isEmpty)
+        }
+        // Two minutes in, Safari's history gets the visit of the page load.
+        harness.advance(30)
+        harness.history.safari = [(HistoryVisit(time: firstSample, browser: "safari", url: Self.pullRequest, title: "PR"), 0)]
+        let revealed = await harness.engine.tick()
+        #expect(revealed.primary?.subject == "github.com/owner/repo")
+        #expect(revealed.url == Self.pullRequest)
+
+        let unvisited = try AgentHarness()
+        unvisited.frontmost("com.apple.Safari", name: "Safari")
+        unvisited.scripts.results["com.apple.Safari"] = .value(AgentHarness.fixture("applescript/safari-pull-request.txt"))
+        await unvisited.run(for: 270)
+        #expect(unvisited.samples().count >= 9)
+        #expect(unvisited.samples().allSatisfy { $0.primary == privateItem && $0.url.isEmpty })
+        #expect(!unvisited.allOutput.contains("github.com"))
+    }
+
     @Test("TRK-7 Chromium incognito yields <browser> (private) with no URL")
     func chromiumIncognito() async throws {
         let harness = try AgentHarness()

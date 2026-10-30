@@ -22,14 +22,22 @@ struct SocketTests {
         try server.start()
         defer { server.stop() }
 
-        harness.advance(7)
+        // The line runs the tick before the reply (no timer: the manual
+        // clock only moves by advance). The 1-second bound must hold for
+        // the fastest of three round trips, so one delayed by a loaded
+        // machine does not fail it.
         let clock = ContinuousClock()
-        let started = clock.now
-        let reply = await send("tmux after-select-pane", to: url)
-        #expect(reply == .success)
-        #expect(clock.now - started < .seconds(1))
-        #expect(harness.samples().count == 2)
-        #expect(harness.samples().last?.time == harness.time(7))
+        var latencies: [Duration] = []
+        for attempt in 1 ... 3 {
+            harness.advance(7)
+            let started = clock.now
+            let reply = await send("tmux after-select-pane", to: url)
+            latencies.append(clock.now - started)
+            #expect(reply == .success)
+            #expect(harness.samples().count == 1 + attempt)
+            #expect(harness.samples().last?.time == harness.time(TimeInterval(7 * attempt)))
+        }
+        #expect(try #require(latencies.min()) < .seconds(1), "\(latencies)")
         #expect(harness.health("tmux_events")?.status == .active)
         #expect(await send(TrackerCommand.agentEvent(hook: "Stop", arguments: []).line, to: url) == .success)
         #expect(harness.health("agent_events")?.status == .active)

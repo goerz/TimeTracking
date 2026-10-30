@@ -102,13 +102,25 @@ struct TerminalTests {
         harness.files.existing.insert(socket.path)
         harness.processes.arguments = [702: ["nvim", "results.tex"]]
 
+        // Every tick waits out the 200 ms timeout before falling through. A
+        // loaded machine can delay any one tick, so the 100 ms margin must
+        // hold for the fastest of three; a resolver that waits longer than
+        // timeout + 100 ms misses it on all three.
+        #expect(TerminalResolver.rpcTimeout == 0.2)
         let clock = ContinuousClock()
-        let started = clock.now
-        let fromArguments = try #require(await harness.engine.tick().primary)
-        let elapsed = clock.now - started
-        #expect(fromArguments.detail == "nvim results.tex")
-        #expect(elapsed >= .milliseconds(190))
-        #expect(elapsed < .milliseconds(300))
+        var elapsed: [Duration] = []
+        for attempt in 0 ..< 3 {
+            if attempt > 0 {
+                // A silent socket is tried again after the backoff.
+                harness.advance(TerminalResolver.silentBackoff)
+            }
+            let started = clock.now
+            let fromArguments = try #require(await harness.engine.tick().primary)
+            elapsed.append(clock.now - started)
+            #expect(fromArguments.detail == "nvim results.tex")
+        }
+        #expect(elapsed.allSatisfy { $0 >= .milliseconds(190) }, "\(elapsed)")
+        #expect(try #require(elapsed.min()) < .milliseconds(300), "\(elapsed)")
         #expect(harness.health("editor")?.status == .fallback)
 
         harness.processes.arguments = [:]

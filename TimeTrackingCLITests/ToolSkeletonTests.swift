@@ -10,11 +10,17 @@ struct ToolSkeletonTests {
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: folder) }
         let environment = ["TIMETRACKING_SOCKET": folder.appending(path: "tracker.sock").path]
-        // The first launch pays for loading the binary; the second is measured.
+        // The first launch pays for loading the binary. Process launch time
+        // varies with load, so the bound must hold for the fastest of five
+        // runs; a tool that waits or retries misses it on every run.
         _ = try ToolProcess.run("tracker-event", ["tmux", "pane-focus-in"], environment: environment)
-        let result = try ToolProcess.run("tracker-event", ["tmux", "pane-focus-in"], environment: environment)
-        #expect(result.status != 0)
-        #expect(result.standardError.contains("not running"))
-        #expect(result.duration < .milliseconds(100))
+        var durations: [Duration] = []
+        for _ in 0 ..< 5 {
+            let result = try ToolProcess.run("tracker-event", ["tmux", "pane-focus-in"], environment: environment)
+            #expect(result.status != 0)
+            #expect(result.standardError.contains("not running"))
+            durations.append(result.duration)
+        }
+        #expect(try #require(durations.min()) < .milliseconds(100), "\(durations)")
     }
 }

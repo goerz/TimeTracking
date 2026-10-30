@@ -2,6 +2,7 @@
 // retention (spec_activity_tracking.md §4).
 
 import Foundation
+import Synchronization
 import Testing
 import TimeTrackingCore
 @testable import TimeTrackingAgent
@@ -86,29 +87,34 @@ struct LogTests {
         await harness.engine.tick()
         let url = harness.engine.logs.currentStateURL
         let zone = AgentHarness.zone
-        let reader = Task.detached { () -> (reads: Int, failures: Int) in
-            var reads = 0
+        let reads = Atomic<Int>(0)
+        let reader = Task.detached { () -> Int in
             var failures = 0
-            while !Task.isCancelled, reads < 2000 {
+            while !Task.isCancelled {
                 if let data = try? Data(contentsOf: url) {
-                    reads += 1
+                    reads.add(1, ordering: .relaxed)
                     if (try? TrackerState.parse(data, timeZone: zone)) == nil {
                         failures += 1
                     }
                 }
                 await Task.yield()
             }
-            return (reads, failures)
+            return failures
         }
-        for _ in 0 ..< 300 {
+        // Rewrite until the reader has read 200 times while writes go on,
+        // however slowly a loaded machine schedules it (at most 100,000 writes).
+        var writes = 0
+        while reads.load(ordering: .relaxed) < 200, writes < 100_000 {
             harness.advance(1)
             harness.engine.writeCurrentState()
+            writes += 1
             await Task.yield()
         }
         reader.cancel()
-        let result = await reader.value
-        #expect(result.reads > 0)
-        #expect(result.failures == 0)
+        let failures = await reader.value
+        #expect(reads.load(ordering: .relaxed) >= 200)
+        #expect(writes >= 1)
+        #expect(failures == 0)
     }
 
     @Test("TRK-19 after the agent stops, readers report it delayed at 90 seconds and not running at 2 minutes")

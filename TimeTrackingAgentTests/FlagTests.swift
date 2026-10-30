@@ -17,14 +17,18 @@ struct FlagTests {
         var error: String
     }
 
-    /// Runs the agent's own executable with `arguments` and a clean environment.
+    /// Runs the agent's own executable with `arguments` and a clean
+    /// environment whose `HOME` is an empty temporary folder.
     private func runAgent(_ arguments: [String]) async throws -> AgentRun {
         let executable = try #require(Bundle.main.executableURL)
+        let home = FileManager.default.temporaryDirectory.appending(path: "agent-home-\(UUID().uuidString)", directoryHint: .isDirectory)
+        try FileManager.default.createDirectory(at: home, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: home) }
         return try await Task.detached {
             let process = Process()
             process.executableURL = executable
             process.arguments = arguments
-            process.environment = ["HOME": NSHomeDirectory(), "PATH": "/usr/bin:/bin", "TMPDIR": NSTemporaryDirectory()]
+            process.environment = ["HOME": home.path, "PATH": "/usr/bin:/bin", "TMPDIR": NSTemporaryDirectory()]
             let output = Pipe()
             let error = Pipe()
             process.standardOutput = output
