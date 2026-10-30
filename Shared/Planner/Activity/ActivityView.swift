@@ -12,13 +12,20 @@ struct ActivityView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            ScrollView {
-                VStack(alignment: .leading, spacing: Design.Spacing.large) {
-                    header
-                    ActivityChips(model: model)
-                    content
+            switch model.emptyState {
+            case .setup:
+                setupState.frame(maxHeight: .infinity)
+            case let .noActivity(notRunning):
+                noActivityState(notRunning: notRunning).frame(maxHeight: .infinity)
+            case .panels, .nothingForContexts:
+                ScrollView {
+                    VStack(alignment: .leading, spacing: Design.Spacing.large) {
+                        header
+                        ActivityChips(model: model)
+                        content
+                    }
+                    .padding(Design.Spacing.content)
                 }
-                .padding(Design.Spacing.content)
             }
             Divider()
             ActivityFooter(model: model)
@@ -89,33 +96,49 @@ struct ActivityView: View {
             if let summary = model.summary {
                 ActivityPanels(model: model, summary: summary)
             }
-        case .setup:
-            card {
-                if model.isRecordingMac {
-                    Text("Set up the tracker to see where your time goes. Nothing is recorded until you enable it.")
-                    Button("Open Tracker Settings…") { model.router?.showTrackerSettings() }
-                } else {
-                    Text("The tracker runs on your Mac. Set it up in the Mac app's Settings, Tracker pane.")
-                }
-            }
-            .accessibilityIdentifier("activity.setup")
-        case let .noActivity(notRunning):
-            card {
-                Text(ActivityEmptyState.noActivityText(model.days))
-                if notRunning {
-                    Text("The tracker was not running.").foregroundStyle(.secondary)
-                    if model.isRecordingMac {
-                        Button("Tracker Settings…") { model.router?.showTrackerSettings() }
-                    }
-                }
-            }
-            .accessibilityIdentifier("activity.empty")
+        case .setup, .noActivity:
+            // The whole section shows these (setupState, noActivityState).
+            EmptyView()
         case .nothingForContexts:
             card {
                 Text("Nothing recorded for the selected contexts")
                 Button("Show All Contexts") { Task { await model.selectAll() } }
             }
         }
+    }
+
+    /// No block yet and no tracker set up (§1.9, §5).
+    private var setupState: some View {
+        ContentUnavailableView {
+            Label("No Activity Yet", systemImage: "waveform.path.ecg")
+        } description: {
+            if model.isRecordingMac {
+                Text("Set up the tracker to see where your time goes. Nothing is recorded until you enable it.")
+            } else {
+                Text("The tracker runs on your Mac. Set it up in the Mac app's Settings, Tracker pane.")
+            }
+        } actions: {
+            if model.isRecordingMac {
+                Button("Open Tracker Settings…") { model.router?.showTrackerSettings() }
+            }
+        }
+        .accessibilityIdentifier("activity.setup")
+    }
+
+    /// No blocks in the range (§1.9).
+    private func noActivityState(notRunning: Bool) -> some View {
+        ContentUnavailableView {
+            Label(ActivityEmptyState.noActivityText(model.days), systemImage: "waveform.path.ecg")
+        } description: {
+            if notRunning {
+                Text("The tracker was not running.")
+            }
+        } actions: {
+            if notRunning, model.isRecordingMac {
+                Button("Tracker Settings…") { model.router?.showTrackerSettings() }
+            }
+        }
+        .accessibilityIdentifier("activity.empty")
     }
 
     private func card(@ViewBuilder _ content: () -> some View) -> some View {

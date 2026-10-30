@@ -107,7 +107,7 @@ private struct ProjectsTableView: View {
 
     private func emptyState(_ text: String) -> some View {
         ContentUnavailableView {
-            Text(text)
+            Label(text, systemImage: "folder")
         } actions: {
             if model.table.activeCount + model.table.archivedCount == 0 {
                 Button("New Project") { model.newProject() }
