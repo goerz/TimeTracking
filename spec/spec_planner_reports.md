@@ -4,9 +4,9 @@ The Reports section of the Planner window shows where the time went in a date ra
 
 ## 1. Layout
 
-From top to bottom: the toolbar, four tiles, the chart card (fixed 280 pt high), and a card holding either the breakdown table or the entry list, chosen by a segmented control. The lower card fills the rest and scrolls. Below 700 pt of content height the tiles collapse into one line and the chart shrinks to 180 pt.
+From top to bottom: the filter bar while filters are active (3), four tiles, the chart card (fixed 280 pt high), and a card holding either the breakdown table or the entry list, chosen by a segmented control. The lower card fills the rest and scrolls. Below 700 pt of content height the tiles collapse into one line and the chart shrinks to 180 pt. Tiles and cards are filled cards of [spec_design.md](spec_design.md) §3; tile values use the metric style (§1 there).
 
-Toolbar, from the left: previous-period arrow, date-range button, next-period arrow, Filters with badge and active filter chips; at the right granularity, Print, and Export. The chart card's header holds "Logged time" and "Stack by"; the lower card's header the segmented control (Breakdown | Entries), the level chain, and Expand All / Collapse All.
+The window title is "Reports" and its subtitle the range label ("This week · W44"). Toolbar ([spec_design.md](spec_design.md) §4): leading the previous- and next-period arrows and Today with the date menu (2.2); trailing Filters, the granularity menu, Print, and Export. The chart card's header holds "Logged time" and "Stack by"; the lower card's header the segmented control (Breakdown | Entries), the level chain, and Expand All / Collapse All.
 
 ## 2. Date range
 
@@ -16,7 +16,7 @@ Days run midnight to midnight; each entry counts whole for its day, the running 
 
 ### 2.2 Presets and the date popover
 
-The date-range button opens a popover with the presets and a two-month calendar. The range is shared with the Activity section ([spec_planner_activity.md](spec_planner_activity.md) adds its 366-day cap), stored per device, default This week.
+A click on Today goes to today (2.3). Today's menu lists the presets, the current one checked, then "Choose Dates…", which opens the date popover (⇧⌘D opens it too): the presets and a two-month calendar. The range is shared with the Activity section ([spec_planner_activity.md](spec_planner_activity.md) adds its 366-day cap), stored per device, default This week.
 
 | Preset | Range (inclusive days) | Button label |
 |---|---|---|
@@ -54,11 +54,11 @@ The arrows shift the range by its own unit and keep its kind.
 | Any other n days | The n days before its first day / after its last day |
 | All time | Arrows disabled |
 
-After a shift the label names the range by kind ("Week 43 · Oct 19 – 25", "September 2026", "2025", "Oct 5 – 18, 2026"), and the preset list highlights a preset only when the range equals it. "Go to Today" (⌘T) applies the current kind to today: a shifted week becomes This week, a shifted month This month, n days the n days ending today.
+After a shift the label names the range by kind ("Week 43 · Oct 19 – 25", "September 2026", "2025", "Oct 5 – 18, 2026"), and the preset lists (Today's menu, the popover) mark a preset only when the range equals it. "Go to Today" (⌘T, a click on Today) applies the current kind to today: a shifted week becomes This week, a shifted month This month, n days the n days ending today.
 
 ## 3. Filters
 
-The Filters popover's badge counts active filter kinds; each active filter is a removable chip right of the button ("Client: Consulting ×", "Project: 2 ×", "Task: noise ×", "Archived excluded ×"). Kinds combine with AND, choices within a kind with OR, and filters apply to tiles, chart, table, list, and exports.
+The Filters button's title counts active filter kinds ("Filters (2)") and its symbol fills while any is active. Each active filter is a removable token in the filter bar above the tiles ("Client: Consulting", "Project: 2", "Task: noise", "Archived excluded", each with `xmark`), followed by "Clear All"; the bar is hidden without filters. Kinds combine with AND, choices within a kind with OR, and filters apply to tiles, chart, table, list, and exports.
 
 | Kind | Control | Matches |
 |---|---|---|
@@ -198,7 +198,7 @@ In the table: → expands, ← collapses, ⌥→ expands the subtree, Space togg
 
 Per device, the section stores filters, granularity, stack key, levels, table and list sort, and the segmented control's position. The shared date range is stored as its kind plus, for custom ranges, the dates, so a restored "This week" is the current week. Expansion and drill-down history last for the session.
 
-The report recomputes on every store change and, while the running entry is in the range, every 60 seconds for tiles, chart, and table and every second for the list's running row; otherwise no timer runs. The view keeps the previous result until the new one is ready, showing a thin progress bar in the toolbar after 250 ms.
+The report recomputes on every store change and, while the running entry is in the range, every 60 seconds for tiles, chart, and table and every second for the list's running row; otherwise no timer runs. The view keeps the previous result until the new one is ready, showing a thin progress bar at the top of the content after 250 ms.
 
 The router's `showReports(range:filter:)` sets the range, replaces the filters (with "Include archived projects" on), and shows the Breakdown. The URL `timetracking://planner/reports?from=…&to=…` arrives the same way.
 

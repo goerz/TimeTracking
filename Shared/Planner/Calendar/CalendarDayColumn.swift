@@ -25,7 +25,7 @@ struct CalendarDayColumn: View {
         }
         .frame(width: width, height: axis.height, alignment: .topLeading)
         .background(HourGrid(pointsPerHour: model.pointsPerHour, height: axis.height))
-        .background(day == model.today ? Color.red.opacity(0.03) : .clear)
+        .background(day == model.today ? Color.accentColor.opacity(0.03) : .clear)
         .overlay(alignment: .topLeading) { NowLine(model: model, day: day) }
         .overlay(alignment: .leading) { Divider() }
     }
@@ -59,7 +59,7 @@ private struct NowLine: View {
     var body: some View {
         TimelineView(.periodic(from: .now, by: 30)) { _ in
             if let offset = model.axis(day).nowOffset(model.clock.now) {
-                Rectangle().fill(Color.red).frame(height: 2).offset(y: offset - 1)
+                Rectangle().fill(Color.accentColor).frame(height: 2).offset(y: offset - 1)
                     .accessibilityIdentifier("calendar.nowLine")
             }
         }
@@ -192,7 +192,7 @@ private struct ActivityColumn: View {
             }
             if model.isRecordingMac {
                 ForEach(Array((model.gapLabels[day] ?? []).enumerated()), id: \.offset) { _, label in
-                    Text(label.1).font(.caption2).foregroundStyle(.tertiary)
+                    Text(label.1).font(.caption).foregroundStyle(.tertiary)
                         .offset(x: 4, y: axis.y(label.0) + 4)
                 }
             }

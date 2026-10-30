@@ -16,6 +16,13 @@ enum Design {
         static let large: CGFloat = 16
         /// Content insets in Mac windows.
         static let window: CGFloat = 20
+        // Content insets of a view shared by both apps: `window` on the
+        // Mac, `large` on iOS.
+        #if os(macOS)
+            static let content: CGFloat = window
+        #else
+            static let content: CGFloat = large
+        #endif
     }
 
     enum Radius {

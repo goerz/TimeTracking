@@ -1,35 +1,20 @@
-// The Reports Filters button, its chips, and its popover
-// (spec_planner_reports.md §3).
+// The Reports Filters button and its popover (spec_planner_reports.md §3).
+// The active filters show in the filter bar above the tiles (ReportsView).
 
 import SwiftUI
 import TimeTrackingCore
 
-/// Filters with badge, then one removable chip per active kind.
+/// The Filters toolbar button.
 struct ReportFiltersButton: View {
     @Bindable var model: ReportsModel
 
     var body: some View {
-        HStack(spacing: 6) {
-            Button {
-                model.showsFilters.toggle()
-            } label: {
-                let count = model.state.filters.activeKindCount
-                Label(count > 0 ? "Filters (\(count))" : "Filters", systemImage: "line.3.horizontal.decrease")
-                    .labelStyle(.titleAndIcon)
-            }
-            .accessibilityIdentifier("reports.filters")
-            .popover(isPresented: $model.showsFilters) {
-                ReportFiltersPopover(model: model)
-            }
-            ForEach(model.filterChips) { chip in
-                Button {
-                    Task { await model.removeChip(chip.kind) }
-                } label: {
-                    Text("\(chip.text) ×")
-                }
-                .buttonStyle(.bordered)
-                .accessibilityIdentifier("reports.chip")
-            }
+        PlannerFiltersButton(
+            activeFilters: model.state.filters.activeKindCount,
+            isPresented: $model.showsFilters,
+            identifier: "reports.filters"
+        ) {
+            ReportFiltersPopover(model: model)
         }
     }
 }
@@ -192,8 +177,8 @@ struct ReportFiltersPopover: View {
     }
 }
 
-/// Chips that wrap onto further lines.
-private struct FlowChips: Layout {
+/// Chips that wrap onto further lines (filters, the chart legend).
+struct FlowChips: Layout {
     var spacing: CGFloat = 6
 
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache _: inout ()) -> CGSize {

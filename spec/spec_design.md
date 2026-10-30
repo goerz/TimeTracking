@@ -43,6 +43,7 @@ A 4 pt grid. The `Design` tokens in `Shared/Design/Design.swift` hold the values
 | `Design.Spacing.medium` | 12 pt | Between groups in a bar or card |
 | `Design.Spacing.large` | 16 pt | Content insets on iOS, card padding |
 | `Design.Spacing.window` | 20 pt | Content insets in Mac windows |
+| `Design.Spacing.content` | `window` on the Mac, `large` on iOS | Content insets of views shared by both apps (the Planner sections) |
 | `Design.Radius.card` | 12 pt | Cards (Reports, Activity, iOS Timer card) |
 | `Design.Radius.small` | 6 pt | Calendar cards, swatches, tags |
 
@@ -54,10 +55,13 @@ Hit targets: at least 44 × 44 pt on iOS; on the Mac, standard control sizes (`.
 
 Window-level controls live in the platform toolbar, never in a custom row inside the content.
 
-- Mac Planner: one unified toolbar. The window title is the section name; the date range is the `navigationSubtitle`. Leading (`.navigation`): the period arrows (`chevron.left`, `chevron.right`) as a `ControlGroup`, then Today. Trailing (`.primaryAction`), in this order: view options (segmented pickers, column toggles, zoom), the section's create action (`plus`, Fill Day), then share, export, and print. Sections keep their items in the same positions, so switching sections never moves a shared control.
+- Mac Planner: one unified toolbar. The window title is the section name; in Calendar, Reports, and Activity the shown range is the `navigationSubtitle` ("This week · W44"). Leading (`.navigation`, before the title), in these three sections: the period arrows (`chevron.left`, `chevron.right`) as one `ToolbarItemGroup` (a `ControlGroup` does not stay in `.navigation`), then Today, a `Menu` whose primary action goes to today and whose menu holds the section's date choices (Reports and Activity: the presets and "Choose Dates…"; Calendar: "Go to Date…"), which open the date popover anchored to it. Projects has no leading items. Trailing (`.primaryAction`), in this order: view options (Filters first, then segmented pickers, menus, zoom, the options popover), the section's create action (`plus`, Fill Day), then print and export. The arrows and Today never move when the section changes, and Filters is the first trailing item wherever it exists.
+- Overflow: the period items, Filters, and create actions carry `.visibilityPriority(.high)`, zoom and options `.low`, so a narrow window keeps navigation and moves view options into the system overflow (`chevron.right.2`) first.
 - Icon-only toolbar items are `Label(title, systemImage:)` with `.help(title)`; the title shows in "Icon and Text" mode and in the overflow menu. Text-only toolbar buttons are allowed for a single word that has no clear symbol (Today).
-- Mutually exclusive options: `Picker` with `.pickerStyle(.segmented)` (or `.menu` when there are more than four). On/off options: `Toggle` with `.toggleStyle(.button)` and a symbol. No custom filled or tinted toolbar buttons; the system draws the toolbar's glass.
-- iPad: the same items in the navigation bar, in the same order, with system overflow. iPhone: at most two trailing items; everything else in an `ellipsis.circle` menu.
+- Mutually exclusive options: `Picker` with `.pickerStyle(.segmented)` (or `.menu` when there are more than four). Several on/off options of one kind (the Calendar's columns): `Toggle`s inside one toolbar `Menu`, shown as check marks. A single on/off option: `Toggle` with `.toggleStyle(.button)` and a symbol. No custom filled or tinted toolbar buttons; the system draws the toolbar's glass.
+- State that would need a badge shows in the symbol and the title instead: Filters uses `line.3.horizontal.decrease.circle.fill` and the title "Filters (2)" while a filter is active. Active filters that can be removed one by one sit in a filter bar at the top of the content, not in the toolbar.
+- Status rows at the bottom of a section (the projects count, the tracker health line) are `.subheadline` in `.secondary` with `Design.Spacing.content` side insets; their buttons are `.borderless`.
+- iPad: the same items in the navigation bar, in the same order, with the title inline and system overflow. iPhone: at most two trailing items; everything else in an `ellipsis.circle` menu.
 
 ## 5. Symbols
 
@@ -79,7 +83,12 @@ SF Symbols only, monochrome, default weight, in the text style of the adjacent t
 | New (entry, project, client) | `plus` |
 | Edit | `pencil` |
 | Delete | `trash` |
-| Filter | `line.3.horizontal.decrease` |
+| Filter | `line.3.horizontal.decrease`; `line.3.horizontal.decrease.circle.fill` while a filter is active |
+| Previous, next period or day | `chevron.left`, `chevron.right` |
+| Zoom out, zoom in | `minus.magnifyingglass`, `plus.magnifyingglass` |
+| Calendar columns (menu) | `rectangle.split.3x1` |
+| Sort and group (menu) | `arrow.up.arrow.down` |
+| Clients & Areas | `person.crop.square` (the Client symbol) |
 | Share, export | `square.and.arrow.up` |
 | Print | `printer` |
 | Settings | `gearshape` |
@@ -101,6 +110,7 @@ A sidebar shows its symbols in the accent color (the system sidebar style); no m
 
 - The accent color is the asset catalog's `AccentColor`, shared by both apps and the widgets; it comes from the app icon (§9). Views use `Color.accentColor` or `.tint`, never a literal.
 - Start and continue: `Color.startTint` (system green); stop: `Color.stopTint` (system red). Both are defined once in `Shared/Design/Design.swift` (the widgets keep a copy).
+- Today and now (the Calendar's highlighted date, today's tint, the now-line and its time bubble) use the accent color.
 - Area colors (user-chosen RGB) are data: they fill calendar cards, chart segments, and the 8 pt area dot. Text on an area color picks black or white by contrast.
 - Everything else uses semantic colors (`.primary`, `.secondary`, `.tertiary`, `.background`, `.separator`) and works in light and dark appearance and with Increase Contrast.
 

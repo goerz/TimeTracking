@@ -41,7 +41,7 @@ struct ReportChartCard: View {
     @State private var hovered: String?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: Design.Spacing.medium) {
             HStack {
                 Text("Logged time").font(.headline)
                 Spacer()
@@ -63,8 +63,8 @@ struct ReportChartCard: View {
                 Color.clear.frame(height: height)
             }
         }
-        .padding(16)
-        .background(RoundedRectangle(cornerRadius: 12).strokeBorder(.quaternary))
+        .padding(Design.Spacing.large)
+        .background(.background.secondary, in: .rect(cornerRadius: Design.Radius.card))
     }
 
     private func chartView(_ chart: ReportChart) -> some View {
@@ -78,7 +78,7 @@ struct ReportChartCard: View {
             AxisMarks(position: .leading, values: hourMarks(chart)) { value in
                 AxisGridLine()
                 AxisValueLabel {
-                    Text("\(Int(value.as(Double.self) ?? 0))h")
+                    Text("\(Int(value.as(Double.self) ?? 0))h").font(.caption).monospacedDigit()
                 }
             }
         }
@@ -126,16 +126,17 @@ struct ReportChartCard: View {
                 PointMark(x: .value("Period", bucket.id.description), y: .value("Hours", Double(bucket.total) / 3600))
                     .symbolSize(0)
                     .annotation(position: .top) {
-                        Text(ReportText.bar(bucket.total)).font(.caption.weight(.semibold))
+                        Text(ReportText.bar(bucket.total)).font(.caption.weight(.semibold)).monospacedDigit()
                     }
             }
         }
         if let average = chart.averageLine {
+            // The label sits above the rule at the right edge, inside the plot.
             RuleMark(y: .value("Average", Double(average) / 3600))
                 .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 3]))
                 .foregroundStyle(.secondary)
-                .annotation(position: .trailing, alignment: .leading) {
-                    Text("avg \(ReportText.bar(average))").font(.caption).foregroundStyle(.secondary)
+                .annotation(position: .top, alignment: .trailing, spacing: 2) {
+                    Text("avg \(ReportText.bar(average))").font(.caption).monospacedDigit().foregroundStyle(.secondary)
                 }
         }
     }
@@ -177,21 +178,23 @@ struct ReportChartCard: View {
     }
 
     private func legend(_ chart: ReportChart) -> some View {
-        HStack(spacing: 14) {
+        FlowChips(spacing: Design.Spacing.medium) {
             ForEach(chart.legend) { key in
                 Button {
                     model.toggleHighlight(key.value)
                 } label: {
-                    HStack(spacing: 5) {
-                        RoundedRectangle(cornerRadius: 3).fill(key.color.fill).frame(width: 12, height: 12)
-                        Text(key.name)
+                    HStack(spacing: Design.Spacing.tight) {
+                        RoundedRectangle(cornerRadius: 2).fill(key.color.fill).frame(width: 10, height: 10)
+                        Text(key.name).lineLimit(1)
                     }
                     .opacity(model.highlightedKey == nil || model.highlightedKey == key.value ? 1 : 0.4)
                 }
                 .buttonStyle(.plain)
             }
         }
-        .font(.callout)
+        .font(.caption)
+        .foregroundStyle(.secondary)
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("reports.legend")
     }
 

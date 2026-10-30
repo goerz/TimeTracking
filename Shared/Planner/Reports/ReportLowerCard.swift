@@ -10,7 +10,7 @@ struct ReportLowerCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            header.padding(12)
+            header.padding(Design.Spacing.medium)
             Divider()
             if (model.snapshot?.summary.entryCount ?? 0) == 0 {
                 ContentUnavailableView("No entries in this range", systemImage: "chart.bar")
@@ -23,11 +23,12 @@ struct ReportLowerCard: View {
             }
         }
         .frame(maxHeight: .infinity)
-        .background(RoundedRectangle(cornerRadius: 12).strokeBorder(.quaternary))
+        .background(.background.secondary, in: .rect(cornerRadius: Design.Radius.card))
+        .clipShape(.rect(cornerRadius: Design.Radius.card))
     }
 
     private var header: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: Design.Spacing.small) {
             Picker("", selection: Binding(get: { model.state.card }, set: { card in
                 Task { await model.show(card) }
             })) {
@@ -129,6 +130,7 @@ struct ReportBreakdownTable: View {
                 }
             }
             .listStyle(.plain)
+            .scrollContentBackground(.hidden)
             .contextMenu(forSelectionType: [GroupKeyValue].self) { _ in
                 EmptyView()
             } primaryAction: { paths in
@@ -149,13 +151,13 @@ struct ReportBreakdownTable: View {
 
     private var columnHeader: some View {
         HStack(spacing: 12) {
-            sortButton("Name", .name).frame(maxWidth: .infinity, alignment: .leading)
+            sortButton("Name", .name).frame(minWidth: 120, maxWidth: .infinity, alignment: .leading)
             sortButton("Logged time", .loggedTime).frame(width: 120, alignment: .trailing)
             sortButton("Share", .share).frame(width: 70, alignment: .trailing)
             sortButton("Entries", .entries).frame(width: 70, alignment: .trailing)
-            Text("").frame(width: 160)
+            Text("").frame(minWidth: 40, maxWidth: 160)
         }
-        .font(.caption.weight(.semibold))
+        .font(.subheadline)
         .foregroundStyle(.secondary)
         .padding(.horizontal, 16)
         .padding(.vertical, 6)
@@ -166,7 +168,7 @@ struct ReportBreakdownTable: View {
             model.sortTable(by: column)
         } label: {
             HStack(spacing: 2) {
-                Text(title.uppercased())
+                Text(title)
                 if model.state.tableSort == column {
                     Image(systemName: model.state.tableAscending ? "chevron.up" : "chevron.down").accessibilityHidden(true)
                 }
@@ -179,7 +181,7 @@ struct ReportBreakdownTable: View {
         HStack(spacing: 12) {
             nameCell(row)
                 .padding(.leading, CGFloat(row.depth) * 20)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(minWidth: 120, maxWidth: .infinity, alignment: .leading)
             Text(ReportText.seconds(row.node.seconds, padded: true)).monospacedDigit().frame(width: 120, alignment: .trailing)
             Text(ReportText.share(row.node.seconds, of: total)).monospacedDigit().frame(width: 70, alignment: .trailing)
             Text(String(row.node.entryCount)).monospacedDigit().frame(width: 70, alignment: .trailing)
@@ -189,7 +191,7 @@ struct ReportBreakdownTable: View {
                     .frame(width: max(2, geometry.size.width * ReportText.fraction(row.node.seconds, of: total)), height: 8)
                     .frame(maxHeight: .infinity, alignment: .center)
             }
-            .frame(width: 160)
+            .frame(minWidth: 40, maxWidth: 160)
         }
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("reports.node")
@@ -220,7 +222,7 @@ struct ReportBreakdownTable: View {
             if row.level == .area || row.level == .project {
                 AreaDot(color: barColor(row).flatMap(\.self))
             }
-            Text(row.title)
+            Text(row.title).lineLimit(1)
             if row.hasChildren {
                 Text("(\(row.node.children.count))").foregroundStyle(.secondary)
             }
@@ -242,13 +244,13 @@ struct ReportBreakdownTable: View {
 
     private func footer(_ total: ReportNode) -> some View {
         HStack(spacing: 12) {
-            Text("Total").fontWeight(.semibold).frame(maxWidth: .infinity, alignment: .leading)
+            Text("Total").fontWeight(.semibold).frame(minWidth: 120, maxWidth: .infinity, alignment: .leading)
             Text(ReportText.seconds(total.seconds, padded: true)).fontWeight(.semibold).monospacedDigit()
                 .frame(width: 120, alignment: .trailing)
                 .accessibilityIdentifier("reports.total")
             Text("100%").fontWeight(.semibold).frame(width: 70, alignment: .trailing)
             Text(String(total.entryCount)).fontWeight(.semibold).frame(width: 70, alignment: .trailing)
-            Text("").frame(width: 160)
+            Text("").frame(minWidth: 40, maxWidth: 160)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 8)

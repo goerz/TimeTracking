@@ -8,7 +8,7 @@ Vocabulary: an item has a context (an app, a terminal session such as `tmux:pape
 
 ## 1. Layout
 
-From top to bottom: the date range bar, the header (1.2), the context chips (1.3), the panels, and the health footer (1.10). The range bar and footer stay fixed; the rest scrolls. Panels are cards (12 point corner radius, 16 point padding, 16 point gaps), in two columns above 1100 points of content width and one column below, in the order heatmap, by-day chart, Contexts, Subjects, In the background, Away.
+The window title is "Activity" and its subtitle the range label. The toolbar follows [spec_design.md](spec_design.md) §4: leading the period arrows and Today with its date menu, trailing the device popup (1.2). Below it, from top to bottom: the header (1.2), the context chips (1.3), the panels, and the health footer (1.10). The footer stays fixed; the rest scrolls. Panels are cards (12 point corner radius, 16 point padding, 16 point gaps), in two columns above 1100 points of content width and one column below, in the order heatmap, by-day chart, Contexts, Subjects, In the background, Away.
 
 ### 1.1 Date range
 
@@ -16,7 +16,7 @@ The range control, its presets, and its shortcuts are those of Reports ([spec_pl
 
 ### 1.2 Header
 
-Line 1, in the large title font: "34h 10m active", the sum of the blocks' `a`, or under a context filter the sum of the selected contexts' item seconds. Line 2, secondary color, separated by middle dots: the number of days with a block, the average per such day, and, when blocks of more than one device are in the range, the total per device (names from `dev`; `remote` reads "Other devices (Safari)"). An "All devices" popup, hidden with one device, narrows every panel to one device and lists each device's total.
+Line 1, in the metric style of [spec_design.md](spec_design.md) §1: "34h 10m active", the sum of the blocks' `a`, or under a context filter the sum of the selected contexts' item seconds. Line 2, secondary color, separated by middle dots: the number of days with a block, the average per such day, and, when blocks of more than one device are in the range, the total per device (names from `dev`; `remote` reads "Other devices (Safari)"). An "All devices" popup in the toolbar, hidden with one device, narrows every panel to one device and lists each device's total.
 
 Durations read `Nh Mm` from one hour, `Mm` below, and `Ss` below one minute.
 

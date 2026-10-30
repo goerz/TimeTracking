@@ -1,5 +1,5 @@
-// ReportsView: toolbar, tiles, chart card, and the breakdown or entry list
-// (spec_planner_reports.md §1; mockups/planner_reports.png).
+// ReportsView: toolbar, filter bar, tiles, chart card, and the breakdown or
+// entry list (spec_planner_reports.md §1; spec_design.md §4).
 
 import SwiftUI
 import TimeTrackingCore
@@ -17,53 +17,60 @@ struct ReportsView: View {
     var body: some View {
         GeometryReader { geometry in
             let compact = geometry.size.height < 700
-            VStack(spacing: 16) {
+            VStack(spacing: Design.Spacing.large) {
+                if !model.filterChips.isEmpty {
+                    ReportFilterBar(model: model)
+                }
                 ReportTilesView(model: model, compact: compact)
                 ReportChartCard(model: model, height: compact ? 180 : 280)
                 ReportLowerCard(model: model)
             }
-            .padding(16)
+            .padding(Design.Spacing.content)
         }
         .navigationTitle("Reports")
-        .toolbar { toolbar }
-        .overlay(alignment: .top) {
-            if showsProgress {
-                ProgressView().progressViewStyle(.linear).padding(.horizontal, 16)
-            }
-        }
-        .task { await model.reload() }
-        .task(id: model.isLoading) {
-            showsProgress = false
-            guard model.isLoading else {
-                return
-            }
-            try? await Task.sleep(for: .milliseconds(250))
-            showsProgress = model.isLoading
-        }
-        .task(id: model.refreshInterval) {
-            // While the running entry is in the range: tiles, chart, and table every 60 s.
-            guard let interval = model.refreshInterval else {
-                return
-            }
-            while !Task.isCancelled {
-                try? await Task.sleep(for: interval)
-                if !Task.isCancelled {
-                    await model.reload()
+        .navigationSubtitle(model.range.label)
+        #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+        #endif
+            .toolbar { toolbar }
+            .overlay(alignment: .top) {
+                if showsProgress {
+                    ProgressView().progressViewStyle(.linear)
                 }
             }
-        }
-        .confirmationDialog("Export", isPresented: $model.exportRequested) {
-            Button("Breakdown (CSV)…") { export(entries: false) }
-            Button("Entries (CSV)…") { export(entries: true) }
-        }
-        .fileExporter(
-            isPresented: .isPresent($exporting),
-            document: exporting,
-            contentType: .commaSeparatedText,
-            defaultFilename: exporting?.name
-        ) { _ in
-            exporting = nil
-        }
+            .task { await model.reload() }
+            .task(id: model.isLoading) {
+                showsProgress = false
+                guard model.isLoading else {
+                    return
+                }
+                try? await Task.sleep(for: .milliseconds(250))
+                showsProgress = model.isLoading
+            }
+            .task(id: model.refreshInterval) {
+                // While the running entry is in the range: tiles, chart, and table every 60 s.
+                guard let interval = model.refreshInterval else {
+                    return
+                }
+                while !Task.isCancelled {
+                    try? await Task.sleep(for: interval)
+                    if !Task.isCancelled {
+                        await model.reload()
+                    }
+                }
+            }
+            .confirmationDialog("Export", isPresented: $model.exportRequested) {
+                Button("Breakdown (CSV)…") { export(entries: false) }
+                Button("Entries (CSV)…") { export(entries: true) }
+            }
+            .fileExporter(
+                isPresented: .isPresent($exporting),
+                document: exporting,
+                contentType: .commaSeparatedText,
+                defaultFilename: exporting?.name
+            ) { _ in
+                exporting = nil
+            }
     }
 
     /// File › Export…: the chosen format's CSV.
@@ -71,14 +78,18 @@ struct ReportsView: View {
         exporting = CSVDocument(text: entries ? model.entriesCSV : model.breakdownCSV, name: model.exportFileName(entries: entries))
     }
 
+    /// Leading: the period items; trailing: Filters, granularity, Print, Export.
     @ToolbarContentBuilder private var toolbar: some ToolbarContent {
-        ToolbarItemGroup(placement: .navigation) {
-            DateRangeControl(range: model.range, showsPopover: $model.showsDatePopover) {
-                Task { await model.reload() }
-            }
+        DateRangeToolbar(range: model.range, showsPopover: $model.showsDatePopover) {
+            Task { await model.goToToday() }
+        } onChange: {
+            Task { await model.reload() }
+        }
+        ToolbarItem(placement: .primaryAction) {
             ReportFiltersButton(model: model)
         }
-        ToolbarItemGroup(placement: .primaryAction) {
+        .visibilityPriority(.high)
+        ToolbarItem(placement: .primaryAction) {
             Picker("Granularity", selection: Binding(get: { model.state.granularity }, set: { value in
                 Task { await model.setGranularity(value) }
             })) {
@@ -88,7 +99,10 @@ struct ReportsView: View {
                 }
             }
             .pickerStyle(.menu)
+            .help("Granularity")
             .accessibilityIdentifier("reports.granularity")
+        }
+        ToolbarItemGroup(placement: .primaryAction) {
             #if os(iOS)
                 // The share sheet's Print (spec_ios.md §10.2).
                 ShareLink(item: ReportPDF(model: model), preview: SharePreview(model.range.label)) {
@@ -100,6 +114,7 @@ struct ReportsView: View {
                     Button(action: onPrint) {
                         Label("Print", systemImage: "printer")
                     }
+                    .help("Print")
                     .accessibilityIdentifier("reports.print")
                 }
             #endif
@@ -109,8 +124,44 @@ struct ReportsView: View {
             } label: {
                 Label("Export", systemImage: "square.and.arrow.up")
             }
+            .help("Export")
             .accessibilityIdentifier("reports.export")
         }
+    }
+}
+
+/// The active filters as removable tokens above the tiles, with Clear All.
+private struct ReportFilterBar: View {
+    var model: ReportsModel
+
+    var body: some View {
+        HStack(spacing: Design.Spacing.small) {
+            Image(systemName: "line.3.horizontal.decrease")
+                .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
+            ForEach(model.filterChips) { chip in
+                Button {
+                    Task { await model.removeChip(chip.kind) }
+                } label: {
+                    HStack(spacing: Design.Spacing.tight) {
+                        Text(chip.text)
+                        Image(systemName: "xmark").imageScale(.small).foregroundStyle(.secondary).accessibilityHidden(true)
+                    }
+                }
+                .buttonStyle(.bordered)
+                .buttonBorderShape(.capsule)
+                .controlSize(.small)
+                .help("Remove Filter")
+                .accessibilityIdentifier("reports.chip")
+            }
+            Button("Clear All") { Task { await model.clearFilters() } }
+                .buttonStyle(.borderless)
+                .controlSize(.small)
+            Spacer(minLength: 0)
+        }
+        .font(.subheadline)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("reports.filterBar")
     }
 }
 
@@ -152,28 +203,30 @@ struct ReportTilesView: View {
             ("Days with entries", String(summary?.daysWithEntries ?? 0), "of \(summary?.elapsedDays ?? 0)"),
         ]
         if compact {
-            HStack(spacing: 24) {
+            HStack(spacing: Design.Spacing.large * 2) {
                 ForEach(tiles.indices, id: \.self) { index in
-                    HStack(spacing: 6) {
+                    HStack(spacing: Design.Spacing.small) {
                         Text(tiles[index].0).foregroundStyle(.secondary)
-                        Text(tiles[index].1).fontWeight(.semibold)
+                        Text(tiles[index].1).fontWeight(.semibold).monospacedDigit()
+                            .accessibilityIdentifier("reports.tile.\(index)")
                     }
                 }
-                Spacer()
+                Spacer(minLength: 0)
             }
+            .font(.subheadline)
             .accessibilityIdentifier("reports.tiles")
         } else {
-            HStack(spacing: 16) {
+            HStack(spacing: Design.Spacing.large) {
                 ForEach(tiles.indices, id: \.self) { index in
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(tiles[index].0).foregroundStyle(.secondary)
-                        Text(tiles[index].1).font(.largeTitle.weight(.semibold)).monospacedDigit()
+                    VStack(alignment: .leading, spacing: Design.Spacing.tight) {
+                        Text(tiles[index].0).font(.subheadline).foregroundStyle(.secondary)
+                        Text(tiles[index].1).font(.title2.weight(.semibold)).monospacedDigit()
                             .accessibilityIdentifier("reports.tile.\(index)")
-                        Text(tiles[index].2 ?? " ").foregroundStyle(.secondary)
+                        Text(tiles[index].2 ?? " ").font(.caption).foregroundStyle(.secondary)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(16)
-                    .background(RoundedRectangle(cornerRadius: 12).strokeBorder(.quaternary))
+                    .padding(Design.Spacing.large)
+                    .background(.background.secondary, in: .rect(cornerRadius: Design.Radius.card))
                 }
             }
         }

@@ -6,7 +6,7 @@ This spec covers the Mac app's Planner window shell and its Projects section: th
 
 ### 1.1 Layout
 
-There is at most one Planner window: a two-column split view with a sidebar and the selected section. The sidebar entries are Projects (`folder`), Calendar (`calendar`), Reports (`chart.bar`), and Activity (`waveform.path.ecg`), with no headings and no other items. The window title is the section's name. Each section owns its toolbar; the shell adds only the sidebar toggle. The Planner has no running-timer controls.
+There is at most one Planner window: a two-column split view with a sidebar and the selected section. The sidebar entries are Projects (`folder`), Calendar (`calendar`), Reports (`chart.bar`), and Activity (`waveform.path.ecg`), with no headings and no other items. The window title is the section's name. Each section owns its toolbar items, placed by the one scheme of [spec_design.md](spec_design.md) §4, so the period arrows and Today of Calendar, Reports, and Activity keep their place when the section changes; the shell adds only the sidebar toggle. The Planner has no running-timer controls.
 
 | Property | Value |
 |---|---|
@@ -46,11 +46,11 @@ The `PlannerRouter` opens the window if needed, selects a section, and passes it
 
 ### 1.4 iPad
 
-The sections are tabs ([spec_ios.md](spec_ios.md) §10). In Projects, Sort by and Group by menus replace header clicks, long press opens context menus, rows swipe to Archive or Restore, and Clients & Areas is pushed from a toolbar button. The router maps onto tab selection.
+The sections are tabs ([spec_ios.md](spec_ios.md) §10). In Projects, the Sort and Group menu replaces header clicks, long press opens context menus, rows swipe to Archive or Restore, and Clients & Areas is pushed from a toolbar button. The router maps onto tab selection.
 
 ## 2. The projects table
 
-The toolbar holds, from the left: the state selector, the Filters button with its badge, the Group by and Sort by menus, the search field, "Clients & Areas", and "+ New Project". Below is a `Table` with group header rows, a ⋯ button on the hovered row at the trailing edge of the Project cell, and a status row.
+The window title is "Projects" with no leading toolbar items. The trailing items are, in order: Filters (the symbol fills and the title reads "Filters (2)" while filters are active), the state selector (segmented: Active, Archived, All), the Sort and Group menu (Group By, Sort By, and Ascending or Descending, each with a check mark), Clients & Areas, New Project (`plus`), and the search field. Below is a `Table` with group header rows, a ⋯ button on the hovered row at the trailing edge of the Project cell, and a status row.
 
 ### 2.1 Columns
 
@@ -95,7 +95,7 @@ Empty groups are hidden. Groups collapse with their triangle, with ← and → o
 
 The state selector (Active, Archived, All; default Active), the Filters popover, and the search combine with AND.
 
-Filters popover: Clients and Areas as check-box lists (areas indented under clients, retired areas in secondary label color); a project passes if its client or its area is checked, and nothing checked means no restriction. Checking a client clears its areas' checks; checking an area clears its client's check. "Last tracked": Any time (default), In the last 30 days, In the last 90 days, Not in the last 90 days, Not in the last year, Never. "Clear" resets the popover. The badge counts each checked client or area and a Last tracked choice other than Any time.
+Filters popover: Clients and Areas as check-box lists (areas indented under clients, retired areas in secondary label color); a project passes if its client or its area is checked, and nothing checked means no restriction. Checking a client clears its areas' checks; checking an area clears its client's check. "Last tracked": Any time (default), In the last 30 days, In the last 90 days, Not in the last 90 days, Not in the last year, Never. "Clear" resets the popover. The count in the Filters title counts each checked client or area and a Last tracked choice other than Any time.
 
 Search (⌘F): every word of the query must occur, case- and diacritic-insensitively, as a substring of the project, area, or client name. Escape clears; a second Escape returns focus to the table.
 
@@ -153,7 +153,7 @@ Entries store only the project id, so a rename shows everywhere without touching
 
 ## 4. Clients & Areas
 
-The "Clients & Areas" toolbar button (⌥⌘1) replaces the table with this outline; the toolbar's "Projects" button or ⌘1 returns, and "+ New Client" sits beside it. Clients are listed alphabetically, each followed by its areas in order (general area first) and an "+ Add Area" row.
+The Clients & Areas toolbar button (⌥⌘1) replaces the table with this outline, titled "Clients & Areas"; the leading back button (`chevron.left`, "Projects") or ⌘1 returns, and New Client (`plus`) is the trailing item. Clients are listed alphabetically, each followed by its areas in order (general area first) and an "+ Add Area" row.
 
 Client rows show the name, the number of areas, and "N active · M archived" project counts (a zero archived count is omitted). Area rows show a 16 pt swatch, the name, a "general" or "retired" tag in secondary label color, and the counts. Double-click or ↩ edits. Context menus: on a client, Rename…, New Area…, Show Projects, Remove…; on an area, Edit…, Move Up, Move Down, Retire or Un-retire, Show Projects, Delete…. "Show Projects" returns to the table filtered to that client or area. ⌥⌘N creates a client here.
 
@@ -165,7 +165,7 @@ Every client has one general area (`general == true`), named after the client, f
 
 | Action | Rule |
 |---|---|
-| New ("+ New Client", ⌥⌘N here, "New Client…" in the dialog) | Sheet with Name (required, unique among clients case- and diacritic-insensitively) and Color (the general area's color, prefilled with the default of 4.4). Creates client and general area in one transaction |
+| New (New Client in the toolbar, ⌥⌘N here, "New Client…" in the dialog) | Sheet with Name (required, unique among clients case- and diacritic-insensitively) and Color (the general area's color, prefilled with the default of 4.4). Creates client and general area in one transaction |
 | Rename | Sheet with Name only, same rule; renames the general area |
 | Remove | Only without areas besides the general area and without projects in any state; otherwise disabled with tooltip "Has N areas and M projects". Confirmed |
 
@@ -220,7 +220,7 @@ Archived projects and retired areas never appear. The entry's current project ha
 - PP-4. Every column but Project can be hidden from the header menu, persistently; State shows only on "All".
 - PP-5. Total tracked descending orders by summed duration, ties by name ascending; Last tracked puts "Never" last in both directions.
 - PP-6. A client group header's count and total equal its rows' count and summed Total tracked; Group by Area orders by client name then area order, and reordering an area in Clients & Areas reorders the groups at once.
-- PP-7. Checking client "Consulting" shows its projects; adding area "University · Teaching" adds that area's; checking "Consulting · Research" clears the "Consulting" check and narrows it to Research; "Clear" removes all checks and the badge.
+- PP-7. Checking client "Consulting" shows its projects; adding area "University · Teaching" adds that area's; checking "Consulting · Research" clears the "Consulting" check and narrows it to Research; "Clear" removes all checks and the count.
 - PP-8. "Not in the last 90 days" shows a project last tracked 91 days ago and hides one tracked 89 days ago and one never tracked; "Never" shows only the latter.
 - PP-9. The search "noise consulting" matches "Noise Model" under Consulting and not "Noise Model" under another client.
 - PP-10. Archiving three projects removes them while the selector is "Active"; ⌘Z restores all three.

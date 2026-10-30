@@ -38,15 +38,28 @@ struct EntryCard: View {
         let selected = model.selection.contains(.entry(entry.id))
         let color = listing.area?.color
         let overlaps = model.overlapping(on: entry.day).contains(entry.id)
+        let textColor = cardTextColor(color)
+        let showsButtons = (hovering || entry.isRunning || (Self.touch && selected))
+            && CalendarZoom.cardStyle(height: Double(size.height)) != .bar && size.width >= 72
         ZStack(alignment: .topLeading) {
-            RoundedRectangle(cornerRadius: 5)
+            RoundedRectangle(cornerRadius: Design.Radius.small)
                 .fill(color.map { Color(hex: $0) } ?? Color.gray.opacity(0.5))
-            content(textColor: cardTextColor(color))
-            if hovering || entry.isRunning || (Self.touch && selected) {
-                hoverButtons.frame(maxWidth: .infinity, alignment: .topTrailing).padding(3)
-            }
-            if overlaps {
-                Text("⚠").font(.caption).help(overlapHelp).frame(maxWidth: .infinity, alignment: .topTrailing).padding(.trailing, 24)
+            // The buttons take their own place at the top right, so the
+            // text truncates before them instead of running under them.
+            HStack(alignment: .top, spacing: Design.Spacing.tight) {
+                content(textColor: textColor)
+                Spacer(minLength: 0)
+                if overlaps {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.caption)
+                        .foregroundStyle(textColor)
+                        .padding(.top, Design.Spacing.tight)
+                        .help(overlapHelp)
+                        .accessibilityLabel(overlapHelp)
+                }
+                if showsButtons {
+                    hoverButtons(textColor: textColor)
+                }
             }
             if !Self.touch {
                 edgeHandles
@@ -54,8 +67,9 @@ struct EntryCard: View {
         }
         .frame(width: max(2, size.width - 2), height: max(4, size.height - edgeOffsets.top + edgeOffsets.bottom))
         .offset(y: edgeOffsets.top)
-        .overlay(RoundedRectangle(cornerRadius: 5).strokeBorder(Color.accentColor, lineWidth: selected ? 2 : 0))
-        .overlay(RoundedRectangle(cornerRadius: 5).strokeBorder(Color.white.opacity(entry.isRunning ? 0.9 : 0), lineWidth: 2))
+        .overlay(RoundedRectangle(cornerRadius: Design.Radius.small).strokeBorder(Color.accentColor, lineWidth: selected ? 2 : 0))
+        .overlay(RoundedRectangle(cornerRadius: Design.Radius.small)
+            .strokeBorder(textColor.opacity(entry.isRunning ? 0.5 : 0), lineWidth: 1.5))
         .overlay {
             if Self.touch, selected {
                 touchHandles
@@ -96,52 +110,65 @@ struct EntryCard: View {
     @ViewBuilder
     private func content(textColor: Color) -> some View {
         let label = ProjectLabel(listing)
+        // Running: h:mm:ss, ticking; otherwise "1h 33m" (spec_design.md §2).
         let duration = TimelineView(.periodic(from: .now, by: 1)) { _ in
-            Text(entry.isRunning ? DurationText.clock(entry.seconds(at: model.clock.now)) : DurationText
-                .hoursMinutes(entry.seconds(at: model.clock.now)))
+            let seconds = entry.seconds(at: model.clock.now)
+            Text(entry.isRunning ? DurationText.clock(seconds) : ActivityText.duration(seconds)).monospacedDigit()
         }
+        let title = Text(entry.task.isEmpty ? "No task" : entry.task)
+            .fontWeight(.semibold)
+            .italic(entry.task.isEmpty)
         switch CalendarZoom.cardStyle(height: Double(size.height)) {
         case .bar:
             EmptyView()
         case .oneLine:
-            HStack(spacing: 4) {
-                Text(entry.task.isEmpty ? "No task" : entry.task).bold().italic(entry.task.isEmpty)
-                duration
+            HStack(spacing: Design.Spacing.tight) {
+                title
+                duration.opacity(0.85)
             }
-            .font(.caption).foregroundStyle(textColor).lineLimit(1).padding(.horizontal, 4)
+            .font(.caption).foregroundStyle(textColor).lineLimit(1)
+            .padding(.horizontal, Design.Spacing.tight + 2)
         case .full:
             VStack(alignment: .leading, spacing: 1) {
-                Text(entry.task.isEmpty ? "No task" : entry.task).bold().italic(entry.task.isEmpty)
+                title
                 Text(label.projectAndClient).opacity(0.85)
                 HStack(spacing: 2) {
-                    Image(systemName: "stopwatch").accessibilityHidden(true)
+                    Image(systemName: "stopwatch").imageScale(.small).accessibilityHidden(true)
                     duration
                 }
+                .opacity(0.85)
             }
-            .font(.caption).foregroundStyle(textColor).lineLimit(1).padding(4)
+            .font(.caption).foregroundStyle(textColor).lineLimit(1)
+            .padding(.horizontal, Design.Spacing.tight + 2)
+            .padding(.vertical, Design.Spacing.tight)
         }
     }
 
-    /// The running entry's red stop button (always), Continue and Edit on hover.
-    private var hoverButtons: some View {
-        HStack(spacing: 3) {
+    /// Stop on the running entry (always shown), Continue otherwise, and
+    /// Edit, on hover; drawn in the card's text color.
+    private func hoverButtons(textColor: Color) -> some View {
+        HStack(spacing: 2) {
             if entry.isRunning {
                 Button { Task { await model.stopRunning() } } label: { Image(systemName: "stop.circle.fill") }
-                    .foregroundStyle(.white, Color.stopRed)
+                    .foregroundStyle(.white, Color.stopTint)
+                    .help("Stop")
                     .accessibilityLabel("Stop")
             } else {
                 Button { Task { await model.continueEntry(entry.id) } } label: { Image(systemName: "play.circle.fill") }
-                    .foregroundStyle(.white.opacity(0.9))
+                    .foregroundStyle(textColor.opacity(0.9))
+                    .help("Continue")
                     .accessibilityLabel("Continue")
             }
             if hovering || Self.touch {
                 Button { model.editingEntry = entry.id } label: { Image(systemName: "ellipsis.circle.fill") }
-                    .foregroundStyle(.white.opacity(0.9))
+                    .foregroundStyle(textColor.opacity(0.9))
+                    .help("Edit")
                     .accessibilityLabel("Edit")
             }
         }
-        .font(.body)
+        .font(.callout)
         .buttonStyle(.plain)
+        .padding(Design.Spacing.tight)
     }
 
     /// The top and bottom 6 points resize (no bottom handle while running).
@@ -219,7 +246,10 @@ struct EntryCard: View {
         let date = edge + Double(translation) / model.pointsPerHour * 3600
         Task { await model.resize(entry.id, top: top, to: date) }
     }
+}
 
+/// The context menu, the overlap tooltip, and the popover bindings.
+extension EntryCard {
     @ViewBuilder private var menu: some View {
         Button("Continue") { Task { await model.continueEntry(entry.id) } }
         Button("Edit…") { model.editingEntry = entry.id }
@@ -280,9 +310,9 @@ struct DraftCard: View {
     var size: CGSize
 
     var body: some View {
-        RoundedRectangle(cornerRadius: 5)
+        RoundedRectangle(cornerRadius: Design.Radius.small)
             .strokeBorder(style: StrokeStyle(lineWidth: 1.5, dash: [5]))
-            .background(RoundedRectangle(cornerRadius: 5).fill(Color.accentColor.opacity(0.1)))
+            .background(RoundedRectangle(cornerRadius: Design.Radius.small).fill(Color.accentColor.opacity(0.1)))
             .frame(width: size.width, height: size.height)
             .popover(isPresented: draftBinding, arrowEdge: .trailing) { DraftEditor(model: model) }
             .popover(isPresented: overlapBinding, arrowEdge: .trailing) { OverlapPopover(model: model) }
@@ -321,38 +351,37 @@ struct BlockCard: View {
     @State private var hovering = false
     @State private var showsPopover = false
     @State private var hoverTask: Task<Void, Never>?
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         let selected = model.selection.contains(.block(block.id))
-        let border = ContextPalette.hex(model.contextColors[block.items.first?.context ?? block.groupKey], dark: false)
+        let hex = ContextPalette.hex(model.contextColors[block.items.first?.context ?? block.groupKey], dark: colorScheme == .dark)
+        let tint = hex.map { Color(hex: $0) } ?? .gray
+        let style = CalendarZoom.cardStyle(height: Double(size.height))
         ZStack(alignment: .topLeading) {
             if block.source == .knowledge {
-                RoundedRectangle(cornerRadius: 4).fill(Hatch.paint(.gray.opacity(0.22), on: .gray.opacity(0.08)))
+                RoundedRectangle(cornerRadius: Design.Radius.small).fill(Hatch.paint(tint.opacity(0.3), on: tint.opacity(0.1)))
             } else {
-                RoundedRectangle(cornerRadius: 4).fill(Color.gray.opacity(0.16))
+                RoundedRectangle(cornerRadius: Design.Radius.small).fill(tint.opacity(0.18))
             }
             coveredDimming
-            Rectangle().fill(border.map { Color(hex: $0) } ?? .gray).frame(width: 3)
-            if CalendarZoom.cardStyle(height: Double(size.height)) == .full, !CalendarColumn.drawsBars(width: Double(size.width)) {
-                VStack(alignment: .leading, spacing: 1) {
-                    HStack(spacing: 3) {
-                        Text("\(block.groupKey) \(Int((block.groupShare * 100).rounded()))%").bold()
-                        glyphs
-                    }
-                    Text([block.items.first?.subject, block.items.first?.detail].compactMap(\.self).filter { !$0.isEmpty }
-                        .joined(separator: " "))
-                }
-                .font(.caption2).lineLimit(1).padding(.leading, 6).padding(.top, 2)
+            Rectangle().fill(tint).frame(width: 3)
+            if style != .bar, !CalendarColumn.drawsBars(width: Double(size.width + 4)) {
+                label(style)
             }
             if hovering {
                 Button { Task { await model.createEntry(from: block) } } label: { Image(systemName: "plus.circle.fill") }
                     .buttonStyle(.plain)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .trailing)
+                    .foregroundStyle(tint)
+                    .padding(Design.Spacing.tight)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                    .help("Create Entry…")
                     .accessibilityLabel("Create Entry")
             }
         }
         .frame(width: size.width, height: size.height)
-        .overlay(RoundedRectangle(cornerRadius: 4).strokeBorder(Color.accentColor, lineWidth: selected ? 2 : 0))
+        .clipShape(.rect(cornerRadius: Design.Radius.small))
+        .overlay(RoundedRectangle(cornerRadius: Design.Radius.small).strokeBorder(Color.accentColor, lineWidth: selected ? 2 : 0))
         .phaseAnimator([false, true], trigger: model.isHighlighted(block)) { view, phase in
             view.scaleEffect(model.isHighlighted(block) && phase ? 1.04 : 1)
         }
@@ -371,21 +400,41 @@ struct BlockCard: View {
     private var coveredDimming: some View {
         ForEach(model.coveredParts(of: block), id: \.self) { part in
             let axis = model.axis(TrackingDay(block.localDay) ?? model.today)
-            Rectangle().fill(Color.white.opacity(0.5))
+            Rectangle().fill(.background.opacity(0.5))
                 .frame(height: CGFloat(part.duration * model.pointsPerHour / 3600))
                 .offset(y: CGFloat(axis.y(part.start) - axis.y(block.start)))
         }
     }
 
+    /// The group key and share, then (full height) the dominant item.
+    private func label(_ style: CalendarZoom.CardStyle) -> some View {
+        VStack(alignment: .leading, spacing: 1) {
+            HStack(spacing: Design.Spacing.tight) {
+                Text(block.groupKey).fontWeight(.semibold)
+                Text("\(Int((block.groupShare * 100).rounded()))%").foregroundStyle(.secondary).monospacedDigit()
+                glyphs
+            }
+            if style == .full {
+                Text([block.items.first?.subject, block.items.first?.detail].compactMap(\.self).filter { !$0.isEmpty }
+                    .joined(separator: " "))
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .font(.caption).lineLimit(1)
+        .padding(.leading, Design.Spacing.small)
+        .padding(.trailing, Design.Spacing.tight)
+        .padding(.vertical, style == .full ? Design.Spacing.tight : 0)
+    }
+
     @ViewBuilder private var glyphs: some View {
         if block.background.count + max(0, block.items.count - 1) > 0, !block.background.isEmpty {
-            Text("+\(block.background.count)").font(.caption2)
+            Text("+\(block.background.count)").foregroundStyle(.secondary)
         }
         if block.source == .device {
-            Image(systemName: "iphone").accessibilityHidden(true)
+            Image(systemName: "iphone").imageScale(.small).accessibilityHidden(true)
         }
         if block.device == "remote" {
-            Image(systemName: "cloud").accessibilityHidden(true)
+            Image(systemName: "cloud").imageScale(.small).accessibilityHidden(true)
         }
     }
 
@@ -445,20 +494,20 @@ struct EventCard: View {
         let color = area.map { Color(hex: $0) } ?? .gray
         let selected = model.selection.contains(.timeBlock(block.id))
         return VStack(alignment: .leading, spacing: 1) {
-            Text(block.title).bold()
+            Text(block.title).fontWeight(.semibold)
             if let project {
                 Text(project.name)
             }
             HStack(spacing: 2) {
-                Image(systemName: "calendar").accessibilityHidden(true)
-                Text(DurationText.hoursMinutes(Int(block.event.interval.duration)))
+                Image(systemName: "calendar").imageScale(.small).accessibilityHidden(true)
+                Text(ActivityText.duration(Int(block.event.interval.duration))).monospacedDigit()
             }
         }
-        .font(.caption2).lineLimit(1).padding(4)
+        .font(.caption).lineLimit(1).padding(.horizontal, Design.Spacing.tight + 2).padding(.vertical, Design.Spacing.tight)
         .frame(width: size.width - 2, height: size.height, alignment: .topLeading)
-        .background(RoundedRectangle(cornerRadius: 4).fill(color.opacity(0.15)))
-        .overlay(RoundedRectangle(cornerRadius: 4).strokeBorder(color, style: StrokeStyle(lineWidth: 1.5, dash: [4])))
-        .overlay(RoundedRectangle(cornerRadius: 4).strokeBorder(Color.accentColor, lineWidth: selected ? 2 : 0))
+        .background(RoundedRectangle(cornerRadius: Design.Radius.small).fill(color.opacity(0.15)))
+        .overlay(RoundedRectangle(cornerRadius: Design.Radius.small).strokeBorder(color, style: StrokeStyle(lineWidth: 1.5, dash: [4])))
+        .overlay(RoundedRectangle(cornerRadius: Design.Radius.small).strokeBorder(Color.accentColor, lineWidth: selected ? 2 : 0))
         .clipped()
         .offset(y: dragOffset)
         .accessibilityAddTraits(.isButton)
@@ -492,17 +541,17 @@ struct EventCard: View {
         return HStack(spacing: 0) {
             Rectangle().fill(color).frame(width: 3)
             VStack(alignment: .leading, spacing: 1) {
-                Text(event.title).bold().foregroundStyle(color)
+                Text(event.title).fontWeight(.semibold).foregroundStyle(color)
                 Text(CalendarText.range(event.start, event.end, zone: model.calendar.timeZone)).foregroundStyle(.secondary)
                 if let location = event.location {
                     Text(location).foregroundStyle(.secondary)
                 }
             }
-            .font(.caption2).lineLimit(2).padding(4)
+            .font(.caption).lineLimit(2).padding(.horizontal, Design.Spacing.tight + 2).padding(.vertical, Design.Spacing.tight)
             Spacer(minLength: 0)
         }
         .frame(width: size.width - 2, height: size.height, alignment: .topLeading)
-        .background(RoundedRectangle(cornerRadius: 4).fill(color.opacity(0.08)))
+        .background(RoundedRectangle(cornerRadius: Design.Radius.small).fill(color.opacity(0.08)))
         .clipped()
         .accessibilityAddTraits(.isButton)
         .onTapGesture(count: 2) { model.openEvent(event) }

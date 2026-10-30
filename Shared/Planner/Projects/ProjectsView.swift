@@ -23,6 +23,7 @@ struct ProjectsView: View {
             #else
                 if model.showsClientsAndAreas {
                     ClientsAreasView(model: model.clientsAndAreas, projects: model)
+                        .navigationTitle("Clients & Areas")
                 } else {
                     ProjectsTableView(model: model, now: now)
                 }
@@ -98,10 +99,10 @@ private struct ProjectsTableView: View {
                 Text(selected)
             }
         }
-        .font(.callout)
+        .font(.subheadline)
         .foregroundStyle(.secondary)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 6)
+        .padding(.horizontal, Design.Spacing.content)
+        .padding(.vertical, Design.Spacing.small)
     }
 
     private func emptyState(_ text: String) -> some View {
@@ -122,61 +123,83 @@ private struct ProjectsTableView: View {
     }
 }
 
-/// State selector, Filters, Group by, Sort by; Clients & Areas, New Project.
+/// Trailing, in order: Filters, the state selector, Sort and Group; then
+/// Clients & Areas and New Project (spec_design.md §4). The search field
+/// follows at the far end.
 private struct ProjectsToolbar: ToolbarContent {
     @Bindable var model: ProjectsModel
     @State private var showsFilters = false
 
     var body: some ToolbarContent {
-        ToolbarItemGroup(placement: .navigation) {
+        ToolbarItem(placement: .primaryAction) {
+            PlannerFiltersButton(activeFilters: model.options.filterCount, isPresented: $showsFilters, identifier: "projects.filters") {
+                ProjectsFiltersPopover(model: model)
+            }
+        }
+        .visibilityPriority(.high)
+        ToolbarItem(placement: .primaryAction) {
             Picker("State", selection: $model.options.state) {
                 ForEach(ProjectFilter.State.allCases, id: \.self) { state in
                     Text(state.title).tag(state)
                 }
             }
-            .pickerStyle(.menu)
+            .pickerStyle(.segmented)
+            .help("Project State")
             .accessibilityIdentifier("projects.state")
-            Button {
-                showsFilters.toggle()
+        }
+        .visibilityPriority(.high)
+        ToolbarItem(placement: .primaryAction) {
+            Menu {
+                Picker("Group By", selection: $model.options.grouping) {
+                    ForEach(ProjectGrouping.allCases, id: \.self) { grouping in
+                        Text(grouping.title).tag(grouping)
+                    }
+                }
+                .pickerStyle(.inline)
+                .accessibilityIdentifier("projects.groupBy")
+                Picker("Sort By", selection: sortKey) {
+                    ForEach(ProjectSortKey.allCases, id: \.self) { key in
+                        Text(key.title).tag(key)
+                    }
+                }
+                .pickerStyle(.inline)
+                Picker("Order", selection: $model.options.ascending) {
+                    Text("Ascending").tag(true)
+                    Text("Descending").tag(false)
+                }
+                .pickerStyle(.inline)
             } label: {
-                let count = model.options.filterCount
-                Label(count > 0 ? "Filters (\(count))" : "Filters", systemImage: "line.3.horizontal.decrease").labelStyle(.titleAndIcon)
+                Label("Sort and Group", systemImage: "arrow.up.arrow.down")
             }
-            .popover(isPresented: $showsFilters) {
-                ProjectsFiltersPopover(model: model)
-            }
-            .accessibilityIdentifier("projects.filters")
-            Picker("Group by", selection: $model.options.grouping) {
-                ForEach(ProjectGrouping.allCases, id: \.self) { grouping in
-                    Text("Group by: \(grouping.title)").tag(grouping)
-                }
-            }
-            .pickerStyle(.menu)
-            .accessibilityIdentifier("projects.groupBy")
-            Menu("Sort by: \(model.options.sort.title)") {
-                ForEach(ProjectSortKey.allCases, id: \.self) { key in
-                    Button(key.title + sortMark(key)) { model.options.sort(by: key) }
-                }
-            }
+            .help("Sort and Group")
             .accessibilityIdentifier("projects.sortBy")
         }
-        ToolbarItemGroup(placement: .primaryAction) {
-            Button("Clients & Areas") { model.showClientsAndAreas(client: nil) }
-                .accessibilityIdentifier("projects.clientsAndAreas")
-            Button {
-                model.newProject()
-            } label: {
-                Label("New Project", systemImage: "plus").labelStyle(.titleAndIcon)
+        ToolbarItem(placement: .primaryAction) {
+            Button { model.showClientsAndAreas(client: nil) } label: {
+                Label("Clients & Areas", systemImage: "person.crop.square")
             }
+            .help("Clients & Areas")
+            .accessibilityIdentifier("projects.clientsAndAreas")
+        }
+        ToolbarItem(placement: .primaryAction) {
+            Button { model.newProject() } label: {
+                Label("New Project", systemImage: "plus")
+            }
+            .help("New Project")
             .accessibilityIdentifier("projects.new")
         }
+        .visibilityPriority(.high)
     }
 
-    private func sortMark(_ key: ProjectSortKey) -> String {
-        guard model.options.sort == key else {
-            return ""
+    /// Choosing another key sorts ascending by it, like a header click.
+    private var sortKey: Binding<ProjectSortKey> {
+        Binding {
+            model.options.sort
+        } set: { key in
+            if key != model.options.sort {
+                model.options.sort(by: key)
+            }
         }
-        return model.options.ascending ? " ↑" : " ↓"
     }
 }
 

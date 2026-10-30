@@ -1,48 +1,60 @@
-// DateRangeControl: previous-period arrow, the date-range button with its
-// popover, next-period arrow (spec_planner_reports.md §2). Activity uses
-// the same control on the same model.
+// DateRangeToolbar: the shared range's toolbar items (the period arrows,
+// Today, and its menu of presets) and the date popover
+// (spec_planner_reports.md §2). Activity uses the same items on the same model.
 
 import SwiftUI
 import TimeTrackingCore
 
-/// The range control of the Reports and Activity toolbars.
-struct DateRangeControl: View {
-    @Bindable var range: DateRangeModel
+/// The leading toolbar items of Reports and Activity (spec_design.md §4).
+struct DateRangeToolbar: ToolbarContent {
+    var range: DateRangeModel
     @Binding var showsPopover: Bool
-    /// Called after every change (the section reloads).
+    /// Go to Today (Reports also forgets its drill-down history).
+    var today: () -> Void
+    /// Called after every other change (the section reloads).
+    var onChange: () -> Void
+
+    var body: some ToolbarContent {
+        PlannerPeriodToolbar(
+            previousTitle: "Previous Period",
+            nextTitle: "Next Period",
+            canShift: range.canShift,
+            identifier: "range",
+            previous: {
+                range.previous()
+                onChange()
+            },
+            next: {
+                range.next()
+                onChange()
+            },
+            today: today,
+            dateMenu: { DateRangeMenu(range: range, showsPopover: $showsPopover, onChange: onChange) },
+            showsPopover: $showsPopover,
+            datePopover: { DateRangePopover(range: range, onChange: onChange) }
+        )
+    }
+}
+
+/// Today's menu: the presets, the current one checked, then "Choose Dates…".
+struct DateRangeMenu: View {
+    var range: DateRangeModel
+    @Binding var showsPopover: Bool
     var onChange: () -> Void
 
     var body: some View {
-        HStack(spacing: 2) {
-            Button {
-                range.previous()
+        let current = range.matchingPresets.first
+        ForEach(RangePreset.allCases, id: \.self) { preset in
+            Toggle(preset.title, isOn: Binding {
+                current == preset
+            } set: { _ in
+                range.select(preset)
                 onChange()
-            } label: {
-                Image(systemName: "chevron.left").accessibilityLabel("Previous Period")
-            }
-            .disabled(!range.canShift)
-            .accessibilityIdentifier("range.previous")
-            Button {
-                showsPopover.toggle()
-            } label: {
-                HStack(spacing: 4) {
-                    Text(range.label)
-                    Image(systemName: "chevron.down").font(.caption2).accessibilityHidden(true)
-                }
-            }
-            .accessibilityIdentifier("range.button")
-            .popover(isPresented: $showsPopover, arrowEdge: .bottom) {
-                DateRangePopover(range: range, onChange: onChange)
-            }
-            Button {
-                range.next()
-                onChange()
-            } label: {
-                Image(systemName: "chevron.right").accessibilityLabel("Next Period")
-            }
-            .disabled(!range.canShift)
-            .accessibilityIdentifier("range.next")
+            })
         }
+        Divider()
+        Button("Choose Dates…") { showsPopover = true }
+            .accessibilityIdentifier("range.button")
     }
 }
 

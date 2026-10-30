@@ -31,6 +31,7 @@ struct ReportEntryList: View {
             }
         }
         .listStyle(.plain)
+        .scrollContentBackground(.hidden)
         .contextMenu(forSelectionType: EntryID.self) { ids in
             if let id = ids.first, let listing = model.listings.first(where: { $0.id == id }) {
                 Button("Edit…") { model.edit(id) }
@@ -65,7 +66,7 @@ struct ReportEntryList: View {
             header("Project", .project, width: 180)
             header("Task", .task, width: nil)
         }
-        .font(.caption.weight(.semibold))
+        .font(.subheadline)
         .foregroundStyle(.secondary)
         .padding(.horizontal, 16)
         .padding(.vertical, 6)
@@ -77,7 +78,7 @@ struct ReportEntryList: View {
             model.sortList(by: column)
         } label: {
             HStack(spacing: 2) {
-                Text(title.uppercased())
+                Text(title)
                 if model.state.listSort == column {
                     Image(systemName: model.state.listAscending ? "chevron.up" : "chevron.down").accessibilityHidden(true)
                 }

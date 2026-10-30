@@ -12,14 +12,20 @@ struct FillDaySheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Fill \(DayText.weekdayShortDate(model.day))").font(.title3.bold())
+            Text("Fill \(DayText.weekdayShortDate(model.day))").font(.headline)
             if model.rows.isEmpty {
-                Text("Nothing left to fill.").foregroundStyle(.secondary)
-            }
-            ScrollView {
-                VStack(spacing: 8) {
-                    ForEach(model.rows) { row in
-                        rowView(row)
+                ContentUnavailableView(
+                    "Nothing Left to Fill",
+                    systemImage: "sparkles",
+                    description: Text("No untracked activity on this day is long enough to propose.")
+                )
+                .frame(maxHeight: .infinity)
+            } else {
+                ScrollView {
+                    VStack(spacing: Design.Spacing.small) {
+                        ForEach(model.rows) { row in
+                            rowView(row)
+                        }
                     }
                 }
             }
@@ -45,7 +51,7 @@ struct FillDaySheet: View {
             Toggle("", isOn: Binding { row.checked } set: { _ in model.toggle(row.id) }).labelsHidden()
             VStack(alignment: .leading) {
                 Text(CalendarText.range(interval.start, interval.end, zone: zone))
-                Text(DurationText.hoursMinutes(Int(interval.duration))).font(.caption).foregroundStyle(.secondary)
+                Text(ActivityText.duration(Int(interval.duration))).font(.caption).monospacedDigit().foregroundStyle(.secondary)
             }
             .frame(width: 110, alignment: .leading)
             Text(row.proposal.summary)
@@ -130,7 +136,7 @@ struct SuggestionsSheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Suggestions").font(.title3.bold())
+            Text("Suggestions").font(.headline)
             Table(model.rules) {
                 TableColumn("Kind") { rule in Text(rule.kind.title) }
                 TableColumn("Pattern") { rule in Text(rule.pattern) }

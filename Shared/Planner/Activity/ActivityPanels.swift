@@ -53,9 +53,9 @@ private struct Panel<Content: View>: View {
             }
             content
         }
-        .padding(16)
+        .padding(Design.Spacing.large)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: 12).fill(.background.secondary))
+        .background(.background.secondary, in: .rect(cornerRadius: Design.Radius.card))
     }
 }
 
@@ -74,7 +74,7 @@ private struct HeatmapPanel: View {
                 HStack(spacing: gap) {
                     Color.clear.frame(width: 56, height: 10)
                     ForEach(0 ..< 24, id: \.self) { hour in
-                        Text(ActivityHeatmap.labeledHours.contains(hour) ? "\(hour)" : "").font(.caption2).frame(width: cell)
+                        Text(ActivityHeatmap.labeledHours.contains(hour) ? "\(hour)" : "").font(.caption).frame(width: cell)
                     }
                 }
                 ForEach(Array(heatmap.rows.enumerated()), id: \.element.id) { _, row in
@@ -95,7 +95,7 @@ private struct HeatmapPanel: View {
             VStack(alignment: .leading, spacing: 0) {
                 Text(row.label)
                 if let sublabel = row.sublabel {
-                    Text(sublabel).font(.caption2).foregroundStyle(.secondary)
+                    Text(sublabel).font(.caption).foregroundStyle(.secondary)
                 }
             }
             .font(.caption)
@@ -131,13 +131,13 @@ private struct HeatmapPanel: View {
 
     private func legend(cell: CGFloat) -> some View {
         HStack(spacing: 3) {
-            Text("Less").font(.caption2).foregroundStyle(.secondary)
+            Text("Less").font(.caption).foregroundStyle(.secondary)
             ForEach(0 ..< 5, id: \.self) { level in
                 RoundedRectangle(cornerRadius: 2)
                     .fill(level == 0 ? Color.secondary.opacity(0.1) : Color.accentColor.opacity(Double(level) * 0.25))
                     .frame(width: cell, height: cell)
             }
-            Text("More").font(.caption2).foregroundStyle(.secondary)
+            Text("More").font(.caption).foregroundStyle(.secondary)
         }
     }
 }
@@ -154,10 +154,7 @@ private struct BarsPanel: View {
         Panel(title: "Active time by day") {
             Chart {
                 ForEach(bars.bars) { bar in
-                    ForEach(bar.segments, id: \.series) { segment in
-                        BarMark(x: .value("Day", bar.id), y: .value("Hours", Double(segment.seconds) / 3600))
-                            .foregroundStyle(color(segment.series))
-                    }
+                    marks(bar)
                 }
             }
             .chartXAxis {
@@ -165,21 +162,46 @@ private struct BarsPanel: View {
                     AxisValueLabel { axisLabel(value.as(String.self).flatMap { id in bars.bars.first { $0.id == id } }) }
                 }
             }
-            .chartYScale(domain: 0 ... Double(bars.axisHours))
-            .chartOverlay { proxy in
-                GeometryReader { _ in
-                    Rectangle().fill(.clear).contentShape(Rectangle())
-                        .accessibilityAddTraits(.isButton)
-                        .onTapGesture { location in
-                            if let id: String = proxy.value(atX: location.x), let bar = bars.bars.first(where: { $0.id == id }) {
-                                model.showInCalendar(bar: bar, series: nil)
-                            }
-                        }
+            .chartYAxis {
+                AxisMarks(position: .leading, values: Array(stride(from: 0, through: bars.axisHours, by: 2)).map(Double.init)) { value in
+                    AxisGridLine()
+                    AxisValueLabel {
+                        Text("\(Int(value.as(Double.self) ?? 0))h").font(.caption).monospacedDigit()
+                    }
                 }
             }
+            .chartYScale(domain: 0 ... Double(bars.axisHours))
+            .chartOverlay { proxy in tapArea(proxy, bars: bars) }
             .frame(height: 220)
         }
         .accessibilityIdentifier("activity.bars")
+    }
+
+    /// A click on a bar drills into the Calendar (§3).
+    private func tapArea(_ proxy: ChartProxy, bars: ActivityBars) -> some View {
+        Rectangle().fill(.clear).contentShape(Rectangle())
+            .accessibilityAddTraits(.isButton)
+            .onTapGesture { location in
+                if let id: String = proxy.value(atX: location.x), let bar = bars.bars.first(where: { $0.id == id }) {
+                    model.showInCalendar(bar: bar, series: nil)
+                }
+            }
+    }
+
+    /// The bar's segments and its total above it.
+    @ChartContentBuilder
+    private func marks(_ bar: ActivityBars.Bar) -> some ChartContent {
+        ForEach(bar.segments, id: \.series) { segment in
+            BarMark(x: .value("Day", bar.id), y: .value("Hours", Double(segment.seconds) / 3600))
+                .foregroundStyle(color(segment.series))
+        }
+        if !bar.isFuture, bar.seconds > 0 {
+            PointMark(x: .value("Day", bar.id), y: .value("Hours", Double(bar.seconds) / 3600))
+                .symbolSize(0)
+                .annotation(position: .top) {
+                    Text(ActivityText.duration(bar.seconds)).font(.caption.weight(.semibold)).monospacedDigit()
+                }
+        }
     }
 
     @ViewBuilder
@@ -194,6 +216,7 @@ private struct BarsPanel: View {
                     Circle().fill(Color.accentColor).frame(width: 4, height: 4)
                 }
             }
+            .font(.caption)
         }
     }
 

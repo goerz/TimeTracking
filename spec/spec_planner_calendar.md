@@ -6,16 +6,19 @@ The Calendar section of the Planner window shows one to seven days side by side.
 
 ### 1.1 Toolbar and summary strip
 
+The window title is "Calendar" and its subtitle the visible range, "Mon, Oct 26 – Fri, Oct 30 · W44" (ISO 8601 week; weeks run Monday to Sunday). The toolbar follows [spec_design.md](spec_design.md) §4, leading items first:
+
 | Control | Behavior |
 |---|---|
 | ‹ › | Scroll by one day (with ⌥: by the number of visible days) |
-| Date range label | "Mon, Oct 26 – Fri, Oct 30 · W44" (ISO 8601 week; weeks run Monday to Sunday); a click opens a month picker, and the chosen day becomes the first visible day |
-| Today | Centers today (1.2) |
-| Days | Segmented control 1, 3, 5, 7; its menu arrow adds 2, 4, 6 |
-| Columns | Toggles for Activity and Calendar; Tracked has none |
-| Fill Day… | Section 3.5; enabled when a visible day has an untracked activity segment of at least `fillMinMinutes` |
+| Today | Centers today (1.2); its menu has "Go to Date…", a month picker whose chosen day becomes the first visible day |
+| Days | Segmented control 1, 3, 5, 7; a count of 2, 4, or 6 (from ⌥⌘[ and ⌥⌘] or a pinch) shows as an extra segment |
+| Columns | Menu (`rectangle.split.3x1`) with check-marked Activity Column and Calendar Column; Tracked has none |
 | Zoom − + | Vertical zoom (1.3) |
-| Options | Gear opening the options popover (section 7) |
+| Calendar Options | Gear opening the options popover (section 7) |
+| Fill Day… | `sparkles`; section 3.5; enabled when a visible day has an untracked activity segment of at least `fillMinMinutes` |
+
+In a narrow window Columns, zoom, and options move into the toolbar's overflow menu first.
 
 Below the toolbar a summary strip shows the visible days' tracked time as a bar stacked by project in area colors with its total, then "Blocks 6h 20m" (time blocks only) and "Activity 34h 10m" (the tracker's active time). Hovering a segment shows the project and its time.
 
@@ -39,7 +42,7 @@ Zoom is `pointsPerHour`, 24 to 480, default 72. ⌘+ and ⌘− multiply or divi
 | Tracked | Always | Time entries (section 2) | 2 |
 | Calendar | Toggle, default on | Time blocks and external events (section 4) | 1.5 |
 
-Each day gets the viewport width divided by `visibleDays`, split among its visible columns by weight. A column under 72 points draws its cards as bars with text on hover. The window's minimum width is 720 points. A day header shows weekday and date and the totals of its visible columns with their glyphs (monitor, stopwatch, calendar), e.g. "6h 38m · 2h 21m · 1h"; column names appear while the day is at least 240 points wide. All-day events sit in a strip under the header over the Calendar column.
+Each day gets the viewport width divided by `visibleDays`, split among its visible columns by weight. A column under 72 points draws its cards as bars with text on hover. The window's minimum width is 720 points. A day header shows weekday and date (`.headline`; today's date white on an accent-colored capsule), an overlap warning (2.6), and on hover (always on the iPad) the Fill Day sparkle. Below them each visible column's total sits above that column in `.caption` with monospaced digits, e.g. "6h 38m", "2h 21m", "1h", led by the column's glyph (monitor, stopwatch, calendar) when the column is at least 96 points wide; column names follow while the day is at least 240 points wide and the column at least 120. The Tracked total is in the primary color, the others in secondary. All-day events sit in a strip under the header over the Calendar column.
 
 ### 1.5 The now-line
 
@@ -49,7 +52,7 @@ Today's columns carry a 2 point accent line at the current time, with the time i
 
 ### 2.1 Cards
 
-An entry card spans the column less 2 points per side, filled with its area color, text in the contrasting color of [spec_planner_projects.md](spec_planner_projects.md) §4.4. Lines: task, "Project · Client", stopwatch glyph with duration. Without a project the card is neutral gray with "No project"; an empty task reads "No task" in placeholder style. Minimum height 4 points. Hovering shows continue (▶) and edit (…) top right. The running entry has a pulsing border and stop (■) instead of continue; its elapsed time updates every second while the window is key, else every 30 seconds, and its card follows the now-line and any library change at once.
+An entry card spans the column less 2 points per side, filled with its area color, text in the contrasting color of [spec_planner_projects.md](spec_planner_projects.md) §4.4. Lines (`.caption`, the task semibold): task, "Project · Client", stopwatch glyph with duration ("1h 33m"; the running entry "1:35:00"). Without a project the card is neutral gray with "No project"; an empty task reads "No task" in placeholder style. Minimum height 4 points. Hovering shows continue (▶) and edit (…) top right, in a space of their own so the text truncates before them. The running entry has a pulsing border and stop (■) instead of continue; its elapsed time updates every second while the window is key, else every 30 seconds, and its card follows the now-line and any library change at once.
 
 ### 2.2 No entries in the future
 
@@ -82,7 +85,7 @@ Trim (default) shortens the changed entry to abut the neighbor; Overlap forces t
 
 ### 3.1 Blocks
 
-The column shows the day's blocks from `ActivityReading`, plus on the Mac today's open block, which grows with the now-line. A card is pale gray with a 3 point left border in the dominant item's context color ([spec_planner_activity.md](spec_planner_activity.md) §1.3). Line 1 is the group key with its share ("tmux:paper 71%") and the active seconds `a`; line 2 is the dominant item's subject and detail. Secondaries add a "+1" badge; `src` `knowledge` blocks are hatched; `src` `device` blocks carry a phone or tablet glyph by the platform of the `Device` named by `dev`; `dev` `remote` blocks carry a cloud glyph. Parts covered by entries are dimmed to 50% opacity. On the Mac, a gap over 15 minutes shows its cause from the detail log as a faint label ("idle 22m", "asleep 1h 10m", "locked 15m") when the log covers it.
+The column shows the day's blocks from `ActivityReading`, plus on the Mac today's open block, which grows with the now-line. A card is a light tint of the dominant item's context color with a 3 point left border in that color ([spec_planner_activity.md](spec_planner_activity.md) §1.3). Line 1 is the group key with its share ("tmux:paper 71%") and the active seconds `a`; line 2 is the dominant item's subject and detail. Secondaries add a "+1" badge; `src` `knowledge` blocks are hatched; `src` `device` blocks carry a phone or tablet glyph by the platform of the `Device` named by `dev`; `dev` `remote` blocks carry a cloud glyph. Parts covered by entries are dimmed to 50% opacity. On the Mac, a gap over 15 minutes shows its cause from the detail log as a faint label ("idle 22m", "asleep 1h 10m", "locked 15m") when the log covers it.
 
 ### 3.2 Hover popover
 
@@ -105,7 +108,7 @@ On the Mac, a closed block's context menu has "Delete Block from Log…". It ask
 
 ### 3.5 Fill Day
 
-Fill Day… (⇧⌘F, or the sparkle button in a day header) works on the header's day, or from the toolbar on today when visible, else the first visible day. It subtracts tracked intervals from the day's closed blocks, keeps segments of at least `fillMinMinutes`, queries the engine for each, merges neighbors (gap of 5 minutes or less) with the same top project and task, and opens a review sheet.
+Fill Day… (⇧⌘F, the toolbar's sparkles button, or the sparkle button in a day header) works on the header's day, or from the toolbar on today when visible, else the first visible day. It subtracts tracked intervals from the day's closed blocks, keeps segments of at least `fillMinMinutes`, queries the engine for each, merges neighbors (gap of 5 minutes or less) with the same top project and task, and opens a review sheet.
 
 Each row has a checkbox, time range and duration, block summary (all items in a tooltip), project picker and task field prefilled with the suggestion, confidence meter, and Skip (removes the row). Rows below `suggestMin` start unchecked and empty ("No confident suggestion"); others start checked; editing a row checks it. "Log 5 entries (3h 40m)" creates the checked rows in one `transaction(_:)` and one undo step ("Undo Fill Day"), records feedback per row (`skipped` for unchecked and removed rows), and closes. Cancel (Escape) writes nothing. A segment skipped within 30 days is not proposed again for that day.
 

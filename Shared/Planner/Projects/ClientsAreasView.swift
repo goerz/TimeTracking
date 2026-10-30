@@ -45,20 +45,25 @@ struct ClientsAreasView: View {
         }
         .accessibilityIdentifier("clientsAreas.list")
         .toolbar {
-            ToolbarItem(placement: .navigation) {
-                Button {
-                    projects.showTable()
-                } label: {
-                    Label("Projects", systemImage: "chevron.left").labelStyle(.titleAndIcon)
+            #if os(macOS)
+                // The iPad pushes this view and has the system back button.
+                ToolbarItem(placement: .navigation) {
+                    Button {
+                        projects.showTable()
+                    } label: {
+                        Label("Projects", systemImage: "chevron.left")
+                    }
+                    .help("Back to Projects")
+                    .accessibilityIdentifier("clientsAreas.back")
                 }
-                .accessibilityIdentifier("clientsAreas.back")
-            }
+            #endif
             ToolbarItem(placement: .primaryAction) {
                 Button {
                     Task { await model.newClient() }
                 } label: {
-                    Label("New Client", systemImage: "plus").labelStyle(.titleAndIcon)
+                    Label("New Client", systemImage: "plus")
                 }
+                .help("New Client")
                 .accessibilityIdentifier("clientsAreas.newClient")
             }
         }

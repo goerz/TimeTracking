@@ -12,35 +12,42 @@ struct ActivityView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack {
-                Text("Activity").font(.title2.bold())
-                DateRangeControl(range: model.range, showsPopover: $showsDatePopover) { Task { await model.reload() } }
-                Spacer()
-                devicePopup
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
             ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: Design.Spacing.large) {
                     header
                     ActivityChips(model: model)
                     content
                 }
-                .padding(16)
+                .padding(Design.Spacing.content)
             }
             Divider()
             ActivityFooter(model: model)
         }
         .navigationTitle("Activity")
-        .accessibilityElement(children: .contain)
-        .accessibilityIdentifier("planner.activity")
-        .task(id: model.router?.activityRequests) { await model.reload() }
-        .task { await followChanges() }
-        .onKeyPress(.escape) {
-            Task { await model.escape() }
-            return .handled
-        }
-        .environment(\.contextColors, ContextColorLookup(colors: model.contextColors, dark: colorScheme == .dark))
+        .navigationSubtitle(model.range.label)
+        #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+        #endif
+            .toolbar {
+                DateRangeToolbar(range: model.range, showsPopover: $showsDatePopover) {
+                    model.range.goToToday()
+                    Task { await model.reload() }
+                } onChange: {
+                    Task { await model.reload() }
+                }
+                if (model.summary?.devices.count ?? 0) > 1 {
+                    ToolbarItem(placement: .primaryAction) { devicePopup }
+                }
+            }
+            .accessibilityElement(children: .contain)
+            .accessibilityIdentifier("planner.activity")
+            .task(id: model.router?.activityRequests) { await model.reload() }
+            .task { await followChanges() }
+            .onKeyPress(.escape) {
+                Task { await model.escape() }
+                return .handled
+            }
+            .environment(\.contextColors, ContextColorLookup(colors: model.contextColors, dark: colorScheme == .dark))
     }
 
     private func followChanges() async {
@@ -57,17 +64,18 @@ struct ActivityView: View {
                     Text("\(device.displayName) \(ActivityText.duration(device.seconds))").tag(String?.some(device.device))
                 }
             }
-            .fixedSize()
+            .pickerStyle(.menu)
+            .help("Devices")
             .accessibilityIdentifier("activity.devices")
         }
     }
 
     @ViewBuilder private var header: some View {
         if let summary = model.summary {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("\(ActivityText.duration(summary.total)) active").font(.largeTitle.bold())
+            VStack(alignment: .leading, spacing: Design.Spacing.tight) {
+                Text("\(ActivityText.duration(summary.total)) active").font(.title2.weight(.semibold)).monospacedDigit()
                     .accessibilityIdentifier("activity.total")
-                Text(summary.headerDetail).foregroundStyle(.secondary)
+                Text(summary.headerDetail).font(.subheadline).foregroundStyle(.secondary)
                 if let note = model.clipNote {
                     Text(note).font(.caption).foregroundStyle(.secondary)
                 }
@@ -112,9 +120,9 @@ struct ActivityView: View {
 
     private func card(@ViewBuilder _ content: () -> some View) -> some View {
         VStack(alignment: .leading, spacing: 8, content: content)
-            .padding(16)
+            .padding(Design.Spacing.large)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(RoundedRectangle(cornerRadius: 12).fill(.background.secondary))
+            .background(.background.secondary, in: .rect(cornerRadius: Design.Radius.card))
     }
 }
 
@@ -214,7 +222,7 @@ private struct ActivityFooter: View {
     var model: ActivityModel
 
     var body: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: Design.Spacing.small) {
             if let health = model.health {
                 Circle().fill(health.dot.color).frame(width: 8, height: 8)
                 Text(health.statusLine)
@@ -231,11 +239,12 @@ private struct ActivityFooter: View {
             Spacer()
             if model.isRecordingMac {
                 Button("Tracker Settings…") { model.router?.showTrackerSettings() }
+                    .buttonStyle(.borderless)
             }
         }
-        .font(.callout)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
+        .font(.subheadline)
+        .padding(.horizontal, Design.Spacing.content)
+        .padding(.vertical, Design.Spacing.small)
         .help(model.health?.tooltip.joined(separator: "\n") ?? "")
         .task {
             while !Task.isCancelled {

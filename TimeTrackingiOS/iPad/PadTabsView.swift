@@ -89,13 +89,13 @@ private struct PadSectionView: View {
                 .navigationBarTitleDisplayMode(.inline)
             case .calendar:
                 CalendarView(model: router.calendar)
-                    .toolbar(.hidden, for: .navigationBar)
+                    .navigationBarTitleDisplayMode(.inline)
             case .reports:
                 ReportsView(model: router.reports)
                     .navigationBarTitleDisplayMode(.inline)
             case .activity:
                 ActivityView(model: router.activity)
-                    .toolbar(.hidden, for: .navigationBar)
+                    .navigationBarTitleDisplayMode(.inline)
             }
         }
         .accessibilityIdentifier("pad.section.\(section.rawValue)")
