@@ -209,17 +209,20 @@ While on, idle, inside the hours on a selected day, and unlocked, the app sends 
 
 Settings… (⌘,) opens a SwiftUI `Settings` scene with six toolbar panes: General (`gearshape`), Pomodoro (`timer`), Idle (`moon.zzz`), Reminders (`bell`), Shortcuts (`keyboard`), Tracker (`waveform.path.ecg`). It reopens on the last pane shown. Changes apply immediately.
 
+Every pane is a grouped `Form` 520 pt wide (`spec_design.md` §8). The window takes each pane's height (the form's scrolling is off and its height fixed to its content), except the Tracker pane, which is 620 pt tall and scrolls. Related settings share a section; explanations are section footers, never rows. A number with a stepper is a row with the label leading and the value, then the stepper, trailing ("Focus duration   25 min ⇅"). A dependent setting is disabled, not indented, while the setting it depends on is off.
+
 ### 8.1 General
 
-| Setting | Default | Notes |
-|---|---|---|
-| Open at login | off | `SMAppService.mainApp`; the first-launch alert proposes it (8.2) and the Tracker pane's setup shows it (`spec_activity_tracking.md` §7.4) |
-| Show the Timer window at login | off | |
-| Float the Timer window above other windows | off | Same state as the pin |
-| Menu bar: Show timer, Show seconds, Show project | on, off, off | `spec_menubar.md` §6 |
-| Show Dock icon | on | `spec_menubar.md` §4 |
+| Section | Setting | Default | Notes |
+|---|---|---|---|
+| (none) | Open at login | off | `SMAppService.mainApp`; the first-launch alert proposes it (8.2) and the Tracker pane's setup shows it (`spec_activity_tracking.md` §7.4) |
+| (none) | Show the Timer window at login | off | Disabled while "Open at login" is off |
+| Timer window | Float above other windows | off | Same state as the pin; the footer says so |
+| Menu bar and Dock | Show timer, Show seconds, Show project | on, off, off | `spec_menubar.md` §6 |
+| Menu bar and Dock | Show Dock icon | on | `spec_menubar.md` §4 |
+| iCloud | Sync and widget push status | | `spec_data_and_sync.md` §3.1, §4.3 |
 
-Without notification authorization, the pane shows a hint with a button to the app's Notifications settings. The Pomodoro, Idle, and Reminders panes hold the settings of 5.2, 6.2, and 7.
+Without notification authorization, a last section shows "Notifications are off for this app." with the warning symbol and a button to the app's Notifications settings. The Pomodoro, Idle, and Reminders panes hold the settings of 5.2, 6.2, and 7, with footers that say what the durations and thresholds do.
 
 ### 8.2 Tracker
 

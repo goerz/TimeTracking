@@ -315,7 +315,7 @@ The last pane of the Mac app's settings window (`spec_timer_window.md` §8, whic
 
 Status. A dot and one line by the liveness rule of 4.4: green "Tracker running · last tick 12 s ago", yellow "Tracker delayed · last tick 1 min ago" while delayed, red "Tracker not running", gray "Tracker off" when the agent is not registered; then the agent version. One button by `SMAppService` status: "Enable Tracker" (`notRegistered`; registers the agent), "Open Login Items" (`requiresApproval`), "Disable Tracker" (`enabled`; unregisters after confirmation). Nothing is recorded until the user clicks "Enable Tracker".
 
-Setup. One row per step with a mark (✓ source `active`, ! `fallback` or `off`, – no health record yet), what it enables and what applies without it, and an action. A row that is not ✓ also shows numbered steps and one line on which bundle the grant belongs to and why. Rows name bundles by their file name in System Settings and Finder, `<APP_NAME>` and `TimeTrackingAgent` (in Debug both with " Debug", `spec_architecture.md` §2.2), and each "Show … in Finder" names the bundle it reveals:
+Setup. One row per step with a mark (✓ source `active`, ! `fallback` or `off`, – no health record yet), what it enables and what applies without it, and an action. The mark shows as a symbol (✓ `checkmark.circle.fill` in green, ! `exclamationmark.triangle.fill` in orange, – `circle.dashed` in `.tertiary`) whose accessibility label is the mark's character; the row's buttons sit in one line below its text, in the small control size. A row that is not ✓ also shows numbered steps and one line on which bundle the grant belongs to and why. Rows name bundles by their file name in System Settings and Finder, `<APP_NAME>` and `TimeTrackingAgent` (in Debug both with " Debug", `spec_architecture.md` §2.2), and each "Show … in Finder" names the bundle it reveals:
 
 | Step | Source | Enables / without | Action |
 |---|---|---|---|
@@ -335,9 +335,11 @@ Sources. Each source's name, status, and reason; degraded ones in the warning co
 
 Exclusions. The nine lists of 7.2 with + and −: app lists pick installed apps and store bundle identifiers, path lists use an open panel and store `~`-relative paths, the rest take text. The Activity section opens the pane with a new, unsaved, focused entry (`showTrackerSettings(exclusion:)`). After saving a new exclusion, the pane offers "Also remove it from past logs…", which sends `reapply-exclusions` over a chosen range (default: the block log's first month to today).
 
-Options. Watched folders (`roots`); "Idle after" (`idle_after`) with the note "Affects activity blocks only; the idle prompt has its own threshold in the Idle pane"; "Use Safari history synced from other devices"; "Edit Settings File…" (default editor); "Show Logs in Finder".
+Each exclusion list is a disclosure row with its entry count ("None" when empty).
 
-Maintenance. "Forget a Day…" (date and confirmation) and "Reapply Exclusions…" (date range); errors show inline.
+Options. Watched folders (`roots`); "Idle after" (`idle_after`), with the section footer "Idle after affects activity blocks only; the idle prompt has its own threshold in the Idle pane."; "Use Safari history synced from other devices"; "Settings file" with "Edit…" (default editor) and "Show Logs in Finder".
+
+Maintenance. "Forget a day" (date, "Forget…", confirmation) and "Reapply exclusions" (from and to dates, "Reapply…"); errors show inline with the warning symbol.
 
 ## 8. Implementation phases
 

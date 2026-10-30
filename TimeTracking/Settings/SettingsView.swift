@@ -1,4 +1,5 @@
-// SettingsView: the settings window with six panes (spec_timer_window.md §8).
+// SettingsView: the settings window with six panes (spec_timer_window.md §8,
+// spec_design.md §7, §8).
 
 import KeyboardShortcuts
 import SwiftUI
@@ -7,6 +8,9 @@ import TimeTrackingCore
 /// The `Settings` scene's content; reopens on the last pane shown.
 struct SettingsView: View {
     @AppStorage(SettingsPane.storageKey) private var pane = SettingsPane.general.rawValue
+
+    /// Every pane has this width (spec_design.md §8).
+    static let width: CGFloat = 520
 
     var body: some View {
         TabView(selection: $pane) {
@@ -17,7 +21,7 @@ struct SettingsView: View {
                 }
             }
         }
-        .frame(width: 600)
+        .frame(width: Self.width)
     }
 
     @ViewBuilder
@@ -33,6 +37,34 @@ struct SettingsView: View {
     }
 }
 
+extension View {
+    /// A grouped settings form whose window fits its content.
+    func settingsForm() -> some View {
+        formStyle(.grouped)
+            .scrollDisabled(true)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+}
+
+/// A value with a stepper at the trailing edge: "Focus duration   25 min ⇅".
+struct StepperRow: View {
+    var title: String
+    var value: String
+    @Binding var amount: Int
+    var range: ClosedRange<Int>
+    var step = 1
+
+    var body: some View {
+        LabeledContent(title) {
+            HStack(spacing: Design.Spacing.tight) {
+                Text(value).monospacedDigit()
+                Stepper(title, value: $amount, in: range, step: step)
+                    .labelsHidden()
+            }
+        }
+    }
+}
+
 /// General (§8.1).
 struct GeneralPane: View {
     @Environment(AppModel.self) private var app
@@ -41,38 +73,67 @@ struct GeneralPane: View {
     var body: some View {
         @Bindable var settings = app.settings
         Form {
-            Toggle("Open at login", isOn: Binding(
-                get: { app.tracker.opensAtLogin },
-                set: { app.tracker.setOpensAtLogin($0) }
-            ))
-            .accessibilityIdentifier("settings.openAtLogin")
-            Toggle("Show the Timer window at login", isOn: $settings.showTimerAtLogin)
-            Toggle("Float the Timer window above other windows", isOn: Binding(
-                get: { app.settings.timerPinned },
-                set: { app.setPinned($0) }
-            ))
-            .accessibilityIdentifier("settings.floatOnTop")
-            Section("Menu bar") {
-                Toggle("Show timer", isOn: $settings.menuBarShowTimer)
-                Toggle("Show seconds", isOn: $settings.menuBarShowSeconds)
-                    .disabled(!settings.menuBarShowTimer)
-                    .padding(.leading, 18)
-                Toggle("Show project", isOn: $settings.menuBarShowProject)
+            Section {
+                Toggle("Open at login", isOn: Binding(
+                    get: { app.tracker.opensAtLogin },
+                    set: { app.tracker.setOpensAtLogin($0) }
+                ))
+                .accessibilityIdentifier("settings.openAtLogin")
+                Toggle("Show the Timer window at login", isOn: $settings.showTimerAtLogin)
+                    .disabled(!app.tracker.opensAtLogin)
             }
-            Toggle("Show Dock icon", isOn: $settings.showDockIcon)
-                .accessibilityIdentifier("settings.showDockIcon")
+            Section {
+                Toggle("Float above other windows", isOn: Binding(
+                    get: { app.settings.timerPinned },
+                    set: { app.setPinned($0) }
+                ))
+                .accessibilityIdentifier("settings.floatOnTop")
+            } header: {
+                Text("Timer window")
+            } footer: {
+                Text("The same as the pin in the Timer window's title bar.")
+            }
+            menuBarSection
             if let live = app.live {
                 LiveStatusSection(live: live)
             }
             if !notificationsAllowed {
-                HStack {
-                    Text("Notifications are off for this app.").foregroundStyle(.secondary)
-                    Button("Open Notification Settings") { SystemSettings.openNotifications() }
-                }
+                notificationSection
             }
         }
-        .formStyle(.grouped)
+        .settingsForm()
         .task { notificationsAllowed = await UserNotifications.isAuthorized() }
+    }
+
+    private var menuBarSection: some View {
+        @Bindable var settings = app.settings
+        return Section {
+            Toggle("Show timer", isOn: $settings.menuBarShowTimer)
+            Toggle("Show seconds", isOn: $settings.menuBarShowSeconds)
+                .disabled(!settings.menuBarShowTimer)
+            Toggle("Show project", isOn: $settings.menuBarShowProject)
+            Toggle("Show Dock icon", isOn: $settings.showDockIcon)
+                .accessibilityIdentifier("settings.showDockIcon")
+        } header: {
+            Text("Menu bar and Dock")
+        } footer: {
+            Text(
+                "The Pomodoro countdown appears in the menu bar whenever a Pomodoro runs. "
+                    + "Without the Dock icon, the menu bar item opens the app's windows."
+            )
+        }
+    }
+
+    private var notificationSection: some View {
+        Section {
+            LabeledContent {
+                Button("Open Notification Settings") { SystemSettings.openNotifications() }
+            } label: {
+                Label("Notifications are off for this app.", systemImage: "exclamationmark.triangle")
+            }
+        } footer: {
+            Text("Pomodoro, idle, and reminder alerts need notifications.")
+        }
     }
 }
 
@@ -83,16 +144,18 @@ struct PomodoroPane: View {
     var body: some View {
         @Bindable var settings = app.settings
         Form {
-            Stepper(value: focusMinutes, in: 1 ... 180) {
-                LabeledContent("Focus duration", value: "\(app.pomodoro.focusMinutes) min")
+            Section {
+                StepperRow(title: "Focus duration", value: "\(app.pomodoro.focusMinutes) min", amount: focusMinutes, range: 1 ... 180)
+                    .accessibilityIdentifier("settings.focusMinutes")
+                StepperRow(title: "Break duration", value: "\(app.pomodoro.breakMinutes) min", amount: breakMinutes, range: 1 ... 60)
+            } footer: {
+                Text("The durations are the same on all your devices.")
             }
-            .accessibilityIdentifier("settings.focusMinutes")
-            Stepper(value: breakMinutes, in: 1 ... 60) {
-                LabeledContent("Break duration", value: "\(app.pomodoro.breakMinutes) min")
+            Section {
+                Toggle("Play sounds at phase ends", isOn: $settings.pomodoroSounds)
             }
-            Toggle("Play sounds at phase ends", isOn: $settings.pomodoroSounds)
         }
-        .formStyle(.grouped)
+        .settingsForm()
     }
 
     private var focusMinutes: Binding<Int> {
@@ -119,19 +182,28 @@ struct IdlePane: View {
     var body: some View {
         @Bindable var settings = app.settings
         Form {
-            Toggle("Detect idle time while an entry is running", isOn: $settings.idle.detectIdle)
-            Stepper(value: $settings.idle.thresholdMinutes, in: 1 ... 120) {
-                LabeledContent("Idle after", value: "\(settings.idle.thresholdMinutes) min")
+            Section {
+                Toggle("Detect idle time while an entry is running", isOn: $settings.idle.detectIdle)
+                StepperRow(
+                    title: "Idle after",
+                    value: "\(settings.idle.thresholdMinutes) min",
+                    amount: $settings.idle.thresholdMinutes,
+                    range: 1 ... 120
+                )
+                .disabled(!settings.idle.detectIdle)
+            } footer: {
+                Text("After this long without keyboard or mouse input, the app asks what to do with the idle time when you return.")
             }
-            .disabled(!settings.idle.detectIdle)
-            Picker("On lock or sleep", selection: $settings.idle.onLockOrSleep) {
-                Text("Ask when I return").tag(IdleLockBehavior.ask)
-                Text("Stop the entry at that moment").tag(IdleLockBehavior.stop)
-                Text("Keep tracking").tag(IdleLockBehavior.keep)
+            Section {
+                Picker("On lock or sleep", selection: $settings.idle.onLockOrSleep) {
+                    Text("Ask when I return").tag(IdleLockBehavior.ask)
+                    Text("Stop the entry at that moment").tag(IdleLockBehavior.stop)
+                    Text("Keep tracking").tag(IdleLockBehavior.keep)
+                }
+                Toggle("Stop the running entry on shutdown or logout", isOn: $settings.idle.stopOnShutdown)
             }
-            Toggle("Stop the running entry on shutdown or logout", isOn: $settings.idle.stopOnShutdown)
         }
-        .formStyle(.grouped)
+        .settingsForm()
     }
 }
 
@@ -142,36 +214,48 @@ struct RemindersPane: View {
     var body: some View {
         @Bindable var settings = app.settings
         Form {
-            Toggle("Remind me to track time", isOn: $settings.reminders.isEnabled)
-            Group {
-                Stepper(value: $settings.reminders.everyMinutes, in: 1 ... 240) {
-                    LabeledContent("Every", value: "\(settings.reminders.everyMinutes) min")
-                }
+            Section {
+                Toggle("Remind me to track time", isOn: $settings.reminders.isEnabled)
+            } footer: {
+                Text("A notification when nothing is running during the hours below.")
+            }
+            Section {
+                StepperRow(
+                    title: "Every",
+                    value: "\(settings.reminders.everyMinutes) min",
+                    amount: $settings.reminders.everyMinutes,
+                    range: 1 ... 240
+                )
                 LabeledContent("Between") {
-                    HStack {
+                    HStack(spacing: Design.Spacing.small) {
                         minuteField($settings.reminders.startMinute)
                         Text("and")
                         minuteField($settings.reminders.endMinute)
                     }
                 }
                 LabeledContent("On") { weekdayToggles }
-                Stepper(value: $settings.reminders.snoozeMinutes, in: 5 ... 480, step: 5) {
-                    LabeledContent("Snooze for", value: "\(settings.reminders.snoozeMinutes) min")
-                }
+                StepperRow(
+                    title: "Snooze for",
+                    value: "\(settings.reminders.snoozeMinutes) min",
+                    amount: $settings.reminders.snoozeMinutes,
+                    range: 5 ... 480,
+                    step: 5
+                )
             }
             .disabled(!settings.reminders.isEnabled)
         }
-        .formStyle(.grouped)
+        .settingsForm()
     }
 
     /// Monday first.
     static let weekdaySymbols = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
     private var weekdayToggles: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: Design.Spacing.tight) {
             ForEach(1 ... 7, id: \.self) { weekday in
                 Toggle(Self.weekdaySymbols[weekday - 1], isOn: weekdayBinding(weekday))
                     .toggleStyle(.button)
+                    .controlSize(.small)
             }
         }
     }
@@ -206,18 +290,31 @@ struct ShortcutsPane: View {
     var body: some View {
         @Bindable var settings = app.settings
         Form {
-            LabeledContent("Show/hide Timer window:") {
-                KeyboardShortcuts.Recorder(for: .showHideTimer) { _ in app.refreshShortcutDisplay() }
-                    .accessibilityIdentifier("settings.showHideRecorder")
+            Section {
+                LabeledContent("Show or hide the Timer window") {
+                    KeyboardShortcuts.Recorder(for: .showHideTimer) { _ in app.refreshShortcutDisplay() }
+                        .accessibilityIdentifier("settings.showHideRecorder")
+                }
+                LabeledContent("Continue or stop the timer") {
+                    KeyboardShortcuts.Recorder(for: .continueStop)
+                        .accessibilityIdentifier("settings.continueStopRecorder")
+                }
+            } header: {
+                Text("Global shortcuts")
+            } footer: {
+                Text("These work in every app.")
             }
-            LabeledContent("Continue/stop timer:") {
-                KeyboardShortcuts.Recorder(for: .continueStop)
-                    .accessibilityIdentifier("settings.continueStopRecorder")
+            Section {
+                Toggle("Focus app when the timer starts", isOn: $settings.focusOnStart)
+                    .accessibilityIdentifier("settings.focusOnStart")
+                Toggle("Focus app when the timer stops", isOn: $settings.focusOnStop)
+            } footer: {
+                Text(
+                    "Shows the Timer window after a start or stop from a shortcut, the menu bar, "
+                        + "a notification, Shortcuts, or another device."
+                )
             }
-            Toggle("Focus app when the timer starts", isOn: $settings.focusOnStart)
-                .accessibilityIdentifier("settings.focusOnStart")
-            Toggle("Focus app when the timer stops", isOn: $settings.focusOnStop)
         }
-        .formStyle(.grouped)
+        .settingsForm()
     }
 }

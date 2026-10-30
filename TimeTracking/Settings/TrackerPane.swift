@@ -1,5 +1,5 @@
 // TrackerPane: the Tracker settings pane (spec_activity_tracking.md §7.4,
-// spec_timer_window.md §8.2).
+// spec_timer_window.md §8.2, spec_design.md §7).
 
 import SwiftUI
 import TimeTrackingCore
@@ -20,7 +20,7 @@ struct TrackerPane: View {
             MaintenanceSection()
         }
         .formStyle(.grouped)
-        .frame(minHeight: 520)
+        .frame(height: 620)
         .task {
             await app.tracker.refreshWhileVisible()
         }
@@ -34,21 +34,32 @@ struct TrackerPane: View {
 
     private var statusSection: some View {
         Section {
-            HStack {
-                Circle().fill(dotColor).frame(width: 10, height: 10)
-                TimelineView(.periodic(from: .now, by: 1)) { _ in
-                    Text(app.tracker.liveness.statusLine(now: app.clock.now)).accessibilityIdentifier("tracker.status")
-                }
-                Spacer()
+            LabeledContent {
                 Button(app.tracker.buttonTitle) { Task { await app.tracker.pressButton() } }
                     .accessibilityIdentifier("tracker.button")
+            } label: {
+                Label {
+                    TimelineView(.periodic(from: .now, by: 1)) { _ in
+                        Text(app.tracker.liveness.statusLine(now: app.clock.now)).accessibilityIdentifier("tracker.status")
+                    }
+                } icon: {
+                    Image(systemName: "circle.fill")
+                        .imageScale(.small)
+                        .foregroundStyle(dotColor)
+                        .accessibilityHidden(true)
+                }
             }
             if let version = app.tracker.state?.health.version {
                 LabeledContent("Agent version", value: version)
             }
             if let error = app.tracker.lastError {
-                Text(error).foregroundStyle(.red).font(.caption)
+                SettingsError(text: error)
             }
+        } footer: {
+            Text(
+                "The tracker is a login item that records which apps, sites, and terminal sessions you work in, "
+                    + "for Activity and the Calendar's suggestions."
+            )
         }
     }
 
@@ -62,36 +73,16 @@ struct TrackerPane: View {
     }
 
     private var setupSection: some View {
-        Section("Setup") {
+        Section {
             ForEach(app.tracker.setupSteps) { step in
-                HStack(alignment: .firstTextBaseline) {
-                    Text(step.mark.rawValue).frame(width: 14).accessibilityIdentifier("tracker.mark.\(step.id)")
-                    VStack(alignment: .leading, spacing: Design.Spacing.tight) {
-                        Text(step.title)
-                        Text(step.enables).font(.caption).foregroundStyle(.secondary)
-                        if step.mark != .done {
-                            guidance(step)
-                        }
-                    }
-                    Spacer()
-                    VStack(alignment: .trailing, spacing: Design.Spacing.tight) {
-                        ForEach(Array(step.actions.enumerated()), id: \.offset) { _, action in
-                            actionButton(action, step: step).fixedSize()
-                        }
-                    }
+                SetupStepRow(step: step) { action in
+                    actionButton(action, step: step)
                 }
             }
-        }
-    }
-
-    /// The numbered steps and the note of a step that is not done.
-    @ViewBuilder
-    private func guidance(_ step: TrackerSetupStep) -> some View {
-        ForEach(Array(step.guidance.enumerated()), id: \.offset) { index, line in
-            Text("\(index + 1). \(line)").font(.caption)
-        }
-        if !step.note.isEmpty {
-            Text(step.note).font(.caption).foregroundStyle(.secondary)
+        } header: {
+            Text("Setup")
+        } footer: {
+            Text("Each line says what the step enables, and what you get without it.")
         }
     }
 
@@ -134,6 +125,71 @@ struct TrackerPane: View {
     }
 }
 
+/// One setup step: its mark and title, what it enables, the numbered
+/// guidance while it is not done, and its buttons below the text.
+private struct SetupStepRow<Actions: View>: View {
+    var step: TrackerSetupStep
+    @ViewBuilder var action: (TrackerSetupStep.Action) -> Actions
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: Design.Spacing.small) {
+            mark
+            VStack(alignment: .leading, spacing: Design.Spacing.tight) {
+                Text(step.title)
+                Text(step.enables).font(.caption).foregroundStyle(.secondary)
+                if step.mark != .done {
+                    ForEach(Array(step.guidance.enumerated()), id: \.offset) { index, line in
+                        Text("\(index + 1). \(line)").font(.caption)
+                    }
+                    if !step.note.isEmpty {
+                        Text(step.note).font(.caption).foregroundStyle(.secondary)
+                    }
+                }
+                let actions = step.actions.filter { $0 != .noAction }
+                if !actions.isEmpty {
+                    HStack(spacing: Design.Spacing.small) {
+                        ForEach(Array(actions.enumerated()), id: \.offset) { _, item in
+                            action(item)
+                        }
+                    }
+                    .controlSize(.small)
+                    .padding(.top, Design.Spacing.tight)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    /// The mark as a symbol over its text, which stays the accessible element.
+    private var mark: some View {
+        let (symbol, style): (String, AnyShapeStyle) = switch step.mark {
+        case .done: ("checkmark.circle.fill", AnyShapeStyle(Color.startTint))
+        case .attention: ("exclamationmark.triangle.fill", AnyShapeStyle(.orange))
+        case .unknown: ("circle.dashed", AnyShapeStyle(.tertiary))
+        }
+        return Text(step.mark.rawValue)
+            .foregroundStyle(.clear)
+            .frame(width: 18)
+            .overlay {
+                Image(systemName: symbol)
+                    .foregroundStyle(style)
+                    .accessibilityHidden(true)
+            }
+            .accessibilityIdentifier("tracker.mark.\(step.id)")
+    }
+}
+
+/// An error under a control: the warning symbol and the message in red.
+struct SettingsError: View {
+    var text: String
+
+    var body: some View {
+        Label(text, systemImage: "exclamationmark.triangle")
+            .font(.caption)
+            .foregroundStyle(.red)
+    }
+}
+
 /// The nine exclusion lists with + and −.
 private struct ExclusionsSection: View {
     @Environment(AppModel.self) private var app
@@ -141,36 +197,41 @@ private struct ExclusionsSection: View {
 
     var body: some View {
         let model = app.trackerSettings
-        Section("Exclusions") {
+        Section {
             ForEach(ExclusionList.allCases) { list in
-                DisclosureGroup(list.title) {
+                DisclosureGroup {
                     ForEach(model.entries(list), id: \.self) { value in
                         entryRow(value, in: list)
                     }
                     addRow(list)
+                } label: {
+                    LabeledContent(list.title) {
+                        Text(model.entries(list).isEmpty ? "None" : "\(model.entries(list).count)").monospacedDigit()
+                    }
                 }
             }
             if let list = model.offerReapply {
-                HStack {
-                    Text("Saved to \(list.title).")
-                    Spacer()
-                    Button("Also remove it from past logs…") { Task { await model.reapplyExclusions() } }
+                LabeledContent("Saved to \(list.title).") {
+                    Button("Also Remove from Past Logs…") { Task { await model.reapplyExclusions() } }
                         .accessibilityIdentifier("tracker.reapplyOffer")
                 }
             }
+        } header: {
+            Text("Exclusions")
+        } footer: {
+            Text("Applied before anything is written, on this Mac and on iPhone and iPad.")
         }
     }
 
     private func entryRow(_ value: String, in list: ExclusionList) -> some View {
-        HStack {
-            Text(value)
-            Spacer()
+        LabeledContent(value) {
             Button {
                 app.trackerSettings.remove(value, from: list)
             } label: {
-                Label("Remove", systemImage: "minus").labelStyle(.iconOnly)
+                Label("Remove", systemImage: "minus.circle").labelStyle(.iconOnly)
             }
             .buttonStyle(.borderless)
+            .help("Remove")
         }
     }
 
@@ -183,14 +244,22 @@ private struct ExclusionsSection: View {
         let draft = Binding { drafts[list] ?? "" } set: { drafts[list] = $0 }
         return HStack {
             TextField(prompt, text: draft)
+                .labelsHidden()
+                .onSubmit { add(to: list) }
             Button {
-                app.trackerSettings.add(drafts[list] ?? "", to: list)
-                drafts[list] = nil
+                add(to: list)
             } label: {
-                Label("Add", systemImage: "plus").labelStyle(.iconOnly)
+                Label("Add", systemImage: "plus.circle").labelStyle(.iconOnly)
             }
             .buttonStyle(.borderless)
+            .help("Add")
+            .disabled((drafts[list] ?? "").trimmed.isEmpty)
         }
+    }
+
+    private func add(to list: ExclusionList) {
+        app.trackerSettings.add(drafts[list] ?? "", to: list)
+        drafts[list] = nil
     }
 }
 
@@ -200,22 +269,34 @@ private struct OptionsSection: View {
 
     var body: some View {
         @Bindable var model = app.trackerSettings
-        Section("Options") {
+        Section {
             LabeledContent("Watched folders") {
                 Text(model.roots.joined(separator: ", ")).foregroundStyle(.secondary)
             }
-            Stepper(value: $model.idleAfterSeconds, in: 30 ... 3600, step: 30) {
-                LabeledContent("Idle after", value: "\(model.idleAfterSeconds / 60) min \(model.idleAfterSeconds % 60) s")
-            }
-            Text("Affects activity blocks only; the idle prompt has its own threshold in the Idle pane")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            StepperRow(
+                title: "Idle after",
+                value: Self.duration(model.idleAfterSeconds),
+                amount: $model.idleAfterSeconds,
+                range: 30 ... 3600,
+                step: 30
+            )
             Toggle("Use Safari history synced from other devices", isOn: $model.useSyncedSafariHistory)
-            HStack {
-                Button("Edit Settings File…") { SystemSettings.open(model.settingsURL) }
-                Button("Show Logs in Finder") { SystemSettings.reveal(model.settingsURL?.deletingLastPathComponent()) }
+            LabeledContent("Settings file") {
+                HStack(spacing: Design.Spacing.small) {
+                    Button("Edit…") { SystemSettings.open(model.settingsURL) }
+                    Button("Show Logs in Finder") { SystemSettings.reveal(model.settingsURL?.deletingLastPathComponent()) }
+                }
             }
+        } header: {
+            Text("Options")
+        } footer: {
+            Text("Idle after affects activity blocks only; the idle prompt has its own threshold in the Idle pane.")
         }
+    }
+
+    /// "5 min", "5 min 30 s".
+    static func duration(_ seconds: Int) -> String {
+        seconds.isMultiple(of: 60) ? "\(seconds / 60) min" : "\(seconds / 60) min \(seconds % 60) s"
     }
 }
 
@@ -226,19 +307,31 @@ private struct MaintenanceSection: View {
 
     var body: some View {
         @Bindable var model = app.trackerSettings
-        Section("Maintenance") {
-            HStack {
-                DatePicker("Forget a Day…", selection: $model.forgetDay, displayedComponents: .date)
-                Button("Forget…") { confirmForget = true }
+        Section {
+            LabeledContent("Forget a day") {
+                HStack(spacing: Design.Spacing.small) {
+                    DatePicker("Day", selection: $model.forgetDay, displayedComponents: .date)
+                        .labelsHidden()
+                    Button("Forget…") { confirmForget = true }
+                }
             }
-            HStack {
-                DatePicker("From", selection: $model.reapplyFrom, displayedComponents: .date)
-                DatePicker("To", selection: $model.reapplyTo, displayedComponents: .date)
-                Button("Reapply Exclusions…") { Task { await model.reapplyExclusions() } }
+            LabeledContent("Reapply exclusions") {
+                HStack(spacing: Design.Spacing.small) {
+                    DatePicker("From", selection: $model.reapplyFrom, displayedComponents: .date)
+                        .labelsHidden()
+                    Text("to")
+                    DatePicker("To", selection: $model.reapplyTo, displayedComponents: .date)
+                        .labelsHidden()
+                    Button("Reapply…") { Task { await model.reapplyExclusions() } }
+                }
             }
             if let message = model.message {
-                Text(message).foregroundStyle(.red).font(.caption)
+                SettingsError(text: message)
             }
+        } header: {
+            Text("Maintenance")
+        } footer: {
+            Text("Both change the activity logs on this Mac and in iCloud Drive.")
         }
         .alert("Forget this day?", isPresented: $confirmForget) {
             Button("Forget", role: .destructive) { Task { await model.forget() } }
@@ -264,6 +357,7 @@ private struct PendingExclusionSection: View {
                     } set: { value in
                         model.pendingExclusion?.value = value
                     })
+                    .labelsHidden()
                     .focused($focused)
                     .accessibilityIdentifier("tracker.pendingExclusion")
                 }
