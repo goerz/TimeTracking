@@ -304,15 +304,9 @@ final class CalendarModel {
 
     /// Context colors for contexts seen for the first time (§1.3 of the Activity spec).
     func assignContextColors() async {
-        let contexts = blocks.flatMap(\.contexts)
-        guard let current = try? await store.value(.activityContextColors) else {
-            return
+        if let assigned = try? await store.assignContextColors(blocks.flatMap(\.contexts)) {
+            contextColors = assigned
         }
-        let assigned = ContextPalette.assigning(contexts, to: current)
-        if assigned != current {
-            try? await store.set(.activityContextColors, assigned)
-        }
-        contextColors = assigned
     }
 
     private(set) var contextColors: [String: Int] = [:]

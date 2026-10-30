@@ -16,8 +16,8 @@ struct BlockCard: View {
 
     var body: some View {
         let selected = model.selection.contains(.block(block.id))
-        let hex = ContextPalette.hex(model.contextColors[block.items.first?.context ?? block.groupKey], dark: colorScheme == .dark)
-        let tint = hex.map { Color(hex: $0) } ?? .gray
+        let tint = ContextColorLookup(colors: model.contextColors, dark: colorScheme == .dark)
+            .color(block.items.first?.context ?? block.groupKey)
         let style = CalendarZoom.cardStyle(height: Double(size.height))
         ZStack(alignment: .topLeading) {
             if block.source == .knowledge {

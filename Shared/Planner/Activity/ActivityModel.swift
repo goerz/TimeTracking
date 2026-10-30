@@ -121,7 +121,9 @@ final class ActivityModel {
                 trackerSetUp: trackerSetUp(),
                 footerRed: health?.isRed ?? false
             )
-            await assignColors(summary.ranking.map(\.context))
+            if let assigned = try? await store.assignContextColors(summary.ranking.map(\.context)) {
+                contextColors = assigned
+            }
         } catch {
             Logging.logger(category: "Planner").error("Activity: \(String(describing: error), privacy: .public)")
         }
@@ -152,17 +154,6 @@ final class ActivityModel {
             iCloudWaiting = await waitingForICloud()
             health = await remoteActivity().map { ActivityHealth(remote: $0, now: clock.now) }
         }
-    }
-
-    private func assignColors(_ contexts: [String]) async {
-        guard let current = try? await store.value(.activityContextColors) else {
-            return
-        }
-        let assigned = ContextPalette.assigning(contexts, to: current)
-        if assigned != current {
-            try? await store.set(.activityContextColors, assigned)
-        }
-        contextColors = assigned
     }
 
     /// The color index of a context (`nil`: gray).
