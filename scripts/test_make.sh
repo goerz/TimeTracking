@@ -8,7 +8,8 @@
 # against a temporary keychain, clean and distclean, lint, and the
 # pre-commit hook. Most run `make` in a sandbox copy of the repository with
 # a synthetic local.mk, so nothing personal or built is touched.
-#   --build     a compiler warning fails the build (ARCH-15; ~30 s)
+#   --build     a compiler warning fails the build (ARCH-15; ~30 s); swift test
+#               in a copy without local.mk and without network (ARCH-1; ~3 min)
 #   --products  checks of the Release products (ARCH-4, ARCH-5; needs make build-mac build-ios)
 #   --sim       recreates the two simulators (ARCH-18; ~1 min)
 #   --install   make install / uninstall into a temporary PREFIX (ARCH-20; needs TEAM; reinstalls)
@@ -403,6 +404,35 @@ test_warning_fails_build() {
     check "the failure is the warning" grep -q "never used" "$scratch/warn.out"
 }
 
+# --- ARCH-1
+
+test_package_without_local_mk() {
+    local copy="$scratch/checkout"
+    mkdir -p "$copy"
+    # The tracked and unignored files: no local.mk, no Local.xcconfig, no build products.
+    (cd "$root" && git ls-files -z --cached --others --exclude-standard) |
+        (cd "$root" && rsync -a --from0 --files-from=- ./ "$copy/")
+    check "the copy has no local.mk" [ ! -e "$copy/local.mk" ]
+    check "the copy has no Local.xcconfig" [ ! -e "$copy/Config/Local.xcconfig" ]
+    check "the copy has the package" [ -f "$copy/Packages/TimeTrackingCore/Package.swift" ]
+    # No network: IP traffic is denied, so the pinned packages come from the
+    # checkout's resolved package clones (GRDB's submodule cannot be fetched
+    # offline); nothing is built yet in the copy. SwiftPM's manifest sandbox
+    # cannot nest inside this one, hence --disable-sandbox. swift test never
+    # signs, and the copy lies outside ~/Documents, so no permission prompt
+    # can block it.
+    local build="$root/Packages/TimeTrackingCore/.build"
+    check "the checkout has resolved its packages" [ -d "$build/checkouts" ]
+    mkdir -p "$copy/Packages/TimeTrackingCore/.build"
+    for item in checkouts repositories workspace-state.json; do
+        [ ! -e "$build/$item" ] || ditto "$build/$item" "$copy/Packages/TimeTrackingCore/.build/$item"
+    done
+    sandbox-exec -p '(version 1) (allow default) (deny network-outbound (remote ip)) (deny network-inbound (local ip))' \
+        swift test --package-path "$copy/Packages/TimeTrackingCore" --disable-automatic-resolution --disable-sandbox > "$scratch/package-test.out" 2>&1 ||
+        { tail -30 "$scratch/package-test.out"; return 1; }
+    check "the package tests ran" grep -Eq "Test run with [0-9]+ tests" "$scratch/package-test.out"
+}
+
 # --- ARCH-22
 
 test_pre_commit() {
@@ -552,6 +582,7 @@ behavior "ARCH-14 make clean keeps the products; make distclean removes build.no
 behavior "ARCH-15 make lint fails on a SwiftLint finding, a formatting difference, or #available, without building" test_lint_fails
 behavior "ARCH-22 the pre-commit hook refuses a staged TEAM value" test_pre_commit
 [ "$run_build" = 0 ] || behavior "ARCH-15 a compiler warning fails the build" test_warning_fails_build
+[ "$run_build" = 0 ] || behavior "ARCH-1 swift test passes in a copy of the checkout without local.mk, signing, or network" test_package_without_local_mk
 [ "$run_products" = 0 ] || behavior "ARCH-4 the Release Mac app holds the agent, launchd plist, and tools, and no Frameworks" test_mac_products
 [ "$run_products" = 0 ] || behavior "ARCH-5 the Release iOS bundles have the entitlements of the table" test_ios_products
 [ "$run_sim" = 0 ] || behavior "ARCH-18 make sim-create creates the simulators once; tests pass on fresh ones" test_sim_create

@@ -1,5 +1,6 @@
 // ToolProcess: runs a built tool as a subprocess (spec_architecture.md §3.1).
 
+import Darwin
 import Foundation
 
 /// The result of running a tool.
@@ -48,8 +49,17 @@ enum ToolProcess {
         return identifier.hasSuffix(".cli-tests") ? String(identifier.dropLast(".cli-tests".count)) : identifier
     }
 
+    /// The `HOME` of every tool run: an empty folder of this test process,
+    /// so a tool never reads or writes the user's home.
+    static let home: URL = {
+        let folder = FileManager.default.temporaryDirectory.appending(path: "cli-home-\(getpid())", directoryHint: .isDirectory)
+        try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        return folder
+    }()
+
     /// Starts `tool` with `arguments`, `environment` added to the inherited
-    /// one and `removing` taken out; returns the running process and pipes.
+    /// one (with `HOME` set to `home`) and `removing` taken out; returns the
+    /// running process and pipes.
     static func start(
         _ tool: String,
         _ arguments: [String],
@@ -59,7 +69,7 @@ enum ToolProcess {
         let process = Process()
         process.executableURL = productsDirectory.appending(path: tool)
         process.arguments = arguments
-        var merged = ProcessInfo.processInfo.environment.merging(environment) { $1 }
+        var merged = ProcessInfo.processInfo.environment.merging(["HOME": home.path]) { $1 }.merging(environment) { $1 }
         for key in removing {
             merged[key] = nil
         }
@@ -85,6 +95,48 @@ enum ToolProcess {
             standardError: String(decoding: errData, as: UTF8.self),
             duration: ContinuousClock.now - tool.start
         )
+    }
+
+    /// Waits until the running `tool` has `file` open, or it exits, or 30
+    /// seconds pass (a generous bound; this returns within milliseconds on
+    /// success). Polls the process's descriptors every millisecond.
+    static func waitUntilOpen(_ tool: RunningTool, file: URL) -> Bool {
+        // realpath, not resolvingSymlinksInPath, which strips /private.
+        var path = file.path
+        if let resolved = realpath(file.path, nil) {
+            path = String(cString: resolved)
+            free(resolved)
+        }
+        let deadline = ContinuousClock.now + .seconds(30)
+        while tool.process.isRunning, ContinuousClock.now < deadline {
+            if openFiles(of: tool.process.processIdentifier).contains(where: { $0.hasPrefix(path) }) {
+                return true
+            }
+            usleep(1000)
+        }
+        return false
+    }
+
+    /// The paths of the vnodes process `pid` has open.
+    static func openFiles(of pid: pid_t) -> [String] {
+        let size = proc_pidinfo(pid, PROC_PIDLISTFDS, 0, nil, 0)
+        guard size > 0 else {
+            return []
+        }
+        let stride = MemoryLayout<proc_fdinfo>.stride
+        var descriptors = [proc_fdinfo](repeating: proc_fdinfo(), count: Int(size) / stride)
+        let filled = descriptors.withUnsafeMutableBytes { proc_pidinfo(pid, PROC_PIDLISTFDS, 0, $0.baseAddress, size) }
+        return descriptors.prefix(Int(max(filled, 0)) / stride).compactMap { descriptor in
+            guard descriptor.proc_fdtype == UInt32(PROX_FDTYPE_VNODE) else {
+                return nil
+            }
+            var info = vnode_fdinfowithpath()
+            let length = Int32(MemoryLayout<vnode_fdinfowithpath>.size)
+            guard proc_pidfdinfo(pid, descriptor.proc_fd, PROC_PIDFDVNODEPATHINFO, &info, length) == length else {
+                return nil
+            }
+            return withUnsafeBytes(of: info.pvip.vip_path) { String(decoding: $0.prefix { $0 != 0 }, as: UTF8.self) }
+        }
     }
 
     /// Runs `tool` with `arguments` and `environment` added to the inherited one.

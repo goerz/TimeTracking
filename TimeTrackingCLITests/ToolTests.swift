@@ -124,31 +124,32 @@ struct ToolTests {
         #expect(running.status == 4)
     }
 
+    /// The store's 5-second busy timeout lies between the two lock times
+    /// (`StoreBusyTests` pins it), so the tool needs no real waiting here:
+    /// the lock is released as soon as the tool waits on it, and the
+    /// 10-second case runs with the Debug-only `TIMETRACKING_BUSY_TIMEOUT`
+    /// shortened to 0, which fails the same way the 5 seconds would.
     @Test("AUTO-32 a write waits out another process's 2-second write lock and exits 5 after a 10-second one")
     func busyTimeout() throws {
         let fixture = try ToolFixture()
         defer { fixture.remove() }
-        let short = try runWhileLocked(fixture, holding: 2)
+        let lock = try WriteLock(fixture.store)
+        let waiting = try ToolProcess.start("timetracking", ["start", "Locked"], environment: fixture.environment)
+        // The tool has the store open and blocks on the lock; release it.
+        #expect(ToolProcess.waitUntilOpen(waiting, file: fixture.store))
+        #expect(waiting.process.isRunning)
+        lock.commit()
+        let short = ToolProcess.finish(waiting)
         #expect(short.status == 0, "\(short.standardError)")
-        let long = try runWhileLocked(fixture, holding: 10)
+        #expect(try fixture.count("SELECT COUNT(*) FROM time_entry WHERE task = 'Locked' AND \"end\" IS NULL") == 1)
+
+        let held = try WriteLock(fixture.store)
+        let long = try fixture.run(["start", "Too late"], environment: ["TIMETRACKING_BUSY_TIMEOUT": "0"])
+        held.commit()
         #expect(long.status == 5)
         #expect(long.standardError.hasPrefix("error: "))
-    }
-
-    /// Runs `start` while this process holds the write lock for `duration`.
-    private func runWhileLocked(_ fixture: ToolFixture, holding seconds: TimeInterval) throws -> ToolResult {
-        var database: OpaquePointer?
-        guard sqlite3_open_v2(fixture.store.path, &database, SQLITE_OPEN_READWRITE, nil) == SQLITE_OK else {
-            throw ToolFixture.FixtureError.sqlite
-        }
-        defer { sqlite3_close(database) }
-        #expect(sqlite3_exec(database, "BEGIN IMMEDIATE", nil, nil, nil) == SQLITE_OK)
-        let tool = try ToolProcess.start("timetracking", ["start", "Locked"], environment: fixture.environment)
-        // The other writer holds the lock for a wall-clock time. This stays
-        // on one thread: Process.waitUntilExit needs the launching thread.
-        Thread.sleep(forTimeInterval: seconds)
-        sqlite3_exec(database, "COMMIT", nil, nil, nil)
-        return ToolProcess.finish(tool)
+        #expect(long.standardOutput.isEmpty)
+        #expect(try fixture.count("SELECT COUNT(*) FROM time_entry WHERE task = 'Too late'") == 0)
     }
 
     @Test("AUTO-33 a successful write posts <APP_ID>.changed once and appends one outbox row per changed record; a failed one neither")

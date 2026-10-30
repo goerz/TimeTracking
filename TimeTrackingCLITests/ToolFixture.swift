@@ -81,7 +81,37 @@ struct ToolFixture {
     enum FixtureError: Error {
         case sqlite
     }
+}
 
+/// Another process's write transaction: holds the store's write lock from
+/// creation until `commit()`.
+final class WriteLock {
+    private var database: OpaquePointer?
+
+    init(_ store: URL) throws {
+        guard sqlite3_open_v2(store.path, &database, SQLITE_OPEN_READWRITE, nil) == SQLITE_OK,
+              sqlite3_exec(database, "BEGIN IMMEDIATE", nil, nil, nil) == SQLITE_OK
+        else {
+            sqlite3_close(database)
+            throw ToolFixture.FixtureError.sqlite
+        }
+    }
+
+    deinit {
+        commit()
+    }
+
+    func commit() {
+        guard let database else {
+            return
+        }
+        sqlite3_exec(database, "COMMIT", nil, nil, nil)
+        sqlite3_close(database)
+        self.database = nil
+    }
+}
+
+extension ToolFixture {
     // MARK: The document
 
     static let university = "c1000000-0000-4000-8000-000000000001"

@@ -218,7 +218,7 @@ struct ReportSnapshotTests {
 
     /// Hue (degrees), saturation, and lightness of `#RRGGBB`, computed
     /// independently of `AreaColor`.
-    static func hsl(_ hex: String) throws -> (hue: Double, saturation: Double, lightness: Double) {
+    static func hsl(_ hex: String) throws -> HSL {
         let value = try #require(UInt32(hex.dropFirst(), radix: 16))
         let red = Double(value >> 16 & 0xFF) / 255
         let green = Double(value >> 8 & 0xFF) / 255
@@ -236,6 +236,13 @@ struct ReportSnapshotTests {
             default: hue = 60 * ((red - green) / delta + 4)
             }
         }
-        return (hue < 0 ? hue + 360 : hue, saturation, lightness)
+        return HSL(hue: hue < 0 ? hue + 360 : hue, saturation: saturation, lightness: lightness)
     }
+}
+
+/// Hue in degrees, saturation and lightness in 0...1.
+struct HSL {
+    var hue: Double
+    var saturation: Double
+    var lightness: Double
 }

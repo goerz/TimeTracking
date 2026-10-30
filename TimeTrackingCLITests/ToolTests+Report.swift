@@ -147,9 +147,11 @@ extension ToolTests {
         defer { fixture.remove() }
         let created = try fixture.run(["area", "create", "Health", "--client", "Personal", "--json"])
         #expect(created.status == 0, "\(created.standardError)")
-        let color = try #require(created.json["color"] as? String)
-        #expect(color.wholeMatch(of: /#[0-9A-F]{6}/) != nil)
-        #expect(!["#6C757D", "#0A9396", "#EE9B00", "#2A9D8F", "#AE2012"].contains(color))
+        // The library's default (spec_data_and_sync.md §1.2): the fixture's
+        // area hues are 5, 39, 173, 181, 208, 208; the largest circular gap
+        // runs from 208 to 365, so hue 208 + 157 / 2 = 286 at saturation
+        // 0.65 and brightness 0.80, which is #AD47CC.
+        #expect(created.json["color"] as? String == "#AD47CC")
         #expect(try fixture.run(["area", "rename", "Personal", "Home", "--client", "Personal"]).status == 4)
         #expect(try fixture.run(["area", "create", "garden", "--client", "Personal"]).status == 4)
         let renamed = try fixture.run(["area", "rename", "Garden", "Yard", "--client", "Personal", "--json"])

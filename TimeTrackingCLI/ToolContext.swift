@@ -40,15 +40,17 @@ nonisolated struct ToolContext {
         if !writing, !FileManager.default.fileExists(atPath: url.path) {
             throw .storeUnavailable("No store at \(url.path).")
         }
-        // TIMETRACKING_NOW fixes "now" in Debug builds only.
-        let clock = arguments.clock(honorFixedNow: identity?.isDebug ?? false)
+        // TIMETRACKING_NOW and TIMETRACKING_BUSY_TIMEOUT apply in Debug builds only.
+        let isDebug = identity?.isDebug ?? false
+        let clock = arguments.clock(honorFixedNow: isDebug)
         do {
             let store = try await TimeStore.open(
                 arguments: arguments,
                 identity: identity,
                 deviceID: deviceID(for: url),
                 clock: clock,
-                readOnly: !writing
+                readOnly: !writing,
+                busyTimeout: isDebug ? arguments.busyTimeout ?? TimeStore.defaultBusyTimeout : TimeStore.defaultBusyTimeout
             )
             return AutomationService(store: store, timeZone: timeZone)
         } catch {

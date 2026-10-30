@@ -95,14 +95,18 @@ public struct LaunchArguments: Sendable, Equatable {
             }
             index += consumed
         }
+        readEnvironment(environment, timeZone: timeZone)
+    }
+
+    private mutating func readEnvironment(_ environment: [String: String], timeZone: TimeZone) {
         if let path = environment["TIMETRACKING_STORE"], !path.isEmpty {
-            self.storePath = path
+            storePath = path
         }
         if let now = environment["TIMETRACKING_NOW"] {
-            self.fixedNow = Self.parseInstant(now, timeZone: timeZone)
+            fixedNow = Self.parseInstant(now, timeZone: timeZone)
         }
         if let seconds = environment["TIMETRACKING_BUSY_TIMEOUT"].flatMap(TimeInterval.init), seconds >= 0 {
-            self.busyTimeout = seconds
+            busyTimeout = seconds
         }
     }
 
