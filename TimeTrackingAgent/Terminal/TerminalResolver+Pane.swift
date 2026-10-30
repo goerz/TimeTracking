@@ -24,7 +24,7 @@ extension TerminalResolver {
         let exclusions = context.exclusions
         let program = Self.programName(facts.command)
         if let session = facts.session, exclusions.excludesTmuxSession(session) {
-            let hidden = "tmux:\(ExclusionRules.privateMarker)"
+            let hidden = SampleItem.tmuxContext(ExclusionRules.privateMarker)
             return (SampleItem(context: hidden, subject: "", groupKey: hidden, app: facts.app), [])
         }
         let refinement = await refine(facts, program: program, snapshot: snapshot, context: context)
@@ -32,13 +32,13 @@ extension TerminalResolver {
         if let file = refinement.file {
             detail = "\(program) \(exclusions.excludesPath(file) ? ExclusionRules.privateMarker : PathText.lastComponent(file))"
         }
-        let windowNamesPane = facts.session != nil && !facts.automaticRename && facts.windowName != program && !facts.windowName.isEmpty
+        let windowNamesPane = facts.windowNamesPane(program: program)
         var subject = windowNamesPane ? facts.windowName : context.tilde(facts.cwd)
         if refinement.hideCwd, !windowNamesPane {
             subject = refinement.agentSession?.name ?? ""
         }
-        let groupKey = facts.session.map { "tmux:\($0)" } ?? context.workFolder(ofFolder: facts.cwd)
-        let contextName = facts.session.map { "tmux:\($0)" } ?? facts.terminalContext
+        let groupKey = facts.session.map(SampleItem.tmuxContext) ?? context.workFolder(ofFolder: facts.cwd)
+        let contextName = facts.session.map(SampleItem.tmuxContext) ?? facts.terminalContext
         var item = SampleItem(context: contextName, subject: subject, detail: detail, groupKey: groupKey, app: facts.app)
         if !facts.cwd.isEmpty, exclusions.excludesPath(facts.cwd) {
             item = ResolveContext.privatePath(item, keepGroup: facts.session != nil)
@@ -86,5 +86,12 @@ extension TerminalResolver {
     static func programName(_ command: String) -> String {
         let last = command.split(separator: "/").last.map(String.init) ?? command
         return last.hasPrefix("-") ? String(last.dropFirst()) : last
+    }
+}
+
+extension TerminalResolver.PaneFacts {
+    /// Whether the pane is a tmux pane whose window name names it.
+    func windowNamesPane(program: String) -> Bool {
+        session != nil && TmuxPane.windowNamesPane(windowName, automaticRename: automaticRename, program: program)
     }
 }

@@ -16,7 +16,7 @@ extension TerminalResolver {
         now: Date,
         context: inout ResolveContext
     ) -> [SampleItem] {
-        let primarySession = primary?.context.hasPrefix("tmux:") == true ? String(primary?.context.dropFirst(5) ?? "") : nil
+        let primarySession = primary.flatMap { SampleItem.tmuxSession(ofContext: $0.context) }
         return busyAgents(snapshot, context: context)
             + otherClients(snapshot, primarySession: primarySession, now: now, context: context)
             + jobs(snapshot, primarySession: primarySession, primaryTarget: primaryTarget, context: context)
@@ -30,7 +30,7 @@ extension TerminalResolver {
             if !session.tmuxSession.isEmpty, exclusions.excludesTmuxSession(session.tmuxSession) {
                 continue
             }
-            var subject = session.name.isEmpty ? Self.programName(session.cwd) : session.name
+            var subject = session.name.isEmpty ? PathText.lastComponent(session.cwd) : session.name
             if !exclusions.isPrivateAgentPath(session.cwd), !session.cwd.isEmpty, exclusions.excludesPath(session.cwd) {
                 subject = ExclusionRules.privateMarker
             }
@@ -57,11 +57,10 @@ extension TerminalResolver {
                 continue
             }
             let program = Self.programName(pane.command)
-            let fromCwd = pane.automaticRename || pane.windowName == program || pane.windowName.isEmpty
             var item = SampleItem(
-                context: "tmux:\(client.session)",
-                subject: fromCwd ? context.tilde(pane.path) : pane.windowName,
-                groupKey: "tmux:\(client.session)",
+                context: SampleItem.tmuxContext(client.session),
+                subject: pane.windowNamesPane(program: program) ? pane.windowName : context.tilde(pane.path),
+                groupKey: SampleItem.tmuxContext(client.session),
                 app: "tmux"
             )
             if exclusions.excludesPath(pane.path) {
@@ -92,10 +91,10 @@ extension TerminalResolver {
                 return nil
             }
             let item = SampleItem(
-                context: "tmux:\(pane.session)",
+                context: SampleItem.tmuxContext(pane.session),
                 subject: context.tilde(pane.path),
                 detail: program,
-                groupKey: "tmux:\(pane.session)",
+                groupKey: SampleItem.tmuxContext(pane.session),
                 app: "tmux"
             )
             return exclusions.excludesPath(pane.path) ? ResolveContext.privatePath(item, keepGroup: true) : item

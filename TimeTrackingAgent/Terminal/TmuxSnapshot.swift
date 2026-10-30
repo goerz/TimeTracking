@@ -28,6 +28,17 @@ nonisolated struct TmuxPane: Hashable, Sendable {
     var title: String
     var server: String
 
+    /// Whether a window name names the pane: set by hand rather than by
+    /// tmux after the program (`automatic-rename`), and not empty.
+    static func windowNamesPane(_ windowName: String, automaticRename: Bool, program: String) -> Bool {
+        !automaticRename && windowName != program && !windowName.isEmpty
+    }
+
+    /// Whether this pane's window name names it, with `program` its foreground program.
+    func windowNamesPane(program: String) -> Bool {
+        Self.windowNamesPane(windowName, automaticRename: automaticRename, program: program)
+    }
+
     /// `session:window.pane`.
     var target: String {
         "\(session):\(windowIndex).\(paneIndex)"

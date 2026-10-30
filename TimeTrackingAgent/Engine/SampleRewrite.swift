@@ -42,11 +42,11 @@ nonisolated enum SampleRewrite {
         if kept.context != item.context {
             result.groupKey = kept.context
         } else if kept.subject == ExclusionRules.privateMarker, kept.detail == ExclusionRules.privateMarker,
-                  !item.context.hasPrefix("tmux:")
+                  !item.isTmux
         {
             result.groupKey = ExclusionRules.privateGroupKey
         } else if kept.subject == ExclusionRules.privateMarker {
-            result.groupKey = item.context.hasPrefix("tmux:") ? item.groupKey : item.context
+            result.groupKey = item.isTmux ? item.groupKey : item.context
         } else if kept.subject != item.subject, rules.isPrivateDomain(kept.subject) {
             result.groupKey = kept.subject
         }
