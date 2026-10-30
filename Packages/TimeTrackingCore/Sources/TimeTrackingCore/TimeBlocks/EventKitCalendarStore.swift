@@ -200,7 +200,6 @@ public final class EventKitCalendarStore: CalendarEventStore {
         else {
             return "#8E8E93"
         }
-        let bytes = components.prefix(3).map { min(255, max(0, Int(($0 * 255).rounded()))) }
-        return "#" + bytes.map { String(format: "%02X", $0) }.joined()
+        return AreaColor(red: Double(components[0]), green: Double(components[1]), blue: Double(components[2])).hex
     }
 }
