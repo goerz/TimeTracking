@@ -45,8 +45,7 @@ struct ExportCommand: AsyncParsableCommand {
     }
 
     func run() async throws {
-        let context = ToolContext(global)
-        let service = try await context.service(writing: false)
+        let (_, service) = try await ToolContext.open(global, writing: false)
         guard format == "csv" else {
             let data = try await service.exportDocument(includeDeleted: includeDeleted)
             try write(data, to: output)

@@ -31,8 +31,7 @@ struct ContinueCommand: AsyncParsableCommand {
     }
 
     func run() async throws {
-        let context = ToolContext(global)
-        let service = try await context.service(writing: true)
+        let (context, service) = try await ToolContext.open(global, writing: true)
         let source: AutomationService.ContinueSource = if let entryID {
             try await .entry(service.store.resolveEntry(entryID).id)
         } else if let project {

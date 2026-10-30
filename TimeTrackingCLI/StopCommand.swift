@@ -13,9 +13,8 @@ struct StopCommand: AsyncParsableCommand {
     @OptionGroup var global: GlobalOptions
 
     func run() async throws {
-        let context = ToolContext(global)
-        let service = try await context.service(writing: true)
-        let at = try at.map { text throws(AutomationError) in try service.instant(text) }
+        let (context, service) = try await ToolContext.open(global, writing: true)
+        let at = try service.instant(ifGiven: at)
         let stopped = try await service.stop(at: at)
         let end = stopped.entry.end ?? service.now
         let line = "Stopped \(ToolFormat.subject(stopped)) at \(ToolFormat.time(end, context.timeZone)) "

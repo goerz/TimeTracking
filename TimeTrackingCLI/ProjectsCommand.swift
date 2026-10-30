@@ -38,8 +38,7 @@ struct ProjectsCommand: AsyncParsableCommand {
     }
 
     func run() async throws {
-        let context = ToolContext(global)
-        let service = try await context.service(writing: false)
+        let (context, service) = try await ToolContext.open(global, writing: false)
         let state: ProjectFilter.State = all ? .all : archived ? .archived : .active
         let rows = try await service.projects(
             state: state,

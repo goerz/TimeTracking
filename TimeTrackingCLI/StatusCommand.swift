@@ -13,8 +13,7 @@ struct StatusCommand: AsyncParsableCommand {
     @OptionGroup var global: GlobalOptions
 
     func run() async throws {
-        let context = ToolContext(global)
-        let service = try await context.service(writing: false)
+        let (context, service) = try await ToolContext.open(global, writing: false)
         let status = try await service.status()
         let zone = context.timeZone
         try context.emit(json: { AutomationRecords.status(status, timeZone: zone) }, text: {

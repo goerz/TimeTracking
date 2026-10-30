@@ -109,10 +109,3 @@ struct TimeTrackingCommand: AsyncParsableCommand {
         return rest
     }
 }
-
-extension ToolContext {
-    /// Writes help or another clean-exit message to stdout.
-    static func write(_ text: String) {
-        print(text, terminator: text.hasSuffix("\n") ? "" : "\n")
-    }
-}

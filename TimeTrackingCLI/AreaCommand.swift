@@ -30,8 +30,7 @@ struct AreaCommand: AsyncParsableCommand {
         @OptionGroup var global: GlobalOptions
 
         func run() async throws {
-            let context = ToolContext(global)
-            let service = try await context.service(writing: true)
+            let (context, service) = try await ToolContext.open(global, writing: true)
             try await AreaCommand.changed("Created", service.createArea(name, client: client, color: color), context: context)
         }
     }
@@ -44,8 +43,7 @@ struct AreaCommand: AsyncParsableCommand {
         @OptionGroup var global: GlobalOptions
 
         func run() async throws {
-            let context = ToolContext(global)
-            let service = try await context.service(writing: true)
+            let (context, service) = try await ToolContext.open(global, writing: true)
             try await AreaCommand.changed("Renamed", service.renameArea(old, to: new, client: client), context: context)
         }
     }
@@ -59,8 +57,7 @@ struct AreaCommand: AsyncParsableCommand {
 
         func run() async throws {
             _ = try AutomationService.color(color)
-            let context = ToolContext(global)
-            let service = try await context.service(writing: true)
+            let (context, service) = try await ToolContext.open(global, writing: true)
             try await AreaCommand.changed("Recolored", service.setAreaColor(name, color: color, client: client), context: context)
         }
     }

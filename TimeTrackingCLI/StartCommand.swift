@@ -31,9 +31,8 @@ struct StartCommand: AsyncParsableCommand {
     @OptionGroup var global: GlobalOptions
 
     func run() async throws {
-        let context = ToolContext(global)
-        let service = try await context.service(writing: true)
-        let at = try at.map { text throws(AutomationError) in try service.instant(text) }
+        let (context, service) = try await ToolContext.open(global, writing: true)
+        let at = try service.instant(ifGiven: at)
         let project = try await service.project(name: project, id: projectID, client: client)
         let result = try await service.start(task: task ?? "", projectID: project?.project.id, at: at, force: force)
         context.changed(Self.line(result, zone: context.timeZone)) {

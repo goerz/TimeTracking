@@ -17,8 +17,7 @@ struct AreasCommand: AsyncParsableCommand {
     @OptionGroup var global: GlobalOptions
 
     func run() async throws {
-        let context = ToolContext(global)
-        let service = try await context.service(writing: false)
+        let (context, service) = try await ToolContext.open(global, writing: false)
         let areas = try await service.areas(client: client, includeRetired: retired)
         try context.emit(
             json: { AutomationRecords.areas(areas) },

@@ -25,8 +25,7 @@ struct ClientCommand: AsyncParsableCommand {
         @OptionGroup var global: GlobalOptions
 
         func run() async throws {
-            let context = ToolContext(global)
-            let service = try await context.service(writing: true)
+            let (context, service) = try await ToolContext.open(global, writing: true)
             try await ClientCommand.changed("Created", service.createClient(name, color: color), context: context)
         }
     }
@@ -38,8 +37,7 @@ struct ClientCommand: AsyncParsableCommand {
         @OptionGroup var global: GlobalOptions
 
         func run() async throws {
-            let context = ToolContext(global)
-            let service = try await context.service(writing: true)
+            let (context, service) = try await ToolContext.open(global, writing: true)
             try await ClientCommand.changed("Renamed", service.renameClient(old, to: new), context: context)
         }
     }

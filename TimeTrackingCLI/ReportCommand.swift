@@ -34,8 +34,7 @@ struct ReportCommand: AsyncParsableCommand {
         guard let granularity = Granularity(rawValue: granularity), granularity != .year else {
             throw AutomationError.usage("--granularity takes total, day, week, or month.")
         }
-        let context = ToolContext(global)
-        let service = try await context.service(writing: false)
+        let (context, service) = try await ToolContext.open(global, writing: false)
         let week = DayRange(TrackingPeriod(.week, containing: service.today))
         guard let range = try range.resolve(service, default: week) else {
             throw AutomationError.usage("A report needs a range; --all-time alone is not one.")

@@ -11,6 +11,11 @@ nonisolated extension AutomationService {
         try DateArgument.parse(text, now: now, calendar: calendar).instant(in: calendar)
     }
 
+    /// Parses an optional time argument; `nil` when it was not given.
+    func instant(ifGiven text: String?) throws(AutomationError) -> Date? {
+        try text.map { text throws(AutomationError) in try instant(text) }
+    }
+
     /// The project of `--project NAME` / `--project-id ID` with `--client`.
     func project(name: String?, id: String?, client: String?) async throws(AutomationError) -> ProjectRow? {
         if let id {

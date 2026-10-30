@@ -25,8 +25,7 @@ struct CheckCommand: AsyncParsableCommand {
 
     func run() async throws {
         let description = try DescriptionFile(contentsOf: URL(filePath: file))
-        let context = ToolContext(global)
-        let service = try await context.service(writing: fix, csvMessage: Self.noCSV)
+        let (context, service) = try await ToolContext.open(global, writing: fix, csvMessage: Self.noCSV)
         let result = try await fix ? service.fix(description, client: client) : service.check(description, client: client)
         if global.csv {
             throw AutomationError.usage(Self.noCSV)

@@ -31,8 +31,7 @@ struct EntriesCommand: AsyncParsableCommand {
     }
 
     func run() async throws {
-        let context = ToolContext(global)
-        let service = try await context.service(writing: false)
+        let (context, service) = try await ToolContext.open(global, writing: false)
         let today = DayRange(from: service.today, to: service.today.adding(days: 1))
         let range = try running ? nil : range.resolve(service, default: today)
         let filter = try await filter.filter(service)

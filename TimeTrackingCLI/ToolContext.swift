@@ -32,13 +32,20 @@ nonisolated struct ToolContext {
         return url
     }
 
+    /// The context of one subcommand and the service of its store.
+    static func open(
+        _ options: GlobalOptions,
+        writing: Bool,
+        csvMessage: String = "Write commands have no CSV form."
+    ) async throws(AutomationError) -> (Self, AutomationService) {
+        let context = Self(options)
+        return try await (context, context.service(writing: writing, csvMessage: csvMessage))
+    }
+
     /// Opens the store (read-only for read commands) and returns its service.
     /// A writing command rejects `--csv` with `csvMessage` before the store
     /// opens, so the usage error writes nothing.
-    func service(
-        writing: Bool,
-        csvMessage: String = "Write commands have no CSV form."
-    ) async throws(AutomationError) -> AutomationService {
+    private func service(writing: Bool, csvMessage: String) async throws(AutomationError) -> AutomationService {
         if writing, options.csv {
             throw .usage(csvMessage)
         }
@@ -85,9 +92,12 @@ nonisolated struct ToolContext {
         !options.noColor && ProcessInfo.processInfo.environment["NO_COLOR"] == nil && isatty(STDOUT_FILENO) != 0
     }
 
-    /// Writes `text` to stdout, adding a newline unless it ends with one.
+    /// Writes `text` to stdout like `ToolContext.write(_:)`, except that an
+    /// empty text writes nothing.
     func write(_ text: String) {
-        print(text, terminator: text.hasSuffix("\n") || text.isEmpty ? "" : "\n")
+        if !text.isEmpty {
+            Self.write(text)
+        }
     }
 
     /// The output of a read command: JSON, CSV, or the table.
@@ -105,8 +115,8 @@ nonisolated struct ToolContext {
     }
 
     /// The output of a write command: the changed record with `--json`,
-    /// else the line; nothing with `--quiet`. `service(writing: true)` has
-    /// already rejected `--csv`.
+    /// else the line; nothing with `--quiet`. Opening the store for writing
+    /// has already rejected `--csv`.
     func changed(_ line: String, json: () -> JSONValue) {
         guard !options.quiet else {
             return
@@ -120,7 +130,13 @@ nonisolated struct ToolContext {
         FileHandle.standardError.write(Data((text + "\n").utf8))
     }
 
-    /// Writes `text` to stderr.
+    /// Writes `text` to stdout, adding a newline unless it ends with one;
+    /// help and other clean-exit messages go here, an empty one as a newline.
+    static func write(_ text: String) {
+        print(text, terminator: text.hasSuffix("\n") ? "" : "\n")
+    }
+
+    /// Writes `text` to stderr, adding a newline unless it ends with one.
     static func writeError(_ text: String) {
         FileHandle.standardError.write(Data((text.hasSuffix("\n") ? text : text + "\n").utf8))
     }

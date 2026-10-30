@@ -12,7 +12,7 @@ struct ProjectCommand: AsyncParsableCommand {
         subcommands: [Create.self, Archive.self, Unarchive.self, Rename.self, Move.self]
     )
 
-    static func changed(_ verb: String, _ row: ProjectRow, service _: AutomationService, context: ToolContext) {
+    static func changed(_ verb: String, _ row: ProjectRow, context: ToolContext) {
         let place = [row.client?.name, row.area?.name].compactMap(\.self).joined(separator: " / ")
         context.changed("\(verb) project \(row.project.name) in \(place).") {
             AutomationRecords.project(row, timeZone: context.timeZone)
@@ -27,14 +27,8 @@ struct ProjectCommand: AsyncParsableCommand {
         @OptionGroup var global: GlobalOptions
 
         func run() async throws {
-            let context = ToolContext(global)
-            let service = try await context.service(writing: true)
-            try await ProjectCommand.changed(
-                "Created",
-                service.createProject(name, area: area, client: client),
-                service: service,
-                context: context
-            )
+            let (context, service) = try await ToolContext.open(global, writing: true)
+            try await ProjectCommand.changed("Created", service.createProject(name, area: area, client: client), context: context)
         }
     }
 
@@ -45,9 +39,8 @@ struct ProjectCommand: AsyncParsableCommand {
         @OptionGroup var global: GlobalOptions
 
         func run() async throws {
-            let context = ToolContext(global)
-            let service = try await context.service(writing: true)
-            try await ProjectCommand.changed("Archived", service.archiveProject(name, client: client), service: service, context: context)
+            let (context, service) = try await ToolContext.open(global, writing: true)
+            try await ProjectCommand.changed("Archived", service.archiveProject(name, client: client), context: context)
         }
     }
 
@@ -58,14 +51,8 @@ struct ProjectCommand: AsyncParsableCommand {
         @OptionGroup var global: GlobalOptions
 
         func run() async throws {
-            let context = ToolContext(global)
-            let service = try await context.service(writing: true)
-            try await ProjectCommand.changed(
-                "Unarchived",
-                service.unarchiveProject(name, client: client),
-                service: service,
-                context: context
-            )
+            let (context, service) = try await ToolContext.open(global, writing: true)
+            try await ProjectCommand.changed("Unarchived", service.unarchiveProject(name, client: client), context: context)
         }
     }
 
@@ -77,14 +64,8 @@ struct ProjectCommand: AsyncParsableCommand {
         @OptionGroup var global: GlobalOptions
 
         func run() async throws {
-            let context = ToolContext(global)
-            let service = try await context.service(writing: true)
-            try await ProjectCommand.changed(
-                "Renamed",
-                service.renameProject(old, to: new, client: client),
-                service: service,
-                context: context
-            )
+            let (context, service) = try await ToolContext.open(global, writing: true)
+            try await ProjectCommand.changed("Renamed", service.renameProject(old, to: new, client: client), context: context)
         }
     }
 
@@ -96,14 +77,8 @@ struct ProjectCommand: AsyncParsableCommand {
         @OptionGroup var global: GlobalOptions
 
         func run() async throws {
-            let context = ToolContext(global)
-            let service = try await context.service(writing: true)
-            try await ProjectCommand.changed(
-                "Moved",
-                service.moveProject(name, toArea: area, client: client),
-                service: service,
-                context: context
-            )
+            let (context, service) = try await ToolContext.open(global, writing: true)
+            try await ProjectCommand.changed("Moved", service.moveProject(name, toArea: area, client: client), context: context)
         }
     }
 }

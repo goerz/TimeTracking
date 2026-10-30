@@ -30,8 +30,7 @@ struct EntryCommand: AsyncParsableCommand {
         @OptionGroup var global: GlobalOptions
 
         func run() async throws {
-            let context = ToolContext(global)
-            let service = try await context.service(writing: false)
+            let (context, service) = try await ToolContext.open(global, writing: false)
             let entry = try await service.store.resolveEntry(id)
             try await EntryCommand.emit([service.listing(entry)], service: service, context: context)
         }
@@ -64,8 +63,7 @@ struct EntryCommand: AsyncParsableCommand {
         @OptionGroup var global: GlobalOptions
 
         func run() async throws {
-            let context = ToolContext(global)
-            let service = try await context.service(writing: true)
+            let (context, service) = try await ToolContext.open(global, writing: true)
             let draft = try await EntryDraft(
                 projectID: service.project(name: project, id: projectID, client: client)?.project.id,
                 task: task ?? "",
@@ -117,8 +115,7 @@ struct EntryCommand: AsyncParsableCommand {
         }
 
         func run() async throws {
-            let context = ToolContext(global)
-            let service = try await context.service(writing: true)
+            let (context, service) = try await ToolContext.open(global, writing: true)
             let entry = try await service.store.resolveEntry(id)
             var change = EntryChange(task: task)
             if noProject {
@@ -126,8 +123,8 @@ struct EntryCommand: AsyncParsableCommand {
             } else if let row = try await service.project(name: project, id: projectID, client: client) {
                 change.projectID = .some(row.project.id)
             }
-            change.start = try start.map { text throws(AutomationError) in try service.instant(text) }
-            change.end = try end.map { text throws(AutomationError) in try service.instant(text) }
+            change.start = try service.instant(ifGiven: start)
+            change.end = try service.instant(ifGiven: end)
             let pieces = try await service.editEntry(entry.id, change, force: force)
             EntryCommand.changed("Changed", pieces, service: service, context: context)
         }
@@ -148,8 +145,7 @@ struct EntryCommand: AsyncParsableCommand {
         @OptionGroup var global: GlobalOptions
 
         func run() async throws {
-            let context = ToolContext(global)
-            let service = try await context.service(writing: yes)
+            let (context, service) = try await ToolContext.open(global, writing: yes)
             let listing = try await service.listing(service.store.resolveEntry(id))
             guard yes else {
                 // stdout stays empty on an error: the entry goes to stderr.
