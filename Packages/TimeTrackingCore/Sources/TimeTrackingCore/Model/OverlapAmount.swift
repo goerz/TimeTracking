@@ -21,10 +21,8 @@ public struct OverlapAmount: Sendable, Hashable {
         among others: [(EntryID, DateInterval)]
     ) -> [Self] {
         others.compactMap { other, otherInterval in
-            guard other != id, let overlap = otherInterval.intersection(with: interval), overlap.duration > 0 else {
-                return nil
-            }
-            return Self(id: other, seconds: overlap.duration)
+            let seconds = interval.overlapDuration(with: otherInterval)
+            return other != id && seconds > 0 ? Self(id: other, seconds: seconds) : nil
         }
     }
 }
