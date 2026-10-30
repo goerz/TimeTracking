@@ -41,7 +41,7 @@ struct StatusItemTests {
         let test = try await TestApp()
         let content = content(test)
         #expect(content.title.isEmpty)
-        #expect(content.symbol == "stopwatch")
+        #expect(content.dial == nil)
         #expect(content.accessibilityLabel == "Not tracking")
         #expect(StatusItemPresenter.nextTick(test.app.statusState, after: test.clock.now, menuOpen: false) == nil)
     }
@@ -52,7 +52,7 @@ struct StatusItemTests {
         await test.app.timer.start()
         test.clock.advance(by: 273)
         #expect(content(test).title == "0:04")
-        #expect(content(test).symbol == "stopwatch.fill")
+        #expect(content(test).dial == 4.0 / 60)
         test.app.settings.menuBarShowSeconds = true
         #expect(content(test).title == "0:04:33")
         test.app.settings.menuBarShowSeconds = false
@@ -91,7 +91,7 @@ struct StatusItemTests {
         #expect(content(test).title == String(name))
         test.app.settings.menuBarShowProject = false
         #expect(content(test).title.isEmpty)
-        #expect(content(test).symbol == "stopwatch.fill")
+        #expect(content(test).dial == 40.0 / 60)
     }
 
     @Test("MB-5 MB-9 a 25-minute focus keeps the elapsed title and adds timer 25:00; 2 min past focusEnd +2:00; Start Break moves to break")
@@ -105,7 +105,7 @@ struct StatusItemTests {
         ])
         test.app.perform(.start)
         #expect(content(test).title == "0:00")
-        #expect(content(test).symbol == "stopwatch.fill")
+        #expect(content(test).dial == 0)
         #expect(content(test).pomodoro == .init(symbol: AppSymbol.pomodoro, text: "25:00"))
         #expect(content(test).visibleText == "0:00 25:00")
         #expect(content(test).accessibilityLabel == "Tracking, 0 minutes, Pomodoro focus, 25 minutes left")
@@ -242,7 +242,7 @@ struct StatusItemTests {
         _ = try await test.store.start(projectID: nil, task: "From iPhone", at: test.clock.now - 60)
         await test.app.storeChanged(.runningEntry(nil))
         #expect(test.app.revision > revision)
-        #expect(content(test).symbol == "stopwatch.fill")
+        #expect(content(test).dial == 1.0 / 60)
         #expect(content(test).title == "0:01")
     }
 

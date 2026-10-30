@@ -305,6 +305,8 @@ final class AppModel {
             mostRecentOther: timer.mostRecentOther,
             lastStoppedToday: timer.lastStoppedToday,
             pomodoro: pomodoro.pomodoro,
+            focusMinutes: pomodoro.focusMinutes,
+            breakMinutes: pomodoro.breakMinutes,
             showTimer: settings.menuBarShowTimer,
             showSeconds: settings.menuBarShowSeconds,
             showProject: settings.menuBarShowProject,

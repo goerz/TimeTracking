@@ -20,13 +20,13 @@ struct ToolIntegrationTests {
         defer { test.app.stop() }
         _ = try await test.projects(["Noise paper"])
         let now = test.clock.now
-        #expect(StatusItemPresenter.content(test.app.statusState, at: now).symbol == "stopwatch")
+        #expect(StatusItemPresenter.content(test.app.statusState, at: now).dial == nil)
         let result = try HelperTool.run(["start", "Hello", "--project", "Noise paper"], store: url, now: now)
         #expect(result.status == 0, "\(result.error)")
         #expect(await eventually { test.app.timer.running?.task == "Hello" && test.app.timer.chainStart != nil })
         #expect(test.clock.now == now)
         let content = StatusItemPresenter.content(test.app.statusState, at: now)
-        #expect(content.symbol == "stopwatch.fill")
+        #expect(content.dial != nil)
         #expect(content.title.hasPrefix("0:00"))
         #expect(StatusItemPresenter.header(test.app.statusState, at: now).prefix(2) == ["Hello", "Noise paper · University"])
         await test.store.close()

@@ -131,17 +131,26 @@ A sidebar shows its symbols in the accent color (the system sidebar style); no m
 | Forms and settings | `Form` with `.formStyle(.grouped)`; labels in sentence case; help text as the section footer. |
 | Dialogs and sheets | iOS: title via `navigationTitle`; Cancel leading and the confirming action trailing (`.confirmationAction`). Mac sheets (no navigation bar): the title as centered `.headline` text at the top, the grouped form, and Cancel then the confirming action (`.borderedProminent`) at the bottom trailing edge. Shared dialogs use `DialogScaffold`. |
 
+### 7.1 Stable layout
+
+Nothing moves or resizes on its own once it is on screen; only the viewer's action or a real change of state does.
+
+- A live value (an elapsed time, a countdown) redraws only its own text, inside a `TimelineView`. It never changes a view's identity (no `.id(date)`), and the tick never wraps a control the viewer may be editing or focusing: a new identity each second resets focus and makes SwiftUI rebuild the main menu, which drops the window items AppKit adds to an open Window menu.
+- A ticking number has monospaced digits and keeps its width: the Pomodoro button's capsule fits the longest countdown, and the menu bar countdown is led by figure spaces to the width of the phase's length.
+- An open menu is never rebuilt; its rows are compared by value, and changing text (the status menu's header) updates in place.
+- Controls that come and go with state (discard while running, the Pomodoro capsule) change only when that state changes, never on a tick.
+
 ## 8. Mac windows
 
 - Timer window: hidden title bar; the title-bar row holds only the traffic lights and, at the far right, the pin button. The running-entry bar starts below it (`spec_timer_window.md` §2).
 - Planner: `NavigationSplitView` with a sidebar of fixed sections; the toolbar of §4.
 - Settings: `TabView` panes with a symbol per tab, each pane a grouped `Form` with a fixed width of 520 pt whose window takes the pane's height (scrolling off, height fixed to the content); only a pane longer than the screen allows (Tracker) has a fixed height and scrolls. Numbers are a trailing value with a stepper after it; a dependent setting is disabled, not indented.
-- Menu bar item: the elapsed time as text, and during a Pomodoro a trailing segment with the phase glyph and the countdown (the rule of §11). The menu is the system menu style; a running entry shows as a header view (task in `.headline`; area dot, project, " · client" in `.secondary`; `clock`, "Started 09:35 · 0:25 elapsed" in `.secondary`), never as grayed-out disabled items (`spec_menubar.md` §2.1).
+- Menu bar item: the dial icon (the app icon's ring and knob as one template color, `spec_menubar.md` §1.1), the elapsed time as text, and during a Pomodoro a trailing segment with the phase glyph and the countdown (the rule of §11). The menu is the system menu style; a running entry shows as a header view (task in `.headline`; area dot, project, " · client" in `.secondary`; `clock`, "Started 09:35 · 0:25 elapsed" in `.secondary`), never as grayed-out disabled items (`spec_menubar.md` §2.1).
 - Menus: items set the symbols of §5 as images and leave `preferredImageVisibility` automatic; macOS 27 hides menu item images by default, so no menu relies on them.
 
 ## 9. App icon and identity
 
-One icon, `AppResources/AppIcon.icon` (Icon Composer), for the Mac app, the tracker agent (it appears in Login Items and System Settings), and the iOS app. The `AppResources` folder belongs to those three targets; `ASSETCATALOG_COMPILER_APPICON_NAME` is set for them in `Project.xcconfig`. The widgets and the menu bar use SF Symbols, not the icon.
+One icon, `AppResources/AppIcon.icon` (Icon Composer), for the Mac app, the tracker agent (it appears in Login Items and System Settings), and the iOS app. The `AppResources` folder belongs to those three targets; `ASSETCATALOG_COMPILER_APPICON_NAME` is set for them in `Project.xcconfig`. The widgets use SF Symbols, not the icon. The menu bar item's dial is the icon reduced to one template color: a single ring with the knob, which moves as a minute hand or with the Pomodoro's progress.
 
 The icon is a ring of five flat arcs on a near-black navy squircle: time filling up with project colors, a white knob at the open end as the running entry. The geometry is exact on the 1024 pt grid:
 

@@ -54,7 +54,7 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         guard let button = item.button else {
             return
         }
-        button.image = Self.image(content.symbol, badge: content.badge)
+        button.image = Self.dialImage(content.dial, badge: content.badge)
         button.attributedTitle = Self.title(content)
         button.imageHugsTitle = true
         button.setAccessibilityLabel(content.accessibilityLabel)
@@ -105,26 +105,6 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         } else {
             render()
         }
-    }
-
-    static func image(_ symbol: String, badge: Bool) -> NSImage? {
-        guard let base = NSImage(systemSymbolName: symbol, accessibilityDescription: nil) else {
-            return nil
-        }
-        guard badge else {
-            base.isTemplate = true
-            return base
-        }
-        let size = NSSize(width: 18, height: 16)
-        let image = NSImage(size: size, flipped: false) { rect in
-            base.draw(in: NSRect(x: 0, y: 1, width: 15, height: 15))
-            if let mark = NSImage(systemSymbolName: "exclamationmark.circle.fill", accessibilityDescription: nil) {
-                mark.draw(in: NSRect(x: rect.maxX - 9, y: 0, width: 9, height: 9))
-            }
-            return true
-        }
-        image.isTemplate = true
-        return image
     }
 
     // MARK: Menu

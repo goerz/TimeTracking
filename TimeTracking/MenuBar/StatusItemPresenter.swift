@@ -14,8 +14,10 @@ struct StatusItemContent: Equatable {
         var text: String
     }
 
-    /// SF Symbol name, template.
-    var symbol: String
+    /// The dial icon's knob, as a fraction of a turn clockwise from 12
+    /// o'clock: the running entry's minutes within the hour, or the
+    /// Pomodoro phase's progress. `nil` while nothing runs (the empty ring).
+    var dial: Double?
     /// The elapsed time and the project, as the settings ask.
     var title: String
     var pomodoro: PomodoroSegment?
@@ -181,6 +183,9 @@ struct StatusItemState {
     var mostRecentOther: TimeEntry?
     var lastStoppedToday: TimeEntry?
     var pomodoro: Pomodoro
+    /// The synced phase durations in minutes, for the dial's progress.
+    var focusMinutes = 25
+    var breakMinutes = 5
     var showTimer: Bool
     var showSeconds: Bool
     var showProject: Bool
@@ -200,7 +205,7 @@ enum StatusItemPresenter {
     static let taskLimit = 60
 
     static func content(_ state: StatusItemState, at now: Date) -> StatusItemContent {
-        let symbol = state.running == nil ? "stopwatch" : "stopwatch.fill"
+        var dial: Double?
         var title = ""
         var spoken = state.running == nil ? "Not tracking" : "Tracking"
         let pomodoroRemaining = state.pomodoro.state.isOn ? state.pomodoro.remaining(at: now) : nil
@@ -208,6 +213,8 @@ enum StatusItemPresenter {
         let hidesElapsed = pomodoroRemaining != nil && state.pomodoroDisplay == .countdown
         if let chainStart = state.chainStart, state.running != nil {
             let elapsed = max(0, Int(now.timeIntervalSince(chainStart)))
+            // A minute hand: one turn per hour of the chain.
+            dial = Double(elapsed / 60 % 60) / 60
             if state.showTimer, !hidesElapsed {
                 title = state.showSeconds ? DurationText.clock(elapsed) : DurationText.hoursMinutes(elapsed)
             }
@@ -221,6 +228,12 @@ enum StatusItemPresenter {
         // The countdown is secondary: it follows the title, behind the phase
         // glyph. "Timer only" leaves it to the menu and the spoken label.
         var segment: StatusItemContent.PomodoroSegment?
+        // During a Pomodoro the dial shows the phase's progress instead.
+        let focusLength = TimeInterval(state.focusMinutes * 60)
+        let breakLength = TimeInterval(state.breakMinutes * 60)
+        if state.pomodoro.state.isOn, let progress = state.pomodoro.progress(at: now, focus: focusLength, break: breakLength) {
+            dial = progress
+        }
         if let remaining = pomodoroRemaining {
             let focus = state.pomodoro.state.isFocusPhase
             let phase = focus ? "focus" : "break"
@@ -230,7 +243,8 @@ enum StatusItemPresenter {
                 segment = .init(symbol: glyph, text: "+" + DurationText.minutesSeconds(over))
                 spoken += ", Pomodoro \(phase) ended \(spokenDuration(over, seconds: true)) ago"
             } else {
-                segment = .init(symbol: glyph, text: DurationText.minutesSeconds(remaining))
+                let phaseSeconds = (focus ? state.focusMinutes : state.breakMinutes) * 60
+                segment = .init(symbol: glyph, text: paddedCountdown(remaining, phaseSeconds: phaseSeconds))
                 spoken += ", Pomodoro \(phase), \(spokenDuration(remaining, seconds: true)) left"
             }
         }
@@ -240,7 +254,7 @@ enum StatusItemPresenter {
         if state.warning {
             spoken += ", tracker not running"
         }
-        return StatusItemContent(symbol: symbol, title: title, pomodoro: segment, badge: state.warning, accessibilityLabel: spoken)
+        return StatusItemContent(dial: dial, title: title, pomodoro: segment, badge: state.warning, accessibilityLabel: spoken)
     }
 
     /// The disabled header lines of §2.1 as plain text.
@@ -359,9 +373,7 @@ enum StatusItemPresenter {
         if menuOpen || state.showSeconds {
             return aligned(now, anchor: chainStart, period: 1)
         }
-        if !state.showTimer {
-            return nil
-        }
+        // Also without the timer text: the dial moves every minute.
         return aligned(now, anchor: chainStart, period: 60)
     }
 
@@ -370,6 +382,15 @@ enum StatusItemPresenter {
         let offset = now.timeIntervalSince(anchor)
         let steps = (offset / period).rounded(.down) + 1
         return anchor + steps * period
+    }
+
+    /// The countdown as `m:ss`, led by figure spaces to the width of the
+    /// phase's full length, so the item keeps its width when the minutes lose
+    /// a digit (`25:00` … `\u{2007}9:59`).
+    static func paddedCountdown(_ remaining: Int, phaseSeconds: Int) -> String {
+        let text = DurationText.minutesSeconds(remaining)
+        let width = DurationText.minutesSeconds(max(phaseSeconds, remaining)).count
+        return String(repeating: "\u{2007}", count: max(0, width - text.count)) + text
     }
 
     static func truncated(_ text: String, to limit: Int) -> String {

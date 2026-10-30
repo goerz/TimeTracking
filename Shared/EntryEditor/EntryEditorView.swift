@@ -121,16 +121,17 @@ struct EntryEditorView: View {
     }
 
     /// The live elapsed time while running, else the editable duration.
-    private var duration: some View {
-        TimelineView(.periodic(from: .now, by: 1)) { _ in
-            if model.isRunning {
+    /// Only the running text ticks; the field is never redrawn while edited.
+    @ViewBuilder private var duration: some View {
+        if model.isRunning {
+            TimelineView(.periodic(from: .now, by: 1)) { _ in
                 Text(model.durationDisplay(at: model.clock.now))
                     .monospacedDigit()
                     .accessibilityIdentifier("editor.duration")
-            } else {
-                timeField("Duration", text: $model.durationText, field: .duration, identifier: "editor.duration") {
-                    await model.commitDuration()
-                }
+            }
+        } else {
+            timeField("Duration", text: $model.durationText, field: .duration, identifier: "editor.duration") {
+                await model.commitDuration()
             }
         }
     }
