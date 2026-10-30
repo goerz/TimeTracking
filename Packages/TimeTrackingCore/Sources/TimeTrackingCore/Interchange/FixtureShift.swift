@@ -46,9 +46,18 @@ public struct FixtureShift: Sendable {
     /// `date`, read as wall-clock time in `zone`, moved by `days` and
     /// placed at the same wall-clock time in `timeZone`.
     public func shifted(_ date: Date, from zone: TimeZone) -> Date {
-        let source = TrackingCalendar(timeZone: zone)
-        let target = TrackingCalendar(timeZone: timeZone)
-        let day = source.day(containing: date).adding(days: days)
+        if let moved = Self.wallClock(date, from: zone, to: timeZone, addingDays: days) {
+            return moved
+        }
+        let day = TrackingCalendar(timeZone: zone).day(containing: date).adding(days: days)
+        return TrackingCalendar(timeZone: timeZone).startOfDay(day)
+    }
+
+    /// `date`, read as wall-clock time in `zone`, moved by `days` calendar
+    /// days and placed at the same wall-clock time in `target`; `nil` when
+    /// the calendar cannot build that time.
+    static func wallClock(_ date: Date, from zone: TimeZone, to target: TimeZone, addingDays days: Int) -> Date? {
+        let day = TrackingCalendar(timeZone: zone).day(containing: date).adding(days: days)
         var sourceCalendar = Calendar(identifier: .gregorian)
         sourceCalendar.timeZone = zone
         var parts = sourceCalendar.dateComponents([.hour, .minute, .second], from: date)
@@ -56,8 +65,8 @@ public struct FixtureShift: Sendable {
         parts.month = day.month
         parts.day = day.day
         var targetCalendar = Calendar(identifier: .gregorian)
-        targetCalendar.timeZone = timeZone
-        return targetCalendar.date(from: parts) ?? target.startOfDay(day)
+        targetCalendar.timeZone = target
+        return targetCalendar.date(from: parts)
     }
 
     /// The result of `apply(to:)`.
@@ -145,7 +154,8 @@ public struct FixtureShift: Sendable {
         return object
     }
 
-    private static func date(_ text: String) -> Date? {
+    /// The instant of an RFC 3339 text, or `nil`.
+    static func date(_ text: String) -> Date? {
         try? Date.ISO8601FormatStyle().parse(text)
     }
 }

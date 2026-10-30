@@ -54,18 +54,14 @@ public enum StoreFixture {
         else {
             return data
         }
-        var target = Calendar(identifier: .gregorian)
-        target.timeZone = timeZone
         for index in entries.indices {
             let source = (entries[index]["timeZone"] as? String).flatMap { TimeZone(identifier: $0) } ?? timeZone
-            var calendar = Calendar(identifier: .gregorian)
-            calendar.timeZone = source
             func move(_ key: String) {
-                guard let text = entries[index][key] as? String, let date = try? Date.ISO8601FormatStyle().parse(text) else {
+                guard let text = entries[index][key] as? String, let date = FixtureShift.date(text) else {
                     return
                 }
-                let parts = calendar.dateComponents([.year, .month, .day, .hour, .minute, .second], from: date)
-                entries[index][key] = target.date(from: parts).map { TimeStore.rfc3339($0) } ?? text
+                let moved = FixtureShift.wallClock(date, from: source, to: timeZone, addingDays: 0)
+                entries[index][key] = moved.map { TimeStore.rfc3339($0) } ?? text
             }
             move("start")
             move("end")
