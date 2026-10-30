@@ -111,6 +111,13 @@ extension TimeStore: TimeStoreReading {
             .filter { $0.id != excluding && $0.start < end && ($0.end ?? now) > draft.start }
     }
 
+    /// The entries `draft` overlaps, other than the pieces of the chain of
+    /// `id` (the entry being edited), by start (spec_timer_window.md §4.3).
+    public func overlaps(for draft: EntryDraft, outsideChainOf id: EntryID) throws -> [TimeEntry] {
+        let chain = try Set(chain(of: id).map(\.id))
+        return try overlaps(for: draft, excluding: id).filter { !chain.contains($0.id) }
+    }
+
     public func overlappingEntries(in interval: DateInterval) throws -> [(TimeEntry, TimeEntry)] {
         let now = clock.now
         let entries = try entries(in: interval)

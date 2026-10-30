@@ -43,28 +43,46 @@ extension TimeStore: StructureReading {
     }
 
     public func projects(filter: ProjectFilter) throws -> [ProjectRow] {
+        let stateClause = switch filter.state {
+        case .active: " AND p.archived = 0"
+        case .archived: " AND p.archived = 1"
+        case .all: ""
+        }
+        let search = filter.search?.folded ?? ""
+        return try projectRows(where: stateClause, arguments: []).filter { row in
+            (filter.areaIDs.map { $0.contains(row.project.areaID) } ?? true)
+                && (filter.clientIDs.map { ids in row.client.map { ids.contains($0.id) } ?? false } ?? true)
+                && (search.isEmpty || [row.project.name, row.area?.name ?? "", row.client?.name ?? ""]
+                    .contains { $0.folded.contains(search) })
+        }
+        .sorted { ($0.project.name.folded, $0.project.id) < ($1.project.name.folded, $1.project.id) }
+    }
+
+    /// The live project `id` as `projects(filter:)` lists it, archived or
+    /// not; `nil` when it is missing or deleted.
+    public func projectRow(_ id: ProjectID) throws -> ProjectRow? {
+        try projectRows(where: " AND p.id = ?", arguments: [id.rawValue]).first
+    }
+
+    /// Live projects with area, client, and usage; `clause` narrows the
+    /// `WHERE` on the project table `p`, with `arguments` for its `?`.
+    private func projectRows(where clause: String, arguments: StatementArguments) throws -> [ProjectRow] {
         let now = Time.seconds(clock.now)
         let rows = try read { database in
-            let stateClause = switch filter.state {
-            case .active: " AND p.archived = 0"
-            case .archived: " AND p.archived = 1"
-            case .all: ""
-            }
-            return try Row.fetchAll(
+            try Row.fetchAll(
                 database,
                 sql: """
                 SELECT p.*, COUNT(e.id) AS entry_count, MAX(e.start) AS last_used,
                   COALESCE(SUM(COALESCE(e."end", ?) - e.start), 0) AS total
                 FROM project p LEFT JOIN time_entry e ON e.project_id = p.id AND e.deleted_at IS NULL
-                WHERE p.deleted_at IS NULL\(stateClause)
+                WHERE p.deleted_at IS NULL\(clause)
                 GROUP BY p.id
                 """,
-                arguments: [now]
+                arguments: [now] + arguments
             )
         }
         let areas = try Dictionary(uniqueKeysWithValues: areas(of: nil, includeRetired: true).map { ($0.id, $0) })
         let clients = try Dictionary(uniqueKeysWithValues: clients(includeRetired: true).map { ($0.id, $0) })
-        let search = filter.search?.folded ?? ""
         return rows.map { row in
             let project = Project(row: row)
             let area = areas[project.areaID]
@@ -77,13 +95,6 @@ extension TimeStore: StructureReading {
                 totalSeconds: row["total"]
             )
         }
-        .filter { row in
-            (filter.areaIDs.map { $0.contains(row.project.areaID) } ?? true)
-                && (filter.clientIDs.map { ids in row.client.map { ids.contains($0.id) } ?? false } ?? true)
-                && (search.isEmpty || [row.project.name, row.area?.name ?? "", row.client?.name ?? ""]
-                    .contains { $0.folded.contains(search) })
-        }
-        .sorted { ($0.project.name.folded, $0.project.id) < ($1.project.name.folded, $1.project.id) }
     }
 
     public func project(_ id: ProjectID) throws -> Project? {
