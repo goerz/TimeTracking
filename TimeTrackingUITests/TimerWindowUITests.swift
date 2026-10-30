@@ -52,7 +52,7 @@ final class TimerWindowUITests: XCTestCase {
         XCTAssertFalse(app.descendants(matching: .any)["timer.list"].exists)
         // Dragging to 250 pt snaps to 300 pt and shows the list.
         let edge = window.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 1.0)).withOffset(CGVector(dx: 0, dy: -1))
-        edge.click(forDuration: 0.2, thenDragTo: edge.withOffset(CGVector(dx: 0, dy: 162)))
+        edge.click(forDuration: 0.2, thenDragTo: edge.withOffset(CGVector(dx: 0, dy: 250 - window.frame.height)))
         XCTAssertEqual(window.frame.height, 300, accuracy: 2)
         app.terminate()
     }
