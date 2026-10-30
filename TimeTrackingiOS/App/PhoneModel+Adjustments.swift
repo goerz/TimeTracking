@@ -36,7 +36,7 @@ extension PhoneModel {
         let device = deviceName.map { " on \($0)" } ?? " on another device"
         switch adjustment.reason {
         case .stoppedByLaterStart:
-            let end = adjustment.after?.end.map(EntryEditorModel.time) ?? ""
+            let end = adjustment.after?.end.map(LocalDateText.time) ?? ""
             return "Stopped at \(end) because an entry started\(device)"
         case .removedByLaterStart:
             return "Removed because an entry started\(device)"

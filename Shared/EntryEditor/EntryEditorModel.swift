@@ -165,7 +165,7 @@ final class EntryEditorModel {
     /// Escape in an edited field: revert. Returns `false` when nothing was
     /// edited (the popover closes).
     func revertFields() -> Bool {
-        let edited = task != entry.task || startText != Self.time(entry.start) || stopText != stopDisplay
+        let edited = task != entry.task || startText != LocalDateText.time(entry.start) || stopText != stopDisplay
             || durationText != DurationText.clock(entry.seconds(at: clock.now))
         task = entry.task
         resetTimeFields()
@@ -229,11 +229,11 @@ final class EntryEditorModel {
     }
 
     private var stopDisplay: String {
-        entry.end.map(Self.time) ?? "running"
+        entry.end.map(LocalDateText.time) ?? "running"
     }
 
     private func resetTimeFields() {
-        startText = Self.time(entry.start)
+        startText = LocalDateText.time(entry.start)
         stopText = stopDisplay
         durationText = DurationText.clock(entry.seconds(at: clock.now))
         date = entry.start
@@ -247,12 +247,12 @@ final class EntryEditorModel {
         var lines: [String] = []
         if index > 0 {
             let previous = chain[index - 1]
-            lines.append("Continued from \(Self.day(previous.start)), \(Self.time(previous.start))")
+            lines.append("Continued from \(LocalDateText.day(previous.start)), \(LocalDateText.time(previous.start))")
         }
         if index + 1 < chain.count {
             let next = chain[index + 1]
-            let until = next.end.map(Self.time) ?? "now"
-            lines.append("Continues on \(Self.day(next.start)) until \(until)")
+            let until = next.end.map(LocalDateText.time) ?? "now"
+            lines.append("Continues on \(LocalDateText.day(next.start)) until \(until)")
         }
         chainLines = lines
     }
@@ -262,17 +262,7 @@ final class EntryEditorModel {
         if name.isEmpty, let listing = try? await store.listings(for: [other]).first {
             name = listing.project?.name ?? "No task"
         }
-        let end = other.end.map(Self.time) ?? "now"
-        return "Overlaps “\(name)” (\(Self.time(other.start)) to \(end))"
-    }
-
-    /// The time of day in the system's 12- or 24-hour format.
-    static func time(_ date: Date) -> String {
-        date.formatted(date: .omitted, time: .shortened)
-    }
-
-    /// "Thu, Oct 29".
-    static func day(_ date: Date) -> String {
-        date.formatted(.dateTime.weekday(.abbreviated).month(.abbreviated).day())
+        let end = other.end.map(LocalDateText.time) ?? "now"
+        return "Overlaps “\(name)” (\(LocalDateText.time(other.start)) to \(end))"
     }
 }

@@ -80,7 +80,7 @@ enum StatusItemPresenter {
                 lines.append(MenuHeaderLine(state.label.name, secondary: client, style: .primary, dot: state.label.color ?? ""))
             }
             let start = state.chainStart ?? running.start
-            var started = time(start)
+            var started = LocalDateText.time(start)
             if !calendar.isDate(start, inSameDayAs: now) {
                 let yesterday = calendar.date(byAdding: .day, value: -1, to: now).map { calendar.isDate(start, inSameDayAs: $0) } ?? false
                 started += yesterday ? " yesterday" : " " + start.formatted(.dateTime.month(.abbreviated).day())
@@ -91,7 +91,7 @@ enum StatusItemPresenter {
             lines.append(MenuHeaderLine("Not tracking", style: .title))
             if let last = state.lastStoppedToday, let end = last.end {
                 lines.append(MenuHeaderLine(
-                    "Last: \(last.task.isEmpty ? "No task" : last.task), stopped \(time(end))",
+                    "Last: \(last.task.isEmpty ? "No task" : last.task), stopped \(LocalDateText.time(end))",
                     style: .secondary,
                     symbol: "clock"
                 ))
@@ -197,10 +197,6 @@ enum StatusItemPresenter {
 
     static func truncated(_ text: String, to limit: Int) -> String {
         text.count <= limit ? text : String(text.prefix(limit - 1)) + "…"
-    }
-
-    static func time(_ date: Date) -> String {
-        date.formatted(date: .omitted, time: .shortened)
     }
 
     /// "40 minutes", "12 minutes 34 seconds", "1 hour 5 minutes".

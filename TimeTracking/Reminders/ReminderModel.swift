@@ -42,7 +42,7 @@ final class ReminderModel {
             return false
         }
         lastReminder = now
-        let body = lastStop?.end.map { "Last entry stopped at \(IdleModel.time($0))." } ?? "Nothing has been tracked yet."
+        let body = lastStop?.end.map { "Last entry stopped at \(LocalDateText.time($0))." } ?? "Nothing has been tracked yet."
         notifier.post(NotificationRequest(category: .reminder, title: "Nothing is being tracked", body: body, sound: nil))
         return true
     }

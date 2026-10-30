@@ -145,7 +145,7 @@ final class IdleModel {
             notifier.post(NotificationRequest(
                 category: .idle,
                 title: "You have been away",
-                body: "Idle since \(Self.time(start)) while tracking \(task).",
+                body: "Idle since \(LocalDateText.time(start)) while tracking \(task).",
                 sound: nil
             ))
         }
@@ -157,10 +157,6 @@ final class IdleModel {
             return ""
         }
         let minutes = Int(now.timeIntervalSince(prompt.idleStart) / 60)
-        return "Idle since \(Self.time(prompt.idleStart)) (\(minutes) minute\(minutes == 1 ? "" : "s"))."
-    }
-
-    static func time(_ date: Date) -> String {
-        date.formatted(date: .omitted, time: .shortened)
+        return "Idle since \(LocalDateText.time(prompt.idleStart)) (\(minutes) minute\(minutes == 1 ? "" : "s"))."
     }
 }

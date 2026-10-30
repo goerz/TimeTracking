@@ -139,7 +139,7 @@ struct StatusItemTests {
         await test.app.timer.setProject(projects[0].id)
         await test.app.timer.start()
         test.clock.advance(by: 2400)
-        let started = try StatusItemPresenter.time(test.date("2024-03-14T13:38"))
+        let started = try LocalDateText.time(test.date("2024-03-14T13:38"))
         #expect(StatusItemPresenter.header(test.app.statusState, at: test.clock.now) == [
             "Clarify noise model", "Noise Model · University", "Started \(started) · 0:40 elapsed",
         ])
@@ -147,7 +147,7 @@ struct StatusItemTests {
         test.clock.advance(by: 26)
         #expect(StatusItemPresenter.header(test.app.statusState, at: test.clock.now).last == "Focus · 24:34 left")
         await test.app.stopEntry()
-        let stopped = StatusItemPresenter.time(test.clock.now)
+        let stopped = LocalDateText.time(test.clock.now)
         #expect(StatusItemPresenter.header(test.app.statusState, at: test.clock.now) == [
             "Not tracking", "Last: Clarify noise model, stopped \(stopped)",
         ])
@@ -159,7 +159,7 @@ struct StatusItemTests {
         await late.app.afterChange()
         let lines = StatusItemPresenter.header(late.app.statusState, at: late.clock.now)
         #expect(lines[0] == "No task" && lines[1] == "No project")
-        #expect(try lines[2] == "Started \(StatusItemPresenter.time(late.date("2024-03-13T23:10"))) yesterday · 1:05 elapsed")
+        #expect(try lines[2] == "Started \(LocalDateText.time(late.date("2024-03-13T23:10"))) yesterday · 1:05 elapsed")
     }
 
     @Test("MB-7 enablement and actions: Continue does not show the window, New focuses the task field, Stop stops")
@@ -264,7 +264,7 @@ struct StatusItemTests {
         #expect(content(test).accessibilityLabel == "Not tracking, tracker not running")
         let menu = StatusItemPresenter.menu(test.app.statusState, at: test.clock.now)
         #expect(menu.first == .header(MenuHeaderLine(
-            "Tracker not running since \(StatusItemPresenter.time(tick))",
+            "Tracker not running since \(LocalDateText.time(tick))",
             style: .warning,
             symbol: "exclamationmark.triangle"
         )))

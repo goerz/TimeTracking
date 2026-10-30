@@ -44,7 +44,7 @@ struct EntryEditorTests {
         model.stopText = "10:30"
         await model.commitStop()
         #expect(model.message == "Entries cannot be in the future")
-        #expect(try model.stopText == EntryEditorModel.time(test.time("09:35")))
+        #expect(try model.stopText == LocalDateText.time(test.time("09:35")))
         #expect(try await test.store.entry(entry.id)?.end == (test.time("09:35")))
         let running = try await test.store.start(projectID: nil, task: "Now", at: test.time("09:50"))
         let live = await editor(test, running)
@@ -68,10 +68,10 @@ struct EntryEditorTests {
         #expect(chain.count == 2)
         #expect(model.entry.id == entry.id)
         #expect(try model.entry.end == (test.time("2024-03-13T00:00")))
-        let next = try EntryEditorModel.day(test.time("2024-03-13T00:00"))
-        #expect(try model.chainLines == ["Continues on \(next) until \(EntryEditorModel.time(test.time("2024-03-13T00:35")))"])
+        let next = try LocalDateText.day(test.time("2024-03-13T00:00"))
+        #expect(try model.chainLines == ["Continues on \(next) until \(LocalDateText.time(test.time("2024-03-13T00:35")))"])
         let second = await editor(test, chain[1])
-        #expect(second.chainLines == ["Continued from \(EntryEditorModel.day(entry.start)), \(EntryEditorModel.time(entry.start))"])
+        #expect(second.chainLines == ["Continued from \(LocalDateText.day(entry.start)), \(LocalDateText.time(entry.start))"])
     }
 
     @Test("TW-21 a task change on one piece changes every piece; a Start change only that piece")
@@ -102,12 +102,12 @@ struct EntryEditorTests {
         model.startText = "9:20"
         await model.commitStart()
         let notice = try #require(model.overlap)
-        let range = try "\(EntryEditorModel.time(test.time("09:00"))) to \(EntryEditorModel.time(test.time("09:25")))"
+        let range = try "\(LocalDateText.time(test.time("09:00"))) to \(LocalDateText.time(test.time("09:25")))"
         #expect(notice.text == "Overlaps “Morning Review” (\(range))")
         #expect(try await test.store.entry(entry.id)?.start == (test.time("09:30")))
         model.revertOverlap()
         #expect(model.overlap == nil)
-        #expect(try model.startText == EntryEditorModel.time(test.time("09:30")))
+        #expect(try model.startText == LocalDateText.time(test.time("09:30")))
         model.startText = "9:20"
         await model.commitStart()
         await model.keepOverlap()

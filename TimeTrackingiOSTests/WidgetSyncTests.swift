@@ -170,7 +170,7 @@ struct WidgetSyncTests {
         await test.model.storeChanged(.adjusted([stopped]))
         #expect(test.model.banner?.entryID == entry.id)
         #expect(test.model.badged.contains(entry.id))
-        let time = try EntryEditorModel.time(test.date("2024-03-14T08:30"))
+        let time = try LocalDateText.time(test.date("2024-03-14T08:30"))
         #expect(test.model.explanations[entry.id] == "Stopped at \(time) because an entry started on another device")
         test.model.openEditor(entry.id)
         #expect(!test.model.badged.contains(entry.id))

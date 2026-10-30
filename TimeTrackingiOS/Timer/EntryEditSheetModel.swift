@@ -147,7 +147,7 @@ final class EntryEditSheetModel {
         if name.isEmpty, let listing = try? await store.listings(for: [other]).first {
             name = listing.project?.name ?? "No task"
         }
-        let until = other.end.map(EntryEditorModel.time) ?? "now"
-        return "Overlaps “\(name)” (\(EntryEditorModel.time(other.start)) to \(until))"
+        let until = other.end.map(LocalDateText.time) ?? "now"
+        return "Overlaps “\(name)” (\(LocalDateText.time(other.start)) to \(until))"
     }
 }
