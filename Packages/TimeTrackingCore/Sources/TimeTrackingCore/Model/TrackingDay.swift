@@ -50,25 +50,45 @@ public struct TrackingDay: Hashable, Comparable, Codable, Sendable, CustomString
 
     /// The day `days` later (earlier for negative values).
     public func adding(days: Int) -> Self {
-        let calendar = Self.gregorian
-        let date = calendar.date(from: components) ?? .distantPast
-        let moved = calendar.date(byAdding: .day, value: days, to: date) ?? date
-        let parts = calendar.dateComponents([.year, .month, .day], from: moved)
-        return Self(year: parts.year ?? year, month: parts.month ?? month, day: parts.day ?? day)
+        Self(dayNumber: dayNumber + days)
     }
 
     /// Days from `self` to `other` (positive when `other` is later).
     public func distance(to other: Self) -> Int {
-        let calendar = Self.gregorian
-        let from = calendar.date(from: components) ?? .distantPast
-        let to = calendar.date(from: other.components) ?? .distantPast
-        return calendar.dateComponents([.day], from: from, to: to).day ?? 0
+        other.dayNumber - dayNumber
     }
 
     /// ISO weekday, 1 (Monday) to 7 (Sunday).
     public var isoWeekday: Int {
-        let weekday = Self.gregorian.component(.weekday, from: Self.gregorian.date(from: components) ?? .distantPast)
-        return (weekday + 5) % 7 + 1
+        // Day 0 (1970-01-01) was a Thursday.
+        (dayNumber % 7 + 7 + 3) % 7 + 1
+    }
+
+    /// Days since 1970-01-01 in the proleptic Gregorian calendar (H. Hinnant's
+    /// `days_from_civil`); invalid days roll over like `Calendar` does.
+    var dayNumber: Int {
+        let normalizedMonth = month - 1
+        let year = year + (normalizedMonth >= 0 ? normalizedMonth / 12 : (normalizedMonth - 11) / 12)
+        let month = normalizedMonth - (year - self.year) * 12 + 1
+        let shifted = month <= 2 ? year - 1 : year
+        let era = (shifted >= 0 ? shifted : shifted - 399) / 400
+        let yearOfEra = shifted - era * 400
+        let dayOfYear = (153 * (month > 2 ? month - 3 : month + 9) + 2) / 5 + day - 1
+        let dayOfEra = yearOfEra * 365 + yearOfEra / 4 - yearOfEra / 100 + dayOfYear
+        return era * 146_097 + dayOfEra - 719_468
+    }
+
+    /// The day `dayNumber` days after 1970-01-01 (`civil_from_days`).
+    init(dayNumber: Int) {
+        let shifted = dayNumber + 719_468
+        let era = (shifted >= 0 ? shifted : shifted - 146_096) / 146_097
+        let dayOfEra = shifted - era * 146_097
+        let yearOfEra = (dayOfEra - dayOfEra / 1460 + dayOfEra / 36_524 - dayOfEra / 146_096) / 365
+        let dayOfYear = dayOfEra - (365 * yearOfEra + yearOfEra / 4 - yearOfEra / 100)
+        let monthIndex = (5 * dayOfYear + 2) / 153
+        let day = dayOfYear - (153 * monthIndex + 2) / 5 + 1
+        let month = monthIndex < 10 ? monthIndex + 3 : monthIndex - 9
+        self.init(year: yearOfEra + era * 400 + (month <= 2 ? 1 : 0), month: month, day: day)
     }
 
     public func encode(to encoder: any Encoder) throws {
@@ -79,11 +99,4 @@ public struct TrackingDay: Hashable, Comparable, Codable, Sendable, CustomString
     var components: DateComponents {
         DateComponents(year: year, month: month, day: day, hour: 12)
     }
-
-    /// A Gregorian calendar in UTC for pure date arithmetic.
-    static let gregorian: Calendar = {
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = TimeZone(identifier: "UTC") ?? .gmt
-        return calendar
-    }()
 }

@@ -35,6 +35,12 @@ public struct EntryFilter: Hashable, Sendable {
     public var includeArchived: Bool
     /// Only entries without a project (the tool's `--no-project`).
     public var noProjectOnly: Bool
+    /// With `clients` set, entries without a project match too ("No client").
+    public var clientsIncludeNone = false
+    /// With `areas` set, entries without a project match too ("No area").
+    public var areasIncludeNone = false
+    /// With `projects` set, entries without a project match too ("(no project)").
+    public var projectsIncludeNone = false
 
     // swiftlint:disable discouraged_optional_collection
     public init(
@@ -86,6 +92,8 @@ public struct ReportNode: Hashable, Sendable {
     public var name: String?
     /// The area's color for area and project nodes.
     public var color: String?
+    /// An archived project's node (Reports shows "(archived)").
+    public var isArchived = false
     public var seconds: Int
     public var entryCount: Int
     public var buckets: [TrackingPeriod: Int]
