@@ -7,6 +7,9 @@ extension StoreTransaction {
     /// The current record of a row with its system fields; `nil` when the
     /// row does not exist (a hard deletion).
     func syncRecord(_ ref: SyncRecordRef) throws -> SyncRecord? {
+        if ref.type == .liveState {
+            return try liveStateRecord()
+        }
         guard let (table, key) = Self.table(of: ref.type),
               let row = try Row.fetchOne(database, sql: "SELECT * FROM \(table) WHERE \(key) = ?", arguments: [ref.name])
         else {
@@ -19,7 +22,7 @@ extension StoreTransaction {
         case .timeEntry: TimeEntry(row: row).syncRecord
         case .device: Device(row: row).syncRecord
         case .suggestionFeedback: SuggestionFeedback(row: row).syncRecord
-        case .setting, .liveState: Self.settingRecord(ref, row)
+        case .setting, .liveState: Self.settingRecord(ref, row) // LiveState returned above
         }
         record.systemFields = row["ck_system_fields"]
         return record
@@ -37,6 +40,10 @@ extension StoreTransaction {
     }
 
     func setSystemFields(_ ref: SyncRecordRef, _ data: Data?) throws {
+        if ref.type == .liveState {
+            try setLiveStateSystemFields(data)
+            return
+        }
         guard let (table, key) = Self.table(of: ref.type) else {
             return
         }
@@ -49,10 +56,12 @@ extension StoreTransaction {
 
     /// Applies a fetched or conflicting server record by the rules of §3.2:
     /// the later copy wins entirely; `activity.contextColors` merges as a
-    /// union. Writes no outbox row for the server's state; a local copy that
-    /// wins keeps its data, takes the server's system fields, and is queued.
+    /// union, `LiveState` by the field merge of §4.1. Writes no outbox row
+    /// for the server's state; a local copy that wins keeps its data, takes
+    /// the server's system fields, and is queued.
     func applyRemote(_ remote: SyncRecord) throws {
         guard remote.ref.type != .liveState else {
+            try applyRemoteLiveState(remote)
             return
         }
         let local = try syncRecord(remote.ref)
@@ -73,6 +82,12 @@ extension StoreTransaction {
     /// A server hard deletion: a live local record becomes a tombstone at
     /// `now`; a local tombstone is removed.
     func applyRemoteDeletion(_ ref: SyncRecordRef) throws {
+        if ref.type == .liveState {
+            // The record is recreated from the local row.
+            try setLiveStateSystemFields(nil)
+            queue(ref)
+            return
+        }
         guard let local = try syncRecord(ref) else {
             return
         }

@@ -5,7 +5,7 @@ import Testing
 import TimeTrackingCore
 
 /// One simulated device: a store and its sync loop.
-private struct Peer {
+struct Peer {
     let test: TestStore
     let sync: StoreSynchronizer
     let name: String
@@ -21,7 +21,7 @@ private struct Peer {
     }
 }
 
-private struct Network {
+struct Network {
     let clock: ManualClock
     let server: InMemorySyncServer
     let peers: [Peer]
@@ -218,7 +218,7 @@ struct MultiStoreSyncTests {
         let server = InMemorySyncServer(clock: clock)
         let engine = StoreSynchronizer(store: app, transport: server.transport(for: "Mac"))
         let entry = try await tool.start(projectID: nil, task: "From the tool", at: clock.now)
-        #expect(try await app.outboxCount() == 1)
+        #expect(try await app.outboxCount() == 2) // the entry and LiveState
         try await engine.sync()
         #expect(await server.record(SyncRecordRef(.timeEntry, entry.id.rawValue)) != nil)
         #expect(try await tool.outboxCount() == 0)

@@ -127,7 +127,8 @@ struct EntryWriteTests {
         #expect(test.notifier.postCount == 1)
         _ = try await store.start(projectID: nil, task: "a", at: test.date("2024-03-14T09:00"))
         _ = try await store.start(projectID: nil, task: "b", at: test.date("2024-03-14T09:10"))
-        #expect(try await store.outboxCount() == before + 2 + 1 + 2)
+        // Each start also changes the LiveState record (§4.2).
+        #expect(try await store.outboxCount() == before + 2 + (1 + 1) + (2 + 1))
         #expect(test.notifier.postCount == 3)
     }
 

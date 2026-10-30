@@ -114,6 +114,10 @@ extension TimeStore {
                     transaction.queue(SyncRecordRef(type, name))
                 }
             }
+            if try transaction.liveStateRecord() != nil {
+                try transaction.setLiveStateSystemFields(nil)
+                transaction.queue(StoreTransaction.liveStateRef)
+            }
         }
     }
 

@@ -140,6 +140,7 @@ public actor TimeStore {
             try transaction.splitRunningEntries()
             let result = try body(transaction)
             try transaction.runInvariantPass()
+            try transaction.updateLiveStateSnapshot()
             return result
         }
         try didCommit(outcome)
@@ -205,6 +206,9 @@ public actor TimeStore {
                 broadcaster.yield(.runningEntry(running))
             }
         }
+        if outcome.liveStateChanged {
+            broadcaster.yield(.liveState)
+        }
         if outcome.structureChanged {
             broadcaster.yield(.structure)
         }
@@ -258,6 +262,7 @@ struct TransactionOutcome: Sendable {
     var changedEntryIDs: Set<EntryID>
     var changedSettings: Set<String>
     var structureChanged: Bool
+    var liveStateChanged: Bool
     var adjustments: [EntryAdjustment]
     var queuedCount: Int
     var splitPieces: Int
@@ -266,12 +271,13 @@ struct TransactionOutcome: Sendable {
         self.changedEntryIDs = transaction.changedEntryIDs
         self.changedSettings = transaction.changedSettings
         self.structureChanged = transaction.structureChanged
+        self.liveStateChanged = transaction.liveStateChanged
         self.adjustments = transaction.adjustments
         self.queuedCount = transaction.queued.count
         self.splitPieces = transaction.splitPieceCount
     }
 
     var hasChanges: Bool {
-        queuedCount > 0 || !changedEntryIDs.isEmpty || structureChanged || !changedSettings.isEmpty
+        queuedCount > 0 || !changedEntryIDs.isEmpty || structureChanged || liveStateChanged || !changedSettings.isEmpty
     }
 }
