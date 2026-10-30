@@ -24,10 +24,6 @@ Entry writes go through the app process. Interactive widget and control buttons 
 
 ## 2. iPhone: the Timer screen
 
-![iPhone Timer screen](mockups/ios_timer.png)
-
-The Timer screen with an entry running and a Pomodoro active.
-
 ### 2.1 Layout
 
 A navigation bar with the large title "Timer", a settings button (`gearshape`), and a menu button (`ellipsis.circle`) with Continue Latest, Stop, and Discard. Below it, one scrolling list with the running-entry card pinned at the top, the Mac activity line (2.3), and the day-grouped recent list (2.6). The list is `searchable`: its filter matches and sums as the Timer window's ⌘F filter ([spec_timer_window.md](spec_timer_window.md) §3). The iPhone has no tab bar, no calendar view, and no manual mode.
@@ -101,10 +97,6 @@ A screen pushed from the toolbar.
 | About | Version, build, link to the app's Shortcuts page | | |
 
 ## 3. Widgets
-
-![iPhone widgets](mockups/ios_widgets.png)
-
-Home Screen widgets (left) and Lock Screen widgets (right).
 
 ### 3.1 Common rules
 

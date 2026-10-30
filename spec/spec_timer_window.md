@@ -2,10 +2,6 @@
 
 The Timer window is the Mac app's everyday surface: the running entry on top, recent entries by day below. This spec also owns the Pomodoro, idle detection, reminders, the settings window, the global shortcuts, and the shared entry editor.
 
-![Timer window](mockups/timer_window.png)
-
-Full mode with an entry running.
-
 ## 1. Window
 
 One SwiftUI `Window` scene (`timer`, title "Timer") with a hidden title bar: the traffic lights sit in the bar's first row, and the bar's background drags the window.
@@ -24,10 +20,6 @@ One SwiftUI `Window` scene (`timer`, title "Timer") with a hidden title bar: the
 The list hides and shows live as a resize crosses the threshold. A drag ending below the threshold animates to the bar height; one ending between the threshold and the minimum full height animates to the minimum full height, keeping the dragged width and the top-left corner.
 
 Each mode's last frame is remembered (device settings `timerFullFrame`, `timerCompactFrame`). View > Compact Mode (⇧⌘M, checkmark) switches modes at the current top-left corner with the other mode's remembered size; a drag across the threshold applies the other mode's remembered height.
-
-![Timer window, compact mode](mockups/timer_window_compact.png)
-
-The same running entry in compact mode.
 
 ### 1.2 Pin
 
@@ -236,8 +228,6 @@ The pane's contents are specified in `spec_activity_tracking.md` §7.4. The trac
 At the first launch on a Mac, after the Timer window appears, an alert asks "Set up activity tracking?" with the text "The tracker records which apps, sites, and terminal sessions you work in, so the Calendar can suggest entries. It needs a few permissions." and the buttons "Open Tracker Settings" (opens this pane) and "Later". Either button sets the device setting `trackerOnboardingPrompted`, so the alert appears once per Mac.
 
 ### 8.3 Shortcuts
-
-![Settings, Shortcuts pane](mockups/settings_shortcuts.png)
 
 The two recorders use the KeyboardShortcuts package (names `showHideTimer`, `continueStop`), stored as device settings and registered system-wide; a shortcut already in use is reported and not stored.
 

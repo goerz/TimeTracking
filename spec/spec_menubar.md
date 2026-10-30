@@ -2,10 +2,6 @@
 
 The Mac app's status item shows the running entry's elapsed time (or the Pomodoro countdown) next to an icon, and its menu starts, continues, and stops entries, drives the Pomodoro, and opens the app's windows. This spec also owns the Dock icon setting and the Dock menu, and the warning when the activity tracker has stopped. State and commands come from the Timer window (`spec_timer_window.md` §13).
 
-![Menu bar item with its menu open](mockups/menubar.png)
-
-A running entry without a Pomodoro, tracker healthy.
-
 ## 1. The status item
 
 ### 1.1 Content

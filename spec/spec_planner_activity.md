@@ -8,10 +8,6 @@ Vocabulary: an item has a context (an app, a terminal session such as `tmux:pape
 
 ## 1. Layout
 
-![Planner Activity](mockups/planner_activity.png)
-
-This week (W44, today Thursday) with all contexts selected and the tracker running.
-
 From top to bottom: the date range bar, the header (1.2), the context chips (1.3), the panels, and the health footer (1.10). The range bar and footer stay fixed; the rest scrolls. Panels are cards (12 point corner radius, 16 point padding, 16 point gaps), in two columns above 1100 points of content width and one column below, in the order heatmap, by-day chart, Contexts, Subjects, In the background, Away.
 
 ### 1.1 Date range

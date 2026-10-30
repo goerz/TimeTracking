@@ -4,10 +4,6 @@ The Calendar section of the Planner window shows one to seven days side by side.
 
 ## 1. Layout
 
-![Planner Calendar](mockups/planner_calendar.png)
-
-Five days at 72 points per hour with today in the middle and all three columns shown.
-
 ### 1.1 Toolbar and summary strip
 
 | Control | Behavior |

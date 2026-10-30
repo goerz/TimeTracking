@@ -6,8 +6,6 @@ This spec covers the Mac app's Planner window shell and its Projects section: th
 
 ### 1.1 Layout
 
-![Planner window, Projects section](mockups/planner_projects.png)
-
 There is at most one Planner window: a two-column split view with a sidebar and the selected section. The sidebar entries are Projects (`folder`), Calendar (`calendar`), Reports (`chart.bar`), and Activity (`waveform.path.ecg`), with no headings and no other items. The window title is the section's name. Each section owns its toolbar; the shell adds only the sidebar toggle. The Planner has no running-timer controls.
 
 | Property | Value |
@@ -128,8 +126,6 @@ Two live projects of one client with the same name (created offline on two devic
 
 ## 3. The project dialog
 
-![New-project dialog](mockups/project_dialog.png)
-
 One dialog serves creation (from Projects or the picker's "Create Project" row) and editing, as a sheet on the invoking window (on iOS also a page pushed inside the picker's sheet). Edit mode is titled "Edit Project", its button reads "Save", and it adds an "Archived" check box.
 
 ### 3.1 Fields
@@ -156,8 +152,6 @@ Create (or Save) is disabled until Name is valid; a duplicate shows "A project w
 Entries store only the project id, so a rename shows everywhere without touching entries, and moving a project to another area changes the color, area, and client of all its entries, past and future. When the project has entries and the client changes, the dialog confirms: "Move “X” and its N entries to University · Teaching? Reports for past dates will show them there." (Move, Cancel). A move within the same client needs no confirmation and is undoable.
 
 ## 4. Clients & Areas
-
-![Clients & Areas view](mockups/planner_clients_areas.png)
 
 The "Clients & Areas" toolbar button (⌥⌘1) replaces the table with this outline; the toolbar's "Projects" button or ⌘1 returns, and "+ New Client" sits beside it. Clients are listed alphabetically, each followed by its areas in order (general area first) and an "+ Add Area" row.
 
@@ -205,10 +199,6 @@ Display forms, derived from the stored value by `AreaColor`, the same in light a
 | Lightness step i (0-based) | Adds the i-th value of [0, +0.12, −0.12, +0.24, −0.24, +0.36] to the HSL lightness, clamped to 0.15 to 0.90; from the seventh step the values repeat (Reports adds a hatch) |
 
 ## 5. The project picker
-
-![Project picker](mockups/project_picker.png)
-
-Empty search with the Recent group, and the search "noise" with the "Create Project" row.
 
 Every place that assigns a project to an entry or a time block uses this picker (Timer window, Calendar editors and Fill Day rows, iOS Timer); the owner decides where it opens and what the choice does. On the Mac it is a popover 340 pt wide and at most 440 pt tall, scrolling; on iOS a sheet (iPhone) or popover (iPad).
 

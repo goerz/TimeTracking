@@ -15,6 +15,7 @@ TimeTracking is a personal time tracker for the Mac, iPhone, and iPad. It record
 | [spec_activity_tracking.md](spec_activity_tracking.md) | Tracker agent: presence, sources, blocks, logs, exclusions, device collection |
 | [spec_ios.md](spec_ios.md) | iPhone and iPad app, widgets, control, intents, device collection |
 | [spec_automation.md](spec_automation.md) | Command-line tool, App Intents, URL scheme, import and export, consistency check |
+| [spec_design.md](spec_design.md) | Design language: typography, spacing, toolbars, symbols, color, components, app icon |
 
 ## Vocabulary
 

@@ -4,8 +4,6 @@ The Reports section of the Planner window shows where the time went in a date ra
 
 ## 1. Layout
 
-![Reports section](mockups/planner_reports.png)
-
 From top to bottom: the toolbar, four tiles, the chart card (fixed 280 pt high), and a card holding either the breakdown table or the entry list, chosen by a segmented control. The lower card fills the rest and scrolls. Below 700 pt of content height the tiles collapse into one line and the chart shrinks to 180 pt.
 
 Toolbar, from the left: previous-period arrow, date-range button, next-period arrow, Filters with badge and active filter chips; at the right granularity, Print, and Export. The chart card's header holds "Logged time" and "Stack by"; the lower card's header the segmented control (Breakdown | Entries), the level chain, and Expand All / Collapse All.
