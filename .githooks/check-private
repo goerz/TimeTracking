@@ -1,0 +1,116 @@
+#!/bin/sh
+# Refuses personal data in what git would publish (spec_architecture.md §2.5,
+# ARCH-22).
+#
+#   .githooks/check-private tree             tracked files in the work tree
+#   .githooks/check-private staged           the index (pre-commit)
+#   .githooks/check-private message <file>   a commit message (commit-msg)
+#   .githooks/check-private push             the commits on stdin (pre-push)
+#
+# Personal data: the values in local.mk (TEAM, BUNDLE_ID, ALIAS, DEVICE_*),
+# the home directory, the host names, the git e-mail address, every line of
+# .private-strings (case-insensitive, whole words; '#' starts a comment),
+# credentials (PEM private keys, access tokens), device UDIDs, and key or
+# provisioning files. Matches are reported by file and line, never printed.
+set -eu
+
+mode="${1:-}"
+root=$(git rev-parse --show-toplevel)
+cd "$root"
+work=$(mktemp -d "${TMPDIR:-/tmp}/check-private.XXXXXX")
+trap 'rm -rf "$work"' EXIT
+
+# --- Patterns
+fixed="$work/fixed"     # case-sensitive substrings
+words="$work/words"     # case-insensitive whole words
+: > "$fixed"
+: > "$words"
+if [ -f local.mk ]; then
+    sed -nE 's/^[[:space:]]*(TEAM|BUNDLE_ID|ALIAS|DEVICE_[A-Za-z0-9_]+)[[:space:]]*[:?]?=[[:space:]]*(.*[^[:space:]])[[:space:]]*$/\2/p' local.mk \
+        | grep -v '\$(' | awk 'length($0) >= 4' >> "$fixed" || true
+fi
+[ -z "${HOME:-}" ] || echo "$HOME" >> "$fixed"
+for name in "$(hostname -s 2>/dev/null || true)" "$(scutil --get LocalHostName 2>/dev/null || true)" \
+    "$(scutil --get ComputerName 2>/dev/null || true)"; do
+    [ "${#name}" -ge 4 ] && echo "$name" >> "$fixed"
+done
+email=$(git config user.email 2>/dev/null || true)
+[ -z "$email" ] || echo "$email" >> "$fixed"
+if [ -f .private-strings ]; then
+    sed -e 's/#.*//' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' .private-strings | grep -v '^$' >> "$words" || true
+fi
+sort -u -o "$fixed" "$fixed"
+sort -u -o "$words" "$words"
+# Credentials and device identifiers.
+regex="$work/regex"
+cat > "$regex" <<'EOF'
+^-----BEGIN [A-Z ]*PRIVATE KEY-----$
+AKIA[0-9A-Z]{16}
+gh[pousr]_[A-Za-z0-9]{36}
+xox[abprs]-[A-Za-z0-9-]{10,}
+(^|[^0-9A-Za-z])[0-9A-F]{8}-[0-9A-F]{16}([^0-9A-Za-z]|$)
+EOF
+files_regex='(^|/)(local\.mk|Local\.xcconfig|\.private-strings)$|\.(p8|p12|cer|mobileprovision|provisionprofile)$'
+
+found="$work/found"
+: > "$found"
+
+# report <category>: reads "file:line:..." from stdin
+report() {
+    cut -d: -f1,2 | sed "s/\$/: $1/" >> "$found"
+}
+
+# scan_grep <git grep options...>: scans with git grep (tree, index, or commit)
+scan_grep() {
+    [ ! -s "$fixed" ] || git grep -I -n -F -f "$fixed" "$@" | report "personal value" || true
+    [ ! -s "$words" ] || git grep -I -n -i -w -F -f "$words" "$@" | report "private string" || true
+    git grep -I -n -E -f "$regex" "$@" | report "credential or device id" || true
+}
+
+scan_names() {
+    grep -E "$files_regex" | sed 's/$/: key, profile, or personal file/' >> "$found" || true
+}
+
+case "$mode" in
+tree)
+    scan_grep
+    git ls-files | scan_names
+    ;;
+staged)
+    scan_grep --cached
+    git diff --cached --name-only --diff-filter=ACMR | scan_names
+    ;;
+message)
+    file="${2:?usage: check-private message <file>}"
+    grep -v '^#' "$file" > "$work/message" || true
+    { [ ! -s "$fixed" ] || grep -n -F -f "$fixed" "$work/message" || true; } | sed 's/^/message:/' | report "personal value"
+    { [ ! -s "$words" ] || grep -n -i -w -F -f "$words" "$work/message" || true; } | sed 's/^/message:/' | report "private string"
+    { grep -n -E -f "$regex" "$work/message" || true; } | sed 's/^/message:/' | report "credential or device id"
+    ;;
+push)
+    zero=0000000000000000000000000000000000000000
+    while read -r _ local_sha _ remote_sha; do
+        [ "$local_sha" = "$zero" ] && continue
+        scan_grep "$local_sha"
+        git ls-tree -r --name-only "$local_sha" | scan_names
+        if [ "$remote_sha" = "$zero" ]; then range="$local_sha"; else range="$remote_sha..$local_sha"; fi
+        for commit in $(git rev-list "$range"); do
+            git log -1 --format=%B "$commit" > "$work/message"
+            { [ ! -s "$fixed" ] || grep -n -F -f "$fixed" "$work/message" || true; } | sed "s/^/commit $commit message:/" | report "personal value"
+            { [ ! -s "$words" ] || grep -n -i -w -F -f "$words" "$work/message" || true; } | sed "s/^/commit $commit message:/" | report "private string"
+        done
+    done
+    ;;
+*)
+    echo "usage: check-private tree|staged|message <file>|push" >&2
+    exit 64
+    ;;
+esac
+
+if [ -s "$found" ]; then
+    echo "check-private: refusing personal data:" >&2
+    sort -u "$found" | sed 's/^/  /' >&2
+    exit 1
+fi
+[ "$mode" != tree ] || echo "check-private: clean"
+exit 0

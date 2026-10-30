@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="mockup-size" content="640,360">
+<title>Menu bar item</title>
+<link rel="stylesheet" href="mockup.css">
+<style>
+
+.mbar { position: absolute; left: 0; right: 0; top: 0; height: 30px; background: rgba(255,255,255,0.55); backdrop-filter: blur(20px); display: flex; align-items: center; justify-content: flex-end; gap: 4px; padding: 0 12px; font-size: 13px; font-weight: 500; box-shadow: 0 0.5px 0 rgba(0,0,0,0.08); }
+.mbar .it { height: 24px; display: inline-flex; align-items: center; gap: 4px; padding: 0 8px; border-radius: 6px; }
+.mbar .it.open { background: rgba(0,0,0,0.12); }
+.mbar svg.i { width: 17px; height: 17px; }
+.wall { position: absolute; inset: 0; background: linear-gradient(170deg, #c9d8ea 0%, #dccfe6 50%, #ead9cf 100%); }
+.mhdr { color: var(--label-3); }
+
+</style>
+</head>
+<body>
+<div class="wall"></div>
+<div class="mbar">
+  <span class="it open"><svg class="i "><use href="#stopwatch-fill"/></svg><span class="tnum">0:40</span></span>
+  <span class="it"><svg class="i "><use href="#wifi"/></svg></span>
+  <span class="it"><svg class="i s20"><use href="#battery"/></svg></span>
+  <span class="it"><svg class="i "><use href="#switches"/></svg></span>
+  <span class="it tnum">Thu Oct 29&nbsp;&nbsp;14:18</span>
+</div>
+<div class="menu" style="left:325px;top:33px;width:250px"><div class="mi dis">Clarify noise model</div><div class="mi dis">Noise Model · University</div><div class="mi dis">Started 13:38, 0:40 elapsed</div><div class="msep"></div><div class="mi">New<span class="key">⌘N</span></div><div class="mi">Continue<span class="key">⌘O</span></div><div class="mi">Stop<span class="key">⌘S</span></div><div class="msep"></div><div class="mi">Start Pomodoro<span class="key">⇧⌘P</span></div><div class="msep"></div><div class="mi">Show Timer Window<span class="key">⌥⌘R</span></div><div class="mi">Open Planner<span class="key">⌥⌘P</span></div><div class="mi">Settings…<span class="key">⌘,</span></div><div class="msep"></div><div class="mi">Quit TimeTracking<span class="key">⌘Q</span></div></div>
+<script src="icons.js"></script>
+</body>
+</html>

@@ -1,0 +1,408 @@
+# Spec: Activity Tracking Component
+
+## 1. Scope
+
+The tracker agent (see `components.md`) records where the user's attention goes on the Mac, and with less detail on iPhone and iPad, as a permanent log of activity blocks ("blocks"). It never assigns a project, area, or client to a block (the suggestion engine of `spec_planner_calendar.md` does), never reads the time store, and never shows UI; its settings pane belongs to the Mac app (7.4). The iOS collectors are implemented in `spec_ios.md`; the `DeviceEvent` record is defined in `spec_data_and_sync.md`.
+
+## 2. Design
+
+### 2.1 Principles
+
+1. A 30 second tick takes a sample. Events (app activation, pane change, agent hooks, lock, sleep, user switch) refine the timing between ticks.
+2. Presence is decided by input and display state, never by app activity (tabs reloading after a display wake are not attention).
+3. Every sample has one primary item (where attention is) and zero or more secondary items (a busy coding agent, a running build). Blocks are formed from primary items.
+4. The tracker records raw identifiers (session names, paths, domains, app names) and never maps them to projects.
+5. Exclusions (7.2) apply before anything is written. Raw samples stay local; only closed blocks reach the permanent logs.
+
+### 2.2 The item
+
+An item has three recorded levels and one derived key, all strings.
+
+| Level | Meaning | Terminal | Browser | Document |
+|---|---|---|---|---|
+| context | Kind of place | `tmux:paper` | `safari` | `skim` |
+| subject | The piece of work | `draft` (window) or `~/Documents/Papers/2026_Noise` (cwd) | `github.com/owner/repo` | `~/Documents/Papers/2026_Noise` |
+| detail | The thing in hand | `nvim notes.tex` | `pull/123` | `notes.pdf` |
+| group key | Derived; decides where blocks split | `tmux:paper` | `github.com/owner` | `~/Documents/Papers/2026_Noise` |
+
+The group key comes from the first rule that applies:
+
+1. A terminal item in a multiplexer: the session name. Without a multiplexer: the work folder of the pane's cwd (rule 3).
+2. A notebook tab on `localhost`: the group key of the pane that owns the port.
+3. A file or folder: the nearest ancestor containing a `root_markers` entry, otherwise the folder `group_depth` levels below its watched root, one level deeper below `deep_folders`.
+4. A URL on a code host: domain plus owner. Any other URL: the bare domain.
+5. Anything else: the app name.
+
+### 2.3 Sources and fallbacks
+
+Each source is detected at runtime and reports `active`, `fallback`, or `off` (cannot run) in the health record (4.4), with a reason when not `active` ("Full Disk Access not granted").
+
+| Id | Source | Depends on | Fallback |
+|---|---|---|---|
+| `window` | Window title, `AXDocument` | Accessibility | App name only |
+| `terminal` | Focused terminal pane | A terminal adapter (3.1) | Process tree of the frontmost terminal plus last input time |
+| `tmux` | Session, window, pane | tmux running | Foreground process and cwd of the pane's tty |
+| `editor` | Editor file | Editor sets its terminal title | Editor RPC, then process arguments, then cwd |
+| `agents` | Coding agent sessions | Claude Code's `~/.claude/sessions/*.json` (undocumented) | Process plus cwd, busy state unknown |
+| `tmux_events` | tmux push events | User-installed tmux hooks | The tick alone |
+| `agent_events` | Coding agent push events | User-installed agent hooks | The tick alone |
+| `browser` | Active tab | Automation per browser | `AXURL` plus title |
+| `history` | Full browser history | Full Disk Access (Safari), profile discovery (Chromium) | Sampled tabs only; Safari URLs reduced to the domain |
+| `knowledge` | Backfill, Safari dwell times | Full Disk Access, expected Knowledge store schema | Off |
+| `files` | Modified files | An existing folder in `roots` | Off |
+| `shared_folder` | Block log in iCloud Drive | iCloud Drive, container write access | Copied by the Mac app (4.1), or local only |
+| `device_events` | iPhone and iPad collection | CloudKit subscription for `DeviceEvent` | A fetch every 5 minutes |
+| `synced_safari` | Safari history from other devices | `synced_safari_history` and Full Disk Access | Off |
+
+### 2.4 Resolver chain per tick
+
+1. Presence (3.4). The sample is `idle`, and nothing else runs, if idle time exceeds `idle_after` and no passive item is frontmost (2.5), or if the display is off, the screen is locked, or another user owns the console.
+2. The frontmost app and its focused window through Accessibility (`AXTitle`, `AXDocument`, `AXURL` for browsers; no Screen Recording).
+3. Dispatch by bundle identifier: terminals to 3.1, browsers to 3.3. Chat apps give workspace and channel from the title. Meeting and screen-sharing apps give the meeting or host name. Document apps give `AXDocument`, else the title; Finder gives the front window's folder. Any other app gives its name plus the window title.
+4. Secondary items: every busy coding agent session; every tmux client with input in the last 30 s in a session other than the primary's; `job_commands` running in non-active panes.
+5. Apply the exclusions and write the sample: time, state, primary, secondaries, and debug fields (bundle id, filtered title, tmux target).
+
+### 2.5 Passive attention
+
+Apps in `passive_apps`, tabs on `passive_domains`, and meeting and screen-sharing apps count as attention while frontmost with the display on, even without input, up to `passive_limit`. Audio-only apps never count.
+
+### 2.6 From samples to blocks
+
+Each active tick appends its sample to the open block, opening one if none is open; idle samples do not extend it. The block closes on any of:
+
+- Idle for `idle_close`; the end is the last active sample, and shorter gaps are absorbed.
+- Screen lock, sleep, display sleep, or a user switch, at the event time.
+- Local midnight: the block closes at 00:00 and the next active sample opens a new one. This holds for every source, so no block spans two dates.
+- The split test.
+- Reaching `max_block` without a split: the block closes at the best change point in the last 30 minutes, or at the current tick. A mostly passive block may run to `max_passive_block`.
+
+The split test runs on every tick once the open block exceeds `split_after`. For each candidate split point with at least `min_half` on each side, it compares the two sides as time-weighted distributions over group keys by weighted Jaccard distance: 1 minus the sum over keys of the smaller share divided by the sum of the larger share. If the best candidate reaches `split_threshold`, the first part closes as a block.
+
+### 2.7 The block summary
+
+When a block closes:
+
+1. Sum the seconds per primary item.
+2. Merge items sharing context and subject when their details would take more than three lines (`nvim draft (5 files)`).
+3. Drop items under `summary_min_share` and under 60 s, but keep the top item of every group key present for at least 3 minutes.
+4. Order by time, cap at `summary_lines`.
+5. Append secondaries that ran at least 5 minutes.
+6. Store the dominant group key and its share.
+
+```
+09:10-09:44  tmux:paper (71%)  tmux:paper nvim draft (3 files) 18m · safari github.com/owner/repo pull/123 9m · mail Inbox 4m  + claude refactor-parser (busy 12m)
+```
+
+## 3. Sources
+
+### 3.1 Terminal
+
+The focused pane's tty comes from a terminal adapter (WezTerm through `wezterm cli`, iTerm2 and Terminal.app through AppleScript; kitty optional). Without one, it is the tty of the frontmost terminal's descendant processes with the most recent input (tmux `client_activity`, else the tty's access time). A tmux client on that tty (on every server socket under `$TMUX_TMPDIR` or `/tmp/tmux-<uid>/`) gives the session and the active pane's window name, command, cwd, title, and pid; without tmux, the tty's foreground process and its cwd.
+
+The pane's foreground program refines the item:
+
+- Editors: the pane title matched against `title_patterns`, trusted only while the pane's command is that editor; then editor RPC (Neovim: the socket of the `nvim --embed` descendant, `expand("%:p")`, 200 ms timeout, cached per pane); then process arguments; then cwd. While the title works, RPC cross-checks it every 10 minutes per pane and reports a mismatch to health.
+- Coding agents, recognized by executable path or title: for Claude Code, `~/.claude/sessions/<pid>.json` gives session name, cwd, tmux target, and busy or idle status; transcripts are never read live, and never under `private_agent_paths`. Other `agent_processes` give process name plus cwd.
+- Interpreters (Julia, Python, R, Node): cwd as subject, command as detail. A notebook server's listening port is registered so a browser tab on it inherits the pane's item.
+- Shells: the cwd only.
+- Commands in `job_commands`: cwd plus program name.
+
+The tmux hooks `client-session-changed`, `after-select-window`, `after-select-pane`, and `pane-focus-in`, and the Claude Code hooks `UserPromptSubmit`, `Stop`, and `SessionEnd`, may call `tracker-event`, which writes one line to the agent's socket and advances the tick. The sources `tmux_events` and `agent_events` are `active` when such an event arrived in the last 7 days.
+
+### 3.2 Knowledge store
+
+The macOS Knowledge store (`~/Library/Application Support/Knowledge/knowledgeC.db`, Full Disk Access) records app intervals (`/app/usage`), Safari dwell time (`/app/webUsage`), and display state (`/display/isBacklit`). The agent reads a copy of the database and its WAL, and sets the source `off` when the schema is not the expected one. At agent start and every 15 minutes it reconstructs blocks (`src` `knowledge`) for periods the agent was down and adds Safari dwell times to the detail log; once a day it cross-checks the agent's app timeline.
+
+### 3.3 Browsers
+
+The active tab of a frontmost browser is read through Apple Events: Safari's current tab `URL` and `name`; for Chromium browsers (Chrome, Arc, Brave, Edge, Vivaldi) `URL`, `title`, and the incognito flag, skipping private tabs. Browsers without a scripting dictionary, or with Automation denied, give `AXURL` plus title, and "Private Browsing" in the title marks a private window.
+
+Safari private windows write no history: a sampled Safari URL with no visit in a copy of `History.db` within 3 minutes is recorded as `safari (private)` and the sampled URL is dropped. Without Full Disk Access, Safari URLs are reduced to the domain.
+
+At block close, the detail log gets every visit in the block's range from Safari's `History.db` (`origin = 0`) and each Chromium profile's `History` (copies, never the live files).
+
+Block summaries strip query and fragment except on a short allowlist (code host pull request and issue paths, forum topic ids, arXiv ids), map `localhost:<port>` to the owning pane's item, and reduce domains in the `summary_domain_only` categories to the domain. The detail log keeps full URLs, apart from private domains.
+
+### 3.4 Presence and files
+
+Idle seconds come from `CGEventSource` (no permission); lock from `com.apple.screenIsLocked` and `com.apple.screenIsUnlocked`; display sleep, system sleep, and user switches from `NSWorkspace` notifications; console ownership is checked each tick. On wake, the block closes at the sleep time. Time while another user owns the console is idle.
+
+An FSEvents stream on `roots`, skipping `prune_names`, records modified files into the detail log of the block. When a block's terminal items have no resolved file, files modified in the pane's cwd fill the detail.
+
+Never recorded: keystrokes, clipboard, screenshots, message bodies, terminal command lines, password manager contents, and anything of a private browser window beyond the browser name.
+
+## 4. Storage
+
+### 4.1 Tiers and folders
+
+| Tier | Where | Content | Retention |
+|---|---|---|---|
+| Samples | Agent folder, `samples.sqlite` (GRDB) | One row per tick | 90 days |
+| Block log | Shared folder, `blocks/YYYY-MM.jsonl` | One line per closed block | Permanent |
+| Detail log | Agent folder, `Activity/detail/YYYY-MM.jsonl` | Per block: all items, URLs, modified files, presence transitions | Permanent |
+| Current state | Agent folder, `Activity/current.json` | Open block, primary item, presence, health | Each tick |
+| Settings | Shared folder, `settings.toml` | Section 7 | Permanent |
+
+The agent folder is `<App Group container>/Library/Application Support/TimeTracking/` (`spec_architecture.md`); it also holds the socket `tracker.sock` and the health watchdog file, and nothing in it leaves the Mac. The shared folder is `Activity/` in the product's iCloud Drive container, outside `Documents/`, and holds only `blocks/` and `settings.toml`. Without iCloud Drive, the agent folder's `Activity/` takes its place and `shared_folder` reports `fallback`.
+
+Phase 1 verifies that the agent can write the container. If it cannot, the agent writes `blocks/` and reads `settings.toml` in the agent folder's `Activity/`, and the Mac app copies each changed month file into the container (whole-file replace, `NSFileCoordinator`) and keeps the two `settings.toml` identical (newer modification time wins); `shared_folder` reports `fallback` with "Copied by the Mac app".
+
+### 4.2 Block log format
+
+```json
+{"type":"header","format":1,"tz":"-04:00","dev":"macbook","contexts":{"tmux:paper":"com.github.wez.wezterm","safari":"com.apple.Safari","mail":"com.apple.mail","claude":"claude"}}
+{"s":"2026-10-28T09:10:00","e":"2026-10-28T09:44:30","a":1860,"dev":"macbook","g":"tmux:paper","gs":0.71,"items":[["tmux:paper","draft","nvim (3 files)",1080],["safari","github.com/owner/repo","pull/123",540],["mail","Inbox","",240]],"bg":[["claude","refactor-parser","",720]],"src":"live"}
+```
+
+Each month file starts with a header object; another header follows a time zone change and precedes the first block using a context not yet in `contexts`, which maps context keys to bundle identifiers (or process names). Readers skip objects with a `type` and ignore unknown keys. In a block, `s` and `e` are local times on one date; `a` is the active seconds, the sum of item seconds before the summary cut (less than `e` minus `s` when idle gaps were absorbed); `g` and `gs` are the dominant group key and its share; `items` and `bg` (secondaries) hold `[context, subject, detail, seconds]` with `""` for no detail; `dev` is the device name, or `remote` for unattributed synced Safari history (6.1); `src` is `live`, `knowledge`, or `device`. Idle is the absence of a block.
+
+### 4.3 Detail log format
+
+A block line with `items` uncut, plus `urls` as `[time, browser, url, title]`, `files` as `[time, path]`, and `presence` as the state transitions in and around the block, so every gap between blocks is covered. The library reads it on the recording Mac only (`detail(for:)`, `spec_data_and_sync.md`).
+
+### 4.4 Current state
+
+Rewritten atomically (temporary file, then rename) on every tick and presence event; never copied to the shared folder.
+
+```json
+{"format":1,"dev":"macbook","block":{"s":"2026-10-28T09:10:00","a":1080,"g":"tmux:paper","gs":0.71,"items":[["tmux:paper","draft","nvim (3 files)",1080]],"bg":[]},"primary":["tmux:paper","draft","nvim notes.tex"],"presence":{"state":"active","since":"2026-10-28T09:10:00","last_input":"2026-10-28T09:44:27"},"health":{"last_tick":"2026-10-28T09:44:30","version":"1.0 (42)","sources":[{"id":"terminal","name":"Terminal","status":"active","reason":""},{"id":"browser","name":"Browsers","status":"active","reason":""},{"id":"knowledge","name":"Knowledge store","status":"off","reason":"Full Disk Access not granted"}]}}
+```
+
+The `block` is the open block summarized as of now, without `e` (or `null`); `primary` is `null` while idle; `presence.state` is `active`, `passive`, `idle`, `locked`, `asleep`, or `other_user`, and `since` is the time of the event or input that set it, not of the tick that noticed it; `health.sources` lists every source of 2.3.
+
+Every reader derives the tracker's liveness from `health.last_tick` by one rule: the tracker is running while the last tick is younger than 2 minutes, and not running when it is 2 minutes old or older or `current.json` is missing. While running, a last tick of 90 seconds or older counts as delayed. The Tracker pane (7.4), the Activity footer, the menu bar warning, the Timer window's idle detection, and `agentRunning` in `LiveState` all use this rule.
+
+The agent pushes nothing. The Timer window reads `presence` for its own idle detection (`spec_timer_window.md`). The Mac app's `LiveStatePublisher` copies the tracker fields of this Mac into `LiveState` (fields and rules in `spec_data_and_sync.md`); they are already filtered by the exclusions.
+
+## 5. Agent
+
+The agent, `TimeTrackingAgent.app`, is a headless login item with `KeepAlive` (bundle, registration, entitlements in `spec_architecture.md`), always team-signed because TCC keys its grants to its own signing identity. Its modules: Presence, Focus, Resolvers (adapters per app), Settings (loads and reloads `settings.toml`), Sampler, Blocker (split, summary, logs, `current.json`), Knowledge, History, Devices (6.2), Events (the socket), and Health. A tick takes under 100 ms.
+
+| Flag | Effect |
+|---|---|
+| `--record <folder>` | Writes adapter outputs and the run's samples as fixtures, with home-directory paths, host names, and URL paths replaced by placeholders |
+| `--replay <fixture>` | Runs the Blocker over a recorded sample stream, compares with `<fixture>.expected.jsonl`, exits non-zero on a difference |
+| `--unregister` | Removes the login item registration and exits |
+
+Permissions: Accessibility (required); Automation per browser and scriptable terminal, prompted at first use; Full Disk Access (optional) for the Knowledge store and Safari's history and synced tabs.
+
+## 6. Other Apple devices
+
+### 6.1 Synced Safari history
+
+With `synced_safari_history` on, the History module forms blocks from Safari's `History.db` visits with `origin = 1` (synced from other devices) by the same algorithm, a visit being a sample and a gap over 5 minutes closing the block. They carry `src` `live` and `dev` `remote`, unless `CloudTabs.db` (polled every 5 minutes) shows that within the block exactly one device's tab set changed to include a visited URL; then `dev` is that device's name. They are not deduplicated against iOS Safari extension blocks.
+
+### 6.2 Collected by the iOS app
+
+The iOS app writes raw, labeled `DeviceEvent` records per device, exclusions applied, with these `source` values:
+
+| Source | Mechanism | Gives |
+|---|---|---|
+| `ladder` | DeviceActivity: a monitor extension receives `eventDidReachThreshold` at 1, 2, 3, … minutes of daily use of each user-labeled set of apps, categories, or domains ("Everything", "Mail"), schedule midnight to midnight | Minutes of use per set |
+| `focus` | Focus filter | Focus on and off |
+| `intent` | App Intent "Log activity event" for Shortcuts automations | Exact times with a label |
+| `webext` | Safari Web Extension, tab activations and URL changes | Browser items |
+| `app` | The iOS app's foreground transitions | App use |
+
+The cap on monitored events is undocumented; phase 7 measures it and sets the ladder steps.
+
+The Devices module merges events into blocks with `src` `device` and the device's name as `dev`. Consecutive ladder minutes are samples with the set's label as context, subject, and group key, and gaps over `idle_close` separate blocks. A Focus that suspends collection closes the block. Intent events are samples with their label, web extension URLs are browser items under the rules of 3.3, and app transitions are samples of the app. The agent deletes merged records older than 90 days.
+
+## 7. Settings and exclusions
+
+All settings live in `settings.toml` in the shared folder, read by the agent and the iOS collection. The Tracker pane (7.4) is the only editor in the product; hand edits work too. The agent reloads the file on change and applies it from the next tick.
+
+### 7.1 Defaults
+
+```toml
+# Durations: "30s", "5m", "3h". Paths: "~" is the home folder, matched
+# case-insensitively. Domains match themselves and their subdomains.
+
+[presence]
+# Governs activity blocks only; the Timer window's idle prompt has its own threshold.
+idle_after = "2m"
+passive_apps = [
+    "us.zoom.xos", "com.microsoft.teams2", "com.apple.FaceTime",
+    "com.apple.ScreenSharing", "com.apple.QuickTimePlayerX",
+]
+passive_domains = ["youtube.com", "netflix.com", "meet.google.com"]
+passive_limit = "3h"
+
+[blocks]
+split_after = "20m"
+min_half = "10m"
+split_threshold = 0.7
+idle_close = "5m"
+max_block = "90m"
+max_passive_block = "3h"
+summary_lines = 6
+summary_min_share = 0.05
+
+[files]
+roots = ["~/Documents", "~/Desktop"]
+prune_names = [
+    ".git", "node_modules", "__pycache__", ".ipynb_checkpoints", ".venv",
+    "venv", "build", "_build", ".build", ".cache", ".Trash", "target",
+    "DerivedData", "dist", "Pods", ".swiftpm", ".pytest_cache",
+]
+# A folder containing one of these is a work folder (2.2).
+root_markers = [".git"]
+# Otherwise, files group under the folder this many levels below their root...
+group_depth = 1
+# ...or one level deeper below these folders, e.g. "~/Documents/Papers".
+deep_folders = []
+
+[terminal]
+# Pane title patterns that name the open file; the capture group is the path.
+title_patterns = { nvim = '^nvim (/.+)$' }
+# Processes recorded as coding agents (process name plus cwd).
+agent_processes = ["claude", "codex", "aider"]
+# Long-running commands recorded as secondary items.
+job_commands = ["make", "gmake", "latexmk", "pytest", "cargo", "swift", "npm"]
+
+[devices]
+# Blocks from Safari history synced from other devices (6.1).
+synced_safari_history = false
+
+[privacy]
+record_commands = false
+exclude_paths = []           # e.g. "~/Documents/Medical"
+exclude_keywords = []        # e.g. "sparsebundle"
+exclude_tmux_sessions = []
+private_agent_paths = ["~"]
+name_only_apps = ["com.1password.1password"]
+exclude_apps = []
+private_domains = []         # e.g. banks, health portals, tax services
+exclude_domains = []
+exclude_title_keywords = []
+
+[browser]
+summary_domain_only = ["search", "news", "shopping", "entertainment"]
+
+[browser.categories]
+research = ["arxiv.org", "doi.org", "scholar.google.com", "semanticscholar.org"]
+code = ["github.com", "gitlab.com", "stackoverflow.com", "readthedocs.io"]
+ai = ["claude.ai", "chatgpt.com"]
+search = ["google.com", "duckduckgo.com", "kagi.com", "bing.com"]
+news = ["nytimes.com", "theguardian.com", "news.ycombinator.com"]
+shopping = ["amazon.com", "ebay.com"]
+entertainment = ["youtube.com", "netflix.com", "reddit.com"]
+```
+
+### 7.2 Exclusions
+
+Exclusions apply wherever data enters (sampler, histories, file stream, Knowledge backfill, device merge, iOS web extension), case-insensitively. A path is checked wherever it appears (editor file, cwd, `AXDocument`, Finder folder, modified file, `file://` URL); an excluded file in an ordinary session hides the file and keeps the session.
+
+| Setting | Matches | Effect |
+|---|---|---|
+| `exclude_paths` | A path at or below an entry | Subject and detail `(private)`, group key `private`; time kept |
+| `exclude_keywords` | A path component starting with an entry | As `exclude_paths` |
+| `exclude_tmux_sessions` | A session name | Context `tmux:(private)`; window, cwd, file dropped |
+| `private_agent_paths` | An agent session's cwd, exactly | Session name and status only |
+| `name_only_apps` | A bundle identifier | App name only |
+| `exclude_apps` | A bundle identifier | Nothing recorded; the time is a gap |
+| `private_domains` | A domain | Domain only, everywhere |
+| `exclude_domains` | A domain | `<browser> (private)`; no detail-log visits |
+| `exclude_title_keywords` | A title substring | Title dropped |
+
+### 7.3 Rewrite commands
+
+Settings changes never touch past logs. Three socket commands rewrite the month files and samples they touch: `delete-block <dev> <s>`, `forget-day <date>`, and `reapply-exclusions <from> <to>`. The Mac app sends them and the agent rewrites, replacing each file atomically and keeping unaffected lines byte-identical; the answer is `ok` or `error <reason>`. The UI for `delete-block` is "Delete Block from Log…" in the Calendar's activity column (`spec_planner_calendar.md`); the other two are in the Tracker pane.
+
+### 7.4 The Tracker settings pane
+
+The last pane of the Mac app's settings window (`spec_timer_window.md` §8, which also owns the first-launch alert that opens it, §8.2). While visible it re-reads `current.json` on every change and the login item status every 5 seconds. From top to bottom:
+
+Status. A dot and one line by the liveness rule of 4.4: green "Tracker running · last tick 12 s ago", yellow "Tracker delayed · last tick 1 min ago" while delayed, red "Tracker not running", gray "Tracker off" when the agent is not registered; then the agent version. One button by `SMAppService` status: "Enable Tracker" (`notRegistered`; registers the agent), "Open Login Items" (`requiresApproval`), "Disable Tracker" (`enabled`; unregisters after confirmation). Nothing is recorded until the user clicks "Enable Tracker".
+
+Setup. One row per step with a mark (✓ source `active`, ! `fallback` or `off`, – no health record yet), what it enables and what applies without it, and an action:
+
+| Step | Source | Enables / without | Action |
+|---|---|---|---|
+| Background tracker (required) | `SMAppService` | Recording / nothing | Enable Tracker / Open Login Items |
+| Accessibility (required) | `window` | Titles, documents, URLs / app names | Open System Settings (`Privacy_Accessibility`) |
+| Automation | `browser`, `terminal` | Exact tabs and panes / guesses | Open System Settings (`Privacy_Automation`) |
+| Full Disk Access (optional) | `history`, `knowledge` | Safari history, backfill / Safari domains | Open System Settings (`Privacy_AllFiles`), "Show Tracker in Finder" (reveals `TimeTrackingAgent.app`) |
+| iCloud Drive | `shared_folder` | Activity on iPhone and iPad / this Mac only | none |
+| Editor title (optional) | `editor` | Exact file / RPC, arguments, cwd | Copy Snippet (`set title titlestring=nvim\ %F`) |
+| tmux hooks (optional) | `tmux_events` | Exact switch times / next tick | Copy Snippet (four `set-hook -g` lines) |
+| Agent hooks (optional) | `agent_events` | Exact agent start and stop / next tick | Copy Snippet (Claude Code hooks JSON) |
+
+Sources. Each source's name, status, and reason; degraded ones in the warning color.
+
+Exclusions. The nine lists of 7.2 with + and −: app lists pick installed apps and store bundle identifiers, path lists use an open panel and store `~`-relative paths, the rest take text. The Activity section opens the pane with a new, unsaved, focused entry (`showTrackerSettings(exclusion:)`). After saving a new exclusion, the pane offers "Also remove it from past logs…", which sends `reapply-exclusions` over a chosen range (default: the block log's first month to today).
+
+Options. Watched folders (`roots`); "Idle after" (`idle_after`) with the note "Affects activity blocks only; the idle prompt has its own threshold in the Idle pane"; "Use Safari history synced from other devices"; "Edit Settings File…" (default editor); "Show Logs in Finder".
+
+Maintenance. "Forget a Day…" (date and confirmation) and "Reapply Exclusions…" (date range); errors show inline.
+
+## 8. Implementation phases
+
+1. Presence, Focus, Settings, generic resolver, samples, `current.json`, health; the container write check (4.1); the pane's status, setup, and sources. Two days of samples calibrate `idle_after`.
+2. Terminal adapters and fallback, tmux, the editor chain, agent sessions, push events.
+3. Blocker and block log, tuned by replaying phase 1 samples; `LiveState` publication. Block-log readers can start here.
+4. Browsers with the private-window test, the detail log, the rewrite commands, the pane's exclusions and maintenance.
+5. Knowledge store. The formats of section 4 freeze.
+6. Synced Safari history.
+7. On iOS: `DeviceEvent` records, the Mac merge, the "Everything" ladder, the event-cap experiment.
+8. On iOS: labeled sets, Focus filters, the App Intent.
+9. On iOS: the Safari Web Extension.
+
+## 9. Testable behaviors
+
+- TRK-1. With no events, a 10 minute run under a fake clock writes exactly 20 samples.
+- TRK-2. Idle verdicts follow 2.4 step 1 and 2.5, including the `passive_limit` cutoff and audio-only apps never being passive.
+- TRK-3. Without a terminal adapter, the fallback picks the tty with the most recent input and `terminal` reports `fallback`.
+- TRK-4. A matching pane title yields a file only while the pane's command is that editor.
+- TRK-5. An editor RPC silent for 200 ms falls through to arguments, then cwd, within 100 ms plus the timeout.
+- TRK-6. A `localhost:<port>` tab gets the item and group key of the pane that registered the port.
+- TRK-7. A Safari URL without a `History.db` visit within 3 minutes becomes `safari (private)` and leaves the samples; Chromium incognito yields `<browser> (private)` with no URL.
+- TRK-8. For each setting of 7.2, a matching fixture leaves no excluded path, domain, session, or title in any sample, log line, or `current.json`, through every entry point listed there.
+- TRK-9. A block closes at its last active sample after `idle_close`; shorter idle gaps are not counted in `a`.
+- TRK-10. Lock, sleep, display sleep, and a user switch close the block at the event time.
+- TRK-11. No block of any `src` has `s` and `e` on different dates; a block open at midnight ends at 00:00:00.
+- TRK-12. 15 minutes on one group key then 15 on another splits within one tick of the change; two keys alternating every 2 minutes for 40 minutes never split.
+- TRK-13. A block reaching `max_block` closes at the best change point in its last 30 minutes, or the current tick when there is none; a mostly passive one runs to `max_passive_block`.
+- TRK-14. Summaries follow 2.7, and `a` never exceeds `e` minus `s`.
+- TRK-15. Header lines appear per 4.2 (month start, time zone change, new context); every other line has every block key.
+- TRK-16. The shared folder holds only `blocks/` and `settings.toml`, with no `urls`, `files`, or `presence` keys.
+- TRK-17. A reader polling `current.json` never sees a partial file.
+- TRK-18. After a lock notification 29 seconds before a tick, `presence.since` equals the notification time within 1 second.
+- TRK-19. After the agent is killed, readers report it delayed 90 seconds and not running 2 minutes after its last tick, by the rule of 4.4.
+- TRK-20. With container writes denied, the Mac app's container copy matches the local block log within 5 seconds of each append, `settings.toml` edits propagate, and `shared_folder` reports `fallback`.
+- TRK-21. A `tracker-event` line advances the tick within 1 second; an unknown socket command gets `error` and changes nothing.
+- TRK-22. The `reapply-exclusions` command, after a domain is added to `exclude_domains`, removes its items and visits from both logs and the samples in range, leaving other lines byte-identical; `delete-block` and `forget-day` do the same for their block or day.
+- TRK-23. Changing `idle_after` changes the next sample's verdict without a restart.
+- TRK-24. An unexpected Knowledge schema sets `knowledge` to `off` with a reason and writes no `knowledge` blocks.
+- TRK-25. Without Accessibility, samples carry the app name only and `window` reports `fallback`.
+- TRK-26. Samples and merged `DeviceEvent` records older than 90 days are deleted.
+- TRK-27. With `synced_safari_history` off, no `remote` block is written and `CloudTabs.db` is not opened; on, blocks and attribution follow 6.1.
+- TRK-28. Ladder minutes 1 to 20, a 10 minute gap, and minutes 21 to 30 yield two `device` blocks split at the gap, with the set's label as context and group key.
+- TRK-29. The `--replay` flag reproduces the expected file byte for byte and exits 0; a changed threshold makes it exit non-zero.
+- TRK-30. The `--record` output contains no home path, host name, or URL path of the live run.
+- TRK-31. The pane's dot, button, and setup marks follow 7.4 and update within 5 seconds; the agent is not registered until "Enable Tracker".
+- TRK-32. The pane writes only `settings.toml`; confirming "Also remove it from past logs…" sends exactly one `reapply-exclusions` with the chosen range.
+
+## 10. Decisions
+
+- Command lines are never recorded: they can carry tokens.
+- Only the block log and settings sync; live activity reaches other devices through `LiveState`.
+- The agent is the only writer of the logs; rewrites go through its socket.
+- Blocks split at midnight like entries, so per-day activity and tracked time cover the same interval.
+- The multiplexer session drives splits; mapping to projects belongs to the suggestion engine.
+- Every source with a permission, configuration, or undocumented format has a fallback; configuration is offered as snippets, never installed.
+- Synced Safari history is off by default: weak attribution, overlap with the iOS extension.
+
+Not included: Screen Time data from other devices; terminal adapters beyond WezTerm, iTerm2, and Terminal.app.
+
+## 11. Interfaces
+
+Provided, read through the shared library: the block log (4.2, every device), the detail log (4.3, recording Mac only), `current.json` (4.4: Timer window, menu bar, Calendar and Activity open block, Tracker pane, `LiveStatePublisher`), the socket and `tracker-event` (7.3), `settings.toml` (7: agent, iOS collection, Tracker pane), the device-event merge (6.2), and the Tracker pane (7.4).
+
+Assumed:
+
+- From `spec_data_and_sync.md`: folder resolution, `ActivityReading` with `detail(for:)`, the block-log writer, `DeviceEventSource` and `DeviceEventSink`, the `DeviceEvent` record, `LiveState` and `LiveStatePublisher`.
+- From `spec_architecture.md`: the agent bundle, registration with `KeepAlive`, entitlements, signing, the `tracker-event` target, container identifiers.
+- From `spec_ios.md`: the collectors of 6.2 and exclusions read from `settings.toml`.
+- From `spec_timer_window.md`: the settings window, the first-launch alert, idle detection reading `presence`.
+- From `spec_planner_calendar.md`: "Delete Block from Log…" with confirmation.

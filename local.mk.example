@@ -1,0 +1,21 @@
+# Personal build settings (spec_architecture.md §2.1). Copy to local.mk,
+# which git ignores, and fill in. Nothing in this file is committed.
+
+# Development team id (10 characters); required to build any app.
+TEAM =
+
+# Release bundle identifier of both apps; Debug builds append .debug.
+BUNDLE_ID = com.example.timetracking
+
+# Display and file name of the app bundles.
+APP_NAME = TimeTracking
+
+# Where `make install` links the tools and writes shell completions.
+PREFIX = $(HOME)/.local
+
+# Optional second name for `timetracking`.
+ALIAS =
+
+# Physical devices for `make device D=<name>` (`make devices` lists UDIDs).
+# DEVICE_iphone = <UDID>
+# DEVICE_ipad = <UDID>

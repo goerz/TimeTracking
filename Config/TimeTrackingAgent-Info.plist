@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>LSUIElement</key>
+	<true/>
+	<key>NSAppleEventsUsageDescription</key>
+	<string>The tracker asks terminals and browsers which window, tab, or document is in front, to record where your attention goes.</string>
+	<key>TTAppID</key>
+	<string>$(TT_APP_ID)</string>
+	<key>TTAppGroup</key>
+	<string>$(TT_APP_GROUP)</string>
+	<key>TTBundleID</key>
+	<string>$(TT_BUNDLE_ID)</string>
+	<key>TTCloudKitContainer</key>
+	<string>$(TT_CLOUDKIT_CONTAINER)</string>
+	<key>TTTeamID</key>
+	<string>$(DEVELOPMENT_TEAM)</string>
+	<key>TTURLScheme</key>
+	<string>$(TT_URL_SCHEME)</string>
+</dict>
+</plist>

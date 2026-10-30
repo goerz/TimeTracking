@@ -1,0 +1,80 @@
+# SwiftLint configuration (spec_architecture.md §4.3): all rules on, the
+# disabled ones listed with a reason. `make lint` runs `lint --strict`, so
+# every finding fails; the Debug build phase fixes what it can first.
+
+opt_in_rules:
+  - all
+
+disabled_rules:
+  # SwiftFormat owns layout; these rules disagree with its output.
+  - attributes                        # SwiftFormat places attributes
+  - closure_end_indentation           # SwiftFormat indents closures
+  - contrasted_opening_brace          # conflicts with opening_brace
+  - indentation_width                 # SwiftFormat indents
+  - multiline_arguments_brackets      # SwiftFormat wraps arguments
+  - multiline_literal_brackets        # SwiftFormat wraps collections
+  - multiline_parameters_brackets     # SwiftFormat wraps parameters
+  - multiline_function_chains         # SwiftFormat wraps chains
+  - sorted_imports                    # SwiftFormat sorts imports (testable last)
+  - vertical_parameter_alignment_on_call  # SwiftFormat wraps before the first argument
+  - conditional_returns_on_newline    # `guard … else { return }` on one line is fine
+  - modifier_order                    # SwiftFormat orders modifiers (final before nonisolated)
+  - file_types_order                  # the main type comes first, companions after
+  - vertical_whitespace_between_cases # compact switches
+  # Conventions this project does not follow.
+  - explicit_acl                      # internal is the default in app targets
+  - explicit_top_level_acl            # same; the package declares public API explicitly
+  - explicit_type_interface           # inferred types are clearer
+  - explicit_enum_raw_value           # implicit raw values are fine
+  - extension_access_modifier         # conflicts with no_extension_access_modifier
+  - file_header                       # headers name the spec section instead
+  - missing_docs                      # doc comments where they add something
+  - no_grouping_extension             # extensions live in Type+Topic.swift files
+  - no_magic_numbers                  # durations and layout constants are literal
+  - one_declaration_per_file          # a primary type may keep small companions (errors)
+  - prefixed_toplevel_constant        # no k-prefixes
+  - required_deinit                   # deinit only when needed
+  - sorted_enum_cases                 # cases follow meaning, not the alphabet
+  - type_contents_order               # order follows the spec, not a fixed scheme
+  - object_literal                    # no #colorLiteral / #imageLiteral
+  - nslocalizedstring_require_bundle  # String Catalogs in the main bundle
+  - prefer_nimble                     # Swift Testing and XCTest, no Nimble
+  - no_empty_block                    # empty protocol-conformance bodies are fine
+  - discouraged_default_parameter     # default arguments are idiomatic Swift
+  - optional_data_string_conversion   # String(decoding:as:) repairs invalid UTF-8, which output capture wants
+  - trailing_closure                  # Swift Testing's #expect(throws:) reads better with labels
+
+number_separator:
+  minimum_length: 5
+
+trailing_comma:
+  mandatory_comma: true
+
+line_length:
+  warning: 140
+  error: 200
+  ignores_urls: true
+
+identifier_name:
+  excluded: [id, at, to, x, y, i]
+
+type_name:
+  max_length: 60
+
+function_body_length:
+  warning: 60
+
+file_length:
+  warning: 600
+
+excluded:
+  - build.noindex
+  - Packages/TimeTrackingCore/.build
+  - Packages/TimeTrackingCore/.swiftpm
+
+custom_rules:
+  no_availability_checks:
+    name: No availability checks
+    regex: '(#available|#unavailable|@available)\b'
+    message: "Current platforms only: no #available, #unavailable, or @available (spec_architecture.md §4.1)."
+    severity: error

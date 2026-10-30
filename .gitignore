@@ -1,0 +1,25 @@
+# Build output
+build.noindex/
+DerivedData/
+.build/
+.swiftpm/
+xcuserdata/
+*.xcuserstate
+
+# Personal settings (spec_architecture.md §2.1)
+local.mk
+Config/Local.xcconfig
+CLAUDE.local.md
+.private-strings
+.claude/settings.local.json
+.claude/skills/
+
+# Keys and profiles
+*.p8
+*.p12
+*.cer
+*.mobileprovision
+*.provisionprofile
+
+.DS_Store
+.claude/scheduled_tasks.lock

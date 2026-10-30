@@ -1,0 +1,25 @@
+# SwiftFormat configuration (spec_architecture.md §4.3).
+# Runs as a Debug build phase of both apps and in `make lint` (--lint).
+
+--swift-version 6.0
+--exclude build.noindex,**/.build,Packages/TimeTrackingCore/.swiftpm
+
+--indent 4
+--max-width 140
+--wrap-arguments before-first
+--wrap-parameters before-first
+--wrap-collections before-first
+--trailing-commas always
+--self init-only
+--import-grouping testable-last
+--header ignore
+
+# Upper-case acronyms in identifiers (appID, storeURL, exportJSON).
+--enable acronyms
+--acronyms ID,URL,UUID,JSON,CSV,HTTP,JWT,TOML,SQL,API
+
+# SwiftLint's file_header and our own spec-section headers own the header.
+--disable fileHeader
+
+# Access control stays on each declaration, not on the extension.
+--extension-acl on-declarations

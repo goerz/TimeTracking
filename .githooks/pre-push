@@ -1,0 +1,6 @@
+#!/bin/sh
+# Refuses to push personal data or code that fails lint (spec_architecture.md §2.5).
+set -e
+root=$(git rev-parse --show-toplevel)
+"$root/.githooks/check-private" push
+make -C "$root" --no-print-directory lint

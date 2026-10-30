@@ -1,0 +1,224 @@
+/* Shared styles for the TimeTracking UI mockups (macOS 27 / iOS 27, light mode).
+   Every mockup page sets its canvas size with <meta name="mockup-size" content="W,H">
+   and is rendered by ../render.sh at 2x. */
+
+:root {
+  --font: -apple-system, "SF Pro Text", "SF Pro", "Helvetica Neue", sans-serif;
+  --font-display: -apple-system, "SF Pro Display", "SF Pro", "Helvetica Neue", sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* System colors, light appearance */
+  --label: rgba(0, 0, 0, 0.85);
+  --label-2: rgba(60, 60, 67, 0.62);
+  --label-3: rgba(60, 60, 67, 0.32);
+  --label-4: rgba(60, 60, 67, 0.18);
+  --separator: rgba(60, 60, 67, 0.13);
+  --separator-strong: rgba(60, 60, 67, 0.22);
+  --fill: rgba(120, 120, 128, 0.12);
+  --fill-2: rgba(120, 120, 128, 0.08);
+  --fill-3: rgba(120, 120, 128, 0.05);
+  --accent: #0A7AFF;
+  --accent-tint: rgba(10, 122, 255, 0.12);
+  --red: #FF3B30;
+  --green: #34C759;
+  --orange: #FF9500;
+  --yellow: #FFCC00;
+  --gray: #8E8E93;
+  --window: #FFFFFF;
+  --window-2: #F6F6F8;
+  --sidebar: rgba(236, 236, 241, 0.86);
+  --glass: rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(0, 0, 0, 0.08);
+  --menu: rgba(246, 246, 248, 0.94);
+
+  --r-window: 16px;
+  --r-control: 7px;
+  --r-capsule: 999px;
+  --shadow-window: 0 0 0 0.5px rgba(0, 0, 0, 0.22), 0 18px 50px rgba(0, 0, 0, 0.22), 0 4px 14px rgba(0, 0, 0, 0.10);
+  --shadow-pop: 0 0 0 0.5px rgba(0, 0, 0, 0.16), 0 12px 36px rgba(0, 0, 0, 0.20), 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; }
+body {
+  font-family: var(--font);
+  font-size: 13px;
+  line-height: 1.3;
+  color: var(--label);
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "kern";
+  overflow: hidden;
+}
+.tnum { font-variant-numeric: tabular-nums; }
+.sec { color: var(--label-2); }
+.ter { color: var(--label-3); }
+.b { font-weight: 600; }
+.row { display: flex; align-items: center; }
+.col { display: flex; flex-direction: column; }
+.grow { flex: 1 1 auto; min-width: 0; }
+.ell { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Canvas backgrounds */
+.desk {
+  position: relative;
+  width: 100%; height: 100%;
+  background: linear-gradient(160deg, #dfe7f1 0%, #e9e4ef 55%, #efe8e2 100%);
+}
+.desk.plain { background: #ECEDF1; }
+
+/* Icons (SVG sprite in icons.js) */
+svg.i { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; vertical-align: middle; }
+svg.i.f { fill: currentColor; stroke: none; }
+svg.i.s12 { width: 12px; height: 12px; }
+svg.i.s14 { width: 14px; height: 14px; }
+svg.i.s18 { width: 18px; height: 18px; }
+svg.i.s20 { width: 20px; height: 20px; }
+svg.i.s22 { width: 22px; height: 22px; }
+
+/* Area color dot and swatch */
+.dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.dot.hollow { border: 1.5px solid var(--label-3); background: transparent; }
+.swatch { display: inline-block; width: 16px; height: 16px; border-radius: 4px; flex: none; box-shadow: inset 0 0 0 0.5px rgba(0,0,0,0.12); }
+
+/* ---------- macOS window ---------- */
+.window {
+  position: absolute;
+  background: var(--window);
+  border-radius: var(--r-window);
+  box-shadow: var(--shadow-window);
+  overflow: hidden;
+}
+.traffic { display: flex; gap: 8px; align-items: center; flex: none; }
+.traffic span { width: 12px; height: 12px; border-radius: 50%; box-shadow: inset 0 0 0 0.5px rgba(0,0,0,0.15); }
+.traffic span:nth-child(1) { background: #FF5F57; }
+.traffic span:nth-child(2) { background: #FEBC2E; }
+.traffic span:nth-child(3) { background: #28C840; }
+.traffic.inactive span { background: #D5D5D8; }
+
+/* Toolbar and glass controls */
+.toolbar {
+  height: 52px; display: flex; align-items: center; gap: 8px; padding: 0 12px;
+}
+.title-text { font-size: 15px; font-weight: 600; }
+.glass {
+  background: var(--glass);
+  border-radius: var(--r-capsule);
+  box-shadow: 0 0 0 0.5px var(--glass-border), 0 1px 4px rgba(0,0,0,0.07);
+  backdrop-filter: blur(12px);
+}
+.tbtn {
+  height: 32px; min-width: 32px; padding: 0 11px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  border-radius: var(--r-capsule); font-size: 13px; color: var(--label); white-space: nowrap;
+}
+.tgroup { display: inline-flex; align-items: center; height: 32px; padding: 0 2px; }
+.tgroup .tbtn { padding: 0 9px; }
+.tgroup .sep { width: 1px; height: 16px; background: var(--separator); }
+.tbtn.on { color: var(--accent); }
+.tbtn.prominent { background: var(--accent); color: #fff; }
+.badge { display: inline-flex; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: var(--accent); color: #fff; font-size: 10.5px; font-weight: 600; align-items: center; justify-content: center; }
+
+/* Push and popup buttons */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+  height: 24px; padding: 0 12px; border-radius: var(--r-control);
+  background: #fff; box-shadow: 0 0 0 0.5px rgba(0,0,0,0.16), 0 1px 1.5px rgba(0,0,0,0.08);
+  font-size: 13px; white-space: nowrap; color: var(--label);
+}
+.btn.default { background: var(--accent); color: #fff; box-shadow: 0 0 0 0.5px rgba(0,0,0,0.10), 0 1px 1.5px rgba(0,0,0,0.12); }
+.btn.lg { height: 28px; padding: 0 16px; border-radius: 9px; min-width: 76px; }
+.popup .chev { color: var(--label-2); margin-left: 2px; }
+.field {
+  display: flex; align-items: center; gap: 6px; height: 24px; padding: 0 7px;
+  background: #fff; border-radius: 6px; box-shadow: inset 0 0 0 0.5px rgba(0,0,0,0.22), inset 0 0.5px 1px rgba(0,0,0,0.06);
+  font-size: 13px;
+}
+.field.focus { box-shadow: 0 0 0 3.5px rgba(10,122,255,0.35), inset 0 0 0 0.5px rgba(10,122,255,0.8); }
+.search { display: flex; align-items: center; gap: 6px; height: 32px; padding: 0 11px; border-radius: var(--r-capsule); color: var(--label-2); }
+.caret { display: inline-block; width: 1.5px; height: 15px; background: var(--accent); vertical-align: -3px; margin-left: 1px; }
+.check { width: 14px; height: 14px; border-radius: 4px; background: #fff; box-shadow: inset 0 0 0 0.5px rgba(0,0,0,0.3), 0 0.5px 1px rgba(0,0,0,0.08); flex: none; display: inline-flex; align-items: center; justify-content: center; }
+.check.on { background: var(--accent); box-shadow: none; color: #fff; }
+
+/* Segmented control */
+.seg { display: inline-flex; align-items: center; height: 24px; padding: 2px; border-radius: var(--r-capsule); background: var(--fill); gap: 0; }
+.seg span { height: 20px; padding: 0 10px; display: inline-flex; align-items: center; border-radius: var(--r-capsule); font-size: 12px; color: var(--label); }
+.seg span.on { background: #fff; box-shadow: 0 0 0 0.5px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.12); font-weight: 500; }
+.seg.lg { height: 30px; } .seg.lg span { height: 26px; padding: 0 12px; font-size: 13px; }
+
+/* Sidebar (floating, translucent) */
+.sidebar {
+  position: absolute; left: 8px; top: 8px; bottom: 8px; width: 200px;
+  background: var(--sidebar); border-radius: 12px;
+  box-shadow: 0 0 0 0.5px rgba(0,0,0,0.08), 0 2px 10px rgba(0,0,0,0.06);
+  padding: 12px 10px;
+}
+.sidebar .top { display: flex; align-items: center; justify-content: space-between; height: 28px; padding-left: 6px; margin-bottom: 18px; }
+.sb-item { display: flex; align-items: center; gap: 9px; height: 30px; padding: 0 9px; border-radius: 8px; font-size: 13px; color: var(--label); }
+.sb-item svg.i { color: var(--accent); }
+.sb-item.on { background: rgba(0,0,0,0.075); font-weight: 500; }
+
+/* Content area of the Planner */
+.content { position: absolute; left: 216px; right: 0; top: 0; bottom: 0; }
+
+/* Table */
+.table { font-size: 13px; }
+.thead { display: flex; height: 28px; align-items: center; border-bottom: 0.5px solid var(--separator); color: var(--label-2); font-size: 11px; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase; }
+.thead > div, .tr > div { padding: 0 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.thead > div + div { border-left: 0.5px solid var(--separator); }
+.tr { display: flex; height: 28px; align-items: center; }
+.tr.alt { background: var(--fill-3); }
+.tr.sel { background: var(--accent); color: #fff; border-radius: 6px; }
+.tr.sel .sec { color: rgba(255,255,255,0.78); }
+.tr.group { font-weight: 600; }
+.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* Popover and menus */
+.popover { position: absolute; background: #FAFAFC; border-radius: 14px; box-shadow: var(--shadow-pop); }
+.popover .arrow { position: absolute; width: 18px; height: 18px; background: #FAFAFC; transform: rotate(45deg); border-radius: 3px; box-shadow: -0.5px -0.5px 0 rgba(0,0,0,0.12); }
+.menu { position: absolute; background: var(--menu); border-radius: 11px; padding: 5px; box-shadow: var(--shadow-pop); backdrop-filter: blur(20px); font-size: 13px; }
+.mi { display: flex; align-items: center; height: 22px; padding: 0 10px; border-radius: 6px; white-space: nowrap; }
+.mi .key { margin-left: auto; padding-left: 28px; color: var(--label-2); font-variant-numeric: tabular-nums; letter-spacing: 0.04em; }
+.mi.dis { color: var(--label-3); }
+.mi.hl { background: var(--accent); color: #fff; }
+.mi.hl .key { color: rgba(255,255,255,0.85); }
+.msep { height: 0.5px; background: var(--separator-strong); margin: 5px 10px; }
+
+/* Sheet */
+.sheet { position: absolute; background: #F7F7F9; border-radius: 18px; box-shadow: var(--shadow-pop); }
+.dim { position: absolute; inset: 0; background: rgba(0,0,0,0.06); }
+
+/* Cards (Planner panels) */
+.card { background: #fff; border-radius: 12px; box-shadow: 0 0 0 0.5px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.05); }
+.card-title { font-size: 13px; font-weight: 600; }
+
+/* ---------- iOS ---------- */
+.phone {
+  position: absolute; width: 402px; height: 874px; border-radius: 62px; background: #1b1b1d; padding: 11px;
+  box-shadow: 0 0 0 1.5px #3a3a3c, 0 30px 60px rgba(0,0,0,0.25);
+}
+.screen { position: relative; width: 100%; height: 100%; border-radius: 52px; overflow: hidden; background: #F2F2F7; }
+.island { position: absolute; top: 11px; left: 50%; transform: translateX(-50%); width: 124px; height: 36px; border-radius: 18px; background: #000; z-index: 10; }
+.statusbar { position: absolute; top: 0; left: 0; right: 0; height: 54px; display: flex; align-items: center; justify-content: space-between; padding: 6px 34px 0 46px; font-size: 16.5px; font-weight: 600; z-index: 9; }
+.statusbar .icons { display: flex; gap: 6px; align-items: center; }
+.homebar { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 136px; height: 5px; border-radius: 3px; background: #000; z-index: 9; }
+.ios { font-family: var(--font); font-size: 17px; letter-spacing: -0.2px; }
+.ios-group { background: #fff; border-radius: 22px; overflow: hidden; }
+.widget { position: absolute; border-radius: 24px; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.08); overflow: hidden; padding: 16px; }
+
+/* ---------- Start / stop / pause controls (shared by every mockup) ----------
+   <span class="ctl stop halo" style="--d:30px"></span>
+   Stop: coral circle with a white rounded square (36% of the diameter).
+   Start: green circle with a white play triangle. Pause: two white bars.
+   The halo is a pale ring of the same hue, 20% of the inner radius wide;
+   small sizes (widgets, list rows) omit it. */
+:root { --stop: #DE6E5C; --start: #4BAE6A; }
+.ctl { --d: 30px; position: relative; display: inline-flex; flex: none; width: var(--d); height: var(--d); border-radius: 50%; }
+.ctl::after { content: ""; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); background: #fff; }
+.ctl.stop { background: var(--stop); }
+.ctl.stop::after { width: calc(var(--d) * 0.36); height: calc(var(--d) * 0.36); border-radius: calc(var(--d) * 0.055); }
+.ctl.start { background: var(--start); }
+.ctl.start::after { width: calc(var(--d) * 0.33); height: calc(var(--d) * 0.38); clip-path: polygon(8% 0, 100% 50%, 8% 100%); border-radius: 0; transform: translate(-42%, -50%); }
+.ctl.pause { background: var(--start); }
+.ctl.pause::after { width: calc(var(--d) * 0.11); height: calc(var(--d) * 0.36); border-radius: 1.5px; transform: translate(-150%, -50%); box-shadow: calc(var(--d) * 0.2) 0 0 #fff; }
+.ctl.halo { margin: calc(var(--d) * 0.1); }
+.ctl.stop.halo { box-shadow: 0 0 0 calc(var(--d) * 0.1) rgba(222, 110, 92, 0.18); }
+.ctl.start.halo, .ctl.pause.halo { box-shadow: 0 0 0 calc(var(--d) * 0.1) rgba(75, 174, 106, 0.18); }

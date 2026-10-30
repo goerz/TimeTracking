@@ -1,0 +1,146 @@
+// Project.xcconfig: identifiers, signing, and shared build settings
+// (spec_architecture.md §1.5, §2.2, §2.3).
+//
+// This file is the only place for identifiers and signing. No target in
+// TimeTracking.xcodeproj sets PRODUCT_BUNDLE_IDENTIFIER, DEVELOPMENT_TEAM,
+// CODE_SIGN_*, PROVISIONING_PROFILE*, or PRODUCT_NAME. Per-target values are
+// looked up by TARGET_NAME in the tables below; a new target adds its rows
+// here. Personal values come from Local.xcconfig, which `make secrets` writes
+// from local.mk.
+
+// MARK: Personal defaults (overridden by Local.xcconfig)
+
+TT_BUNDLE_ID = com.example.timetracking
+TT_APP_NAME = TimeTracking
+DEVELOPMENT_TEAM =
+
+// MARK: Identity (§1.5)
+
+TT_BUNDLE_SUFFIX_Debug = .debug
+TT_BUNDLE_SUFFIX_Release =
+TT_APP_ID = $(TT_BUNDLE_ID)$(TT_BUNDLE_SUFFIX_$(CONFIGURATION))
+
+TT_CLOUDKIT_CONTAINER = iCloud.$(TT_APP_ID)
+TT_APP_GROUP[sdk=iphone*] = group.$(TT_APP_ID)
+TT_APP_GROUP[sdk=macosx*] = $(DEVELOPMENT_TEAM).$(TT_APP_ID)
+TT_URL_SCHEME_Release = timetracking
+TT_URL_SCHEME_Debug = timetracking-debug
+TT_URL_SCHEME = $(TT_URL_SCHEME_$(CONFIGURATION))
+TT_DISPLAY_NAME_Release = $(TT_APP_NAME)
+TT_DISPLAY_NAME_Debug = $(TT_APP_NAME) Debug
+TT_DISPLAY_NAME = $(TT_DISPLAY_NAME_$(CONFIGURATION))
+TT_REFRESH_TASK_ID = $(TT_APP_ID).refresh
+
+MARKETING_VERSION = 1.0
+CURRENT_PROJECT_VERSION = 1
+
+// MARK: Per-target tables (keyed by TARGET_NAME)
+
+// Bundle identifiers (§1.1). The two tools have none.
+TT_BUNDLE_IDENTIFIER_TimeTracking = $(TT_APP_ID)
+TT_BUNDLE_IDENTIFIER_TimeTrackingAgent = $(TT_APP_ID).agent
+TT_BUNDLE_IDENTIFIER_TimeTrackingCLI =
+TT_BUNDLE_IDENTIFIER_TrackerEvent =
+TT_BUNDLE_IDENTIFIER_TimeTrackingiOS = $(TT_APP_ID)
+TT_BUNDLE_IDENTIFIER_TimeTrackingWidgets = $(TT_APP_ID).widgets
+TT_BUNDLE_IDENTIFIER_TimeTrackingIntents = $(TT_APP_ID).intents
+TT_BUNDLE_IDENTIFIER_TimeTrackingMonitor = $(TT_APP_ID).monitor
+TT_BUNDLE_IDENTIFIER_TimeTrackingWebExtension = $(TT_APP_ID).web-extension
+TT_BUNDLE_IDENTIFIER_TimeTrackingTests = $(TT_APP_ID).tests
+TT_BUNDLE_IDENTIFIER_TimeTrackingUITests = $(TT_APP_ID).uitests
+TT_BUNDLE_IDENTIFIER_TimeTrackingiOSTests = $(TT_APP_ID).ios-tests
+TT_BUNDLE_IDENTIFIER_TimeTrackingiOSUITests = $(TT_APP_ID).ios-uitests
+TT_BUNDLE_IDENTIFIER_TimeTrackingAgentTests = $(TT_APP_ID).agent-tests
+TT_BUNDLE_IDENTIFIER_TimeTrackingCLITests = $(TT_APP_ID).cli-tests
+PRODUCT_BUNDLE_IDENTIFIER = $(TT_BUNDLE_IDENTIFIER_$(TARGET_NAME))
+
+// Product names: the two apps carry the personal name; module and executable
+// names stay fixed (§2.2).
+TT_PRODUCT_NAME_TimeTracking = $(TT_APP_NAME)
+TT_PRODUCT_NAME_TimeTrackingiOS = $(TT_APP_NAME)
+TT_PRODUCT_NAME_TimeTrackingCLI = timetracking
+TT_PRODUCT_NAME_TrackerEvent = tracker-event
+PRODUCT_NAME = $(TT_PRODUCT_NAME_$(TARGET_NAME):default=$(TARGET_NAME))
+TT_EXECUTABLE_NAME_TimeTracking = TimeTracking
+TT_EXECUTABLE_NAME_TimeTrackingiOS = TimeTrackingiOS
+EXECUTABLE_NAME = $(EXECUTABLE_PREFIX)$(TT_EXECUTABLE_NAME_$(TARGET_NAME):default=$(PRODUCT_NAME))$(EXECUTABLE_SUFFIX)
+PRODUCT_MODULE_NAME = $(TARGET_NAME:c99extidentifier)
+
+// Shipping products (everything except test bundles): entitlements file,
+// Info.plist file, and MainActor default isolation.
+TT_PRODUCT_TimeTracking = YES
+TT_PRODUCT_TimeTrackingAgent = YES
+TT_PRODUCT_TimeTrackingCLI = YES
+TT_PRODUCT_TrackerEvent = YES
+TT_PRODUCT_TimeTrackingiOS = YES
+TT_PRODUCT_TimeTrackingWidgets = YES
+TT_PRODUCT_TimeTrackingIntents = YES
+TT_PRODUCT_TimeTrackingMonitor = YES
+TT_PRODUCT_TimeTrackingWebExtension = YES
+TT_IS_PRODUCT = $(TT_PRODUCT_$(TARGET_NAME))
+
+TT_ENTITLEMENTS_YES = Config/$(TARGET_NAME).entitlements
+TT_ENTITLEMENTS_ =
+CODE_SIGN_ENTITLEMENTS = $(TT_ENTITLEMENTS_$(TT_IS_PRODUCT))
+
+TT_INFOPLIST_YES = Config/$(TARGET_NAME)-Info.plist
+TT_INFOPLIST_ =
+INFOPLIST_FILE = $(TT_INFOPLIST_$(TT_IS_PRODUCT))
+GENERATE_INFOPLIST_FILE = YES
+// The tools carry their Info.plist in the binary (__TEXT,__info_plist).
+TT_EMBED_INFOPLIST_TimeTrackingCLI = YES
+TT_EMBED_INFOPLIST_TrackerEvent = YES
+CREATE_INFOPLIST_SECTION_IN_BINARY = $(TT_EMBED_INFOPLIST_$(TARGET_NAME):default=NO)
+
+TT_ISOLATION_YES = MainActor
+TT_ISOLATION_ = nonisolated
+SWIFT_DEFAULT_ACTOR_ISOLATION = $(TT_ISOLATION_$(TT_IS_PRODUCT))
+
+// MARK: Platforms (§2.2)
+
+MACOSX_DEPLOYMENT_TARGET = 27.0
+IPHONEOS_DEPLOYMENT_TARGET = 27.0
+TARGETED_DEVICE_FAMILY = 1,2
+SUPPORTS_MACCATALYST = NO
+SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO
+SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO
+ARCHS[sdk=macosx*] = arm64
+
+// MARK: Swift (§4.1)
+
+SWIFT_VERSION = 6.0
+SWIFT_STRICT_CONCURRENCY = complete
+SWIFT_APPROACHABLE_CONCURRENCY = YES
+SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES
+SWIFT_TREAT_WARNINGS_AS_ERRORS = YES
+GCC_TREAT_WARNINGS_AS_ERRORS = YES
+SWIFT_EMIT_LOC_STRINGS = YES
+ENABLE_USER_SCRIPT_SANDBOXING = NO
+ENABLE_MODULE_VERIFIER = NO
+STRING_CATALOG_GENERATE_SYMBOLS = YES
+
+SWIFT_OPTIMIZATION_LEVEL = -O
+SWIFT_OPTIMIZATION_LEVEL[config=Debug] = -Onone
+SWIFT_ACTIVE_COMPILATION_CONDITIONS[config=Debug] = DEBUG
+SWIFT_COMPILATION_MODE[config=Release] = wholemodule
+ONLY_ACTIVE_ARCH[config=Debug] = YES
+ENABLE_TESTABILITY[config=Debug] = YES
+DEBUG_INFORMATION_FORMAT = dwarf
+DEBUG_INFORMATION_FORMAT[config=Release] = dwarf-with-dsym
+GCC_OPTIMIZATION_LEVEL[config=Debug] = 0
+ENABLE_STRICT_OBJC_MSGSEND = YES
+ALWAYS_SEARCH_USER_PATHS = NO
+COPY_PHASE_STRIP = NO
+ENABLE_PREVIEWS = YES
+LOCALIZATION_PREFERS_STRING_CATALOGS = YES
+
+// MARK: Signing (§2.3)
+
+CODE_SIGN_STYLE = Automatic
+CODE_SIGN_IDENTITY = Apple Development
+ENABLE_HARDENED_RUNTIME[sdk=macosx*] = YES
+ENABLE_APP_SANDBOX[sdk=macosx*] = NO
+// No get-task-allow in Release; Mac entitlements files list everything.
+CODE_SIGN_INJECT_BASE_ENTITLEMENTS[config=Release][sdk=macosx*] = NO
+
+#include? "Local.xcconfig"

@@ -1,0 +1,1896 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0327810D89C099247B128758 /* ArgumentParser in Frameworks */ = {isa = PBXBuildFile; productRef = EE08A5D06871930A3F5CA11A /* ArgumentParser */; };
+		1C1774745996F0F665734CA1 /* TimeTrackingWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 9F3F018495C21FC2BFA557B4 /* TimeTrackingWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		1D038917E73EF9C38FDCD98E /* TimeTrackingCore in Frameworks */ = {isa = PBXBuildFile; productRef = 4F2CDC438507CCBE6969A8A4 /* TimeTrackingCore */; };
+		23E57971E77F32964F1C40E5 /* TimeTrackingCore in Frameworks */ = {isa = PBXBuildFile; productRef = EA2DFAD8D93B22384D4523A6 /* TimeTrackingCore */; };
+		438BB5CCF7EF5663D27B4B9C /* TimeTrackingCore in Frameworks */ = {isa = PBXBuildFile; productRef = D039B98B1111417164933A1E /* TimeTrackingCore */; };
+		43AF368E3F8D49561280EACA /* tracker-event in Embed Helpers */ = {isa = PBXBuildFile; fileRef = 42DDB581F99578F5DD0C592A /* tracker-event */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		6974742291EEBF105F446415 /* TimeTrackingWebExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 3B2620E6188D7DCC0A7F764D /* TimeTrackingWebExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		6B2D136DF42C06B5586B8299 /* TimeTrackingCore in Frameworks */ = {isa = PBXBuildFile; productRef = F3E341E2C21A36C035EEF82B /* TimeTrackingCore */; };
+		7FB407DD850F4267C60CF411 /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 3CCC459531BAE2C6AD5F9ABB /* GRDB */; };
+		84BCC1F38F6299DA5C775E36 /* TimeTrackingCore in Frameworks */ = {isa = PBXBuildFile; productRef = 3283E7AFBDEFC2680B5614D6 /* TimeTrackingCore */; };
+		B8E925F76E1EC79A74F8089C /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = 4F9B73071CE725C584D62957 /* KeyboardShortcuts */; };
+		C35916C4471818482A8BF83C /* timetracking in Embed Helpers */ = {isa = PBXBuildFile; fileRef = 51328CB683DBB45C08D94672 /* timetracking */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		CBDAD4BF48B9E599E0E9D227 /* TimeTrackingAgent.app in Embed Login Items */ = {isa = PBXBuildFile; fileRef = 4BC2C899112A3D0FF1706B10 /* TimeTrackingAgent.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		D8B692EF2BA06BEEEB73202C /* TimeTrackingMonitor.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = AC20818DDF6CACC2BCF5B1BA /* TimeTrackingMonitor.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		DA5A539B9C851EF1A9EEA31D /* TimeTrackingCore in Frameworks */ = {isa = PBXBuildFile; productRef = BA1583758AD6C11671CB2BD6 /* TimeTrackingCore */; };
+		EEE132E83BE88968D66DAEB3 /* TimeTrackingCore in Frameworks */ = {isa = PBXBuildFile; productRef = 2021806177EE5A3D80502DC2 /* TimeTrackingCore */; };
+		F35F33C4051FC98E6210A09E /* TimeTrackingIntents.appex in Embed ExtensionKit Extensions */ = {isa = PBXBuildFile; fileRef = 29F4769D1F19CB90994AE36E /* TimeTrackingIntents.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		FD149DC828A82FE229E371C3 /* TimeTrackingCore in Frameworks */ = {isa = PBXBuildFile; productRef = 8A88E83A8F956F64E0DD1872 /* TimeTrackingCore */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		00485716A969A3CD975C5533 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 46F86FAA6BBF9AC94A7E4595 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F21DE4DAF675ECFD88577B93 /* TimeTrackingCLI */;
+			remoteInfo = TimeTrackingCLI;
+		};
+		14DED239D823B3CF79E4F908 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 46F86FAA6BBF9AC94A7E4595 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = ABA47969451CAACEB97E3130 /* TrackerEvent */;
+			remoteInfo = TrackerEvent;
+		};
+		363521423F4D185E23E15733 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 46F86FAA6BBF9AC94A7E4595 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C3E4D4B19C964B75CE8AC829 /* TimeTracking */;
+			remoteInfo = TimeTracking;
+		};
+		36BBBEF2DFDE70886E920312 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 46F86FAA6BBF9AC94A7E4595 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C3E4D4B19C964B75CE8AC829 /* TimeTracking */;
+			remoteInfo = TimeTracking;
+		};
+		442A27AF453C7E79978BC99B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 46F86FAA6BBF9AC94A7E4595 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 02D467600454F5FA34613F7A /* TimeTrackingWebExtension */;
+			remoteInfo = TimeTrackingWebExtension;
+		};
+		5C2E34C4EECB100719327BDD /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 46F86FAA6BBF9AC94A7E4595 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 34169F12FB17514F0CF653B7 /* TimeTrackingAgent */;
+			remoteInfo = TimeTrackingAgent;
+		};
+		5F86E54A0101BE5642D6001D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 46F86FAA6BBF9AC94A7E4595 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3D38428571B9F09DF221CFB8 /* TimeTrackingIntents */;
+			remoteInfo = TimeTrackingIntents;
+		};
+		6736B5FB80126C93F044DB30 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 46F86FAA6BBF9AC94A7E4595 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 62658ED57C36880582CA52D8 /* TimeTrackingMonitor */;
+			remoteInfo = TimeTrackingMonitor;
+		};
+		79C76A1CA825DB86F4C043B8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 46F86FAA6BBF9AC94A7E4595 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 55A866A07C0C0646EC8AACE5 /* TimeTrackingiOS */;
+			remoteInfo = TimeTrackingiOS;
+		};
+		83CD9C8B95B9F0EEA0C54294 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 46F86FAA6BBF9AC94A7E4595 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1877D90C07F950529610BCD0 /* TimeTrackingWidgets */;
+			remoteInfo = TimeTrackingWidgets;
+		};
+		849A0B51519515D33690D571 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 46F86FAA6BBF9AC94A7E4595 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 34169F12FB17514F0CF653B7 /* TimeTrackingAgent */;
+			remoteInfo = TimeTrackingAgent;
+		};
+		9DB2F55EC29961520696BDF1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 46F86FAA6BBF9AC94A7E4595 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = ABA47969451CAACEB97E3130 /* TrackerEvent */;
+			remoteInfo = TrackerEvent;
+		};
+		A6A6E9E2EB313F1F80FC4883 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 46F86FAA6BBF9AC94A7E4595 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 55A866A07C0C0646EC8AACE5 /* TimeTrackingiOS */;
+			remoteInfo = TimeTrackingiOS;
+		};
+		BC917B4F7555453CE18F0298 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 46F86FAA6BBF9AC94A7E4595 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F21DE4DAF675ECFD88577B93 /* TimeTrackingCLI */;
+			remoteInfo = TimeTrackingCLI;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		011B2E29E7602265D963D2F8 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				1C1774745996F0F665734CA1 /* TimeTrackingWidgets.appex in Embed Foundation Extensions */,
+				D8B692EF2BA06BEEEB73202C /* TimeTrackingMonitor.appex in Embed Foundation Extensions */,
+				6974742291EEBF105F446415 /* TimeTrackingWebExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6CEBB1007C51EA288DD3404B /* Embed ExtensionKit Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(EXTENSIONS_FOLDER_PATH)";
+			dstSubfolderSpec = 16;
+			files = (
+				F35F33C4051FC98E6210A09E /* TimeTrackingIntents.appex in Embed ExtensionKit Extensions */,
+			);
+			name = "Embed ExtensionKit Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D8042AEBA863AD2DE4DDA012 /* Embed Login Items */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = Contents/Library/LoginItems;
+			dstSubfolderSpec = 1;
+			files = (
+				CBDAD4BF48B9E599E0E9D227 /* TimeTrackingAgent.app in Embed Login Items */,
+			);
+			name = "Embed Login Items";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E4FCD7F94622B39E52714B91 /* Embed Helpers */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = Contents/Helpers;
+			dstSubfolderSpec = 1;
+			files = (
+				C35916C4471818482A8BF83C /* timetracking in Embed Helpers */,
+				43AF368E3F8D49561280EACA /* tracker-event in Embed Helpers */,
+			);
+			name = "Embed Helpers";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		19C24C4D68B176A69042BBB7 /* TimeTrackingTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TimeTrackingTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		29F4769D1F19CB90994AE36E /* TimeTrackingIntents.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.extensionkit-extension"; includeInIndex = 0; path = TimeTrackingIntents.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		2E5B5E110C7894EBBE22A208 /* TimeTrackingiOSUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TimeTrackingiOSUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		3B2620E6188D7DCC0A7F764D /* TimeTrackingWebExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TimeTrackingWebExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		42DDB581F99578F5DD0C592A /* tracker-event */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "tracker-event"; sourceTree = BUILT_PRODUCTS_DIR; };
+		4BC2C899112A3D0FF1706B10 /* TimeTrackingAgent.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TimeTrackingAgent.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		51328CB683DBB45C08D94672 /* timetracking */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = timetracking; sourceTree = BUILT_PRODUCTS_DIR; };
+		6954D1920F7D850F7386A1E4 /* TimeTrackingCLITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TimeTrackingCLITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		86885344B70AEFA722096888 /* TimeTrackingUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TimeTrackingUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		88068D95DD006BF75F9B1C95 /* TimeTrackingiOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TimeTrackingiOSTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		8F1F26A4A5CFE7FC86365190 /* TimeTracking.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TimeTracking.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		9733ADEA65EA0469E1AC4B3B /* Project.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Project.xcconfig; sourceTree = "<group>"; };
+		9F3F018495C21FC2BFA557B4 /* TimeTrackingWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TimeTrackingWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		A7330266BFD687EDFBC99CBC /* TimeTrackingiOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TimeTrackingiOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AC20818DDF6CACC2BCF5B1BA /* TimeTrackingMonitor.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TimeTrackingMonitor.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		EA004B99373538C1DA384CD3 /* TimeTrackingAgentTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TimeTrackingAgentTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		12BD6AC29B8C15CC75031DE6 /* TimeTrackingTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = TimeTrackingTests;
+			sourceTree = "<group>";
+		};
+		13DD0A804213BFD3B98E0422 /* TimeTrackingIntents */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = TimeTrackingIntents;
+			sourceTree = "<group>";
+		};
+		19AA90C05D5E51C61B554CC6 /* Shared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		251F061EDB52E64DC0B73519 /* TimeTrackingUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = TimeTrackingUITests;
+			sourceTree = "<group>";
+		};
+		25F9F9EE40EEFA6C8264509B /* TimeTrackingiOSUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = TimeTrackingiOSUITests;
+			sourceTree = "<group>";
+		};
+		2BA50DFEDA2395B518E140EC /* TimeTrackingCLITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = TimeTrackingCLITests;
+			sourceTree = "<group>";
+		};
+		2CB5BF39188A1D741CE51890 /* TimeTrackingiOSTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = TimeTrackingiOSTests;
+			sourceTree = "<group>";
+		};
+		5087E0EC0D586B105C51F34B /* TimeTracking */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = TimeTracking;
+			sourceTree = "<group>";
+		};
+		5D92A407ABD714D9B1B49855 /* TimeTrackingWidgets */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = TimeTrackingWidgets;
+			sourceTree = "<group>";
+		};
+		8661ECAEF201E5737367ACB7 /* TimeTrackingAgent */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = TimeTrackingAgent;
+			sourceTree = "<group>";
+		};
+		94E352497C6EB672F4FB8F28 /* TimeTrackingiOS */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = TimeTrackingiOS;
+			sourceTree = "<group>";
+		};
+		A6A1F2167B8A77286C311110 /* TrackerEvent */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = TrackerEvent;
+			sourceTree = "<group>";
+		};
+		AEF513FC787D47B547A09F7B /* TimeTrackingMonitor */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = TimeTrackingMonitor;
+			sourceTree = "<group>";
+		};
+		C55017EF20C81BA9B2FA35B5 /* TimeTrackingCLI */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = TimeTrackingCLI;
+			sourceTree = "<group>";
+		};
+		C62AF442BA9D4A5213C31CA6 /* TimeTrackingWebExtension */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = TimeTrackingWebExtension;
+			sourceTree = "<group>";
+		};
+		DC1320E08B780356A9D25768 /* TimeTrackingAgentTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = TimeTrackingAgentTests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		39FF784C9AC44AB7E77F6FD1 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		46E0CF7BBC0EF5E417EB3DCE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DA5A539B9C851EF1A9EEA31D /* TimeTrackingCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4726FCAE66EAFF615D073C0E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4FA7332DA4608F2B3493A498 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EEE132E83BE88968D66DAEB3 /* TimeTrackingCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		50B5E7BEDC54F0C23EB8C383 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		59F106327337CCD0EB799975 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		71602E99738E61E5B3E56226 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				84BCC1F38F6299DA5C775E36 /* TimeTrackingCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		82CDB3B2E4374EF16011D07C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FD149DC828A82FE229E371C3 /* TimeTrackingCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8D85AB08BAD86B9E5E55A9CE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				23E57971E77F32964F1C40E5 /* TimeTrackingCore in Frameworks */,
+				B8E925F76E1EC79A74F8089C /* KeyboardShortcuts in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8DCEFF1DF20253D2104503CE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8F73006755CB146A1E0DF750 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		93E36CC8E5B9818F84A10BFE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6B2D136DF42C06B5586B8299 /* TimeTrackingCore in Frameworks */,
+				0327810D89C099247B128758 /* ArgumentParser in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9DA85C980400E437822A7B1A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				438BB5CCF7EF5663D27B4B9C /* TimeTrackingCore in Frameworks */,
+				7FB407DD850F4267C60CF411 /* GRDB in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9EBDFAAA42F1D6CD69915991 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1D038917E73EF9C38FDCD98E /* TimeTrackingCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E9C516B6D1481B0D436C4BA3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		2F3A6B1E78F896718625FF06 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				8F1F26A4A5CFE7FC86365190 /* TimeTracking.app */,
+				4BC2C899112A3D0FF1706B10 /* TimeTrackingAgent.app */,
+				51328CB683DBB45C08D94672 /* timetracking */,
+				42DDB581F99578F5DD0C592A /* tracker-event */,
+				A7330266BFD687EDFBC99CBC /* TimeTrackingiOS.app */,
+				9F3F018495C21FC2BFA557B4 /* TimeTrackingWidgets.appex */,
+				29F4769D1F19CB90994AE36E /* TimeTrackingIntents.appex */,
+				AC20818DDF6CACC2BCF5B1BA /* TimeTrackingMonitor.appex */,
+				3B2620E6188D7DCC0A7F764D /* TimeTrackingWebExtension.appex */,
+				19C24C4D68B176A69042BBB7 /* TimeTrackingTests.xctest */,
+				86885344B70AEFA722096888 /* TimeTrackingUITests.xctest */,
+				88068D95DD006BF75F9B1C95 /* TimeTrackingiOSTests.xctest */,
+				2E5B5E110C7894EBBE22A208 /* TimeTrackingiOSUITests.xctest */,
+				EA004B99373538C1DA384CD3 /* TimeTrackingAgentTests.xctest */,
+				6954D1920F7D850F7386A1E4 /* TimeTrackingCLITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		518DA81DB9B99529C0C0AEBE = {
+			isa = PBXGroup;
+			children = (
+				BD13AA3ACFF3D0C2ED6E4720 /* Config */,
+				5087E0EC0D586B105C51F34B /* TimeTracking */,
+				19AA90C05D5E51C61B554CC6 /* Shared */,
+				8661ECAEF201E5737367ACB7 /* TimeTrackingAgent */,
+				C55017EF20C81BA9B2FA35B5 /* TimeTrackingCLI */,
+				A6A1F2167B8A77286C311110 /* TrackerEvent */,
+				94E352497C6EB672F4FB8F28 /* TimeTrackingiOS */,
+				5D92A407ABD714D9B1B49855 /* TimeTrackingWidgets */,
+				13DD0A804213BFD3B98E0422 /* TimeTrackingIntents */,
+				AEF513FC787D47B547A09F7B /* TimeTrackingMonitor */,
+				C62AF442BA9D4A5213C31CA6 /* TimeTrackingWebExtension */,
+				12BD6AC29B8C15CC75031DE6 /* TimeTrackingTests */,
+				251F061EDB52E64DC0B73519 /* TimeTrackingUITests */,
+				2CB5BF39188A1D741CE51890 /* TimeTrackingiOSTests */,
+				25F9F9EE40EEFA6C8264509B /* TimeTrackingiOSUITests */,
+				DC1320E08B780356A9D25768 /* TimeTrackingAgentTests */,
+				2BA50DFEDA2395B518E140EC /* TimeTrackingCLITests */,
+				2F3A6B1E78F896718625FF06 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		BD13AA3ACFF3D0C2ED6E4720 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				9733ADEA65EA0469E1AC4B3B /* Project.xcconfig */,
+			);
+			path = Config;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		02D467600454F5FA34613F7A /* TimeTrackingWebExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 493BCC5DA4CBD85F3C0CEB67 /* Build configuration list for PBXNativeTarget "TimeTrackingWebExtension" */;
+			buildPhases = (
+				74A3BFB78F509F24E2C0AA38 /* Sources */,
+				9EBDFAAA42F1D6CD69915991 /* Frameworks */,
+				2B6C916697CE4C860AB6952B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				C62AF442BA9D4A5213C31CA6 /* TimeTrackingWebExtension */,
+			);
+			name = TimeTrackingWebExtension;
+			packageProductDependencies = (
+				4F2CDC438507CCBE6969A8A4 /* TimeTrackingCore */,
+			);
+			productName = TimeTrackingWebExtension;
+			productReference = 3B2620E6188D7DCC0A7F764D /* TimeTrackingWebExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		1877D90C07F950529610BCD0 /* TimeTrackingWidgets */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8363C7DD3E6BE15F5524E69F /* Build configuration list for PBXNativeTarget "TimeTrackingWidgets" */;
+			buildPhases = (
+				794147285BDC8C0910C96127 /* Sources */,
+				82CDB3B2E4374EF16011D07C /* Frameworks */,
+				407093378ADA43124B9204A6 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				5D92A407ABD714D9B1B49855 /* TimeTrackingWidgets */,
+			);
+			name = TimeTrackingWidgets;
+			packageProductDependencies = (
+				8A88E83A8F956F64E0DD1872 /* TimeTrackingCore */,
+			);
+			productName = TimeTrackingWidgets;
+			productReference = 9F3F018495C21FC2BFA557B4 /* TimeTrackingWidgets.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		34169F12FB17514F0CF653B7 /* TimeTrackingAgent */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 70D134DEBAD332C5500EE989 /* Build configuration list for PBXNativeTarget "TimeTrackingAgent" */;
+			buildPhases = (
+				8613C684BB6584FD35BA985D /* Sources */,
+				9DA85C980400E437822A7B1A /* Frameworks */,
+				89CD2D2CC09BA7FE803A5BE5 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				8661ECAEF201E5737367ACB7 /* TimeTrackingAgent */,
+			);
+			name = TimeTrackingAgent;
+			packageProductDependencies = (
+				D039B98B1111417164933A1E /* TimeTrackingCore */,
+				3CCC459531BAE2C6AD5F9ABB /* GRDB */,
+			);
+			productName = TimeTrackingAgent;
+			productReference = 4BC2C899112A3D0FF1706B10 /* TimeTrackingAgent.app */;
+			productType = "com.apple.product-type.application";
+		};
+		3D38428571B9F09DF221CFB8 /* TimeTrackingIntents */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C964744671EC3CB8699B5806 /* Build configuration list for PBXNativeTarget "TimeTrackingIntents" */;
+			buildPhases = (
+				8AF8EA8398DBB5BCB8547C76 /* Sources */,
+				71602E99738E61E5B3E56226 /* Frameworks */,
+				0FBF30148E4DE372A9FA180E /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				13DD0A804213BFD3B98E0422 /* TimeTrackingIntents */,
+			);
+			name = TimeTrackingIntents;
+			packageProductDependencies = (
+				3283E7AFBDEFC2680B5614D6 /* TimeTrackingCore */,
+			);
+			productName = TimeTrackingIntents;
+			productReference = 29F4769D1F19CB90994AE36E /* TimeTrackingIntents.appex */;
+			productType = "com.apple.product-type.extensionkit-extension";
+		};
+		4015003138E4688EDBCC93E5 /* TimeTrackingiOSTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4F148EF622F90241F30783C7 /* Build configuration list for PBXNativeTarget "TimeTrackingiOSTests" */;
+			buildPhases = (
+				A8142E16C50CF9D2DFDC9D28 /* Sources */,
+				39FF784C9AC44AB7E77F6FD1 /* Frameworks */,
+				05CA128DA6828C41EA548334 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				966384F4407C8A60E17F2646 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				2CB5BF39188A1D741CE51890 /* TimeTrackingiOSTests */,
+			);
+			name = TimeTrackingiOSTests;
+			packageProductDependencies = (
+			);
+			productName = TimeTrackingiOSTests;
+			productReference = 88068D95DD006BF75F9B1C95 /* TimeTrackingiOSTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		55A866A07C0C0646EC8AACE5 /* TimeTrackingiOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7C863768DF52A00ED893CA56 /* Build configuration list for PBXNativeTarget "TimeTrackingiOS" */;
+			buildPhases = (
+				314500C5ED67235BA303A189 /* SwiftFormat */,
+				C699F80FABC1AB46D6BE033E /* SwiftLint */,
+				63BE471174C99A9FDAC2DC86 /* Sources */,
+				46E0CF7BBC0EF5E417EB3DCE /* Frameworks */,
+				FCDC7422CFE204C45E848B22 /* Resources */,
+				011B2E29E7602265D963D2F8 /* Embed Foundation Extensions */,
+				6CEBB1007C51EA288DD3404B /* Embed ExtensionKit Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				F7D3C108CE9B11B5F4B579BE /* PBXTargetDependency */,
+				6CE0B22CFD44C0AF39682142 /* PBXTargetDependency */,
+				580BD687E5D4487D29DF1A81 /* PBXTargetDependency */,
+				6E844D0B4B757179CF91582C /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				94E352497C6EB672F4FB8F28 /* TimeTrackingiOS */,
+				19AA90C05D5E51C61B554CC6 /* Shared */,
+			);
+			name = TimeTrackingiOS;
+			packageProductDependencies = (
+				BA1583758AD6C11671CB2BD6 /* TimeTrackingCore */,
+			);
+			productName = TimeTrackingiOS;
+			productReference = A7330266BFD687EDFBC99CBC /* TimeTrackingiOS.app */;
+			productType = "com.apple.product-type.application";
+		};
+		62658ED57C36880582CA52D8 /* TimeTrackingMonitor */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B552F675FDF1B9B7F452D6F4 /* Build configuration list for PBXNativeTarget "TimeTrackingMonitor" */;
+			buildPhases = (
+				8668E2E0313A0B056D20D41B /* Sources */,
+				4FA7332DA4608F2B3493A498 /* Frameworks */,
+				65E796304C30CB5E8E4A6289 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				AEF513FC787D47B547A09F7B /* TimeTrackingMonitor */,
+			);
+			name = TimeTrackingMonitor;
+			packageProductDependencies = (
+				2021806177EE5A3D80502DC2 /* TimeTrackingCore */,
+			);
+			productName = TimeTrackingMonitor;
+			productReference = AC20818DDF6CACC2BCF5B1BA /* TimeTrackingMonitor.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		65010782FE719F65BA707B81 /* TimeTrackingCLITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4276EDB3061A678BA30BFBED /* Build configuration list for PBXNativeTarget "TimeTrackingCLITests" */;
+			buildPhases = (
+				48624E0452A67490BF010403 /* Sources */,
+				4726FCAE66EAFF615D073C0E /* Frameworks */,
+				8C8B35C6887E6B38D4C5874C /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				95B35C8D15760ADB88D9CF27 /* PBXTargetDependency */,
+				16319769E6F26961215DB8EE /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				2BA50DFEDA2395B518E140EC /* TimeTrackingCLITests */,
+			);
+			name = TimeTrackingCLITests;
+			packageProductDependencies = (
+			);
+			productName = TimeTrackingCLITests;
+			productReference = 6954D1920F7D850F7386A1E4 /* TimeTrackingCLITests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		8B7B8424436CAEE17836379E /* TimeTrackingTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 58AF55E16811C402D3D94C0A /* Build configuration list for PBXNativeTarget "TimeTrackingTests" */;
+			buildPhases = (
+				BAAF38B21F9651D2EB3ABD4D /* Sources */,
+				59F106327337CCD0EB799975 /* Frameworks */,
+				BA6D05D34F36FFF5DC6286BD /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				98438FFC6406D6E206286CBF /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				12BD6AC29B8C15CC75031DE6 /* TimeTrackingTests */,
+			);
+			name = TimeTrackingTests;
+			packageProductDependencies = (
+			);
+			productName = TimeTrackingTests;
+			productReference = 19C24C4D68B176A69042BBB7 /* TimeTrackingTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		9CD65A9ABE107EA71DD9FABC /* TimeTrackingUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CD41D315C216F89DF9E94940 /* Build configuration list for PBXNativeTarget "TimeTrackingUITests" */;
+			buildPhases = (
+				206B2D658804B10860555A57 /* Sources */,
+				E9C516B6D1481B0D436C4BA3 /* Frameworks */,
+				10428D55BA26B84682FBD494 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				63B1E719173B72995AEB9F47 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				251F061EDB52E64DC0B73519 /* TimeTrackingUITests */,
+			);
+			name = TimeTrackingUITests;
+			packageProductDependencies = (
+			);
+			productName = TimeTrackingUITests;
+			productReference = 86885344B70AEFA722096888 /* TimeTrackingUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		ABA47969451CAACEB97E3130 /* TrackerEvent */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F3143F69FEA3CB3FA43DC1B7 /* Build configuration list for PBXNativeTarget "TrackerEvent" */;
+			buildPhases = (
+				4969BCFA3304BCFD4DAC0427 /* Sources */,
+				8F73006755CB146A1E0DF750 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				A6A1F2167B8A77286C311110 /* TrackerEvent */,
+			);
+			name = TrackerEvent;
+			packageProductDependencies = (
+			);
+			productName = TrackerEvent;
+			productReference = 42DDB581F99578F5DD0C592A /* tracker-event */;
+			productType = "com.apple.product-type.tool";
+		};
+		AF84863BD50650395573FA09 /* TimeTrackingiOSUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BA0CEE32C011ECD6A19FBEE1 /* Build configuration list for PBXNativeTarget "TimeTrackingiOSUITests" */;
+			buildPhases = (
+				04E5F442D8F47D22E853FE61 /* Sources */,
+				8DCEFF1DF20253D2104503CE /* Frameworks */,
+				890C3CA8D17E2700ABB9A46E /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				4DB8BFDC49E25CF65D8580F0 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				25F9F9EE40EEFA6C8264509B /* TimeTrackingiOSUITests */,
+			);
+			name = TimeTrackingiOSUITests;
+			packageProductDependencies = (
+			);
+			productName = TimeTrackingiOSUITests;
+			productReference = 2E5B5E110C7894EBBE22A208 /* TimeTrackingiOSUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		C3E4D4B19C964B75CE8AC829 /* TimeTracking */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BC80777122679420E2E0A5B5 /* Build configuration list for PBXNativeTarget "TimeTracking" */;
+			buildPhases = (
+				7A5A3EB7307F3D02B1196C36 /* SwiftFormat */,
+				B98C82589AD68BA1211CF5E4 /* SwiftLint */,
+				6B46EA954FF9CAB4C12BDB84 /* Sources */,
+				8D85AB08BAD86B9E5E55A9CE /* Frameworks */,
+				6797DFF447F247995FD48198 /* Resources */,
+				D8042AEBA863AD2DE4DDA012 /* Embed Login Items */,
+				E4FCD7F94622B39E52714B91 /* Embed Helpers */,
+				BF44BD456D1E7E8BF2F92338 /* Generate launchd plist */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				E671B23483E33E346F71A785 /* PBXTargetDependency */,
+				89A09CBCC1DFF8894009CF4A /* PBXTargetDependency */,
+				E7E00B360FFC4ADE64E12AF0 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				5087E0EC0D586B105C51F34B /* TimeTracking */,
+				19AA90C05D5E51C61B554CC6 /* Shared */,
+			);
+			name = TimeTracking;
+			packageProductDependencies = (
+				EA2DFAD8D93B22384D4523A6 /* TimeTrackingCore */,
+				4F9B73071CE725C584D62957 /* KeyboardShortcuts */,
+			);
+			productName = TimeTracking;
+			productReference = 8F1F26A4A5CFE7FC86365190 /* TimeTracking.app */;
+			productType = "com.apple.product-type.application";
+		};
+		E5F0DF98B1F97668D9119C88 /* TimeTrackingAgentTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 37665CE033F8867AFE961DE0 /* Build configuration list for PBXNativeTarget "TimeTrackingAgentTests" */;
+			buildPhases = (
+				0C563776D830CA0AD377DF1A /* Sources */,
+				50B5E7BEDC54F0C23EB8C383 /* Frameworks */,
+				6CA433E4805419E3C3DB4E7B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A37ABF6F52E8430573106C45 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				DC1320E08B780356A9D25768 /* TimeTrackingAgentTests */,
+			);
+			name = TimeTrackingAgentTests;
+			packageProductDependencies = (
+			);
+			productName = TimeTrackingAgentTests;
+			productReference = EA004B99373538C1DA384CD3 /* TimeTrackingAgentTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		F21DE4DAF675ECFD88577B93 /* TimeTrackingCLI */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A4875C4A1E720A53431FF9C5 /* Build configuration list for PBXNativeTarget "TimeTrackingCLI" */;
+			buildPhases = (
+				66D5E010BC41FDFDCE750B50 /* Sources */,
+				93E36CC8E5B9818F84A10BFE /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				C55017EF20C81BA9B2FA35B5 /* TimeTrackingCLI */,
+			);
+			name = TimeTrackingCLI;
+			packageProductDependencies = (
+				F3E341E2C21A36C035EEF82B /* TimeTrackingCore */,
+				EE08A5D06871930A3F5CA11A /* ArgumentParser */,
+			);
+			productName = TimeTrackingCLI;
+			productReference = 51328CB683DBB45C08D94672 /* timetracking */;
+			productType = "com.apple.product-type.tool";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		46F86FAA6BBF9AC94A7E4595 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2710;
+				LastUpgradeCheck = 2710;
+				TargetAttributes = {
+					02D467600454F5FA34613F7A = {
+						CreatedOnToolsVersion = 27.0;
+					};
+					1877D90C07F950529610BCD0 = {
+						CreatedOnToolsVersion = 27.0;
+					};
+					34169F12FB17514F0CF653B7 = {
+						CreatedOnToolsVersion = 27.0;
+					};
+					3D38428571B9F09DF221CFB8 = {
+						CreatedOnToolsVersion = 27.0;
+					};
+					4015003138E4688EDBCC93E5 = {
+						CreatedOnToolsVersion = 27.0;
+						TestTargetID = 55A866A07C0C0646EC8AACE5 /* TimeTrackingiOS */;
+					};
+					55A866A07C0C0646EC8AACE5 = {
+						CreatedOnToolsVersion = 27.0;
+					};
+					62658ED57C36880582CA52D8 = {
+						CreatedOnToolsVersion = 27.0;
+					};
+					65010782FE719F65BA707B81 = {
+						CreatedOnToolsVersion = 27.0;
+						TestTargetID = F21DE4DAF675ECFD88577B93 /* TimeTrackingCLI */;
+					};
+					8B7B8424436CAEE17836379E = {
+						CreatedOnToolsVersion = 27.0;
+						TestTargetID = C3E4D4B19C964B75CE8AC829 /* TimeTracking */;
+					};
+					9CD65A9ABE107EA71DD9FABC = {
+						CreatedOnToolsVersion = 27.0;
+						TestTargetID = C3E4D4B19C964B75CE8AC829 /* TimeTracking */;
+					};
+					ABA47969451CAACEB97E3130 = {
+						CreatedOnToolsVersion = 27.0;
+					};
+					AF84863BD50650395573FA09 = {
+						CreatedOnToolsVersion = 27.0;
+						TestTargetID = 55A866A07C0C0646EC8AACE5 /* TimeTrackingiOS */;
+					};
+					C3E4D4B19C964B75CE8AC829 = {
+						CreatedOnToolsVersion = 27.0;
+					};
+					E5F0DF98B1F97668D9119C88 = {
+						CreatedOnToolsVersion = 27.0;
+						TestTargetID = 34169F12FB17514F0CF653B7 /* TimeTrackingAgent */;
+					};
+					F21DE4DAF675ECFD88577B93 = {
+						CreatedOnToolsVersion = 27.0;
+					};
+				};
+			};
+			buildConfigurationList = 14620A0EB52E6D9676ED0FF9 /* Build configuration list for PBXProject "TimeTracking" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 518DA81DB9B99529C0C0AEBE;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				222F6D3F7F52B6FFB4127725 /* XCLocalSwiftPackageReference "Packages/TimeTrackingCore" */,
+				519F4DD6C0DEB81B48055C8B /* XCRemoteSwiftPackageReference "GRDB.swift" */,
+				68037F854A29AE92C5DAD8EC /* XCRemoteSwiftPackageReference "swift-argument-parser" */,
+				CD2370D75DA9C293CE452CF9 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */,
+				24C7DFF3372D37D16FF92166 /* XCRemoteSwiftPackageReference "TOMLKit" */,
+				9A4DB8848A9D8E3D63C1A8AE /* XCRemoteSwiftPackageReference "SwiftFormat" */,
+				F0BC8BE7A7E0957B4B74E824 /* XCRemoteSwiftPackageReference "SwiftLintPlugins" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 2F3A6B1E78F896718625FF06 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				C3E4D4B19C964B75CE8AC829 /* TimeTracking */,
+				34169F12FB17514F0CF653B7 /* TimeTrackingAgent */,
+				F21DE4DAF675ECFD88577B93 /* TimeTrackingCLI */,
+				ABA47969451CAACEB97E3130 /* TrackerEvent */,
+				55A866A07C0C0646EC8AACE5 /* TimeTrackingiOS */,
+				1877D90C07F950529610BCD0 /* TimeTrackingWidgets */,
+				3D38428571B9F09DF221CFB8 /* TimeTrackingIntents */,
+				62658ED57C36880582CA52D8 /* TimeTrackingMonitor */,
+				02D467600454F5FA34613F7A /* TimeTrackingWebExtension */,
+				8B7B8424436CAEE17836379E /* TimeTrackingTests */,
+				9CD65A9ABE107EA71DD9FABC /* TimeTrackingUITests */,
+				4015003138E4688EDBCC93E5 /* TimeTrackingiOSTests */,
+				AF84863BD50650395573FA09 /* TimeTrackingiOSUITests */,
+				E5F0DF98B1F97668D9119C88 /* TimeTrackingAgentTests */,
+				65010782FE719F65BA707B81 /* TimeTrackingCLITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		05CA128DA6828C41EA548334 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0FBF30148E4DE372A9FA180E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		10428D55BA26B84682FBD494 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2B6C916697CE4C860AB6952B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		407093378ADA43124B9204A6 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		65E796304C30CB5E8E4A6289 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6797DFF447F247995FD48198 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6CA433E4805419E3C3DB4E7B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		890C3CA8D17E2700ABB9A46E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		89CD2D2CC09BA7FE803A5BE5 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8C8B35C6887E6B38D4C5874C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BA6D05D34F36FFF5DC6286BD /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FCDC7422CFE204C45E848B22 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		314500C5ED67235BA303A189 /* SwiftFormat */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = SwiftFormat;
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "exec \"$SRCROOT/scripts/lint_phase.sh\" swiftformat\n";
+		};
+		7A5A3EB7307F3D02B1196C36 /* SwiftFormat */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = SwiftFormat;
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "exec \"$SRCROOT/scripts/lint_phase.sh\" swiftformat\n";
+		};
+		B98C82589AD68BA1211CF5E4 /* SwiftLint */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = SwiftLint;
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "exec \"$SRCROOT/scripts/lint_phase.sh\" swiftlint\n";
+		};
+		BF44BD456D1E7E8BF2F92338 /* Generate launchd plist */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/scripts/launchd_plist.sh",
+			);
+			name = "Generate launchd plist";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(TARGET_BUILD_DIR)/$(CONTENTS_FOLDER_PATH)/Library/LaunchAgents/$(TT_APP_ID).agent.plist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "exec \"$SRCROOT/scripts/launchd_plist.sh\"\n";
+		};
+		C699F80FABC1AB46D6BE033E /* SwiftLint */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = SwiftLint;
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "exec \"$SRCROOT/scripts/lint_phase.sh\" swiftlint\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		04E5F442D8F47D22E853FE61 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0C563776D830CA0AD377DF1A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		206B2D658804B10860555A57 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		48624E0452A67490BF010403 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4969BCFA3304BCFD4DAC0427 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		63BE471174C99A9FDAC2DC86 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		66D5E010BC41FDFDCE750B50 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6B46EA954FF9CAB4C12BDB84 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		74A3BFB78F509F24E2C0AA38 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		794147285BDC8C0910C96127 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8613C684BB6584FD35BA985D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8668E2E0313A0B056D20D41B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8AF8EA8398DBB5BCB8547C76 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A8142E16C50CF9D2DFDC9D28 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BAAF38B21F9651D2EB3ABD4D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		16319769E6F26961215DB8EE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = ABA47969451CAACEB97E3130 /* TrackerEvent */;
+			targetProxy = 9DB2F55EC29961520696BDF1 /* PBXContainerItemProxy */;
+		};
+		4DB8BFDC49E25CF65D8580F0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 55A866A07C0C0646EC8AACE5 /* TimeTrackingiOS */;
+			targetProxy = A6A6E9E2EB313F1F80FC4883 /* PBXContainerItemProxy */;
+		};
+		580BD687E5D4487D29DF1A81 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 62658ED57C36880582CA52D8 /* TimeTrackingMonitor */;
+			targetProxy = 6736B5FB80126C93F044DB30 /* PBXContainerItemProxy */;
+		};
+		63B1E719173B72995AEB9F47 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C3E4D4B19C964B75CE8AC829 /* TimeTracking */;
+			targetProxy = 363521423F4D185E23E15733 /* PBXContainerItemProxy */;
+		};
+		6CE0B22CFD44C0AF39682142 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3D38428571B9F09DF221CFB8 /* TimeTrackingIntents */;
+			targetProxy = 5F86E54A0101BE5642D6001D /* PBXContainerItemProxy */;
+		};
+		6E844D0B4B757179CF91582C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 02D467600454F5FA34613F7A /* TimeTrackingWebExtension */;
+			targetProxy = 442A27AF453C7E79978BC99B /* PBXContainerItemProxy */;
+		};
+		89A09CBCC1DFF8894009CF4A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F21DE4DAF675ECFD88577B93 /* TimeTrackingCLI */;
+			targetProxy = BC917B4F7555453CE18F0298 /* PBXContainerItemProxy */;
+		};
+		95B35C8D15760ADB88D9CF27 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F21DE4DAF675ECFD88577B93 /* TimeTrackingCLI */;
+			targetProxy = 00485716A969A3CD975C5533 /* PBXContainerItemProxy */;
+		};
+		966384F4407C8A60E17F2646 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 55A866A07C0C0646EC8AACE5 /* TimeTrackingiOS */;
+			targetProxy = 79C76A1CA825DB86F4C043B8 /* PBXContainerItemProxy */;
+		};
+		98438FFC6406D6E206286CBF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C3E4D4B19C964B75CE8AC829 /* TimeTracking */;
+			targetProxy = 36BBBEF2DFDE70886E920312 /* PBXContainerItemProxy */;
+		};
+		A37ABF6F52E8430573106C45 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 34169F12FB17514F0CF653B7 /* TimeTrackingAgent */;
+			targetProxy = 5C2E34C4EECB100719327BDD /* PBXContainerItemProxy */;
+		};
+		E671B23483E33E346F71A785 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 34169F12FB17514F0CF653B7 /* TimeTrackingAgent */;
+			targetProxy = 849A0B51519515D33690D571 /* PBXContainerItemProxy */;
+		};
+		E7E00B360FFC4ADE64E12AF0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = ABA47969451CAACEB97E3130 /* TrackerEvent */;
+			targetProxy = 14DED239D823B3CF79E4F908 /* PBXContainerItemProxy */;
+		};
+		F7D3C108CE9B11B5F4B579BE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1877D90C07F950529610BCD0 /* TimeTrackingWidgets */;
+			targetProxy = 83CD9C8B95B9F0EEA0C54294 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		002CFE000B1B55DE9D98022F /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9733ADEA65EA0469E1AC4B3B /* Project.xcconfig */;
+			buildSettings = {
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				TEST_TARGET_NAME = TimeTrackingiOS;
+			};
+			name = Release;
+		};
+		01D624BF5D8CED433D6A780C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9733ADEA65EA0469E1AC4B3B /* Project.xcconfig */;
+			buildSettings = {
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
+			};
+			name = Debug;
+		};
+		0A15396B644A515FC774C09B /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9733ADEA65EA0469E1AC4B3B /* Project.xcconfig */;
+			buildSettings = {
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = macosx;
+			};
+			name = Release;
+		};
+		1018A30E0D1B375EC77B8467 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9733ADEA65EA0469E1AC4B3B /* Project.xcconfig */;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
+			};
+			name = Release;
+		};
+		1111C37EEA4B87C075400680 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9733ADEA65EA0469E1AC4B3B /* Project.xcconfig */;
+			buildSettings = {
+			};
+			name = Debug;
+		};
+		1D92A5B2BAE417E45A104ABA /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9733ADEA65EA0469E1AC4B3B /* Project.xcconfig */;
+			buildSettings = {
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+			};
+			name = Release;
+		};
+		1DC9566A7039B60B6B5B2506 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9733ADEA65EA0469E1AC4B3B /* Project.xcconfig */;
+			buildSettings = {
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = macosx;
+			};
+			name = Debug;
+		};
+		2178167FAB3E1D6F89335D49 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9733ADEA65EA0469E1AC4B3B /* Project.xcconfig */;
+			buildSettings = {
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
+				TEST_TARGET_NAME = TimeTracking;
+			};
+			name = Release;
+		};
+		21E0C1D4934461F4AC715E19 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9733ADEA65EA0469E1AC4B3B /* Project.xcconfig */;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = macosx;
+			};
+			name = Debug;
+		};
+		2598009075DE1F15D922E2B2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9733ADEA65EA0469E1AC4B3B /* Project.xcconfig */;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/$(TT_APP_NAME).app/Contents/MacOS/TimeTracking";
+			};
+			name = Debug;
+		};
+		2C824B3BEE05F7FF1876D89F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9733ADEA65EA0469E1AC4B3B /* Project.xcconfig */;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+			};
+			name = Debug;
+		};
+		2CB43CBD5F7F427DF6A9929E /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9733ADEA65EA0469E1AC4B3B /* Project.xcconfig */;
+			buildSettings = {
+			};
+			name = Release;
+		};
+		2F23CA77D5377323132C5292 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9733ADEA65EA0469E1AC4B3B /* Project.xcconfig */;
+			buildSettings = {
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+			};
+			name = Debug;
+		};
+		32FDA53B46406A9CC3B48F91 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9733ADEA65EA0469E1AC4B3B /* Project.xcconfig */;
+			buildSettings = {
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
+			};
+			name = Release;
+		};
+		3DDB5D29C495A2A09BE14D0B /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9733ADEA65EA0469E1AC4B3B /* Project.xcconfig */;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+			};
+			name = Release;
+		};
+		3F4140ED472DA5E12DF3482C /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9733ADEA65EA0469E1AC4B3B /* Project.xcconfig */;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/$(TT_APP_NAME).app/TimeTrackingiOS";
+			};
+			name = Release;
+		};
+		4990566894665531D4BF8EB2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9733ADEA65EA0469E1AC4B3B /* Project.xcconfig */;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
+			};
+			name = Debug;
+		};
+		52117A9DC3EDD901722F6670 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9733ADEA65EA0469E1AC4B3B /* Project.xcconfig */;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+			};
+			name = Release;
+		};
+		6164463B1FC89B2EA854D2C5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9733ADEA65EA0469E1AC4B3B /* Project.xcconfig */;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = macosx;
+			};
+			name = Release;
+		};
+		64D30C70510E174E9591EFA4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9733ADEA65EA0469E1AC4B3B /* Project.xcconfig */;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+			};
+			name = Release;
+		};
+		6A50EA7F477BC57754B3C3D8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9733ADEA65EA0469E1AC4B3B /* Project.xcconfig */;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+			};
+			name = Debug;
+		};
+		7B30305B06B6A34DA56ABE21 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9733ADEA65EA0469E1AC4B3B /* Project.xcconfig */;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/$(TT_APP_NAME).app/TimeTrackingiOS";
+			};
+			name = Debug;
+		};
+		85CAAE0D492FCEA921522C69 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9733ADEA65EA0469E1AC4B3B /* Project.xcconfig */;
+			buildSettings = {
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				TEST_TARGET_NAME = TimeTrackingiOS;
+			};
+			name = Debug;
+		};
+		8AFEED15119287889890EB3B /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9733ADEA65EA0469E1AC4B3B /* Project.xcconfig */;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+			};
+			name = Release;
+		};
+		A031050FA88B97AF40B1EE0C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9733ADEA65EA0469E1AC4B3B /* Project.xcconfig */;
+			buildSettings = {
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = macosx;
+			};
+			name = Debug;
+		};
+		A61BA8B2D789094AD105DFE2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9733ADEA65EA0469E1AC4B3B /* Project.xcconfig */;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TimeTrackingAgent.app/Contents/MacOS/TimeTrackingAgent";
+			};
+			name = Release;
+		};
+		CA93CC85D6D258C3DAB419C9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9733ADEA65EA0469E1AC4B3B /* Project.xcconfig */;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+			};
+			name = Debug;
+		};
+		D26BE344EA9A58CD95AB17E1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9733ADEA65EA0469E1AC4B3B /* Project.xcconfig */;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TimeTrackingAgent.app/Contents/MacOS/TimeTrackingAgent";
+			};
+			name = Debug;
+		};
+		DFD1D11C4736D27EE079737E /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9733ADEA65EA0469E1AC4B3B /* Project.xcconfig */;
+			buildSettings = {
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = macosx;
+			};
+			name = Release;
+		};
+		EF265694A1830A3F7CCD815F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9733ADEA65EA0469E1AC4B3B /* Project.xcconfig */;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+			};
+			name = Debug;
+		};
+		EF5416E79475F208FF7DADF2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9733ADEA65EA0469E1AC4B3B /* Project.xcconfig */;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/$(TT_APP_NAME).app/Contents/MacOS/TimeTracking";
+			};
+			name = Release;
+		};
+		F8B78305FFDCF43441C8706D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9733ADEA65EA0469E1AC4B3B /* Project.xcconfig */;
+			buildSettings = {
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
+				TEST_TARGET_NAME = TimeTracking;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		14620A0EB52E6D9676ED0FF9 /* Build configuration list for PBXProject "TimeTracking" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1111C37EEA4B87C075400680 /* Debug */,
+				2CB43CBD5F7F427DF6A9929E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		37665CE033F8867AFE961DE0 /* Build configuration list for PBXNativeTarget "TimeTrackingAgentTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D26BE344EA9A58CD95AB17E1 /* Debug */,
+				A61BA8B2D789094AD105DFE2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4276EDB3061A678BA30BFBED /* Build configuration list for PBXNativeTarget "TimeTrackingCLITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				01D624BF5D8CED433D6A780C /* Debug */,
+				32FDA53B46406A9CC3B48F91 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		493BCC5DA4CBD85F3C0CEB67 /* Build configuration list for PBXNativeTarget "TimeTrackingWebExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EF265694A1830A3F7CCD815F /* Debug */,
+				8AFEED15119287889890EB3B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4F148EF622F90241F30783C7 /* Build configuration list for PBXNativeTarget "TimeTrackingiOSTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7B30305B06B6A34DA56ABE21 /* Debug */,
+				3F4140ED472DA5E12DF3482C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		58AF55E16811C402D3D94C0A /* Build configuration list for PBXNativeTarget "TimeTrackingTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2598009075DE1F15D922E2B2 /* Debug */,
+				EF5416E79475F208FF7DADF2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		70D134DEBAD332C5500EE989 /* Build configuration list for PBXNativeTarget "TimeTrackingAgent" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				21E0C1D4934461F4AC715E19 /* Debug */,
+				6164463B1FC89B2EA854D2C5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		7C863768DF52A00ED893CA56 /* Build configuration list for PBXNativeTarget "TimeTrackingiOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2F23CA77D5377323132C5292 /* Debug */,
+				1D92A5B2BAE417E45A104ABA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		8363C7DD3E6BE15F5524E69F /* Build configuration list for PBXNativeTarget "TimeTrackingWidgets" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2C824B3BEE05F7FF1876D89F /* Debug */,
+				52117A9DC3EDD901722F6670 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A4875C4A1E720A53431FF9C5 /* Build configuration list for PBXNativeTarget "TimeTrackingCLI" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A031050FA88B97AF40B1EE0C /* Debug */,
+				0A15396B644A515FC774C09B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B552F675FDF1B9B7F452D6F4 /* Build configuration list for PBXNativeTarget "TimeTrackingMonitor" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CA93CC85D6D258C3DAB419C9 /* Debug */,
+				3DDB5D29C495A2A09BE14D0B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BA0CEE32C011ECD6A19FBEE1 /* Build configuration list for PBXNativeTarget "TimeTrackingiOSUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				85CAAE0D492FCEA921522C69 /* Debug */,
+				002CFE000B1B55DE9D98022F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BC80777122679420E2E0A5B5 /* Build configuration list for PBXNativeTarget "TimeTracking" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4990566894665531D4BF8EB2 /* Debug */,
+				1018A30E0D1B375EC77B8467 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C964744671EC3CB8699B5806 /* Build configuration list for PBXNativeTarget "TimeTrackingIntents" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6A50EA7F477BC57754B3C3D8 /* Debug */,
+				64D30C70510E174E9591EFA4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CD41D315C216F89DF9E94940 /* Build configuration list for PBXNativeTarget "TimeTrackingUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F8B78305FFDCF43441C8706D /* Debug */,
+				2178167FAB3E1D6F89335D49 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F3143F69FEA3CB3FA43DC1B7 /* Build configuration list for PBXNativeTarget "TrackerEvent" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1DC9566A7039B60B6B5B2506 /* Debug */,
+				DFD1D11C4736D27EE079737E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		222F6D3F7F52B6FFB4127725 /* XCLocalSwiftPackageReference "Packages/TimeTrackingCore" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/TimeTrackingCore;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		24C7DFF3372D37D16FF92166 /* XCRemoteSwiftPackageReference "TOMLKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/LebJe/TOMLKit";
+			requirement = {
+				kind = exactVersion;
+				version = 0.6.0;
+			};
+		};
+		519F4DD6C0DEB81B48055C8B /* XCRemoteSwiftPackageReference "GRDB.swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/groue/GRDB.swift";
+			requirement = {
+				kind = exactVersion;
+				version = 7.11.1;
+			};
+		};
+		68037F854A29AE92C5DAD8EC /* XCRemoteSwiftPackageReference "swift-argument-parser" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-argument-parser";
+			requirement = {
+				kind = exactVersion;
+				version = 1.8.2;
+			};
+		};
+		9A4DB8848A9D8E3D63C1A8AE /* XCRemoteSwiftPackageReference "SwiftFormat" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/nicklockwood/SwiftFormat";
+			requirement = {
+				kind = exactVersion;
+				version = 0.64.4;
+			};
+		};
+		CD2370D75DA9C293CE452CF9 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sindresorhus/KeyboardShortcuts";
+			requirement = {
+				kind = exactVersion;
+				version = 3.1.0;
+			};
+		};
+		F0BC8BE7A7E0957B4B74E824 /* XCRemoteSwiftPackageReference "SwiftLintPlugins" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SimplyDanny/SwiftLintPlugins";
+			requirement = {
+				kind = exactVersion;
+				version = 0.65.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		2021806177EE5A3D80502DC2 /* TimeTrackingCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 222F6D3F7F52B6FFB4127725 /* XCLocalSwiftPackageReference "Packages/TimeTrackingCore" */;
+			productName = TimeTrackingCore;
+		};
+		3283E7AFBDEFC2680B5614D6 /* TimeTrackingCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 222F6D3F7F52B6FFB4127725 /* XCLocalSwiftPackageReference "Packages/TimeTrackingCore" */;
+			productName = TimeTrackingCore;
+		};
+		3CCC459531BAE2C6AD5F9ABB /* GRDB */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 519F4DD6C0DEB81B48055C8B /* XCRemoteSwiftPackageReference "GRDB.swift" */;
+			productName = GRDB;
+		};
+		4F2CDC438507CCBE6969A8A4 /* TimeTrackingCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 222F6D3F7F52B6FFB4127725 /* XCLocalSwiftPackageReference "Packages/TimeTrackingCore" */;
+			productName = TimeTrackingCore;
+		};
+		4F9B73071CE725C584D62957 /* KeyboardShortcuts */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CD2370D75DA9C293CE452CF9 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */;
+			productName = KeyboardShortcuts;
+		};
+		8A88E83A8F956F64E0DD1872 /* TimeTrackingCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 222F6D3F7F52B6FFB4127725 /* XCLocalSwiftPackageReference "Packages/TimeTrackingCore" */;
+			productName = TimeTrackingCore;
+		};
+		BA1583758AD6C11671CB2BD6 /* TimeTrackingCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 222F6D3F7F52B6FFB4127725 /* XCLocalSwiftPackageReference "Packages/TimeTrackingCore" */;
+			productName = TimeTrackingCore;
+		};
+		D039B98B1111417164933A1E /* TimeTrackingCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 222F6D3F7F52B6FFB4127725 /* XCLocalSwiftPackageReference "Packages/TimeTrackingCore" */;
+			productName = TimeTrackingCore;
+		};
+		EA2DFAD8D93B22384D4523A6 /* TimeTrackingCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 222F6D3F7F52B6FFB4127725 /* XCLocalSwiftPackageReference "Packages/TimeTrackingCore" */;
+			productName = TimeTrackingCore;
+		};
+		EE08A5D06871930A3F5CA11A /* ArgumentParser */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 68037F854A29AE92C5DAD8EC /* XCRemoteSwiftPackageReference "swift-argument-parser" */;
+			productName = ArgumentParser;
+		};
+		F3E341E2C21A36C035EEF82B /* TimeTrackingCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 222F6D3F7F52B6FFB4127725 /* XCLocalSwiftPackageReference "Packages/TimeTrackingCore" */;
+			productName = TimeTrackingCore;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 46F86FAA6BBF9AC94A7E4595 /* Project object */;
+}

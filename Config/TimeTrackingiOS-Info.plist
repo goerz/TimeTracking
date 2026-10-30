@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>$(TT_REFRESH_TASK_ID)</string>
+	</array>
+	<key>CFBundleDisplayName</key>
+	<string>$(TT_DISPLAY_NAME)</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>$(TT_APP_ID)</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>$(TT_URL_SCHEME)</string>
+			</array>
+		</dict>
+	</array>
+	<key>NSCalendarsFullAccessUsageDescription</key>
+	<string>The Calendar section shows your time blocks and the calendar events you choose next to your tracked time.</string>
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+		<true/>
+	</dict>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>remote-notification</string>
+	</array>
+	<key>UILaunchScreen</key>
+	<dict/>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>TTAppID</key>
+	<string>$(TT_APP_ID)</string>
+	<key>TTAppGroup</key>
+	<string>$(TT_APP_GROUP)</string>
+	<key>TTBundleID</key>
+	<string>$(TT_BUNDLE_ID)</string>
+	<key>TTCloudKitContainer</key>
+	<string>$(TT_CLOUDKIT_CONTAINER)</string>
+	<key>TTTeamID</key>
+	<string>$(DEVELOPMENT_TEAM)</string>
+	<key>TTURLScheme</key>
+	<string>$(TT_URL_SCHEME)</string>
+</dict>
+</plist>

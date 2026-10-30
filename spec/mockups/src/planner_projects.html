@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="mockup-size" content="1420,900">
+<title>Planner, Projects</title>
+<link rel="stylesheet" href="mockup.css">
+<style>
+
+.planner { background: #fff; }
+.planner .content { overflow: hidden; }
+.tb-title { font-size: 15px; font-weight: 600; margin: 0 6px 0 4px; }
+.status { position: absolute; left: 0; right: 0; bottom: 0; height: 30px; display: flex; align-items: center; justify-content: space-between; padding: 0 18px; font-size: 12px; color: var(--label-2); border-top: 0.5px solid var(--separator); background: #fff; }
+
+.ptable { position: absolute; left: 12px; right: 12px; top: 52px; bottom: 30px; }
+.ptable .c0 { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 8px; }
+.ptable .c1, .ptable .c2 { width: 140px; flex: none; }
+.ptable .c3 { width: 100px; flex: none; }
+.ptable .c4 { width: 120px; flex: none; }
+.ptable .c5 { width: 120px; flex: none; text-align: right; }
+.ptable .tr { border-radius: 6px; }
+.ptable .tr.group { color: var(--label); }
+.ptable .tr.group .c0 { font-weight: 600; }
+.ptable .tr.group .c5 { font-weight: 600; }
+.ptable .tr .ind { width: 20px; flex: none; }
+.ptable .more { margin-left: auto; width: 22px; height: 18px; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.25); color: #fff; }
+.ptable .tr.sel .dot { box-shadow: 0 0 0 1.5px #fff; }
+.disc { color: var(--label-2); display: inline-flex; width: 14px; }
+.sortarrow { color: var(--label-2); margin-left: 4px; }
+
+</style>
+</head>
+<body>
+<div class="desk">
+<div class="window planner" style="left:30px;top:30px;width:1360px;height:840px">
+  <div class="sidebar">
+    <div class="top"><div class="traffic"><span></span><span></span><span></span></div><span class="sec"><svg class="i s18"><use href="#sidebar"/></svg></span></div>
+    <div class="sb-item on"><svg class="i "><use href="#folder"/></svg><span>Projects</span></div><div class="sb-item"><svg class="i "><use href="#calendar"/></svg><span>Calendar</span></div><div class="sb-item"><svg class="i "><use href="#chart-bar"/></svg><span>Reports</span></div><div class="sb-item"><svg class="i "><use href="#waveform"/></svg><span>Activity</span></div>
+  </div>
+  <div class="content">
+    <div class="toolbar"><span class="tb-title">Projects</span><span class="tbtn glass ">Active<svg class="i s12 sec"><use href="#chevron-down"/></svg></span><span class="tbtn glass "><svg class="i s14"><use href="#filter"/></svg>Filters</span><span class="tbtn glass ">Group by: Client<svg class="i s12 sec"><use href="#chevron-down"/></svg></span><span class="tbtn glass ">Sort by: Name<svg class="i s12 sec"><use href="#chevron-down"/></svg></span><span class="grow"></span><span class="search glass" style="width:200px"><svg class="i s14"><use href="#magnifier"/></svg>Search</span><span class="tbtn glass ">Clients &amp; Areas</span><span class="tbtn glass "><svg class="i s14"><use href="#plus"/></svg>New Project</span></div>
+    <div class="ptable table"><div class="thead"><div class="c0">Project<span class="sortarrow"><svg class="i s12" style="transform:rotate(180deg)"><use href="#chevron-down"/></svg></span></div><div class="c1">Client</div><div class="c2">Area</div><div class="c3">Created</div><div class="c4">Last tracked</div><div class="c5">Total tracked</div></div><div style="padding-top:4px"><div class="tr group"><div class="c0"><span class="disc"><svg class="i s14"><use href="#disc-right"/></svg></span>Consulting · 3 projects</div><div class="c1"></div><div class="c2"></div><div class="c3"></div><div class="c4"></div><div class="c5 tnum">99:03:33</div></div><div class="tr group alt"><div class="c0"><span class="disc"><svg class="i s14"><use href="#disc-down"/></svg></span>Personal · 2 projects</div><div class="c1"></div><div class="c2"></div><div class="c3"></div><div class="c4"></div><div class="c5 tnum">61:07:50</div></div><div class="tr"><div class="c0"><span class="ind"></span><span class="dot" style="background:#3FAE4A;width:10px;height:10px"></span><span>Household</span></div><div class="c1">Personal</div><div class="c2">Home</div><div class="c3">2025</div><div class="c4">Today</div><div class="c5 tnum">40:51:05</div></div><div class="tr alt"><div class="c0"><span class="ind"></span><span class="dot" style="background:#2F7DE1;width:10px;height:10px"></span><span>TimeTracking</span></div><div class="c1">Personal</div><div class="c2">Software</div><div class="c3">Oct 21</div><div class="c4">Today</div><div class="c5 tnum">20:16:45</div></div><div class="tr group"><div class="c0"><span class="disc"><svg class="i s14"><use href="#disc-down"/></svg></span>University · 4 projects</div><div class="c1"></div><div class="c2"></div><div class="c3"></div><div class="c4"></div><div class="c5 tnum">509:24:47</div></div><div class="tr alt"><div class="c0"><span class="ind"></span><span class="dot" style="background:#8E5BD6;width:10px;height:10px"></span><span>Grant Renewal 2027</span></div><div class="c1">University</div><div class="c2">Funding</div><div class="c3">Jan 12</div><div class="c4">Tuesday</div><div class="c5 tnum">18:02:40</div></div><div class="tr sel"><div class="c0"><span class="ind"></span><span class="dot" style="background:#12A594;width:10px;height:10px"></span><span>Noise Model</span><span class="more"><svg class="i s14"><use href="#ellipsis"/></svg></span></div><div class="c1">University</div><div class="c2">Research</div><div class="c3">Mar 3</div><div class="c4">Today</div><div class="c5 tnum">214:53:36</div></div><div class="tr alt"><div class="c0"><span class="ind"></span><span class="dot" style="background:#EB8A2F;width:10px;height:10px"></span><span>Quantum Optics Lectures</span></div><div class="c1">University</div><div class="c2">Teaching</div><div class="c3">Aug 24</div><div class="c4">Yesterday</div><div class="c5 tnum">96:12:09</div></div><div class="tr"><div class="c0"><span class="ind"></span><span class="dot" style="background:#7A8699;width:10px;height:10px"></span><span>Weekly Review</span></div><div class="c1">University</div><div class="c2"><span class="sec">University</span></div><div class="c3">2024</div><div class="c4">Yesterday</div><div class="c5 tnum">180:16:22</div></div></div></div>
+<div class="status"><span>9 projects shown (9 active, 25 archived)</span><span>1 selected</span></div>
+  </div>
+</div></div>
+<script src="icons.js"></script>
+</body>
+</html>
