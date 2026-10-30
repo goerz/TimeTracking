@@ -80,7 +80,7 @@ final class AgentRunner {
         do {
             try socket.start()
         } catch {
-            engine.logger.error("socket: \(String(describing: error), privacy: .public)")
+            engine.logger.error("socket: \(error.localizedDescription, privacy: .public)")
         }
         observer.start(
             event: { [weak self] event in

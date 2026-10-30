@@ -11,7 +11,6 @@ struct SettingsMonitor {
     let url: URL
     private(set) var settings: TrackerSettings
     private var stamp: Stamp?
-    private(set) var lastError: String?
 
     private struct Stamp: Equatable {
         var date: Date?
@@ -35,15 +34,13 @@ struct SettingsMonitor {
         stamp = current
         do {
             let loaded = try TrackerSettings(contentsOf: url)
-            lastError = nil
             guard loaded != settings else {
                 return false
             }
             settings = loaded
             return true
         } catch {
-            lastError = error.localizedDescription
-            Logging.logger(category: "Settings").error("settings.toml: \(error.localizedDescription, privacy: .public)")
+            Logging.logger(category: "Agent").error("settings.toml: \(error.localizedDescription, privacy: .public)")
             return false
         }
     }
