@@ -233,11 +233,12 @@ struct AutomationServiceTests {
     func outboxRows() async throws {
         let fixture = try await AutomationTestStore()
         let before = try await fixture.service.store.outboxCount()
+        // The stopped entry, the new entry, and the LiveState record.
         _ = try await fixture.service.start(task: "Next", projectID: nil)
-        #expect(try await fixture.service.store.outboxCount() == before + 2)
+        #expect(try await fixture.service.store.outboxCount() == before + 3)
         await #expect(throws: AutomationError.self) {
             try await fixture.service.start(task: "", projectID: fixture.oldPaper.id)
         }
-        #expect(try await fixture.service.store.outboxCount() == before + 2)
+        #expect(try await fixture.service.store.outboxCount() == before + 3)
     }
 }

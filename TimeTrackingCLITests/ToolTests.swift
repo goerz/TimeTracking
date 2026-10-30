@@ -157,13 +157,13 @@ struct ToolTests {
         defer { fixture.remove() }
         let posts = ChangeSignalCounter()
         let outbox = try fixture.count("SELECT COUNT(*) FROM outbox")
-        // Stops the running entry and starts one: two changed records.
+        // Stops the running entry and starts one: two entries and LiveState.
         #expect(try fixture.run(["start", "Next"]).status == 0)
         #expect(posts.count() == 1)
-        #expect(try fixture.count("SELECT COUNT(*) FROM outbox") == outbox + 2)
+        #expect(try fixture.count("SELECT COUNT(*) FROM outbox") == outbox + 3)
         #expect(try fixture.run(["start", "--project", "Old paper"]).status == 4)
         #expect(posts.count() == 0)
-        #expect(try fixture.count("SELECT COUNT(*) FROM outbox") == outbox + 2)
+        #expect(try fixture.count("SELECT COUNT(*) FROM outbox") == outbox + 3)
     }
 }
 
