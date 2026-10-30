@@ -75,7 +75,7 @@ public enum IntentActions {
         let result = try await service.entries(in: DayRange(from: day, to: day.adding(days: 1)))
         let interval = calendar.interval(of: day)
         let seconds = result.listings.reduce(0) { $0 + AutomationService.seconds(of: $1.entry, within: interval, at: service.now) }
-        let suffix = day == service.today ? "today" : "on \(day)"
+        let suffix = day == service.today ? "today" : "on \(IntentText.spokenDay(day, today: service.today))"
         return Outcome(value: seconds, dialog: "\(IntentText.duration(seconds)) \(suffix)")
     }
 
@@ -156,6 +156,12 @@ public enum IntentText {
             return minuteText
         }
         return minutes == 0 ? hourText : "\(hourText) \(minuteText)"
+    }
+
+    /// "Thursday, March 14", with ", 2023" when `day` is not in `today`'s year.
+    public static func spokenDay(_ day: TrackingDay, today: TrackingDay) -> String {
+        let text = DayText.longWeekdayDate(day)
+        return day.year == today.year ? text : "\(text), \(day.year)"
     }
 }
 

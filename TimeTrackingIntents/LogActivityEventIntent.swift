@@ -36,12 +36,12 @@ enum ActivityEventKindValue: String, AppEnum {
 struct LogActivityEventIntent: AppIntent {
     static let title: LocalizedStringResource = "Log Activity Event"
     static let description = IntentDescription(
-        "Adds a labeled event to this device's activity log, for example when an app opens or closes, or when you arrive or leave."
+        "Records a named moment for Activity, for example when an app opens or closes, or when you arrive or leave."
     )
     static let supportedModes: IntentModes = .background
 
-    @Parameter(title: "Label", requestValueDialog: "What should the event be called?") var label: String
-    @Parameter(title: "Kind", default: .custom) var kind: ActivityEventKindValue
+    @Parameter(title: "Name", requestValueDialog: "What should it be called?") var label: String
+    @Parameter(title: "Type", default: .custom) var kind: ActivityEventKindValue
 
     static var parameterSummary: some ParameterSummary {
         Summary("Log \(\.$kind) for \(\.$label)")

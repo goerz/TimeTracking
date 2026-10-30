@@ -34,7 +34,7 @@ public enum WidgetIntentActions {
     public static let fetchTimeout: TimeInterval = 10
 
     /// Tracking from any surface before the first sync (spec_ios.md §6.1).
-    public static let setupMessage = "Open TimeTracking once to finish setting up."
+    public static let setupMessage = "Open \(AppDisplayName.orGeneric) once to finish setting up."
     /// An entry known only from `LiveState` did not arrive (spec_ios.md §4 item 3).
     public static let unreachableMessage = "Couldn't reach iCloud. Try again in a moment."
 

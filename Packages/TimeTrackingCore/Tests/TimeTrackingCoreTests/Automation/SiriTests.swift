@@ -31,7 +31,7 @@ struct SiriTests {
         #expect(admins.count == 2)
         #expect(Set(admins.map(\.client)) == ["University", "Side business"])
         #expect(admins.contains { "\($0.client) · \($0.area)" == "University · Teaching" })
-        #expect(throws: AutomationError.notFound("I couldn't find a project called Gardening in TimeTracking.")) {
+        #expect(throws: AutomationError.notFound("I couldn't find a project called Gardening.")) {
             try ProjectEntityQuery.resolve("Gardening", in: rows)
         }
     }

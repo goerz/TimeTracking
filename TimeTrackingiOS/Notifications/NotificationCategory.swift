@@ -52,7 +52,7 @@ enum NotificationAction: String, CaseIterable, Sendable {
         case .skipBreak: "Skip Break"
         case .startFocus: "Start Focus"
         case .endPomodoro: "End Pomodoro"
-        case .keep: "Keep"
+        case .keep: "Keep Running"
         case .stop: "Stop"
         }
     }

@@ -147,7 +147,7 @@ public struct ProjectEntityQuery: EntityStringQuery, EntityPropertyQuery {
     }
 
     /// `matching(_:in:)` for Siri: a name matching nothing fails with "I
-    /// couldn't find a project called X in TimeTracking." (spec_ios.md §6.3);
+    /// couldn't find a project called X." (spec_ios.md §6.3);
     /// several matches are returned for Siri to disambiguate by subtitle.
     public static func resolve(_ string: String, in rows: [ProjectRow]) throws(AutomationError) -> [ProjectRow] {
         let found = matching(string, in: rows)
@@ -155,7 +155,7 @@ public struct ProjectEntityQuery: EntityStringQuery, EntityPropertyQuery {
         guard found.isEmpty, !name.isEmpty else {
             return found
         }
-        throw .notFound("I couldn't find a project called \(name) in TimeTracking.")
+        throw .notFound("I couldn't find a project called \(name).")
     }
 
     /// Active projects, most recently used first.

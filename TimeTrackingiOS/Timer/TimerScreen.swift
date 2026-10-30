@@ -56,7 +56,7 @@ struct TimerScreen: View {
             timerAlertButtons(alert)
         }
         .alert(
-            "Unknown TimeTracking URL",
+            "Can't Open This Link",
             isPresented: Binding(get: { model.urlAlert != nil }, set: { model.urlAlert = $0 ? model.urlAlert : nil })
         ) {
             Button("OK", role: .cancel) {}
@@ -169,7 +169,7 @@ struct TimerScreen: View {
     @ViewBuilder private var bannerView: some View {
         if let banner = model.banner {
             HStack {
-                Text("An entry was adjusted after syncing").font(.subheadline)
+                Text("Another device changed an entry").font(.subheadline)
                 Spacer()
                 Button("Show") { model.openEditor(banner.entryID) }
                     .accessibilityIdentifier("timer.bannerShow")

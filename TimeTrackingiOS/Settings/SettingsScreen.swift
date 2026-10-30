@@ -52,7 +52,7 @@ struct SettingsScreen: View {
     private var iCloudSection: some View {
         Section {
             LabeledContent("Status", value: model.syncStatusText)
-            LabeledContent("Pending changes", value: "\(model.outboxCount)")
+            LabeledContent("Waiting to sync", value: "\(model.outboxCount)")
             LabeledContent("Device name") {
                 TextField("Device name", text: Bindable(model.settings).deviceName)
                     .multilineTextAlignment(.trailing)
@@ -88,7 +88,7 @@ struct SettingsScreen: View {
 
     private var notificationSection: some View {
         Section {
-            Toggle("Long-running entry reminder", isOn: Bindable(model.settings).longRunningEnabled)
+            Toggle("Remind me when an entry runs long", isOn: Bindable(model.settings).longRunningEnabled)
                 .accessibilityIdentifier("settings.longRunning")
             Stepper(value: Bindable(model.settings).longRunningHours, in: 1 ... 12) {
                 LabeledContent("Remind after", value: "\(model.settings.longRunningHours) h")
@@ -99,7 +99,7 @@ struct SettingsScreen: View {
         } footer: {
             if notificationsDenied {
                 VStack(alignment: .leading, spacing: Design.Spacing.tight) {
-                    Text("Notifications are off for TimeTracking. The Pomodoro buttons still work.")
+                    Text("Notifications are off, so focus, break, and reminder alerts won't appear.")
                     Button("Open Settings") {
                         if let url = DeviceInfo.settingsURL {
                             openURL(url)
@@ -108,7 +108,7 @@ struct SettingsScreen: View {
                     .font(.footnote)
                 }
             } else {
-                Text("A notification when an entry has run this long, whichever device started it.")
+                Text("You get a notification when an entry has run this long, on any device.")
             }
         }
         .onChange(of: model.settings.longRunningEnabled) { model.rescheduleLongRunning() }
@@ -125,8 +125,8 @@ struct SettingsScreen: View {
                 LabeledContent("Pinned projects", value: pinned.map { "\($0.rows.count)" } ?? "")
             }
             .accessibilityIdentifier("settings.pinned")
-            Picker("Pinned buttons start", selection: Bindable(model.settings).pinnedTaskMode) {
-                Text("Last task").tag(PinnedTaskMode.latest)
+            Picker("Task for pinned buttons", selection: Bindable(model.settings).pinnedTaskMode) {
+                Text("The project's last task").tag(PinnedTaskMode.latest)
                 Text("No task").tag(PinnedTaskMode.blank)
             }
         } header: {
@@ -153,7 +153,7 @@ struct SettingsScreen: View {
         } header: {
             Text("Activity")
         } footer: {
-            Text("Labeled events from this device for the Mac's activity log.")
+            Text("Shows what you do on this device in Activity on your Mac and iPad.")
         }
     }
 

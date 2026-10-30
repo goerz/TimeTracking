@@ -182,10 +182,10 @@ struct WidgetNotice: View {
     }
 }
 
-/// "Open TimeTracking to finish setup" before the first sync.
+/// "Open <app name> to finish setting up" before the first sync.
 struct SetupNotice: View {
     var body: some View {
-        WidgetNotice(systemImage: "icloud.and.arrow.down", title: "Open TimeTracking to finish setup")
+        WidgetNotice(systemImage: "icloud.and.arrow.down", title: "Open \(AppDisplayName.orGeneric) to finish setting up")
     }
 }
 

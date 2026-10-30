@@ -46,7 +46,7 @@ final class PhoneHost {
         do {
             store = try await TimeStore.open(arguments: arguments, identity: identity, deviceID: device.deviceID, clock: clock)
         } catch {
-            failure = error.localizedDescription
+            failure = UserMessage.openingFailed(error)
             Logging.logger(category: "App").error("Opening the store failed: \(error.localizedDescription, privacy: .public)")
             return
         }

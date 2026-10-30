@@ -78,7 +78,7 @@ struct RecentWidgetView: View {
                 CircleIntentButton(
                     intent: WidgetStartIntent(project: row.projectID, task: row.task),
                     systemImage: "play.fill",
-                    label: "Start",
+                    label: "Continue",
                     color: .startTint,
                     diameter: WidgetMetrics.rowButton
                 )

@@ -120,7 +120,7 @@ struct NowSmall: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
-            CircleIntentButton(intent: snapshot.continueIntent, systemImage: "play.fill", label: "Start", color: .startTint)
+            CircleIntentButton(intent: snapshot.continueIntent, systemImage: "play.fill", label: "Continue", color: .startTint)
         }
     }
 }
@@ -193,7 +193,7 @@ struct NowMedium: View {
                         .font(.subheadline)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                CircleIntentButton(intent: snapshot.continueIntent, systemImage: "play.fill", label: "Start", color: .startTint)
+                CircleIntentButton(intent: snapshot.continueIntent, systemImage: "play.fill", label: "Continue", color: .startTint)
             }
         }
     }

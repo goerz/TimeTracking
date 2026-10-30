@@ -64,7 +64,7 @@ struct PomodoroNotificationTests {
         #expect(after == entries)
     }
 
-    @Test("IOS-26 longRunning fires at the chain start plus N hours, also for an entry started on the Mac; Keep reschedules; Stop stops")
+    @Test("IOS-26 longRunning fires at the chain start plus N hours, also for a Mac entry; Keep Running reschedules; Stop stops")
     func longRunning() async throws {
         let server = InMemorySyncServer()
         let macClock = try ManualClock(TestPhone.date("2024-03-14T09:00"))

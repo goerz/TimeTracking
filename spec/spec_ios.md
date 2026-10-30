@@ -91,18 +91,20 @@ A sheet from the toolbar: an inset-grouped `Form` with the inline title "Setting
 
 | Section | Setting | Default | Scope |
 |---|---|---|---|
-| iCloud | Status, pending changes, "Device name" (`Device.name`, a trailing text field), "Sync Now" | | Device |
+| iCloud | Status, "Waiting to sync" (the outbox count), "Device name" (`Device.name`, a trailing text field), "Sync Now" | | Device |
 | Pomodoro | Focus (1 to 180 min), Break (1 to 60 min) | 25, 5 | Synced |
 | Pomodoro | Play a sound when a focus or break ends (`pomodoro.sounds`) | On | Device |
-| Notifications | Long-running entry reminder, "Remind after" N hours (1 to 12) | On, 4 h (iPhone); off, 4 h (iPad) | Device |
+| Notifications | "Remind me when an entry runs long", "Remind after" N hours (1 to 12); while notifications are denied, the footer reads "Notifications are off, so focus, break, and reminder alerts won't appear." with "Open Settings" | On, 4 h (iPhone); off, 4 h (iPad) | Device |
 | Widgets | "Pinned projects" pushes an ordered list over `pinnedProjectIDs`: add (`plus` in the navigation bar, the picker as a sheet), reorder and remove (Edit), an empty state with "Add Project" | Empty | Synced |
-| Widgets | "Pinned buttons start": Last task, or No task | Last task | Device |
-| Activity | "Activity collection" pushes the master switch; Screen Time authorization status and request; app sets (9.2); setup steps for the Focus filter, automations, and the Safari extension with their check marks and a `ShortcutsLink`; last upload, pending events, "Upload Now" | Off | Device |
+| Widgets | "Task for pinned buttons": "The project's last task" or "No task" | The project's last task | Device |
+| Activity | "Activity collection" pushes the master switch; Screen Time authorization status and request; the "App Groups" section (9.2); setup steps for the Focus filter, automations, and the Safari extension with their check marks and a `ShortcutsLink`; an "iCloud" section with "Last sent", "Waiting to send", and "Send Now" | Off | Device |
 | Activity | "Privacy" pushes a read-only view of the exclusions from `Activity/settings.toml` in three sections (websites, apps, files and terminals), with the note that they are edited in the Mac's Tracker pane | | Shared file |
 | Calendars (iPad) | Which external calendars the Calendar tab shows, grouped by account | None | Device |
 | About | Version and build ("1.0 (12)"), the app's Shortcuts link | | |
 
-An app set's screen has its label as a trailing text field and the chosen apps, categories, and sites with "Choose Apps…", which presents the system's `familyActivityPicker`.
+On screen an app set is an "app group" (`spec_design.md` §12). "Add App Group" offers the suggested names and "Custom…", which adds "New Group" and opens its screen. A group's screen has its label as the trailing text field "Name", the footer "Activity shows only this name, never the apps.", and the chosen apps, categories, and sites with "Choose Apps…", which presents the system's `familyActivityPicker`.
+
+Collected activity goes to Activity (the Mac and iPad section), so the texts name that, never the log files: the Activity section's footer reads "Shows what you do on this device in Activity on your Mac and iPad.", and the master switch's "Records how long you use your app groups, when a Focus turns on or off, your automations, the Safari sites you visit, and when you use the app, so they appear in Activity. Nothing is added to your projects, and the Privacy exclusions are applied first." The setup footer reads "A step gets a check mark once the app receives something from it."; the Safari step ends "Sites listed under Privacy are left out." A failed send shows "Couldn't send your activity to iCloud. The app will try again." and a refused ladder "Screen Time couldn't start measuring these apps. Try again later."; the details go to the log.
 
 ## 3. Widgets
 
@@ -112,7 +114,7 @@ Widgets read the store and the `LiveState` row (4) and act through the wrapper i
 
 Look (`spec_design.md` §6, §7 at widget scale): system text styles (task `.headline`, project line `.subheadline` with the 8 pt area dot and " · client" in `.secondary`, elapsed time `.title2.weight(.semibold)` with monospaced digits, totals and the Pomodoro `.caption` in `.secondary`); the start and stop circles of `CircleButtonStyle` (44 pt in Now, 32 pt in Recent rows, 24 pt as the Pinned stop mark) in system green and red; the background is `.background` through `containerBackground`, which the system removes in StandBy, on the Lock Screen, and in the tinted and clear Home Screen styles. In the accented and vibrant rendering modes the circles become one shape with the glyph cut out, marked `widgetAccentable()` with the area dot, the Pomodoro glyph, and the Lock Screen buttons. Live times use the system timer format (`m:ss` under an hour, `h:mm:ss` from one hour). A widget without content shows a centered symbol, title, and line ("No Pinned Projects", "No Recent Entries"). Task text is `privacySensitive()`. The gallery shows a running sample with recent rows and pinned projects.
 
-Wherever a Pomodoro shows, the elapsed time stays the primary number and the countdown is a secondary line: the phase glyph (`pomodoro`, `cup.and.saucer`) in the accent color and the remaining time, or `+` and the time since the phase ended while its confirmation is pending (`spec_design.md` §11). Tapping outside a button opens the Timer (`timetracking://show`). Smart Stack relevance is 100 while an entry runs, 60 for one hour after one stops, 10 otherwise; the app donates the start and continue intents it performs. Buttons do nothing on a locked device. Before the first sync has delivered the store, every widget shows "Open TimeTracking to finish setup".
+Wherever a Pomodoro shows, the elapsed time stays the primary number and the countdown is a secondary line: the phase glyph (`pomodoro`, `cup.and.saucer`) in the accent color and the remaining time, or `+` and the time since the phase ended while its confirmation is pending (`spec_design.md` §11). Tapping outside a button opens the Timer (`timetracking://show`). Smart Stack relevance is 100 while an entry runs, 60 for one hour after one stops, 10 otherwise; the app donates the start and continue intents it performs. Buttons do nothing on a locked device. Before the first sync has delivered the store, every widget shows "Open <app name> to finish setting up", with the app's display name from the bundle (the name is personal, from `local.mk`).
 
 ### 3.2 Running entry widget ("Now")
 
@@ -148,7 +150,7 @@ The `LiveState` record, its fields, who writes it, and the Mac's `WidgetPushSend
 
 ## 5. Control Center control and Action button
 
-The `TimerToggle` control is a `ControlWidgetToggle` (display name "Timer") whose value provider uses the resolver of 4. Its label is the running task (else the project name, else "Tracking") when on and "Start" when off, `privacySensitive()`. Its action, `ToggleTimerIntent`, runs in the app process: on continues the most recent entry, off stops the running entry. It requires authentication, so nothing starts or stops on a locked phone. The `controlWidgetActionHint`s are "Continue latest entry" and "Stop tracking". The app reloads the control after every change to the running entry, including synced ones.
+The `TimerToggle` control is a `ControlWidgetToggle` (display name "Timer") whose value provider uses the resolver of 4. Its label is the running task (else the project name, else "Tracking") when on and "Continue" when off, `privacySensitive()`. Its action, `ToggleTimerIntent`, runs in the app process: on continues the most recent entry, off stops the running entry. It requires authentication, so nothing starts or stops on a locked phone. The `controlWidgetActionHint`s are "Continue latest entry" and "Stop tracking". The app reloads the control after every change to the running entry, including synced ones.
 
 The `StartProjectControl` is a `ControlWidgetButton` with a `ProjectEntity` parameter (`promptsForUserConfiguration()`) that starts that project through the start wrapper, for example on the Action button.
 
@@ -162,10 +164,10 @@ The entities and shared intents come from the library's `AppIntentsPackage` ([sp
 |---|---|---|
 | `WidgetStartIntent`, `WidgetStopIntent`, `WidgetContinueIntent` | App process | Widget and control buttons. Each calls the library operation, asks the sync engine to send at once, reloads timelines and controls, and flushes the collection file when the last flush is more than 5 minutes old. Hidden from Shortcuts. |
 | `ToggleTimerIntent` | App process | Section 5 |
-| `LogActivityEventIntent` | App Intents extension | `label: String`, `kind` (`appOpened`, `appClosed`, `arrived`, `left`, `chargerConnected`, `chargerDisconnected`, `custom`); appends an `intent` event (9.4) |
+| `LogActivityEventIntent` | App Intents extension | `label: String` (shown as "Name"), `kind` (shown as "Type"; `appOpened`, `appClosed`, `arrived`, `left`, `chargerConnected`, `chargerDisconnected`, `custom`); appends an `intent` event (9.4) |
 | `TimeTrackingFocusFilter` | App Intents extension | 9.3 |
 
-Tracking intents performed before the first sync fail with "Open TimeTracking once to finish setting up."
+Tracking intents performed before the first sync fail with "Open <app name> once to finish setting up." (the display name, as in 3.1).
 
 ### 6.2 App Shortcuts
 
@@ -184,7 +186,7 @@ The project token is an `AppShortcutPhraseToken` over `ProjectEntity`. The app c
 
 ### 6.3 Siri
 
-The Start Timer App Shortcut runs `StartTimerIntent` with its hidden `inferProject` parameter set (false by default, so Shortcuts actions never infer), which applies the inference rule of [spec_automation.md](spec_automation.md) §5; the dialog names the inferred project ("Started Bugfixes on Website."). When the phrase names no project, Siri asks "What are you working on?" and the answer becomes the task. A name matching two projects is disambiguated by the entity subtitle ("Website · Acme", "Website · Personal"). A name matching nothing fails with "I couldn't find a project called X in TimeTracking."
+The Start Timer App Shortcut runs `StartTimerIntent` with its hidden `inferProject` parameter set (false by default, so Shortcuts actions never infer), which applies the inference rule of [spec_automation.md](spec_automation.md) §5; the dialog names the inferred project ("Started Bugfixes on Website."). When the phrase names no project, Siri asks "What are you working on?" and the answer becomes the task. A name matching two projects is disambiguated by the entity subtitle ("Website · Acme", "Website · Personal"). A name matching nothing fails with "I couldn't find a project called X." Today's Total for another day names it as spoken text ("2 hours on Thursday, March 14", with the year when it differs from this year).
 
 ### 6.4 URL scheme
 
@@ -196,7 +198,7 @@ The library owns synchronization; this section states what the iOS app does arou
 
 1. Wake. The app declares the background modes for remote notifications and fetch. The silent-push handler passes the notification to the engine, waits at most 25 s, runs the fan-out of item 4, and calls the completion handler exactly once. The app also syncs at every foreground and in a `BGAppRefreshTask` rescheduled 15 minutes after each run.
 2. Offline. Every change commits locally first; starting, stopping, continuing, and editing work offline from every surface. A sync pill under the card shows `waitingForNetwork`, `sending(n)` lasting over 10 s, or `error`, and disappears when the outbox is empty.
-3. Adjustments. When the library emits `.adjusted` for an entry this device created or last edited, the Timer shows a banner "An entry was adjusted after syncing" with "Show", which opens that entry's edit sheet with a one-line explanation under the duration ("Stopped at 10:14 because an entry started on MacBook"). The row keeps a badge until its sheet has been opened once. A midnight split shows no banner.
+3. Adjustments. When the library emits `.adjusted` for an entry this device created or last edited, the Timer shows a banner "Another device changed an entry" with "Show", which opens that entry's edit sheet with a one-line explanation under the duration ("Stopped at 10:14 because an entry started on MacBook"). The row keeps a badge until its sheet has been opened once. A midnight split shows no banner.
 4. Fan-out. After every applied sync and every local write, the app reloads the controls (and, after local writes, the widget timelines; the library reloads them after applied syncs), replays the Pomodoro, reschedules the long-running reminder, uploads a changed push token, updates the App Shortcut parameters when projects changed, flushes the collection file (9.6), and shows the banner of item 3 when applicable.
 5. Midnight. The library's split runs whenever the app's process runs and at midnight while the app is in the foreground ([spec_data_and_sync.md](spec_data_and_sync.md) §1.5).
 
@@ -208,10 +210,10 @@ Local notifications only. Authorization is requested at the first start of an en
 |---|---|---|---|---|
 | `pomodoroFocusDone` | Scheduled at focus start for `focusEnd` | Timer window's | Start Break, Skip Break | `timeSensitive` |
 | `pomodoroBreakDone` | Scheduled at break start for `breakEnd` | Timer window's | Start Focus, End Pomodoro | `timeSensitive` |
-| `longRunning` | N hours (setting) after the running entry's chain start, whichever device started it | "Still tracking Plan the widget layout?" / "Running for 4 hours." | Keep, Stop | `active` |
-| `syncAdjusted` | Section 7, item 3 applies while the app is in the background | "An entry was adjusted" / the explanation | None; tap opens the entry | `passive` |
+| `longRunning` | N hours (setting) after the running entry's chain start, whichever device started it | "Still tracking Plan the widget layout?" / "Running for 4 hours." | Keep Running, Stop | `active` |
+| `syncAdjusted` | Section 7, item 3 applies while the app is in the background | "An entry was changed" / the explanation | None; tap opens the entry | `passive` |
 
-Actions run in the background without opening the app: the Pomodoro actions perform their transitions; Keep schedules the next `longRunning` N hours from now; Stop stops the running entry. Tapping a body opens the Timer. The app reschedules `longRunning` whenever the running entry changes and removes it when nothing runs.
+Actions run in the background without opening the app: the Pomodoro actions perform their transitions; Keep Running schedules the next `longRunning` N hours from now; Stop stops the running entry. Tapping a body opens the Timer. The app reschedules `longRunning` whenever the running entry changes and removes it when nothing runs.
 
 ## 9. Activity collection
 
@@ -235,7 +237,7 @@ Times are the device clock with the zone offset.
 
 The app and the monitor extension carry the Family Controls development entitlement. The app requests individual authorization from the Activity collection screen, never at launch. The monitor extension links only DeviceActivity, Foundation, and the sink, and only appends (its memory ceiling is about 6 MB).
 
-App sets: each has a free-text label (suggested "Everything", "Mail", "Messages", "Social", "Browsing", "Reading", "Work apps") and an opaque `FamilyActivitySelection` from `FamilyActivityPicker`, shown with `Label(token)`. "Everything" uses `includesAllActivity`, is created automatically, and cannot be deleted. Only the label reaches the log, and the screen says so.
+App sets: each has a free-text label (suggested "Everything", "Mail", "Messages", "Social", "Browsing", "Reading", "Work apps") and an opaque `FamilyActivitySelection` from `FamilyActivityPicker`, shown with `Label(token)`. "Everything" uses `includesAllActivity`, is created automatically, and cannot be deleted. Only the label reaches the log, and the screen says so: "The app records daily minutes for each group. Activity shows only the group's name, never the apps in it." With Screen Time denied the footer reads "Screen Time access is off. Focus changes, automations, Safari sites, and your use of the app are still recorded."
 
 For each set, one repeating `DeviceActivitySchedule` runs from midnight to midnight with `DeviceActivityEvent`s at thresholds of 1, 2, 3, … minutes and `includesPastActivity: true`; the callback for step k appends a `ladder` line with `n = k`. The first run measures the event cap by registering 1, 2, 4, …, 512 events and keeping the largest count `startMonitoring` accepts. The cap is divided among the sets by expected use (with a cap of 100: "Everything" 1-minute steps to 60 and 5-minute steps to 180; each named set 1-minute steps to 10, then 5-minute steps). At a set's last step the extension registers the next window of thresholds.
 
@@ -243,7 +245,7 @@ Early callbacks: a ledger per (set, step) holds the earliest possible time (the 
 
 ### 9.3 Focus filter
 
-The `TimeTrackingFocusFilter` is a `SetFocusFilterIntent` in the App Intents extension with parameters `label` (default the Focus name) and `collect` (default true; false suspends the Safari and automation collectors while that Focus is on). It appends `on` when performed and `off`, for the label it last logged, when the system performs it with default parameters at the Focus's end. The method `suggestedFocusFilters(for:)` offers one suggestion per Focus.
+The `TimeTrackingFocusFilter` is a `SetFocusFilterIntent` in the App Intents extension with parameters `label` ("Name", default the Focus name) and `collect` ("Record Safari Sites and Automations", default true; false suspends the Safari and automation collectors while that Focus is on). It appends `on` when performed and `off`, for the label it last logged, when the system performs it with default parameters at the Focus's end. The method `suggestedFocusFilters(for:)` offers one suggestion per Focus.
 
 ### 9.4 Automations
 
@@ -255,7 +257,7 @@ The non-persistent background script listens to `tabs.onActivated` and `tabs.onU
 
 ### 9.6 Flush
 
-The app process alone calls `flush()`: at every foreground and every 5 minutes while open, on every CloudKit push, in every refresh task, from the wrapper intents when the last flush is over 5 minutes old, and on "Upload Now" in Settings. The widget extension never flushes.
+The app process alone calls `flush()`: at every foreground and every 5 minutes while open, on every CloudKit push, in every refresh task, from the wrapper intents when the last flush is over 5 minutes old, and on "Send Now" in Settings. The widget extension never flushes.
 
 ### 9.7 The app's own time
 
@@ -292,10 +294,10 @@ The iPad uses the Mac's keys, listed in the iPadOS menu bar and the ⌘-hold ove
 |---|---|
 | ⌥⌘R | Timer tab, task field focused |
 | ⌘1 to ⌘4 | Projects, Calendar, Reports, Activity |
-| ⌥⌘P | The most recently selected of those four (Projects at first) |
+| ⌥⌘P | Last Planner Tab: the most recently selected of those four (Projects at first) |
 | ⌥⌘1 | Clients & Areas |
-| ⌘N, ⌘O, ⌘S, ⌥⌘⌫ | New, Continue, Stop, Discard |
-| ⌘P, ⌘E, ⌘⌫, ⌘F, ⌘↑ | Set Project, Edit, Delete, filter, scroll to today (Timer tab only) |
+| ⌘N, ⌘O, ⌘S, ⌥⌘⌫ | New Entry, Continue Latest Entry, Stop, Discard Running Entry |
+| ⌘P, ⌘E, ⌘⌫, ⌘F, ⌘↑ | Set Project, Edit Entry, Delete Entry, Find, Scroll to Top (the list's top; Timer tab only) |
 | ⇧⌘P, ⌃⌘P, ⌘↩ | Start or Cancel Pomodoro, End Focus or Break Now, Start Break or Focus |
 | ⌘Z, ⇧⌘Z, ⌘, | Undo, Redo, Settings |
 | Esc | Close a sheet or popover, clear a search |
@@ -337,7 +339,7 @@ The iPad reads the block log through `ActivityReading` and the Mac's activity fr
 - IOS-23. The silent-push handler finishes within 25 s, runs the fan-out, and calls the completion handler exactly once.
 - IOS-24. An offline change is visible at once, shows the sync pill, and syncs at the next connection, after which the pill disappears.
 - IOS-25. When the invariant pass stops an entry this device started, the banner appears and the row is badged until its sheet opens; a midnight split shows no banner.
-- IOS-26. The `longRunning` notification is scheduled at the chain start plus the configured hours, also for an entry started on the Mac; Keep reschedules N hours later; Stop stops the entry.
+- IOS-26. The `longRunning` notification is scheduled at the chain start plus the configured hours, also for an entry started on the Mac; Keep Running reschedules N hours later; Stop stops the entry.
 - IOS-27. Concurrent appends from two processes never interleave lines; `lastFlushedSeq` advances only after CloudKit acknowledges the batch.
 - IOS-28. A ladder callback earlier than its ledger time is logged with `"early": true`, not counted, and re-registered.
 - IOS-29. Turning a configured Focus on and off appends `on` and `off` lines with its label while the app is not running.

@@ -66,7 +66,7 @@ struct RootView: View {
             }
         } else if let failure = host.failure {
             ContentUnavailableView(
-                "TimeTracking could not open its data",
+                "\(AppDisplayName.current ?? "The App") Couldn't Open Your Entries",
                 systemImage: "exclamationmark.triangle",
                 description: Text(failure)
             )

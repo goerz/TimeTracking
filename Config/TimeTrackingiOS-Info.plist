@@ -20,7 +20,7 @@
 		</dict>
 	</array>
 	<key>NSCalendarsFullAccessUsageDescription</key>
-	<string>The Calendar section shows your time blocks and the calendar events you choose next to your tracked time.</string>
+	<string>The Calendar tab shows your time blocks and the calendar events you choose next to your tracked time.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

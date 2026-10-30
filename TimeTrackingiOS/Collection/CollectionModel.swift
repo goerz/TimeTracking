@@ -160,7 +160,8 @@ final class CollectionModel: CollectionFlushing {
             try ladder.configure(removed: removed)
             ladderError = nil
         } catch {
-            ladderError = "Screen Time refused the app sets: \(error.localizedDescription)"
+            logger.error("Screen Time refused the app groups: \(error.localizedDescription, privacy: .public)")
+            ladderError = "Screen Time couldn't start measuring these apps. Try again later."
         }
     }
 
@@ -173,7 +174,8 @@ final class CollectionModel: CollectionFlushing {
             shared.lastFlushAt = log.clock.now
             flushError = nil
         } catch {
-            flushError = "Couldn't upload the activity events: \(error.localizedDescription)"
+            logger.error("The flush failed: \(error.localizedDescription, privacy: .public)")
+            flushError = "Couldn't send your activity to iCloud. The app will try again."
         }
         refresh()
     }

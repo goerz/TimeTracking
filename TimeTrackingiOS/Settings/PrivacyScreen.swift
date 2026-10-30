@@ -21,14 +21,14 @@ struct PrivacyScreen: View {
                 row("Excluded title words", privacy.excludeTitleKeywords)
             }
             Section {
-                row("Excluded paths", privacy.excludePaths)
-                row("Excluded keywords", privacy.excludeKeywords)
+                row("Excluded folders", privacy.excludePaths)
+                row("Excluded words in file paths", privacy.excludeKeywords)
                 row("Excluded tmux sessions", privacy.excludeTmuxSessions)
-                row("Private agent folders", privacy.privateAgentPaths)
+                row("Private coding agent folders", privacy.privateAgentPaths)
             } header: {
                 Text("Files and terminals")
             } footer: {
-                Text("Edited in the Tracker pane of TimeTracking's settings on the Mac.")
+                Text("You change these in the Tracker pane of the Mac app's Settings.")
             }
         }
         .navigationTitle("Privacy")

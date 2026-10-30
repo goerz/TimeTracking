@@ -23,7 +23,7 @@ struct OnboardingView: View {
         }
     }
 
-    static let explanation = "TimeTracking keeps your time on your Mac and this device in sync through iCloud. "
+    static let explanation = "Your time stays in sync between your Mac and this device through iCloud. "
         + "Sign in with the Mac's Apple Account and turn on iCloud Drive."
 
     private var noAccount: some View {
@@ -104,7 +104,7 @@ struct OnboardingView: View {
         ContentUnavailableView {
             Label("Receiving Your Data", systemImage: "icloud.and.arrow.down")
         } description: {
-            Text("TimeTracking is loading your entries from iCloud.")
+            Text("Loading your entries from iCloud.")
         } actions: {
             VStack(spacing: Design.Spacing.small) {
                 ProgressView()

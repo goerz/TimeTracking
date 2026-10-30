@@ -15,16 +15,19 @@ struct TimeTrackingFocusFilter: SetFocusFilterIntent {
 
     static let title: LocalizedStringResource = "Log Activity"
     static let description: IntentDescription? = IntentDescription(
-        "Logs when this Focus turns on and off in this device's activity log, and can pause the Safari and automation collectors."
+        """
+        Records when this Focus turns on and off, for Activity. \
+        It can also pause recording Safari sites and automations while the Focus is on.
+        """
     )
 
-    @Parameter(title: "Label") var label: String?
-    @Parameter(title: "Collect Safari and Automations", default: true) var collect: Bool
+    @Parameter(title: "Name") var label: String?
+    @Parameter(title: "Record Safari Sites and Automations", default: true) var collect: Bool
 
     var displayRepresentation: DisplayRepresentation {
         DisplayRepresentation(
             title: "\(label ?? "Focus")",
-            subtitle: collect ? "Logs the Focus" : "Logs the Focus; pauses Safari and automations"
+            subtitle: collect ? "Records the Focus" : "Records the Focus; pauses Safari sites and automations"
         )
     }
 

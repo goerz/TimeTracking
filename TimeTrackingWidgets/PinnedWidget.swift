@@ -91,7 +91,7 @@ struct PinnedWidgetView: View {
                 WidgetNotice(
                     systemImage: "pin",
                     title: "No Pinned Projects",
-                    message: family == .systemSmall ? nil : "Pin projects in TimeTracking's Settings."
+                    message: family == .systemSmall ? nil : "Add projects under Pinned projects in the app's Settings."
                 )
             } else {
                 grid

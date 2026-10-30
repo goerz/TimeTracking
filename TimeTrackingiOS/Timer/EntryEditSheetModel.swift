@@ -4,6 +4,7 @@
 
 import Foundation
 import Observation
+import os
 import TimeTrackingCore
 
 /// The draft and its checks; nothing is written before Done.
@@ -128,7 +129,8 @@ final class EntryEditSheetModel {
             await onChange?()
             return true
         } catch {
-            message = error.localizedDescription
+            Logging.logger(category: "Timer").error("Saving the entry failed: \(error.localizedDescription, privacy: .public)")
+            message = UserMessage.text(for: error)
             return false
         }
     }

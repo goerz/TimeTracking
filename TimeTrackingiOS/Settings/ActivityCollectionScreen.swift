@@ -1,6 +1,6 @@
 // ActivityCollectionScreen: Settings > Activity collection (spec_ios.md
-// §2.9, §9, §11 item 3): the master switch, Screen Time and app sets, the
-// setup steps with their check marks, and the upload.
+// §2.9, §9, §11 item 3): the master switch, Screen Time and app groups, the
+// setup steps with their check marks, and sending to iCloud.
 
 import AppIntents
 import SwiftUI
@@ -8,6 +8,8 @@ import TimeTrackingCore
 
 struct ActivityCollectionScreen: View {
     @Bindable var collection: CollectionModel
+    /// A group made by "Custom…", whose editor opens at once.
+    @State private var newGroup: LadderSet?
 
     var body: some View {
         Form {
@@ -19,18 +21,22 @@ struct ActivityCollectionScreen: View {
                 .accessibilityIdentifier("collection.enabled")
             } footer: {
                 Text(
-                    "Records labeled events (app sets, Focus, automations, Safari sites, this app) for the Mac's activity log. " +
-                        "Nothing is assigned to projects, and the exclusions apply before anything is written."
+                    "Records how long you use your app groups, when a Focus turns on or off, your automations, the Safari sites you visit, "
+                        + "and when you use the app, so they appear in Activity. Nothing is added to your projects, and the Privacy "
+                        + "exclusions are applied first."
                 )
             }
             if collection.isEnabled {
                 screenTimeSection
                 setupSection
-                uploadSection
+                iCloudSection
             }
         }
         .navigationTitle("Activity Collection")
         .navigationBarTitleDisplayMode(.inline)
+        .navigationDestination(item: $newGroup) { group in
+            LadderSetEditor(collection: collection, set: group)
+        }
     }
 
     private var screenTimeSection: some View {
@@ -44,24 +50,24 @@ struct ActivityCollectionScreen: View {
                 .accessibilityIdentifier("collection.requestScreenTime")
             }
             if collection.screenTime == .approved {
-                appSets
+                appGroups
             }
             if let error = collection.ladderError {
                 ErrorLine(text: error)
             }
         } header: {
-            Text("App Sets")
+            Text("App Groups")
         } footer: {
             if collection.screenTime == .denied {
-                Text("Screen Time access is off; Focus, automations, Safari, and this app are still collected.")
+                Text("Screen Time access is off. Focus changes, automations, Safari sites, and your use of the app are still recorded.")
             } else {
-                Text("Minutes of daily use per set. Only the set's label reaches the log, never the apps in it.")
+                Text("The app records daily minutes for each group. Activity shows only the group's name, never the apps in it.")
             }
         }
     }
 
-    /// The app sets, each opening its editor, and the Add menu.
-    @ViewBuilder private var appSets: some View {
+    /// The app groups, each opening its editor, and the Add menu.
+    @ViewBuilder private var appGroups: some View {
         ForEach(collection.sets) { set in
             NavigationLink(set.label) {
                 LadderSetEditor(collection: collection, set: set)
@@ -78,9 +84,9 @@ struct ActivityCollectionScreen: View {
                 Button(label) { collection.addSet(label: label) }
             }
             Divider()
-            Button("Other") { collection.addSet(label: "Apps") }
+            Button("Custom…") { newGroup = collection.addSet(label: "New Group") }
         } label: {
-            Label("Add App Set", systemImage: "plus")
+            Label("Add App Group", systemImage: "plus")
         }
     }
 
@@ -97,7 +103,7 @@ struct ActivityCollectionScreen: View {
             SetupStep(
                 title: "Focus filter",
                 done: collection.state.lastFocusEventAt != nil,
-                detail: "In Settings > Focus, choose a Focus, then Add Filter > TimeTracking, and give it a label."
+                detail: "In Settings > Focus, choose a Focus, then Add Filter > \(AppDisplayName.orGeneric), and give it a name."
             )
             SetupStep(
                 title: "Automations",
@@ -109,8 +115,8 @@ struct ActivityCollectionScreen: View {
             SetupStep(
                 title: "Safari extension",
                 done: collection.state.lastWebEventAt != nil,
-                detail: "In Settings > Apps > Safari > Extensions, turn on TimeTracking and allow All Websites. "
-                    + "The exclusions of the Mac's Tracker pane decide what is kept."
+                detail: "In Settings > Apps > Safari > Extensions, turn on \(AppDisplayName.orGeneric) and allow All Websites. "
+                    + "Sites listed under Privacy are left out."
             )
             ShortcutsLink()
                 .shortcutsLinkStyle(.automaticOutline)
@@ -118,16 +124,16 @@ struct ActivityCollectionScreen: View {
         } header: {
             Text("Setup")
         } footer: {
-            Text("Each step is checked once its first event arrives.")
+            Text("A step gets a check mark once the app receives something from it.")
         }
     }
 
-    private var uploadSection: some View {
-        Section("Upload") {
-            LabeledContent("Last upload", value: collection.lastFlushAt.map { $0.formatted(.relative(presentation: .named)) } ?? "Never")
-            LabeledContent("Pending events", value: "\(collection.pendingCount)")
+    private var iCloudSection: some View {
+        Section("iCloud") {
+            LabeledContent("Last sent", value: collection.lastFlushAt.map { $0.formatted(.relative(presentation: .named)) } ?? "Never")
+            LabeledContent("Waiting to send", value: "\(collection.pendingCount)")
                 .accessibilityIdentifier("collection.pending")
-            Button("Upload Now") {
+            Button("Send Now") {
                 Task { await collection.flush() }
             }
             .accessibilityIdentifier("collection.flush")

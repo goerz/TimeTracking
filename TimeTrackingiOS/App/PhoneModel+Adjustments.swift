@@ -23,7 +23,7 @@ extension PhoneModel {
         if !isActive {
             notifications.schedule(ScheduledNotification(
                 category: .syncAdjusted,
-                title: "An entry was adjusted",
+                title: "An entry was changed",
                 body: explanation,
                 date: nil,
                 entryID: adjustment.entryID.rawValue

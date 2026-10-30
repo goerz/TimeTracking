@@ -1,4 +1,4 @@
-// LadderSetEditor: one app set's label and FamilyActivityPicker selection
+// LadderSetEditor: one app group's name and FamilyActivityPicker selection
 // (spec_ios.md §9.2). "Everything" keeps its label and selects nothing.
 
 import FamilyControls
@@ -26,20 +26,20 @@ struct LadderSetEditor: View {
         Form {
             if set.isEverything {
                 Section {
-                    LabeledContent("Label", value: set.label)
+                    LabeledContent("Name", value: set.label)
                 } footer: {
                     Text("Measures all use of this device. It cannot be changed or deleted.")
                 }
             } else {
                 Section {
-                    LabeledContent("Label") {
-                        TextField("Label", text: $set.label)
+                    LabeledContent("Name") {
+                        TextField("Name", text: $set.label)
                             .multilineTextAlignment(.trailing)
                             .submitLabel(.done)
                             .onSubmit { collection.updateSet(set) }
                     }
                 } footer: {
-                    Text("Only this label reaches the activity log.")
+                    Text("Activity shows only this name, never the apps.")
                 }
                 Section("Apps, Categories, and Sites") {
                     ForEach(Array(selection.applicationTokens), id: \.self) { Label($0) }

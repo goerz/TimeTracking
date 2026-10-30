@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "TimeTracking",
-    "description": "Records which sites are in front for the TimeTracking activity log.",
+    "description": "Records the website in the front tab, for Activity.",
     "version": "1.0",
     "background": {
         "scripts": ["background.js"],
