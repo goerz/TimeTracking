@@ -1,5 +1,6 @@
-// LiveSystem: commands, AppleScript, files, and process facts of the real
-// system (spec_activity_tracking.md §3.1, §3.3).
+// LiveCommandRunner and the other live probes: commands, AppleScript,
+// files, and process facts of the real system (spec_activity_tracking.md
+// §3.1, §3.3).
 
 // nil means "cannot read", which differs from an empty answer.
 // swiftlint:disable discouraged_optional_collection

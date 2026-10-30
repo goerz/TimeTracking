@@ -1,5 +1,5 @@
-// AppResolver: items of documents, Finder, chat and meeting apps, and every
-// other app (spec_activity_tracking.md §2.2, §2.4 step 3, §7.2).
+// AppResolver: items of documents, Finder, chat apps, and every other app
+// (spec_activity_tracking.md §2.2, §2.4 step 3, §7.2).
 
 import Foundation
 import TimeTrackingCore
@@ -8,9 +8,8 @@ import TimeTrackingCore
 ///
 /// Document apps give `AXDocument` (subject the work folder, detail the
 /// file name), else the title; Finder gives its front window's folder; chat
-/// apps give workspace and channel from the title; meeting and
-/// screen-sharing apps give the meeting or host from the title; any other
-/// app gives its name plus the window title.
+/// apps give workspace and channel from the title; any other app gives
+/// its name plus the window title.
 @MainActor
 struct AppResolver {
     nonisolated static let finderScript = """

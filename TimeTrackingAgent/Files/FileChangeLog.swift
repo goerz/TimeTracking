@@ -50,7 +50,7 @@ struct FileChangeLog {
         return changes.last { $0.time >= since && $0.path.hasPrefix(base + "/") }?.path
     }
 
-    /// Forgets everything (settings changes, `forget-day`).
+    /// Forgets the changes in `[from, to)` (settings changes, `forget-day`).
     mutating func removeAll(from: Date, to: Date) {
         changes.removeAll { $0.time >= from && $0.time < to }
     }

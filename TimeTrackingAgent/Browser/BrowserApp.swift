@@ -1,4 +1,4 @@
-// BrowserApps: the browsers the agent reads and their scripts
+// BrowserApp: the browsers the agent reads and their scripts
 // (spec_activity_tracking.md §3.3).
 
 import Foundation

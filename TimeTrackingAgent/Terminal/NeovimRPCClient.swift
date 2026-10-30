@@ -1,4 +1,4 @@
-// NeovimRPC: asking a Neovim instance for its current file over msgpack-RPC
+// NeovimRPCClient: asking a Neovim instance for its current file over msgpack-RPC
 // (spec_activity_tracking.md §3.1, editor chain step 2).
 
 import Foundation

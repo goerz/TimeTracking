@@ -1,4 +1,4 @@
-// AgentSessions: Claude Code's session files (spec_activity_tracking.md §2.3
+// AgentSession: Claude Code's session files (spec_activity_tracking.md §2.3
 // `agents`, §3.1). The format is undocumented; unknown keys are ignored.
 
 // nil means "cannot read", which differs from an empty answer.

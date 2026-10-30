@@ -1,4 +1,4 @@
-// SharedFolderCheck: whether the agent can write the iCloud Drive container
+// SharedFolderChoice: whether the agent can write the iCloud Drive container
 // (spec_activity_tracking.md §4.1, phase 1).
 
 import Foundation
