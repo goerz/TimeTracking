@@ -97,16 +97,6 @@ public enum TrackerCommand: Sendable, Hashable {
         Self.join(words)
     }
 
-    /// Whether the command rewrites the logs (the Mac app's commands).
-    public var isRewrite: Bool {
-        switch self {
-        case .deleteBlock, .forgetDay, .reapplyExclusions:
-            true
-        case .tick, .tmuxEvent, .agentEvent:
-            false
-        }
-    }
-
     // MARK: Words
 
     /// Joins words into a line, quoting those that need it.

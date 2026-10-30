@@ -124,11 +124,6 @@ public struct AreaColor: Hashable, Sendable, CustomStringConvertible {
         return contrastRatio(with: black) >= contrastRatio(with: white) ? .black : .white
     }
 
-    /// The opacity of the color behind text: 22% in light, 30% in dark mode.
-    public static func backgroundOpacity(dark: Bool) -> Double {
-        dark ? 0.30 : 0.22
-    }
-
     /// The HSL lightness offsets of the per-project steps.
     public static let lightnessOffsets: [Double] = [0, 0.12, -0.12, 0.24, -0.24, 0.36]
 

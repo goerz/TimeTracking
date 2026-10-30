@@ -86,11 +86,6 @@ public struct SuggestionFeatures: Sendable, Hashable, Codable {
         }
         return (items, groupKeys)
     }
-
-    /// Whether the features hold any activity.
-    public var hasActivity: Bool {
-        !tokens.isEmpty
-    }
 }
 
 /// The cyclic distance of two (sine, cosine) pairs, 0 to 1.

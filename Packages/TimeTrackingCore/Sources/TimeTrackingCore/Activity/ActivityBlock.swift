@@ -72,11 +72,6 @@ public struct ActivityBlock: Sendable, Hashable, Identifiable {
         LocalTimestamp(date: start, utcOffset: utcOffset).monthKey
     }
 
-    /// The local start hour, 0 to 23.
-    public var localStartHour: Int {
-        LocalTimestamp(date: start, utcOffset: utcOffset).hour
-    }
-
     /// Every context the block mentions, items first.
     public var contexts: [String] {
         var seen = Set<String>()

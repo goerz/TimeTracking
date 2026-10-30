@@ -52,20 +52,6 @@ public struct ActivityBars: Sendable {
             let part = segments.first { $0.series == series }?.seconds ?? 0
             return "\(title) · \(series.title) · \(ActivityText.duration(part)) of \(ActivityText.duration(seconds))"
         }
-
-        /// The day's total and its three largest contexts.
-        public var summaryTooltip: String {
-            let top = segments.filter { segment in
-                if case .context = segment.series {
-                    return true
-                }
-                return false
-            }
-            .sorted { $0.seconds > $1.seconds }
-            .prefix(3)
-            .map { "\($0.series.title) \(ActivityText.duration($0.seconds))" }
-            return ([title + " · " + ActivityText.duration(seconds)] + top).joined(separator: "\n")
-        }
     }
 
     public var granularity: Granularity
