@@ -155,10 +155,10 @@ struct BlockPopover: View {
             }
             ForEach(Array(block.items.enumerated()), id: \.offset) { _, item in
                 HStack {
-                    Text(item.context).bold()
+                    Text(item.context).fontWeight(.semibold)
                     Text([item.subject, item.detail].filter { !$0.isEmpty }.joined(separator: " ")).lineLimit(1)
                     Spacer()
-                    Text(ActivityText.duration(item.seconds))
+                    Text(ActivityText.duration(item.seconds)).monospacedDigit()
                 }
                 .font(.caption)
             }

@@ -388,7 +388,7 @@ private struct AwayPanel: View {
     var body: some View {
         let away = summary.away
         Panel(title: "Away") {
-            Text(away.totalText).bold()
+            Text(away.totalText).fontWeight(.semibold).monospacedDigit()
             if !away.parts.isEmpty {
                 Text(away.partsText).foregroundStyle(.secondary)
             }

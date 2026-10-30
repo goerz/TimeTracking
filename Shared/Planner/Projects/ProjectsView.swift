@@ -144,6 +144,7 @@ private struct ProjectsToolbar: ToolbarContent {
                 }
             }
             .pickerStyle(.segmented)
+            .fixedSize()
             .help("Project State")
             .accessibilityIdentifier("projects.state")
         }

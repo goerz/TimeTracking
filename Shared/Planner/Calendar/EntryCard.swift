@@ -39,13 +39,16 @@ struct EntryCard: View {
         let color = listing.area?.color
         let overlaps = model.overlapping(on: entry.day).contains(entry.id)
         let textColor = cardTextColor(color)
-        let showsButtons = (hovering || entry.isRunning || (Self.touch && selected))
-            && CalendarZoom.cardStyle(height: Double(size.height)) != .bar && size.width >= 72
+        let style = CalendarZoom.cardStyle(height: Double(size.height))
+        let wanted = hovering || entry.isRunning || (Self.touch && selected)
+        // Wide cards give the buttons their own place at the top right, so
+        // the text truncates before them; narrow, tall cards put them at the
+        // bottom right, below the text.
+        let wide = size.width >= 140
+        let atBottom = !wide && style == .full && size.height >= 64
         ZStack(alignment: .topLeading) {
             RoundedRectangle(cornerRadius: Design.Radius.small)
                 .fill(color.map { Color(hex: $0) } ?? Color.gray.opacity(0.5))
-            // The buttons take their own place at the top right, so the
-            // text truncates before them instead of running under them.
             HStack(alignment: .top, spacing: Design.Spacing.tight) {
                 content(textColor: textColor)
                 Spacer(minLength: 0)
@@ -57,9 +60,13 @@ struct EntryCard: View {
                         .help(overlapHelp)
                         .accessibilityLabel(overlapHelp)
                 }
-                if showsButtons {
+                if wanted, wide, style != .bar {
                     hoverButtons(textColor: textColor)
                 }
+            }
+            if wanted, atBottom {
+                hoverButtons(textColor: textColor)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
             }
             if !Self.touch {
                 edgeHandles
@@ -564,34 +571,5 @@ struct EventCard: View {
             Button("Hide This Calendar") { Task { await model.hideCalendar(of: event) } }
         }
         .accessibilityIdentifier("calendar.event")
-    }
-}
-
-/// The context menu on the Mac; on the iPad, where a long press lifts the
-/// item, the same buttons in a popover that a long press without a drag
-/// opens (spec_ios.md §10.2).
-private struct EntryMenu<Items: View>: ViewModifier {
-    @Binding var showsMenu: Bool
-    @ViewBuilder var items: () -> Items
-
-    func body(content: Content) -> some View {
-        #if os(iOS)
-            content.popover(isPresented: $showsMenu) {
-                VStack(alignment: .leading, spacing: 0) {
-                    Group { items() }
-                        .buttonStyle(.borderless)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 10)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .simultaneousGesture(TapGesture().onEnded { showsMenu = false })
-                }
-                .frame(minWidth: 220)
-                .padding(.vertical, 6)
-                .presentationCompactAdaptation(.popover)
-                .accessibilityIdentifier("calendar.menu")
-            }
-        #else
-            content.contextMenu { items() }
-        #endif
     }
 }
