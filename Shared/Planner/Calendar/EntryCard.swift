@@ -52,6 +52,7 @@ struct EntryCard: View {
         .offset(dragOffset)
         .onHover { hovering = $0 }
         .gesture(moveGesture)
+        .accessibilityAddTraits(.isButton)
         .onTapGesture(count: 2) { model.editingEntry = entry.id }
         .onTapGesture { model.select(.entry(entry.id), extend: ModifierState.optionDown()) }
         .contextMenu { menu }
@@ -94,7 +95,7 @@ struct EntryCard: View {
                 Text(entry.task.isEmpty ? "No task" : entry.task).bold().italic(entry.task.isEmpty)
                 Text(label.projectAndClient).opacity(0.85)
                 HStack(spacing: 2) {
-                    Image(systemName: "stopwatch")
+                    Image(systemName: "stopwatch").accessibilityHidden(true)
                     duration
                 }
             }
@@ -281,6 +282,7 @@ struct BlockCard: View {
             view.scaleEffect(model.isHighlighted(block) && phase ? 1.04 : 1)
         }
         .onHover(perform: hover)
+        .accessibilityAddTraits(.isButton)
         .onTapGesture {
             model.select(.block(block.id))
             showsPopover = true
@@ -305,10 +307,10 @@ struct BlockCard: View {
             Text("+\(block.background.count)").font(.caption2)
         }
         if block.source == .device {
-            Image(systemName: "iphone")
+            Image(systemName: "iphone").accessibilityHidden(true)
         }
         if block.device == "remote" {
-            Image(systemName: "cloud")
+            Image(systemName: "cloud").accessibilityHidden(true)
         }
     }
 
@@ -372,7 +374,7 @@ struct EventCard: View {
                 Text(project.name)
             }
             HStack(spacing: 2) {
-                Image(systemName: "calendar")
+                Image(systemName: "calendar").accessibilityHidden(true)
                 Text(DurationText.hoursMinutes(Int(block.event.interval.duration)))
             }
         }
@@ -387,6 +389,7 @@ struct EventCard: View {
             dragOffset = 0
             Task { await model.moveTimeBlock(block.id, by: Double(value.translation.height) / model.pointsPerHour * 3600) }
         })
+        .accessibilityAddTraits(.isButton)
         .onTapGesture(count: 2) { model.editTimeBlock(block) }
         .onTapGesture { model.select(.timeBlock(block.id)) }
         .draggable("timeBlock:\(block.id)")
@@ -423,6 +426,7 @@ struct EventCard: View {
         .frame(width: size.width - 2, height: size.height, alignment: .topLeading)
         .background(RoundedRectangle(cornerRadius: 4).fill(color.opacity(0.08)))
         .clipped()
+        .accessibilityAddTraits(.isButton)
         .onTapGesture(count: 2) { model.openEvent(event) }
         .onTapGesture { model.select(.event(event.id)) }
         .draggable("event:\(event.id)")

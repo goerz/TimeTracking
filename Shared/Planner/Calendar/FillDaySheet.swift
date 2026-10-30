@@ -52,23 +52,7 @@ struct FillDaySheet: View {
                 .lineLimit(1)
                 .frame(width: 140, alignment: .leading)
                 .help(row.proposal.items.map { "\($0.context) \($0.subject) \(ActivityText.duration($0.seconds))" }.joined(separator: "\n"))
-            Button(calendar.project(row.projectID)?.name ?? "No project") { pickerRow = row.id }
-                .popover(isPresented: Binding { pickerRow == row.id } set: {
-                    if !$0 {
-                        pickerRow = nil
-                    }
-                }) {
-                    ProjectPickerView(model: ProjectPickerModel(
-                        store: calendar.store,
-                        currentProject: row.projectID,
-                        taskMatching: false
-                    )) { choice in
-                        if case let .project(id) = choice {
-                            model.setProject(id, row: row.id)
-                        }
-                        pickerRow = nil
-                    }
-                }
+            projectButton(row)
             TextField(
                 row.proposal.startsChecked ? "Task" : "No confident suggestion",
                 text: Binding { row.task } set: { model.setTask($0, row: row.id) }
@@ -76,6 +60,27 @@ struct FillDaySheet: View {
             ConfidenceMeter(candidate: row.proposal.top)
             Button("Skip") { model.skip(row.id) }
         }
+    }
+
+    private func projectButton(_ row: FillDayRow) -> some View {
+        let shown = Binding { pickerRow == row.id } set: { (shown: Bool) in
+            if !shown {
+                pickerRow = nil
+            }
+        }
+        return Button(calendar.project(row.projectID)?.name ?? "No project") { pickerRow = row.id }
+            .popover(isPresented: shown) {
+                ProjectPickerView(model: ProjectPickerModel(
+                    store: calendar.store,
+                    currentProject: row.projectID,
+                    taskMatching: false
+                )) { choice in
+                    if case let .project(id) = choice {
+                        model.setProject(id, row: row.id)
+                    }
+                    pickerRow = nil
+                }
+            }
     }
 }
 
@@ -138,15 +143,13 @@ struct SuggestionsSheet: View {
                 }
             }
             .frame(minHeight: 160)
-            Stepper("Fill Day minimum: \(model.fillMinMinutes) min", value: Binding { model.fillMinMinutes } set: { value in
-                Task { await model.setFillMinMinutes(value) }
-            }, in: 1 ... 30)
-            Stepper("Training window: \(model.trainDays) days", value: Binding { model.trainDays } set: { value in
-                Task { await model.setTrainDays(value) }
-            }, in: 30 ... 730, step: 30)
+            Stepper("Fill Day minimum: \(model.fillMinMinutes) min", value: fillMinimum, in: 1 ... 30)
+            Stepper("Training window: \(model.trainDays) days", value: trainDays, in: 30 ... 730, step: 30)
             if let report {
+                let rate = Int((report.acceptanceRate * 100).rounded())
                 Text(
-                    "Last 30 days: \(report.accepted) accepted, \(report.edited) edited, \(report.skipped) skipped; top-1 acceptance \(Int((report.acceptanceRate * 100).rounded()))%"
+                    "Last 30 days: \(report.accepted) accepted, \(report.edited) edited, \(report.skipped) skipped; "
+                        + "top-1 acceptance \(rate)%"
                 )
                 .foregroundStyle(.secondary)
             }
@@ -158,10 +161,20 @@ struct SuggestionsSheet: View {
         }
         .padding()
         .frame(minWidth: 560, minHeight: 420)
-        .task {
-            let now = model.clock.now
-            let feedback = await (try? model.store.feedback(in: DateInterval(start: now - 30 * 86_400, end: now + 1))) ?? []
-            report = SuggestionFeedbackReport(feedback)
-        }
+        .task { await loadReport() }
+    }
+
+    private var fillMinimum: Binding<Int> {
+        Binding { model.fillMinMinutes } set: { value in Task { await model.setFillMinMinutes(value) } }
+    }
+
+    private var trainDays: Binding<Int> {
+        Binding { model.trainDays } set: { value in Task { await model.setTrainDays(value) } }
+    }
+
+    private func loadReport() async {
+        let now = model.clock.now
+        let feedback = await (try? model.store.feedback(in: DateInterval(start: now - 30 * 86_400, end: now + 1))) ?? []
+        report = SuggestionFeedbackReport(feedback)
     }
 }

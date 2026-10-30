@@ -135,7 +135,7 @@ struct ContextGlyph: View {
 
     var body: some View {
         let kind = ActivityContext(context).kind
-        Image(systemName: kind == .session ? "terminal" : kind == .browser ? "safari" : "app")
+        Image(systemName: kind == .session ? "terminal" : kind == .browser ? "safari" : "app").accessibilityHidden(true)
             .foregroundStyle(colors.color(context))
     }
 }

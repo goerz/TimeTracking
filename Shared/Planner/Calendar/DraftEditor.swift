@@ -17,27 +17,7 @@ struct DraftEditor: View {
             VStack(alignment: .leading, spacing: 10) {
                 Text(CalendarText.range(draft.interval.start, draft.interval.end, zone: model.calendar.timeZone))
                     .font(.headline)
-                Button {
-                    showsPicker = true
-                } label: {
-                    HStack {
-                        AreaDot(color: model.entries.first { $0.project?.id == draft.projectID }?.area?.color)
-                        Text(model.project(draft.projectID)?.name ?? "No project")
-                    }
-                }
-                .popover(isPresented: $showsPicker) {
-                    ProjectPickerView(model: ProjectPickerModel(
-                        store: model.store,
-                        currentProject: draft.projectID,
-                        taskMatching: false
-                    )) { choice in
-                        if case let .project(id) = choice {
-                            model.draft?.projectID = id
-                        }
-                        showsPicker = false
-                    }
-                }
-                .accessibilityIdentifier("calendar.draft.project")
+                projectButton(draft)
                 TextField("Task", text: Binding { model.draft?.task ?? "" } set: { model.draft?.task = $0 })
                     .focused($taskFocused)
                     .onSubmit { Task { await model.commitDraft() } }
@@ -56,6 +36,30 @@ struct DraftEditor: View {
             .frame(width: 300)
             .onAppear { taskFocused = true }
         }
+    }
+
+    private func projectButton(_ draft: CalendarDraft) -> some View {
+        Button {
+            showsPicker = true
+        } label: {
+            HStack {
+                AreaDot(color: model.entries.first { $0.project?.id == draft.projectID }?.area?.color)
+                Text(model.project(draft.projectID)?.name ?? "No project")
+            }
+        }
+        .popover(isPresented: $showsPicker) {
+            ProjectPickerView(model: ProjectPickerModel(
+                store: model.store,
+                currentProject: draft.projectID,
+                taskMatching: false
+            )) { choice in
+                if case let .project(id) = choice {
+                    model.draft?.projectID = id
+                }
+                showsPicker = false
+            }
+        }
+        .accessibilityIdentifier("calendar.draft.project")
     }
 
     @ViewBuilder
@@ -213,24 +217,9 @@ struct TimeBlockEditor: View {
                 TextField("Title", text: Binding { model.blockDraft?.title ?? "" } set: { model.blockDraft?.title = $0 })
                     .accessibilityIdentifier("calendar.block.title")
                 Button(model.project(draft.projectID)?.name ?? "No project") { showsPicker = true }
-                    .popover(isPresented: $showsPicker) {
-                        ProjectPickerView(model: ProjectPickerModel(
-                            store: model.store,
-                            currentProject: draft.projectID,
-                            taskMatching: false
-                        )) { choice in
-                            if case let .project(id) = choice {
-                                model.blockDraft?.projectID = id
-                            }
-                            showsPicker = false
-                        }
-                    }
-                DatePicker("Start", selection: Binding { draft.interval.start } set: { start in
-                    model.blockDraft?.interval = DateInterval(start: start, end: max(start + 60, draft.interval.end))
-                }, displayedComponents: [.date, .hourAndMinute])
-                DatePicker("End", selection: Binding { draft.interval.end } set: { end in
-                    model.blockDraft?.interval = DateInterval(start: draft.interval.start, end: max(draft.interval.start + 60, end))
-                }, displayedComponents: [.date, .hourAndMinute])
+                    .popover(isPresented: $showsPicker) { picker(draft) }
+                DatePicker("Start", selection: startBinding(draft), displayedComponents: [.date, .hourAndMinute])
+                DatePicker("End", selection: endBinding(draft), displayedComponents: [.date, .hourAndMinute])
                 TextField("Notes", text: Binding { model.blockDraft?.notes ?? "" } set: { model.blockDraft?.notes = $0 }, axis: .vertical)
                     .lineLimit(3 ... 6)
                 HStack {
@@ -244,6 +233,27 @@ struct TimeBlockEditor: View {
             }
             .padding()
             .frame(width: 320)
+        }
+    }
+
+    private func picker(_ draft: TimeBlockDraft) -> some View {
+        ProjectPickerView(model: ProjectPickerModel(store: model.store, currentProject: draft.projectID, taskMatching: false)) { choice in
+            if case let .project(id) = choice {
+                model.blockDraft?.projectID = id
+            }
+            showsPicker = false
+        }
+    }
+
+    private func startBinding(_ draft: TimeBlockDraft) -> Binding<Date> {
+        Binding { draft.interval.start } set: { start in
+            model.blockDraft?.interval = DateInterval(start: start, end: max(start + 60, draft.interval.end))
+        }
+    }
+
+    private func endBinding(_ draft: TimeBlockDraft) -> Binding<Date> {
+        Binding { draft.interval.end } set: { end in
+            model.blockDraft?.interval = DateInterval(start: draft.interval.start, end: max(draft.interval.start + 60, end))
         }
     }
 }

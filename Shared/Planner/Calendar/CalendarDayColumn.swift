@@ -90,6 +90,7 @@ private struct TrackedColumn: View {
             Color.clear
                 .contentShape(Rectangle())
                 .gesture(drawGesture(axis))
+                .accessibilityAddTraits(.isButton)
                 .onTapGesture { model.selection = [] }
             ForEach(model.entries(on: day)) { listing in
                 if let frame = axis.frame(of: listing.entry.interval(at: model.clock.now)) {

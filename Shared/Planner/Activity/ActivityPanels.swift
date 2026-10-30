@@ -104,6 +104,7 @@ private struct HeatmapPanel: View {
                     .fill(shade(row.minutes[hour]))
                     .frame(width: cell, height: cell)
                     .help(footer ? summary.footerTooltip(hour: hour) : tooltip(row, hour))
+                    .accessibilityAddTraits(.isButton)
                     .onTapGesture { model.showInCalendar(row: row, hour: hour) }
                     .focusable()
             }
@@ -114,7 +115,8 @@ private struct HeatmapPanel: View {
     private func tooltip(_ row: ActivityHeatmap.Row, _ hour: Int) -> String {
         let tip = summary.cellTooltip(row: row, hour: hour)
         let lines = tip.lines.map { line in
-            "\(model.displayName(line.context))  \(line.text)  \(ActivityText.duration(line.seconds))\(line.device.map { " (\($0))" } ?? "")"
+            "\(model.displayName(line.context))  \(line.text)  \(ActivityText.duration(line.seconds))"
+                + (line.device.map { " (\($0))" } ?? "")
         }
         return ([tip.title, tip.summary, ""] + lines + [tip.moreText].compactMap(\.self)).joined(separator: "\n")
     }
@@ -157,25 +159,14 @@ private struct BarsPanel: View {
             }
             .chartXAxis {
                 AxisMarks { value in
-                    AxisValueLabel {
-                        if let id = value.as(String.self), let bar = bars.bars.first(where: { $0.id == id }) {
-                            VStack(spacing: 0) {
-                                Text(bar.label)
-                                if let sublabel = bar.sublabel {
-                                    Text(sublabel)
-                                }
-                                if bar.isToday {
-                                    Circle().fill(Color.accentColor).frame(width: 4, height: 4)
-                                }
-                            }
-                        }
-                    }
+                    AxisValueLabel { axisLabel(value.as(String.self).flatMap { id in bars.bars.first { $0.id == id } }) }
                 }
             }
             .chartYScale(domain: 0 ... Double(bars.axisHours))
             .chartOverlay { proxy in
                 GeometryReader { _ in
                     Rectangle().fill(.clear).contentShape(Rectangle())
+                        .accessibilityAddTraits(.isButton)
                         .onTapGesture { location in
                             if let id: String = proxy.value(atX: location.x), let bar = bars.bars.first(where: { $0.id == id }) {
                                 model.showInCalendar(bar: bar, series: nil)
@@ -186,6 +177,21 @@ private struct BarsPanel: View {
             .frame(height: 220)
         }
         .accessibilityIdentifier("activity.bars")
+    }
+
+    @ViewBuilder
+    private func axisLabel(_ bar: ActivityBars.Bar?) -> some View {
+        if let bar {
+            VStack(spacing: 0) {
+                Text(bar.label)
+                if let sublabel = bar.sublabel {
+                    Text(sublabel)
+                }
+                if bar.isToday {
+                    Circle().fill(Color.accentColor).frame(width: 4, height: 4)
+                }
+            }
+        }
     }
 
     private func color(_ series: ActivityBars.Series) -> Color {
@@ -209,43 +215,48 @@ private struct ContextsPanel: View {
         let largest = rows.map(\.seconds).max() ?? 1
         Panel(title: "Contexts") {
             ForEach(rows.prefix(model.showsAllContexts ? rows.count : 20)) { row in
-                HStack {
-                    if let context = row.context {
-                        ContextGlyph(context: context)
-                        Text(model.displayName(context))
-                        if ActivityContext(context).kind == .session {
-                            Text("session").font(.caption2).padding(.horizontal, 4).overlay(Capsule().stroke(.secondary))
-                        }
-                    } else {
-                        Text("Not itemized").foregroundStyle(.secondary)
-                    }
-                    Spacer()
-                    Capsule().fill(row.context == nil || row.isPrivate ? Color.gray : colors.color(row.context))
-                        .frame(width: 160 * CGFloat(row.seconds) / CGFloat(max(largest, 1)), height: 8)
-                    Text(ActivityText.duration(row.seconds)).frame(width: 64, alignment: .trailing)
-                    Text("\(Int((row.share * 100).rounded()))%").foregroundStyle(.secondary).frame(width: 40, alignment: .trailing)
-                }
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    if let context = row.context {
-                        Task { await model.toggle(context) }
-                    }
-                }
-                .contextMenu {
-                    if let context = row.context {
-                        Button("Show Only \(model.displayName(context))") { Task { await model.showOnly(context) } }
-                        Button("Show in Calendar") { model.showContextInCalendar(context) }
-                        if model.isRecordingMac, ActivityContext(context).kind != .browser {
-                            Button("Exclude \(model.displayName(context)) from tracking…") { model.exclude(context: context) }
-                        }
-                    }
-                }
+                rowView(row, largest: largest)
             }
             if rows.count > 20, !model.showsAllContexts {
                 Button("Show all (\(rows.count))") { model.showsAllContexts = true }.buttonStyle(.link)
             }
         }
         .accessibilityIdentifier("activity.contexts")
+    }
+
+    private func rowView(_ row: ActivityContextRow, largest: Int) -> some View {
+        HStack {
+            if let context = row.context {
+                ContextGlyph(context: context)
+                Text(model.displayName(context))
+                if ActivityContext(context).kind == .session {
+                    Text("session").font(.caption2).padding(.horizontal, 4).overlay(Capsule().stroke(.secondary))
+                }
+            } else {
+                Text("Not itemized").foregroundStyle(.secondary)
+            }
+            Spacer()
+            Capsule().fill(row.context == nil || row.isPrivate ? Color.gray : colors.color(row.context))
+                .frame(width: 160 * CGFloat(row.seconds) / CGFloat(max(largest, 1)), height: 8)
+            Text(ActivityText.duration(row.seconds)).frame(width: 64, alignment: .trailing)
+            Text("\(Int((row.share * 100).rounded()))%").foregroundStyle(.secondary).frame(width: 40, alignment: .trailing)
+        }
+        .contentShape(Rectangle())
+        .accessibilityAddTraits(.isButton)
+        .onTapGesture {
+            if let context = row.context {
+                Task { await model.toggle(context) }
+            }
+        }
+        .contextMenu {
+            if let context = row.context {
+                Button("Show Only \(model.displayName(context))") { Task { await model.showOnly(context) } }
+                Button("Show in Calendar") { model.showContextInCalendar(context) }
+                if model.isRecordingMac, ActivityContext(context).kind != .browser {
+                    Button("Exclude \(model.displayName(context)) from tracking…") { model.exclude(context: context) }
+                }
+            }
+        }
     }
 }
 
@@ -279,10 +290,11 @@ private struct SubjectsPanel: View {
                 Capsule().fill(Color.accentColor).frame(width: 140 * CGFloat(row.seconds) / CGFloat(max(largest, 1)), height: 8)
                 Text(ActivityText.duration(row.seconds)).frame(width: 64, alignment: .trailing)
                 if model.isRecordingMac, row.hasDetails {
-                    Image(systemName: "chevron.right").foregroundStyle(.secondary)
+                    Image(systemName: "chevron.right").accessibilityHidden(true).foregroundStyle(.secondary)
                 }
             }
             .contentShape(Rectangle())
+            .accessibilityAddTraits(.isButton)
             .onTapGesture { model.open(row) }
             .contextMenu {
                 if model.isRecordingMac, let subject = row.subject, row.contexts.contains(where: { ActivityContext($0).kind == .browser }) {
@@ -332,7 +344,7 @@ private struct BackgroundPanel: View {
             Panel(title: "In the background", subtitle: "Does not count as active time") {
                 ForEach(rows) { row in
                     HStack {
-                        Image(systemName: "gearshape").foregroundStyle(.secondary)
+                        Image(systemName: "gearshape").accessibilityHidden(true).foregroundStyle(.secondary)
                         Text(row.title)
                         Spacer()
                         Text(ActivityText.duration(row.seconds))

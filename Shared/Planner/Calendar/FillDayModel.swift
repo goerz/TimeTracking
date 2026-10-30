@@ -20,14 +20,10 @@ struct FillDayRow: Identifiable, Equatable {
 @Observable
 final class FillDayModel {
     @ObservationIgnored let store: TimeStore
-    @ObservationIgnored weak var undoManager: UndoManager?
-    @ObservationIgnored var onFinish: () async -> Void = {}
     let day: TrackingDay
     var rows: [FillDayRow]
     /// Rows removed with Skip (recorded as `skipped`).
     private(set) var removed: [FillDayProposal] = []
-    @ObservationIgnored var pendingUndo: Task<Void, Never>?
-
     init(store: TimeStore, day: TrackingDay, proposals: [FillDayProposal]) {
         self.store = store
         self.day = day
@@ -42,7 +38,7 @@ final class FillDayModel {
         let checked = rows.filter(\.checked)
         let seconds = checked.reduce(0) { $0 + Int($1.proposal.interval.duration) }
         let noun = checked.count == 1 ? "entry" : "entries"
-        return "Log \(checked.count) \(noun) (\(DurationText.hoursMinutes(seconds)))"
+        return "Log \(checked.count) \(noun) (\(ActivityText.duration(seconds)))"
     }
 
     /// Editing a row checks it.
@@ -78,23 +74,12 @@ final class FillDayModel {
         }
     }
 
-    /// Creates the checked rows in one transaction and one undo step; every
-    /// unchecked or removed row records `skipped`.
-    func log() async throws {
+    /// Creates the checked rows in one transaction; every unchecked or
+    /// removed row records `skipped`. Returns the created entries' ids.
+    func log() async throws -> [EntryID] {
         let checked = rows.filter(\.checked).map { FillDayChoice(proposal: $0.proposal, projectID: $0.projectID, task: $0.task) }
         let skipped = rows.filter { !$0.checked }.map(\.proposal) + removed
-        let created = try await store.logFillDay(checked: checked, skipped: skipped)
-        let ids = created.map(\.id)
-        if let undoManager, !ids.isEmpty {
-            undoManager.registerUndo(withTarget: self) { model in
-                model.pendingUndo = Task { @MainActor in
-                    try? await model.store.delete(ids)
-                    await model.onFinish()
-                }
-            }
-            undoManager.setActionName("Fill Day")
-        }
-        await onFinish()
+        return try await store.logFillDay(checked: checked, skipped: skipped).map(\.id)
     }
 }
 
@@ -142,8 +127,6 @@ extension CalendarModel {
                 day: day,
                 proposals: FillDay.proposals(day: interval, blocks: dayBlocks, entries: tracked, context: context)
             )
-            model.undoManager = undoManager
-            model.onFinish = { [weak self] in await self?.changed() }
             fillDay = model
         } catch {
             report(error)
@@ -156,11 +139,15 @@ extension CalendarModel {
             return
         }
         do {
-            try await fillDay.log()
+            let ids = try await fillDay.log()
+            if !ids.isEmpty {
+                registerUndo("Undo Fill Day") { store in try await store.delete(ids) }
+            }
             self.fillDay = nil
         } catch {
             report(error)
         }
+        await changed()
     }
 
     /// Cancel (Escape) writes nothing.

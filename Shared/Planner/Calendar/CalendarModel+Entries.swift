@@ -306,7 +306,7 @@ extension CalendarModel {
             if let first = doomed.first {
                 let title = first.task.isEmpty ? "No task" : first.task
                 let text = doomed.count == 1
-                    ? "Deleted '\(title)' (\(DurationText.hoursMinutes(first.seconds(at: deletedAt))))."
+                    ? "Deleted '\(title)' (\(ActivityText.duration(first.seconds(at: deletedAt))))."
                     : "Deleted \(doomed.count) entries."
                 notice = CalendarNotice(text: text, duration: 8, deleted: ids)
             }

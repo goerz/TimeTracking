@@ -64,9 +64,8 @@ struct CalendarView: View {
             Button("Cancel", role: .cancel) { Task { await model.deleteBlockFromLog(confirmed: false) } }
                 .keyboardShortcut(.defaultAction)
         } message: { block in
-            Text(
-                "\(CalendarText.range(block.start, block.end, zone: model.calendar.timeZone)) · \(block.groupKey)\nThis removes it on every device and cannot be undone."
-            )
+            let range = CalendarText.range(block.start, block.end, zone: model.calendar.timeZone)
+            Text("\(range) · \(block.groupKey)\nThis removes it on every device and cannot be undone.")
         }
         .alert("The tracker could not delete the block", isPresented: trackerErrorBinding, presenting: model.trackerError) { _ in
             Button("OK") { model.trackerError = nil }
@@ -179,25 +178,7 @@ private struct CalendarToolbar: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            ControlGroup {
-                Button { Task { await model.shift(days: -1) } } label: { Image(systemName: "chevron.left") }
-                    .accessibilityLabel("Previous Day")
-                Button { Task { await model.shift(days: 1) } } label: { Image(systemName: "chevron.right") }
-                    .accessibilityLabel("Next Day")
-            }
-            .fixedSize()
-            Button(model.rangeLabel) { model.showsMonthPicker = true }
-                .accessibilityIdentifier("calendar.range")
-                .popover(isPresented: $model.showsMonthPicker) {
-                    DatePicker("First day", selection: $pickedDate, displayedComponents: .date)
-                        .datePickerStyle(.graphical)
-                        .labelsHidden()
-                        .padding()
-                        .onChange(of: pickedDate) { _, date in
-                            model.showsMonthPicker = false
-                            Task { await model.showDay(model.calendar.day(containing: date)) }
-                        }
-                }
+            navigation
             Button("Today") { Task { await model.goToToday() } }
                 .accessibilityIdentifier("calendar.today")
             daysControl
@@ -226,6 +207,28 @@ private struct CalendarToolbar: View {
         .padding(.vertical, 8)
     }
 
+    @ViewBuilder private var navigation: some View {
+        ControlGroup {
+            Button { Task { await model.shift(days: -1) } } label: { Image(systemName: "chevron.left") }
+                .accessibilityLabel("Previous Day")
+            Button { Task { await model.shift(days: 1) } } label: { Image(systemName: "chevron.right") }
+                .accessibilityLabel("Next Day")
+        }
+        .fixedSize()
+        Button(model.rangeLabel) { model.showsMonthPicker = true }
+            .accessibilityIdentifier("calendar.range")
+            .popover(isPresented: $model.showsMonthPicker) {
+                DatePicker("First day", selection: $pickedDate, displayedComponents: .date)
+                    .datePickerStyle(.graphical)
+                    .labelsHidden()
+                    .padding()
+                    .onChange(of: pickedDate) { _, date in
+                        model.showsMonthPicker = false
+                        Task { await model.showDay(model.calendar.day(containing: date)) }
+                    }
+            }
+    }
+
     private var daysControl: some View {
         HStack(spacing: 2) {
             Picker("Days", selection: Binding { model.visibleDays } set: { count in Task { await model.setVisibleDays(count) } }) {
@@ -240,7 +243,7 @@ private struct CalendarToolbar: View {
                 ForEach([2, 4, 6], id: \.self) { count in
                     Button("\(count) Days") { Task { await model.setVisibleDays(count) } }
                 }
-            } label: { Image(systemName: "chevron.down") }
+            } label: { Image(systemName: "chevron.down").accessibilityHidden(true) }
                 .menuIndicator(.hidden)
                 .fixedSize()
         }
@@ -299,46 +302,55 @@ private struct CalendarDayHeader: View {
         let isToday = day == model.today
         let overlaps = model.overlapping(on: day).count
         VStack(alignment: .leading, spacing: 4) {
-            HStack(spacing: 6) {
-                Text(DayText.shortWeekday(day))
-                Text("\(day.day)")
-                    .bold()
-                    .padding(.horizontal, isToday ? 5 : 0)
-                    .background(isToday ? Capsule().fill(Color.red) : nil)
-                    .foregroundStyle(isToday ? .white : .primary)
-                Spacer()
-                if overlaps > 0 {
-                    Button("⚠ \(overlaps) overlaps") { model.selectOverlaps(on: day) }
-                        .buttonStyle(.plain)
-                        .foregroundStyle(.orange)
-                        .font(.caption)
-                }
-                Button { Task { await model.openFillDay(day) } } label: { Image(systemName: "sparkles") }
-                    .buttonStyle(.plain)
-                    .help("Fill Day…")
-            }
-            if let totals = model.summary?.days[day] {
-                let columns = model.columns
-                HStack(spacing: 4) {
-                    ForEach(Array(zip(columns, totals.text(columns: columns))), id: \.0) { column, text in
-                        Image(systemName: column.glyph)
-                        Text(text)
-                        if CalendarColumn.showsNames(dayWidth: width) {
-                            Text(column.title).foregroundStyle(.tertiary)
-                        }
-                    }
-                }
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            }
+            titleRow(isToday: isToday, overlaps: overlaps)
+            totalsRow
             allDayStrip
         }
         .padding(6)
         .frame(width: width, alignment: .leading)
         .background(isToday ? Color.red.opacity(0.04) : .clear)
         .contentShape(Rectangle())
+        .accessibilityAddTraits(.isButton)
         .onTapGesture { Task { await model.showDay(day, alone: ModifierState.optionDown()) } }
         .accessibilityIdentifier("calendar.header.\(day)")
+    }
+
+    private func titleRow(isToday: Bool, overlaps: Int) -> some View {
+        HStack(spacing: 6) {
+            Text(DayText.shortWeekday(day))
+            Text("\(day.day)")
+                .bold()
+                .padding(.horizontal, isToday ? 5 : 0)
+                .background(isToday ? Capsule().fill(Color.red) : nil)
+                .foregroundStyle(isToday ? .white : .primary)
+            Spacer()
+            if overlaps > 0 {
+                Button("⚠ \(overlaps) overlaps") { model.selectOverlaps(on: day) }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(.orange)
+                    .font(.caption)
+            }
+            Button { Task { await model.openFillDay(day) } } label: { Image(systemName: "sparkles").accessibilityHidden(true) }
+                .buttonStyle(.plain)
+                .help("Fill Day…")
+        }
+    }
+
+    @ViewBuilder private var totalsRow: some View {
+        if let totals = model.summary?.days[day] {
+            let columns = model.columns
+            HStack(spacing: 4) {
+                ForEach(Array(zip(columns, totals.text(columns: columns))), id: \.0) { column, text in
+                    Image(systemName: column.glyph).accessibilityHidden(true)
+                    Text(text)
+                    if CalendarColumn.showsNames(dayWidth: width) {
+                        Text(column.title).foregroundStyle(.tertiary)
+                    }
+                }
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
+        }
     }
 
     @ViewBuilder private var allDayStrip: some View {
