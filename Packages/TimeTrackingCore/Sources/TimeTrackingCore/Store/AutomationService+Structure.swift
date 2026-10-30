@@ -186,7 +186,7 @@ extension AutomationService {
 
     /// A `#RRGGBB` color in upper case; anything else is a usage error.
     public static func color(_ text: String) throws(AutomationError) -> String {
-        guard text.wholeMatch(of: /#[0-9A-Fa-f]{6}/) != nil, let color = try? AreaColor(text) else {
+        guard let color = try? AreaColor(text) else {
             throw .usage("Malformed color \"\(text)\"; use #RRGGBB.")
         }
         return color.hex
@@ -216,16 +216,6 @@ extension AutomationService {
             throw .notFound("No area named \"\(name.trimmed)\".")
         }
         return Set(matches.map(\.id))
-    }
-}
-
-extension Array {
-    /// Sorted by `areInIncreasingOrder`, equal elements keeping their order.
-    func stableSorted(by areInIncreasingOrder: (Element, Element) -> Bool) -> [Element] {
-        enumerated().sorted { lhs, rhs in
-            areInIncreasingOrder(lhs.element, rhs.element)
-                || (!areInIncreasingOrder(rhs.element, lhs.element) && lhs.offset < rhs.offset)
-        }.map(\.element)
     }
 }
 
