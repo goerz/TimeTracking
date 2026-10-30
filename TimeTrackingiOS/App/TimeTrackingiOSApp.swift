@@ -45,6 +45,7 @@ struct TimeTrackingiOSApp: App {
         .backgroundTask(.appRefresh(RefreshScheduler.identifier)) {
             await RefreshScheduler.run()
         }
+        .commands { PadCommands(host: host) }
     }
 }
 

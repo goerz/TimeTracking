@@ -10,25 +10,31 @@ struct TimerScreen: View {
     @Bindable var model: PhoneModel
 
     @Environment(\.undoManager) private var undoManager
+    @FocusState private var searchFocused: Bool
 
     var body: some View {
         NavigationStack {
-            List {
-                Section {
-                    RunningEntryCard(model: model)
-                        .listRowInsets(EdgeInsets())
-                        .listRowBackground(Color.clear)
-                    statusLines
+            GeometryReader { proxy in
+                if model.settings.isPad, proxy.size.width > Self.twoColumnWidth {
+                    // The iPad above 900 pt: the card column and the list side by side (§10.1).
+                    HStack(spacing: 0) {
+                        List { cardSection }
+                            .listStyle(.insetGrouped)
+                            .frame(width: min(420, proxy.size.width * 0.4))
+                        recentList(includingCard: false)
+                    }
+                } else {
+                    recentList(includingCard: true)
                 }
-                if !model.settings.siriTipDismissed {
-                    SiriTipView(intent: StartTimerIntent(inferProject: true), isVisible: siriTipVisible)
-                        .listRowBackground(Color.clear)
-                }
-                RecentListSections(model: model)
             }
-            .listStyle(.insetGrouped)
-            .accessibilityIdentifier("timer.list")
             .searchable(text: Bindable(model.list).filter, prompt: "Filter")
+            .searchFocused($searchFocused)
+            .onChange(of: model.list.isFilterVisible) { _, visible in
+                // ⌘F on the iPad's keyboard.
+                if visible {
+                    searchFocused = true
+                }
+            }
             .onChange(of: model.list.filter) {
                 model.list.isFilterVisible = !model.list.filter.isEmpty
                 Task { await model.list.reload() }
@@ -37,7 +43,7 @@ struct TimerScreen: View {
             .toolbar { toolbar }
             .safeAreaInset(edge: .top) { bannerView }
         }
-        .sheet(item: $model.sheet) { sheet in
+        .sheet(item: sheetBinding) { sheet in
             sheetContent(sheet)
         }
         .alert(
@@ -61,6 +67,56 @@ struct TimerScreen: View {
         }
     }
 
+    static let twoColumnWidth: CGFloat = 900
+
+    @ViewBuilder private var cardSection: some View {
+        Section {
+            RunningEntryCard(model: model)
+                .listRowInsets(EdgeInsets())
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
+            statusLines
+        }
+        if !model.settings.siriTipDismissed {
+            SiriTipView(intent: StartTimerIntent(inferProject: true), isVisible: siriTipVisible)
+                .listRowBackground(Color.clear)
+        }
+    }
+
+    private func recentList(includingCard: Bool) -> some View {
+        ScrollViewReader { proxy in
+            List {
+                if includingCard {
+                    cardSection
+                }
+                RecentListSections(model: model)
+            }
+            .listStyle(.insetGrouped)
+            .accessibilityIdentifier("timer.list")
+            .onChange(of: model.list.scrollToTopRequest) {
+                // ⌘↑ (spec_ios.md §10.3).
+                if let first = model.list.days.first {
+                    proxy.scrollTo(first.id, anchor: .top)
+                }
+            }
+        }
+    }
+
+    /// The iPad shows the picker as a popover from the chip, the iPhone as a sheet.
+    private var sheetBinding: Binding<PhoneSheet?> {
+        Binding {
+            if model.settings.isPad, case .picker = model.sheet {
+                return nil
+            }
+            return model.sheet
+        } set: { value in
+            if value == nil, model.settings.isPad, case .picker = model.sheet {
+                return
+            }
+            model.sheet = value
+        }
+    }
+
     private var siriTipVisible: Binding<Bool> {
         Binding(get: { !model.settings.siriTipDismissed }, set: { model.settings.siriTipDismissed = !$0 })
     }
@@ -71,8 +127,18 @@ struct TimerScreen: View {
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .listRowBackground(Color.clear)
+                .contentShape(Rectangle())
+                .accessibilityAddTraits(.isButton)
+                .onTapGesture { model.macActivityTapped() }
                 .accessibilityIdentifier("timer.macActivity")
         }
+        // No empty row while no pill can show (sending shows after 10 s).
+        if model.syncPill(at: .distantFuture) != nil {
+            syncPillRow
+        }
+    }
+
+    private var syncPillRow: some View {
         TimelineView(.periodic(from: .now, by: 1)) { _ in
             if let pill = model.syncPill(at: model.clock.now) {
                 Label(pill, systemImage: "icloud.slash")

@@ -53,13 +53,16 @@ final class PhoneHost {
         let settings = PhoneSettings(device: device, isPad: DeviceInfo.isPad)
         let model = testing
             ? testingModel(store: store, clock: clock, settings: settings, shared: shared, defaults: defaults ?? .standard)
-            : liveModel(store: store, clock: clock, settings: settings, shared: shared, identity: identity)
+            : await liveModel(store: store, clock: clock, settings: settings, shared: shared, identity: identity)
         let container = testing ? nil : identity?.cloudKitContainer
         let onboarding = OnboardingModel(settings: settings, shared: shared) {
             await AccountStatus.check(containerIdentifier: container)
         }
         self.model = model
         self.onboarding = onboarding
+        if testing, model.pad != nil, let tab = UITestingOptions.padTab {
+            model.padTab = tab
+        }
         PhoneIntentBridge.shared.attach(model)
         await model.sync?.start()
         await model.start(observing: true)
@@ -89,7 +92,9 @@ final class PhoneHost {
             widgets: RecordingWidgetReloader(),
             shortcuts: RecordingShortcuts(),
             shared: shared,
-            collection: CollectionModel.local(folder: folder, defaults: defaults, shared: shared, clock: clock)
+            collection: CollectionModel.local(folder: folder, defaults: defaults, shared: shared, clock: clock),
+            // The iPad's tabs over in-memory activity and calendars; never EventKit.
+            pad: settings.isPad ? PadPlanner.testing(store: store, clock: clock, device: settings.device) : nil
         )
     }
 
@@ -101,7 +106,9 @@ final class PhoneHost {
         settings: PhoneSettings,
         shared: WidgetSharedState,
         identity: AppIdentity?
-    ) -> PhoneModel {
+    ) async -> PhoneModel {
+        // Only the iPad creates a calendar store (spec_ios.md §10.2).
+        let pad = settings.isPad ? await PadPlanner.live(store: store, clock: clock, device: settings.device, identity: identity) : nil
         let notifications = UserNotifications()
         let widgets = WidgetCenterReloader()
         let collection = identity.flatMap { CollectionModel.live(identity: $0, device: settings.device, shared: shared, clock: clock) }
@@ -113,7 +120,8 @@ final class PhoneHost {
             widgets: widgets,
             shortcuts: AppShortcutsUpdater(),
             shared: shared,
-            collection: collection ?? NoCollection()
+            collection: collection ?? NoCollection(),
+            pad: pad
         )
         if let container = identity?.cloudKitContainer {
             model.sync = CoordinatorSync(store: store, containerIdentifier: container) {
@@ -134,6 +142,11 @@ enum UITestingOptions {
     /// `-iCloudAccount none`: onboarding sees no account.
     static var hasNoAccount: Bool {
         UserDefaults.standard.string(forKey: "iCloudAccount") == "none"
+    }
+
+    /// `-PadTab calendar`: the iPad's first tab (screenshots).
+    static var padTab: PadTab? {
+        UserDefaults.standard.string(forKey: "PadTab").flatMap(PadTab.init(rawValue:))
     }
 
     /// `-Onboarding YES`: run onboarding as on a first launch.

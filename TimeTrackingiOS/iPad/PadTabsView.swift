@@ -1,5 +1,5 @@
-// PadTabs: the iPad's tab bar (spec_ios.md §10.1). The Timer is the first
-// tab; the Planner tabs are placeholders until step 8c.
+// PadTabs: the iPad's tab bar (spec_ios.md §10.1): the Timer, then the
+// Planner's Projects, Calendar, Reports, and Activity sections.
 
 import SwiftUI
 import TimeTrackingCore
@@ -51,15 +51,53 @@ struct PadTabsView: View {
         TabView(selection: $model.padTab) {
             ForEach(PadTab.allCases, id: \.self) { tab in
                 Tab(tab.title, systemImage: tab.systemImage, value: tab) {
-                    if tab == .timer {
-                        TimerScreen(model: model)
-                    } else {
-                        ContentUnavailableView(tab.title, systemImage: tab.systemImage, description: Text("Coming with the iPad Planner."))
-                            .accessibilityIdentifier("pad.placeholder.\(tab.rawValue)")
-                    }
+                    content(tab)
                 }
+                .accessibilityIdentifier("pad.tab.\(tab.rawValue)")
             }
         }
         .tabViewStyle(.sidebarAdaptable)
+    }
+
+    /// A Planner tab's view exists only once the tab has opened, so the
+    /// Calendar asks for calendar access when it first shows (spec_ios.md §11).
+    @ViewBuilder
+    private func content(_ tab: PadTab) -> some View {
+        if tab == .timer {
+            TimerScreen(model: model)
+        } else if let pad = model.pad, let section = tab.section, pad.opened.contains(section) {
+            PadSectionView(router: pad.router, section: section, clock: model.clock)
+        } else {
+            Color.clear
+        }
+    }
+}
+
+/// One Planner section in its tab, toolbars on the navigation bar.
+private struct PadSectionView: View {
+    var router: PlannerRouter
+    var section: PlannerSection
+    var clock: any Clock
+
+    var body: some View {
+        NavigationStack {
+            switch section {
+            case .projects:
+                TimelineView(.periodic(from: .now, by: 60)) { _ in
+                    ProjectsView(model: router.projects, now: clock.now)
+                }
+                .navigationBarTitleDisplayMode(.inline)
+            case .calendar:
+                CalendarView(model: router.calendar)
+                    .toolbar(.hidden, for: .navigationBar)
+            case .reports:
+                ReportsView(model: router.reports)
+                    .navigationBarTitleDisplayMode(.inline)
+            case .activity:
+                ActivityView(model: router.activity)
+                    .toolbar(.hidden, for: .navigationBar)
+            }
+        }
+        .accessibilityIdentifier("pad.section.\(section.rawValue)")
     }
 }

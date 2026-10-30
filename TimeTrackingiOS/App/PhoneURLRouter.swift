@@ -47,10 +47,14 @@ struct PhoneURLRouter {
                 return .failed(AutomationError(wrapping: error).message)
             }
         case .show:
+            model.padTab = .timer
             return .shown
         case .calendar, .reports, .projects, .activity, .project:
-            // The iPad's Planner tabs arrive with step 8c; the iPhone shows the Timer.
-            model.padTab = PadTab(url: parsed)
+            // The iPad selects the tab and its state; the iPhone shows the Timer.
+            if let pad = model.pad {
+                model.padTab = PadTab(url: parsed)
+                await pad.router.open(parsed, now: model.clock.now)
+            }
             return .shown
         }
     }

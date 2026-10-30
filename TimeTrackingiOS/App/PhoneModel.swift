@@ -39,6 +39,8 @@ final class PhoneModel {
     @ObservationIgnored let shortcuts: ShortcutsUpdating
     @ObservationIgnored let shared: WidgetSharedState
     @ObservationIgnored let collection: CollectionFlushing
+    /// The iPad's Planner tabs; `nil` on the iPhone.
+    @ObservationIgnored let pad: PadPlanner?
     @ObservationIgnored var sync: SyncDriving?
     /// Bounds a wrapper intent's fetch (spec_ios.md §4 item 3); tests replace it.
     @ObservationIgnored var boundedFetch: @Sendable (@escaping @Sendable () async -> Void) async -> Void = { fetch in
@@ -67,8 +69,14 @@ final class PhoneModel {
     var isActive = true
     /// An alert after a URL that did nothing.
     var urlAlert: String?
-    /// The iPad's selected tab.
-    var padTab: PadTab = .timer
+    /// The iPad's selected tab; a Planner tab opens its section.
+    var padTab: PadTab = .timer {
+        didSet {
+            if let section = padTab.section {
+                pad?.open(section)
+            }
+        }
+    }
 
     @ObservationIgnored private var changeTask: Task<Void, Never>?
     @ObservationIgnored private var midnightTask: Task<Void, Never>?
@@ -83,7 +91,8 @@ final class PhoneModel {
         widgets: WidgetReloading,
         shortcuts: ShortcutsUpdating,
         shared: WidgetSharedState,
-        collection: CollectionFlushing = NoCollection()
+        collection: CollectionFlushing = NoCollection(),
+        pad: PadPlanner? = nil
     ) {
         self.store = store
         self.clock = clock
@@ -93,6 +102,7 @@ final class PhoneModel {
         self.shortcuts = shortcuts
         self.shared = shared
         self.collection = collection
+        self.pad = pad
         self.timer = TimerModel(store: store, clock: clock, notifier: notifications)
         self.taskField = TaskFieldModel(store: store)
         self.list = TimerListModel(store: store, clock: clock)
@@ -102,6 +112,7 @@ final class PhoneModel {
         list.onChange = { [weak self] in await self?.localWrite() }
         pomodoro.currentTask = { [weak self] in self?.timer.running?.task ?? "" }
         pomodoro.onTransition = { [weak self] in self?.widgets.reloadTimelines() }
+        wirePad()
     }
 
     // MARK: Lifecycle
@@ -195,8 +206,10 @@ final class PhoneModel {
             await showAdjustments(adjustments)
         case .structure:
             await fanOut(structureChanged: true)
+            await pad?.storeChanged()
         case .entries, .runningEntry:
             await fanOut(structureChanged: false)
+            await pad?.storeChanged()
         }
     }
 

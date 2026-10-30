@@ -44,6 +44,7 @@ struct RunningEntryCard: View {
         }
         .padding(16)
         .background(RoundedRectangle(cornerRadius: 22).fill(Color(uiColor: .secondarySystemGroupedBackground)))
+        .onChange(of: timer.focusTaskFieldRequest) { taskFocused = true }
     }
 
     private var taskField: some View {
@@ -125,6 +126,24 @@ struct RunningEntryCard: View {
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("timer.projectChip")
+        .popover(item: padPicker) { picker in
+            PickerSheet(model: model, picker: picker)
+                .frame(minWidth: 340, idealWidth: 360, minHeight: 440, idealHeight: 520)
+        }
+    }
+
+    /// The iPad's picker popover (spec_ios.md §10.1).
+    private var padPicker: Binding<ProjectPickerModel?> {
+        Binding {
+            if model.settings.isPad, case let .picker(picker) = model.sheet {
+                return picker
+            }
+            return nil
+        } set: { value in
+            if value == nil, case .picker = model.sheet {
+                model.sheet = nil
+            }
+        }
     }
 
     private var timeLabel: some View {
