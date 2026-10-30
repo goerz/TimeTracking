@@ -218,7 +218,7 @@ private struct ContextsPanel: View {
                 rowView(row, largest: largest)
             }
             if rows.count > 20, !model.showsAllContexts {
-                Button("Show all (\(rows.count))") { model.showsAllContexts = true }.buttonStyle(.link)
+                Button("Show all (\(rows.count))") { model.showsAllContexts = true }.buttonStyle(.borderless)
             }
         }
         .accessibilityIdentifier("activity.contexts")
@@ -303,7 +303,7 @@ private struct SubjectsPanel: View {
             }
         }
         if rows.count > 20, !model.showsAllSubjects {
-            Button("Show all (\(rows.count))") { model.showsAllSubjects = true }.buttonStyle(.link)
+            Button("Show all (\(rows.count))") { model.showsAllSubjects = true }.buttonStyle(.borderless)
         }
         if !model.isRecordingMac {
             Text("Details stay on the Mac that recorded them").font(.caption).foregroundStyle(.secondary)
@@ -313,7 +313,7 @@ private struct SubjectsPanel: View {
     private func drill(_ detail: ActivitySubjectDetail) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
-                Button(model.displayName(detail.context)) { model.closeDrill() }.buttonStyle(.link)
+                Button(model.displayName(detail.context)) { model.closeDrill() }.buttonStyle(.borderless)
                 Text("› \(detail.subject)")
                 if let visited = detail.visitedText {
                     Text("· \(visited)").foregroundStyle(.secondary)
