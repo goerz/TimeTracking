@@ -116,7 +116,7 @@ for my $path (sort @test_files) {
             record($ids, "$rel:$line");
         }
     } else {
-        while ($text =~ /^\s*behavior\s+"([^"]*)"/mg) {
+        while ($text =~ /(?:^|\|\||&&)[ \t]*behavior[ \t]+"([^"]*)"/mg) {
             my $name = $1;
             my $line = 1 + (() = substr($text, 0, pos($text)) =~ /\n/g);
             record($name, "$rel:$line");
