@@ -34,9 +34,9 @@ public enum ReportCSVWriter {
         return "\(date)T\(time)\(sign)\(two(abs(offset) / 3600)):\(two(abs(offset) / 60 % 60))"
     }
 
-    /// `h:mm:ss`.
+    /// `h:mm:ss`, as `DurationText.clock(_:)` writes it.
     public static func duration(_ seconds: Int) -> String {
-        String(format: "%d:%02d:%02d", seconds / 3600, seconds / 60 % 60, seconds % 60)
+        DurationText.clock(seconds)
     }
 
     /// `start,stop,seconds,client,area,project,task,running`; the running

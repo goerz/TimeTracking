@@ -108,7 +108,7 @@ extension LiveState.MacActivity {
 /// RFC 3339 UTC timestamps with whole seconds, as `LiveState` stores them.
 enum LiveStateTime {
     static func text(_ date: Date) -> String {
-        Date(timeIntervalSince1970: date.timeIntervalSince1970.rounded(.down)).formatted(.iso8601)
+        TimeStore.rfc3339(date)
     }
 
     static func date(_ text: String) -> Date? {

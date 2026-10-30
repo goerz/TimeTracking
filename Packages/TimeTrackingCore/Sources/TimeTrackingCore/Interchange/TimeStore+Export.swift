@@ -34,8 +34,11 @@ extension TimeStore {
         ]
     }
 
+    /// RFC 3339 in UTC with whole seconds (`2024-03-14T10:00:00Z`), the
+    /// timestamps of the export format and of `LiveState`; fractions are
+    /// truncated, never rounded.
     static func rfc3339(_ date: Date) -> String {
-        date.formatted(Date.ISO8601FormatStyle(includingFractionalSeconds: false, timeZone: .gmt))
+        Time.whole(date).formatted(Date.ISO8601FormatStyle(includingFractionalSeconds: false, timeZone: .gmt))
     }
 
     private static func nullable(_ value: String?) -> Any {
