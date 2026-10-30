@@ -50,10 +50,8 @@ struct TrackerEventTests {
     }
 
     private func exchange(_ arguments: [String], reply: String) async throws -> (line: String, result: ToolResult) {
-        let folder = FileManager.default.temporaryDirectory.appending(path: "tracker-event-\(UUID().uuidString)")
-        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: folder) }
-        let server = try OneShotServer(folder: folder)
+        let folder = try TemporaryFolder("tracker-event")
+        let server = try OneShotServer(folder: folder.url)
         let line = Task.detached { server.serve(reply: reply) }
         let result = try ToolProcess.run("tracker-event", arguments, environment: ["TIMETRACKING_SOCKET": server.path])
         return await (line.value, result)

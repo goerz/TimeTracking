@@ -6,10 +6,8 @@ import Testing
 struct ToolSkeletonTests {
     @Test("ARCH-21 tracker-event exits non-zero within 100 ms when the agent is not running")
     func trackerEventWithoutAgent() throws {
-        let folder = FileManager.default.temporaryDirectory.appending(path: "tracker-event-\(UUID().uuidString)")
-        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: folder) }
-        let environment = ["TIMETRACKING_SOCKET": folder.appending(path: "tracker.sock").path]
+        let folder = try TemporaryFolder("tracker-event")
+        let environment = ["TIMETRACKING_SOCKET": folder.url.appending(path: "tracker.sock").path]
         // The first launch pays for loading the binary. Process launch time
         // varies with load, so the bound must hold for the fastest of five
         // runs; a tool that waits or retries misses it on every run.

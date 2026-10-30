@@ -8,11 +8,16 @@ import Testing
 
 /// A temporary store loaded from the fixture document, and the tool run
 /// against it with `TIMETRACKING_STORE`, `TIMETRACKING_NOW`, and `TZ`.
+/// The folder goes away with the last copy of the fixture.
 struct ToolFixture {
     static let zone = "Europe/Berlin"
     static let now = "2026-10-29T10:00:00"
 
-    let folder: URL
+    private let temporary: TemporaryFolder
+    var folder: URL {
+        temporary.url
+    }
+
     var store: URL {
         folder.appending(path: "store.sqlite")
     }
@@ -20,8 +25,7 @@ struct ToolFixture {
     /// A store with the fixture imported; `running` adds the entry that
     /// has run for 1812 seconds at "now".
     init(running: Bool = true) throws {
-        self.folder = FileManager.default.temporaryDirectory.appending(path: "tool-\(UUID().uuidString)")
-        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        self.temporary = try TemporaryFolder("tool")
         let file = folder.appending(path: "fixture.json")
         try JSONSerialization.data(withJSONObject: Self.document(running: running)).write(to: file)
         let result = try run(["import", file.path, "--include-settings"])
@@ -30,8 +34,7 @@ struct ToolFixture {
 
     /// An empty folder without a store.
     init(empty _: Void) throws {
-        self.folder = FileManager.default.temporaryDirectory.appending(path: "tool-\(UUID().uuidString)")
-        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        self.temporary = try TemporaryFolder("tool")
     }
 
     var environment: [String: String] {
@@ -47,10 +50,6 @@ struct ToolFixture {
         let url = folder.appending(path: name)
         try Data(text.utf8).write(to: url)
         return url.path
-    }
-
-    func remove() {
-        try? FileManager.default.removeItem(at: folder)
     }
 
     // MARK: SQLite
@@ -164,7 +163,7 @@ extension ToolFixture {
 
     static func entry(_ number: Int, project: String?, _ task: String, _ start: String, _ end: String?) -> [String: Any] {
         [
-            "id": String(format: "e1000000-0000-4000-8000-%012d", number), "projectID": project ?? NSNull(), "task": task,
+            "id": entryID(number), "projectID": project ?? NSNull(), "task": task,
             "start": utc(start), "end": end.map(utc) ?? NSNull(), "timeZone": zone, "deviceID": device, "splitRootID": NSNull(),
         ]
     }

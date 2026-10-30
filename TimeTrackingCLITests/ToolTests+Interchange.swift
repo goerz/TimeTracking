@@ -18,12 +18,10 @@ extension ToolTests {
     @Test("AUTO-24 export, import with --include-settings into an empty store, and export again round-trips")
     func exportImportRoundTrip() throws {
         let fixture = try ToolFixture()
-        defer { fixture.remove() }
         let first = try fixture.run(["export"])
         #expect(first.status == 0)
         let file = try fixture.write(first.standardOutput, named: "export.json")
         let copy = try ToolFixture(empty: ())
-        defer { copy.remove() }
         let imported = try copy.run(["import", file, "--include-settings"])
         #expect(imported.status == 0, "\(imported.standardError)")
         #expect(imported.lines.count == 4)
@@ -38,7 +36,6 @@ extension ToolTests {
     @Test("AUTO-25 importing the same file twice reports everything unchanged, appends no outbox row, and posts nothing")
     func importTwice() throws {
         let fixture = try ToolFixture()
-        defer { fixture.remove() }
         let file = try fixture.write(fixture.run(["export"]).standardOutput, named: "export.json")
         let outbox = try fixture.count("SELECT COUNT(*) FROM outbox")
         let posts = ChangeSignalCounter()
@@ -56,7 +53,6 @@ extension ToolTests {
     @Test("AUTO-26 a record id that is a tombstone here is skipped; a record with deletedAt keeps the live record")
     func importTombstones() throws {
         let fixture = try ToolFixture()
-        defer { fixture.remove() }
         let exported = try fixture.run(["export"]).standardOutput
         #expect(try fixture.run(["entry", "delete", ToolFixture.entryID(3), "--yes"]).status == 0)
         var document = try #require(JSONSerialization.jsonObject(with: Data(exported.utf8)) as? [String: Any])
@@ -78,7 +74,6 @@ extension ToolTests {
     @Test("AUTO-27 an unknown areaID or a new project colliding with a name in its client exits 7 and writes nothing")
     func importValidation() throws {
         let fixture = try ToolFixture()
-        defer { fixture.remove() }
         let outbox = try fixture.count("SELECT COUNT(*) FROM outbox")
         let base = ToolFixture.document(running: false)
         var unknownArea = base
@@ -103,9 +98,7 @@ extension ToolTests {
     @Test("AUTO-28 import --dry-run prints the real import's summary and leaves the store's modification time unchanged")
     func importDryRun() throws {
         let fixture = try ToolFixture()
-        defer { fixture.remove() }
         let other = try ToolFixture(empty: ())
-        defer { other.remove() }
         let file = try fixture.write(fixture.run(["export"]).standardOutput, named: "export.json")
         #expect(try other.run(["client", "create", "Someone"]).status == 0)
         let modified = other.modificationDate
@@ -122,7 +115,6 @@ extension ToolTests {
     @Test("AUTO-29 export with a range or --what but without --format csv exits 2")
     func exportUsage() throws {
         let fixture = try ToolFixture()
-        defer { fixture.remove() }
         #expect(try fixture.run(["export", "--from", "2026-10-01"]).status == 2)
         #expect(try fixture.run(["export", "--what", "entries"]).status == 2)
         #expect(try fixture.run(["export", "--format", "csv", "--what", "all"]).status == 2)
@@ -132,7 +124,6 @@ extension ToolTests {
     @Test("AUTO-30 export --format csv --what entries writes the Entries CSV with LF, RFC 4180 quoting, and the running entry")
     func exportEntriesCSV() throws {
         let fixture = try ToolFixture()
-        defer { fixture.remove() }
         let result = try fixture.run(["export", "--format", "csv", "--what", "entries"])
         #expect(result.status == 0)
         let text = result.standardOutput
@@ -160,7 +151,6 @@ extension ToolTests {
     @Test("AUTO-35 a store whose schema version is one higher exits 5 naming both versions")
     func newerSchema() throws {
         let fixture = try ToolFixture()
-        defer { fixture.remove() }
         var database: OpaquePointer?
         #expect(sqlite3_open_v2(fixture.store.path, &database, SQLITE_OPEN_READWRITE, nil) == SQLITE_OK)
         #expect(sqlite3_exec(database, "UPDATE meta SET value = '2' WHERE key = 'schema_version'", nil, nil, nil) == SQLITE_OK)
@@ -194,7 +184,6 @@ extension ToolTests {
         #expect(version.status == 0)
         #expect(version.standardOutput.wholeMatch(of: /\d+\.\d+ \(\d+\), schema \d+\n/) != nil)
         let fixture = try ToolFixture()
-        defer { fixture.remove() }
         let before = try fixture.run(["--json", "--store", fixture.store.path, "status"])
         #expect(before.json["pendingChanges"] != nil)
         let quiet = try fixture.run(["-q", "stop"])

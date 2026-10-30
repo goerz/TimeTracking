@@ -14,7 +14,6 @@ struct ToolTests {
     @Test("AUTO-1 status --json reports the running entry's duration and a null end, or running null; both exit 0")
     func statusJSON() throws {
         let fixture = try ToolFixture()
-        defer { fixture.remove() }
         let result = try fixture.run(["status", "--json"])
         #expect(result.status == 0)
         let running = try #require(result.json["running"] as? [String: Any])
@@ -28,7 +27,6 @@ struct ToolTests {
         #expect(result.json["asOf"] as? String == "2026-10-29T10:00:00+01:00")
 
         let idle = try ToolFixture(running: false)
-        defer { idle.remove() }
         let stopped = try idle.run(["--json", "status"])
         #expect(stopped.status == 0)
         #expect(stopped.json["running"] is NSNull)
@@ -39,7 +37,6 @@ struct ToolTests {
     @Test("AUTO-2 start while an entry runs stops it at the new start, names both, and leaves one running entry")
     func startStopsRunning() throws {
         let fixture = try ToolFixture()
-        defer { fixture.remove() }
         let result = try fixture.run(["start", "Task", "--project", "Noise paper"])
         #expect(result.status == 0, "\(result.standardError)")
         #expect(result.lines.count == 1)
@@ -54,7 +51,6 @@ struct ToolTests {
     @Test("AUTO-3 start never infers a project from an earlier entry with the same task")
     func startNeverInfers() throws {
         let fixture = try ToolFixture()
-        defer { fixture.remove() }
         let result = try fixture.run(["start", "Clarify noise model", "--json"])
         #expect(result.status == 0)
         #expect(result.json["project"] is NSNull)
@@ -64,7 +60,6 @@ struct ToolTests {
     @Test("AUTO-4 an archived project, a future --at, and stop with nothing running exit 4 and write nothing")
     func refusals() throws {
         let fixture = try ToolFixture()
-        defer { fixture.remove() }
         let outbox = try fixture.count("SELECT COUNT(*) FROM outbox")
         let archived = try fixture.run(["start", "--project", "Old paper"])
         #expect(archived.status == 4)
@@ -75,7 +70,6 @@ struct ToolTests {
         let before = try fixture.run(["start", "--at", "2026-10-29T09:00"])
         #expect(before.status == 4)
         let overlap = try ToolFixture(running: false)
-        defer { overlap.remove() }
         let overlapping = try overlap.run(["start", "--at", "2026-10-29T08:30"])
         #expect(overlapping.status == 4)
         #expect(overlapping.standardError.contains("--force"))
@@ -89,7 +83,6 @@ struct ToolTests {
     @Test("AUTO-5 an ambiguous project exits 3 listing both; Client/Project resolves it; case and diacritics are folded")
     func projectNames() throws {
         let fixture = try ToolFixture()
-        defer { fixture.remove() }
         let ambiguous = try fixture.run(["start", "--project", "Admin"])
         #expect(ambiguous.status == 3)
         #expect(ambiguous.standardError.contains("University/Admin"))
@@ -112,7 +105,6 @@ struct ToolTests {
     @Test("AUTO-6 continue repeats the latest non-running entry's task and project and leaves its end unchanged")
     func continueLatest() throws {
         let fixture = try ToolFixture()
-        defer { fixture.remove() }
         let before = try fixture.run(["entry", "show", ToolFixture.entryID(5), "--json"])
         let result = try fixture.run(["continue", "--json"])
         #expect(result.status == 0, "\(result.standardError)")
@@ -132,7 +124,6 @@ struct ToolTests {
     @Test("AUTO-32 a write waits out another process's 2-second write lock and exits 5 after a 10-second one")
     func busyTimeout() throws {
         let fixture = try ToolFixture()
-        defer { fixture.remove() }
         let lock = try WriteLock(fixture.store)
         let waiting = try ToolProcess.start("timetracking", ["start", "Locked"], environment: fixture.environment)
         // The tool has the store open and blocks on the lock; release it.
@@ -155,7 +146,6 @@ struct ToolTests {
     @Test("AUTO-33 a successful write posts <APP_ID>.changed once and appends one outbox row per changed record; a failed one neither")
     func notificationAndOutbox() throws {
         let fixture = try ToolFixture()
-        defer { fixture.remove() }
         let posts = ChangeSignalCounter()
         let outbox = try fixture.count("SELECT COUNT(*) FROM outbox")
         // Stops the running entry and starts one: two entries and LiveState.
@@ -170,7 +160,6 @@ struct ToolTests {
     @Test("AUTO-33 AUTO-36 a write command with --csv exits 2 before it opens the store, so it changes nothing and posts nothing")
     func writeWithCSV() throws {
         let fixture = try ToolFixture()
-        defer { fixture.remove() }
         let posts = ChangeSignalCounter()
         let outbox = try fixture.count("SELECT COUNT(*) FROM outbox")
         let entries = try fixture.count("SELECT COUNT(*) FROM time_entry WHERE deleted_at IS NULL")

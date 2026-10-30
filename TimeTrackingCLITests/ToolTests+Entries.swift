@@ -8,7 +8,6 @@ extension ToolTests {
     @Test("AUTO-7 entries without a range lists today's entries; report --json without a range covers the current week")
     func defaultRanges() throws {
         let fixture = try ToolFixture()
-        defer { fixture.remove() }
         let entries = try fixture.run(["entries", "--json"])
         #expect(entries.status == 0)
         let ids = (entries.json["entries"] as? [[String: Any]])?.compactMap { $0["id"] as? String }
@@ -26,7 +25,6 @@ extension ToolTests {
     @Test("AUTO-8 entries --from --to returns the half-open range ascending with the summed total")
     func entriesRange() throws {
         let fixture = try ToolFixture()
-        defer { fixture.remove() }
         let result = try fixture.run(["entries", "--from", "2026-10-20", "--to", "2026-10-27", "--json"])
         #expect(result.status == 0)
         let entries = try #require(result.json["entries"] as? [[String: Any]])
@@ -55,7 +53,6 @@ extension ToolTests {
     @Test("AUTO-9 entry create across midnight creates and prints two entries, listed under their own days")
     func createAcrossMidnight() throws {
         let fixture = try ToolFixture()
-        defer { fixture.remove() }
         let result = try fixture.run(["entry", "create", "Overnight", "--start", "2026-10-20T23:30", "--end", "2026-10-21T00:30"])
         #expect(result.status == 0, "\(result.standardError)")
         #expect(result.lines.count == 2)
@@ -74,7 +71,6 @@ extension ToolTests {
     @Test("AUTO-10 entry edit that overlaps another entry exits 4 and changes nothing; --force succeeds")
     func editOverlap() throws {
         let fixture = try ToolFixture()
-        defer { fixture.remove() }
         let id = ToolFixture.entryID(2)
         let before = try fixture.run(["entry", "show", id, "--json"])
         let refused = try fixture.run(["entry", "edit", id, "--start", "2026-10-20T10:00", "--end", "2026-10-20T12:00"])
@@ -93,7 +89,6 @@ extension ToolTests {
     @Test("AUTO-11 entry delete without --yes prints the entry, exits 2, and deletes nothing; with --yes it is gone")
     func deleteNeedsYes() throws {
         let fixture = try ToolFixture()
-        defer { fixture.remove() }
         let id = ToolFixture.entryID(3)
         let refused = try fixture.run(["entry", "delete", id])
         #expect(refused.status == 2)
@@ -108,7 +103,6 @@ extension ToolTests {
     @Test("AUTO-34 every read command succeeds on a store in a read-only folder and leaves its modification time unchanged")
     func readOnlyFolder() throws {
         let fixture = try ToolFixture()
-        defer { fixture.remove() }
         let folder = fixture.folder.appending(path: "readonly")
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         let store = folder.appending(path: "store.sqlite")
@@ -137,7 +131,6 @@ extension ToolTests {
     @Test("AUTO-36 --json with --csv exits 2, and stdout is empty on every error")
     func errorsKeepStdoutEmpty() throws {
         let fixture = try ToolFixture()
-        defer { fixture.remove() }
         let both = try fixture.run(["status", "--json", "--csv"])
         #expect(both.status == 2)
         #expect(both.standardOutput.isEmpty)
@@ -155,7 +148,6 @@ extension ToolTests {
         }
         #expect(try fixture.run(["status", "--unknown-option"]).status == 2)
         let missing = try ToolFixture(empty: ())
-        defer { missing.remove() }
         #expect(try missing.run(["status"]).status == 5)
     }
 }

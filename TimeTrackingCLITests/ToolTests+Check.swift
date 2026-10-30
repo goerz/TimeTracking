@@ -58,7 +58,6 @@ extension ToolTests {
     @Test("AUTO-19 check on a matching file prints nothing and exits 0")
     func checkMatching() throws {
         let fixture = try ToolFixture()
-        defer { fixture.remove() }
         let file = try fixture.write(ToolCheckTests.matching, named: "match.toml")
         let result = try fixture.run(["check", file])
         #expect(result.status == 0, "\(result.standardOutput) \(result.standardError)")
@@ -70,7 +69,6 @@ extension ToolTests {
     @Test("AUTO-20 a wrong color, a missing and an archived standing project print three lines in rule order and exit 6")
     func checkDifferences() throws {
         let fixture = try ToolFixture()
-        defer { fixture.remove() }
         let file = try fixture.write(ToolCheckTests.threeDifferences, named: "diff.toml")
         let result = try fixture.run(["check", file])
         #expect(result.status == 6)
@@ -92,7 +90,6 @@ extension ToolTests {
     @Test("AUTO-21 a file without version, with color teal, or with an extra project key exits 7; { name } equals a plain name")
     func checkValidation() throws {
         let fixture = try ToolFixture()
-        defer { fixture.remove() }
         let invalid = [
             ToolCheckTests.matching.replacingOccurrences(of: "version = 1\n", with: ""),
             ToolCheckTests.matching.replacingOccurrences(of: "#EE9B00", with: "teal"),
@@ -126,7 +123,6 @@ extension ToolTests {
     @Test("AUTO-22 an active project in an area absent from the file gives one unlisted-area line; an empty unlisted area none")
     func checkUnlistedArea() throws {
         let fixture = try ToolFixture()
-        defer { fixture.remove() }
         // Garden (Personal) has no projects and is not listed: no line.
         let withoutTeaching = ToolCheckTests.matching.replacingOccurrences(
             of: "  [[client.area]]\n  name = \"Teaching\"\n  color = \"#EE9B00\"\n  projects = [\"Admin\", { name = \"Grading\" }]\n",
@@ -143,7 +139,6 @@ extension ToolTests {
     @Test("AUTO-23 check --fix repairs the client, color, and archived project, then reports only the wrong area and exits 6")
     func checkFix() throws {
         let fixture = try ToolFixture()
-        defer { fixture.remove() }
         // Missing client Lab (general area only), Research recolored,
         // Old paper archived, Grading listed in Research but in Teaching.
         let text = ToolCheckTests.matching

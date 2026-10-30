@@ -8,7 +8,6 @@ extension ToolTests {
     @Test("AUTO-12 report --week 2026-W43 by day and project has the fixture's rows, seven periods, and consistent totals")
     func reportByDay() throws {
         let fixture = try ToolFixture()
-        defer { fixture.remove() }
         let result = try fixture.run(["report", "--week", "2026-W43", "--granularity", "day", "--group-by", "project", "--json"])
         #expect(result.status == 0, "\(result.standardError)")
         #expect(result.json["groupBy"] as? [String] == ["project"])
@@ -30,7 +29,6 @@ extension ToolTests {
     @Test("AUTO-13 report --week 2026-W44 by day lists 2026-10-30 to 2026-11-01 with duration 0")
     func reportFutureDays() throws {
         let fixture = try ToolFixture()
-        defer { fixture.remove() }
         let result = try fixture.run(["report", "--week", "2026-W44", "--granularity", "day", "--json"])
         let periods = try #require(result.json["periods"] as? [[String: Any]])
         #expect(periods.compactMap { $0["period"] as? String } == (26 ... 31).map { "2026-10-\($0)" } + ["2026-11-01"])
@@ -44,7 +42,6 @@ extension ToolTests {
     @Test("AUTO-31 report --csv by client, area, project writes the Breakdown CSV header and rows")
     func reportCSV() throws {
         let fixture = try ToolFixture()
-        defer { fixture.remove() }
         let result = try fixture.run([
             "report",
             "--week",
@@ -66,7 +63,6 @@ extension ToolTests {
     @Test("AUTO-14 projects lists active by default, archived with --archived, both with --all; clients are sorted by name")
     func projectListings() throws {
         let fixture = try ToolFixture()
-        defer { fixture.remove() }
         func names(_ arguments: [String]) throws -> [String] {
             let projects = try fixture.run(arguments + ["--json"]).json["projects"] as? [[String: Any]] ?? []
             return projects.compactMap { $0["name"] as? String }
@@ -91,7 +87,6 @@ extension ToolTests {
     @Test("AUTO-15 project create exits 4 for a name taken in the client, active or archived, and succeeds in another client")
     func projectCreate() throws {
         let fixture = try ToolFixture()
-        defer { fixture.remove() }
         #expect(try fixture.run(["project", "create", "Grading", "--area", "Research"]).status == 4)
         #expect(try fixture.run(["project", "create", "old PAPER", "--area", "Research"]).status == 4)
         let created = try fixture.run(["project", "create", "Émile notes", "--area", "Research", "--json"])
@@ -103,7 +98,6 @@ extension ToolTests {
     @Test("AUTO-16 project archive, unarchive, rename, and move change only their fields and keep the entry ids")
     func projectWrites() throws {
         let fixture = try ToolFixture()
-        defer { fixture.remove() }
         func entryIDs() throws -> [String] {
             let entries = try fixture.run(["entries", "--from", "2026-10-01", "--to", "2026-11-01", "--project", "Noise paper", "--json"])
             return (entries.json["entries"] as? [[String: Any]] ?? []).compactMap { $0["id"] as? String }
@@ -131,7 +125,6 @@ extension ToolTests {
     @Test("AUTO-17 area set-color shows the upper-case color for its projects; a named or short color exits 2")
     func areaColor() throws {
         let fixture = try ToolFixture()
-        defer { fixture.remove() }
         #expect(try fixture.run(["area", "set-color", "Research", "--color", "#3d5a80"]).status == 0)
         let projects = try fixture.run(["projects", "--json"]).json["projects"] as? [[String: Any]] ?? []
         let noise = projects.first { $0["name"] as? String == "Noise paper" }
@@ -144,7 +137,6 @@ extension ToolTests {
     @Test("AUTO-18 area create without --color uses the default color; renaming the general area exits 4")
     func areaCreateRename() throws {
         let fixture = try ToolFixture()
-        defer { fixture.remove() }
         let created = try fixture.run(["area", "create", "Health", "--client", "Personal", "--json"])
         #expect(created.status == 0, "\(created.standardError)")
         // The library's default (spec_data_and_sync.md §1.2): the fixture's
