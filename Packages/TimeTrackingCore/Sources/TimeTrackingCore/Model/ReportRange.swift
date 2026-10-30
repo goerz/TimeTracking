@@ -174,50 +174,34 @@ public enum ReportRange: Hashable, Codable, Sendable {
         return (range.upperBound.adding(days: 1 - maximum) ... range.upperBound, true)
     }
 
-    // swiftlint:disable:next cyclomatic_complexity
-    static func days(
-        of preset: RangePreset,
-        today: TrackingDay,
-        earliest: TrackingDay?
-    ) -> ClosedRange<TrackingDay> {
-        let monday = today.adding(days: 1 - today.isoWeekday)
-        let firstOfMonth = TrackingDay(year: today.year, month: today.month, day: 1)
+    /// A preset's days; calendar periods come from `DayRange` (the tool's
+    /// `today`, `week`, `month`, `year` words).
+    static func days(of preset: RangePreset, today: TrackingDay, earliest: TrackingDay?) -> ClosedRange<TrackingDay> {
+        if let (granularity, day) = calendarPeriod(of: preset, today: today) {
+            return DayRange(TrackingPeriod(granularity, containing: day)).days ?? day ... day
+        }
         switch preset {
-        case .today:
-            return today ... today
-        case .yesterday:
-            return today.adding(days: -1) ... today.adding(days: -1)
-        case .thisWeek:
-            return monday ... monday.adding(days: 6)
-        case .lastWeek:
-            return monday.adding(days: -7) ... monday.adding(days: -1)
-        case .thisMonth:
-            return firstOfMonth ... firstOfMonth.addingMonths(1).adding(days: -1)
-        case .lastMonth:
-            return firstOfMonth.addingMonths(-1) ... firstOfMonth.adding(days: -1)
-        case .thisYear:
-            return TrackingDay(year: today.year, month: 1, day: 1) ... TrackingDay(year: today.year, month: 12, day: 31)
-        case .lastYear:
-            return TrackingDay(year: today.year - 1, month: 1, day: 1) ... TrackingDay(year: today.year - 1, month: 12, day: 31)
-        case .weekToDate:
-            return monday ... today
-        case .monthToDate:
-            return firstOfMonth ... today
-        case .last7Days:
-            return today.adding(days: -6) ... today
-        case .last30Days:
-            return today.adding(days: -29) ... today
-        case .allTime:
-            return min(earliest ?? today, today) ... today
+        case .weekToDate: return today.adding(days: 1 - today.isoWeekday) ... today
+        case .monthToDate: return TrackingDay(year: today.year, month: today.month, day: 1) ... today
+        case .last7Days: return today.adding(days: -6) ... today
+        case .last30Days: return today.adding(days: -29) ... today
+        case .allTime: return min(earliest ?? today, today) ... today
+        default: return today ... today
         }
     }
-}
 
-extension TrackingDay {
-    /// The first of the month `months` after this day's month.
-    func addingMonths(_ months: Int) -> Self {
-        let index = year * 12 + (month - 1) + months
-        let year = index >= 0 ? index / 12 : (index - 11) / 12
-        return Self(year: year, month: index - year * 12 + 1, day: 1)
+    /// The calendar period a preset names, with a day inside it.
+    private static func calendarPeriod(of preset: RangePreset, today: TrackingDay) -> (Granularity, TrackingDay)? {
+        switch preset {
+        case .today: (.day, today)
+        case .yesterday: (.day, today.adding(days: -1))
+        case .thisWeek: (.week, today)
+        case .lastWeek: (.week, today.adding(days: -7))
+        case .thisMonth: (.month, today)
+        case .lastMonth: (.month, today.addingMonths(-1))
+        case .thisYear: (.year, today)
+        case .lastYear: (.year, TrackingDay(year: today.year - 1, month: 1, day: 1))
+        default: nil
+        }
     }
 }
