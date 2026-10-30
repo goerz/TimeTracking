@@ -11,14 +11,14 @@
 # only those links and completion files that install wrote; containers, the
 # Keychain item, and iCloud data stay.
 set -eu
+# shellcheck source=scripts/common.sh
+. "$(dirname "$0")/common.sh"
 
-lsregister=/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister
 marker="# Written by TimeTracking's make install; removed by make uninstall."
 
 quit_app_and_agent() {
     bundle_id="$1"
-    osascript -e "if application id \"$bundle_id\" is running then tell application id \"$bundle_id\" to quit" \
-        >/dev/null 2>&1 || true
+    quit_app "$bundle_id"
     launchctl kill TERM "gui/$(id -u)/$bundle_id.agent" >/dev/null 2>&1 || true
 }
 

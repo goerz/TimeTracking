@@ -28,7 +28,6 @@ XCFLAGS ?=
 PROJECT := TimeTracking.xcodeproj
 XCB = $(XCODEBUILD) -quiet -project $(PROJECT) -derivedDataPath $(DERIVED) -skipPackagePluginValidation -skipMacroValidation $(XCFLAGS)
 SIGN := -allowProvisioningUpdates -allowProvisioningDeviceRegistration
-LSREGISTER := /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister
 
 PRODUCTS = $(DERIVED)/Build/Products
 MAC_RELEASE_APP = $(PRODUCTS)/Release/$(APP_NAME).app
@@ -50,6 +49,11 @@ SIM_IPAD_TYPE := com.apple.CoreSimulator.SimDeviceType.iPad-Pro-13-inch-M5-12GB
 MAC_DEST := -destination 'platform=macOS,arch=arm64'
 IPHONE_DEST := -destination 'platform=iOS Simulator,name=$(SIM_IPHONE)'
 IPAD_DEST := -destination 'platform=iOS Simulator,name=$(SIM_IPAD)'
+
+# Command lines that more than one target runs.
+BUILD_MAC_DEBUG = $(XCB) build -scheme TimeTracking -configuration Debug $(MAC_DEST) $(SIGN)
+BUILD_SIM_DEBUG = $(XCB) build -scheme TimeTrackingiOS -configuration Debug $(IPHONE_DEST) $(SIGN)
+AGENT_TEST = $(XCB) test -scheme TimeTrackingAgent $(MAC_DEST) -only-testing:TimeTrackingAgentTests $(SIGN)
 
 LOCAL_XCCONFIG := Config/Local.xcconfig
 
@@ -79,7 +83,7 @@ build-ios: secrets ## Release iOS app for generic/platform=iOS; checks the produ
 build-sim: secrets ## Debug iOS app for the simulator
 	$(require_team)
 	@$(MAKE) --no-print-directory sim-create
-	$(XCB) build -scheme TimeTrackingiOS -configuration Debug $(IPHONE_DEST) $(SIGN)
+	$(BUILD_SIM_DEBUG)
 
 ##@ Develop
 
@@ -107,31 +111,20 @@ stop: ## Quit the app on both simulators
 
 mac-debug: secrets ## Build and open the Debug Mac app from build.noindex/
 	$(require_team)
-	$(XCB) build -scheme TimeTracking -configuration Debug $(MAC_DEST) $(SIGN)
+	$(BUILD_MAC_DEBUG)
 	open "$(MAC_DEBUG_APP)" --args $(ARGS)
 
 demo: secrets ## Load FIXTURE (small, large, running) moved to today into the Debug stores; open the Mac app and simulators
 	$(require_team)
 	@[ -f "Fixtures/Store/$(FIXTURE).json" ] || { echo "no store fixture $(FIXTURE) (small, large, running)" >&2; exit 1; }
-	$(XCB) build -scheme TimeTracking -configuration Debug $(MAC_DEST) $(SIGN)
+	$(BUILD_MAC_DEBUG)
 	@$(MAKE) --no-print-directory sim-create
-	$(XCB) build -scheme TimeTrackingiOS -configuration Debug $(IPHONE_DEST) $(SIGN)
+	$(BUILD_SIM_DEBUG)
 	scripts/demo.sh "$(FIXTURE)" "$(MAC_DEBUG_APP)" "$(DEBUG_SUPPORT)" "$(BUNDLE_ID).debug" "$(SIM_APP)" "$(SIM_IPHONE)" "$(SIM_IPAD)"
 
 mac-debug-unregister: ## Quit the Debug app and agent, unregister the agent, reset its TCC grants
-	@for agent in "$(DEBUG_AGENT)" "$(LEGACY_DEBUG_AGENT)"; do \
-		if [ -x "$$agent/Contents/MacOS/TimeTrackingAgent" ]; then "$$agent/Contents/MacOS/TimeTrackingAgent" --unregister || true; break; fi; \
-	done
-	@osascript -e 'if application id "$(BUNDLE_ID).debug" is running then tell application id "$(BUNDLE_ID).debug" to quit' >/dev/null 2>&1 || true
-	@$(LAUNCHCTL) bootout "gui/$$(id -u)/$(BUNDLE_ID).debug.agent" >/dev/null 2>&1 || true
-	@for service in Accessibility AppleEvents SystemPolicyAllFiles; do \
-		tccutil reset $$service "$(BUNDLE_ID).debug.agent" >/dev/null 2>&1 || true; \
-	done
-	@for bundle in "$(DEBUG_AGENT)" "$(PRODUCTS)/Debug/TimeTrackingAgent Debug.app" \
-		"$(LEGACY_DEBUG_AGENT)" "$(PRODUCTS)/Debug/TimeTrackingAgent.app"; do \
-		[ ! -d "$$bundle" ] || $(LSREGISTER) -u "$$bundle" 2>/dev/null || true; \
-	done
-	@echo "The Debug agent is unregistered."
+	@LAUNCHCTL="$(LAUNCHCTL)" scripts/debug_unregister.sh "$(BUNDLE_ID).debug" "$(DEBUG_AGENT)" "$(LEGACY_DEBUG_AGENT)" \
+		"$(PRODUCTS)/Debug/TimeTrackingAgent Debug.app" "$(PRODUCTS)/Debug/TimeTrackingAgent.app"
 
 logs: ## Stream the unified log of the installed Mac app, agent, and tools
 	log stream --style compact --level info \
@@ -189,11 +182,11 @@ unit-test: secrets ## (3 min) swift test, then TimeTrackingTests, TimeTrackingAg
 	swift test --package-path Packages/TimeTrackingCore
 	$(require_team)
 	$(XCB) test -scheme TimeTracking $(MAC_DEST) -only-testing:TimeTrackingTests -only-testing:TimeTrackingCLITests $(SIGN)
-	$(XCB) test -scheme TimeTrackingAgent $(MAC_DEST) -only-testing:TimeTrackingAgentTests $(SIGN)
+	$(AGENT_TEST)
 
 agent-test: secrets ## (1 min) TimeTrackingAgentTests
 	$(require_team)
-	$(XCB) test -scheme TimeTrackingAgent $(MAC_DEST) -only-testing:TimeTrackingAgentTests $(SIGN)
+	$(AGENT_TEST)
 
 ui-test: secrets ## (8 min) Mac UI tests, iOS UI tests on both simulators
 	$(require_team)

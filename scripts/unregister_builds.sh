@@ -7,10 +7,11 @@
 #
 #   scripts/unregister_builds.sh <BUNDLE_ID> <installed app path>
 set -eu
+# shellcheck source=scripts/common.sh
+. "$(dirname "$0")/common.sh"
 
 bundle_id="$1"
 installed="$2"
-lsregister=/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister
 
 "$lsregister" -dump 2>/dev/null | awk -v id="$bundle_id" '
     /^-+$/ { if (path != "" && match_id) print path; path = ""; match_id = 0; next }
