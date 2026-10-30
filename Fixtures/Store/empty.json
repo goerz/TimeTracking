@@ -1,11 +1,23 @@
 {
-  "areas" : [],
-  "clients" : [],
-  "devices" : [],
-  "entries" : [],
+  "areas" : [
+
+  ],
+  "clients" : [
+
+  ],
+  "devices" : [
+
+  ],
+  "entries" : [
+
+  ],
   "format" : 1,
-  "generatedAt" : "2024-03-14T09:00:00Z",
-  "projects" : [],
-  "settings" : {},
-  "storeID" : "00000000-0000-4000-8000-000000000000"
+  "generatedAt" : "2024-03-14T14:00:00Z",
+  "projects" : [
+
+  ],
+  "settings" : {
+
+  },
+  "storeID" : "506562eb-dfa7-52d1-b215-6a43b37a35dc"
 }

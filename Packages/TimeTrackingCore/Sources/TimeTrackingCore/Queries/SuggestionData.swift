@@ -3,11 +3,13 @@
 public import Foundation
 import GRDB
 
+/// A block with the entries overlapping it and the seconds of overlap.
+public typealias BlockOverlaps = (ActivityBlock, [(TimeEntry, overlapSeconds: Int)])
+
 /// What the suggestion engine reads from the store and the activity log.
 public protocol SuggestionData: Sendable {
     /// For each block, the entries overlapping it by at least `minOverlap` seconds.
-    func entriesOverlapping(_ blocks: [ActivityBlock], minOverlap: TimeInterval) async throws
-        -> [(ActivityBlock, [(TimeEntry, overlapSeconds: Int)])]
+    func entriesOverlapping(_ blocks: [ActivityBlock], minOverlap: TimeInterval) async throws -> [BlockOverlaps]
     func activityDuring(_ entry: TimeEntry) async throws -> [ActivityBlock]
     /// Newest first.
     func feedback(in interval: DateInterval) async throws -> [SuggestionFeedback]
@@ -23,8 +25,7 @@ public struct StoreSuggestionData: SuggestionData {
         self.activity = activity
     }
 
-    public func entriesOverlapping(_ blocks: [ActivityBlock], minOverlap: TimeInterval) async throws
-        -> [(ActivityBlock, [(TimeEntry, overlapSeconds: Int)])] {
+    public func entriesOverlapping(_ blocks: [ActivityBlock], minOverlap: TimeInterval) async throws -> [BlockOverlaps] {
         guard let first = blocks.map(\.start).min(), let last = blocks.map(\.end).max() else {
             return []
         }

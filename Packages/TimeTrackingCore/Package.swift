@@ -32,6 +32,12 @@ let package = Package(
             ],
             swiftSettings: swiftSettings
         ),
+        // Development tool behind scripts/make_fixtures.swift; not linked by any app.
+        .executableTarget(
+            name: "MakeFixtures",
+            dependencies: ["TimeTrackingCore"],
+            swiftSettings: swiftSettings
+        ),
         .testTarget(
             name: "TimeTrackingCoreTests",
             dependencies: ["TimeTrackingCore"],

@@ -19,13 +19,21 @@ extension StoreTransaction {
         case .timeEntry: TimeEntry(row: row).syncRecord
         case .device: Device(row: row).syncRecord
         case .suggestionFeedback: SuggestionFeedback(row: row).syncRecord
-        case .setting, .liveState: SyncRecord(ref: ref, fields: [
-                "value": .string(row["value"]),
-                "modifiedAt": .date(Time.date(millis: row["modified_at"])),
-        ].merging((row["deleted_at"] as Int64?).map { ["deletedAt": .date(Time.date($0))] } ?? [:]) { $1 })
+        case .setting, .liveState: Self.settingRecord(ref, row)
         }
         record.systemFields = row["ck_system_fields"]
         return record
+    }
+
+    private static func settingRecord(_ ref: SyncRecordRef, _ row: Row) -> SyncRecord {
+        var fields: [String: SyncValue] = [
+            "value": .string(row["value"]),
+            "modifiedAt": .date(Time.date(millis: row["modified_at"])),
+        ]
+        if let deleted = row["deleted_at"] as Int64? {
+            fields["deletedAt"] = .date(Time.date(deleted))
+        }
+        return SyncRecord(ref: ref, fields: fields)
     }
 
     func setSystemFields(_ ref: SyncRecordRef, _ data: Data?) throws {

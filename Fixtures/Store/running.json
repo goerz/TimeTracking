@@ -1,0 +1,1045 @@
+{
+  "areas" : [
+    {
+      "clientID" : "1bf0ccc5-2379-5fcd-b6c6-0d8208979507",
+      "color" : "#CC8A47",
+      "createdAt" : "2024-02-29T05:00:00Z",
+      "general" : true,
+      "id" : "c3ca751b-0487-5da4-a52f-45677869a2d8",
+      "name" : "Consulting",
+      "retired" : false,
+      "sortOrder" : 0
+    },
+    {
+      "clientID" : "1bf0ccc5-2379-5fcd-b6c6-0d8208979507",
+      "color" : "#ABCC47",
+      "createdAt" : "2024-02-29T05:00:00Z",
+      "general" : false,
+      "id" : "84709d4a-2a10-5c04-a9de-75c7bf325718",
+      "name" : "Teaching",
+      "retired" : false,
+      "sortOrder" : 1
+    },
+    {
+      "clientID" : "00caaa14-e03d-527c-b383-c2a83b97b94c",
+      "color" : "#47CC47",
+      "createdAt" : "2024-02-29T05:00:00Z",
+      "general" : true,
+      "id" : "a7a881b9-9a0e-5a45-8830-67bd173cb0bc",
+      "name" : "Home",
+      "retired" : false,
+      "sortOrder" : 0
+    },
+    {
+      "clientID" : "f0854aef-785f-57c4-a6e7-7a8c92f1992c",
+      "color" : "#478ACC",
+      "createdAt" : "2024-02-29T05:00:00Z",
+      "general" : true,
+      "id" : "14125c74-8923-51db-b0ec-8733e09fa1e6",
+      "name" : "University",
+      "retired" : false,
+      "sortOrder" : 0
+    },
+    {
+      "clientID" : "f0854aef-785f-57c4-a6e7-7a8c92f1992c",
+      "color" : "#CC47CC",
+      "createdAt" : "2024-02-29T05:00:00Z",
+      "general" : false,
+      "id" : "9836be03-23b4-5a88-a2b6-0d9688197571",
+      "name" : "Research",
+      "retired" : false,
+      "sortOrder" : 1
+    }
+  ],
+  "clients" : [
+    {
+      "createdAt" : "2024-02-29T05:00:00Z",
+      "id" : "1bf0ccc5-2379-5fcd-b6c6-0d8208979507",
+      "name" : "Consulting"
+    },
+    {
+      "createdAt" : "2024-02-29T05:00:00Z",
+      "id" : "00caaa14-e03d-527c-b383-c2a83b97b94c",
+      "name" : "Home"
+    },
+    {
+      "createdAt" : "2024-02-29T05:00:00Z",
+      "id" : "f0854aef-785f-57c4-a6e7-7a8c92f1992c",
+      "name" : "University"
+    }
+  ],
+  "devices" : [
+
+  ],
+  "entries" : [
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-02-29T16:19:55Z",
+      "id" : "161fdd1b-9ff8-5d4c-80d2-04c8859e878e",
+      "projectID" : "5e41f428-8d45-55fe-b2a1-3dd76c0146ff",
+      "splitRootID" : null,
+      "start" : "2024-02-29T14:07:00Z",
+      "task" : "Plan references 3",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-02-29T17:42:27Z",
+      "id" : "45360774-f49a-504d-ab4d-780fd15c6b6e",
+      "projectID" : "57249ca5-2feb-5faf-8ded-e99f16f42504",
+      "splitRootID" : null,
+      "start" : "2024-02-29T16:31:55Z",
+      "task" : "Check references 3",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-02-29T18:47:37Z",
+      "id" : "038d3040-b155-549f-8d3b-b56e93126fd4",
+      "projectID" : "0f83e2c0-fece-5a4f-a576-d2b58a2d82fd",
+      "splitRootID" : null,
+      "start" : "2024-02-29T17:52:27Z",
+      "task" : "Plan budget",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-02-29T20:05:38Z",
+      "id" : "7bafd9dd-8075-5760-8c41-24fe05a0eb13",
+      "projectID" : "e662f5c0-cac1-5af3-80f1-bda689d02840",
+      "splitRootID" : null,
+      "start" : "2024-02-29T18:48:37Z",
+      "task" : "Outline methods",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-02-29T20:30:03Z",
+      "id" : "a0de4da4-6089-5800-a6b3-6939bb7a535a",
+      "projectID" : null,
+      "splitRootID" : null,
+      "start" : "2024-02-29T20:14:38Z",
+      "task" : "Email",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-02-29T21:01:11Z",
+      "id" : "aa7a5729-3475-5dda-94d7-606c4ee1fff8",
+      "projectID" : "5e41f428-8d45-55fe-b2a1-3dd76c0146ff",
+      "splitRootID" : null,
+      "start" : "2024-02-29T20:38:03Z",
+      "task" : "Clarify tests 4",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-02-29T22:46:05Z",
+      "id" : "f612bfcb-c06d-5d55-8897-5cda681f9b8e",
+      "projectID" : "70a6d063-0000-5f64-9b59-58fbe91f3b7c",
+      "splitRootID" : null,
+      "start" : "2024-02-29T21:11:11Z",
+      "task" : "Prepare figures 4",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-02-29T23:30:00Z",
+      "id" : "5ca65a13-17f0-5573-8304-37b06ff46c5d",
+      "projectID" : "5e532568-caf5-5dab-8eb9-bda292842c94",
+      "splitRootID" : null,
+      "start" : "2024-02-29T22:50:05Z",
+      "task" : "Outline methods",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-01T15:56:15Z",
+      "id" : "6e3c4cc7-2ed9-56f3-a6e6-3822b95958a7",
+      "projectID" : "e662f5c0-cac1-5af3-80f1-bda689d02840",
+      "splitRootID" : null,
+      "start" : "2024-03-01T14:19:00Z",
+      "task" : "Draft appendix 2",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-01T16:55:21Z",
+      "id" : "5a3ca2ee-1614-5b09-b6fb-8b4b12a3b0a9",
+      "projectID" : "5e41f428-8d45-55fe-b2a1-3dd76c0146ff",
+      "splitRootID" : null,
+      "start" : "2024-03-01T15:56:15Z",
+      "task" : "Plan tests 5",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-01T18:11:36Z",
+      "id" : "f4763e35-f1a1-530e-8c52-2db5f80ff93e",
+      "projectID" : "9fe9ba9b-c408-5407-aa10-4529656efd63",
+      "splitRootID" : null,
+      "start" : "2024-03-01T17:04:21Z",
+      "task" : "Review figures",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-01T19:21:31Z",
+      "id" : "7ba8e808-a3a7-5ef6-a550-03578a17ab2e",
+      "projectID" : null,
+      "splitRootID" : null,
+      "start" : "2024-03-01T18:14:36Z",
+      "task" : "Reading",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-01T19:41:12Z",
+      "id" : "4c211b76-4397-5eb2-a389-b6e4eb93dd9b",
+      "projectID" : "5e532568-caf5-5dab-8eb9-bda292842c94",
+      "splitRootID" : null,
+      "start" : "2024-03-01T19:23:31Z",
+      "task" : "Outline methods",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-01T22:04:25Z",
+      "id" : "dc440b82-bfcb-501c-a098-3395bac95028",
+      "projectID" : "0f83e2c0-fece-5a4f-a576-d2b58a2d82fd",
+      "splitRootID" : null,
+      "start" : "2024-03-01T19:50:12Z",
+      "task" : "Fix schedule 2",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-01T23:02:19Z",
+      "id" : "21a84670-5241-5c3e-900c-6827ee369798",
+      "projectID" : null,
+      "splitRootID" : null,
+      "start" : "2024-03-01T22:13:25Z",
+      "task" : "Reading",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-01T23:30:00Z",
+      "id" : "e4a7f35b-db69-5c5e-9090-869569b7659b",
+      "projectID" : "70a6d063-0000-5f64-9b59-58fbe91f3b7c",
+      "splitRootID" : null,
+      "start" : "2024-03-01T23:02:19Z",
+      "task" : "Prepare methods 3",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-04T15:27:18Z",
+      "id" : "0b370221-c57c-52fa-b792-722726e0e839",
+      "projectID" : "9fe9ba9b-c408-5407-aa10-4529656efd63",
+      "splitRootID" : null,
+      "start" : "2024-03-04T14:29:00Z",
+      "task" : "Revise methods 5",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-04T17:05:15Z",
+      "id" : "fc86d0ec-11af-5044-8d05-3961b9a7e566",
+      "projectID" : "3f70f3b1-b69e-5e61-bc68-c3e100b4146d",
+      "splitRootID" : null,
+      "start" : "2024-03-04T15:30:18Z",
+      "task" : "Draft appendix 2",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-04T18:29:48Z",
+      "id" : "5a91d636-56a4-5b8e-8fdc-88331f1ad8de",
+      "projectID" : "0f83e2c0-fece-5a4f-a576-d2b58a2d82fd",
+      "splitRootID" : null,
+      "start" : "2024-03-04T17:13:15Z",
+      "task" : "Review methods 4",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-04T20:40:46Z",
+      "id" : "ec7eef88-04ec-51e7-a078-f7bdd337723a",
+      "projectID" : "723a9ca1-9526-5e21-8aa3-e628727efd30",
+      "splitRootID" : null,
+      "start" : "2024-03-04T18:30:48Z",
+      "task" : "Fix figures 2",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-04T20:59:56Z",
+      "id" : "2d7e8349-01b4-5ae0-ba9b-dd47e31770dc",
+      "projectID" : "3f70f3b1-b69e-5e61-bc68-c3e100b4146d",
+      "splitRootID" : null,
+      "start" : "2024-03-04T20:43:46Z",
+      "task" : "Fix schedule 2",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-04T21:57:01Z",
+      "id" : "db0fdc7a-953c-51a6-9a05-d12558b315be",
+      "projectID" : "5e41f428-8d45-55fe-b2a1-3dd76c0146ff",
+      "splitRootID" : null,
+      "start" : "2024-03-04T21:02:56Z",
+      "task" : "Review slides 2",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-04T22:57:05Z",
+      "id" : "b8f48aca-62ac-5e07-ae4f-5412ea2dd7af",
+      "projectID" : "9fe9ba9b-c408-5407-aa10-4529656efd63",
+      "splitRootID" : null,
+      "start" : "2024-03-04T22:11:01Z",
+      "task" : "Revise schedule 2",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-04T23:30:00Z",
+      "id" : "2ce80fff-5041-5ae7-ba8f-348639675620",
+      "projectID" : "5e532568-caf5-5dab-8eb9-bda292842c94",
+      "splitRootID" : null,
+      "start" : "2024-03-04T23:10:05Z",
+      "task" : "Check budget 3",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-05T13:11:15Z",
+      "id" : "56366bdd-a4c2-5b49-8732-53e1f0d5445e",
+      "projectID" : "ae6f6c09-9169-5f2f-910e-c31226d71353",
+      "splitRootID" : null,
+      "start" : "2024-03-05T13:03:00Z",
+      "task" : "Plan tests 3",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-05T13:49:37Z",
+      "id" : "6b8ac84a-4059-591e-a147-cb8f5858881c",
+      "projectID" : "0cdf57a4-9b23-5b32-9173-309306b6ba40",
+      "splitRootID" : null,
+      "start" : "2024-03-05T13:17:15Z",
+      "task" : "Prepare slides",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-05T14:51:18Z",
+      "id" : "71c3026c-6f35-51dc-a97c-aef04b85964b",
+      "projectID" : "70a6d063-0000-5f64-9b59-58fbe91f3b7c",
+      "splitRootID" : null,
+      "start" : "2024-03-05T13:53:37Z",
+      "task" : "Revise slides 5",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-05T14:59:42Z",
+      "id" : "c5a97b5d-18e6-5902-b269-8842f075cd93",
+      "projectID" : "5e532568-caf5-5dab-8eb9-bda292842c94",
+      "splitRootID" : null,
+      "start" : "2024-03-05T14:55:18Z",
+      "task" : "Outline email 3",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-05T15:22:15Z",
+      "id" : "e6ebd7c1-361a-56a5-a583-c22d5dcd65c0",
+      "projectID" : "70a6d063-0000-5f64-9b59-58fbe91f3b7c",
+      "splitRootID" : null,
+      "start" : "2024-03-05T15:00:42Z",
+      "task" : "Prepare slides 2",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-05T16:45:05Z",
+      "id" : "4d4d1e14-f890-5f7d-9236-7e0faf184275",
+      "projectID" : "5e41f428-8d45-55fe-b2a1-3dd76c0146ff",
+      "splitRootID" : null,
+      "start" : "2024-03-05T15:33:15Z",
+      "task" : "Revise slides",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-05T17:24:50Z",
+      "id" : "f2c66a2d-2e63-53ff-8baf-f70185f027dc",
+      "projectID" : "723a9ca1-9526-5e21-8aa3-e628727efd30",
+      "splitRootID" : null,
+      "start" : "2024-03-05T16:46:05Z",
+      "task" : "Discuss appendix 2",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-06T13:58:26Z",
+      "id" : "97b77314-c231-583a-a2c4-8536897ff5e9",
+      "projectID" : "723a9ca1-9526-5e21-8aa3-e628727efd30",
+      "splitRootID" : null,
+      "start" : "2024-03-06T13:45:00Z",
+      "task" : "Review figures",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-06T14:39:19Z",
+      "id" : "3d758064-57e5-50e1-89d6-2de9e90b5ab9",
+      "projectID" : "723a9ca1-9526-5e21-8aa3-e628727efd30",
+      "splitRootID" : null,
+      "start" : "2024-03-06T14:05:26Z",
+      "task" : "Revise email",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-06T15:03:33Z",
+      "id" : "26c69d81-1d6b-5d3e-8de5-e797d960e458",
+      "projectID" : "57249ca5-2feb-5faf-8ded-e99f16f42504",
+      "splitRootID" : null,
+      "start" : "2024-03-06T14:54:19Z",
+      "task" : "Fix schedule 5",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-06T15:52:02Z",
+      "id" : "ba9f8a04-9739-5a6c-95f3-3f8ff2496647",
+      "projectID" : "57249ca5-2feb-5faf-8ded-e99f16f42504",
+      "splitRootID" : null,
+      "start" : "2024-03-06T15:06:33Z",
+      "task" : "Draft appendix 5",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-06T16:23:38Z",
+      "id" : "9e27b8d2-de25-5696-ae7f-b7667ca15068",
+      "projectID" : "9fe9ba9b-c408-5407-aa10-4529656efd63",
+      "splitRootID" : null,
+      "start" : "2024-03-06T15:57:02Z",
+      "task" : "Prepare slides",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-06T17:50:57Z",
+      "id" : "a6553646-166e-5deb-8ca8-ac56783252c4",
+      "projectID" : "3f70f3b1-b69e-5e61-bc68-c3e100b4146d",
+      "splitRootID" : null,
+      "start" : "2024-03-06T16:31:38Z",
+      "task" : "Discuss budget 2",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-06T19:05:31Z",
+      "id" : "043e589f-63a0-5871-ab9d-a620455643a1",
+      "projectID" : "9fe9ba9b-c408-5407-aa10-4529656efd63",
+      "splitRootID" : null,
+      "start" : "2024-03-06T17:57:57Z",
+      "task" : "Draft noise model 2",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-06T21:19:44Z",
+      "id" : "a23c4c12-8a11-5482-a9a7-852b8930e1f5",
+      "projectID" : "ae6f6c09-9169-5f2f-910e-c31226d71353",
+      "splitRootID" : null,
+      "start" : "2024-03-06T19:15:31Z",
+      "task" : "Check references 3",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-06T22:22:54Z",
+      "id" : "e089eda2-ce07-55d1-95a6-603ec06ca2dd",
+      "projectID" : "70a6d063-0000-5f64-9b59-58fbe91f3b7c",
+      "splitRootID" : null,
+      "start" : "2024-03-06T21:24:44Z",
+      "task" : "Check noise model",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-07T16:11:06Z",
+      "id" : "474579fb-f74a-5a86-9f73-06ed543a31b3",
+      "projectID" : "5e532568-caf5-5dab-8eb9-bda292842c94",
+      "splitRootID" : null,
+      "start" : "2024-03-07T13:56:00Z",
+      "task" : "Revise figures 3",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-07T17:11:43Z",
+      "id" : "ab644936-b5d9-51a2-96c9-b5b6437a07e6",
+      "projectID" : "723a9ca1-9526-5e21-8aa3-e628727efd30",
+      "splitRootID" : null,
+      "start" : "2024-03-07T16:18:06Z",
+      "task" : "Outline abstract 2",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-07T20:22:43Z",
+      "id" : "71346aec-5697-58aa-bfd9-9c168e2d63e8",
+      "projectID" : "0f83e2c0-fece-5a4f-a576-d2b58a2d82fd",
+      "splitRootID" : null,
+      "start" : "2024-03-07T17:22:43Z",
+      "task" : "Discuss intro 4",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-07T20:42:02Z",
+      "id" : "ef85547b-e134-53d5-b935-c2d7d57ab48f",
+      "projectID" : "0f83e2c0-fece-5a4f-a576-d2b58a2d82fd",
+      "splitRootID" : null,
+      "start" : "2024-03-07T20:27:43Z",
+      "task" : "Draft references 2",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-07T21:31:17Z",
+      "id" : "268670fa-0be7-5649-8b43-fac9e7fdd4ba",
+      "projectID" : "0cdf57a4-9b23-5b32-9173-309306b6ba40",
+      "splitRootID" : null,
+      "start" : "2024-03-07T20:55:02Z",
+      "task" : "Plan appendix",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-07T23:30:00Z",
+      "id" : "07dad1c2-8dbd-5f4d-9d7e-3a9bdfe31b25",
+      "projectID" : "5e532568-caf5-5dab-8eb9-bda292842c94",
+      "splitRootID" : null,
+      "start" : "2024-03-07T21:43:17Z",
+      "task" : "Outline email 3",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-08T01:30:02Z",
+      "id" : "7d3e053f-d32b-5f39-8010-2175a0cf0aad",
+      "projectID" : "70a6d063-0000-5f64-9b59-58fbe91f3b7c",
+      "splitRootID" : null,
+      "start" : "2024-03-08T00:48:00Z",
+      "task" : "Plan budget 4",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-08T14:31:48Z",
+      "id" : "59fe1b3e-273a-5721-83c2-002beedfce36",
+      "projectID" : "0f83e2c0-fece-5a4f-a576-d2b58a2d82fd",
+      "splitRootID" : null,
+      "start" : "2024-03-08T13:21:00Z",
+      "task" : "Outline abstract 5",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-08T17:12:55Z",
+      "id" : "d3858c34-e9b3-5621-98aa-f61e7cd9475b",
+      "projectID" : "5e41f428-8d45-55fe-b2a1-3dd76c0146ff",
+      "splitRootID" : null,
+      "start" : "2024-03-08T14:35:48Z",
+      "task" : "Revise figures 3",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-08T17:36:52Z",
+      "id" : "0faf3803-21cc-56f6-aad2-3240218ef6c6",
+      "projectID" : "57249ca5-2feb-5faf-8ded-e99f16f42504",
+      "splitRootID" : null,
+      "start" : "2024-03-08T17:18:55Z",
+      "task" : "Outline slides 3",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-08T17:51:12Z",
+      "id" : "35dff06f-37e3-5681-8bb7-9860eb06b12e",
+      "projectID" : "0f83e2c0-fece-5a4f-a576-d2b58a2d82fd",
+      "splitRootID" : null,
+      "start" : "2024-03-08T17:40:52Z",
+      "task" : "Prepare schedule 3",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-08T18:26:07Z",
+      "id" : "cfe143bb-8081-50b2-bfa0-a4acb57f9e9e",
+      "projectID" : "57249ca5-2feb-5faf-8ded-e99f16f42504",
+      "splitRootID" : null,
+      "start" : "2024-03-08T17:56:12Z",
+      "task" : "Check tests 5",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-08T19:47:26Z",
+      "id" : "b7d240e6-ad4f-50a5-adea-09d7a2d4cf92",
+      "projectID" : "57249ca5-2feb-5faf-8ded-e99f16f42504",
+      "splitRootID" : null,
+      "start" : "2024-03-08T18:40:07Z",
+      "task" : "Review email 2",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-08T20:27:41Z",
+      "id" : "bfa594c9-868c-5146-be52-1511d60f5b4a",
+      "projectID" : "0f83e2c0-fece-5a4f-a576-d2b58a2d82fd",
+      "splitRootID" : null,
+      "start" : "2024-03-08T19:57:26Z",
+      "task" : "Plan budget",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-08T21:23:44Z",
+      "id" : "b497a86f-ee80-5bc8-bf7a-fb042070331a",
+      "projectID" : "723a9ca1-9526-5e21-8aa3-e628727efd30",
+      "splitRootID" : null,
+      "start" : "2024-03-08T20:41:41Z",
+      "task" : "Fix email 3",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-08T21:56:53Z",
+      "id" : "da9d02f4-eae8-5411-8338-da0d4d4afc15",
+      "projectID" : "5e532568-caf5-5dab-8eb9-bda292842c94",
+      "splitRootID" : null,
+      "start" : "2024-03-08T21:25:44Z",
+      "task" : "Check budget 3",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-08T22:47:28Z",
+      "id" : "04845714-667a-5f60-b856-cfaffd223064",
+      "projectID" : "ae6f6c09-9169-5f2f-910e-c31226d71353",
+      "splitRootID" : null,
+      "start" : "2024-03-08T22:10:53Z",
+      "task" : "Prepare abstract",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-09T00:47:08Z",
+      "id" : "739a762d-e352-5d6a-81bc-c22c35e7a9f4",
+      "projectID" : "3f70f3b1-b69e-5e61-bc68-c3e100b4146d",
+      "splitRootID" : null,
+      "start" : "2024-03-09T00:24:00Z",
+      "task" : "Revise slides",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-11T13:31:06Z",
+      "id" : "0843526f-b652-597f-8cd2-0133bf127550",
+      "projectID" : "70a6d063-0000-5f64-9b59-58fbe91f3b7c",
+      "splitRootID" : null,
+      "start" : "2024-03-11T12:51:00Z",
+      "task" : "Outline schedule",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-11T14:42:35Z",
+      "id" : "10b19691-12f7-50dc-853b-123dc428dad1",
+      "projectID" : "3f70f3b1-b69e-5e61-bc68-c3e100b4146d",
+      "splitRootID" : null,
+      "start" : "2024-03-11T13:44:06Z",
+      "task" : "Review figures 5",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-11T16:02:52Z",
+      "id" : "2e4be123-e1e9-557a-baf7-ec1bb8927645",
+      "projectID" : "e662f5c0-cac1-5af3-80f1-bda689d02840",
+      "splitRootID" : null,
+      "start" : "2024-03-11T14:49:35Z",
+      "task" : "Fix schedule",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-11T16:31:18Z",
+      "id" : "2e051287-6bc8-50ff-a6ee-8a5a1c036ddd",
+      "projectID" : "723a9ca1-9526-5e21-8aa3-e628727efd30",
+      "splitRootID" : null,
+      "start" : "2024-03-11T16:05:52Z",
+      "task" : "Outline abstract 2",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-11T17:21:48Z",
+      "id" : "b6d34e32-4bf3-57ad-94ee-89ae9be7daf9",
+      "projectID" : null,
+      "splitRootID" : null,
+      "start" : "2024-03-11T16:34:18Z",
+      "task" : "Email",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-11T19:05:23Z",
+      "id" : "867e4a26-dcd4-52f3-bbf9-4b49f446cba5",
+      "projectID" : "5e532568-caf5-5dab-8eb9-bda292842c94",
+      "splitRootID" : null,
+      "start" : "2024-03-11T17:36:48Z",
+      "task" : "Discuss budget 2",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-11T19:30:04Z",
+      "id" : "6b1b8ed2-92fd-531c-99f0-64609cf2364c",
+      "projectID" : "e662f5c0-cac1-5af3-80f1-bda689d02840",
+      "splitRootID" : null,
+      "start" : "2024-03-11T19:08:23Z",
+      "task" : "Prepare abstract 3",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-11T21:44:36Z",
+      "id" : "e366abdf-d7c5-5a5f-939a-b652c6416d39",
+      "projectID" : "70a6d063-0000-5f64-9b59-58fbe91f3b7c",
+      "splitRootID" : null,
+      "start" : "2024-03-11T19:45:04Z",
+      "task" : "Review methods",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-11T22:12:53Z",
+      "id" : "be56e633-2779-5440-bae7-30cb78f21183",
+      "projectID" : "723a9ca1-9526-5e21-8aa3-e628727efd30",
+      "splitRootID" : null,
+      "start" : "2024-03-11T21:44:36Z",
+      "task" : "Discuss references",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-11T22:30:00Z",
+      "id" : "6d0d374e-6f30-57da-98d9-12f3eec3de2a",
+      "projectID" : "9fe9ba9b-c408-5407-aa10-4529656efd63",
+      "splitRootID" : null,
+      "start" : "2024-03-11T22:14:53Z",
+      "task" : "Revise slides 4",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-12T00:39:11Z",
+      "id" : "6c45d1cf-8b46-59af-a8c2-8ef7b2db07c3",
+      "projectID" : "9fe9ba9b-c408-5407-aa10-4529656efd63",
+      "splitRootID" : null,
+      "start" : "2024-03-12T00:05:00Z",
+      "task" : "Prepare email 4",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-12T16:01:00Z",
+      "id" : "3de5e58f-6900-513f-aa77-57112ec8dc2e",
+      "projectID" : "0f83e2c0-fece-5a4f-a576-d2b58a2d82fd",
+      "splitRootID" : null,
+      "start" : "2024-03-12T13:01:00Z",
+      "task" : "Review methods 4",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-12T17:53:00Z",
+      "id" : "8262725e-1f47-5f03-a43d-cc742ccb3af1",
+      "projectID" : "9fe9ba9b-c408-5407-aa10-4529656efd63",
+      "splitRootID" : null,
+      "start" : "2024-03-12T16:01:00Z",
+      "task" : "Outline figures 5",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-12T19:00:45Z",
+      "id" : "55fef694-d8be-5f08-bf05-6523561149e4",
+      "projectID" : "57249ca5-2feb-5faf-8ded-e99f16f42504",
+      "splitRootID" : null,
+      "start" : "2024-03-12T17:57:00Z",
+      "task" : "Prepare abstract",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-12T20:14:17Z",
+      "id" : "5a93cfd7-7a1e-5a90-98a3-1a621e29d8d4",
+      "projectID" : "ae6f6c09-9169-5f2f-910e-c31226d71353",
+      "splitRootID" : null,
+      "start" : "2024-03-12T19:11:45Z",
+      "task" : "Revise email",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-12T21:33:58Z",
+      "id" : "5082414b-ba3c-5f72-9b6a-7c44cfdb270b",
+      "projectID" : "57249ca5-2feb-5faf-8ded-e99f16f42504",
+      "splitRootID" : null,
+      "start" : "2024-03-12T20:24:17Z",
+      "task" : "Fix schedule 5",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-12T22:10:14Z",
+      "id" : "d34869d9-cb21-5a84-a0a0-29761db89b5a",
+      "projectID" : "3f70f3b1-b69e-5e61-bc68-c3e100b4146d",
+      "splitRootID" : null,
+      "start" : "2024-03-12T21:36:58Z",
+      "task" : "Fix abstract 3",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-12T22:30:00Z",
+      "id" : "6175ba45-b858-57d9-8c61-6c43bfd413ae",
+      "projectID" : "70a6d063-0000-5f64-9b59-58fbe91f3b7c",
+      "splitRootID" : null,
+      "start" : "2024-03-12T22:12:14Z",
+      "task" : "Check references 3",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-13T12:39:20Z",
+      "id" : "e2394bb5-a11f-5a73-b3fc-35f5f9a4f4e6",
+      "projectID" : "57249ca5-2feb-5faf-8ded-e99f16f42504",
+      "splitRootID" : null,
+      "start" : "2024-03-13T12:17:00Z",
+      "task" : "Discuss appendix 3",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-13T13:16:06Z",
+      "id" : "4bbfc4d0-65dc-57ee-b648-de66d96ffde8",
+      "projectID" : "5e532568-caf5-5dab-8eb9-bda292842c94",
+      "splitRootID" : null,
+      "start" : "2024-03-13T12:49:20Z",
+      "task" : "Check tests 2",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-13T14:14:43Z",
+      "id" : "3b29b5aa-3b99-545f-9d4f-5c21abccc21b",
+      "projectID" : "5e41f428-8d45-55fe-b2a1-3dd76c0146ff",
+      "splitRootID" : null,
+      "start" : "2024-03-13T13:26:06Z",
+      "task" : "Revise slides",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-13T14:42:15Z",
+      "id" : "931346e6-704a-5c19-b3da-a0511b99c217",
+      "projectID" : "5e532568-caf5-5dab-8eb9-bda292842c94",
+      "splitRootID" : null,
+      "start" : "2024-03-13T14:23:43Z",
+      "task" : "Discuss tests",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-13T15:25:46Z",
+      "id" : "7e069965-a2f5-5ffd-b8ac-540410f64307",
+      "projectID" : "3f70f3b1-b69e-5e61-bc68-c3e100b4146d",
+      "splitRootID" : null,
+      "start" : "2024-03-13T14:52:15Z",
+      "task" : "Plan appendix 5",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-13T16:03:09Z",
+      "id" : "8296a434-7367-524f-bb08-ff547d42a05a",
+      "projectID" : "723a9ca1-9526-5e21-8aa3-e628727efd30",
+      "splitRootID" : null,
+      "start" : "2024-03-13T15:29:46Z",
+      "task" : "Prepare slides 2",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-13T17:22:18Z",
+      "id" : "15aacf1f-7c90-54dc-b33f-5bc22069e35a",
+      "projectID" : "e662f5c0-cac1-5af3-80f1-bda689d02840",
+      "splitRootID" : null,
+      "start" : "2024-03-13T16:17:09Z",
+      "task" : "Clarify intro",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-13T18:26:20Z",
+      "id" : "fbe41507-71ef-5548-ae35-c93fceed56a0",
+      "projectID" : "e662f5c0-cac1-5af3-80f1-bda689d02840",
+      "splitRootID" : null,
+      "start" : "2024-03-13T17:24:18Z",
+      "task" : "Outline abstract 5",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : "2024-03-13T18:55:52Z",
+      "id" : "b48e7e83-bdf5-545a-b5ef-b72bedb0470a",
+      "projectID" : "723a9ca1-9526-5e21-8aa3-e628727efd30",
+      "splitRootID" : null,
+      "start" : "2024-03-13T18:40:20Z",
+      "task" : "Fix figures 2",
+      "timeZone" : "America/New_York"
+    },
+    {
+      "deviceID" : "7502aede-314b-5a8e-84e1-ba2f9d425c3f",
+      "end" : null,
+      "id" : "45dda814-3cc5-5662-9b49-9b94db20f947",
+      "projectID" : "3f70f3b1-b69e-5e61-bc68-c3e100b4146d",
+      "splitRootID" : null,
+      "start" : "2024-03-14T13:35:00Z",
+      "task" : "Prepare methods 6",
+      "timeZone" : "America/New_York"
+    }
+  ],
+  "format" : 1,
+  "generatedAt" : "2024-03-14T14:00:00Z",
+  "projects" : [
+    {
+      "archived" : false,
+      "archivedAt" : null,
+      "areaID" : "84709d4a-2a10-5c04-a9de-75c7bf325718",
+      "createdAt" : "2024-02-29T05:00:00Z",
+      "id" : "5e532568-caf5-5dab-8eb9-bda292842c94",
+      "name" : "Budget paper"
+    },
+    {
+      "archived" : false,
+      "archivedAt" : null,
+      "areaID" : "a7a881b9-9a0e-5a45-8830-67bd173cb0bc",
+      "createdAt" : "2024-02-29T05:00:00Z",
+      "id" : "3f70f3b1-b69e-5e61-bc68-c3e100b4146d",
+      "name" : "Control paper"
+    },
+    {
+      "archived" : false,
+      "archivedAt" : null,
+      "areaID" : "14125c74-8923-51db-b0ec-8733e09fa1e6",
+      "createdAt" : "2024-02-29T05:00:00Z",
+      "id" : "57249ca5-2feb-5faf-8ded-e99f16f42504",
+      "name" : "Course paper"
+    },
+    {
+      "archived" : false,
+      "archivedAt" : null,
+      "areaID" : "a7a881b9-9a0e-5a45-8830-67bd173cb0bc",
+      "createdAt" : "2024-02-29T05:00:00Z",
+      "id" : "723a9ca1-9526-5e21-8aa3-e628727efd30",
+      "name" : "Data paper"
+    },
+    {
+      "archived" : false,
+      "archivedAt" : null,
+      "areaID" : "84709d4a-2a10-5c04-a9de-75c7bf325718",
+      "createdAt" : "2024-02-29T05:00:00Z",
+      "id" : "9fe9ba9b-c408-5407-aa10-4529656efd63",
+      "name" : "Field paper"
+    },
+    {
+      "archived" : false,
+      "archivedAt" : null,
+      "areaID" : "9836be03-23b4-5a88-a2b6-0d9688197571",
+      "createdAt" : "2024-02-29T05:00:00Z",
+      "id" : "e662f5c0-cac1-5af3-80f1-bda689d02840",
+      "name" : "Model paper"
+    },
+    {
+      "archived" : false,
+      "archivedAt" : null,
+      "areaID" : "14125c74-8923-51db-b0ec-8733e09fa1e6",
+      "createdAt" : "2024-02-29T05:00:00Z",
+      "id" : "5e41f428-8d45-55fe-b2a1-3dd76c0146ff",
+      "name" : "Noise notes"
+    },
+    {
+      "archived" : false,
+      "archivedAt" : null,
+      "areaID" : "14125c74-8923-51db-b0ec-8733e09fa1e6",
+      "createdAt" : "2024-02-29T05:00:00Z",
+      "id" : "0f83e2c0-fece-5a4f-a576-d2b58a2d82fd",
+      "name" : "Noise paper"
+    },
+    {
+      "archived" : false,
+      "archivedAt" : null,
+      "areaID" : "c3ca751b-0487-5da4-a52f-45677869a2d8",
+      "createdAt" : "2024-02-29T05:00:00Z",
+      "id" : "0cdf57a4-9b23-5b32-9173-309306b6ba40",
+      "name" : "Quantum notes"
+    },
+    {
+      "archived" : false,
+      "archivedAt" : null,
+      "areaID" : "c3ca751b-0487-5da4-a52f-45677869a2d8",
+      "createdAt" : "2024-02-29T05:00:00Z",
+      "id" : "70a6d063-0000-5f64-9b59-58fbe91f3b7c",
+      "name" : "Quantum paper"
+    },
+    {
+      "archived" : false,
+      "archivedAt" : null,
+      "areaID" : "9836be03-23b4-5a88-a2b6-0d9688197571",
+      "createdAt" : "2024-02-29T05:00:00Z",
+      "id" : "ae6f6c09-9169-5f2f-910e-c31226d71353",
+      "name" : "Survey paper"
+    },
+    {
+      "archived" : true,
+      "archivedAt" : "2024-02-29T05:00:00Z",
+      "areaID" : "c3ca751b-0487-5da4-a52f-45677869a2d8",
+      "createdAt" : "2024-02-29T05:00:00Z",
+      "id" : "957094d6-a2bb-5ea4-acc3-c545b441eebd",
+      "name" : "Website paper"
+    }
+  ],
+  "settings" : {
+    "pinnedProjectIDs" : [
+      "0f83e2c0-fece-5a4f-a576-d2b58a2d82fd",
+      "70a6d063-0000-5f64-9b59-58fbe91f3b7c",
+      "3f70f3b1-b69e-5e61-bc68-c3e100b4146d"
+    ],
+    "pomodoro.focusMinutes" : 25
+  },
+  "storeID" : "506562eb-dfa7-52d1-b215-6a43b37a35dc"
+}

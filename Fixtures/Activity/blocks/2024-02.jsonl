@@ -1,0 +1,8 @@
+{"type":"header","format":1,"tz":"-05:00","dev":"macbook","contexts":{"mail":"com.apple.mail"}}
+{"s":"2024-02-29T11:31:55","e":"2024-02-29T12:42:27","a":4232,"dev":"macbook","g":"mail","gs":1,"items":[["mail","Check references 3","",4232]],"bg":[],"src":"live"}
+{"type":"header","format":1,"tz":"-05:00","dev":"macbook","contexts":{"mail":"com.apple.mail","tmux:paper":"com.example.terminal"}}
+{"s":"2024-02-29T13:48:37","e":"2024-02-29T15:05:38","a":4621,"dev":"macbook","g":"tmux:paper","gs":1,"items":[["tmux:paper","Outline methods","",4621]],"bg":[],"src":"live"}
+{"s":"2024-02-29T15:38:03","e":"2024-02-29T16:01:11","a":1388,"dev":"macbook","g":"tmux:paper","gs":1,"items":[["tmux:paper","Clarify tests 4","",1388]],"bg":[],"src":"live"}
+{"s":"2024-02-29T16:11:11","e":"2024-02-29T17:46:05","a":5694,"dev":"macbook","g":"mail","gs":1,"items":[["mail","Prepare figures 4","",5694]],"bg":[],"src":"live"}
+{"type":"header","format":1,"tz":"-05:00","dev":"macbook","contexts":{"mail":"com.apple.mail","safari":"com.apple.Safari","tmux:paper":"com.example.terminal"}}
+{"s":"2024-02-29T17:50:05","e":"2024-02-29T18:30:00","a":2395,"dev":"macbook","g":"safari","gs":1,"items":[["safari","Outline methods","",2395]],"bg":[],"src":"live"}

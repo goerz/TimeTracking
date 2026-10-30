@@ -11,6 +11,8 @@
 --wrap-collections before-first
 --trailing-commas always
 --self init-only
+# Group digits from five digits on, as SwiftLint's number_separator (minimum_length 5) wants.
+--decimal-grouping 3,5
 --import-grouping testable-last
 --header ignore
 
