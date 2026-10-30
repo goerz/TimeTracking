@@ -1,6 +1,7 @@
-// WidgetActions: what the iOS widget and control buttons do, behind the
-// wrapper intents that run in the app process (spec_ios.md §4 item 3, §5,
-// §6.1). The intents only build a `WidgetAction` and hand it to the app.
+// WidgetIntentActions: what the iOS widget and control buttons do, behind
+// the wrapper intents that run in the app process (spec_ios.md §4 item 3,
+// §5, §6.1). The intents only build a `WidgetAction` and hand it to the
+// app's `WidgetActionEnvironment`.
 
 public import Foundation
 
