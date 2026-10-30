@@ -61,6 +61,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard let app = await host.load(
             notifier: notifier,
             agent: agent,
+            loginItem: Self.appLoginItem(uiTesting: uiTesting),
             readTrackerState: { await activity?.currentState() },
             trackerCommands: uiTesting || socket == nil ? RecordingTrackerCommands() : TrackerSocket(url: socket ?? URL(filePath: "/")),
             trackerSettingsURL: folders?.settingsURL,
@@ -140,6 +141,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         router.app = app
         app.router = router
         app.window = window
+        app.onboardingPresenter = { [weak window] appName, opensAtLogin, answer in
+            TrackerOnboardingAlert.present(on: window?.window, appName: appName, opensAtLogin: opensAtLogin, answer: answer)
+        }
         timerWindow = window
         self.router = router
         let status = StatusItemController(app: app)
@@ -179,6 +183,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 }
             }
         }
+    }
+
+    /// "Open at login": never the real login item under `-UITesting`.
+    static func appLoginItem(uiTesting: Bool) -> AppLoginItemService {
+        uiTesting ? FakeAppLoginItem() : MainAppLoginItem()
     }
 
     /// Launched as a login item, the app shows only the menu bar item unless

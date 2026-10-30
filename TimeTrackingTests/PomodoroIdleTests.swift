@@ -194,6 +194,43 @@ struct PomodoroIdleTests {
         #expect(SettingsPane.allCases.map(\.symbol) == ["gearshape", "timer", "moon.zzz", "bell", "keyboard", "waveform.path.ecg"])
     }
 
+    @Test(
+        "TW-34 the alert's Open at login checkbox is on by default; checked, either button registers the app; never under -UITesting"
+    )
+    func onboardingOpenAtLogin() async throws {
+        for openSettings in [true, false] {
+            let test = try await TestApp()
+            test.app.showTrackerOnboardingIfNeeded()
+            #expect(test.app.onboardingOpensAtLogin)
+            test.app.answerTrackerOnboarding(openSettings: openSettings)
+            #expect(test.loginItem.changes == [true])
+            #expect(test.app.tracker.opensAtLogin)
+            #expect(test.agent.registerCalls == 0)
+        }
+        let unchecked = try await TestApp()
+        unchecked.app.showTrackerOnboardingIfNeeded()
+        unchecked.app.onboardingOpensAtLogin = false
+        unchecked.app.answerTrackerOnboarding(openSettings: false)
+        #expect(unchecked.loginItem.changes.isEmpty)
+        #expect(!unchecked.app.tracker.opensAtLogin)
+        // The alert gets the checkbox's default and applies its answer.
+        let presented = try await TestApp()
+        var shown: (name: String, checked: Bool)?
+        presented.app.onboardingPresenter = { name, checked, answer in
+            shown = (name, checked)
+            answer(false, false)
+        }
+        presented.app.showTrackerOnboardingIfNeeded()
+        presented.app.presentTrackerOnboarding()
+        #expect(shown?.name == presented.app.tracker.bundles.appName)
+        #expect(shown?.checked == true)
+        #expect(presented.loginItem.changes.isEmpty)
+        #expect(!presented.app.showsTrackerOnboarding)
+        #expect(presented.app.settings.trackerOnboardingPrompted)
+        #expect(AppDelegate.appLoginItem(uiTesting: true) is FakeAppLoginItem)
+        #expect(AppDelegate.appLoginItem(uiTesting: false) is MainAppLoginItem)
+    }
+
     @Test("TW-33 the first-launch alert appears once; Open Tracker Settings opens the Tracker pane; nothing registers until Enable Tracker")
     func onboarding() async throws {
         let test = try await TestApp()

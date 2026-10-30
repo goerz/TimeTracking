@@ -31,6 +31,9 @@ my %PREFIX = (
     'spec_ios.md'                => 'IOS',
     'spec_automation.md'         => 'AUTO',
 );
+# Specs without testable behaviors of their own (the design language is
+# checked through the component specs' behaviors).
+my %NO_BEHAVIORS = ('spec_design.md' => 1);
 my $PREFIXES = join '|', sort { length($b) <=> length($a) } values %PREFIX;
 
 my $root = '.';
@@ -49,6 +52,7 @@ my %count;      # prefix -> number of behaviors
 # --- Specs
 opendir(my $dh, "$root/spec") or die "check_behaviors: no spec/ folder under $root\n";
 for my $file (sort grep { /^spec_.*\.md$/ } readdir $dh) {
+    next if $NO_BEHAVIORS{$file};
     my $prefix = $PREFIX{$file};
     unless ($prefix) {
         push @errors, "spec/$file: no behavior prefix known for this spec (add it to scripts/check_behaviors.sh)";

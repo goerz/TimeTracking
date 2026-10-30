@@ -66,33 +66,53 @@ struct TrackerPane: View {
             ForEach(app.tracker.setupSteps) { step in
                 HStack(alignment: .firstTextBaseline) {
                     Text(step.mark.rawValue).frame(width: 14).accessibilityIdentifier("tracker.mark.\(step.id)")
-                    VStack(alignment: .leading) {
+                    VStack(alignment: .leading, spacing: Design.Spacing.tight) {
                         Text(step.title)
                         Text(step.enables).font(.caption).foregroundStyle(.secondary)
+                        if step.mark != .done {
+                            guidance(step)
+                        }
                     }
                     Spacer()
-                    ForEach(Array(step.actions.enumerated()), id: \.offset) { _, action in
-                        actionButton(action)
+                    VStack(alignment: .trailing, spacing: Design.Spacing.tight) {
+                        ForEach(Array(step.actions.enumerated()), id: \.offset) { _, action in
+                            actionButton(action, step: step).fixedSize()
+                        }
                     }
                 }
             }
         }
     }
 
+    /// The numbered steps and the note of a step that is not done.
     @ViewBuilder
-    private func actionButton(_ action: TrackerSetupStep.Action) -> some View {
+    private func guidance(_ step: TrackerSetupStep) -> some View {
+        ForEach(Array(step.guidance.enumerated()), id: \.offset) { index, line in
+            Text("\(index + 1). \(line)").font(.caption)
+        }
+        if !step.note.isEmpty {
+            Text(step.note).font(.caption).foregroundStyle(.secondary)
+        }
+    }
+
+    @ViewBuilder
+    private func actionButton(_ action: TrackerSetupStep.Action, step: TrackerSetupStep) -> some View {
+        let identifier = "tracker.action.\(step.id).\(action.identifierSuffix)"
         switch action {
         case .enableTracker:
-            Button("Enable Tracker") { Task { await app.tracker.enable() } }
+            Button(action.title) { Task { await app.tracker.enable() } }.accessibilityIdentifier(identifier)
         case .openLoginItems:
-            Button("Open Login Items") { app.tracker.agent.openLoginItems() }
+            Button(action.title) { app.tracker.agent.openLoginItems() }.accessibilityIdentifier(identifier)
         case let .openSettings(anchor):
-            Button("Open System Settings") { SystemSettings.openPrivacy(anchor) }
-            if anchor == "Privacy_AllFiles" {
-                Button("Show Tracker in Finder") { SystemSettings.revealAgent() }
-            }
+            Button(action.title) { SystemSettings.openPrivacy(anchor) }.accessibilityIdentifier(identifier)
+        case let .showInFinder(_, url):
+            Button(action.title) { SystemSettings.reveal(url) }.accessibilityIdentifier(identifier)
+        case .restartTracker:
+            Button(action.title) { Task { await app.tracker.restartTracker() } }.accessibilityIdentifier(identifier)
+        case .openAtLogin:
+            Button(action.title) { app.tracker.setOpensAtLogin(true) }.accessibilityIdentifier(identifier)
         case let .copySnippet(snippet):
-            Button("Copy Snippet") { SystemSettings.copy(snippet) }
+            Button(action.title) { SystemSettings.copy(snippet) }.accessibilityIdentifier(identifier)
         case .noAction:
             EmptyView()
         }

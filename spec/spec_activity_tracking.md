@@ -176,7 +176,7 @@ The agent pushes nothing. The Timer window reads `presence` for its own idle det
 
 ## 5. Agent
 
-The agent, `TimeTrackingAgent.app`, is a headless login item with `KeepAlive` (bundle, registration, entitlements in `spec_architecture.md`), always team-signed because TCC keys its grants to its own signing identity. Its modules: Presence, Focus, Resolvers (adapters per app), Settings (loads and reloads `settings.toml`), Sampler, Blocker (split, summary, logs, `current.json`), Knowledge, History, Devices (6.2), Events (the socket), and Health. A tick takes under 100 ms.
+The agent, `TimeTrackingAgent.app`, is a headless login item with `KeepAlive` (bundle, registration, entitlements in `spec_architecture.md`), always team-signed because TCC keys grants to signing identities. macOS attributes the agent's file access to its responsible app, the one `AssociatedBundleIdentifiers` names (`spec_architecture.md` §1.4), so Full Disk Access belongs to the app (`<APP_NAME>.app`, in Debug `<APP_NAME> Debug.app`), not to the agent; Accessibility is checked for the agent itself. Its modules: Presence, Focus, Resolvers (adapters per app), Settings (loads and reloads `settings.toml`), Sampler, Blocker (split, summary, logs, `current.json`), Knowledge, History, Devices (6.2), Events (the socket), and Health. A tick takes under 100 ms.
 
 | Flag | Effect |
 |---|---|
@@ -184,7 +184,7 @@ The agent, `TimeTrackingAgent.app`, is a headless login item with `KeepAlive` (b
 | `--replay <fixture>` | Runs the Blocker over a recorded sample stream, compares with `<fixture>.expected.jsonl`, exits non-zero on a difference |
 | `--unregister` | Removes the login item registration and exits |
 
-Permissions: Accessibility (required); Automation per browser and scriptable terminal, prompted at first use; Full Disk Access (optional) for the Knowledge store and Safari's history and synced tabs.
+Permissions: Accessibility (required), granted to `TimeTrackingAgent.app`; Automation per browser and scriptable terminal, prompted at first use; Full Disk Access (optional) for the Knowledge store and Safari's history and synced tabs, granted to the app because the agent runs on its behalf. A new Full Disk Access grant reached the running agent only after a restart, so the Tracker pane offers "Restart Tracker" (7.4).
 
 ## 6. Other Apple devices
 
@@ -315,18 +315,21 @@ The last pane of the Mac app's settings window (`spec_timer_window.md` §8, whic
 
 Status. A dot and one line by the liveness rule of 4.4: green "Tracker running · last tick 12 s ago", yellow "Tracker delayed · last tick 1 min ago" while delayed, red "Tracker not running", gray "Tracker off" when the agent is not registered; then the agent version. One button by `SMAppService` status: "Enable Tracker" (`notRegistered`; registers the agent), "Open Login Items" (`requiresApproval`), "Disable Tracker" (`enabled`; unregisters after confirmation). Nothing is recorded until the user clicks "Enable Tracker".
 
-Setup. One row per step with a mark (✓ source `active`, ! `fallback` or `off`, – no health record yet), what it enables and what applies without it, and an action:
+Setup. One row per step with a mark (✓ source `active`, ! `fallback` or `off`, – no health record yet), what it enables and what applies without it, and an action. A row that is not ✓ also shows numbered steps and one line on which bundle the grant belongs to and why. Rows name bundles by their file name in System Settings and Finder, `<APP_NAME>` and `TimeTrackingAgent` (in Debug both with " Debug", `spec_architecture.md` §2.2), and each "Show … in Finder" names the bundle it reveals:
 
 | Step | Source | Enables / without | Action |
 |---|---|---|---|
 | Background tracker (required) | `SMAppService` | Recording / nothing | Enable Tracker / Open Login Items |
-| Accessibility (required) | `window` | Titles, documents, URLs / app names | Open System Settings (`Privacy_Accessibility`) |
-| Automation | `browser`, `terminal` | Exact tabs and panes / guesses | Open System Settings (`Privacy_Automation`) |
-| Full Disk Access (optional) | `history`, `knowledge` | Safari history, backfill / Safari domains | Open System Settings (`Privacy_AllFiles`), "Show Tracker in Finder" (reveals `TimeTrackingAgent.app`) |
+| Open `<APP_NAME>` at login | `SMAppService.mainApp` (✓ enabled, ! otherwise) | Timer and menu bar after you log in / open it yourself; the tracker records either way | "Open at Login" (registers the app) / Open Login Items (`requiresApproval`) |
+| Accessibility (required) | `window` | Titles, documents, URLs / app names | Open System Settings (`Privacy_Accessibility`), "Show TimeTrackingAgent in Finder"; steps: open the pane, drag `TimeTrackingAgent` from the Finder window into the list, turn it on |
+| Automation | `browser`, `terminal` | Exact tabs and panes / guesses | Open System Settings (`Privacy_Automation`); steps: click Allow when macOS asks to control a browser or terminal; if declined, turn each one on under `<APP_NAME>` (or `TimeTrackingAgent`) in the Automation pane |
+| Full Disk Access (optional) | `history`, `knowledge` | Safari history, backfill / Safari domains | Open System Settings (`Privacy_AllFiles`), "Show `<APP_NAME>` in Finder" (reveals the app bundle), "Restart Tracker" while the tracker is enabled; steps: open the pane, drag `<APP_NAME>` into the list or click + and choose it, turn it on, and while the tracker is enabled click Restart Tracker. Why: the tracker runs on behalf of the app, so macOS checks the app's access, not the agent's |
 | iCloud Drive | `shared_folder` | Activity on iPhone and iPad / this Mac only | none |
 | Editor title (optional) | `editor` | Exact file / RPC, arguments, cwd | Copy Snippet (`set title titlestring=nvim\ %F`) |
 | tmux hooks (optional) | `tmux_events` | Exact switch times / next tick | Copy Snippet (four `set-hook -g` lines) |
 | Agent hooks (optional) | `agent_events` | Exact agent start and stop / next tick | Copy Snippet (Claude Code hooks JSON) |
+
+"Restart Tracker" restarts the agent (`launchctl kickstart -k` of its label, run by the app), then re-reads the status.
 
 Sources. Each source's name, status, and reason; degraded ones in the warning color.
 
@@ -382,6 +385,9 @@ Maintenance. "Forget a Day…" (date and confirmation) and "Reapply Exclusions�
 - TRK-30. The `--record` output contains no home path, host name, or URL path of the live run.
 - TRK-31. The pane's dot, button, and setup marks follow 7.4 and update within 5 seconds; the agent is not registered until "Enable Tracker".
 - TRK-32. The pane writes only `settings.toml`; confirming "Also remove it from past logs…" sends exactly one `reapply-exclusions` with the chosen range.
+- TRK-33. The Full Disk Access row names the app by its bundle file name (`<APP_NAME>`, in Debug `<APP_NAME> Debug`) in its steps and its Finder button, which reveals the app bundle; the Accessibility row names and reveals `TimeTrackingAgent` (in Debug `TimeTrackingAgent Debug`).
+- TRK-34. While the tracker is enabled and the Full Disk Access row is not ✓, the row offers "Restart Tracker", which restarts the agent once and re-reads the status; it is not offered otherwise.
+- TRK-35. The "Open `<APP_NAME>` at login" row is ✓ when the app's login item is enabled; otherwise its action registers it, or opens Login Items when approval is required.
 
 ## 10. Decisions
 

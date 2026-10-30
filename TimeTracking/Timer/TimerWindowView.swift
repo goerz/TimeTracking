@@ -13,7 +13,6 @@ struct TimerWindowView: View {
     @State private var titleBarInset: CGFloat = 0
 
     var body: some View {
-        @Bindable var app = app
         @Bindable var presentation = app.presentation
         GeometryReader { geometry in
             VStack(spacing: 0) {
@@ -67,18 +66,13 @@ struct TimerWindowView: View {
                 Task { await app.dialogFinished(project) }
             }
         }
-        .alert("Set up activity tracking?", isPresented: $app.showsTrackerOnboarding) {
-            Button("Open Tracker Settings") { app.answerTrackerOnboarding(openSettings: true) }
-                .accessibilityIdentifier("onboarding.openTrackerSettings")
-            Button("Later", role: .cancel) { app.answerTrackerOnboarding(openSettings: false) }
-                .accessibilityIdentifier("onboarding.later")
-        } message: {
-            Text(Self.onboardingText)
+        // The first-launch alert, once the window shows (AppKit, TrackerOnboardingAlert).
+        .onChange(of: app.showsTrackerOnboarding, initial: true) { _, shows in
+            if shows {
+                app.presentTrackerOnboarding()
+            }
         }
     }
-
-    static let onboardingText = "The tracker records which apps, sites, and terminal sessions you work in, "
-        + "so the Calendar can suggest entries. It needs a few permissions."
 
     private var runningEditorShown: Binding<Bool> {
         Binding {

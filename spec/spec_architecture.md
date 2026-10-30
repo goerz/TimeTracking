@@ -63,7 +63,7 @@ User interface targets hold views, view state, and platform glue only. A view mo
 
 The agent is embedded at `Contents/Library/LoginItems/TimeTrackingAgent.app` and registered with `SMAppService.agent(plistName: "<APP_ID>.agent.plist")`. A build phase generates that plist into `Contents/Library/LaunchAgents/`: `Label` and the Mach service are the agent's bundle identifier, `BundleProgram` is `Contents/Library/LoginItems/TimeTrackingAgent.app/Contents/MacOS/TimeTrackingAgent` (in Debug `TimeTrackingAgent Debug.app`, 2.2), `AssociatedBundleIdentifiers` names the app, `KeepAlive` is true, `ProcessType` is `Background`.
 
-The agent is unsandboxed with the hardened runtime and always signed with the team's development certificate, because TCC keys Accessibility and Full Disk Access grants to the signing identity.
+The agent is unsandboxed with the hardened runtime and always signed with the team's development certificate, because TCC keys Accessibility and Full Disk Access grants to the signing identity. Through `AssociatedBundleIdentifiers` the app is the agent's responsible process: macOS checks the agent's Full Disk Access against the app's grant, while Accessibility is checked for the agent itself (`spec_activity_tracking.md` §5, §7.4).
 
 The Mac app registers the agent only when the user clicks "Enable Tracker" in the settings window's Tracker pane; the first-launch alert offers to open that pane (`spec_timer_window.md` §8.2). The Debug app registers the Debug agent (`<BUNDLE_ID>.debug.agent`), so a development build never replaces the recording agent.
 

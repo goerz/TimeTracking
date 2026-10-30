@@ -15,6 +15,7 @@ struct TestApp {
     let notifier: RecordingNotifier
     let router: RecordingRouter
     let agent: FakeAgentService
+    let loginItem = FakeAppLoginItem()
     let commands: RecordingTrackerCommands
     let undo = UndoManager()
 
@@ -51,6 +52,7 @@ struct TestApp {
             settings: AppSettings.ephemeral(),
             notifier: notifier,
             agent: agent,
+            loginItem: loginItem,
             readTrackerState: { state },
             trackerCommands: commands
         )

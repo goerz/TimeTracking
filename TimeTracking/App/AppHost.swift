@@ -48,6 +48,7 @@ final class AppHost {
     func load( // swiftlint:disable:this function_parameter_count
         notifier: NotificationPosting,
         agent: AgentService,
+        loginItem: AppLoginItemService,
         readTrackerState: @escaping () async -> TrackerState?,
         trackerCommands: TrackerCommandSending,
         trackerSettingsURL: URL?,
@@ -65,6 +66,7 @@ final class AppHost {
                 settings: AppSettings(device: device),
                 notifier: notifier,
                 agent: agent,
+                loginItem: loginItem,
                 readTrackerState: readTrackerState,
                 trackerCommands: trackerCommands,
                 trackerSettingsURL: trackerSettingsURL,

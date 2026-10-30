@@ -14,6 +14,9 @@ protocol AgentService: AnyObject {
     func unregister() async throws
     /// "Open Login Items" (System Settings).
     func openLoginItems()
+    /// "Restart Tracker": the agent quits and launchd starts it again, so a
+    /// new privacy grant applies.
+    func restart() async throws
 }
 
 /// An in-memory registration (tests, UI testing).
@@ -22,6 +25,7 @@ final class FakeAgentService: AgentService {
     var registration: AgentRegistration
     private(set) var registerCalls = 0
     private(set) var openedLoginItems = 0
+    private(set) var restartCalls = 0
 
     init(registration: AgentRegistration = .notRegistered) {
         self.registration = registration
@@ -38,5 +42,9 @@ final class FakeAgentService: AgentService {
 
     func openLoginItems() {
         openedLoginItems += 1
+    }
+
+    func restart() {
+        restartCalls += 1
     }
 }

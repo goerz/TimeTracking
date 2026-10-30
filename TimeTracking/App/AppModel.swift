@@ -33,6 +33,12 @@ final class AppModel {
     var live: LiveUpdates?
     /// The first-launch tracker alert (spec_timer_window.md §8.2).
     var showsTrackerOnboarding = false
+    /// The alert's "Open <APP_NAME> at login" checkbox, on by default.
+    var onboardingOpensAtLogin = true
+    /// Whether the alert is on screen or was answered in this run.
+    @ObservationIgnored var onboardingPresented = false
+    /// Shows the alert (`TrackerOnboardingAlert` in the app).
+    @ObservationIgnored var onboardingPresenter: TrackerOnboardingPresenter?
     /// Bumped on every change the menu bar must render at once.
     private(set) var revision = 0
     /// The recorded show/hide shortcut, for menus.
@@ -51,6 +57,7 @@ final class AppModel {
         settings: AppSettings,
         notifier: NotificationPosting,
         agent: AgentService,
+        loginItem: AppLoginItemService,
         readTrackerState: @escaping () async -> TrackerState? = { nil },
         trackerCommands: TrackerCommandSending = RecordingTrackerCommands(),
         trackerSettingsURL: URL? = nil,
@@ -68,7 +75,7 @@ final class AppModel {
         self.pomodoro = PomodoroModel(store: store, clock: clock, notifier: notifier, settings: settings)
         self.idle = IdleModel(store: store, clock: clock, notifier: notifier, settings: settings)
         self.reminders = ReminderModel(store: store, clock: clock, notifier: notifier, settings: settings)
-        self.tracker = TrackerStatusModel(agent: agent, clock: clock, readState: readTrackerState)
+        self.tracker = TrackerStatusModel(agent: agent, loginItem: loginItem, clock: clock, readState: readTrackerState)
         self.trackerSettings = TrackerSettingsModel(settingsURL: trackerSettingsURL, commands: trackerCommands, clock: clock)
         self.planner = PlannerRouter(
             store: store,
@@ -221,22 +228,6 @@ final class AppModel {
     private static let idleOptions: [NotificationAction: IdleOption] = [
         .keep: .keep, .discard: .discard, .discardAndContinue: .discardAndContinue, .split: .split,
     ]
-
-    /// The first launch on a Mac: ask once about activity tracking.
-    func showTrackerOnboardingIfNeeded() {
-        if !settings.trackerOnboardingPrompted {
-            showsTrackerOnboarding = true
-        }
-    }
-
-    /// "Open Tracker Settings" or "Later"; either marks the alert as shown.
-    func answerTrackerOnboarding(openSettings: Bool) {
-        settings.trackerOnboardingPrompted = true
-        showsTrackerOnboarding = false
-        if openSettings {
-            router?.openSettings(pane: .tracker)
-        }
-    }
 
     // MARK: Timer window commands
 

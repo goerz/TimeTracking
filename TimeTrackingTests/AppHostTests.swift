@@ -17,6 +17,7 @@ struct AppHostTests {
         let loaded = await host.load(
             notifier: RecordingNotifier(),
             agent: FakeAgentService(),
+            loginItem: FakeAppLoginItem(),
             readTrackerState: { nil },
             trackerCommands: RecordingTrackerCommands(),
             trackerSettingsURL: nil,

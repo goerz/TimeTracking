@@ -1,6 +1,7 @@
 // TrackerStatusModel: the tracker's registration and liveness for the Tracker
-// pane and the menu bar warning (spec_activity_tracking.md §4.4, §7.4;
-// spec_menubar.md §3).
+// pane and the menu bar warning, and the app's "Open at login"
+// (spec_activity_tracking.md §4.4, §7.4; spec_menubar.md §3;
+// spec_timer_window.md §8.1, §8.2).
 
 import Foundation
 import Observation
@@ -19,8 +20,41 @@ struct TrackerSetupStep: Identifiable, Equatable {
         case enableTracker
         case openLoginItems
         case openSettings(anchor: String)
+        /// "Show <name> in Finder": reveals that bundle.
+        case showInFinder(name: String, url: URL)
+        case restartTracker
+        case openAtLogin
         case copySnippet(String)
         case noAction
+
+        /// The button title.
+        var title: String {
+            switch self {
+            case .enableTracker: "Enable Tracker"
+            case .openLoginItems: "Open Login Items"
+            case .openSettings: "Open System Settings"
+            case let .showInFinder(name, _): "Show \(name) in Finder"
+            case .restartTracker: "Restart Tracker"
+            case .openAtLogin: "Open at Login"
+            case .copySnippet: "Copy Snippet"
+            case .noAction: ""
+            }
+        }
+
+        /// The last part of the button's accessibility identifier,
+        /// `tracker.action.<step>.<suffix>`.
+        var identifierSuffix: String {
+            switch self {
+            case .enableTracker: "enable"
+            case .openLoginItems: "loginItems"
+            case .openSettings: "settings"
+            case .showInFinder: "finder"
+            case .restartTracker: "restart"
+            case .openAtLogin: "openAtLogin"
+            case .copySnippet: "copy"
+            case .noAction: "none"
+            }
+        }
     }
 
     var id: String
@@ -28,6 +62,10 @@ struct TrackerSetupStep: Identifiable, Equatable {
     var enables: String
     var mark: Mark
     var actions: [Action]
+    /// Numbered steps, shown while the step is not done.
+    var guidance: [String] = []
+    /// Why the grant goes to this bundle.
+    var note = ""
 }
 
 /// The tracker's status, read every 30 s, at wake, unlock, and launch, and
@@ -35,10 +73,15 @@ struct TrackerSetupStep: Identifiable, Equatable {
 @Observable
 final class TrackerStatusModel {
     @ObservationIgnored let agent: AgentService
+    @ObservationIgnored let loginItem: AppLoginItemService
     @ObservationIgnored let clock: any Clock
     @ObservationIgnored let readState: () async -> TrackerState?
+    /// The bundles the setup steps name and reveal.
+    @ObservationIgnored let bundles: TrackerBundles
 
     private(set) var registration: AgentRegistration = .notRegistered
+    /// The app's own login item ("Open at login").
+    private(set) var appLoginItem: AgentRegistration
     private(set) var state: TrackerState?
     private(set) var warningActive = false
     /// Since when the Mac has been awake, unlocked, and in the session.
@@ -46,10 +89,19 @@ final class TrackerStatusModel {
     var confirmDisable = false
     private(set) var lastError: String?
 
-    init(agent: AgentService, clock: any Clock, readState: @escaping () async -> TrackerState?) {
+    init(
+        agent: AgentService,
+        loginItem: AppLoginItemService = FakeAppLoginItem(),
+        clock: any Clock,
+        readState: @escaping () async -> TrackerState?,
+        bundles: TrackerBundles = .main
+    ) {
         self.agent = agent
+        self.loginItem = loginItem
         self.clock = clock
         self.readState = readState
+        self.bundles = bundles
+        self.appLoginItem = loginItem.registration
         self.presentSince = clock.now
     }
 
@@ -60,6 +112,7 @@ final class TrackerStatusModel {
     /// Re-reads the registration and `current.json`.
     func refresh() async {
         registration = agent.registration
+        appLoginItem = loginItem.registration
         state = await readState()
         warningActive = TrackerWarning.isActive(registration: registration, state: state, presentSince: presentSince, now: clock.now)
     }
@@ -143,6 +196,34 @@ final class TrackerStatusModel {
         await refresh()
     }
 
+    /// "Restart Tracker": a privacy grant reaches a running agent only
+    /// after a restart.
+    func restartTracker() async {
+        do {
+            try await agent.restart()
+            lastError = nil
+        } catch {
+            lastError = error.localizedDescription
+        }
+        await refresh()
+    }
+
+    /// Whether the app opens at login (Settings › General).
+    var opensAtLogin: Bool {
+        appLoginItem == .enabled
+    }
+
+    /// Turns "Open at login" on or off.
+    func setOpensAtLogin(_ enabled: Bool) {
+        do {
+            try loginItem.setOpensAtLogin(enabled)
+            lastError = nil
+        } catch {
+            lastError = error.localizedDescription
+        }
+        appLoginItem = loginItem.registration
+    }
+
     /// "Disable Tracker" after confirmation.
     func disable() async {
         do {
@@ -165,15 +246,10 @@ final class TrackerStatusModel {
                 mark: registered ? .done : .attention,
                 actions: [registration == .requiresApproval ? .openLoginItems : registered ? .noAction : .enableTracker]
             ),
-            step("accessibility", "Accessibility (required)", "Titles, documents, URLs / app names", ["window"], [
-                .openSettings(anchor: "Privacy_Accessibility"),
-            ]),
-            step("automation", "Automation", "Exact tabs and panes / guesses", ["browser", "terminal"], [
-                .openSettings(anchor: "Privacy_Automation"),
-            ]),
-            step("fullDisk", "Full Disk Access (optional)", "Safari history, backfill / Safari domains", ["history", "knowledge"], [
-                .openSettings(anchor: "Privacy_AllFiles"),
-            ]),
+            openAtLoginStep,
+            accessibilityStep,
+            automationStep,
+            fullDiskAccessStep,
             step("icloud", "iCloud Drive", "Activity on iPhone and iPad / this Mac only", ["shared_folder"], [.noAction]),
             step("editor", "Editor title (optional)", "Exact file / RPC, arguments, cwd", ["editor"], [
                 .copySnippet(TrackerSnippets.editor),
@@ -185,6 +261,80 @@ final class TrackerStatusModel {
                 .copySnippet(TrackerSnippets.agentHooks),
             ]),
         ]
+    }
+
+    /// The app's own login item; the tracker records without it.
+    private var openAtLoginStep: TrackerSetupStep {
+        let action: TrackerSetupStep.Action = switch appLoginItem {
+        case .enabled: .noAction
+        case .requiresApproval: .openLoginItems
+        case .notRegistered, .notFound: .openAtLogin
+        }
+        return TrackerSetupStep(
+            id: "openAtLogin",
+            title: "Open \(bundles.appName) at login",
+            enables: "Timer and menu bar after you log in / open it yourself",
+            mark: appLoginItem == .enabled ? .done : .attention,
+            actions: [action],
+            note: "The tracker records either way; it starts at login on its own."
+        )
+    }
+
+    /// Accessibility is checked for the agent process itself.
+    private var accessibilityStep: TrackerSetupStep {
+        let agent = bundles.agentName
+        var result = step("accessibility", "Accessibility (required)", "Titles, documents, URLs / app names", ["window"], [
+            .openSettings(anchor: "Privacy_Accessibility"),
+            .showInFinder(name: agent, url: bundles.agentOrFolder),
+        ])
+        result.guidance = [
+            "Open System Settings › Privacy & Security › Accessibility.",
+            "Drag \(agent) from the Finder window into the list.",
+            "Turn \(agent) on.",
+        ]
+        result.note = "Accessibility belongs to \(agent), the tracker itself, which reads the window titles."
+        return result
+    }
+
+    /// Automation is asked for at first use, once per browser and terminal.
+    private var automationStep: TrackerSetupStep {
+        var result = step("automation", "Automation", "Exact tabs and panes / guesses", ["browser", "terminal"], [
+            .openSettings(anchor: "Privacy_Automation"),
+        ])
+        result.guidance = [
+            "When macOS asks to allow control of Safari, another browser, or a terminal, click Allow.",
+            "If you declined: open System Settings › Privacy & Security › Automation.",
+            "Under \(bundles.appName) (or \(bundles.agentName)), turn on each browser and terminal.",
+        ]
+        result.note = "macOS asks once per app, the first time the tracker reads its tab or pane."
+        return result
+    }
+
+    /// Full Disk Access is checked for the app: the agent runs on its behalf.
+    private var fullDiskAccessStep: TrackerSetupStep {
+        let app = bundles.appName
+        var result = step(
+            "fullDisk",
+            "Full Disk Access (optional)",
+            "Safari history, backfill / Safari domains",
+            ["history", "knowledge"],
+            [
+                .openSettings(anchor: "Privacy_AllFiles"),
+                .showInFinder(name: app, url: bundles.app),
+            ]
+        )
+        result.guidance = [
+            "Open System Settings › Privacy & Security › Full Disk Access.",
+            "Drag \(app) from the Finder window into the list, or click + and choose it.",
+            "Turn \(app) on.",
+        ]
+        // A grant reached the running agent only after a restart.
+        if registration == .enabled, result.mark != .done {
+            result.actions.append(.restartTracker)
+            result.guidance.append("Click Restart Tracker, so the running tracker gets the access.")
+        }
+        result.note = "The tracker runs on behalf of \(app), so macOS checks \(app)'s Full Disk Access, not \(bundles.agentName)'s."
+        return result
     }
 
     private func step(

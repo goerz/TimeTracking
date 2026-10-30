@@ -213,7 +213,7 @@ Settings… (⌘,) opens a SwiftUI `Settings` scene with six toolbar panes: Gene
 
 | Setting | Default | Notes |
 |---|---|---|
-| Open at login | off | `SMAppService.mainApp` |
+| Open at login | off | `SMAppService.mainApp`; the first-launch alert proposes it (8.2) and the Tracker pane's setup shows it (`spec_activity_tracking.md` §7.4) |
 | Show the Timer window at login | off | |
 | Float the Timer window above other windows | off | Same state as the pin |
 | Menu bar: Show timer, Show seconds, Show project | on, off, off | `spec_menubar.md` §6 |
@@ -225,7 +225,7 @@ Without notification authorization, the pane shows a hint with a button to the a
 
 The pane's contents are specified in `spec_activity_tracking.md` §7.4. The tracker is registered only from the pane's "Enable Tracker" button.
 
-At the first launch on a Mac, after the Timer window appears, an alert asks "Set up activity tracking?" with the text "The tracker records which apps, sites, and terminal sessions you work in, so the Calendar can suggest entries. It needs a few permissions." and the buttons "Open Tracker Settings" (opens this pane) and "Later". Either button sets the device setting `trackerOnboardingPrompted`, so the alert appears once per Mac.
+At the first launch on a Mac, after the Timer window appears, an alert asks "Set up activity tracking?" with the text "The tracker records which apps, sites, and terminal sessions you work in, so the Calendar can suggest entries. It needs a few permissions.", the buttons "Open Tracker Settings" (opens this pane) and "Later", and the checkbox "Open `<APP_NAME>` at login", on by default. Either button sets the device setting `trackerOnboardingPrompted`, so the alert appears once per Mac, and, with the checkbox on, turns on "Open at login" (8.1). Under `-UITesting` the app never registers its real login item.
 
 ### 8.3 Shortcuts
 
@@ -314,6 +314,7 @@ Clicking a notification shows the Timer window (with the idle prompt for `idle`)
 - TW-31. The continue/stop shortcut stops or continues; with "Focus app when the timer starts" on, the window then appears with the task field focused.
 - TW-32. Each notification category offers exactly its listed actions; the settings window reopens on the last pane shown.
 - TW-33. The first-launch alert of §8.2 appears once per Mac; "Open Tracker Settings" opens the Tracker pane, and the agent stays unregistered until "Enable Tracker".
+- TW-34. The first-launch alert's "Open `<APP_NAME>` at login" checkbox is on by default; checked, either button turns on "Open at login", unchecked neither does; under `-UITesting` the real login item is never registered.
 
 ## 12. Decisions
 

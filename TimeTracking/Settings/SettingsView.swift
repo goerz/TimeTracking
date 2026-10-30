@@ -36,15 +36,16 @@ struct SettingsView: View {
 /// General (§8.1).
 struct GeneralPane: View {
     @Environment(AppModel.self) private var app
-    @State private var openAtLogin = OpenAtLogin.isEnabled
     @State private var notificationsAllowed = true
 
     var body: some View {
         @Bindable var settings = app.settings
         Form {
-            Toggle("Open at login", isOn: $openAtLogin)
-                .onChange(of: openAtLogin) { _, value in OpenAtLogin.set(value) }
-                .accessibilityIdentifier("settings.openAtLogin")
+            Toggle("Open at login", isOn: Binding(
+                get: { app.tracker.opensAtLogin },
+                set: { app.tracker.setOpensAtLogin($0) }
+            ))
+            .accessibilityIdentifier("settings.openAtLogin")
             Toggle("Show the Timer window at login", isOn: $settings.showTimerAtLogin)
             Toggle("Float the Timer window above other windows", isOn: Binding(
                 get: { app.settings.timerPinned },
