@@ -74,4 +74,42 @@ final class PlannerUITests: XCTestCase {
         XCTAssertTrue(app.descendants(matching: .any)["reports.breakdown"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.descendants(matching: .any)["reports.chart"].exists)
     }
+
+    @MainActor
+    func testPC6_drawingInTrackedOpensThePopover() {
+        let app = launch()
+        _ = openPlanner(app)
+        app.typeKey("2", modifierFlags: .command)
+        let tracked = app.descendants(matching: .any)["calendar.tracked.2024-03-14"]
+        XCTAssertTrue(tracked.waitForExistence(timeout: 5))
+        let start = tracked.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.3))
+        let end = tracked.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.35))
+        start.press(forDuration: 0.1, thenDragTo: end)
+        XCTAssertTrue(app.textFields["calendar.draft.task"].waitForExistence(timeout: 5))
+        app.typeKey(.escape, modifierFlags: [])
+        XCTAssertFalse(app.descendants(matching: .any)["calendar.draft"].exists)
+    }
+
+    @MainActor
+    func testPC24_calendarMenuItemsAndToday() {
+        let app = launch()
+        _ = openPlanner(app)
+        app.typeKey("2", modifierFlags: .command)
+        XCTAssertTrue(app.descendants(matching: .any)["planner.calendar"].waitForExistence(timeout: 5))
+        app.typeKey("t", modifierFlags: .command)
+        XCTAssertTrue(app.descendants(matching: .any)["calendar.header.2024-03-12"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.menuBars.menuItems["Fill Day…"].exists)
+    }
+
+    @MainActor
+    func testPA17_activityCellOpensCalendar() {
+        let app = launch()
+        _ = openPlanner(app)
+        app.typeKey("4", modifierFlags: .command)
+        XCTAssertTrue(app.descendants(matching: .any)["planner.activity"].waitForExistence(timeout: 5))
+        app.typeKey("2", modifierFlags: .command)
+        XCTAssertTrue(app.descendants(matching: .any)["planner.calendar"].waitForExistence(timeout: 5))
+        app.typeKey("4", modifierFlags: .command)
+        XCTAssertTrue(app.descendants(matching: .any)["activity.footer"].waitForExistence(timeout: 5))
+    }
 }
