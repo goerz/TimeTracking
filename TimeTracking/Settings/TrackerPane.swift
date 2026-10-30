@@ -48,7 +48,7 @@ struct TrackerPane: View {
                 }
             }
             if let version = app.tracker.state?.health.version {
-                LabeledContent("Agent version", value: version)
+                LabeledContent("Tracker version", value: version)
             }
             if let error = app.tracker.lastError {
                 SettingsError(text: error)
@@ -104,16 +104,16 @@ struct TrackerPane: View {
     }
 
     private var sourcesSection: some View {
-        Section("Sources") {
+        Section("Recording") {
             if let sources = app.tracker.state?.health.sources, !sources.isEmpty {
                 ForEach(sources) { source in
-                    LabeledContent(source.name) {
-                        Text(source.reason.isEmpty ? source.status.rawValue : "\(source.status.rawValue): \(source.reason)")
+                    LabeledContent(source.displayName) {
+                        Text(source.statusText)
                             .foregroundStyle(source.status == .active ? AnyShapeStyle(.secondary) : AnyShapeStyle(.orange))
                     }
                 }
             } else {
-                Text("No health record yet.").foregroundStyle(.secondary)
+                Text("The tracker hasn't reported yet.").foregroundStyle(.secondary)
             }
         }
     }
@@ -176,6 +176,7 @@ private struct SetupStepRow<Actions: View>: View {
                     .foregroundStyle(style)
                     .accessibilityHidden(true)
             }
+            .accessibilityLabel(step.mark.accessibilityLabel)
             .accessibilityIdentifier("tracker.mark.\(step.id)")
     }
 }
@@ -296,7 +297,7 @@ private struct FilesSection: View {
         } footer: {
             Text(
                 "Exclusions, watched folders, the idle threshold, and site categories are set in the settings file, "
-                    + "each with a comment that explains it. The tracker applies a change from its next sample."
+                    + "each with a comment that explains it. The tracker picks up a change within 30 seconds."
             )
         }
     }
@@ -323,7 +324,7 @@ private struct FilesSection: View {
             .padding(.top, Design.Spacing.tight)
             .disabled(model.settingsURL == nil)
             if let added = model.lastAdded {
-                Label("Added \(added.value) to \(added.list.key).", systemImage: "checkmark")
+                Label("Added \(added.value) to the \(added.list.displayNameWithKey).", systemImage: "checkmark")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("tracker.settingsFile.added")
@@ -411,7 +412,10 @@ private struct PendingExclusionSection: View {
             } header: {
                 Text("Exclude from Tracking")
             } footer: {
-                Text("Adds the entry to \(pending.list.key) in the settings file, which keeps everything else as it is.")
+                Text(
+                    "Adds the entry to the \(pending.list.displayNameWithKey) in the settings file, "
+                        + "which keeps everything else as it is."
+                )
             }
             .onAppear { focused = true }
         }

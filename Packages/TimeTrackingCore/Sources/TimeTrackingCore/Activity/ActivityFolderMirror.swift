@@ -23,15 +23,14 @@ public struct ActivityFolderMirror: Sendable {
     }
 
     /// The `shared_folder` reason of an agent that cannot write the container.
-    public static let fallbackReason = "Copied by the Mac app"
+    public static let fallbackReason = "Copied to iCloud Drive while the app is open"
 
     /// Whether `state` says the agent writes the local folder and relies on
-    /// the Mac app's copy.
+    /// the Mac app's copy: `shared_folder` reports `fallback`, which it does
+    /// only then (without iCloud Drive it reports `off`). The reason is
+    /// display text and is not compared.
     public static func isNeeded(for state: TrackerState?) -> Bool {
-        guard let source = state?.health.sources.first(where: { $0.id == "shared_folder" }) else {
-            return false
-        }
-        return source.status == .fallback && source.reason == fallbackReason
+        state?.health.sources.first { $0.id == "shared_folder" }?.status == .fallback
     }
 
     /// What one `sync()` copied.

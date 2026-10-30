@@ -10,6 +10,15 @@ struct TrackerSetupStep: Identifiable, Equatable {
         case done = "✓"
         case attention = "!"
         case unknown = "–"
+
+        /// What VoiceOver reads for the mark.
+        var accessibilityLabel: String {
+            switch self {
+            case .done: "Done"
+            case .attention: "Needs attention"
+            case .unknown: "Not checked yet"
+            }
+        }
     }
 
     enum Action: Equatable {

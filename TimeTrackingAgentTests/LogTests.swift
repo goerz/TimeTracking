@@ -138,7 +138,7 @@ struct LogTests {
     func containerFallback() async throws {
         let harness = try AgentHarness(canWriteShared: false)
         #expect(harness.health("shared_folder")?.status == .fallback)
-        #expect(harness.health("shared_folder")?.reason == "Copied by the Mac app")
+        #expect(harness.health("shared_folder")?.reason == "Copied to iCloud Drive while the app is open")
         #expect(harness.engine.logs.blocksFolder == harness.folders.localBlocks)
         let mirror = ActivityFolderMirror(local: harness.folders.local, container: harness.folders.shared)
         await harness.run(for: 300)

@@ -47,8 +47,8 @@ final class TerminalResolver {
             health.append(SourceReport(.terminal, .active))
         } else {
             located = fallbackTTY(below: app.pid, snapshot: snapshot)
-            let cause = terminal.adapter == nil ? "No adapter for \(app.name)" : "\(app.name) did not answer"
-            health.append(SourceReport(.terminal, .fallback, cause + "; using the process tree"))
+            let cause = terminal.adapter == nil ? "\(app.name) can't report its front tab" : "\(app.name) didn't answer"
+            health.append(SourceReport(.terminal, .fallback, cause + "; the tab is guessed from recent activity"))
         }
         if snapshot.tmuxExecutable == nil || snapshot.tmux.servers.isEmpty {
             health.append(SourceReport(.tmux, .fallback, "tmux is not running"))

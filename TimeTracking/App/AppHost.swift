@@ -82,9 +82,15 @@ final class AppHost {
             self.model = model
             return model
         } catch {
-            failure = error.localizedDescription
-            Logging.logger(category: "App").error("Opening the store failed: \(error.localizedDescription, privacy: .public)")
+            failure = UserMessage.openingFailed(error)
+            Logging.logger(category: "App").error("Opening the store failed: \(String(describing: error), privacy: .public)")
             return nil
         }
+    }
+
+    /// The app's name as Finder shows it, for the failure window's title.
+    static var appName: String {
+        let info = Bundle.main.infoDictionary ?? [:]
+        return info["CFBundleDisplayName"] as? String ?? info["CFBundleName"] as? String ?? "TimeTracking"
     }
 }

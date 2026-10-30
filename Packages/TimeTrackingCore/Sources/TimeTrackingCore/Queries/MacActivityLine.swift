@@ -7,7 +7,7 @@ public import Foundation
 /// footer (spec_ios.md §2.3).
 public enum MacActivityLine {
     /// One line per Mac whose tracker runs, most recently updated first, at
-    /// most two: "MacBook · tmux:paper draft · active".
+    /// most two: "MacBook · paper (tmux) · draft", "iMac · notes.pdf · idle since 14:02".
     public static func lines(_ state: LiveState, timeZone: TimeZone, limit: Int = 2) -> [String] {
         state.activity.values
             .filter(\.agentRunning)
@@ -27,29 +27,42 @@ public enum MacActivityLine {
         return parts.joined(separator: " · ")
     }
 
-    /// The context and subject; the subject alone when the context is a
-    /// plain app name (no `kind:name` form).
+    /// The context as Activity names it and the subject, "paper (tmux) ·
+    /// draft"; the subject alone when the context is a plain app name (no
+    /// `kind:name` form).
     static func item(_ primary: TrackerPrimaryItem?) -> String? {
         guard let primary else {
             return nil
         }
         if primary.subject.isEmpty {
-            return primary.context.isEmpty ? nil : primary.context
+            return primary.context.isEmpty ? nil : primary.contextName
         }
         if primary.context.contains(":") {
-            return "\(primary.context) \(primary.subject)"
+            return "\(primary.contextName) · \(primary.subject)"
         }
         return primary.subject
     }
 
-    /// "active", "passive", "idle since 14:02", "locked since 14:02", "asleep since 14:02".
+    /// Nothing while in use with input; "in use", "idle since 14:02",
+    /// "locked since 14:02", "asleep since 14:02", "another user since 14:02".
     static func presence(_ activity: LiveState.MacActivity, timeZone: TimeZone) -> String? {
-        guard let presence = activity.presence, !presence.isEmpty else {
+        guard let presence = activity.presence.flatMap(TrackerPresenceState.init(rawValue:)) else {
             return nil
         }
-        guard ["idle", "locked", "asleep"].contains(presence), let since = activity.since else {
-            return presence
+        let word = switch presence {
+        case .active: ""
+        case .passive: "in use"
+        case .idle: "idle"
+        case .locked: "locked"
+        case .asleep: "asleep"
+        case .otherUser: "another user"
         }
-        return "\(presence) since \(DurationText.timeOfDay(since, in: timeZone))"
+        guard !word.isEmpty else {
+            return nil
+        }
+        guard presence != .passive, let since = activity.since else {
+            return word
+        }
+        return "\(word) since \(DurationText.timeOfDay(since, in: timeZone))"
     }
 }

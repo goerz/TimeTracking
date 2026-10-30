@@ -85,7 +85,7 @@ struct AutomationServiceTests {
         let store = fixture.service.store
         #expect(try await store.resolveProject("noise PAPER").project.id == fixture.noisePaper.id)
         await #expect(throws: AutomationError.ambiguous(
-            "The project name \"Admin\" exists in several clients; use Client/Project or --client:",
+            "Several clients have a project named \"Admin\". Write it as Client/Project:",
             candidates: ["Side business/Admin", "University/Admin"]
         )) {
             try await store.resolveProject("Admin")

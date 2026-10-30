@@ -62,6 +62,7 @@ final class LoginItemAgentService: AgentService {
             }
         }
         guard status == 0 else {
+            Logging.logger(category: "LoginItem").error("restart: launchctl exit status \(status, privacy: .public)")
             throw AgentServiceError.restartFailed(status: status)
         }
     }
@@ -94,7 +95,7 @@ enum AgentServiceError: LocalizedError, Equatable {
 
     var errorDescription: String? {
         switch self {
-        case let .restartFailed(status): "The tracker could not be restarted (launchctl exit status \(status))."
+        case .restartFailed: "The tracker could not be restarted. Disable and enable it to try again."
         }
     }
 }

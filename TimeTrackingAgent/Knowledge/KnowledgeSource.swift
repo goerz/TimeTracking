@@ -3,6 +3,8 @@
 
 import Foundation
 import GRDB
+import os
+import TimeTrackingCore
 
 /// An app interval of `/app/usage`.
 nonisolated struct KnowledgeAppInterval: Hashable, Sendable {
@@ -46,7 +48,7 @@ struct KnowledgeStoreReader: KnowledgeSource {
     func read(from: Date, to: Date) -> KnowledgeRead {
         let manager = FileManager.default
         guard manager.fileExists(atPath: databasePath) else {
-            return .unavailable("The Knowledge store was not found")
+            return .unavailable("macOS app usage history was not found")
         }
         let folder = manager.temporaryDirectory.appending(path: "knowledge-\(UUID().uuidString)", directoryHint: .isDirectory)
         defer { try? manager.removeItem(at: folder) }
@@ -54,27 +56,32 @@ struct KnowledgeStoreReader: KnowledgeSource {
         do {
             try SQLiteSnapshot.copy(path: databasePath, to: copy)
         } catch {
-            return .unavailable("Full Disk Access not granted")
+            return .unavailable("Full Disk Access is off; macOS app usage history can't be read")
         }
         do {
             let queue = try DatabaseQueue(path: copy.path)
             return try queue.read { database in try Self.query(database, from: from, to: to) }
         } catch {
-            return .unavailable("The Knowledge store cannot be read")
+            Logging.logger(category: "Agent").error("Knowledge store: \(error.localizedDescription, privacy: .public)")
+            return .unavailable("macOS app usage history can't be read")
         }
     }
+
+    /// The reason for a Knowledge store whose schema is not the expected
+    /// one; the details go to the log.
+    static let unexpectedSchemaReason = "macOS changed how it stores app usage; this version can't read it"
 
     /// Checks the schema and reads the three streams.
     static func query(_ database: Database, from: Date, to: Date) throws -> KnowledgeRead { // swiftlint:disable:this cyclomatic_complexity
         guard try database.tableExists("ZOBJECT") else {
-            return .unavailable("Unexpected Knowledge store schema: no ZOBJECT table")
+            Logging.logger(category: "Agent").error("Unexpected Knowledge store schema: no ZOBJECT table")
+            return .unavailable(unexpectedSchemaReason)
         }
         let objectColumns = try Set(database.columns(in: "ZOBJECT").map { $0.name.uppercased() })
         guard requiredObjectColumns.isSubset(of: objectColumns) else {
-            return .unavailable(
-                "Unexpected Knowledge store schema: ZOBJECT lacks " + requiredObjectColumns.subtracting(objectColumns).sorted()
-                    .joined(separator: ", ")
-            )
+            let missing = requiredObjectColumns.subtracting(objectColumns).sorted().joined(separator: ", ")
+            Logging.logger(category: "Agent").error("Unexpected Knowledge store schema: ZOBJECT lacks \(missing, privacy: .public)")
+            return .unavailable(unexpectedSchemaReason)
         }
         var hasWeb = false
         if try database.tableExists("ZSTRUCTUREDMETADATA") {

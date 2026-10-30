@@ -36,15 +36,15 @@ public enum TrackerLiveness: Hashable, Sendable {
         self = state.isDelayed(at: now) ? .delayed(lastTick: state.health.lastTick) : .running(lastTick: state.health.lastTick)
     }
 
-    /// The Tracker pane's status line ("Tracker running · last tick 12 s ago").
+    /// The Tracker pane's status line ("Tracker running · checked 12 s ago").
     public func statusLine(now: Date) -> String {
         switch self {
         case .off:
             "Tracker off"
         case let .running(tick):
-            "Tracker running · last tick \(Self.age(now.timeIntervalSince(tick))) ago"
+            "Tracker running · checked \(Self.age(now.timeIntervalSince(tick))) ago"
         case let .delayed(tick):
-            "Tracker delayed · last tick \(Self.age(now.timeIntervalSince(tick))) ago"
+            "Tracker delayed · last checked \(Self.age(now.timeIntervalSince(tick))) ago"
         case .notRunning:
             "Tracker not running"
         }

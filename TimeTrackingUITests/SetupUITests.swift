@@ -80,7 +80,7 @@ final class SetupUITests: XCTestCase {
         openAtLogin.click()
         let mark = app.staticTexts["tracker.mark.openAtLogin"]
         XCTAssertTrue(mark.waitForExistence(timeout: 5))
-        let done = expectation(for: NSPredicate(format: "value == %@ OR label == %@", "✓", "✓"), evaluatedWith: mark)
+        let done = expectation(for: NSPredicate(format: "label == %@ OR value == %@", "Done", "Done"), evaluatedWith: mark)
         wait(for: [done], timeout: 5)
         let pane = app.scrollViews["settings.pane.tracker"]
         pane.scroll(byDeltaX: 0, deltaY: -500)

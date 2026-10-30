@@ -107,7 +107,9 @@ struct IntentAndURLTests {
         #expect(throws: TimeTrackingURLError.unknown) {
             try parse("timetracking-debug://delete")
         }
-        #expect(TimeTrackingURLError.unknown.localizedDescription == "Unknown TimeTracking URL")
+        #expect(TimeTrackingURLError.unknown.localizedDescription == "This link isn't one the app understands.")
+        #expect(TimeTrackingURLError.badValue("project_id").localizedDescription == "The link's project is not valid.")
+        #expect(TimeTrackingURLError.badValue("from").localizedDescription == "The link's start date is not valid.")
         #expect(throws: TimeTrackingURLError.unknown) {
             try parse("timetracking://stop")
         }

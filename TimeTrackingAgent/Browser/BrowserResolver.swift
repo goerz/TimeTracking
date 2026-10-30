@@ -86,7 +86,7 @@ final class BrowserResolver {
     private func readTab(app: FrontApp, browser: BrowserApp, window: WindowInfo?) -> Tab {
         var tab = Tab(url: window?.url, title: window?.title ?? "")
         guard let script = browser.script(bundleID: app.bundleID) else {
-            tab.health.append(SourceReport(.browser, .fallback, "\(app.name) has no scripting dictionary; using the window's URL"))
+            tab.health.append(SourceReport(.browser, .fallback, "\(app.name) can't report its tab; the address is read from the window"))
             return tab
         }
         switch environment.scripts.run(script) {
@@ -99,7 +99,7 @@ final class BrowserResolver {
             }
             tab.health.append(SourceReport(.browser, .active))
         case .denied:
-            tab.health.append(SourceReport(.browser, .fallback, "Automation not granted for \(app.name)"))
+            tab.health.append(SourceReport(.browser, .fallback, "Automation is off for \(app.name); the address is read from the window"))
         case .failed:
             break
         }

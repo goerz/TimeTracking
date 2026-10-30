@@ -141,7 +141,7 @@ struct TimerModelTests {
         #expect(try await test.store.runningEntry() != nil)
     }
 
-    @Test("TW-31 the continue/stop shortcut stops or continues; Focus app when the timer starts shows the window")
+    @Test("TW-31 the continue/stop shortcut stops or continues; Show the Timer window when an entry starts shows the window")
     func continueStopShortcut() async throws {
         let test = try await TestApp()
         try await test.entry("Review", from: "08:00", to: "08:30")

@@ -46,7 +46,7 @@ public enum AutomationError: Error, Equatable, Sendable, LocalizedError {
         case let .ambiguous(message, candidates):
             candidates.isEmpty ? message : message + " " + candidates.joined(separator: ", ")
         case .inconsistent:
-            "The store does not match the description."
+            "Your time data does not match the description."
         }
     }
 
@@ -84,23 +84,24 @@ public enum AutomationError: Error, Equatable, Sendable, LocalizedError {
         case .inFuture:
             self = .refused("The time lies in the future.")
         case .referenced:
-            self = .refused("The record is still referenced or its id is taken.")
+            self = .refused("It is still in use and can't be deleted.")
         case .unknownID:
-            self = .notFound("No such record.")
+            self = .notFound("That project or entry no longer exists.")
         case .retentionExpired:
-            self = .refused("The record was deleted too long ago.")
+            self = .refused("It was deleted too long ago to restore.")
         case let .invalidDocument(path, reason):
             self = .invalidInput("\(path): \(reason)")
         case let .newerSchema(version):
             self = .storeUnavailable(
-                "The store has schema version \(version); this tool supports version \(TimeStore.schemaVersion)."
+                "Your time data was saved by a newer version (data version \(version); "
+                    + "this version reads version \(TimeStore.schemaVersion)). Update the app."
             )
         case .readOnly:
-            self = .failure("The store was opened read-only.")
+            self = .failure("Your time data can't be changed here.")
         case .busy:
-            self = .storeUnavailable("The store is locked by another process.")
+            self = .storeUnavailable("Your time data is busy in another app. Try again.")
         case let .database(message):
-            self = .storeUnavailable("The store cannot be opened: \(message)")
+            self = .storeUnavailable("Your time data couldn't be opened: \(message)")
         }
     }
 

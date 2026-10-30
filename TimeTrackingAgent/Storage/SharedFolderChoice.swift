@@ -24,7 +24,8 @@ nonisolated struct SharedFolderChoice: Hashable {
     /// Drive or write access, the local folder takes its place.
     static func choose(folders: ActivityFolders, canWrite: (URL) -> Bool = Self.canWrite) -> Self {
         if folders.isFallback {
-            return Self(activityFolder: folders.local, status: .fallback, reason: "iCloud Drive is not available; this Mac only")
+            // `off`, not `fallback`: `fallback` means the Mac app's copy (§4.1).
+            return Self(activityFolder: folders.local, status: .off, reason: "iCloud Drive is off; activity stays on this Mac")
         }
         if canWrite(folders.shared) {
             return Self(activityFolder: folders.shared, status: .active, reason: "")

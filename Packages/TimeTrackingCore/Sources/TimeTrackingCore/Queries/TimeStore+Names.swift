@@ -65,7 +65,7 @@ extension TimeStore {
             throw .notFound("No project named \"\(reference.trimmed)\".")
         default:
             throw .ambiguous(
-                "The project name \"\(reference.trimmed)\" exists in several clients; use Client/Project or --client:",
+                "Several clients have a project named \"\(reference.trimmed)\". Write it as Client/Project:",
                 candidates: active.map { "\($0.client?.name ?? "?")/\($0.project.name)" }.sorted()
             )
         }

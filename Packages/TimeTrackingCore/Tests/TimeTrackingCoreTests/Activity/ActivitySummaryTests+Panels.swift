@@ -61,37 +61,63 @@ extension ActivitySummaryTests {
         let state = TrackerState(
             device: "macbook",
             openBlock: nil,
-            primary: nil,
+            primary: TrackerPrimaryItem(context: "tmux:paper", subject: "draft", detail: "nvim notes.tex"),
             presence: TrackerPresence(state: .active, since: now - 600),
             health: TrackerHealth(lastTick: now - 12, version: "1.0", sources: [
                 TrackerSourceHealth(id: "terminal", name: "Terminal", status: .active),
-                TrackerSourceHealth(id: "knowledge", name: "Knowledge store", status: .off, reason: "Full Disk Access not granted"),
+                TrackerSourceHealth(id: "knowledge", name: "Knowledge store", status: .off, reason: "Full Disk Access is off"),
+                TrackerSourceHealth(id: "tmux", name: "tmux", status: .fallback),
             ])
         )
         let health = ActivityHealth(registration: .enabled, state: state, now: now)
         #expect(health.dot == .green)
         #expect(health.statusLine == TrackerLiveness(registration: .enabled, state: state, now: now).statusLine(now: now))
-        #expect(health.activeSources == ["Terminal"])
-        #expect(health.problems == ["Knowledge store off (Full Disk Access not granted)"])
+        #expect(health.statusLine == "Tracker running · checked 12 s ago")
+        // Only problems, by their name on screen; never the working sources.
+        #expect(health.activeSources.isEmpty)
+        #expect(health.problems == ["App usage history: Full Disk Access is off", "tmux sessions: Limited"])
+        #expect(health.tooltip == ["Tracker version 1.0", "Now: paper (tmux) · draft · nvim notes.tex", "In use"])
         #expect(ActivityHealth(registration: .enabled, state: state, now: now + 600).dot == .red)
         #expect(ActivityHealth(registration: .notRegistered, state: nil, now: now).dot == .gray)
         let remote = LiveState.MacActivity(
             device: "macbook",
             primary: nil,
             groupKey: nil,
-            presence: "active",
-            since: now - 60,
+            presence: "idle",
+            since: now - 300,
             agentRunning: true,
             lastTick: now - 120,
-            health: [],
+            health: ["shared_folder"],
             updatedAt: now
         )
         let ipad = ActivityHealth(remote: remote, now: now)
-        #expect(ipad.statusLine == "Mac tracker: last tick 2 min ago")
+        #expect(ipad.statusLine == "Mac tracker: checked 2 min ago")
         #expect(ipad.activeSources.isEmpty)
+        #expect(ipad.problems == ["iCloud Drive needs attention on the Mac"])
+        #expect(ipad.tooltip == ["Idle for 5 min"])
         var stopped = remote
         stopped.agentRunning = false
         #expect(ActivityHealth(remote: stopped, now: now).dot == .gray)
+        #expect(ActivityHealth(remote: stopped, now: now).statusLine == "Mac tracker: last checked 2 min ago")
+        stopped.lastTick = nil
+        #expect(ActivityHealth(remote: stopped, now: now).statusLine == "Mac tracker: not checked yet")
+    }
+
+    @Test("PA-16 sources, statuses, and presence states have their words on screen")
+    func trackerWords() {
+        #expect(TrackerSourceHealth.names.count == 14)
+        #expect(TrackerSourceHealth.name(forID: "shared_folder") == "iCloud Drive")
+        #expect(TrackerSourceHealth.name(forID: "unknown") == nil)
+        #expect(TrackerSourceHealth(id: "custom", name: "Custom", status: .active).displayName == "Custom")
+        #expect(TrackerSourceStatus.allCases.map(\.displayName) == ["On", "Limited", "Off"])
+        #expect(TrackerSourceHealth(id: "history", name: "", status: .active).statusText == "On")
+        #expect(TrackerSourceHealth(id: "history", name: "", status: .fallback, reason: "Why").statusText == "Limited: Why")
+        #expect(TrackerSourceHealth(id: "files", name: "", status: .off, reason: "Why").statusText == "Off: Why")
+        #expect(TrackerPresenceState.allCases.map(\.displayName) == [
+            "In use", "In use without typing", "Idle", "Locked", "Asleep", "Another user is logged in",
+        ])
+        #expect(TrackerPrimaryItem(context: "safari", subject: "github.com").text == "Safari · github.com")
+        #expect(TrackerPrimaryItem(context: "tmux:(private)", subject: "").text == "(private session)")
     }
 
     @Test("PA-18 the setup card shows with an empty log and no tracker, never once a block existed")

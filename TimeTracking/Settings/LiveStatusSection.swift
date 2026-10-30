@@ -1,4 +1,4 @@
-// LiveStatusSection: the sync and widget push status lines of the General
+// LiveStatusSection: the sync and widget update status lines of the General
 // pane (spec_data_and_sync.md §3.1, §4.3).
 
 import SwiftUI
@@ -11,7 +11,7 @@ struct LiveStatusSection: View {
         Section("iCloud") {
             LabeledContent("Sync", value: live.syncStatusText)
                 .accessibilityIdentifier("settings.syncStatus")
-            LabeledContent("Widget pushes", value: live.pushStatusText)
+            LabeledContent("Widget updates", value: live.pushStatusText)
                 .accessibilityIdentifier("settings.widgetPushStatus")
         }
     }

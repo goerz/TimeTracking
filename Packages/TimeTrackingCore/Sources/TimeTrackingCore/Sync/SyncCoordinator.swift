@@ -75,8 +75,15 @@ public actor SyncCoordinator {
                 await created.addZone()
             }
         } catch {
-            Self.logger.error("Sync is unavailable, working locally: \(error.localizedDescription, privacy: .public)")
-            setStatus(.error(error.localizedDescription))
+            Self.logger.error("Sync is unavailable, working locally: \(String(describing: error), privacy: .public)")
+            switch error as? SyncTransportError {
+            case .noAccount:
+                setStatus(.noAccount)
+            case .notEntitled:
+                setStatus(.error(SyncTransportError.notEntitled.localizedDescription))
+            default:
+                setStatus(.error(Self.unavailableText))
+            }
             return
         }
         if observingStore {
@@ -158,15 +165,18 @@ public actor SyncCoordinator {
         }
     }
 
+    /// The iCloud line after sync could not start.
+    static let unavailableText = "iCloud is not available. Entries stay on this device."
+
     func report(_ error: any Error) {
-        let transport = (error as? SyncTransportError) ?? .other(error.localizedDescription)
+        let transport = (error as? SyncTransportError) ?? .other(String(describing: error))
         switch transport {
         case .networkUnavailable:
             setStatus(.waitingForNetwork)
         case .noAccount:
             setStatus(.noAccount)
-        case .zoneNotFound, .other:
-            Self.logger.error("Sync failed: \(error.localizedDescription, privacy: .public)")
+        case .zoneNotFound, .notEntitled, .other:
+            Self.logger.error("Sync failed: \(String(describing: error), privacy: .public)")
             setStatus(.error(transport.localizedDescription))
         }
     }

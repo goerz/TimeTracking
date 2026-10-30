@@ -42,8 +42,39 @@ public struct TrackerSettings: Sendable, Hashable, Codable {
         do {
             self = try TOMLDecoder().decode(Self.self, from: tomlText)
         } catch {
-            throw .invalidSettings(String(describing: error))
+            throw .invalidSettings(Self.message(for: error))
         }
+    }
+
+    /// What the Tracker pane shows for a file that does not decode: "The
+    /// settings file has an error on line 12: expected '='. Fix it in the editor."
+    static func message(for error: any Error) -> String {
+        if let error = error as? TOMLParseError {
+            let description = error.description.trimmingCharacters(in: CharacterSet(charactersIn: ". \n"))
+            return "The settings file has an error on line \(error.source.begin.line): \(description). Fix it in the editor."
+        }
+        if case let .typeMismatch(type, context) = error as? DecodingError, type == TOMLArray.self || "\(type)".hasPrefix("Array"),
+           let key = context.codingPath.last?.stringValue
+        {
+            let table = context.codingPath.dropLast().map(\.stringValue).joined(separator: ".")
+            return TrackerSettingsText.notAList(key, in: table)
+        }
+        if let error = error as? DecodingError {
+            let (path, problem): ([any CodingKey], String) = switch error {
+            case let .typeMismatch(_, context), let .valueNotFound(_, context):
+                (context.codingPath, "has a value of the wrong kind")
+            case let .dataCorrupted(context):
+                (context.codingPath, "can't be used: \(context.debugDescription)")
+            case let .keyNotFound(key, context):
+                (context.codingPath + [key], "is missing")
+            @unknown default:
+                ([], "has a value that can't be used")
+            }
+            let setting = path.map(\.stringValue).filter { Int($0) == nil }.joined(separator: ".")
+            let name = setting.isEmpty ? "A setting" : setting
+            return "In the settings file, \(name) \(problem). Fix it in the editor."
+        }
+        return "The settings file can't be read. Fix it in the editor."
     }
 
     /// Reads `url`; a missing file gives the defaults.
@@ -67,7 +98,7 @@ public struct TrackerSettings: Sendable, Hashable, Codable {
         do {
             return try TOMLEncoder().encode(self)
         } catch {
-            throw .invalidSettings(String(describing: error))
+            throw .invalidSettings("Couldn't write the settings file: \(error.localizedDescription)")
         }
     }
 

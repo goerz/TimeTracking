@@ -11,7 +11,11 @@ extension KeyedDecodingContainer {
         }
         if let text = try? decode(String.self, forKey: key) {
             guard let seconds = TrackerDuration.parse(text) else {
-                throw DecodingError.dataCorruptedError(forKey: key, in: self, debugDescription: "Not a duration: \(text)")
+                throw DecodingError.dataCorruptedError(
+                    forKey: key,
+                    in: self,
+                    debugDescription: "\"\(text)\" is not a duration such as \"30s\", \"5m\", or \"3h\""
+                )
             }
             return seconds
         }

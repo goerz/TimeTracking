@@ -19,20 +19,31 @@ extension TrackerStatusModel {
             accessibilityStep,
             automationStep,
             fullDiskAccessStep,
-            step(
-                "icloud",
-                "iCloud Drive",
-                ["shared_folder"],
-                lines: (
-                    enabled: "this Mac's activity shows on iPhone and iPad, and theirs here.",
-                    disabled: "activity stays on this Mac."
-                ),
-                actions: [.noAction]
-            ),
+            iCloudStep,
             editorStep,
             tmuxStep,
             agentHooksStep,
         ]
+    }
+
+    /// iCloud Drive; while the tracker cannot write the container, the app
+    /// copies its activity there, which counts as done.
+    private var iCloudStep: TrackerSetupStep {
+        var result = step(
+            "icloud",
+            "iCloud Drive",
+            ["shared_folder"],
+            lines: (
+                enabled: "this Mac's activity shows on iPhone and iPad, and theirs here.",
+                disabled: "activity stays on this Mac."
+            ),
+            actions: [.noAction]
+        )
+        if ActivityFolderMirror.isNeeded(for: state) {
+            result.mark = .done
+            result.detail = "On: this Mac's activity is copied to iCloud Drive while the app is open, and shows on iPhone and iPad."
+        }
+        return result
     }
 
     /// The app's own login item; the tracker records without it.
@@ -129,8 +140,8 @@ extension TrackerStatusModel {
         result.note = "The tracker runs on behalf of \(app), so macOS checks \(app)'s Full Disk Access, not \(bundles.agentName)'s."
         result.info = TrackerSetupInfo(title: "Full Disk Access", paragraphs: [
             "Full Disk Access lets the tracker read Safari's history and the app usage macOS records on its own.",
-            "From Safari's history it lists every page you visited in a block, not only the one in front when it took "
-                + "a sample. From the usage records it fills in the apps you used while the tracker was not running, "
+            "From Safari's history it lists every page you visited, not only the one on screen when the tracker last "
+                + "looked. From the usage records it fills in the apps you used while the tracker was not running, "
                 + "for example before you enabled it or while it was updated.",
             "Without it, Safari pages are recorded by site only, and those times stay empty.",
         ])
@@ -152,7 +163,7 @@ extension TrackerStatusModel {
             title: "Neovim title",
             paragraphs: [
                 "Neovim can show the path of the open file in the terminal's title, and in tmux in the pane's title. "
-                    + "The tracker reads it from there at every sample.",
+                    + "The tracker reads it from there every 30 seconds.",
                 "Add this line to your Neovim configuration, ~/.config/nvim/init.vim. "
                     + "In init.lua, write vim.opt.title = true and vim.opt.titlestring = \"nvim %F\" instead.",
             ],
@@ -168,7 +179,7 @@ extension TrackerStatusModel {
             ["tmux_events"],
             lines: (
                 enabled: "switching tmux sessions, windows, and panes is recorded the moment you switch.",
-                disabled: "a switch is noticed at the next sample, up to 30 seconds later."
+                disabled: "a switch is noticed within 30 seconds."
             ),
             actions: [.copySnippet(TrackerSnippets.tmux)]
         )
@@ -192,7 +203,7 @@ extension TrackerStatusModel {
             ["agent_events"],
             lines: (
                 enabled: "when Claude Code starts and stops working is recorded the moment it happens.",
-                disabled: "Claude Code's busy and idle times are noticed at the next sample, up to 30 seconds later."
+                disabled: "when Claude Code starts and stops working is noticed within 30 seconds."
             ),
             actions: [.copySnippet(TrackerSnippets.agentHooks)]
         )

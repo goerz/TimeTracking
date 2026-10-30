@@ -162,9 +162,9 @@ struct IdleAndReminderTests {
             )
         }
         #expect(TrackerLiveness(registration: .enabled, state: state(age: 12), now: now)
-            .statusLine(now: now) == "Tracker running · last tick 12 s ago")
+            .statusLine(now: now) == "Tracker running · checked 12 s ago")
         #expect(TrackerLiveness(registration: .enabled, state: state(age: 90), now: now)
-            .statusLine(now: now) == "Tracker delayed · last tick 1 min ago")
+            .statusLine(now: now) == "Tracker delayed · last checked 1 min ago")
         #expect(TrackerLiveness(registration: .enabled, state: state(age: 120), now: now) == .notRunning(lastTick: now - 120))
         #expect(TrackerLiveness(registration: .enabled, state: nil, now: now) == .notRunning(lastTick: nil))
         #expect(TrackerLiveness(registration: .notRegistered, state: state(age: 1), now: now) == .off)

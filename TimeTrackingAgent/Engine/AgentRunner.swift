@@ -23,7 +23,7 @@ final class AgentRunner {
         self.schedule = TickSchedule(start: engine.environment.clock.now, interval: AgentEngine.tickInterval)
         self.socket = SocketServer(url: engine.configuration.socketURL) { [weak engine] line in
             guard let engine else {
-                return TrackerReply.error("the tracker is stopping").line
+                return TrackerReply.error(TrackerReply.stoppingReason).line
             }
             return await engine.handle(line: line)
         }

@@ -103,7 +103,7 @@ With no blocks after filtering, the panels give way to one message (an empty-sta
 
 ### 1.10 Health footer
 
-A one-line footer. On the Mac it shows the Tracker pane's status dot and line from `currentState()` ([spec_activity_tracking.md](spec_activity_tracking.md) §7.4, by the liveness rule of §4.4), refreshed every 10 seconds while visible; then the active sources, and after a middle dot in the warning color those on a fallback or off with their reason ("Knowledge store off (Full Disk Access not granted)"); and "Tracker Settings…", which calls `showTrackerSettings(exclusion: nil)`. Hovering shows agent version, every source's status line, the primary item, and the presence state.
+A one-line footer. On the Mac it shows the Tracker pane's status dot and line from `currentState()` ([spec_activity_tracking.md](spec_activity_tracking.md) §7.4, by the liveness rule of §4.4), refreshed every 10 seconds while visible; then, after a middle dot in the warning color, only the sources that are limited or off, each as its name on screen and reason ("Browser history: Full Disk Access is off; Safari pages are recorded by site only"; working sources are listed only in the Tracker pane); and "Tracker Settings…", which calls `showTrackerSettings(exclusion: nil)`. Hovering shows "Tracker version 1.0", the primary item with the context as Activity names it ("Now: paper (tmux) · draft · nvim notes.tex"), and the presence ("In use", "In use without typing", "Idle", "Locked", "Asleep", "Another user is logged in").
 
 ## 2. Keyboard and menu
 
@@ -131,7 +131,7 @@ The reader applies the current rules to past data at read time on every device, 
 
 ## 5. iPad
 
-The Activity tab shows the same panels from the synced block log, without subject drill-down, away classification, app icons, exclusion shortcut, or open block. Its footer shows each Mac's tracker from the activity part of `LiveState` ([spec_data_and_sync.md](spec_data_and_sync.md) §4.1): "Mac tracker: last tick 2 min ago" from `lastTick`, the presence state and since, and the health summary; the dot is green while `agentRunning` is true, else gray with "last seen 2 h ago"; no source list. "Waiting for iCloud · activity up to 14:02", with the newest block's end, shows while the current month has not arrived. With no blocks the empty state reads "The tracker runs on your Mac. Set it up in the Mac app's Settings, Tracker pane."
+The Activity tab shows the same panels from the synced block log, without subject drill-down, away classification, app icons, exclusion shortcut, or open block. Its footer shows each Mac's tracker from the activity part of `LiveState` ([spec_data_and_sync.md](spec_data_and_sync.md) §4.1): "Mac tracker: checked 2 min ago" from `lastTick`, the presence in words with its duration in the tooltip ("Idle for 5 min"), and the sources with a problem by name ("iCloud Drive needs attention on the Mac"); the dot is green while `agentRunning` is true, else gray with "Mac tracker: last checked 2 h ago", or "Mac tracker: not checked yet" without `lastTick`; no list of working sources. "Waiting for iCloud · activity up to 14:02", with the newest block's end, shows while the current month has not arrived. With no blocks the empty state reads "The tracker runs on your Mac. Set it up in the Mac app's Settings, Tracker pane."
 
 ## 6. Testable behaviors
 

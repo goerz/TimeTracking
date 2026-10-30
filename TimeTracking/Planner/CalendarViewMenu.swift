@@ -67,7 +67,9 @@ struct ActivityMenu: View {
                 Task { await model.reload() }
             }
             .keyboardShortcut("t")
-            Button("Leave Details or Clear Filter") { Task { await model.escape() } }
+            // Escape's two steps, titled by the one it takes now.
+            Button(model.drill == nil ? "Clear Filter" : "Back") { Task { await model.escape() } }
+                .disabled(model.drill == nil && model.contexts.isEmpty)
             Divider()
             Button("Exclude from Tracking…") {
                 if let context = model.contexts.first {

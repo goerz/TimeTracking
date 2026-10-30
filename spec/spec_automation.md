@@ -273,7 +273,7 @@ Both apps handle `timetracking` (`timetracking-debug` in Debug) with `onOpenURL`
 | `timetracking://planner/activity?date=2026-10-29` | Activity section | Mac, iPad |
 | `timetracking://project/<uuid>` | The project in Projects (also a time block's link) | Mac, iPad |
 
-A project name that is unknown, archived, or ambiguous starts nothing and shows an alert naming the problem; URLs never create projects. Any other host or path shows "Unknown TimeTracking URL". On the Mac, `start`, `stop`, and `continue` do not activate the app (feedback is the menu bar and, if permitted, a banner "Started Noise paper"); on iOS the app shows the Timer. On the iPhone, `planner/*` and `project/` URLs open the Timer. Values over 1,000 characters are rejected with an alert. Universal links are not used.
+A project name that is unknown, archived, or ambiguous starts nothing and shows an alert naming the problem (on the Mac titled "Couldn't Open the Link"); URLs never create projects. Any other host or path shows "This link isn't one the app understands." On the Mac, `start`, `stop`, and `continue` do not activate the app (feedback is the menu bar and, if permitted, a banner "Started Noise paper"); on iOS the app shows the Timer. On the iPhone, `planner/*` and `project/` URLs open the Timer. Values over 1,000 characters are rejected with an alert. Universal links are not used.
 
 ## 7. Read-only access for scripts
 
@@ -343,7 +343,7 @@ The tool tests build the Debug tool, create a fixture store from a JSON export, 
 35. A store whose `meta.schema_version` is one higher than the tool's exits 5 naming both versions.
 36. Passing `--json` with `--csv` exits 2, and stdout is empty on every error.
 37. The output of `--generate-completion-script zsh` contains every subcommand of 3.4.
-38. (App) Opening `timetracking://start?project=Noise%20paper&task=Hello` while the Mac app runs starts that entry without activating the app; `?project=Nonexistent` starts nothing and shows an alert; `timetracking://delete` shows "Unknown TimeTracking URL".
+38. (App) Opening `timetracking://start?project=Noise%20paper&task=Hello` while the Mac app runs starts that entry without activating the app; `?project=Nonexistent` starts nothing and shows an alert; `timetracking://delete` shows "This link isn't one the app understands."
 39. (App) `StopTimerIntent` with nothing running returns nil and "Nothing is running." without throwing; `StartTimerIntent` with an archived project throws the tool's exit-4 message; without `inferProject` it never infers a project.
 40. (App) After the tool starts an entry while the Mac app runs, the menu bar shows it within 1 second.
 

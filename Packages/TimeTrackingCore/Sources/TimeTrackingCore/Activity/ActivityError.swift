@@ -7,7 +7,8 @@ public import Foundation
 public enum ActivityError: Error, Equatable, LocalizedError {
     /// A block-log or detail-log line that is not a valid object.
     case malformedLine(String)
-    /// A `settings.toml` that cannot be read.
+    /// A `settings.toml` that cannot be read; the message is the sentence
+    /// the Tracker pane shows under the settings file.
     case invalidSettings(String)
     /// A `current.json` that cannot be read.
     case invalidState(String)
@@ -18,8 +19,8 @@ public enum ActivityError: Error, Equatable, LocalizedError {
         switch self {
         case let .malformedLine(reason):
             "Malformed activity log line: \(reason)"
-        case let .invalidSettings(reason):
-            "The tracker settings cannot be read: \(reason)"
+        case let .invalidSettings(message):
+            message
         case let .invalidState(reason):
             "The tracker state cannot be read: \(reason)"
         case let .fileSystem(reason):

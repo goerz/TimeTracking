@@ -12,9 +12,9 @@ public enum PushError: Error, Hashable, Sendable, LocalizedError {
 
     public var errorDescription: String? {
         switch self {
-        case .noKey: "No APNs key is installed."
+        case .noKey: "No push key is installed."
         case let .invalidKey(message): message
-        case let .keychain(status): "The Keychain returned \(status)."
+        case let .keychain(status): "The push key couldn't be read from the Keychain (error \(status))."
         case let .network(message): message
         }
     }

@@ -39,14 +39,20 @@ public enum SyncTransportError: Error, Hashable, Sendable, LocalizedError {
     case networkUnavailable
     case noAccount
     case zoneNotFound
+    /// The process lacks the iCloud container's entitlement (ad-hoc builds).
+    case notEntitled
+    /// Any other failure; the message (CloudKit's) is for logs.
     case other(String)
 
+    /// The settings window's iCloud line (spec_design.md §12); logs use
+    /// `String(describing:)`, which keeps CloudKit's message.
     public var errorDescription: String? {
         switch self {
-        case .networkUnavailable: "The network is unavailable."
-        case .noAccount: "No iCloud account."
-        case .zoneNotFound: "The zone does not exist."
-        case let .other(message): message
+        case .networkUnavailable: "Waiting for the network"
+        case .noAccount: "Not signed in to iCloud"
+        case .zoneNotFound: "Setting up iCloud…"
+        case .notEntitled: "This copy of the app can't use iCloud."
+        case .other: "Couldn't sync with iCloud. The app will try again."
         }
     }
 }

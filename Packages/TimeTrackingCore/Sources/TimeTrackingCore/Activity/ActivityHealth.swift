@@ -11,16 +11,20 @@ public enum ActivityHealthDot: Sendable, Hashable {
     case gray
 }
 
-/// The health footer.
+/// The health footer. It lists only the sources with a problem; the
+/// Tracker pane lists every source.
 public struct ActivityHealth: Sendable, Hashable {
     public var dot: ActivityHealthDot
-    /// "Tracker running · last tick 12 s ago" or "Mac tracker: last tick 2 min ago".
+    /// "Tracker running · checked 12 s ago" or "Mac tracker: checked 2 min ago".
     public var statusLine: String
-    /// "Terminal, Browsers, Files".
-    public var activeSources: [String]
-    /// "Knowledge store off (Full Disk Access not granted)", in the warning color.
+    /// Always empty: the footer no longer lists working sources. Kept only
+    /// until no view reads it; remove it then.
+    public var activeSources: [String] = []
+    /// "Browser history: Full Disk Access is off; Safari pages are recorded
+    /// by site only", in the warning color: only sources that are limited or off.
     public var problems: [String]
-    /// Agent version, every source's status, the primary item, and the presence state.
+    /// The tracker version, the primary item ("Now: paper (tmux) · draft"),
+    /// and the presence ("In use").
     public var tooltip: [String]
 
     /// The Mac footer: the Tracker pane's dot and line by the liveness rule.
@@ -34,39 +38,37 @@ public struct ActivityHealth: Sendable, Hashable {
         }
         self.statusLine = liveness.statusLine(now: now)
         let sources = state?.health.sources ?? []
-        self.activeSources = sources.filter { $0.status == .active }.map(\.name)
         self.problems = sources.filter { $0.status != .active }.map { source in
-            let status = source.status == .off ? "off" : "on fallback"
-            return source.reason.isEmpty ? "\(source.name) \(status)" : "\(source.name) \(status) (\(source.reason))"
+            "\(source.displayName): \(source.reason.isEmpty ? source.status.displayName : source.reason)"
         }
         var tooltip: [String] = []
         if let state {
-            tooltip.append("Agent \(state.health.version)")
-            tooltip += sources.map { "\($0.name): \($0.status.rawValue)\($0.reason.isEmpty ? "" : " (\($0.reason))")" }
-            if let primary = state.primary {
-                tooltip.append([primary.context, primary.subject, primary.detail].filter { !$0.isEmpty }.joined(separator: " "))
+            tooltip.append("Tracker version \(state.health.version)")
+            if let primary = state.primary, !primary.text.isEmpty {
+                tooltip.append("Now: \(primary.text)")
             }
-            tooltip.append("Presence: \(state.presence.state.rawValue)")
+            tooltip.append(state.presence.state.displayName)
         }
         self.tooltip = tooltip
     }
 
-    /// The iPad footer from a Mac's `LiveState` activity (§5): no sources.
+    /// The iPad footer from a Mac's `LiveState` activity (§5): no sources,
+    /// only the ids of those with a problem.
     public init(remote activity: LiveState.MacActivity, now: Date) {
         let tick = activity.lastTick.map { TrackerLiveness.age(now.timeIntervalSince($0)) }
         if activity.agentRunning {
             self.dot = .green
-            self.statusLine = "Mac tracker: last tick \(tick ?? "unknown") ago"
+            self.statusLine = tick.map { "Mac tracker: checked \($0) ago" } ?? "Mac tracker: running"
         } else {
             self.dot = .gray
-            self.statusLine = "Mac tracker: last seen \(tick.map { "\($0) ago" } ?? "never")"
+            self.statusLine = tick.map { "Mac tracker: last checked \($0) ago" } ?? "Mac tracker: not checked yet"
         }
-        self.activeSources = []
-        self.problems = activity.health.map { "\($0) not active" }
+        self.problems = activity.health.map { "\(TrackerSourceHealth.name(forID: $0) ?? $0) needs attention on the Mac" }
         var tooltip: [String] = []
         if let presence = activity.presence {
-            let since = activity.since.map { " since \(TrackerLiveness.age(now.timeIntervalSince($0))) ago" } ?? ""
-            tooltip.append("Presence: \(presence)\(since)")
+            let word = TrackerPresenceState(rawValue: presence)?.displayName ?? presence
+            let age = activity.since.map { " for \(TrackerLiveness.age(now.timeIntervalSince($0)))" } ?? ""
+            tooltip.append(word + age)
         }
         self.tooltip = tooltip
     }

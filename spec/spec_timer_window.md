@@ -227,7 +227,7 @@ Every pane is a grouped `Form` 520 pt wide (`spec_design.md` §8). The window ta
 | Timer window | Float above other windows | off | Same state as the pin; the footer says so |
 | Menu bar and Dock | Show timer, Show seconds, Show project, During a Pomodoro, show | on, off, off, Timer and countdown | `spec_menubar.md` §6 |
 | Menu bar and Dock | Show Dock icon | on | `spec_menubar.md` §4 |
-| iCloud | Sync and widget push status | | `spec_data_and_sync.md` §3.1, §4.3 |
+| iCloud | "Sync" ("Up to date", "Not signed in to iCloud. Entries stay on this Mac.", "Couldn't sync with iCloud. The app will try again.") and "Widget updates" ("Instant", "Last sent at 10:42", "Every few minutes" without a push key, "Not working" with the detail in the log) | | `spec_data_and_sync.md` §3.1, §4.3 |
 
 Without notification authorization, a last section shows "Notifications are off for this app." with the warning symbol and a button to the app's Notifications settings. The Pomodoro, Idle, and Reminders panes hold the settings of 5.2, 6.2, and 7, with footers that say what the durations and thresholds do.
 
@@ -245,8 +245,8 @@ The two recorders use the KeyboardShortcuts package (names `showHideTimer`, `con
 |---|---|---|
 | Show/hide Timer window | ⌥⌘R | If the Timer window is not the key window of the active app, activate the app and show the window with the task field focused; otherwise hide the app. |
 | Continue/stop timer | unassigned | Stop the running entry, or continue the most recent entry when nothing runs. The window is not shown. |
-| Focus app when the timer starts | off | After an entry starts from the global shortcut, the menu bar, a notification, an intent, or another device, show the Timer window with the task field focused. |
-| Focus app when the timer stops | off | The same after an entry stops from those sources. |
+| Show the Timer window when an entry starts | off | After an entry starts from the global shortcut, the menu bar, a notification, an intent, or another device, show the Timer window with the task field focused. |
+| Show the Timer window when an entry stops | off | The same after an entry stops from those sources. |
 
 Window > Timer Window and the menu bar's "Show Timer Window" display the show/hide shortcut as key equivalent (none when unassigned); choosing either only shows the window.
 
@@ -321,7 +321,7 @@ Clicking a notification shows the Timer window (with the idle prompt for `idle`)
 - TW-28. The prompt's options act as in §6.3.
 - TW-29. Lock, sleep, and shutdown follow the settings of §6.2, using the lock or shutdown time.
 - TW-30. With reminders every 10 min, 09:00 to 17:00, weekdays, a reminder arrives 10 min after a stop at 10:00 on a Tuesday, none at 17:05 or on a Saturday; Snooze suppresses them for its duration.
-- TW-31. The continue/stop shortcut stops or continues; with "Focus app when the timer starts" on, the window then appears with the task field focused.
+- TW-31. The continue/stop shortcut stops or continues; with "Show the Timer window when an entry starts" on, the window then appears with the task field focused.
 - TW-32. Each notification category offers exactly its listed actions; the settings window reopens on the last pane shown.
 - TW-33. The first-launch alert of §8.2 appears once per Mac; "Open Tracker Settings" opens the Tracker pane, and the agent stays unregistered until "Enable Tracker".
 - TW-34. The first-launch alert's "Open `<APP_NAME>` at login" checkbox is on by default; checked, either button turns on "Open at login", unchecked neither does; under `-UITesting` the real login item is never registered.

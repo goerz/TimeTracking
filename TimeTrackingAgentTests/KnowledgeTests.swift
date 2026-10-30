@@ -43,7 +43,7 @@ struct KnowledgeTests {
             Issue.record("expected unavailable, got \(read)")
             return
         }
-        #expect(reason.contains("Unexpected Knowledge store schema"))
+        #expect(reason == KnowledgeStoreReader.unexpectedSchemaReason)
         harness.knowledge.result = read
         await harness.engine.tick()
         #expect(harness.health("knowledge")?.status == .off)

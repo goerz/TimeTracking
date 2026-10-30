@@ -38,7 +38,8 @@ final class URLEventHandler: NSObject {
     func attach(_ router: URLRouter) {
         router.alert = { message in
             let alert = NSAlert()
-            alert.messageText = message
+            alert.messageText = "Couldn't Open the Link"
+            alert.informativeText = message
             alert.runModal()
         }
         self.router = router

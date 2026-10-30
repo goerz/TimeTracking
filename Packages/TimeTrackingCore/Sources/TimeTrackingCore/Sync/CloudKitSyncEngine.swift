@@ -14,11 +14,11 @@ public struct CloudKitSyncEngineFactory: SyncEngineFactory {
         self.containerIdentifier = containerIdentifier
     }
 
-    /// Fails with `SyncTransportError.other` when the process lacks the
+    /// Fails with `SyncTransportError.notEntitled` when the process lacks the
     /// container's entitlement (ad-hoc builds), before CloudKit is touched.
     public func makeEngine(for coordinator: SyncCoordinator, state: Data?) async throws -> any SyncEngineDriving {
         guard CloudKitAvailability.check(containerIdentifier: containerIdentifier) else {
-            throw SyncTransportError.other("This build is not entitled to iCloud container \(containerIdentifier).")
+            throw SyncTransportError.notEntitled
         }
         let container = CKContainer(identifier: containerIdentifier)
         switch try await container.accountStatus() {

@@ -22,6 +22,7 @@ final class LiveUpdates {
     @ObservationIgnored let coordinator: SyncCoordinator
     @ObservationIgnored let publisher: LiveStatePublisher
     @ObservationIgnored let sender: WidgetPushSender
+    @ObservationIgnored private let pushClient: any WidgetPushing
     @ObservationIgnored private let readTrackerState: () async -> TrackerState?
     @ObservationIgnored private let mirror: ActivityFolderMirror?
     @ObservationIgnored private let deviceName: String
@@ -55,6 +56,7 @@ final class LiveUpdates {
         self.coordinator = SyncCoordinator(store: store, factory: engineFactory)
         self.publisher = LiveStatePublisher(store: store, deviceID: store.deviceID, clock: clock)
         self.sender = WidgetPushSender(store: store, client: pushClient, clock: clock)
+        self.pushClient = pushClient
         self.readTrackerState = readTrackerState
         self.mirror = mirror
         self.deviceName = deviceName
@@ -69,6 +71,10 @@ final class LiveUpdates {
         await coordinator.onAccountSwitch(confirm: confirmAccountSwitch)
         await sender.onStatus { [weak self] status in
             Task { @MainActor in self?.pushStatus = status }
+        }
+        // Without a key, say so before the first push would.
+        if await !pushClient.hasKey() {
+            pushStatus = .noKey
         }
         let stream = store.changes
         statusTask = Task { [weak self] in
@@ -137,18 +143,19 @@ final class LiveUpdates {
         case let .sending(count): "Sending \(count) change\(count == 1 ? "" : "s")…"
         case .fetching: "Receiving changes…"
         case .waitingForNetwork: "Waiting for the network"
-        case .noAccount: "Not signed in to iCloud; this Mac only"
+        case .noAccount: "Not signed in to iCloud. Entries stay on this Mac."
         case let .error(message): message
         }
     }
 
-    /// The settings window's widget push line (spec_data_and_sync.md §4.3).
+    /// The settings window's widget updates line (spec_data_and_sync.md
+    /// §4.3); a failure's detail goes to the log.
     var pushStatusText: String {
         switch pushStatus {
-        case .noKey: "No APNs key installed (make apns-key); widgets update without pushes"
-        case .idle(nil): "Ready"
-        case let .idle(sent?): "Last sent \(sent.formatted(date: .omitted, time: .shortened))"
-        case let .failing(message): "Failing: \(message)"
+        case .noKey: "Every few minutes"
+        case .idle(nil): "Instant"
+        case let .idle(sent?): "Last sent at \(sent.formatted(date: .omitted, time: .shortened))"
+        case .failing: "Not working"
         }
     }
 

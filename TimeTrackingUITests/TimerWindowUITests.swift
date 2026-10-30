@@ -34,7 +34,7 @@ final class TimerWindowUITests: XCTestCase {
         // The small fixture has entries today and on earlier days.
         XCTAssertTrue(app.descendants(matching: .any)["timer.list"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.descendants(matching: .any).matching(identifier: "timer.row").firstMatch.waitForExistence(timeout: 5))
-        XCTAssertFalse(app.staticTexts["timer.placeholder"].exists)
+        XCTAssertFalse(app.descendants(matching: .any)["timer.placeholder"].exists)
         app.terminate()
     }
 

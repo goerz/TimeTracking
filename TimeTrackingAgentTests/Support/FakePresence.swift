@@ -156,7 +156,7 @@ final class FakeHistory: BrowserHistory {
 
 @MainActor
 final class FakeKnowledge: KnowledgeSource {
-    var result = KnowledgeRead.unavailable("Full Disk Access not granted")
+    var result = KnowledgeRead.unavailable("Full Disk Access is off; macOS app usage history can't be read")
 
     func read(from _: Date, to _: Date) -> KnowledgeRead {
         result

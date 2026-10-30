@@ -4,6 +4,7 @@
 
 import Foundation
 import Observation
+import os
 import TimeTrackingCore
 
 /// The exclusion lists of §7.2, by their key in `[privacy]`.
@@ -37,6 +38,26 @@ enum ExclusionList: String, CaseIterable, Identifiable {
         case .excludeKeywords, .excludeTitleKeywords: "Keyword"
         }
     }
+
+    /// The list as the pane names it, "excluded apps".
+    var displayName: String {
+        switch self {
+        case .excludeApps: "excluded apps"
+        case .nameOnlyApps: "apps recorded by name only"
+        case .excludeDomains: "excluded sites"
+        case .privateDomains: "private sites"
+        case .excludePaths: "excluded folders"
+        case .privateAgentPaths: "private coding agent folders"
+        case .excludeTmuxSessions: "excluded tmux sessions"
+        case .excludeKeywords: "excluded keywords"
+        case .excludeTitleKeywords: "excluded title keywords"
+        }
+    }
+
+    /// "excluded apps (exclude_apps)": the name, and the key to find it in the file.
+    var displayNameWithKey: String {
+        "\(displayName) (\(key))"
+    }
 }
 
 /// `settings.toml` and the block log folder. The file is the user's: the
@@ -64,7 +85,7 @@ final class TrackerSettingsModel {
     /// A path as shown in the pane, with `~` for the home folder.
     static func displayPath(_ url: URL?) -> String {
         guard let path = url?.path else {
-            return "Not available without an App Group container"
+            return "Not available"
         }
         let home = NSHomeDirectory()
         return path.hasPrefix(home + "/") ? "~" + path.dropFirst(home.count) : path
@@ -95,7 +116,7 @@ final class TrackerSettingsModel {
             message = nil
             return true
         } catch {
-            message = error.localizedDescription
+            message = Self.message(for: error)
             return false
         }
     }
@@ -116,8 +137,18 @@ final class TrackerSettingsModel {
             pendingExclusion = nil
             message = nil
         } catch {
-            message = error.localizedDescription
+            message = Self.message(for: error)
         }
+    }
+
+    /// The line under the settings file for a failed edit: the settings
+    /// error's own sentence, else "Couldn't write the settings file: …".
+    static func message(for error: any Error) -> String {
+        if case let .invalidSettings(message) = error as? ActivityError {
+            return message
+        }
+        Logging.logger(category: "Tracker").error("settings.toml: \(String(describing: error), privacy: .public)")
+        return "Couldn't write the settings file: \(error.localizedDescription)"
     }
 
     /// Entries of `list` in the file as it is now.

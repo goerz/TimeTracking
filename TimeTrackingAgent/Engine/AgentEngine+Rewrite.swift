@@ -53,7 +53,7 @@ extension AgentEngine {
             return .success
         }
         guard let block = removed.first else {
-            return .error("no block of \(device) at \(start)")
+            return .error("\(TrackerReply.noBlockReason) \(device) at \(start)")
         }
         if device == configuration.device {
             try store.delete(from: block.start, to: block.end.addingTimeInterval(1))

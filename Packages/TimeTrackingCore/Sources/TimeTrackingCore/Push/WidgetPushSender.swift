@@ -100,6 +100,7 @@ public actor WidgetPushSender {
                 .compactMap(\.widgetPushToken)
                 .filter { !$0.isEmpty }
         } catch {
+            Self.logger.error("Widget push failed: \(String(describing: error), privacy: .public)")
             setStatus(.failing(error.localizedDescription))
             return
         }

@@ -12,8 +12,9 @@ nonisolated struct SourceHealthBoard: Hashable, Sendable {
         for source in SourceID.allCases {
             initial[source] = TrackerSourceHealth(id: source.rawValue, name: source.name, status: .active)
         }
-        initial[.deviceEvents]?.status = .off
-        initial[.deviceEvents]?.reason = "Not fetched yet"
+        // Until the first check of iCloud.
+        initial[.deviceEvents]?.status = .fallback
+        initial[.deviceEvents]?.reason = "Checking…"
         self.entries = initial
     }
 

@@ -1,6 +1,8 @@
 // SourceID: the sources of §2.3 as current.json names them
 // (spec_activity_tracking.md §2.3, §4.4).
 
+import TimeTrackingCore
+
 /// A source of §2.3; the raw value is its `id` in `current.json`, and the
 /// cases are in table order.
 nonisolated enum SourceID: String, CaseIterable, Hashable, Sendable {
@@ -19,26 +21,11 @@ nonisolated enum SourceID: String, CaseIterable, Hashable, Sendable {
     case deviceEvents = "device_events"
     case syncedSafari = "synced_safari"
 
-    /// The display name in `current.json`.
+    /// The display name in `current.json`, from the library's table.
     var name: String {
-        switch self {
-        case .window: "Window titles"
-        case .terminal: "Terminal"
-        case .tmux: "tmux"
-        case .editor: "Editor file"
-        case .agents: "Coding agents"
-        case .tmuxEvents: "tmux hooks"
-        case .agentEvents: "Agent hooks"
-        case .browser: "Browsers"
-        case .history: "Browser history"
-        case .knowledge: "Knowledge store"
-        case .files: "Modified files"
-        case .sharedFolder: "iCloud Drive folder"
-        case .deviceEvents: "iPhone and iPad"
-        case .syncedSafari: "Synced Safari history"
-        }
+        TrackerSourceHealth.name(forID: rawValue) ?? rawValue
     }
 
     /// The reason shared by `history` and the browser resolver.
-    static let noFullDiskAccessReason = "Full Disk Access not granted; Safari URLs keep only the domain"
+    static let noFullDiskAccessReason = "Full Disk Access is off; Safari pages are recorded by site only"
 }

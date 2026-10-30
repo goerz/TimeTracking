@@ -94,6 +94,27 @@ struct TrackerSettingsTextTests {
         }
     }
 
+    @Test("TRK-32 the errors shown under the settings file name the line, the setting, or the expected list")
+    func errorMessages() {
+        func message(_ text: String) -> String {
+            do {
+                _ = try TrackerSettings(tomlText: text)
+                return ""
+            } catch {
+                return error.localizedDescription
+            }
+        }
+        let syntax = message("[privacy]\nexclude_apps = [\"a\"\n")
+        #expect(syntax.hasPrefix("The settings file has an error on line 2: "))
+        #expect(syntax.hasSuffix(". Fix it in the editor."))
+        #expect(!syntax.contains("TOML"))
+        let duration = message("[presence]\nidle_after = \"soon\"\n")
+        #expect(duration.hasPrefix("In the settings file, "))
+        #expect(duration.contains("idle_after can't be used: \"soon\" is not a duration such as \"30s\", \"5m\", or \"3h\""))
+        let list = message("[privacy]\nexclude_apps = \"x\"\n")
+        #expect(list == "In the settings file, exclude_apps under [privacy] must be a list, like [\"com.example.app\"].")
+    }
+
     @Test("TRK-32 a header-like line inside a multi-line string or array is not a table")
     func headersOnlyAtTopLevel() throws {
         let text = """

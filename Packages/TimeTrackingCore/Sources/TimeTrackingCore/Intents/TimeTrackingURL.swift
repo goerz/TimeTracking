@@ -104,9 +104,20 @@ public enum TimeTrackingURLError: Error, Equatable, Sendable, LocalizedError {
 
     public var errorDescription: String? {
         switch self {
-        case .unknown: "Unknown TimeTracking URL"
-        case .tooLong: "A value of the TimeTracking URL is longer than 1,000 characters."
-        case let .badValue(key): "The TimeTracking URL has a malformed \(key)."
+        case .unknown: "This link isn't one the app understands."
+        case .tooLong: "A value in the link is longer than 1,000 characters."
+        case let .badValue(key): "The link's \(Self.fieldName(key)) is not valid."
+        }
+    }
+
+    /// The query key or path part as the user knows it.
+    static func fieldName(_ key: String) -> String {
+        switch key {
+        case "project_id", "project": "project"
+        case "date": "date"
+        case "from": "start date"
+        case "to": "end date"
+        default: "value"
         }
     }
 }

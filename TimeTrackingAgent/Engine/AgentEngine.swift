@@ -210,7 +210,7 @@ final class AgentEngine {
         let contextName = AppResolver.contextName(app)
         let appOnly = SampleItem(context: contextName, subject: "", groupKey: contextName, app: app.bundleID)
         guard environment.focus.isTrusted else {
-            health.set(.window, .fallback, "Accessibility not granted; app names only")
+            health.set(.window, .fallback, "Accessibility is off; only app names are recorded")
             return Focus(item: appOnly, bundleID: app.bundleID)
         }
         health.set(.window, .active)

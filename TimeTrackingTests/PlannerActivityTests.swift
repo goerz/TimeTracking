@@ -117,7 +117,7 @@ struct PlannerActivityTests {
             )
         }
         await router.activity.loadHealth()
-        #expect(router.activity.health?.statusLine == "Mac tracker: last tick 2 min ago")
+        #expect(router.activity.health?.statusLine == "Mac tracker: checked 2 min ago")
         #expect(router.activity.health?.activeSources.isEmpty == true)
     }
 

@@ -22,12 +22,16 @@ extension TerminalResolver {
                 if let socket = neovimSocket(forPaneOf: facts.pid, snapshot: snapshot),
                    let fromRPC = await environment.editorRPC.currentFile(socket: socket, timeout: Self.rpcTimeout), fromRPC != path
                 {
-                    return (path, [SourceReport(.editor, .fallback, "The pane title and Neovim disagree about the file")])
+                    return (path, [SourceReport(.editor, .fallback, Self.titleDisagreesReason)])
                 }
             }
             return (path, [SourceReport(.editor, .active)])
         }
-        let report = SourceReport(.editor, .fallback, "\(program) does not name its file in the pane title")
+        let report = SourceReport(
+            .editor,
+            .fallback,
+            "\(program) doesn't show its file in the terminal title; the file is asked for or guessed"
+        )
         if program == "nvim", let socket = neovimSocket(forPaneOf: facts.pid, snapshot: snapshot),
            now.timeIntervalSince(silentSockets[socket] ?? .distantPast) >= Self.silentBackoff
         {
@@ -38,6 +42,9 @@ extension TerminalResolver {
         }
         return (argumentFile(facts, program: program, snapshot: snapshot, context: context), [report])
     }
+
+    /// The `editor` reason when the pane title and Neovim name different files.
+    static let titleDisagreesReason = "The terminal title names a different file than Neovim has open; the title may be out of date"
 
     /// The last file argument of the editor process in the pane.
     private func argumentFile(_ facts: PaneFacts, program: String, snapshot: TerminalSnapshot, context: ResolveContext) -> String? {

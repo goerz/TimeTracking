@@ -21,7 +21,7 @@ public enum TrackerSettingsText {
             let end = scanner.tableEnd(after: header)
             if let assignment = scanner.assignment(key, from: header, to: end) {
                 guard let array = scanner.array(after: assignment) else {
-                    throw .invalidSettings("\(key) in [\(table)] is not an array")
+                    throw .invalidSettings(notAList(key, in: table))
                 }
                 if array.values.contains(value) {
                     return text
@@ -36,9 +36,25 @@ public enum TrackerSettingsText {
         }
         let decoded = try TrackerSettings(tomlText: edited)
         guard decoded != current else {
-            throw .invalidSettings("\(key) is not a setting of [\(table)]")
+            throw .invalidSettings("The settings file has no list \(key) under [\(table)].")
         }
         return edited
+    }
+
+    /// "In the settings file, exclude_apps under [privacy] must be a list,
+    /// like ["com.example.app"]."
+    static func notAList(_ key: String, in table: String) -> String {
+        let example = if key.hasSuffix("apps") {
+            "com.example.app"
+        } else if key.hasSuffix("domains") {
+            "example.com"
+        } else if key.hasSuffix("paths") {
+            "~/Private"
+        } else {
+            "word"
+        }
+        let place = table.isEmpty ? key : "\(key) under [\(table)]"
+        return "In the settings file, \(place) must be a list, like [\(quoted(example))]."
     }
 
     /// A TOML basic string.

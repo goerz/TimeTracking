@@ -66,8 +66,8 @@ struct DeviceTests {
         #expect(blocks[1].start == harness.time(1800))
         #expect(blocks[1].end == harness.time(2400))
         #expect(harness.blockLogText.contains(#""src":"device""#))
-        #expect(harness.health("device_events")?.status == .fallback)
-        #expect(harness.health("device_events")?.reason == "Fetched every 5 minutes")
+        #expect(harness.health("device_events")?.status == .active)
+        #expect(harness.health("device_events")?.reason.isEmpty == true)
     }
 
     @Test func lateEventsReplaceTheDaysBlocks() async throws {
@@ -193,7 +193,7 @@ struct DeviceTests {
         let harness = try AgentHarness()
         await harness.engine.syncDeviceEvents(now: harness.time(0))
         #expect(harness.health("device_events")?.status == .off)
-        #expect(harness.currentStateText.contains("iCloud is not available to the tracker"))
+        #expect(harness.currentStateText.contains("iCloud is not available; iPhone and iPad activity doesn't reach this Mac"))
     }
 
     @Test func aFailedFetchKeepsTheTokenAndReportsIt() async throws {
@@ -203,7 +203,7 @@ struct DeviceTests {
         await server.setFailing(Offline())
         await harness.engine.syncDeviceEvents(now: harness.time(600))
         #expect(harness.blocks.isEmpty)
-        #expect(harness.health("device_events")?.reason.hasPrefix("The last fetch failed") == true)
+        #expect(harness.health("device_events")?.reason == "Couldn't reach iCloud; trying again in 5 minutes")
         await server.setFailing(nil)
         await harness.engine.syncDeviceEvents(now: harness.time(900))
         #expect(harness.blocks.count == 1)

@@ -29,8 +29,8 @@ struct URLRouterTests {
         #expect(missing == .failed("No project named \"Nonexistent\"."))
         #expect(test.app.timer.running?.task == "Hello")
         let unknown = try await router.open(#require(URL(string: "timetracking-debug://delete")))
-        #expect(unknown == .failed("Unknown TimeTracking URL"))
-        #expect(alerts.messages == ["No project named \"Nonexistent\".", "Unknown TimeTracking URL"])
+        #expect(unknown == .failed("This link isn't one the app understands."))
+        #expect(alerts.messages == ["No project named \"Nonexistent\".", "This link isn't one the app understands."])
         #expect(try await test.store.projects(filter: ProjectFilter(state: .all)).count == 1)
     }
 

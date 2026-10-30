@@ -228,7 +228,7 @@ private struct ReportViewItems: View {
         Button("Show Entries") { Task { await model.show(.entries) } }
             .keyboardShortcut("2", modifiers: [.command, .control])
         Divider()
-        Menu("Granularity") {
+        Menu("Show Totals By") {
             Button("Automatic") { Task { await model.setGranularity(nil) } }
             ForEach([Granularity.day, .week, .month, .year], id: \.self) { granularity in
                 Button(granularity.title) { Task { await model.setGranularity(granularity) } }

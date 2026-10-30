@@ -133,7 +133,7 @@ struct RunningEntryBar: View {
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .help(pinned ? "Unpin" : "Float on Top")
+        .help(pinned ? "Stop Floating on Top" : "Float on Top")
         .accessibilityIdentifier("timer.pinButton")
         .accessibilityValue(pinned ? "pinned" : "unpinned")
     }

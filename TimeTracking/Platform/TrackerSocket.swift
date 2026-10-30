@@ -3,6 +3,8 @@
 
 import Darwin
 import Foundation
+import os
+import TimeTrackingCore
 
 /// Sends one command line and returns the agent's answer (`ok` or
 /// `error <reason>`).
@@ -10,10 +12,28 @@ protocol TrackerCommandSending: Sendable {
     func send(_ command: String) async -> TrackerCommandResult
 }
 
-/// The agent's answer.
-enum TrackerCommandResult: Equatable, Sendable {
+/// The agent's answer; a rejection carries the sentence the user reads
+/// (spec_design.md §12), the raw reply goes to the log.
+nonisolated enum TrackerCommandResult: Equatable, Sendable {
     case accepted
     case rejected(String)
+
+    /// The socket could not be opened or written.
+    static let unreachable = rejected("The tracker could not be reached.")
+    /// Nothing listens on the socket.
+    static let notRunning = rejected("The tracker is not running.")
+
+    /// The rejection for the agent's reason of an `error <reason>` reply.
+    static func rejection(reason: String) -> Self {
+        if reason.hasPrefix(TrackerReply.noBlockReason) {
+            return .rejected("This activity is no longer in the logs.")
+        }
+        if reason == TrackerReply.stoppingReason {
+            return .rejected("The tracker is restarting. Try again in a moment.")
+        }
+        Logging.logger(category: "Tracker").error("tracker reply: \(reason, privacy: .public)")
+        return .rejected("The tracker could not change the logs.")
+    }
 }
 
 /// Records commands (tests, UI testing).
@@ -44,12 +64,12 @@ struct TrackerSocket: TrackerCommandSending {
     private nonisolated static func exchange(_ command: String, at url: URL) -> TrackerCommandResult {
         let link = URL(filePath: NSTemporaryDirectory()).appending(path: "tt-\(UUID().uuidString.prefix(8)).sock")
         guard (try? FileManager.default.createSymbolicLink(at: link, withDestinationURL: url)) != nil else {
-            return .rejected("The tracker's folder does not exist.")
+            return .unreachable
         }
         defer { try? FileManager.default.removeItem(at: link) }
         let descriptor = socket(AF_UNIX, SOCK_STREAM, 0)
         guard descriptor >= 0 else {
-            return .rejected("No socket.")
+            return .unreachable
         }
         defer { close(descriptor) }
         var noSignal: Int32 = 1
@@ -58,7 +78,7 @@ struct TrackerSocket: TrackerCommandSending {
         address.sun_family = sa_family_t(AF_UNIX)
         let name = Array(link.path.utf8CString)
         guard name.count <= MemoryLayout.size(ofValue: address.sun_path) else {
-            return .rejected("The socket path is too long.")
+            return .unreachable
         }
         withUnsafeMutableBytes(of: &address.sun_path) { buffer in
             name.withUnsafeBytes { buffer.copyMemory(from: $0) }
@@ -69,11 +89,11 @@ struct TrackerSocket: TrackerCommandSending {
             }
         }
         guard connected == 0 else {
-            return .rejected("The tracker is not running.")
+            return .notRunning
         }
         let bytes = Array((command + "\n").utf8)
         guard bytes.withUnsafeBytes({ write(descriptor, $0.baseAddress, $0.count) }) == bytes.count else {
-            return .rejected("The tracker did not accept the command.")
+            return .unreachable
         }
         var reply = [UInt8]()
         var byte: UInt8 = 0
@@ -84,6 +104,9 @@ struct TrackerSocket: TrackerCommandSending {
         if text == "ok" {
             return .accepted
         }
-        return .rejected(text.hasPrefix("error ") ? String(text.dropFirst(6)) : text)
+        guard case let .error(reason) = TrackerReply(line: text) else {
+            return .accepted
+        }
+        return .rejection(reason: reason)
     }
 }

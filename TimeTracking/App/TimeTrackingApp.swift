@@ -75,10 +75,13 @@ private struct HostedContent<Content: View>: View {
         if let model = host.model {
             content(model)
         } else if let failure = host.failure {
-            Text(failure).padding()
+            VStack(alignment: .leading, spacing: Design.Spacing.small) {
+                Text("\(AppHost.appName) Couldn't Open Your Entries").font(.headline)
+                Text(failure)
+            }
+            .padding()
         } else {
-            Text(AppIdentity.main?.appID ?? "TimeTracking")
-                .foregroundStyle(.secondary)
+            ProgressView()
                 .padding()
                 .accessibilityIdentifier("timer.placeholder")
         }

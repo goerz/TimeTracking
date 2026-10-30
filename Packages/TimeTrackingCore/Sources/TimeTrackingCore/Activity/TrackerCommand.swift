@@ -163,6 +163,12 @@ public enum TrackerReply: Sendable, Hashable {
     case success
     case error(String)
 
+    /// The start of the reason when `delete-block` finds no such block;
+    /// the device and start follow. The app maps it to its own text.
+    public static let noBlockReason = "no block of"
+    /// The reason while the agent shuts down.
+    public static let stoppingReason = "the tracker is stopping"
+
     /// Parses `ok` or `error <reason>`.
     public init(line: String) {
         let text = line.trimmingCharacters(in: .newlines)

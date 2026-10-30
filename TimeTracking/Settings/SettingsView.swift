@@ -296,9 +296,9 @@ struct ShortcutsPane: View {
                 Text("These work in every app.")
             }
             Section {
-                Toggle("Focus app when the timer starts", isOn: $settings.focusOnStart)
+                Toggle("Show the Timer window when an entry starts", isOn: $settings.focusOnStart)
                     .accessibilityIdentifier("settings.focusOnStart")
-                Toggle("Focus app when the timer stops", isOn: $settings.focusOnStop)
+                Toggle("Show the Timer window when an entry stops", isOn: $settings.focusOnStop)
             } footer: {
                 Text(
                     "Shows the Timer window after a start or stop from a shortcut, the menu bar, "

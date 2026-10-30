@@ -40,7 +40,7 @@ struct TrackerPaneTests {
         await tracker.pressButton()
         #expect(test.agent.registerCalls == 1)
         #expect(tracker.dotColor == "green")
-        #expect(tracker.liveness.statusLine(now: now) == "Tracker running · last tick 12 s ago")
+        #expect(tracker.liveness.statusLine(now: now) == "Tracker running · checked 12 s ago")
         #expect(tracker.buttonTitle == "Disable Tracker")
         let marks = Dictionary(uniqueKeysWithValues: tracker.setupSteps.map { ($0.id, $0.mark) })
         #expect(marks["background"] == .done)

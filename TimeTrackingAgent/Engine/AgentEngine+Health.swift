@@ -15,12 +15,22 @@ extension AgentEngine {
     /// Health of the sources checked at every tick.
     func updateStaticHealth(snapshot: TerminalSnapshot, now: Date) {
         if snapshot.sessions == nil {
-            health.set(.agents, .fallback, "No Claude Code sessions folder; busy state unknown")
+            health.set(.agents, .fallback, "Claude Code not found; when it is working can't be told")
         } else {
             health.set(.agents, .active)
         }
-        updateEventSource(.tmuxEvents, key: Self.tmuxEventKey, reason: "No tmux hook event in the last 7 days; the tick alone", now: now)
-        updateEventSource(.agentEvents, key: Self.agentEventKey, reason: "No agent hook event in the last 7 days; the tick alone", now: now)
+        updateEventSource(
+            .tmuxEvents,
+            key: Self.tmuxEventKey,
+            reason: "No tmux hook event in the last 7 days; switches are noticed up to 30 seconds late",
+            now: now
+        )
+        updateEventSource(
+            .agentEvents,
+            key: Self.agentEventKey,
+            reason: "No Claude Code hook event in the last 7 days; changes are noticed up to 30 seconds late",
+            now: now
+        )
         if environment.history.canReadSafari {
             health.set(.history, .active)
         } else {
@@ -30,12 +40,12 @@ extension AgentEngine {
         if settings.files.roots.map(context.expand).contains(where: environment.files.exists) {
             health.set(.files, .active)
         } else {
-            health.set(.files, .off, "No watched folder exists")
+            health.set(.files, .off, "None of the watched folders in the settings file exist")
         }
         if !settings.devices.syncedSafariHistory {
-            health.set(.syncedSafari, .off, "Turned off in the settings")
+            health.set(.syncedSafari, .off, "Turned off in the settings file")
         } else if !environment.history.canReadSafari {
-            health.set(.syncedSafari, .off, "Full Disk Access not granted")
+            health.set(.syncedSafari, .off, "Full Disk Access is off")
         } else {
             health.set(.syncedSafari, .active)
         }

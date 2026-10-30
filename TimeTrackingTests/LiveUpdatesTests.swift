@@ -10,7 +10,7 @@ import TimeTrackingCore
 /// A factory that fails as CloudKit does without the container's entitlement.
 private struct UnavailableFactory: SyncEngineFactory {
     func makeEngine(for _: SyncCoordinator, state _: Data?) throws -> any SyncEngineDriving {
-        throw SyncTransportError.other("This build is not entitled to iCloud.")
+        throw SyncTransportError.notEntitled
     }
 }
 
@@ -68,7 +68,8 @@ struct LiveUpdatesTests {
             return
         }
         #expect(await live.coordinator.isRunning == false)
-        #expect(live.syncStatusText.contains("not entitled"))
+        #expect(live.syncStatusText == "This copy of the app can't use iCloud.")
+        #expect(live.pushStatusText == "Every few minutes")
         #expect(try await store.devices().map(\.name) == ["Test Mac"])
         let entry = try await store.start(projectID: nil, task: "Offline", at: clock.now)
         #expect(try await store.runningEntry()?.id == entry.id)
@@ -110,6 +111,10 @@ struct LiveUpdatesTests {
             mirror: mirror
         )
         await active.tick()
+        #expect(!FileManager.default.fileExists(atPath: copied.path))
+        // Without iCloud Drive the folder reports `off`: nothing to copy into.
+        let offState = Self.state(sharedFolder: .off, reason: "iCloud Drive is off; activity stays on this Mac", at: clock.now)
+        await Self.live(store: store, clock: clock, state: offState, mirror: mirror).tick()
         #expect(!FileManager.default.fileExists(atPath: copied.path))
 
         let state = Self.state(sharedFolder: .fallback, reason: ActivityFolderMirror.fallbackReason, at: clock.now)

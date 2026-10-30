@@ -16,7 +16,7 @@ extension AgentEngine {
     /// and in CloudKit) older than 90 days.
     func syncDeviceEvents(now: Date) async {
         guard let deviceEvents else {
-            health.set(.deviceEvents, .off, "iCloud is not available to the tracker")
+            health.set(.deviceEvents, .off, "iCloud is not available; iPhone and iPad activity doesn't reach this Mac")
             writeCurrentState()
             return
         }
@@ -29,9 +29,9 @@ extension AgentEngine {
                 try mergeDeviceDay(day)
             }
             try store.setValue(next.data.base64EncodedString(), for: Self.deviceTokenKey)
-            health.set(.deviceEvents, .fallback, "Fetched every 5 minutes")
+            health.set(.deviceEvents, .active)
         } catch {
-            health.set(.deviceEvents, .fallback, "The last fetch failed: \(error.localizedDescription)")
+            health.set(.deviceEvents, .fallback, "Couldn't reach iCloud; trying again in 5 minutes")
             logger.error("device events: \(error.localizedDescription, privacy: .public)")
         }
         if isDue("device_purge", every: Self.purgeInterval, now: now) {

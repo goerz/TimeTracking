@@ -235,7 +235,17 @@ struct WidgetSnapshotTests {
         ])
         #expect(MacActivityLine.lines(state, timeZone: zone) == [
             "iMac · notes.pdf · idle since 14:02",
-            "MacBook · tmux:paper draft · active",
+            "MacBook · paper (tmux) · draft",
+        ])
+        let words = LiveState(activity: [
+            "a": activity("A", TrackerPrimaryItem(context: "skim", subject: ""), "passive", at: 3),
+            "b": activity("B", nil, "other_user", at: 2),
+            "c": activity("C", nil, "locked", at: 1),
+        ])
+        #expect(MacActivityLine.lines(words, timeZone: zone, limit: 3) == [
+            "A · Skim · in use",
+            "B · another user since 14:02",
+            "C · locked since 14:02",
         ])
     }
 }
