@@ -51,7 +51,7 @@ struct PlannerWindowView: View {
     }
 }
 
-/// The selected section. Calendar and Activity are step 7b's seams.
+/// The selected section.
 struct PlannerDetailView: View {
     @Environment(AppModel.self) private var app
     var router: PlannerRouter
@@ -66,20 +66,11 @@ struct PlannerDetailView: View {
             ReportsView(model: router.reports) {
                 ReportPrinter.print(router.reports)
             }
-        case .calendar, .activity:
-            PlannerSectionPlaceholder(section: router.section)
+        case .calendar:
+            CalendarView(model: router.calendar)
+        case .activity:
+            ActivityView(model: router.activity)
         }
-    }
-}
-
-/// Calendar and Activity until step 7b fills them in.
-struct PlannerSectionPlaceholder: View {
-    var section: PlannerSection
-
-    var body: some View {
-        ContentUnavailableView(section.title, systemImage: section.symbol)
-            .navigationTitle(section.title)
-            .accessibilityIdentifier("planner.\(section.rawValue)")
     }
 }
 

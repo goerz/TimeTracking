@@ -10,6 +10,23 @@ struct PlannerMenuState: Equatable {
     var plannerKey: Bool
     var section: PlannerSection
     var showsClientsAndAreas: Bool
+    /// A popover, editor, or sheet of the Calendar takes the plain keys.
+    var calendarEditing = false
+
+    var calendarCommands: Bool {
+        plannerKey && section == .calendar
+    }
+
+    /// Whether a Calendar command's menu item is enabled (plain keys only
+    /// while nothing takes text input).
+    func isEnabled(_ command: CalendarKeyCommand) -> Bool {
+        calendarCommands && (command.shortcut.modifiers.contains(.command) || !calendarEditing)
+    }
+
+    /// Activity's range shortcuts and its submenu.
+    var activityCommands: Bool {
+        plannerKey && section == .activity
+    }
 
     var sectionCommands: Bool {
         plannerKey
@@ -41,7 +58,8 @@ struct PlannerCommands: Commands {
         PlannerMenuState(
             plannerKey: plannerActive ?? false,
             section: router?.section ?? .projects,
-            showsClientsAndAreas: router?.projects.showsClientsAndAreas ?? false
+            showsClientsAndAreas: router?.projects.showsClientsAndAreas ?? false,
+            calendarEditing: router?.calendar.takesTextInput ?? false
         )
     }
 
@@ -59,7 +77,18 @@ struct PlannerCommands: Commands {
             if state.reportCommands, let reports = router?.reports {
                 ReportMenu(model: reports)
             }
+            if state.calendarCommands, let calendar = router?.calendar {
+                CalendarViewMenu(model: calendar, state: state)
+            }
+            if state.activityCommands, let activity = router?.activity {
+                ActivityMenu(model: activity)
+            }
             Divider()
+        }
+        CommandMenu("Entry") {
+            if let calendar = router?.calendar {
+                CalendarEntryItems(model: calendar, state: state)
+            }
         }
         CommandMenu("Project") {
             if let projects = router?.projects {

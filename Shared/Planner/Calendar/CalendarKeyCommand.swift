@@ -144,6 +144,13 @@ extension CalendarModel {
         }
     }
 
+    /// A popover, editor, or sheet takes the plain keys.
+    var takesTextInput: Bool {
+        draft != nil || blockDraft != nil || editingEntry != nil || fillDay != nil || pendingOverlap != nil || showsOptions ||
+            showsSuggestions
+            || showsMonthPicker
+    }
+
     /// Return: the editor of the selected entry or time block.
     func editSelection() {
         for item in selection {
