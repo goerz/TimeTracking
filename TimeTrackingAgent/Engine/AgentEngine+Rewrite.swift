@@ -25,21 +25,24 @@ extension AgentEngine {
         }
     }
 
-    private var logFolders: [URL] {
-        [logs.blocksFolder, logs.detailFolder]
+    /// From the start of `fromDay` to the midnight after `toDay`, local time.
+    private func dayRange(from fromDay: String, to toDay: String) -> Range<Date>? {
+        let zone = environment.timeZone
+        guard let start = ActivityTimestamp.date(fromDay + "T00:00:00", timeZone: zone),
+              let last = ActivityTimestamp.date(toDay + "T00:00:00", timeZone: zone)
+        else {
+            return nil
+        }
+        return start ..< ActivityTimestamp.nextMidnight(after: last, timeZone: zone)
     }
 
     private func deleteBlock(device: String, start: String) throws -> TrackerReply {
         guard ActivityTimestamp.date(start, utcOffset: 0) != nil else {
             return .error("not a local time: \(start)")
         }
-        var removed: [ActivityBlock] = []
-        for folder in logFolders {
-            for url in MonthFileRewriter.monthFiles(in: folder, fromDay: String(start.prefix(10)), toDay: String(start.prefix(10))) {
-                removed += try MonthFileRewriter.rewrite(url) { block, _, _ in
-                    block.device == device && ActivityTimestamp.text(block.start, utcOffset: block.utcOffset) == start ? .drop : .keep
-                }
-            }
+        let day = String(start.prefix(10))
+        let removed = try logs.rewrite(fromDay: day, toDay: day) { block, _, _ in
+            block.device == device && ActivityTimestamp.text(block.start, utcOffset: block.utcOffset) == start ? .drop : .keep
         }
         if let open = blocker.open, device == configuration.device,
            ActivityTimestamp.text(open.start, timeZone: environment.timeZone) == start
@@ -59,19 +62,14 @@ extension AgentEngine {
     }
 
     private func forgetDay(_ day: String) throws {
-        for folder in logFolders {
-            for url in MonthFileRewriter.monthFiles(in: folder, fromDay: day, toDay: day) {
-                try MonthFileRewriter.rewrite(url) { block, _, _ in block.localDay == day ? .drop : .keep }
-            }
-        }
-        guard let start = ActivityTimestamp.date(day + "T00:00:00", timeZone: environment.timeZone) else {
+        try logs.rewrite(fromDay: day, toDay: day) { block, _, _ in block.localDay == day ? .drop : .keep }
+        guard let range = dayRange(from: day, to: day) else {
             return
         }
-        let end = ActivityTimestamp.nextMidnight(after: start, timeZone: environment.timeZone)
-        try store.delete(from: start, to: end)
-        fileChanges.removeAll(from: start, to: end)
-        transitions.removeAll { $0.time >= start && $0.time < end }
-        if let open = blocker.open, open.start >= start, open.start < end {
+        try store.delete(from: range.lowerBound, to: range.upperBound)
+        fileChanges.removeAll(from: range.lowerBound, to: range.upperBound)
+        transitions.removeAll { range.contains($0.time) }
+        if let open = blocker.open, range.contains(open.start) {
             blocker.discardOpenBlock()
         }
         writeCurrentState()
@@ -80,27 +78,20 @@ extension AgentEngine {
     private func reapplyExclusions(fromDay: String, toDay: String) throws {
         reloadSettings()
         let rules = resolveContext().exclusions
-        for folder in logFolders {
-            for url in MonthFileRewriter.monthFiles(in: folder, fromDay: fromDay, toDay: toDay) {
-                try MonthFileRewriter.rewrite(url) { block, detail, contexts in
-                    guard block.localDay >= fromDay, block.localDay <= toDay else {
-                        return .keep
-                    }
-                    guard let newBlock = rules.reapplied(to: block, contexts: contexts) else {
-                        return .drop
-                    }
-                    let newDetail = detail.map { rules.reapplied(to: $0, contexts: contexts) }
-                    return newBlock == block && newDetail == detail ? .keep : .replace(newBlock, newDetail)
-                }
+        try logs.rewrite(fromDay: fromDay, toDay: toDay) { block, detail, contexts in
+            guard block.localDay >= fromDay, block.localDay <= toDay else {
+                return .keep
             }
+            guard let newBlock = rules.reapplied(to: block, contexts: contexts) else {
+                return .drop
+            }
+            let newDetail = detail.map { rules.reapplied(to: $0, contexts: contexts) }
+            return newBlock == block && newDetail == detail ? .keep : .replace(newBlock, newDetail)
         }
-        guard let start = ActivityTimestamp.date(fromDay + "T00:00:00", timeZone: environment.timeZone),
-              let last = ActivityTimestamp.date(toDay + "T00:00:00", timeZone: environment.timeZone)
-        else {
+        guard let range = dayRange(from: fromDay, to: toDay) else {
             return
         }
-        let end = ActivityTimestamp.nextMidnight(after: last, timeZone: environment.timeZone)
-        for row in try store.rows(from: start, to: end) {
+        for row in try store.rows(from: range.lowerBound, to: range.upperBound) {
             let updated = SampleRewrite.reapplied(row.sample, rules: rules)
             if updated != row.sample {
                 try store.update(row.id, with: updated, utcOffset: row.utcOffset)

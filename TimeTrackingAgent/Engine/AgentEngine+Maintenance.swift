@@ -105,21 +105,22 @@ extension AgentEngine {
                 .samples(apps: apps, displayOff: displayOff, in: gap, rules: rules, interval: Self.tickInterval)
             {
                 for closed in knowledgeBlocker.add(sample) {
-                    writeKnowledge(closed)
+                    appendSummary(closed, kind: "knowledge")
                 }
             }
             for closed in knowledgeBlocker.flush() {
-                writeKnowledge(closed)
+                appendSummary(closed, kind: "knowledge")
             }
         }
         try? store.setDate(until, for: Self.knowledgeWatermarkKey)
     }
 
-    private func writeKnowledge(_ closed: ClosedBlock) {
+    /// Appends a block formed off the tick (`kind` names it in the log).
+    private func appendSummary(_ closed: ClosedBlock, kind: String) {
         do {
-            try logs.append(closed, detail: ActivityBlockDetail(blockID: closed.block.id, items: closed.detailItems))
+            try logs.appendSummary(closed)
         } catch {
-            logger.error("knowledge block: \(error.localizedDescription, privacy: .public)")
+            logger.error("\(kind, privacy: .public) block: \(error.localizedDescription, privacy: .public)")
         }
     }
 
@@ -155,11 +156,7 @@ extension AgentEngine {
         }
         let context = resolveContext()
         for closed in syncedSafari.blocks(visits: visits, context: context, timeZone: environment.timeZone) {
-            do {
-                try logs.append(closed, detail: ActivityBlockDetail(blockID: closed.block.id, items: closed.detailItems))
-            } catch {
-                logger.error("synced Safari block: \(error.localizedDescription, privacy: .public)")
-            }
+            appendSummary(closed, kind: "synced Safari")
         }
         try? store.setDate(until, for: Self.syncedSafariWatermarkKey)
     }

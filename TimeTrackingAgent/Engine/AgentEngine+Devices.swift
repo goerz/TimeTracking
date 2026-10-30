@@ -64,13 +64,9 @@ extension AgentEngine {
         guard lines(existing) != lines(merged.map(\.block)) else {
             return
         }
-        for folder in [logs.blocksFolder, logs.detailFolder] {
-            for url in MonthFileRewriter.monthFiles(in: folder, fromDay: day.day, toDay: day.day) {
-                try MonthFileRewriter.rewrite(url) { block, _, _ in isDeviceDay(block) ? .drop : .keep }
-            }
-        }
+        try logs.rewrite(fromDay: day.day, toDay: day.day) { block, _, _ in isDeviceDay(block) ? .drop : .keep }
         for closed in merged {
-            try logs.append(closed, detail: ActivityBlockDetail(blockID: closed.block.id, items: closed.detailItems))
+            try logs.appendSummary(closed)
         }
     }
 }

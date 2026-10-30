@@ -19,6 +19,8 @@ struct AgentConfiguration {
         agentFolder.appending(path: "samples.sqlite", directoryHint: .notDirectory)
     }
 
+    /// `AppIdentity.agentSocketURL(in:)` for the installed agent; built from
+    /// `agentFolder` so tests can run the socket in a temporary folder.
     var socketURL: URL {
         agentFolder.appending(path: "tracker.sock", directoryHint: .notDirectory)
     }

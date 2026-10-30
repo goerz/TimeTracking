@@ -53,7 +53,7 @@ final class AgentEngine {
         let now = environment.clock.now
         self.presence = PresenceTracker(start: now)
         self.blocker = Blocker(settings: monitor.settings.blocks, timeZone: environment.timeZone, device: configuration.device)
-        self.logs = ActivityLogs(blocksFolder: choice.blocksFolder, localFolder: configuration.folders.local, device: configuration.device)
+        self.logs = ActivityLogs(blocksFolder: choice.blocksFolder, folders: configuration.folders, device: configuration.device)
         self.terminal = TerminalResolver(environment: environment)
         self.browser = BrowserResolver(environment: environment)
         health.set(.sharedFolder, choice.status, choice.reason)
