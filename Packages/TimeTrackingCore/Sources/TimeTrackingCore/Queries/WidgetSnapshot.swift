@@ -76,6 +76,32 @@ public struct WidgetSnapshot: Hashable, Sendable {
     /// Smart Stack relevance: 100 while running, 60 for an hour after a stop, 10 otherwise.
     public var relevance: Int
 
+    /// The widget gallery's sample: a running entry of 0:42:27.
+    public static func placeholder(at now: Date) -> Self {
+        let row = Row(
+            projectID: nil,
+            task: "Clarify noise model",
+            projectName: "Noise Model",
+            clientName: "University",
+            areaColor: "#2A9D8F"
+        )
+        return Self(
+            date: now,
+            needsSetup: false,
+            running: Running(entryID: EntryID(), row: row, chainStart: now - 2547),
+            latest: row,
+            latestEntryID: nil,
+            todayStoppedSeconds: 5898,
+            todayTimerStart: now - 8445,
+            pomodoro: .off,
+            macLines: [],
+            recent: [row],
+            pinned: [],
+            reloadAt: now + 3600,
+            relevance: 10
+        )
+    }
+
     /// Today's total at `now` (tests and the inline family).
     public func todaySeconds(at now: Date) -> Int {
         guard let todayTimerStart else {

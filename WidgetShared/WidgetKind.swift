@@ -8,7 +8,7 @@ import Foundation
 import TimeTrackingCore
 
 /// The widget kinds and control kinds.
-enum WidgetKind {
+nonisolated enum WidgetKind {
     static let now = "now"
     static let recent = "recent"
     static let pinned = "pinned"
