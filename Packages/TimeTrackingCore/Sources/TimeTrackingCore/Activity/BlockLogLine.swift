@@ -127,7 +127,11 @@ public enum BlockLogLine: Sendable, Hashable {
                 try presence.append(ActivityPresenceTransition(time: time(fields[0]), state: state))
             }
         }
-        return ActivityBlockDetail(blockID: block.id, items: block.items, urls: urls, files: files, presence: presence)
+        var dwell: [ActivityDwell] = []
+        for field in record.dwell {
+            try dwell.append(ActivityDwell(time: time(field.time), url: field.url, seconds: field.seconds))
+        }
+        return ActivityBlockDetail(blockID: block.id, items: block.items, urls: urls, files: files, presence: presence, dwell: dwell)
     }
 }
 
@@ -145,7 +149,7 @@ private struct LineRecord: Decodable {
         case share = "gs"
         case items
         case background = "bg"
-        case src, urls, files, presence
+        case src, urls, files, presence, dwell
     }
 
     var type: String?
@@ -165,6 +169,7 @@ private struct LineRecord: Decodable {
     var urls: [[String]]
     var files: [[String]]
     var presence: [[String]]
+    var dwell: [DwellField]
     /// Whether the line carries detail-log keys.
     var hasDetail: Bool
 
@@ -188,6 +193,7 @@ private struct LineRecord: Decodable {
         self.urls = try container.decodeIfPresent([[String]].self, forKey: .urls) ?? []
         self.files = try container.decodeIfPresent([[String]].self, forKey: .files) ?? []
         self.presence = try container.decodeIfPresent([[String]].self, forKey: .presence) ?? []
+        self.dwell = try container.decodeIfPresent([DwellField].self, forKey: .dwell) ?? []
     }
 }
 

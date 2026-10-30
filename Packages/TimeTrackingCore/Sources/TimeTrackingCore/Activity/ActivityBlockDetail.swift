@@ -7,7 +7,9 @@ public import Foundation
 ///
 /// In `detail/YYYY-MM.jsonl` it is a block line with `items` uncut, plus
 /// `urls` as `[time, browser, url, title]`, `files` as `[time, path]`, and
-/// `presence` as `[time, state]` transitions in and around the block.
+/// `presence` as `[time, state]` transitions in and around the block. Safari
+/// dwell times from the Knowledge store (§3.2) are `dwell` as
+/// `[time, url, seconds]`, a key present only when non-empty.
 public struct ActivityBlockDetail: Sendable, Hashable {
     /// The id of the block this detail belongs to.
     public var blockID: ActivityBlock.ID
@@ -16,19 +18,35 @@ public struct ActivityBlockDetail: Sendable, Hashable {
     public var urls: [ActivityURLVisit]
     public var files: [ActivityFileChange]
     public var presence: [ActivityPresenceTransition]
+    public var dwell: [ActivityDwell]
 
     public init(
         blockID: ActivityBlock.ID,
         items: [ActivityItem],
         urls: [ActivityURLVisit] = [],
         files: [ActivityFileChange] = [],
-        presence: [ActivityPresenceTransition] = []
+        presence: [ActivityPresenceTransition] = [],
+        dwell: [ActivityDwell] = []
     ) {
         self.blockID = blockID
         self.items = items
         self.urls = urls
         self.files = files
         self.presence = presence
+        self.dwell = dwell
+    }
+}
+
+/// A Safari dwell time of the Knowledge store.
+public struct ActivityDwell: Sendable, Hashable {
+    public var time: Date
+    public var url: String
+    public var seconds: Int
+
+    public init(time: Date, url: String, seconds: Int) {
+        self.time = time
+        self.url = url
+        self.seconds = seconds
     }
 }
 

@@ -52,7 +52,37 @@ extension BlockLogLine {
             writer.add("urls", detail.urls.map { [local($0.time), $0.browser, $0.url, $0.title] })
             writer.add("files", detail.files.map { [local($0.time), $0.path] })
             writer.add("presence", detail.presence.map { [local($0.time), $0.state.rawValue] })
+            if !detail.dwell.isEmpty {
+                writer.add("dwell", detail.dwell.map { DwellField(time: local($0.time), url: $0.url, seconds: $0.seconds) })
+            }
         }
         return writer.text
+    }
+}
+
+/// A `dwell` entry `[time, url, seconds]` of the detail log.
+struct DwellField: Codable {
+    var time: String
+    var url: String
+    var seconds: Int
+
+    init(time: String, url: String, seconds: Int) {
+        self.time = time
+        self.url = url
+        self.seconds = seconds
+    }
+
+    init(from decoder: any Decoder) throws {
+        var container = try decoder.unkeyedContainer()
+        self.time = try container.decode(String.self)
+        self.url = try container.decode(String.self)
+        self.seconds = try container.decode(Int.self)
+    }
+
+    func encode(to encoder: any Encoder) throws {
+        var container = encoder.unkeyedContainer()
+        try container.encode(time)
+        try container.encode(url)
+        try container.encode(seconds)
     }
 }

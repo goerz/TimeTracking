@@ -5,28 +5,28 @@ import Foundation
 
 /// Builds one JSON object whose keys keep the order they were added in, so
 /// the log lines read like the spec's examples.
-struct JSONObjectWriter {
+public struct JSONObjectWriter: Sendable {
     private var members: [String] = []
     private let encoder: JSONEncoder
 
-    init() {
+    public init() {
         let jsonEncoder = JSONEncoder()
         jsonEncoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
         self.encoder = jsonEncoder
     }
 
     /// Adds `key` with the JSON encoding of `value`.
-    mutating func add(_ key: String, _ value: some Encodable) {
+    public mutating func add(_ key: String, _ value: some Encodable) {
         members.append("\(Self.quoted(key, encoder: encoder)):\(Self.json(value, encoder: encoder))")
     }
 
     /// Adds `key` with an already encoded JSON value.
-    mutating func addRaw(_ key: String, _ json: String) {
+    public mutating func addRaw(_ key: String, _ json: String) {
         members.append("\(Self.quoted(key, encoder: encoder)):\(json)")
     }
 
     /// The object's JSON text, without a newline.
-    var text: String {
+    public var text: String {
         "{\(members.joined(separator: ","))}"
     }
 
