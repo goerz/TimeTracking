@@ -32,9 +32,7 @@ struct NowWidgetView: View {
 
     var body: some View {
         content
-            .containerBackground(for: .widget) {
-                Color(uiColor: .systemBackground)
-            }
+            .widgetBackground()
     }
 
     @ViewBuilder private var content: some View {
@@ -52,84 +50,11 @@ struct NowWidgetView: View {
     }
 }
 
-struct NowSmall: View {
+/// "Today" and the day's total, live while an entry runs.
+struct TodayTotal: View {
     var snapshot: WidgetSnapshot
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            if let running = snapshot.running {
-                ProjectLine(row: running.row, showsClient: false).font(.headline)
-                Text(running.row.task).lineLimit(2).privacySensitive()
-                Spacer(minLength: 0)
-                HStack(alignment: .center) {
-                    LiveTimer(snapshot: snapshot).font(.system(size: 28, weight: .semibold))
-                    Spacer(minLength: 4)
-                    CircleIntentButton(intent: snapshot.stopIntent, systemImage: "stop.fill", color: .stopRed, diameter: 40)
-                }
-            } else {
-                Text("Not tracking").font(.headline).foregroundStyle(.secondary)
-                if let latest = snapshot.latest {
-                    Text(latest.task).lineLimit(2).privacySensitive()
-                    ProjectLine(row: latest, showsClient: false).font(.subheadline)
-                }
-                Spacer(minLength: 0)
-                HStack {
-                    Spacer()
-                    CircleIntentButton(intent: snapshot.continueIntent, systemImage: "play.fill", color: .startGreen, diameter: 40)
-                }
-            }
-        }
-    }
-}
-
-struct NowMedium: View {
-    var snapshot: WidgetSnapshot
-
-    private func runningContent(_ running: WidgetSnapshot.Running) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(alignment: .firstTextBaseline) {
-                Text(running.row.task.isEmpty ? "No task" : running.row.task).font(.headline).lineLimit(1).privacySensitive()
-                Spacer()
-                LiveTimer(snapshot: snapshot).font(.title2.weight(.semibold))
-            }
-            ProjectLine(row: running.row)
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    todayLine
-                    pomodoroLine
-                }
-                Spacer()
-                CircleIntentButton(intent: snapshot.stopIntent, systemImage: "stop.fill", color: .stopRed, diameter: 44)
-            }
-        }
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            if let running = snapshot.running {
-                runningContent(running)
-            } else {
-                Text("Not tracking").font(.headline).foregroundStyle(.secondary)
-                todayLine
-                if let latest = snapshot.latest {
-                    HStack {
-                        VStack(alignment: .leading) {
-                            Text(latest.task).lineLimit(1).privacySensitive()
-                            ProjectLine(row: latest).font(.subheadline)
-                        }
-                        Spacer()
-                        CircleIntentButton(intent: snapshot.continueIntent, systemImage: "play.fill", color: .startGreen, diameter: 44)
-                    }
-                }
-            }
-            Spacer(minLength: 0)
-            ForEach(snapshot.macLines, id: \.self) { line in
-                Label(line, systemImage: "desktopcomputer").font(.caption).foregroundStyle(.secondary).lineLimit(1)
-            }
-        }
-    }
-
-    private var todayLine: some View {
         HStack(spacing: 4) {
             Text("Today")
             if let start = snapshot.todayTimerStart {
@@ -139,19 +64,127 @@ struct NowMedium: View {
             }
         }
     }
+}
 
-    @ViewBuilder private var pomodoroLine: some View {
-        switch snapshot.pomodoro {
-        case let .focus(end), let .onBreak(end):
-            Label {
-                let countdown = Text(timerInterval: snapshot.date ... max(end, snapshot.date), countsDown: true)
-                Text("\(snapshot.pomodoro.isFocusPhase ? "Focus" : "Break") \(countdown)")
-            } icon: {
-                Image(systemName: "timer")
+struct NowSmall: View {
+    var snapshot: WidgetSnapshot
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            if let running = snapshot.running {
+                ProjectLine(row: running.row, showsClient: false)
+                    .font(.subheadline)
+                Text(running.row.task.isEmpty ? "No task" : running.row.task)
+                    .font(.headline)
+                    .lineLimit(2)
+                    .privacySensitive()
+                Spacer(minLength: 0)
+                PomodoroLine(snapshot: snapshot)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                HStack(alignment: .center, spacing: 4) {
+                    LiveTimer(snapshot: snapshot)
+                        .font(.title2.weight(.semibold))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.6)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    CircleIntentButton(intent: snapshot.stopIntent, systemImage: "stop.fill", color: .stopTint)
+                }
+            } else {
+                Text("Not tracking")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                if let latest = snapshot.latest {
+                    Text(latest.task.isEmpty ? "No task" : latest.task)
+                        .font(.headline)
+                        .lineLimit(2)
+                        .privacySensitive()
+                    ProjectLine(row: latest, showsClient: false)
+                        .font(.subheadline)
+                }
+                Spacer(minLength: 0)
+                HStack(alignment: .center, spacing: 4) {
+                    TodayTotal(snapshot: snapshot)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    CircleIntentButton(intent: snapshot.continueIntent, systemImage: "play.fill", color: .startTint)
+                }
             }
-            .foregroundStyle(.tint)
-        case .off, .focusOver, .breakOver:
-            EmptyView()
+        }
+    }
+}
+
+struct NowMedium: View {
+    var snapshot: WidgetSnapshot
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            if let running = snapshot.running {
+                runningContent(running)
+            } else {
+                idleContent
+            }
+            ForEach(snapshot.macLines, id: \.self) { line in
+                Label(line, systemImage: "desktopcomputer")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .padding(.top, 6)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func runningContent(_ running: WidgetSnapshot.Running) -> some View {
+        Text(running.row.task.isEmpty ? "No task" : running.row.task)
+            .font(.headline)
+            .lineLimit(snapshot.macLines.isEmpty ? 2 : 1)
+            .privacySensitive()
+        ProjectLine(row: running.row)
+            .font(.subheadline)
+            .padding(.top, 2)
+        Spacer(minLength: 4)
+        HStack(alignment: .bottom, spacing: 8) {
+            VStack(alignment: .leading, spacing: 2) {
+                LiveTimer(snapshot: snapshot)
+                    .font(.title2.weight(.semibold))
+                    .lineLimit(1)
+                HStack(spacing: 12) {
+                    TodayTotal(snapshot: snapshot)
+                    PomodoroLine(snapshot: snapshot)
+                }
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            CircleIntentButton(intent: snapshot.stopIntent, systemImage: "stop.fill", color: .stopTint)
+        }
+    }
+
+    @ViewBuilder private var idleContent: some View {
+        HStack(alignment: .firstTextBaseline) {
+            Text("Not tracking")
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            TodayTotal(snapshot: snapshot)
+                .foregroundStyle(.secondary)
+        }
+        .font(.subheadline)
+        Spacer(minLength: 4)
+        if let latest = snapshot.latest {
+            HStack(alignment: .bottom, spacing: 8) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(latest.task.isEmpty ? "No task" : latest.task)
+                        .font(.headline)
+                        .lineLimit(1)
+                        .privacySensitive()
+                    ProjectLine(row: latest)
+                        .font(.subheadline)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                CircleIntentButton(intent: snapshot.continueIntent, systemImage: "play.fill", color: .startTint)
+            }
         }
     }
 }
@@ -162,9 +195,13 @@ struct NowInline: View {
     var body: some View {
         if let running = snapshot.running {
             let elapsed = Text(timerInterval: snapshot.elapsedTimer ?? running.chainStart ... running.chainStart, countsDown: false)
-            Text("▶ \(elapsed) · \(running.row.projectName ?? "TimeTracking")")
+            Label {
+                Text("\(elapsed) · \(running.row.projectName ?? "No project")")
+            } icon: {
+                Image(systemName: "stopwatch")
+            }
         } else {
-            Text("Not tracking")
+            Label("Not tracking", systemImage: "stopwatch")
         }
     }
 }
@@ -177,15 +214,25 @@ struct NowCircular: View {
             AccessoryWidgetBackground()
             if snapshot.running != nil {
                 Button(intent: snapshot.stopIntent) {
-                    VStack(spacing: 2) {
-                        Image(systemName: "stop.fill").accessibilityLabel("Stop")
-                        LiveTimer(snapshot: snapshot).font(.caption2).minimumScaleFactor(0.6)
+                    VStack(spacing: 1) {
+                        Image(systemName: "stop.fill")
+                            .font(.body)
+                            .widgetAccentable()
+                            .accessibilityLabel("Stop")
+                        LiveTimer(snapshot: snapshot)
+                            .font(.caption.weight(.semibold))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.6)
+                            .padding(.horizontal, 4)
                     }
                 }
                 .buttonStyle(.plain)
             } else {
                 Button(intent: snapshot.continueIntent) {
-                    Image(systemName: "play.fill").font(.title2).accessibilityLabel("Continue")
+                    Image(systemName: "play.fill")
+                        .font(.title2)
+                        .widgetAccentable()
+                        .accessibilityLabel("Continue")
                 }
                 .buttonStyle(.plain)
             }
@@ -197,29 +244,41 @@ struct NowRectangular: View {
     var snapshot: WidgetSnapshot
 
     var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 1) {
+        HStack(spacing: 6) {
+            VStack(alignment: .leading, spacing: 0) {
                 if let running = snapshot.running {
-                    Text(running.row.task.isEmpty ? "No task" : running.row.task).font(.headline).lineLimit(1).privacySensitive()
-                    Text(running.row.projectName ?? "No project").lineLimit(1)
-                    LiveTimer(snapshot: snapshot).font(.headline)
+                    Text(running.row.task.isEmpty ? "No task" : running.row.task)
+                        .font(.headline)
+                        .lineLimit(1)
+                        .privacySensitive()
+                    Text(running.row.projectName ?? "No project")
+                        .lineLimit(1)
+                    LiveTimer(snapshot: snapshot)
+                        .font(.headline)
+                        .widgetAccentable()
                 } else {
-                    Text("Not tracking").font(.headline)
-                    Text(snapshot.latest?.task ?? "").lineLimit(1).privacySensitive()
+                    Text("Not tracking")
+                        .font(.headline)
+                    Text(snapshot.latest?.task ?? "")
+                        .lineLimit(2)
+                        .privacySensitive()
                 }
             }
-            Spacer(minLength: 4)
+            .frame(maxWidth: .infinity, alignment: .leading)
             if snapshot.running != nil {
-                Button(intent: snapshot.stopIntent) {
-                    Image(systemName: "stop.fill").accessibilityLabel("Stop")
-                }
-                .buttonStyle(.plain)
+                Button(intent: snapshot.stopIntent) { glyph("stop.circle.fill", label: "Stop") }
+                    .buttonStyle(.plain)
             } else {
-                Button(intent: snapshot.continueIntent) {
-                    Image(systemName: "play.fill").accessibilityLabel("Continue")
-                }
-                .buttonStyle(.plain)
+                Button(intent: snapshot.continueIntent) { glyph("play.circle.fill", label: "Continue") }
+                    .buttonStyle(.plain)
             }
         }
+    }
+
+    private func glyph(_ name: String, label: String) -> some View {
+        Image(systemName: name)
+            .font(.title)
+            .widgetAccentable()
+            .accessibilityLabel(label)
     }
 }

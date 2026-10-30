@@ -11,39 +11,34 @@ struct OnboardingView: View {
     @Environment(\.openURL) private var openURL
 
     var body: some View {
-        VStack(spacing: 20) {
-            switch onboarding.step {
-            case .checking, .done:
-                ProgressView()
-            case .noAccount:
-                noAccount
-            case .deviceName:
-                deviceName
-            case let .syncing(entries):
-                ProgressView()
-                Text("Receiving your data from iCloud…")
-                Text("\(entries) entries").foregroundStyle(.secondary).monospacedDigit()
-            }
+        switch onboarding.step {
+        case .checking, .done:
+            ProgressView()
+        case .noAccount:
+            noAccount
+        case .deviceName:
+            deviceName
+        case let .syncing(entries):
+            syncing(entries)
         }
-        .padding(32)
-        .frame(maxWidth: 480)
     }
 
     static let explanation = "TimeTracking keeps your time on your Mac and this device in sync through iCloud. "
         + "Sign in with the Mac's Apple Account and turn on iCloud Drive."
 
     private var noAccount: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "icloud.slash").font(.system(size: 56)).accessibilityHidden(true)
-            Text("iCloud Needed").font(.title.bold())
+        ContentUnavailableView {
+            Label("iCloud Needed", systemImage: "icloud.slash")
+        } description: {
             Text(Self.explanation)
-                .multilineTextAlignment(.center)
+        } actions: {
             Button("Open Settings") {
                 if let url = DeviceInfo.settingsURL {
                     openURL(url)
                 }
             }
             .buttonStyle(.borderedProminent)
+            .controlSize(.large)
             Button("Try Again") {
                 Task { await onboarding.check() }
             }
@@ -54,17 +49,61 @@ struct OnboardingView: View {
     }
 
     private var deviceName: some View {
-        VStack(spacing: 16) {
-            Text("Name This Device").font(.title.bold())
-            Text("Entries show where they were created.").foregroundStyle(.secondary)
-            TextField("Device name", text: $onboarding.deviceName)
-                .textFieldStyle(.roundedBorder)
-                .accessibilityIdentifier("onboarding.deviceName")
-            Button("Continue") {
-                Task { await onboarding.confirmName(model: model) }
+        NavigationStack {
+            Form {
+                Section {
+                    TextField("Device name", text: $onboarding.deviceName)
+                        .submitLabel(.continue)
+                        .onSubmit(confirm)
+                        .accessibilityIdentifier("onboarding.deviceName")
+                } header: {
+                    VStack(spacing: Design.Spacing.small) {
+                        Image(systemName: DeviceInfo.isPad ? "ipad" : "iphone")
+                            .font(.largeTitle)
+                            .foregroundStyle(.tint)
+                            .accessibilityHidden(true)
+                        Text("Name This Device")
+                            .font(.title.weight(.bold))
+                            .foregroundStyle(.primary)
+                        Text("Entries show where they were created.")
+                            .font(.body)
+                            .foregroundStyle(.secondary)
+                    }
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity)
+                    .textCase(nil)
+                    .padding(.bottom, Design.Spacing.large)
+                }
             }
-            .buttonStyle(.borderedProminent)
-            .accessibilityIdentifier("onboarding.continue")
+            .frame(maxWidth: 560)
+            .safeAreaInset(edge: .bottom) {
+                Button(action: confirm) {
+                    Text("Continue").frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .disabled(onboarding.deviceName.trimmingCharacters(in: .whitespaces).isEmpty)
+                .padding(Design.Spacing.large)
+                .frame(maxWidth: 560)
+                .accessibilityIdentifier("onboarding.continue")
+            }
+        }
+    }
+
+    private func confirm() {
+        Task { await onboarding.confirmName(model: model) }
+    }
+
+    private func syncing(_ entries: Int) -> some View {
+        ContentUnavailableView {
+            Label("Receiving Your Data", systemImage: "icloud.and.arrow.down")
+        } description: {
+            Text("TimeTracking is loading your entries from iCloud.")
+        } actions: {
+            VStack(spacing: Design.Spacing.small) {
+                ProgressView()
+                Text("\(entries) entries").foregroundStyle(.secondary).monospacedDigit()
+            }
         }
     }
 }

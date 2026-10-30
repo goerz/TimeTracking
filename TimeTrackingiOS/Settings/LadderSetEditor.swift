@@ -9,12 +9,17 @@ struct LadderSetEditor: View {
     var collection: CollectionModel
     @State private var set: LadderSet
     @State private var selection: FamilyActivitySelection
+    @State private var choosing = false
 
     init(collection: CollectionModel, set: LadderSet) {
         self.collection = collection
         _set = State(initialValue: set)
         _selection = State(initialValue: set.selection.flatMap { try? JSONDecoder().decode(FamilyActivitySelection.self, from: $0) }
             ?? FamilyActivitySelection())
+    }
+
+    private var isEmpty: Bool {
+        selection.applicationTokens.isEmpty && selection.categoryTokens.isEmpty && selection.webDomainTokens.isEmpty
     }
 
     var body: some View {
@@ -27,8 +32,12 @@ struct LadderSetEditor: View {
                 }
             } else {
                 Section {
-                    TextField("Label", text: $set.label)
-                        .onSubmit { collection.updateSet(set) }
+                    LabeledContent("Label") {
+                        TextField("Label", text: $set.label)
+                            .multilineTextAlignment(.trailing)
+                            .submitLabel(.done)
+                            .onSubmit { collection.updateSet(set) }
+                    }
                 } footer: {
                     Text("Only this label reaches the activity log.")
                 }
@@ -36,12 +45,13 @@ struct LadderSetEditor: View {
                     ForEach(Array(selection.applicationTokens), id: \.self) { Label($0) }
                     ForEach(Array(selection.categoryTokens), id: \.self) { Label($0) }
                     ForEach(Array(selection.webDomainTokens), id: \.self) { Label($0) }
+                    Button(isEmpty ? "Choose Apps…" : "Change Apps…") { choosing = true }
                 }
-                FamilyActivityPicker(selection: $selection)
-                    .frame(minHeight: 400)
             }
         }
         .navigationTitle(set.label)
+        .navigationBarTitleDisplayMode(.inline)
+        .familyActivityPicker(isPresented: $choosing, selection: $selection)
         .onChange(of: selection) {
             set.selection = try? JSONEncoder().encode(selection)
             collection.updateSet(set)

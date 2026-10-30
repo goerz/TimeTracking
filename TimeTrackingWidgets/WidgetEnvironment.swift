@@ -84,9 +84,46 @@ nonisolated struct WidgetEnvironment {
         return Timeline(entries: [SnapshotEntry(date: snapshot.date, snapshot: snapshot)], policy: .after(snapshot.reloadAt))
     }
 
-    /// A placeholder snapshot (gallery, redacted states).
+    /// A placeholder snapshot (gallery, redacted states): the library's
+    /// running sample with a few recent rows and pinned projects.
     static var placeholder: WidgetSnapshot {
-        WidgetSnapshot.placeholder(at: .now)
+        var snapshot = WidgetSnapshot.placeholder(at: .now)
+        let samples = [
+            WidgetSnapshot.Row(
+                projectID: nil,
+                task: "Review pull requests",
+                projectName: "Website",
+                clientName: "Acme",
+                areaColor: "#E76F51"
+            ),
+            WidgetSnapshot.Row(projectID: nil, task: "Weekly planning", projectName: "Admin", clientName: "Personal", areaColor: "#8E7DBE"),
+            WidgetSnapshot.Row(
+                projectID: nil,
+                task: "Draft chapter 3",
+                projectName: "Thesis",
+                clientName: "University",
+                areaColor: "#2A9D8F"
+            ),
+            WidgetSnapshot.Row(
+                projectID: nil,
+                task: "Prepare slides",
+                projectName: "Seminar",
+                clientName: "University",
+                areaColor: "#F4A261"
+            ),
+        ]
+        snapshot.recent += samples
+        snapshot.pinned = samples.map { sample in
+            WidgetSnapshot.PinnedButton(
+                projectID: ProjectID(),
+                name: sample.projectName ?? "",
+                areaColor: sample.areaColor,
+                task: "",
+                isArchived: false,
+                isRunning: false
+            )
+        }
+        return snapshot
     }
 }
 

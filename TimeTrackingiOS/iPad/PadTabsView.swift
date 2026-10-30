@@ -24,7 +24,7 @@ enum PadTab: String, Hashable, CaseIterable {
 
     var systemImage: String {
         switch self {
-        case .timer: "timer"
+        case .timer: "stopwatch"
         case .projects: "folder"
         case .calendar: "calendar"
         case .reports: "chart.bar"

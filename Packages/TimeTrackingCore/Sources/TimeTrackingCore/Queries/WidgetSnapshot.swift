@@ -46,6 +46,15 @@ public struct WidgetSnapshot: Hashable, Sendable {
         /// The running entry's project: the button stops it.
         public var isRunning: Bool
 
+        public init(projectID: ProjectID, name: String, areaColor: String?, task: String, isArchived: Bool, isRunning: Bool) {
+            self.projectID = projectID
+            self.name = name
+            self.areaColor = areaColor
+            self.task = task
+            self.isArchived = isArchived
+            self.isRunning = isRunning
+        }
+
         public var id: ProjectID {
             projectID
         }

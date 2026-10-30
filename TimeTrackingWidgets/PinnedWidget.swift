@@ -61,7 +61,7 @@ struct PinnedWidgetView: View {
 
     private var columns: [GridItem] {
         let count = family == .systemSmall ? 1 : (family == .systemExtraLarge ? 3 : 2)
-        return Array(repeating: GridItem(.flexible(), spacing: 10), count: count)
+        return Array(repeating: GridItem(.flexible(), spacing: 8), count: count)
     }
 
     var body: some View {
@@ -69,18 +69,21 @@ struct PinnedWidgetView: View {
             if snapshot.needsSetup {
                 SetupNotice()
             } else if snapshot.pinned.isEmpty {
-                Text("Pin projects in TimeTracking's Settings").font(.footnote).foregroundStyle(.secondary)
+                WidgetNotice(
+                    systemImage: "pin",
+                    title: "No Pinned Projects",
+                    message: family == .systemSmall ? nil : "Pin projects in TimeTracking's Settings."
+                )
             } else {
-                LazyVGrid(columns: columns, spacing: 10) {
+                LazyVGrid(columns: columns, spacing: 8) {
                     ForEach(snapshot.pinned.prefix(capacity)) { button in
                         PinnedButtonView(button: button, action: snapshot.action(of: button))
                     }
                 }
+                .frame(maxHeight: .infinity, alignment: .top)
             }
         }
-        .containerBackground(for: .widget) {
-            Color(uiColor: .systemBackground)
-        }
+        .widgetBackground()
     }
 }
 
@@ -101,6 +104,8 @@ struct PinnedButtonView: View {
         .buttonStyle(.plain)
     }
 
+    /// Area dot and project; the running project's button carries the stop
+    /// circle and the area color's tint.
     private var label: some View {
         HStack(spacing: 8) {
             WidgetAreaDot(color: button.areaColor)
@@ -110,17 +115,21 @@ struct PinnedButtonView: View {
                     Text("Archived").font(.caption2).foregroundStyle(.secondary)
                 }
             }
-            Spacer(minLength: 2)
+            .frame(maxWidth: .infinity, alignment: .leading)
             if button.isRunning {
-                Image(systemName: "stop.circle.fill").foregroundStyle(Color.stopRed).accessibilityLabel("Stop")
+                CircleGlyph(systemImage: "stop.fill", color: .stopTint, diameter: 24)
+                    .accessibilityLabel("Stop")
             }
         }
-        .padding(.horizontal, 10)
+        .padding(.leading, 12)
+        .padding(.trailing, 8)
         .frame(maxWidth: .infinity, minHeight: 44)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(button.isRunning ? Color(hex: button.areaColor ?? "#808080").opacity(0.18) : Color(uiColor: .secondarySystemFill))
-        )
+        .background(background)
         .opacity(button.isArchived ? 0.5 : 1)
+    }
+
+    private var background: some View {
+        RoundedRectangle(cornerRadius: 12, style: .continuous)
+            .fill(button.isRunning ? AnyShapeStyle(Color(hex: button.areaColor ?? "#808080").opacity(0.2)) : AnyShapeStyle(.fill.secondary))
     }
 }

@@ -35,6 +35,8 @@ struct RecentWidgetView: View {
         Group {
             if snapshot.needsSetup {
                 SetupNotice()
+            } else if snapshot.running == nil, snapshot.recent.isEmpty {
+                WidgetNotice(systemImage: "stopwatch", title: "No Recent Entries", message: "Entries you track appear here.")
             } else {
                 HStack(alignment: .top, spacing: 16) {
                     ForEach(0 ..< columns, id: \.self) { column in
@@ -51,17 +53,22 @@ struct RecentWidgetView: View {
                 }
             }
         }
-        .containerBackground(for: .widget) {
-            Color(uiColor: .systemBackground)
-        }
+        .widgetBackground()
     }
 
     private func rows(column: Int) -> [AnyView] {
         var all: [AnyView] = []
         if let running = snapshot.running {
             all.append(AnyView(RecentRow(row: running.row) {
-                LiveTimer(snapshot: snapshot).font(.subheadline)
-                CircleIntentButton(intent: snapshot.stopIntent, systemImage: "stop.fill", color: .stopRed, diameter: 30)
+                LiveTimer(snapshot: snapshot)
+                    .font(.subheadline.weight(.medium))
+                    .fixedSize()
+                CircleIntentButton(
+                    intent: snapshot.stopIntent,
+                    systemImage: "stop.fill",
+                    color: .stopTint,
+                    diameter: WidgetMetrics.rowButton
+                )
             }))
         }
         for row in snapshot.recent {
@@ -69,8 +76,8 @@ struct RecentWidgetView: View {
                 CircleIntentButton(
                     intent: WidgetStartIntent(project: row.projectID, task: row.task),
                     systemImage: "play.fill",
-                    color: .startGreen,
-                    diameter: 30
+                    color: .startTint,
+                    diameter: WidgetMetrics.rowButton
                 )
             }))
         }
@@ -88,12 +95,17 @@ struct RecentRow<Trailing: View>: View {
     @ViewBuilder var trailing: () -> Trailing
 
     var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(row.task.isEmpty ? "No task" : row.task).lineLimit(1).privacySensitive()
-                ProjectLine(row: row, showsClient: false).font(.caption).foregroundStyle(.secondary)
+        HStack(spacing: 8) {
+            VStack(alignment: .leading, spacing: 1) {
+                Text(row.task.isEmpty ? "No task" : row.task)
+                    .font(.subheadline.weight(.medium))
+                    .lineLimit(1)
+                    .privacySensitive()
+                ProjectLine(row: row, showsClient: false)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
-            Spacer(minLength: 4)
+            .frame(maxWidth: .infinity, alignment: .leading)
             trailing()
         }
     }

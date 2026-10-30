@@ -1,35 +1,36 @@
-// ActivityCollectionSection: the "Activity Collection" and "Privacy"
-// sections of the iOS Settings (spec_ios.md §2.9, §9, §11 item 3).
+// ActivityCollectionScreen: Settings > Activity collection (spec_ios.md
+// §2.9, §9, §11 item 3): the master switch, Screen Time and app sets, the
+// setup steps with their check marks, and the upload.
 
 import AppIntents
 import SwiftUI
 import TimeTrackingCore
 
-/// The master switch, Screen Time, app sets, setup steps with their check
-/// marks, and the flush.
-struct ActivityCollectionSection: View {
+struct ActivityCollectionScreen: View {
     @Bindable var collection: CollectionModel
 
     var body: some View {
-        Section {
-            Toggle("Collect activity on this device", isOn: Binding(
-                get: { collection.isEnabled },
-                set: { collection.setEnabled($0) }
-            ))
-            .accessibilityIdentifier("collection.enabled")
-        } header: {
-            Text("Activity Collection")
-        } footer: {
-            Text(
-                "Records labeled events (app sets, Focus, automations, Safari sites, this app) for the Mac's activity log. " +
-                    "Nothing is assigned to projects, and the exclusions apply before anything is written."
-            )
+        Form {
+            Section {
+                Toggle("Collect activity on this device", isOn: Binding(
+                    get: { collection.isEnabled },
+                    set: { collection.setEnabled($0) }
+                ))
+                .accessibilityIdentifier("collection.enabled")
+            } footer: {
+                Text(
+                    "Records labeled events (app sets, Focus, automations, Safari sites, this app) for the Mac's activity log. " +
+                        "Nothing is assigned to projects, and the exclusions apply before anything is written."
+                )
+            }
+            if collection.isEnabled {
+                screenTimeSection
+                setupSection
+                uploadSection
+            }
         }
-        if collection.isEnabled {
-            screenTimeSection
-            setupSection
-            flushSection
-        }
+        .navigationTitle("Activity Collection")
+        .navigationBarTitleDisplayMode(.inline)
     }
 
     private var screenTimeSection: some View {
@@ -47,21 +48,25 @@ struct ActivityCollectionSection: View {
                     NavigationLink(set.label) {
                         LadderSetEditor(collection: collection, set: set)
                     }
+                    .deleteDisabled(set.isEverything)
                 }
                 .onDelete { offsets in
                     for index in offsets where !collection.sets[index].isEverything {
                         collection.removeSet(id: collection.sets[index].id)
                     }
                 }
-                Menu("Add App Set") {
+                Menu {
                     ForEach(LadderSet.suggestedLabels, id: \.self) { label in
                         Button(label) { collection.addSet(label: label) }
                     }
-                    Button("Other…") { collection.addSet(label: "Apps") }
+                    Divider()
+                    Button("Other") { collection.addSet(label: "Apps") }
+                } label: {
+                    Label("Add App Set", systemImage: "plus")
                 }
             }
             if let error = collection.ladderError {
-                Text(error).foregroundStyle(.red)
+                ErrorLine(text: error)
             }
         } header: {
             Text("App Sets")
@@ -83,7 +88,7 @@ struct ActivityCollectionSection: View {
     }
 
     private var setupSection: some View {
-        Section("Setup") {
+        Section {
             SetupStep(
                 title: "Focus filter",
                 done: collection.state.lastFocusEventAt != nil,
@@ -96,27 +101,33 @@ struct ActivityCollectionSection: View {
                     + "or three apps whose exact times matter, for a charger connected or disconnected, and for arriving or leaving. "
                     + "iOS shows a notification for every run, so keep it to a few."
             )
-            ShortcutsLink()
             SetupStep(
                 title: "Safari extension",
                 done: collection.state.lastWebEventAt != nil,
                 detail: "In Settings > Apps > Safari > Extensions, turn on TimeTracking and allow All Websites. "
                     + "The exclusions of the Mac's Tracker pane decide what is kept."
             )
+            ShortcutsLink()
+                .shortcutsLinkStyle(.automaticOutline)
+                .frame(maxWidth: .infinity)
+        } header: {
+            Text("Setup")
+        } footer: {
+            Text("Each step is checked once its first event arrives.")
         }
     }
 
-    private var flushSection: some View {
+    private var uploadSection: some View {
         Section("Upload") {
             LabeledContent("Last upload", value: collection.lastFlushAt.map { $0.formatted(.relative(presentation: .named)) } ?? "Never")
             LabeledContent("Pending events", value: "\(collection.pendingCount)")
                 .accessibilityIdentifier("collection.pending")
-            Button("Flush Now") {
+            Button("Upload Now") {
                 Task { await collection.flush() }
             }
             .accessibilityIdentifier("collection.flush")
             if let error = collection.flushError {
-                Text(error).foregroundStyle(.red)
+                ErrorLine(text: error)
             }
         }
     }
@@ -129,37 +140,26 @@ private struct SetupStep: View {
     var detail: String
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Label(title, systemImage: done ? "checkmark.circle.fill" : "circle")
-                .foregroundStyle(done ? .green : .primary)
-            Text(detail).font(.footnote).foregroundStyle(.secondary)
+        Label {
+            VStack(alignment: .leading, spacing: Design.Spacing.tight) {
+                Text(title)
+                Text(detail).font(.footnote).foregroundStyle(.secondary)
+            }
+        } icon: {
+            Image(systemName: done ? "checkmark.circle.fill" : "circle")
+                .foregroundStyle(done ? AnyShapeStyle(Color.startTint) : AnyShapeStyle(.tertiary))
+                .accessibilityLabel(done ? "Done" : "Not done")
         }
     }
 }
 
-/// The read-only exclusions of `Activity/settings.toml`.
-struct PrivacySection: View {
-    var privacy: TrackerPrivacySettings
+/// An error under a control: the warning symbol and the message in red.
+struct ErrorLine: View {
+    var text: String
 
     var body: some View {
-        Section {
-            row("Excluded domains", privacy.excludeDomains)
-            row("Domain only", privacy.privateDomains)
-            row("Excluded apps", privacy.excludeApps)
-            row("App name only", privacy.nameOnlyApps)
-            row("Excluded paths", privacy.excludePaths)
-            row("Excluded keywords", privacy.excludeKeywords)
-            row("Excluded tmux sessions", privacy.excludeTmuxSessions)
-            row("Private agent folders", privacy.privateAgentPaths)
-            row("Excluded title words", privacy.excludeTitleKeywords)
-        } header: {
-            Text("Privacy")
-        } footer: {
-            Text("Edited in the Tracker pane of TimeTracking's settings on the Mac.")
-        }
-    }
-
-    private func row(_ title: String, _ values: [String]) -> some View {
-        LabeledContent(title, value: values.isEmpty ? "None" : values.joined(separator: ", "))
+        Label(text, systemImage: "exclamationmark.triangle")
+            .font(.footnote)
+            .foregroundStyle(.red)
     }
 }

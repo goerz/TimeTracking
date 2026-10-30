@@ -1,5 +1,6 @@
-// SettingsScreen: the iOS Settings (spec_ios.md §2.9), with the Activity
-// Collection and Privacy sections; Calendars belong to the iPad tabs (step 8c).
+// SettingsScreen: the iOS Settings (spec_ios.md §2.9): short sections on the
+// first screen; pinned projects, activity collection, and privacy on screens
+// of their own. Calendars belong to the iPad tabs.
 
 import AppIntents
 import SwiftUI
@@ -9,7 +10,6 @@ struct SettingsScreen: View {
     @Bindable var model: PhoneModel
 
     @State private var pinned: PinnedProjectsModel?
-    @State private var picker: ProjectPickerModel?
     @State private var notificationsDenied = false
     @Environment(\.openURL) private var openURL
 
@@ -21,8 +21,7 @@ struct SettingsScreen: View {
                 notificationSection
                 widgetSection
                 if let collection = model.collection as? CollectionModel {
-                    ActivityCollectionSection(collection: collection)
-                    PrivacySection(privacy: collection.privacy)
+                    activitySection(collection)
                 }
                 aboutSection
             }
@@ -34,9 +33,6 @@ struct SettingsScreen: View {
                 }
             }
             .task { await load() }
-            .sheet(item: $picker) { picker in
-                pinnedPicker(picker)
-            }
         }
         .accessibilityIdentifier("settings")
     }
@@ -53,24 +49,17 @@ struct SettingsScreen: View {
         }
     }
 
-    private func pinnedPicker(_ picker: ProjectPickerModel) -> some View {
-        NavigationStack {
-            ProjectPickerView(model: picker) { choice in
-                self.picker = nil
-                if case let .project(id?) = choice {
-                    Task { await pinned?.add(id) }
-                }
-            } onCancel: {
-                self.picker = nil
-            }
-        }
-        .presentationDetents([.medium, .large])
-    }
-
     private var iCloudSection: some View {
-        Section("iCloud") {
+        Section {
             LabeledContent("Status", value: model.syncStatusText)
             LabeledContent("Pending changes", value: "\(model.outboxCount)")
+            LabeledContent("Device name") {
+                TextField("Device name", text: Bindable(model.settings).deviceName)
+                    .multilineTextAlignment(.trailing)
+                    .submitLabel(.done)
+                    .onSubmit { Task { await model.registerDevice() } }
+                    .accessibilityIdentifier("settings.deviceName")
+            }
             Button("Sync Now") {
                 Task {
                     await model.sync?.sendNow()
@@ -79,31 +68,32 @@ struct SettingsScreen: View {
                 }
             }
             .disabled(model.sync == nil)
-            TextField("Device name", text: Bindable(model.settings).deviceName)
-                .onSubmit { Task { await model.registerDevice() } }
-                .accessibilityIdentifier("settings.deviceName")
+        } header: {
+            Text("iCloud")
+        } footer: {
+            Text("Entries show the name of the device that created them.")
         }
     }
 
     private var pomodoroSection: some View {
-        Section("Pomodoro") {
-            Stepper(
-                "Focus: \(model.pomodoro.focusMinutes) min",
-                value: Binding(
-                    get: { model.pomodoro.focusMinutes },
-                    set: { value in Task { await model.pomodoro.setFocusMinutes(value) } }
-                ),
-                in: 1 ... 180
-            )
-            Stepper(
-                "Break: \(model.pomodoro.breakMinutes) min",
-                value: Binding(
-                    get: { model.pomodoro.breakMinutes },
-                    set: { value in Task { await model.pomodoro.setBreakMinutes(value) } }
-                ),
-                in: 1 ... 60
-            )
+        Section {
+            Stepper(value: Binding(
+                get: { model.pomodoro.focusMinutes },
+                set: { value in Task { await model.pomodoro.setFocusMinutes(value) } }
+            ), in: 1 ... 180) {
+                LabeledContent("Focus", value: "\(model.pomodoro.focusMinutes) min")
+            }
+            Stepper(value: Binding(
+                get: { model.pomodoro.breakMinutes },
+                set: { value in Task { await model.pomodoro.setBreakMinutes(value) } }
+            ), in: 1 ... 60) {
+                LabeledContent("Break", value: "\(model.pomodoro.breakMinutes) min")
+            }
             Toggle("Play sounds at phase changes", isOn: Bindable(model.settings).pomodoroSounds)
+        } header: {
+            Text("Pomodoro")
+        } footer: {
+            Text("The durations are the same on all your devices.")
         }
     }
 
@@ -111,20 +101,25 @@ struct SettingsScreen: View {
         Section {
             Toggle("Long-running entry reminder", isOn: Bindable(model.settings).longRunningEnabled)
                 .accessibilityIdentifier("settings.longRunning")
-            Stepper("After \(model.settings.longRunningHours) h", value: Bindable(model.settings).longRunningHours, in: 1 ... 12)
-                .disabled(!model.settings.longRunningEnabled)
+            Stepper(value: Bindable(model.settings).longRunningHours, in: 1 ... 12) {
+                LabeledContent("Remind after", value: "\(model.settings.longRunningHours) h")
+            }
+            .disabled(!model.settings.longRunningEnabled)
         } header: {
             Text("Notifications")
         } footer: {
             if notificationsDenied {
-                VStack(alignment: .leading) {
+                VStack(alignment: .leading, spacing: Design.Spacing.tight) {
                     Text("Notifications are off for TimeTracking. The Pomodoro buttons still work.")
                     Button("Open Settings") {
                         if let url = DeviceInfo.settingsURL {
                             openURL(url)
                         }
                     }
+                    .font(.footnote)
                 }
+            } else {
+                Text("A notification when an entry has run this long, whichever device started it.")
             }
         }
         .onChange(of: model.settings.longRunningEnabled) { model.rescheduleLongRunning() }
@@ -132,32 +127,62 @@ struct SettingsScreen: View {
     }
 
     private var widgetSection: some View {
-        Section("Widgets") {
-            ForEach(pinned?.rows ?? []) { row in
-                HStack {
-                    AreaDot(color: row.area?.color)
-                    Text(row.project.name)
+        Section {
+            NavigationLink {
+                if let pinned {
+                    PinnedProjectsScreen(pinned: pinned, store: model.store)
                 }
+            } label: {
+                LabeledContent("Pinned projects", value: pinned.map { "\($0.rows.count)" } ?? "")
             }
-            .onMove { source, destination in Task { await pinned?.move(from: source, to: destination) } }
-            .onDelete { offsets in Task { await pinned?.remove(at: offsets) } }
-            Button("Add Pinned Project…") {
-                picker = ProjectPickerModel(store: model.store, currentProject: nil, taskMatching: false)
+            .accessibilityIdentifier("settings.pinned")
+            Picker("Pinned buttons start", selection: Bindable(model.settings).pinnedTaskMode) {
+                Text("Last task").tag(PinnedTaskMode.latest)
+                Text("No task").tag(PinnedTaskMode.blank)
             }
-            .accessibilityIdentifier("settings.addPinned")
-            Picker("Task on pinned buttons", selection: Bindable(model.settings).pinnedTaskMode) {
-                Text("The project's last task").tag(PinnedTaskMode.latest)
-                Text("None").tag(PinnedTaskMode.blank)
+        } header: {
+            Text("Widgets")
+        } footer: {
+            Text("The Pinned widget starts these projects, with the project's last task or none.")
+        }
+    }
+
+    private func activitySection(_ collection: CollectionModel) -> some View {
+        Section {
+            NavigationLink {
+                ActivityCollectionScreen(collection: collection)
+            } label: {
+                LabeledContent("Activity collection", value: collection.isEnabled ? "On" : "Off")
             }
+            .accessibilityIdentifier("settings.collection")
+            NavigationLink {
+                PrivacyScreen(privacy: collection.privacy)
+            } label: {
+                Text("Privacy")
+            }
+            .accessibilityIdentifier("settings.privacy")
+        } header: {
+            Text("Activity")
+        } footer: {
+            Text("Labeled events from this device for the Mac's activity log.")
         }
     }
 
     private var aboutSection: some View {
         Section("About") {
-            LabeledContent("Version", value: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "")
-            LabeledContent("Build", value: Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "")
+            LabeledContent("Version", value: Self.version)
             ShortcutsLink()
+                .shortcutsLinkStyle(.automaticOutline)
+                .frame(maxWidth: .infinity)
         }
+    }
+
+    /// "1.0 (1)": the version and build.
+    static var version: String {
+        let info = Bundle.main.infoDictionary ?? [:]
+        let version = info["CFBundleShortVersionString"] as? String ?? ""
+        let build = info["CFBundleVersion"] as? String ?? ""
+        return build.isEmpty ? version : "\(version) (\(build))"
     }
 }
 
