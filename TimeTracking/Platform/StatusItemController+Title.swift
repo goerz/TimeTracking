@@ -27,12 +27,11 @@ extension StatusItemController {
         return title
     }
 
-    /// An SF Symbol as a text attachment, drawn at render time in the text
+    /// A symbol as a text attachment, drawn at render time in the text
     /// color of the menu bar's appearance.
     private static func textGlyph(_ symbol: String, font: NSFont) -> NSTextAttachment? {
         let configuration = NSImage.SymbolConfiguration(pointSize: font.pointSize, weight: .regular)
-        guard let base = NSImage(systemSymbolName: symbol, accessibilityDescription: nil)?
-            .withSymbolConfiguration(configuration)
+        guard let base = NSImage.symbol(symbol)?.withSymbolConfiguration(configuration)
         else {
             return nil
         }

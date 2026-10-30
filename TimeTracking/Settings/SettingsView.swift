@@ -15,9 +15,15 @@ struct SettingsView: View {
     var body: some View {
         TabView(selection: $pane) {
             ForEach(SettingsPane.allCases) { pane in
-                Tab(pane.title, systemImage: pane.symbol, value: pane.rawValue) {
+                Tab(value: pane.rawValue) {
                     content(for: pane)
                         .accessibilityIdentifier("settings.pane.\(pane.rawValue)")
+                } label: {
+                    Label {
+                        Text(pane.title)
+                    } icon: {
+                        Image(symbol: pane.symbol)
+                    }
                 }
             }
         }
@@ -112,15 +118,18 @@ struct GeneralPane: View {
             Toggle("Show seconds", isOn: $settings.menuBarShowSeconds)
                 .disabled(!settings.menuBarShowTimer)
             Toggle("Show project", isOn: $settings.menuBarShowProject)
+            Picker("During a Pomodoro, show", selection: $settings.menuBarPomodoroDisplay) {
+                Text("Timer and countdown").tag(MenuBarPomodoroDisplay.both)
+                Text("Countdown only").tag(MenuBarPomodoroDisplay.countdown)
+                Text("Timer only").tag(MenuBarPomodoroDisplay.timer)
+            }
+            .accessibilityIdentifier("settings.menuBarPomodoroDisplay")
             Toggle("Show Dock icon", isOn: $settings.showDockIcon)
                 .accessibilityIdentifier("settings.showDockIcon")
         } header: {
             Text("Menu bar and Dock")
         } footer: {
-            Text(
-                "The Pomodoro countdown appears in the menu bar whenever a Pomodoro runs. "
-                    + "Without the Dock icon, the menu bar item opens the app's windows."
-            )
+            Text("Without the Dock icon, the menu bar item opens the app's windows.")
         }
     }
 

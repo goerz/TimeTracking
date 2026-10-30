@@ -308,6 +308,7 @@ final class AppModel {
             showTimer: settings.menuBarShowTimer,
             showSeconds: settings.menuBarShowSeconds,
             showProject: settings.menuBarShowProject,
+            pomodoroDisplay: settings.menuBarPomodoroDisplay,
             warning: tracker.warningActive,
             warningLine: tracker.warningLine,
             showHideKey: showHideKey,

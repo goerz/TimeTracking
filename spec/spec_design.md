@@ -68,7 +68,7 @@ Window-level controls live in the platform toolbar, never in a custom row inside
 
 ## 5. Symbols
 
-SF Symbols only, monochrome, default weight, in the text style of the adjacent text. Inline metadata glyphs use `.secondary` and `.imageScale(.small)`. One symbol per concept, everywhere:
+SF Symbols, monochrome, default weight, in the text style of the adjacent text. The one exception is the Pomodoro's apple: SF Symbols has no fruit apple (`apple.logo` is Apple's logo, reserved for Apple's products), so `pomodoro` is a custom symbol (`AppSymbol.pomodoro`) in `AppResources/Assets.xcassets`, with a copy in `TimeTrackingWidgets/Assets.xcassets`. It is an outline apple with a stem and a solid leaf, drawn to the template's Regular-M cap height with the stroke of `timer`, so it scales, tints, and aligns like an SF Symbol; `Image(symbol:)` and `NSImage.symbol(_:)` resolve either kind. App Shortcuts, which accept only SF Symbols, keep `timer`. Inline metadata glyphs use `.secondary` and `.imageScale(.small)`. One symbol per concept, everywhere:
 
 | Concept | Symbol |
 |---|---|
@@ -80,7 +80,7 @@ SF Symbols only, monochrome, default weight, in the text style of the adjacent t
 | Start, continue | `play.fill` |
 | Stop | `stop.fill` |
 | Discard the running entry | `xmark` (in the secondary circle button) |
-| Pomodoro | `timer` |
+| Pomodoro, focus phase | `pomodoro` (the app's apple) |
 | Pomodoro break | `cup.and.saucer` |
 | Pin (float on top) | `pin`, `pin.fill` when on |
 | New (entry, project, client) | `plus` |
@@ -123,7 +123,7 @@ A sidebar shows its symbols in the accent color (the system sidebar style); no m
 |---|---|
 | Start, stop, continue buttons | `CircleButtonStyle`: a filled circle with a white glyph at 40% of the diameter. Timer bar: 32 pt on the Mac, 44 pt on iOS. List rows: 24 pt on the Mac (shown on hover and selection), 32 pt on iOS. No halo. |
 | Discard button | A borderless `xmark` glyph in `.secondary` (medium weight, 40% of the circle's diameter), its hit area the circle's size (32 pt Mac, 44 pt iOS): a rare, destructive action does not get the weight of Stop. |
-| Pomodoro button | A circular button the size of the start button with a light fill (`.quaternary` on the Mac, `.fill.tertiary` on iOS): `timer` glyph in `.secondary` while off. While on, it widens once to a capsule of the same height and a fixed width that fits `+88:88` (`8:88:88` when a phase lasts an hour or more), holding a small progress ring in the accent color (break: `.secondary`) and the remaining time in `.subheadline.monospacedDigit()`. A pending confirmation keeps that capsule, tinted with the accent color (18% fill, accent glyph and text): the next phase's glyph (`cup.and.saucer` for Start Break, `timer` for Start Focus) and its name ("Break", "Focus") in `.subheadline.weight(.semibold)`; tooltip and accessibility label "Start Break (⌘↩)". Neighbors therefore move only when the Pomodoro turns on or off. Click: off → Start Pomodoro; pending → the confirmation; otherwise the menu. The menu holds every action of `spec_timer_window.md` §5. |
+| Pomodoro button | A circular button the size of the start button with a light fill (`.quaternary` on the Mac, `.fill.tertiary` on iOS): the apple (`pomodoro`) in `.secondary` while off. While on, it widens once to a capsule of the same height and a fixed width that fits `+88:88` (`8:88:88` when a phase lasts an hour or more), holding a small progress ring in the accent color (break: `.secondary`) and the remaining time in `.subheadline.monospacedDigit()`. A pending confirmation keeps that capsule, tinted with the accent color (18% fill, accent glyph and text): the next phase's glyph (`cup.and.saucer` for Start Break, `pomodoro` for Start Focus) and its name ("Break", "Focus") in `.subheadline.weight(.semibold)`; tooltip and accessibility label "Start Break (⌘↩)". Neighbors therefore move only when the Pomodoro turns on or off. Click: off → Start Pomodoro; pending → the confirmation; otherwise the menu. The menu holds every action of `spec_timer_window.md` §5. |
 | Project chip | `.bordered` capsule button, `.small` control size on the Mac; on iOS a capsule with the Pomodoro button's light fill: area dot, project, " · client" in `.secondary`, `chevron.up.chevron.down` in `.secondary`. "No project" with a hollow dot. |
 | Area dot | 8 pt circle in the area color; hollow (1 pt `.secondary` stroke) for no project. |
 | Lists | `List` (`.inset` on the Mac, `.insetGrouped` on iOS) with section headers in `.headline`; row padding `Design.Spacing.small` vertically. |

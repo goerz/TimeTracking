@@ -30,7 +30,7 @@ struct MenuHeaderView: View {
                 AreaDot(color: dot.isEmpty ? nil : dot, size: 8)
                     .frame(width: 14)
             } else if let symbol = line.symbol {
-                Image(systemName: symbol)
+                Image(symbol: symbol)
                     .foregroundStyle(line.style == .warning ? AnyShapeStyle(.orange) : AnyShapeStyle(.secondary))
                     .accessibilityHidden(true)
                     .frame(width: 14)

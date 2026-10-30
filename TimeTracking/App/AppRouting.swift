@@ -33,7 +33,7 @@ enum SettingsPane: String, CaseIterable, Identifiable, Sendable {
     var symbol: String {
         switch self {
         case .general: "gearshape"
-        case .pomodoro: "timer"
+        case .pomodoro: AppSymbol.pomodoro
         case .idle: "moon.zzz"
         case .reminders: "bell"
         case .shortcuts: "keyboard"

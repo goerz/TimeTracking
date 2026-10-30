@@ -35,7 +35,7 @@ Launched as a login item, the app shows only the menu bar item unless "Show the 
 
 Below the title-bar row, using the full width between the window's 20 pt insets, from left: the Pomodoro button (5.1, 32 pt circle while off, a fixed-width capsule while on); the borderless task field (placeholder "What are you working on?", `.title3`), which takes the remaining width; the timer label (`h:mm:ss` in `.title3`, medium weight, monospaced digits; `0:00:00` in the secondary color when idle); the start button (32 pt circle), which becomes the stop button while an entry runs; and the borderless discard button, only while running (`spec_design.md` §7).
 
-Below that row, the project chip (`spec_design.md` §7: area dot, project, " · " and client in secondary color, `chevron.up.chevron.down`; "No project" with a hollow dot). The chip shares the task field's column, so its leading edge stays aligned with the task text in every Pomodoro state; both move only when the Pomodoro turns on or off.
+Below that row, the project chip (`spec_design.md` §7: area dot, project, " · " and client in secondary color, `chevron.up.chevron.down`; "No project" with a hollow dot). The chip starts at the content inset, under the Pomodoro button and in line with the list rows, so it stays put in every Pomodoro state.
 
 The timer label always shows the elapsed time, also during a Pomodoro, and counts from the running entry's chain start (the earliest start among the live entries sharing its `splitRootID` root, `spec_data_and_sync.md` 1.5), so it does not reset when the library splits the entry at midnight.
 
@@ -132,10 +132,10 @@ The Pomodoro button is the countdown's only place; the timer label keeps the ela
 
 | State | Shows | Click | Menu |
 |---|---|---|---|
-| Off, an entry runs | `timer` in a 32 pt circle | Start Pomodoro | Press and hold: "Start Pomodoro (25 min)" (the focus duration) |
+| Off, an entry runs | The apple (`pomodoro`, `spec_design.md` §5) in a 32 pt circle | Start Pomodoro | Press and hold: "Start Pomodoro (25 min)" (the focus duration) |
 | Off, idle | The same | The menu | "Start Pomodoro (25 min)", disabled |
 | Focus, break | A capsule: progress ring (accent color in focus, secondary on a break) and the countdown `m:ss` (`h:mm:ss` from one hour) | The menu | The phase and countdown ("Focus 24:59", "Break 4:30"), then the actions 5.3 allows and "Cancel Pomodoro" |
-| Focus over, break over | The same capsule tinted with the accent color: `cup.and.saucer` and "Break", or `timer` and "Focus"; tooltip "Start Break (⌘↩)" or "Start Focus (⌘↩)" | The confirmation; ⌘↩ anywhere in the window | Secondary click: the actions 5.3 allows and "Cancel Pomodoro" |
+| Focus over, break over | The same capsule tinted with the accent color: `cup.and.saucer` and "Break", or `pomodoro` and "Focus"; tooltip "Start Break (⌘↩)" or "Start Focus (⌘↩)" | The confirmation; ⌘↩ anywhere in the window | Secondary click: the actions 5.3 allows and "Cancel Pomodoro" |
 
 Every menu ends with "Pomodoro Settings…". The tooltip and the accessibility value name the phase and the countdown, in overtime as `+m:ss` counting up ("Focus +1:20").
 
@@ -214,7 +214,7 @@ While on, idle, inside the hours on a selected day, and unlocked, the app sends 
 
 ## 8. Settings window
 
-Settings… (⌘,) opens a SwiftUI `Settings` scene with six toolbar panes: General (`gearshape`), Pomodoro (`timer`), Idle (`moon.zzz`), Reminders (`bell`), Shortcuts (`keyboard`), Tracker (`waveform.path.ecg`). It reopens on the last pane shown. Changes apply immediately.
+Settings… (⌘,) opens a SwiftUI `Settings` scene with six toolbar panes: General (`gearshape`), Pomodoro (`pomodoro`), Idle (`moon.zzz`), Reminders (`bell`), Shortcuts (`keyboard`), Tracker (`waveform.path.ecg`). It reopens on the last pane shown. Changes apply immediately.
 
 Every pane is a grouped `Form` 520 pt wide (`spec_design.md` §8). The window takes each pane's height (the form's scrolling is off and its height fixed to its content), except the Tracker pane, which is 620 pt tall and scrolls. Related settings share a section; explanations are section footers, never rows. A number with a stepper is a row with the label leading and the value, then the stepper, trailing ("Focus duration   25 min ⇅"). A dependent setting is disabled, not indented, while the setting it depends on is off.
 
@@ -225,7 +225,7 @@ Every pane is a grouped `Form` 520 pt wide (`spec_design.md` §8). The window ta
 | (none) | Open at login | off | `SMAppService.mainApp`; the first-launch alert proposes it (8.2) and the Tracker pane's setup shows it (`spec_activity_tracking.md` §7.4) |
 | (none) | Show the Timer window at login | off | Disabled while "Open at login" is off |
 | Timer window | Float above other windows | off | Same state as the pin; the footer says so |
-| Menu bar and Dock | Show timer, Show seconds, Show project | on, off, off | `spec_menubar.md` §6 |
+| Menu bar and Dock | Show timer, Show seconds, Show project, During a Pomodoro, show | on, off, off, Timer and countdown | `spec_menubar.md` §6 |
 | Menu bar and Dock | Show Dock icon | on | `spec_menubar.md` §4 |
 | iCloud | Sync and widget push status | | `spec_data_and_sync.md` §3.1, §4.3 |
 

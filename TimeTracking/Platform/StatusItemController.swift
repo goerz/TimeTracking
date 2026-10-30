@@ -149,7 +149,7 @@ final class StatusItemController: NSObject, NSMenuDelegate {
     }
 
     /// The rows of the menu last built, header text left out.
-    private var builtShape: [String] = []
+    private var builtShape: [StatusMenuRow] = []
     private var headerHosts: [NSHostingView<MenuHeaderView>] = []
 
     /// Rebuilds the menu, or, when only header text changed (the per-second
@@ -201,7 +201,7 @@ final class StatusItemController: NSObject, NSMenuDelegate {
             item.target = self
             item.isEnabled = enabled
             item.representedObject = CommandBox(command)
-            item.image = command.symbol.flatMap { NSImage(systemSymbolName: $0, accessibilityDescription: nil) }
+            item.image = command.symbol.flatMap(NSImage.symbol)
             return item
         }
     }

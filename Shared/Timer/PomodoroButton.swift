@@ -14,7 +14,7 @@ struct PomodoroButtonState {
     var isRunning: Bool
 }
 
-/// A circle with the `timer` glyph while off; while on, a capsule with a
+/// A circle with the apple glyph (`AppSymbol.pomodoro`) while off; while on, a capsule with a
 /// progress ring and the phase's countdown; while a confirmation is
 /// pending, an accent capsule reading "Start Break" or "Start Focus" that
 /// confirms on click (⌘↩ on the Mac). Its menu holds every Pomodoro action.
@@ -51,13 +51,17 @@ struct PomodoroButton: View {
     // MARK: States
 
     @ViewBuilder private var off: some View {
-        let label = Label("Pomodoro", systemImage: "timer")
-            .labelStyle(.iconOnly)
-            .font(.system(size: diameter * 0.45))
-            .foregroundStyle(.secondary)
-            .frame(width: diameter, height: diameter)
-            .background(Circle().fill(Self.fill))
-            .contentShape(Circle())
+        let label = Label {
+            Text("Pomodoro")
+        } icon: {
+            Image(symbol: AppSymbol.pomodoro)
+        }
+        .labelStyle(.iconOnly)
+        .font(.system(size: diameter * 0.45))
+        .foregroundStyle(.secondary)
+        .frame(width: diameter, height: diameter)
+        .background(Circle().fill(Self.fill))
+        .contentShape(Circle())
         if state.isRunning {
             Menu {
                 menuItems
@@ -122,7 +126,7 @@ struct PomodoroButton: View {
             perform(action)
         } label: {
             capsule(fill: AnyShapeStyle(Color.accentColor.opacity(0.18))) {
-                Image(systemName: isBreak ? "cup.and.saucer" : "timer")
+                Image(symbol: isBreak ? "cup.and.saucer" : AppSymbol.pomodoro)
                     .resizable()
                     .scaledToFit()
                     .fontWeight(.semibold)

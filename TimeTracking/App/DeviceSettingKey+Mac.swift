@@ -50,6 +50,12 @@ extension DeviceSettingKey where Value == Bool {
     }
 }
 
+extension DeviceSettingKey where Value == MenuBarPomodoroDisplay {
+    static var menuBarPomodoroDisplay: Self {
+        Self("menuBar.pomodoroDisplay", default: .both)
+    }
+}
+
 extension DeviceSettingKey where Value == IdleLockBehavior {
     static var idleOnLockOrSleep: Self {
         Self("idle.onLockOrSleep", default: .ask)

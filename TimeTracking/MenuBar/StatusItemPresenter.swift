@@ -9,7 +9,7 @@ struct StatusItemContent: Equatable {
     /// The Pomodoro countdown after the title: the phase glyph and `m:ss`
     /// (`+m:ss` once the phase has ended).
     struct PomodoroSegment: Equatable {
-        /// SF Symbol name, template: `timer` or `cup.and.saucer`.
+        /// Symbol name, template: `AppSymbol.pomodoro` or `cup.and.saucer`.
         var symbol: String
         var text: String
     }
@@ -135,11 +135,13 @@ enum StatusMenuRow: Equatable {
         return rows
     }
 
-    /// The row without header text: equal shapes need no rebuild.
-    var shape: String {
+    /// The row without header text: equal shapes need no rebuild. Compared
+    /// by value, not by description: a key's modifier set describes itself
+    /// in varying order, which rebuilt the open menu every few seconds.
+    var shape: Self {
         switch self {
-        case let .header(lines): "header \(lines.count)"
-        case let .entry(entry): "\(entry)"
+        case let .header(lines): .header(lines.map { _ in MenuHeaderLine("", style: .title) })
+        case .entry: self
         }
     }
 
@@ -160,7 +162,7 @@ extension MenuCommand {
         case .continueLatest: "play.fill"
         case .stop: "stop.fill"
         // The phase glyph for the items that start a phase.
-        case .pomodoro(.start), .pomodoro(.startFocus): "timer"
+        case .pomodoro(.start), .pomodoro(.startFocus): AppSymbol.pomodoro
         case .pomodoro(.startBreak): "cup.and.saucer"
         case .showTimer: "stopwatch"
         case .openPlanner: "calendar"
@@ -182,6 +184,7 @@ struct StatusItemState {
     var showTimer: Bool
     var showSeconds: Bool
     var showProject: Bool
+    var pomodoroDisplay: MenuBarPomodoroDisplay = .both
     var warning: Bool
     var warningLine: String
     /// The recorded show/hide shortcut, `nil` when cleared.
@@ -200,9 +203,12 @@ enum StatusItemPresenter {
         let symbol = state.running == nil ? "stopwatch" : "stopwatch.fill"
         var title = ""
         var spoken = state.running == nil ? "Not tracking" : "Tracking"
+        let pomodoroRemaining = state.pomodoro.state.isOn ? state.pomodoro.remaining(at: now) : nil
+        // "Countdown only" hides the elapsed time while a countdown shows.
+        let hidesElapsed = pomodoroRemaining != nil && state.pomodoroDisplay == .countdown
         if let chainStart = state.chainStart, state.running != nil {
             let elapsed = max(0, Int(now.timeIntervalSince(chainStart)))
-            if state.showTimer {
+            if state.showTimer, !hidesElapsed {
                 title = state.showSeconds ? DurationText.clock(elapsed) : DurationText.hoursMinutes(elapsed)
             }
             spoken = "Tracking, \(spokenDuration(elapsed, seconds: state.showSeconds))"
@@ -212,12 +218,13 @@ enum StatusItemPresenter {
             title = title.isEmpty ? name : "\(title) · \(name)"
             spoken += ", \(state.label.name)"
         }
-        // The countdown is secondary: it follows the title, behind the phase glyph.
+        // The countdown is secondary: it follows the title, behind the phase
+        // glyph. "Timer only" leaves it to the menu and the spoken label.
         var segment: StatusItemContent.PomodoroSegment?
-        if state.pomodoro.state.isOn, let remaining = state.pomodoro.remaining(at: now) {
+        if let remaining = pomodoroRemaining {
             let focus = state.pomodoro.state.isFocusPhase
             let phase = focus ? "focus" : "break"
-            let glyph = focus ? "timer" : "cup.and.saucer"
+            let glyph = focus ? AppSymbol.pomodoro : "cup.and.saucer"
             if state.pomodoro.state.isPendingConfirmation || remaining < 0 {
                 let over = -min(remaining, 0)
                 segment = .init(symbol: glyph, text: "+" + DurationText.minutesSeconds(over))
@@ -226,6 +233,9 @@ enum StatusItemPresenter {
                 segment = .init(symbol: glyph, text: DurationText.minutesSeconds(remaining))
                 spoken += ", Pomodoro \(phase), \(spokenDuration(remaining, seconds: true)) left"
             }
+        }
+        if state.pomodoroDisplay == .timer {
+            segment = nil
         }
         if state.warning {
             spoken += ", tracker not running"
@@ -275,7 +285,7 @@ enum StatusItemPresenter {
             } else {
                 "\(phase) · \(DurationText.minutesSeconds(remaining)) left"
             }
-            lines.append(MenuHeaderLine(text, style: .primary, symbol: focus ? "timer" : "cup.and.saucer"))
+            lines.append(MenuHeaderLine(text, style: .primary, symbol: focus ? AppSymbol.pomodoro : "cup.and.saucer"))
         }
         return lines
     }

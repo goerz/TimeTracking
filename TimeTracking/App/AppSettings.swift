@@ -31,6 +31,10 @@ final class AppSettings {
         didSet { device[.menuBarShowProject] = menuBarShowProject }
     }
 
+    var menuBarPomodoroDisplay: MenuBarPomodoroDisplay {
+        didSet { device[.menuBarPomodoroDisplay] = menuBarPomodoroDisplay }
+    }
+
     var showDockIcon: Bool {
         didSet { device[.showDockIcon] = showDockIcon }
     }
@@ -71,6 +75,7 @@ final class AppSettings {
         self.menuBarShowTimer = device[.menuBarShowTimer]
         self.menuBarShowSeconds = device[.menuBarShowSeconds]
         self.menuBarShowProject = device[.menuBarShowProject]
+        self.menuBarPomodoroDisplay = device[.menuBarPomodoroDisplay]
         self.showDockIcon = device[.showDockIcon]
         self.pomodoroSounds = device[.pomodoroSounds]
         self.idle = IdleSettings(

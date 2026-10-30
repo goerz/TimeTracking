@@ -147,7 +147,9 @@ struct PomodoroLine: View {
                     Text(timerInterval: snapshot.date ... max(end, snapshot.date), countsDown: true)
                 }
             } icon: {
-                Image(systemName: snapshot.pomodoro.isFocusPhase ? "timer" : "cup.and.saucer")
+                // The focus glyph is the app's apple symbol (a copy in this
+                // target's asset catalog).
+                (snapshot.pomodoro.isFocusPhase ? Image(.pomodoro) : Image(systemName: "cup.and.saucer"))
                     .foregroundStyle(.tint)
                     .widgetAccentable()
             }

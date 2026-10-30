@@ -6,7 +6,7 @@ import TimeTrackingCore
 
 /// The title-bar row holds only the traffic lights and the pin. Below it:
 /// Pomodoro button, task field, timer, start or stop, discard; then the
-/// project chip under the task field's text.
+/// project chip at the content inset.
 struct RunningEntryBar: View {
     @Environment(AppModel.self) private var app
 
@@ -15,29 +15,27 @@ struct RunningEntryBar: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             titleRow
-            HStack(alignment: .top, spacing: Design.Spacing.medium) {
-                pomodoroButton
-                // The chip shares the task field's column, so it follows the
-                // field's leading edge whatever the Pomodoro button's width.
-                VStack(alignment: .leading, spacing: Design.Spacing.small) {
-                    HStack(spacing: Design.Spacing.medium) {
-                        TaskFieldView()
-                        timerLabel
-                        HStack(spacing: Design.Spacing.tight) {
-                            startStopButton
-                            if app.timer.isRunning {
-                                discardButton
-                            }
+            VStack(alignment: .leading, spacing: Design.Spacing.small) {
+                HStack(spacing: Design.Spacing.medium) {
+                    pomodoroButton
+                    TaskFieldView()
+                        .onGeometryChange(for: CGFloat.self) { proxy in
+                            proxy.frame(in: .global).minX
+                        } action: { leading in
+                            app.presentation.taskFieldLeading = leading
+                        }
+                    timerLabel
+                    HStack(spacing: Design.Spacing.tight) {
+                        startStopButton
+                        if app.timer.isRunning {
+                            discardButton
                         }
                     }
-                    .frame(height: Design.CircleDiameter.bar)
-                    TimerProjectChip()
                 }
-                .onGeometryChange(for: CGFloat.self) { proxy in
-                    proxy.frame(in: .global).minX
-                } action: { leading in
-                    app.presentation.taskFieldLeading = leading
-                }
+                .frame(height: Design.CircleDiameter.bar)
+                // The chip starts at the content inset, under the Pomodoro
+                // button, like the list rows below.
+                TimerProjectChip()
             }
             .padding(.horizontal, Design.Spacing.window)
             Spacer(minLength: 0)
