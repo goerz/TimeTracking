@@ -4,14 +4,66 @@
 import Foundation
 import TimeTrackingCore
 
-/// The status item's icon, title, badge, and accessibility label.
+/// The status item's icon, title, Pomodoro segment, badge, and accessibility label.
 struct StatusItemContent: Equatable {
+    /// The Pomodoro countdown after the title: the phase glyph and `m:ss`
+    /// (`+m:ss` once the phase has ended).
+    struct PomodoroSegment: Equatable {
+        /// SF Symbol name, template: `timer` or `cup.and.saucer`.
+        var symbol: String
+        var text: String
+    }
+
     /// SF Symbol name, template.
     var symbol: String
+    /// The elapsed time and the project, as the settings ask.
     var title: String
+    var pomodoro: PomodoroSegment?
     /// The exclamation-mark badge of the tracker warning.
     var badge: Bool
     var accessibilityLabel: String
+
+    /// Everything the item shows as text: the accessibility title.
+    var visibleText: String {
+        [title, pomodoro?.text ?? ""].filter { !$0.isEmpty }.joined(separator: " ")
+    }
+}
+
+/// A disabled line at the top of the menu (spec_menubar.md §2.1).
+struct MenuHeaderLine: Equatable {
+    enum Style: Equatable {
+        /// The running task or "Not tracking": the menu font, semibold.
+        case title
+        /// The project and Pomodoro lines: primary text, then `secondary` in the secondary color.
+        case primary
+        /// The start time and the last entry: the secondary color.
+        case secondary
+        /// The tracker warning.
+        case warning
+    }
+
+    var text: String
+    /// Text after `text` in the secondary color (" · client").
+    var secondary: String?
+    var style: Style
+    /// An SF Symbol shown as the item's image.
+    var symbol: String?
+    /// The area dot shown as the item's image: an `#RRGGBB` color, or `""`
+    /// for the hollow dot of no project.
+    var dot: String?
+
+    init(_ text: String, secondary: String? = nil, style: Style, symbol: String? = nil, dot: String? = nil) {
+        self.text = text
+        self.secondary = secondary
+        self.style = style
+        self.symbol = symbol
+        self.dot = dot
+    }
+
+    /// The line as plain text.
+    var plain: String {
+        text + (secondary ?? "")
+    }
 }
 
 /// A key equivalent of a menu item.
@@ -53,9 +105,70 @@ enum MenuCommand: Hashable {
 /// One line of the menu.
 enum StatusMenuEntry: Equatable {
     /// A disabled informational line.
-    case header(String)
+    case header(MenuHeaderLine)
     case separator
     case item(title: String, key: MenuKey?, enabled: Bool, command: MenuCommand)
+}
+
+/// A menu entry as shown: consecutive header lines form one item.
+enum StatusMenuRow: Equatable {
+    case header([MenuHeaderLine])
+    case entry(StatusMenuEntry)
+
+    static func rows(_ entries: [StatusMenuEntry]) -> [Self] {
+        var rows: [Self] = []
+        var pending: [MenuHeaderLine] = []
+        for entry in entries {
+            if case let .header(line) = entry {
+                pending.append(line)
+                continue
+            }
+            if !pending.isEmpty {
+                rows.append(.header(pending))
+                pending = []
+            }
+            rows.append(.entry(entry))
+        }
+        if !pending.isEmpty {
+            rows.append(.header(pending))
+        }
+        return rows
+    }
+
+    /// The row without header text: equal shapes need no rebuild.
+    var shape: String {
+        switch self {
+        case let .header(lines): "header \(lines.count)"
+        case let .entry(entry): "\(entry)"
+        }
+    }
+
+    /// The header lines as a one-element array, else empty.
+    var headerGroup: [[MenuHeaderLine]] {
+        if case let .header(lines) = self {
+            return [lines]
+        }
+        return []
+    }
+}
+
+extension MenuCommand {
+    /// The item's SF Symbol (spec_design.md §5), or `nil` for none.
+    var symbol: String? {
+        switch self {
+        case .new: "plus"
+        case .continueLatest: "play.fill"
+        case .stop: "stop.fill"
+        // The phase glyph for the items that start a phase.
+        case .pomodoro(.start), .pomodoro(.startFocus): "timer"
+        case .pomodoro(.startBreak): "cup.and.saucer"
+        case .showTimer: "stopwatch"
+        case .openPlanner: "calendar"
+        case .settings: "gearshape"
+        case .openTrackerSettings: "waveform.path.ecg"
+        case .pomodoro, .quit: nil
+        }
+    }
 }
 
 /// The inputs of the status item, gathered from the Timer window's state.
@@ -84,44 +197,58 @@ enum StatusItemPresenter {
     static let taskLimit = 60
 
     static func content(_ state: StatusItemState, at now: Date) -> StatusItemContent {
-        var symbol = state.running == nil ? "stopwatch" : "stopwatch.fill"
-        var time: String?
+        let symbol = state.running == nil ? "stopwatch" : "stopwatch.fill"
+        var title = ""
         var spoken = state.running == nil ? "Not tracking" : "Tracking"
-        if state.pomodoro.state.isOn, let remaining = state.pomodoro.remaining(at: now) {
-            symbol = state.pomodoro.state.isFocusPhase ? "hourglass" : "cup.and.saucer"
-            let phase = state.pomodoro.state.isFocusPhase ? "focus" : "break"
-            if state.pomodoro.state.isPendingConfirmation || remaining < 0 {
-                time = "+" + DurationText.minutesSeconds(-min(remaining, 0))
-                spoken = "Pomodoro \(phase) ended, \(spokenDuration(-min(remaining, 0), seconds: true)) ago"
-            } else {
-                time = DurationText.minutesSeconds(remaining)
-                spoken = "Pomodoro \(phase), \(spokenDuration(remaining, seconds: true)) left"
-            }
-        } else if let chainStart = state.chainStart, state.running != nil {
+        if let chainStart = state.chainStart, state.running != nil {
             let elapsed = max(0, Int(now.timeIntervalSince(chainStart)))
             if state.showTimer {
-                time = state.showSeconds ? DurationText.clock(elapsed) : DurationText.hoursMinutes(elapsed)
+                title = state.showSeconds ? DurationText.clock(elapsed) : DurationText.hoursMinutes(elapsed)
             }
             spoken = "Tracking, \(spokenDuration(elapsed, seconds: state.showSeconds))"
         }
-        var title = time ?? ""
         if state.showProject, state.running != nil, !state.label.isNone {
             let name = truncated(state.label.name, to: projectLimit)
             title = title.isEmpty ? name : "\(title) · \(name)"
             spoken += ", \(state.label.name)"
         }
+        // The countdown is secondary: it follows the title, behind the phase glyph.
+        var segment: StatusItemContent.PomodoroSegment?
+        if state.pomodoro.state.isOn, let remaining = state.pomodoro.remaining(at: now) {
+            let focus = state.pomodoro.state.isFocusPhase
+            let phase = focus ? "focus" : "break"
+            let glyph = focus ? "timer" : "cup.and.saucer"
+            if state.pomodoro.state.isPendingConfirmation || remaining < 0 {
+                let over = -min(remaining, 0)
+                segment = .init(symbol: glyph, text: "+" + DurationText.minutesSeconds(over))
+                spoken += ", Pomodoro \(phase) ended \(spokenDuration(over, seconds: true)) ago"
+            } else {
+                segment = .init(symbol: glyph, text: DurationText.minutesSeconds(remaining))
+                spoken += ", Pomodoro \(phase), \(spokenDuration(remaining, seconds: true)) left"
+            }
+        }
         if state.warning {
             spoken += ", tracker not running"
         }
-        return StatusItemContent(symbol: symbol, title: title, badge: state.warning, accessibilityLabel: spoken)
+        return StatusItemContent(symbol: symbol, title: title, pomodoro: segment, badge: state.warning, accessibilityLabel: spoken)
     }
 
-    /// The disabled header lines of §2.1.
+    /// The disabled header lines of §2.1 as plain text.
     static func header(_ state: StatusItemState, at now: Date, calendar: Calendar = .current) -> [String] {
-        var lines: [String] = []
+        headerLines(state, at: now, calendar: calendar).map(\.plain)
+    }
+
+    /// The disabled header lines of §2.1 with their styles.
+    static func headerLines(_ state: StatusItemState, at now: Date, calendar: Calendar = .current) -> [MenuHeaderLine] {
+        var lines: [MenuHeaderLine] = []
         if let running = state.running {
-            lines.append(truncated(running.task.isEmpty ? "No task" : running.task, to: taskLimit))
-            lines.append(state.label.isNone ? "No project" : state.label.projectAndClient)
+            lines.append(MenuHeaderLine(truncated(running.task.isEmpty ? "No task" : running.task, to: taskLimit), style: .title))
+            if state.label.isNone {
+                lines.append(MenuHeaderLine("No project", style: .primary, dot: ""))
+            } else {
+                let client = state.label.client.map { " · \($0)" }
+                lines.append(MenuHeaderLine(state.label.name, secondary: client, style: .primary, dot: state.label.color ?? ""))
+            }
             let start = state.chainStart ?? running.start
             var started = time(start)
             if !calendar.isDate(start, inSameDayAs: now) {
@@ -129,33 +256,45 @@ enum StatusItemPresenter {
                 started += yesterday ? " yesterday" : " " + start.formatted(.dateTime.month(.abbreviated).day())
             }
             let elapsed = DurationText.hoursMinutes(max(0, Int(now.timeIntervalSince(start))))
-            lines.append("Started \(started), \(elapsed) elapsed")
+            lines.append(MenuHeaderLine("Started \(started) · \(elapsed) elapsed", style: .secondary, symbol: "clock"))
         } else {
-            lines.append("No entry running")
+            lines.append(MenuHeaderLine("Not tracking", style: .title))
             if let last = state.lastStoppedToday, let end = last.end {
-                lines.append("Last: \(last.task.isEmpty ? "No task" : last.task), stopped \(time(end))")
+                lines.append(MenuHeaderLine(
+                    "Last: \(last.task.isEmpty ? "No task" : last.task), stopped \(time(end))",
+                    style: .secondary,
+                    symbol: "clock"
+                ))
             }
         }
         if let remaining = state.pomodoro.remaining(at: now) {
-            let phase = state.pomodoro.state.isFocusPhase ? "Focus" : "Break"
-            if state.pomodoro.state.isPendingConfirmation || remaining < 0 {
-                lines.append("\(phase) ended +\(DurationText.minutesSeconds(-min(remaining, 0)))")
+            let focus = state.pomodoro.state.isFocusPhase
+            let phase = focus ? "Focus" : "Break"
+            let text = if state.pomodoro.state.isPendingConfirmation || remaining < 0 {
+                "\(phase) ended · +\(DurationText.minutesSeconds(-min(remaining, 0)))"
             } else {
-                lines.append("\(phase), \(DurationText.minutesSeconds(remaining)) left")
+                "\(phase) · \(DurationText.minutesSeconds(remaining)) left"
             }
+            lines.append(MenuHeaderLine(text, style: .primary, symbol: focus ? "timer" : "cup.and.saucer"))
         }
         return lines
+    }
+
+    /// The tracker warning line; the warning symbol replaces a leading sign.
+    static func warningLine(_ text: String) -> MenuHeaderLine {
+        let trimmed = text.hasPrefix("⚠") ? String(text.dropFirst()).trimmingCharacters(in: .whitespaces) : text
+        return MenuHeaderLine(trimmed, style: .warning, symbol: "exclamationmark.triangle")
     }
 
     /// The whole menu of §2.
     static func menu(_ state: StatusItemState, at now: Date) -> [StatusMenuEntry] {
         var entries: [StatusMenuEntry] = []
         if state.warning {
-            entries.append(.header(state.warningLine))
+            entries.append(.header(warningLine(state.warningLine)))
             entries.append(.item(title: "Open Tracker Settings…", key: nil, enabled: true, command: .openTrackerSettings))
             entries.append(.separator)
         }
-        entries += header(state, at: now).map(StatusMenuEntry.header)
+        entries += headerLines(state, at: now).map(StatusMenuEntry.header)
         entries.append(.separator)
         entries += [
             .item(title: "New", key: .command("n"), enabled: true, command: .new),

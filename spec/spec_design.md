@@ -88,6 +88,7 @@ SF Symbols only, monochrome, default weight, in the text style of the adjacent t
 | Mac activity (device) | `desktopcomputer` |
 | iPhone, iPad activity | `iphone`, `ipad` |
 | Tracked time | `stopwatch` |
+| Start time, last stop (menu bar header) | `clock` |
 | Time blocks, calendar events | `calendar` |
 | Client | `person.crop.square` |
 | Area | `circle.hexagongrid` |
@@ -122,7 +123,8 @@ A sidebar shows its symbols in the accent color (the system sidebar style); no m
 - Timer window: hidden title bar; the title-bar row holds only the traffic lights and, at the far right, the pin button. The running-entry bar starts below it (`spec_timer_window.md` §2).
 - Planner: `NavigationSplitView` with a sidebar of fixed sections; the toolbar of §4.
 - Settings: `TabView` panes with a symbol per tab, each pane a grouped `Form` with a fixed width of 520 pt.
-- Menu bar item: the system menu style; a running entry shows as a disabled header (task in `.headline`, project · client, "Started 09:35 · 0:25 elapsed").
+- Menu bar item: the elapsed time as text, and during a Pomodoro a trailing segment with the phase glyph and the countdown (the rule of §11). The menu is the system menu style; a running entry shows as a header view (task in `.headline`; area dot, project, " · client" in `.secondary`; `clock`, "Started 09:35 · 0:25 elapsed" in `.secondary`), never as grayed-out disabled items (`spec_menubar.md` §2.1).
+- Menus: items set the symbols of §5 as images and leave `preferredImageVisibility` automatic; macOS 27 hides menu item images by default, so no menu relies on them.
 
 ## 9. App icon and identity
 

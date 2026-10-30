@@ -1,43 +1,45 @@
 # Spec: Menu Bar Item
 
-The Mac app's status item shows the running entry's elapsed time (or the Pomodoro countdown) next to an icon, and its menu starts, continues, and stops entries, drives the Pomodoro, and opens the app's windows. This spec also owns the Dock icon setting and the Dock menu, and the warning when the activity tracker has stopped. State and commands come from the Timer window (`spec_timer_window.md` §13).
+The Mac app's status item shows the running entry's elapsed time and, during a Pomodoro, the countdown next to an icon, and its menu starts, continues, and stops entries, drives the Pomodoro, and opens the app's windows. This spec also owns the Dock icon setting and the Dock menu, and the warning when the activity tracker has stopped. State and commands come from the Timer window (`spec_timer_window.md` §13).
 
 ## 1. The status item
 
 ### 1.1 Content
 
-The item is an `NSStatusItem` (created at launch by the app delegate, with an `NSMenu`): an icon, then optional text (image leading, 4 pt gap) in the menu bar font with monospaced digits.
+The item is an `NSStatusItem` (created at launch by the app delegate, with an `NSMenu`): an icon, then optional text (image leading, 4 pt gap) in the menu bar font with monospaced digits. As everywhere (`spec_design.md` §11), the elapsed time is the primary text and the Pomodoro countdown a secondary segment behind its phase glyph.
 
 | State | Icon (SF Symbol, template) | Text |
 |---|---|---|
 | No running entry | `stopwatch` | None |
 | Running entry | `stopwatch.fill` | Elapsed time, counting up |
-| Pomodoro focus | `hourglass` | Remaining time, counting down |
-| Pomodoro break | `cup.and.saucer` | Remaining time, counting down |
-| Phase ended, confirmation pending | Glyph of the ended phase | `+m:ss`, counting up from the phase end |
+| Pomodoro focus | `stopwatch.fill` | Elapsed time, then the `timer` glyph and the remaining time, counting down |
+| Pomodoro break | `stopwatch.fill` | Elapsed time, then the `cup.and.saucer` glyph and the remaining time |
+| Phase ended, confirmation pending | `stopwatch.fill` | Elapsed time, then the ended phase's glyph and `+m:ss`, counting up from the phase end |
 
-The elapsed time is `h:mm` (`0:04`, `13:05`), or `h:mm:ss` with "Show seconds"; hours have no leading zero and grow past 24. It is computed from the running entry's chain start (`spec_data_and_sync.md` 1.5) and the clock, so it does not reset at the midnight split. The Pomodoro countdown is always `m:ss` and appears whatever "Show timer" says.
+The elapsed time is `h:mm` (`0:04`, `13:05`), or `h:mm:ss` with "Show seconds"; hours have no leading zero and grow past 24. It is computed from the running entry's chain start (`spec_data_and_sync.md` 1.5) and the clock, so it does not reset at the midnight split.
 
 With "Show project" on and a project set, the project name follows the time after " · " (`0:40 · Thesis`), truncated with an ellipsis at 24 characters. With "Show timer" off the name stands alone; with both off the item is the icon alone. The task never appears in the menu bar.
+
+The Pomodoro segment follows that text after two spaces: the phase glyph (a text attachment in the menu bar's text color), a thin space, and the countdown, always `m:ss` and shown whatever "Show timer" says (`0:40 · Thesis  ⏲ 12:34`).
 
 While the tracker warning (3) is active, the icon carries a small exclamation-mark badge at its lower right in every state.
 
 ### 1.2 Width, appearance, clicks
 
-The item is exactly as wide as its content. Its `behavior` excludes removal by ⌘-dragging. Icons are template images and the text uses the standard menu bar color; no area color appears. The accessibility label describes the state ("Tracking, 40 minutes, Thesis"; "Not tracking"; "Pomodoro focus, 12 minutes 34 seconds left"; ", tracker not running" appended with the warning), and the accessibility title holds the visible text.
+The item is exactly as wide as its content. Its `behavior` excludes removal by ⌘-dragging. Icons are template images and the text uses the standard menu bar color; no area color appears. The accessibility label describes the state ("Tracking, 40 minutes, Thesis"; "Not tracking"; ", Pomodoro focus, 12 minutes 34 seconds left" appended during a Pomodoro; ", tracker not running" appended with the warning), and the accessibility title holds the visible text.
 
 A left click and a right click both open the menu, as does the system's "Move focus to status menus" shortcut.
 
 ## 2. The menu
 
 ```
-⚠ Tracker not running since 14:02   (disabled; only with the warning)
+⚠ Tracker not running since 14:02   (header; only with the warning)
 Open Tracker Settings…              (only with the warning)
 ─────────────────────────────
-Clarify noise model                 (disabled)
-Noise Model · University            (disabled)
-Started 13:38, 0:40 elapsed         (disabled)
-Focus, 12:34 left                   (disabled; only during a Pomodoro)
+Clarify noise model                 (header, semibold)
+● Noise Model · University          (header; area dot)
+◷ Started 13:38 · 0:40 elapsed      (header, secondary color)
+⏲ Focus · 12:34 left                (header; only during a Pomodoro)
 ─────────────────────────────
 New                             ⌘N
 Continue                        ⌘O
@@ -54,15 +56,18 @@ Quit TimeTracking               ⌘Q
 
 ### 2.1 Header
 
-Disabled lines, rebuilt when the menu opens and refreshed every second while open.
+Consecutive header lines form one disabled menu item whose view (SwiftUI in an `NSHostingView`) keeps their styles, which a disabled item's title would gray out. The view is built when the menu opens and updated in place every second while open, so the refresh does not flicker. Its text starts at the menu items' title inset. The first line is flush; the detail lines carry a 14 pt leading column with the area dot or a `.secondary` symbol.
 
 | Situation | Lines |
 |---|---|
-| Running entry | The task (or "No task"), truncated at 60 characters; `Project · Client` (or "No project"); `Started HH:MM, h:mm elapsed`, with "yesterday" or the date after the time when the chain started on an earlier day ("Started 23:10 yesterday, 1:05 elapsed") |
-| No running entry | "No entry running"; then `Last: <task>, stopped HH:MM` if an entry was stopped today |
-| Pomodoro on | One more line: `Focus, m:ss left`, `Break, m:ss left`, `Focus ended +m:ss`, or `Break ended +m:ss` |
+| Running entry | The task (or "No task") in `.headline`, truncated at 60 characters; the area dot (hollow for no project), the project and " · Client" in `.secondary` (or "No project"); `clock`, `Started HH:MM · h:mm elapsed` in `.secondary`, with "yesterday" or the date after the time when the chain started on an earlier day ("Started 23:10 yesterday · 1:05 elapsed") |
+| No running entry | "Not tracking" in `.headline`; then `clock`, `Last: <task>, stopped HH:MM` in `.secondary` if an entry was stopped today |
+| Pomodoro on | One more line with the phase glyph (`timer`, `cup.and.saucer`): `Focus · m:ss left`, `Break · m:ss left`, `Focus ended · +m:ss`, or `Break ended · +m:ss` |
+| Tracker warning | `exclamationmark.triangle` and the text in orange: "Tracker not running since HH:MM" |
 
 Times use the locale's format; "elapsed" is always `h:mm`.
+
+Command items carry the symbols of `spec_design.md` §5 (New `plus`, Continue `play.fill`, Stop `stop.fill`, the phase glyph on Start Pomodoro, Start Break, and Start Focus, Settings `gearshape`); their `preferredImageVisibility` stays automatic, so the system decides whether menus show them (macOS 27 hides item images by default).
 
 ### 2.2 Commands
 
@@ -94,7 +99,7 @@ The group offers what the state machine (`spec_timer_window.md` 5.3) allows and 
 
 The app checks every 30 seconds and at wake, unlock, and launch. The warning is active when the tracker's login item is registered and enabled, the tracker is not running (`spec_activity_tracking.md` §4.4), and the Mac has been awake, unlocked, and in the user's session for at least the last 2 minutes. A tracker that is not enabled gives no warning.
 
-While active, the icon carries the badge and the menu starts with "⚠ Tracker not running since HH:MM" (the `last_tick` time, or "Tracker not running" without a file) and "Open Tracker Settings…", which opens the settings window on the Tracker pane. Problems of individual sources appear only in the Tracker pane. The first check that finds the tracker running clears the warning.
+While active, the icon carries the badge and the menu starts with the warning header "Tracker not running since HH:MM" (the `last_tick` time, or "Tracker not running" without a file) and "Open Tracker Settings…", which opens the settings window on the Tracker pane. Problems of individual sources appear only in the Tracker pane. The first check that finds the tracker running clears the warning.
 
 ## 4. Dock icon and Dock menu
 
@@ -136,8 +141,8 @@ Device settings, edited in Settings > General (`spec_timer_window.md` 8.1).
 - MB-2. With an entry started at T, at T + 4 min 33 s the title is `0:04` (seconds off) or `0:04:33` (seconds on); at T + 25 h it is `25:00`.
 - MB-3. With an entry running since 23:10, at 00:05 the title is `0:55`.
 - MB-4. With "Show project" on and a 30-character name, the title ends in " · " and 24 characters including the ellipsis; with "Show timer" and "Show project" off, the title is empty and the image `stopwatch.fill`.
-- MB-5. A 25-minute focus phase shows `25:00` with `hourglass`; two minutes past `focusEnd` without confirmation it shows `+2:00` and the menu offers "Start Break".
-- MB-6. The header lines follow 2.1 for a running entry, no entry, and a Pomodoro.
+- MB-5. A 25-minute focus phase keeps the elapsed time as the title and adds the segment `timer` `25:00`, also with "Show timer" off; two minutes past `focusEnd` without confirmation the segment shows `+2:00` and the menu offers "Start Break".
+- MB-6. The header lines follow 2.1 for a running entry, no entry, and a Pomodoro, with their styles and symbols.
 - MB-7. Command enablement and actions follow 2.2; Continue does not show the Timer window, and New focuses its task field.
 - MB-8. Show Timer Window displays the recorded show/hide shortcut and none when it is cleared.
 - MB-9. In each Pomodoro state the menu has exactly the items of 2.3, and "Start Break" in `focusOver` moves the state to `break`.
@@ -152,6 +157,8 @@ Device settings, edited in Settings > General (`spec_timer_window.md` 8.1).
 - An `NSStatusItem` rather than `MenuBarExtra`, for control of the text's font features, clicks, and removal.
 - Both clicks open the menu; the global shortcut already shows the Timer window.
 - Seconds are hidden by default; the Pomodoro countdown always shows them.
+- The Pomodoro countdown is a segment after the elapsed time, as on the Timer window's Pomodoro button, so the running entry's duration stays visible.
+- The header is a hosted view rather than disabled items, which AppKit draws grayed out and without the area color.
 - The menu bar warns only about a stopped tracker, which loses data.
 - New starts the entry at once; the task can follow.
 - The item cannot be removed, so an accessory-mode app stays reachable.

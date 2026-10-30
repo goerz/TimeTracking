@@ -63,15 +63,24 @@ struct StatusItemStateTests {
         let sixty = String(repeating: "b", count: 60)
         #expect(StatusItemPresenter.truncated(sixty, to: StatusItemPresenter.taskLimit) == sixty)
         test.app.perform(.start)
+        // Styles: the task as the title, the hollow dot of no project, the
+        // start time and the Pomodoro with their symbols.
+        let styled = StatusItemPresenter.headerLines(test.app.statusState, at: test.clock.now)
+        #expect(styled.map(\.style) == [.title, .primary, .secondary, .primary])
+        #expect(styled[1].dot?.isEmpty == true && styled[2].symbol == "clock" && styled[3].symbol == "timer")
+        // With "Show timer" off the item keeps the countdown.
+        test.app.settings.menuBarShowTimer = false
+        let content = StatusItemPresenter.content(test.app.statusState, at: test.clock.now)
+        #expect(content.title.isEmpty && content.pomodoro == .init(symbol: "timer", text: "25:00"))
         test.clock.advance(by: 25 * 60 + 75)
         test.app.pomodoro.tick()
-        #expect(header(test).last == "Focus ended +1:15")
+        #expect(header(test).last == "Focus ended · +1:15")
         test.app.perform(.startBreak)
         test.clock.advance(by: 30)
-        #expect(header(test).last == "Break, 4:30 left")
+        #expect(header(test).last == "Break · 4:30 left")
         test.clock.advance(by: 270 + 9)
         test.app.pomodoro.tick()
-        #expect(header(test).last == "Break ended +0:09")
+        #expect(header(test).last == "Break ended · +0:09")
     }
 
     @Test("MB-9 each Pomodoro state's group has exactly the items and keys of 2.3; Start Break in focusOver moves to break")

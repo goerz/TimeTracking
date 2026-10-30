@@ -94,7 +94,7 @@ struct StatusItemTests {
         #expect(content(test).symbol == "stopwatch.fill")
     }
 
-    @Test("MB-5 MB-9 a 25-minute focus shows 25:00 with hourglass; 2 min past focusEnd +2:00 and Start Break moves to break")
+    @Test("MB-5 MB-9 a 25-minute focus keeps the elapsed title and adds timer 25:00; 2 min past focusEnd +2:00; Start Break moves to break")
     func pomodoro() async throws {
         let test = try await TestApp()
         test.app.pomodoro.sleepUntil = { _ in try await Task.sleep(for: .seconds(3600)) }
@@ -104,23 +104,25 @@ struct StatusItemTests {
             .item(title: "Start Pomodoro", key: .command("p", .shift), enabled: false, command: .pomodoro(.start)),
         ])
         test.app.perform(.start)
-        #expect(content(test).title == "25:00")
-        #expect(content(test).symbol == "hourglass")
-        #expect(content(test).accessibilityLabel == "Pomodoro focus, 25 minutes left")
+        #expect(content(test).title == "0:00")
+        #expect(content(test).symbol == "stopwatch.fill")
+        #expect(content(test).pomodoro == .init(symbol: "timer", text: "25:00"))
+        #expect(content(test).visibleText == "0:00 25:00")
+        #expect(content(test).accessibilityLabel == "Tracking, 0 minutes, Pomodoro focus, 25 minutes left")
         var menu = StatusItemPresenter.menu(test.app.statusState, at: test.clock.now)
         #expect(titles(menu).contains("End Focus Now") && titles(menu).contains("Cancel Pomodoro"))
         #expect(item("End Focus Now", in: menu)?.key == .command("p", .control))
         test.clock.advance(by: 27 * 60)
         test.app.pomodoro.tick()
-        #expect(content(test).title == "+2:00")
-        #expect(content(test).symbol == "hourglass")
+        #expect(content(test).title == "0:27")
+        #expect(content(test).pomodoro == .init(symbol: "timer", text: "+2:00"))
         menu = StatusItemPresenter.menu(test.app.statusState, at: test.clock.now)
         let pomodoroTitles = titles(menu).filter { ["Start Break", "Skip Break", "Cancel Pomodoro", "End Focus Now"].contains($0) }
         #expect(pomodoroTitles == ["Start Break", "Skip Break", "Cancel Pomodoro"])
         #expect(item("Skip Break", in: menu)?.key == nil)
         test.app.perform(.startBreak)
         #expect(test.app.pomodoro.state == .onBreak(end: test.clock.now + 300))
-        #expect(content(test).symbol == "cup.and.saucer")
+        #expect(content(test).pomodoro == .init(symbol: "cup.and.saucer", text: "5:00"))
         menu = StatusItemPresenter.menu(test.app.statusState, at: test.clock.now)
         #expect(titles(menu).contains("End Break Now"))
         test.clock.advance(by: 300)
@@ -139,15 +141,15 @@ struct StatusItemTests {
         test.clock.advance(by: 2400)
         let started = try StatusItemPresenter.time(test.date("2024-03-14T13:38"))
         #expect(StatusItemPresenter.header(test.app.statusState, at: test.clock.now) == [
-            "Clarify noise model", "Noise Model · University", "Started \(started), 0:40 elapsed",
+            "Clarify noise model", "Noise Model · University", "Started \(started) · 0:40 elapsed",
         ])
         test.app.perform(.start)
         test.clock.advance(by: 26)
-        #expect(StatusItemPresenter.header(test.app.statusState, at: test.clock.now).last == "Focus, 24:34 left")
+        #expect(StatusItemPresenter.header(test.app.statusState, at: test.clock.now).last == "Focus · 24:34 left")
         await test.app.stopEntry()
         let stopped = StatusItemPresenter.time(test.clock.now)
         #expect(StatusItemPresenter.header(test.app.statusState, at: test.clock.now) == [
-            "No entry running", "Last: Clarify noise model, stopped \(stopped)",
+            "Not tracking", "Last: Clarify noise model, stopped \(stopped)",
         ])
         // A chain from yesterday says so.
         let late = try await TestApp(now: "2024-03-13T23:20")
@@ -157,7 +159,7 @@ struct StatusItemTests {
         await late.app.afterChange()
         let lines = StatusItemPresenter.header(late.app.statusState, at: late.clock.now)
         #expect(lines[0] == "No task" && lines[1] == "No project")
-        #expect(try lines[2] == "Started \(StatusItemPresenter.time(late.date("2024-03-13T23:10"))) yesterday, 1:05 elapsed")
+        #expect(try lines[2] == "Started \(StatusItemPresenter.time(late.date("2024-03-13T23:10"))) yesterday · 1:05 elapsed")
     }
 
     @Test("MB-7 enablement and actions: Continue does not show the window, New focuses the task field, Stop stops")
@@ -261,7 +263,11 @@ struct StatusItemTests {
         #expect(content(test).badge)
         #expect(content(test).accessibilityLabel == "Not tracking, tracker not running")
         let menu = StatusItemPresenter.menu(test.app.statusState, at: test.clock.now)
-        #expect(menu.first == .header("⚠ Tracker not running since \(StatusItemPresenter.time(tick))"))
+        #expect(menu.first == .header(MenuHeaderLine(
+            "Tracker not running since \(StatusItemPresenter.time(tick))",
+            style: .warning,
+            symbol: "exclamationmark.triangle"
+        )))
         #expect(item("Open Tracker Settings…", in: menu)?.command == .openTrackerSettings)
         // Awake only one minute: no warning.
         await test.app.tracker.becamePresent(at: test.clock.now - 60)

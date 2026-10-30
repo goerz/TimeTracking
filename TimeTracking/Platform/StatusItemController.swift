@@ -3,6 +3,7 @@
 
 import AppKit
 import Observation
+import SwiftUI
 import TimeTrackingCore
 
 /// The `NSStatusItem` with its `NSMenu`; renders `StatusItemPresenter`.
@@ -54,13 +55,10 @@ final class StatusItemController: NSObject, NSMenuDelegate {
             return
         }
         button.image = Self.image(content.symbol, badge: content.badge)
-        button.attributedTitle = NSAttributedString(
-            string: content.title.isEmpty ? "" : content.title,
-            attributes: [.font: NSFont.monospacedDigitSystemFont(ofSize: NSFont.systemFontSize, weight: .regular)]
-        )
+        button.attributedTitle = Self.title(content)
         button.imageHugsTitle = true
         button.setAccessibilityLabel(content.accessibilityLabel)
-        button.setAccessibilityTitle(content.title)
+        button.setAccessibilityTitle(content.visibleText)
         if isMenuOpen {
             rebuildMenu()
         }
@@ -81,9 +79,9 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         tick = timer
     }
 
-    /// The title the item shows now.
+    /// The title the item shows now; the Pomodoro glyph reads as a space.
     var renderedTitle: String {
-        item.button?.attributedTitle.string ?? ""
+        (item.button?.attributedTitle.string ?? "").replacingOccurrences(of: "\u{FFFC}", with: " ")
     }
 
     /// When the scheduled tick fires; `nil` without one.
@@ -145,15 +143,36 @@ final class StatusItemController: NSObject, NSMenuDelegate {
 
     func menuDidClose(_: NSMenu) {
         isMenuOpen = false
+        builtShape = []
         menuTick?.invalidate()
         menuTick = nil
     }
 
+    /// The rows of the menu last built, header text left out.
+    private var builtShape: [String] = []
+    private var headerHosts: [NSHostingView<MenuHeaderView>] = []
+
+    /// Rebuilds the menu, or, when only header text changed (the per-second
+    /// refresh), updates the header views in place.
     private func rebuildMenu() {
-        menu.removeAllItems()
-        for entry in StatusItemPresenter.menu(app.statusState, at: app.clock.now) {
-            menu.addItem(makeItem(entry))
+        let rows = StatusMenuRow.rows(StatusItemPresenter.menu(app.statusState, at: app.clock.now))
+        let shape = rows.map(\.shape)
+        let headers = rows.flatMap(\.headerGroup)
+        if shape == builtShape, headers.count == headerHosts.count {
+            for (host, lines) in zip(headerHosts, headers) {
+                host.rootView = MenuHeaderView(lines: lines)
+            }
+            return
         }
+        menu.removeAllItems()
+        headerHosts = []
+        for row in rows {
+            switch row {
+            case let .header(lines): menu.addItem(headerItem(lines))
+            case let .entry(entry): menu.addItem(makeItem(entry))
+            }
+        }
+        builtShape = shape
     }
 
     /// The Dock menu (`applicationDockMenu(_:)`).
@@ -166,12 +185,14 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         return dock
     }
 
+    /// A command item. Its symbol is set, and the system decides whether
+    /// menus show item images (macOS 27 hides them by default).
     private func makeItem(_ entry: StatusMenuEntry) -> NSMenuItem {
         switch entry {
         case .separator:
             return .separator()
-        case let .header(text):
-            let item = NSMenuItem(title: text, action: nil, keyEquivalent: "")
+        case let .header(line):
+            let item = NSMenuItem(title: line.plain, action: nil, keyEquivalent: "")
             item.isEnabled = false
             return item
         case let .item(title, key, enabled, command):
@@ -180,8 +201,21 @@ final class StatusItemController: NSObject, NSMenuDelegate {
             item.target = self
             item.isEnabled = enabled
             item.representedObject = CommandBox(command)
+            item.image = command.symbol.flatMap { NSImage(systemSymbolName: $0, accessibilityDescription: nil) }
             return item
         }
+    }
+
+    /// A disabled item showing header lines in their styles (spec_menubar.md §2.1).
+    private func headerItem(_ lines: [MenuHeaderLine]) -> NSMenuItem {
+        let host = NSHostingView(rootView: MenuHeaderView(lines: lines))
+        host.autoresizingMask = [.width]
+        host.frame.size = host.fittingSize
+        headerHosts.append(host)
+        let item = NSMenuItem(title: lines.map(\.plain).joined(separator: "\n"), action: nil, keyEquivalent: "")
+        item.isEnabled = false
+        item.view = host
+        return item
     }
 
     @objc private func choose(_ sender: NSMenuItem) {
