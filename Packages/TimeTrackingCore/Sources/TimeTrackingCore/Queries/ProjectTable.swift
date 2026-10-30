@@ -232,9 +232,8 @@ public struct ProjectTable: Hashable, Sendable {
     public init(rows all: [ProjectRow], areas: [Area], options: ProjectTableOptions, search: String, now: Date) {
         let order = Dictionary(areas.map { ($0.id, $0.sortOrder) }, uniquingKeysWith: { first, _ in first })
         let names = Dictionary(grouping: all.filter { $0.area != nil }) { "\($0.client?.id.rawValue ?? "")/\($0.project.name.folded)" }
-        let words = search.folded.split(whereSeparator: \.isWhitespace).map(String.init)
         let visible = all.filter { row in
-            Self.passes(row, options: options, words: words, now: now)
+            Self.passes(row, options: options, search: search, now: now)
         }
         .map { row in
             ProjectTableRow(
@@ -251,7 +250,7 @@ public struct ProjectTable: Hashable, Sendable {
         )
     }
 
-    static func passes(_ row: ProjectRow, options: ProjectTableOptions, words: [String], now: Date) -> Bool {
+    static func passes(_ row: ProjectRow, options: ProjectTableOptions, search: String, now: Date) -> Bool {
         switch options.state {
         case .active where row.project.isArchived, .archived where !row.project.isArchived:
             return false
@@ -267,8 +266,7 @@ public struct ProjectTable: Hashable, Sendable {
         guard options.lastTracked.matches(row.lastUsed, now: now) else {
             return false
         }
-        let haystack = [row.project.name, row.area?.name ?? "", row.client?.name ?? ""].map(\.folded)
-        return words.allSatisfy { word in haystack.contains { $0.contains(word) } }
+        return ProjectPickerContent.matches(search, project: row.project.name, area: row.area?.name ?? "", client: row.client?.name ?? "")
     }
 
     /// The sort of §2.2; orphans after everything else; the name breaks ties.
