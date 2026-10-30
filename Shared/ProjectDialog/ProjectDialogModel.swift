@@ -26,6 +26,8 @@ final class ProjectDialogModel {
 
     @ObservationIgnored let store: TimeStore
     @ObservationIgnored weak var undoManager: UndoManager?
+    /// The running undo of an edit (tests wait for it).
+    @ObservationIgnored private(set) var pendingUndo: Task<Void, Never>?
     let mode: Mode
 
     var name: String
@@ -192,8 +194,9 @@ final class ProjectDialogModel {
                 try await store.restoreProject(project.id)
             }
         }
-        undoManager?.registerUndo(withTarget: store) { store in
-            Task {
+        undoManager?.registerUndo(withTarget: self) { model in
+            let store = model.store
+            model.pendingUndo = Task {
                 try? await store.updateProject(project.id, ProjectChange(name: project.name, areaID: project.areaID))
                 if project.isArchived {
                     try? await store.archive(project.id)
