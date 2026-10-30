@@ -56,13 +56,7 @@ final class EntryEditSheetModel {
 
     func setProject(_ id: ProjectID?) async {
         projectID = id
-        guard let id,
-              let row = await (try? store.projects(filter: ProjectFilter(state: .all)))?.first(where: { $0.project.id == id })
-        else {
-            label = .noProject
-            return
-        }
-        label = ProjectLabel(name: row.project.name, client: row.client?.name, area: row.area?.name, color: row.area?.color)
+        label = await ProjectLabel.load(id, from: store)
     }
 
     /// The duration line: the draft's, or the live time of a running entry.

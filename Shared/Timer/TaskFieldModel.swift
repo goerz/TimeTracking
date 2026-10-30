@@ -81,19 +81,7 @@ final class TaskFieldModel {
         highlightedSuggestion = found.isEmpty ? nil : 0
         var labels: [ProjectID: ProjectLabel] = [:]
         for id in Set(found.compactMap(\.projectID)) {
-            let probe = TimeEntry(
-                projectID: id,
-                task: "",
-                start: .distantPast,
-                end: .distantPast,
-                timeZone: "UTC",
-                deviceID: DeviceID(),
-                createdAt: .distantPast,
-                modifiedAt: .distantPast
-            )
-            if let listing = try? await store.listings(for: [probe]).first {
-                labels[id] = ProjectLabel(listing)
-            }
+            labels[id] = await ProjectLabel.load(id, from: store)
         }
         self.labels = labels
     }

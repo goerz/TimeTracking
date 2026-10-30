@@ -355,10 +355,7 @@ final class CalendarModel {
 
     /// The chip label of a project: name, client, area, color.
     func label(_ id: ProjectID?) -> ProjectLabel {
-        guard let id, let row = projectRows[id] else {
-            return .noProject
-        }
-        return ProjectLabel(name: row.project.name, client: row.client?.name, area: row.area?.name, color: row.area?.color)
+        id.flatMap { projectRows[$0] }.map(ProjectLabel.init) ?? .noProject
     }
 
     /// Waits for a pending undo (tests).

@@ -28,6 +28,19 @@ struct ProjectLabel: Equatable, Sendable {
         }
     }
 
+    init(_ row: ProjectRow) {
+        self.init(name: row.project.name, client: row.client?.name, area: row.area?.name, color: row.area?.color)
+    }
+
+    /// The label of the live project `id`; "No project" for `nil` or a
+    /// project that is missing or deleted.
+    static func load(_ id: ProjectID?, from store: TimeStore) async -> Self {
+        guard let id, let row = try? await store.projectRow(id) else {
+            return .noProject
+        }
+        return Self(row)
+    }
+
     var isNone: Bool {
         color == nil && client == nil && name == Self.noProject.name
     }

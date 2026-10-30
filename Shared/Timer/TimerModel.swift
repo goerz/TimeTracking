@@ -274,27 +274,7 @@ final class TimerModel {
 
     func setDraftProject(_ id: ProjectID?) async {
         draftProjectID = id
-        draftLabel = await label(for: id)
-    }
-
-    private func label(for id: ProjectID?) async -> ProjectLabel {
-        guard let id else {
-            return .noProject
-        }
-        let probe = TimeEntry(
-            projectID: id,
-            task: "",
-            start: clock.now,
-            end: clock.now,
-            timeZone: "UTC",
-            deviceID: DeviceID(),
-            createdAt: clock.now,
-            modifiedAt: clock.now
-        )
-        guard let listing = try? await store.listings(for: [probe]).first else {
-            return .noProject
-        }
-        return ProjectLabel(listing)
+        draftLabel = await ProjectLabel.load(id, from: store)
     }
 
     /// Runs a start-like write, then refreshes and notifies.
