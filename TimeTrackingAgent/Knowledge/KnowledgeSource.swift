@@ -54,11 +54,7 @@ struct KnowledgeStoreReader: KnowledgeSource {
         defer { try? manager.removeItem(at: folder) }
         let copy = folder.appending(path: "knowledgeC.db", directoryHint: .notDirectory)
         do {
-            try manager.createDirectory(at: folder, withIntermediateDirectories: true)
-            try manager.copyItem(atPath: databasePath, toPath: copy.path)
-            for suffix in ["-wal", "-shm"] where manager.fileExists(atPath: databasePath + suffix) {
-                try manager.copyItem(atPath: databasePath + suffix, toPath: copy.path + suffix)
-            }
+            try SQLiteSnapshot.copy(path: databasePath, to: copy)
         } catch {
             return .unavailable("Full Disk Access not granted")
         }

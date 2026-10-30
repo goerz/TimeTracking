@@ -161,11 +161,7 @@ final class HistoryDatabases: BrowserHistory {
             directoryHint: .notDirectory
         )
         do {
-            try manager.createDirectory(at: target.deletingLastPathComponent(), withIntermediateDirectories: true)
-            try manager.copyItem(atPath: path, toPath: target.path)
-            for suffix in ["-wal", "-shm"] where manager.fileExists(atPath: path + suffix) {
-                try manager.copyItem(atPath: path + suffix, toPath: target.path + suffix)
-            }
+            try SQLiteSnapshot.copy(path: path, to: target)
         } catch {
             return nil
         }
