@@ -42,7 +42,7 @@ final class TerminalResolver {
     func resolve(app: FrontApp, title: String, snapshot: TerminalSnapshot, context: inout ResolveContext) async -> TerminalObservation {
         let terminal = TerminalApp.known[app.bundleID] ?? TerminalApp(context: app.name.lowercased(), adapter: nil)
         var health: [SourceReport] = []
-        var located = await adapterTTY(terminal, snapshot: snapshot)
+        var located = await adapterTTY(terminal)
         if located != nil {
             health.append(SourceReport(.terminal, .active))
         } else {
@@ -108,7 +108,7 @@ final class TerminalResolver {
     }
 
     /// The focused pane's tty from the terminal's adapter, or `nil`.
-    private func adapterTTY(_ terminal: TerminalApp, snapshot _: TerminalSnapshot) async -> Located? {
+    private func adapterTTY(_ terminal: TerminalApp) async -> Located? {
         switch terminal.adapter {
         case .wezterm:
             guard let executable = TerminalApp.weztermExecutables.first(where: { environment.files.exists($0) }),
@@ -119,18 +119,20 @@ final class TerminalResolver {
             }
             return WezTermAdapter.focused(clients: clientsText, panes: listText)
         case .iterm:
-            if case let .value(tty) = environment.scripts.run(TerminalApp.itermScript), !tty.isEmpty {
-                return Located(tty: tty)
-            }
-            return nil
+            return scriptTTY(TerminalApp.itermScript)
         case .terminal:
-            if case let .value(tty) = environment.scripts.run(TerminalApp.terminalScript), !tty.isEmpty {
-                return Located(tty: tty)
-            }
-            return nil
+            return scriptTTY(TerminalApp.terminalScript)
         case nil:
             return nil
         }
+    }
+
+    /// The tty an adapter script answers, or `nil` for no answer.
+    private func scriptTTY(_ script: String) -> Located? {
+        guard case let .value(tty) = environment.scripts.run(script), !tty.isEmpty else {
+            return nil
+        }
+        return Located(tty: tty)
     }
 
     /// The tty below the terminal's process with the most recent input:
@@ -161,44 +163,23 @@ final class TerminalResolver {
         var key: String
         var terminalContext: String
         var app: String
+    }
+}
 
-        init(
-            session: String?,
-            windowName: String,
-            automaticRename: Bool,
-            command: String,
-            cwd: String,
-            title: String,
-            pid: Int32,
-            key: String,
-            terminalContext: String,
-            app: String
-        ) {
-            self.session = session
-            self.windowName = windowName
-            self.automaticRename = automaticRename
-            self.command = command
-            self.cwd = cwd
-            self.title = title
-            self.pid = pid
-            self.key = key
-            self.terminalContext = terminalContext
-            self.app = app
-        }
-
-        init(pane: TmuxPane, terminalContext: String, app: String) {
-            self.init(
-                session: pane.session,
-                windowName: pane.windowName,
-                automaticRename: pane.automaticRename,
-                command: pane.command,
-                cwd: pane.path,
-                title: pane.title,
-                pid: pane.pid,
-                key: "\(pane.server):\(pane.target)",
-                terminalContext: terminalContext,
-                app: app
-            )
-        }
+extension TerminalResolver.PaneFacts {
+    /// The facts of a tmux pane.
+    init(pane: TmuxPane, terminalContext: String, app: String) {
+        self.init(
+            session: pane.session,
+            windowName: pane.windowName,
+            automaticRename: pane.automaticRename,
+            command: pane.command,
+            cwd: pane.path,
+            title: pane.title,
+            pid: pane.pid,
+            key: "\(pane.server):\(pane.target)",
+            terminalContext: terminalContext,
+            app: app
+        )
     }
 }
