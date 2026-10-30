@@ -116,8 +116,9 @@ final class TaskFieldModel {
         guard isShowingSuggestions, let index = highlightedSuggestion, suggestions.indices.contains(index) else {
             return nil
         }
+        let suggestion = suggestions[index]
         closeSuggestions()
-        return suggestions[index]
+        return suggestion
     }
 
     /// Return with the picker open: its highlighted choice.

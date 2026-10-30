@@ -75,7 +75,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func wire(_ app: AppModel) {
         let window = TimerWindowController(settings: app.settings)
-        window.hideOnAttach = launchedAsLoginItem && !app.settings.showTimerAtLogin
+        window.hideOnAttach = Self.hidesTimer(launchedAsLoginItem: launchedAsLoginItem, showAtLogin: app.settings.showTimerAtLogin)
         window.onKeyChange = { [weak app] in app?.timerKeyChanged() }
         let router = WindowRouter(timerWindow: window)
         router.app = app
@@ -120,6 +120,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 }
             }
         }
+    }
+
+    /// Launched as a login item, the app shows only the menu bar item unless
+    /// "Show the Timer window at login" is on.
+    static func hidesTimer(launchedAsLoginItem: Bool, showAtLogin: Bool) -> Bool {
+        launchedAsLoginItem && !showAtLogin
     }
 
     // MARK: Dock

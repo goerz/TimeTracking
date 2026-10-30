@@ -9,7 +9,7 @@ final class LaunchUITests: XCTestCase {
         let app = XCUIApplication()
         app.launchArguments = ["-UITesting", "YES", "-Fixture", "empty"]
         app.launch()
-        XCTAssertTrue(app.staticTexts["timer.placeholder"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.textFields["timer.taskField"].waitForExistence(timeout: 10))
         app.terminate()
     }
 }
