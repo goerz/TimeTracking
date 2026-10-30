@@ -114,4 +114,22 @@ public enum AutomationError: Error, Equatable, Sendable, LocalizedError {
             self = .failure(error.localizedDescription)
         }
     }
+
+    /// Runs `body`, turning its errors into automation errors.
+    static func catching<R>(_ body: () throws -> R) throws(Self) -> R {
+        do {
+            return try body()
+        } catch {
+            throw Self(wrapping: error)
+        }
+    }
+
+    /// Runs `body`, turning its errors into automation errors.
+    static func catching<R>(_ body: () async throws -> R) async throws(Self) -> R {
+        do {
+            return try await body()
+        } catch {
+            throw Self(wrapping: error)
+        }
+    }
 }

@@ -201,11 +201,7 @@ public struct AutomationService: Sendable {
 
     /// Runs store calls, turning their errors into automation errors.
     func run<R>(_ body: () async throws -> R) async throws(AutomationError) -> R {
-        do {
-            return try await body()
-        } catch {
-            throw AutomationError(wrapping: error)
-        }
+        try await AutomationError.catching(body)
     }
 }
 

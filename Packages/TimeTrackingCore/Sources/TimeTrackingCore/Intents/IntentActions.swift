@@ -162,7 +162,7 @@ public enum IntentText {
 extension TimeStore {
     /// The seconds of the chain `entry` ends.
     func automationChainSeconds(of entry: TimeEntry, now: Date) throws(AutomationError) -> Int {
-        let start = try automation { try chainStart(of: entry.id) }
+        let start = try AutomationError.catching { try chainStart(of: entry.id) }
         return max(0, Int((entry.end ?? now).timeIntervalSince(start).rounded(.down)))
     }
 }

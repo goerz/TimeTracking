@@ -6,7 +6,7 @@ import Foundation
 extension TimeStore {
     /// The live client named `name` (trimmed, case- and diacritic-insensitive).
     public func resolveClient(_ name: String) throws(AutomationError) -> Client {
-        let clients = try automation { try clients(includeRetired: true) }
+        let clients = try AutomationError.catching { try clients(includeRetired: true) }
         guard let client = clients.first(where: { $0.name.folded == name.folded }) else {
             throw .notFound("No client named \"\(name.trimmed)\".")
         }
@@ -17,7 +17,7 @@ extension TimeStore {
     /// match only with `includeRetired`.
     public func resolveArea(_ name: String, client: String?, includeRetired: Bool = true) throws(AutomationError) -> Area {
         let clientID = try client.map { name throws(AutomationError) in try resolveClient(name).id }
-        let areas = try automation { try areas(of: clientID, includeRetired: includeRetired) }
+        let areas = try AutomationError.catching { try areas(of: clientID, includeRetired: includeRetired) }
         let matches = areas.filter { $0.name.folded == name.folded }
         switch matches.count {
         case 0:
@@ -42,7 +42,7 @@ extension TimeStore {
         client: String? = nil,
         includeArchived: Bool = false
     ) throws(AutomationError) -> ProjectRow {
-        let rows = try automation { try projects(filter: ProjectFilter(state: .all)) }
+        let rows = try AutomationError.catching { try projects(filter: ProjectFilter(state: .all)) }
         var candidates = rows.filter { $0.project.name.folded == reference.folded }
         var clientName = client
         if candidates.isEmpty, client == nil, let slash = reference.firstIndex(of: "/") {
@@ -76,7 +76,7 @@ extension TimeStore {
         guard let id = EntryID(text.trimmed.lowercased()) else {
             throw .usage("Malformed entry id \"\(text)\".")
         }
-        guard let entry = try automation({ try entry(id) }) else {
+        guard let entry = try AutomationError.catching({ try entry(id) }) else {
             throw .notFound("No entry with id \(id.rawValue).")
         }
         return entry
@@ -87,7 +87,7 @@ extension TimeStore {
         guard let id = ProjectID(text.trimmed.lowercased()) else {
             throw .usage("Malformed project id \"\(text)\".")
         }
-        let rows = try automation { try projects(filter: ProjectFilter(state: .all)) }
+        let rows = try AutomationError.catching { try projects(filter: ProjectFilter(state: .all)) }
         guard let row = rows.first(where: { $0.project.id == id }) else {
             throw .notFound("No project with id \(id.rawValue).")
         }
@@ -95,16 +95,7 @@ extension TimeStore {
     }
 
     func clientNames() throws(AutomationError) -> [ClientID: String] {
-        let clients = try automation { try clients(includeRetired: true) }
+        let clients = try AutomationError.catching { try clients(includeRetired: true) }
         return Dictionary(clients.map { ($0.id, $0.name) }, uniquingKeysWith: { first, _ in first })
-    }
-
-    /// Runs a store call, turning its errors into automation errors.
-    func automation<R>(_ body: () throws -> R) throws(AutomationError) -> R {
-        do {
-            return try body()
-        } catch {
-            throw AutomationError(wrapping: error)
-        }
     }
 }

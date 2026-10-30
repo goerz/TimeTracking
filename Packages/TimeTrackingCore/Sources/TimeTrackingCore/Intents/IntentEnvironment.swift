@@ -27,11 +27,7 @@ public final class IntentEnvironment: Sendable {
 
     /// The service, with its failures as automation errors.
     func automation() async throws(AutomationError) -> AutomationService {
-        do {
-            return try await service()
-        } catch {
-            throw AutomationError(wrapping: error)
-        }
+        try await AutomationError.catching(service)
     }
 }
 
