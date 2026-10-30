@@ -243,4 +243,17 @@ struct PlannerCalendarTests {
         await model.waitForUndo()
         #expect(try await world.test.store.entries(on: Self.day("2024-03-14")).isEmpty)
     }
+
+    @Test("PC-9 an overlapping card's ⚠ tooltip names the others and the whole minutes; touching entries are left out")
+    func overlapHelp() async throws {
+        let world = try await World()
+        let model = world.model
+        let paper = try await world.test.entry("Paper", from: "08:00", to: "09:00")
+        _ = try await world.test.entry("Standup", from: "08:47:30", to: "09:15")
+        _ = try await world.test.entry("Mail", from: "07:30", to: "08:05")
+        _ = try await world.test.entry("Review", from: "09:00", to: "09:30")
+        await model.reload()
+        #expect(model.overlapping(on: Self.day("2024-03-14")).contains(paper.id))
+        #expect(model.overlapHelp(for: paper) == "Overlaps \"Mail\" by 5 min, \"Standup\" by 12 min")
+    }
 }

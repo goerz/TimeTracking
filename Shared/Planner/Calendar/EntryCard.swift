@@ -263,15 +263,7 @@ extension EntryCard {
     }
 
     private var overlapHelp: String {
-        let others = model.entries(on: entry.day).filter { other in
-            other.entry.id != entry.id && other.entry.interval(at: model.clock.now).intersection(with: entry.interval(at: model.clock.now))
-                .map { $0.duration > 0 } ?? false
-        }
-        return "Overlaps " + others.map { other in
-            let minutes =
-                Int((other.entry.interval(at: model.clock.now).intersection(with: entry.interval(at: model.clock.now))?.duration ?? 0) / 60)
-            return "\"\(other.entry.task)\" by \(minutes) min"
-        }.joined(separator: ", ")
+        model.overlapHelp(for: entry)
     }
 
     private var editingBinding: Binding<Bool> {

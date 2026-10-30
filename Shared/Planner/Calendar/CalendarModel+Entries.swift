@@ -229,6 +229,20 @@ extension CalendarModel {
         CalendarLane.overlapping(entries(on: day).map { ($0.entry.id, $0.entry.interval(at: clock.now)) })
     }
 
+    /// The tooltip of a card's ⚠ badge: `Overlaps "Standup" by 12 min, …`
+    /// for the entries of its day that overlap it (§2.6).
+    func overlapHelp(for entry: TimeEntry) -> String {
+        let now = clock.now
+        let day = entries(on: entry.day)
+        let tasks = Dictionary(day.map { ($0.entry.id, $0.entry.task) }, uniquingKeysWith: { first, _ in first })
+        let amounts = OverlapAmount.amounts(
+            overlapping: entry.interval(at: now),
+            of: entry.id,
+            among: day.map { ($0.entry.id, $0.entry.interval(at: now)) }
+        )
+        return "Overlaps " + amounts.map { "\"\(tasks[$0.id] ?? "")\" by \(Int($0.seconds / 60)) min" }.joined(separator: ", ")
+    }
+
     /// A click on the header's warning selects them.
     func selectOverlaps(on day: TrackingDay) {
         selection = Set(overlapping(on: day).map(CalendarItemID.entry))
