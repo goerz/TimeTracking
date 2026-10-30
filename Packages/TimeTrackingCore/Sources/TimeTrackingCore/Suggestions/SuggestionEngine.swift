@@ -9,6 +9,7 @@ import os
 public actor SuggestionEngine {
     /// Rebuilds after entry changes happen at most this often.
     public static let rebuildInterval: TimeInterval = 300
+    private static let logger = Logging.logger(category: "Suggestions")
 
     private let store: TimeStore
     private let activity: any ActivityReading
@@ -16,7 +17,6 @@ public actor SuggestionEngine {
     private let cacheURL: URL?
     public private(set) var index = SuggestionIndex(examples: [])
     private var builtAt: Date?
-    private var pendingChange = false
 
     /// `cacheURL` is a file in the app's support folder, or `nil` for none.
     public init(store: TimeStore, activity: any ActivityReading, timeZone: TimeZone = .current, cacheURL: URL? = nil) {
@@ -67,10 +67,9 @@ public actor SuggestionEngine {
             )
             index = SuggestionIndex(examples: examples)
             builtAt = now
-            pendingChange = false
             try await writeCache()
         } catch {
-            Logger.core.error("Suggestions index: \(error.localizedDescription, privacy: .public)")
+            Self.logger.error("Suggestions index: \(error.localizedDescription, privacy: .public)")
         }
     }
 
@@ -78,18 +77,12 @@ public actor SuggestionEngine {
     /// whether it rebuilt now.
     @discardableResult
     public func entriesChanged(titles: [SuggestionCalendarTitle]) async -> Bool {
-        pendingChange = true
         let now = store.clock.now
         if let builtAt, now.timeIntervalSince(builtAt) < Self.rebuildInterval {
             return false
         }
         await rebuild(titles: titles)
         return true
-    }
-
-    /// Whether a change waits for the next allowed rebuild.
-    public var hasPendingChange: Bool {
-        pendingChange
     }
 
     public func suggest(_ query: SuggestionQuery, rules: [SuggestionRule]) -> [SuggestionCandidate] {

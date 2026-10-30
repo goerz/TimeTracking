@@ -13,11 +13,10 @@ public final class InMemoryCalendarEventStore: CalendarEventStore {
         var calendars: [CalendarInfo]
         var events: [CalendarEvent] = []
         var nextID = 1
-        var writes = 0
-        var continuations: [UUID: AsyncStream<Void>.Continuation] = [:]
     }
 
     private let state: Mutex<State>
+    private let broadcaster = Broadcaster<Void>(bufferingPolicy: .bufferingNewest(1))
 
     /// With an iCloud account by default; `access` starts as given.
     public init(
@@ -36,17 +35,7 @@ public final class InMemoryCalendarEventStore: CalendarEventStore {
         state.withLock(\.events).sorted { ($0.start, $0.id) < ($1.start, $1.id) }
     }
 
-    /// The number of creates, updates, and removes so far.
-    public var writeCount: Int {
-        state.withLock(\.writes)
-    }
-
-    public func setAccess(_ access: CalendarAccess) {
-        state.withLock { $0.access = access }
-        notify()
-    }
-
-    /// Adds an event as another app would (no write counted).
+    /// Adds an event as another app would.
     @discardableResult
     public func add(_ draft: CalendarEventDraft, location: String? = nil, attendees: Int = 0, isAllDay: Bool = false) -> CalendarEvent {
         let event = state.withLock { state in
@@ -67,9 +56,7 @@ public final class InMemoryCalendarEventStore: CalendarEventStore {
     }
 
     private func notify() {
-        for continuation in state.withLock({ Array($0.continuations.values) }) {
-            continuation.yield()
-        }
+        broadcaster.yield(())
     }
 
     private static func event(_ draft: CalendarEventDraft, id: String) -> CalendarEvent {
@@ -128,7 +115,6 @@ public final class InMemoryCalendarEventStore: CalendarEventStore {
             }
             let event = Self.event(draft, id: "event-\(state.nextID)|\(draft.start.timeIntervalSince1970)")
             state.nextID += 1
-            state.writes += 1
             state.events.append(event)
             return event
         }
@@ -149,7 +135,6 @@ public final class InMemoryCalendarEventStore: CalendarEventStore {
             event.url = draft.url
             event.notes = draft.notes
             state.events[index] = event
-            state.writes += 1
             return event
         }
         notify()
@@ -162,7 +147,6 @@ public final class InMemoryCalendarEventStore: CalendarEventStore {
                 throw .unknownEvent
             }
             state.events.remove(at: index)
-            state.writes += 1
         }
         notify()
     }
@@ -186,12 +170,6 @@ public final class InMemoryCalendarEventStore: CalendarEventStore {
     }
 
     public var changes: AsyncStream<Void> {
-        let (stream, continuation) = AsyncStream.makeStream(of: Void.self, bufferingPolicy: .bufferingNewest(1))
-        let key = UUID()
-        state.withLock { $0.continuations[key] = continuation }
-        continuation.onTermination = { [weak self] _ in
-            self?.state.withLock { $0.continuations[key] = nil }
-        }
-        return stream
+        broadcaster.stream()
     }
 }

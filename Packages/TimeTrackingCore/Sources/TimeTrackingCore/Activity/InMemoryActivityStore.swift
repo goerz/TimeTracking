@@ -13,10 +13,10 @@ public final class InMemoryActivityStore: ActivityReading {
         var trackerState: TrackerState?
         var contexts: [String: String] = [:]
         var exclusions = ExclusionRules()
-        var continuations: [UUID: AsyncStream<ActivityChange>.Continuation] = [:]
     }
 
     private let state = Mutex(State())
+    private let broadcaster = Broadcaster<ActivityChange>()
 
     public init(
         blocks: [ActivityBlock] = [],
@@ -42,7 +42,7 @@ public final class InMemoryActivityStore: ActivityReading {
             return Set(blocks.map(\.month))
         }
         for month in months.sorted() {
-            yield(.blocks(month: month))
+            broadcaster.yield(.blocks(month: month))
         }
     }
 
@@ -54,32 +54,7 @@ public final class InMemoryActivityStore: ActivityReading {
             return Set(removed.map(\.month))
         }
         for month in months.sorted() {
-            yield(.blocks(month: month))
-        }
-    }
-
-    public func setDetails(_ details: [ActivityBlockDetail]) {
-        state.withLock { state in
-            for detail in details {
-                state.details[detail.blockID] = detail
-            }
-        }
-    }
-
-    public func setTrackerState(_ trackerState: TrackerState?) {
-        state.withLock { $0.trackerState = trackerState }
-        yield(.currentState)
-    }
-
-    public func setExclusions(_ rules: ExclusionRules) {
-        state.withLock { $0.exclusions = rules }
-        yield(.settings)
-    }
-
-    private func yield(_ change: ActivityChange) {
-        let continuations = state.withLock { Array($0.continuations.values) }
-        for continuation in continuations {
-            continuation.yield(change)
+            broadcaster.yield(.blocks(month: month))
         }
     }
 
@@ -117,12 +92,6 @@ public final class InMemoryActivityStore: ActivityReading {
     }
 
     public var changes: AsyncStream<ActivityChange> {
-        let (stream, continuation) = AsyncStream.makeStream(of: ActivityChange.self, bufferingPolicy: .bufferingNewest(256))
-        let key = UUID()
-        state.withLock { $0.continuations[key] = continuation }
-        continuation.onTermination = { [weak self] _ in
-            self?.state.withLock { $0.continuations[key] = nil }
-        }
-        return stream
+        broadcaster.stream()
     }
 }

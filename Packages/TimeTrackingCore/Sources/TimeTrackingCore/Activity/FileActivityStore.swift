@@ -26,6 +26,8 @@ public actor FileActivityStore: ActivityReading {
     private var cachedState: CachedState?
     private var watchTask: Task<Void, Never>?
     private let shared: Mutex<SharedState>
+    private let broadcaster = Broadcaster<ActivityChange>()
+    private static let logger = Logging.logger(category: "Activity")
 
     /// A store over `folders`. `timeZone` is the zone of `current.json`'s
     /// local times and of "today"; `homeDirectory` is what `~` means in the
@@ -47,11 +49,7 @@ public actor FileActivityStore: ActivityReading {
 
     deinit {
         watchTask?.cancel()
-        shared.withLock { state in
-            for continuation in state.continuations.values {
-                continuation.finish()
-            }
-        }
+        broadcaster.finish()
     }
 
     // MARK: ActivityReading
@@ -86,20 +84,7 @@ public actor FileActivityStore: ActivityReading {
     }
 
     public func detail(for id: ActivityBlock.ID) throws(ActivityError) -> ActivityBlockDetail? {
-        guard let slash = id.lastIndex(of: "/") else {
-            return nil
-        }
-        let month = id[id.index(after: slash)...].prefix(7)
-        let url = folders.detailFolder.appending(path: "\(month).jsonl", directoryHint: .notDirectory)
-        guard month.count == 7, FileManager.default.fileExists(atPath: url.path) else {
-            return nil
-        }
-        let file = try BlockLogFile(contentsOf: url)
-        guard let entry = file.entries.first(where: { $0.block.id == id }) else {
-            return nil
-        }
-        let detail = entry.detail ?? ActivityBlockDetail(blockID: id, items: entry.block.items)
-        return Self.applying(exclusions, to: detail, contexts: entry.contexts.merging(file.contexts) { own, _ in own })
+        try details(for: [id])[id]
     }
 
     public func details(for ids: [ActivityBlock.ID]) throws(ActivityError) -> [ActivityBlock.ID: ActivityBlockDetail] {
@@ -140,7 +125,7 @@ public actor FileActivityStore: ActivityReading {
         do {
             state = try TrackerState.parse(Data(contentsOf: url), timeZone: timeZone)
         } catch {
-            Logger.core.error("current.json: \(error.localizedDescription, privacy: .public)")
+            Self.logger.error("current.json: \(error.localizedDescription, privacy: .public)")
         }
         cachedState = CachedState(stamp: stamp, state: state)
         return state
@@ -165,13 +150,7 @@ public actor FileActivityStore: ActivityReading {
     /// A new stream of changes; every stream receives every change found by
     /// `refresh()` after it was created.
     public nonisolated var changes: AsyncStream<ActivityChange> {
-        let (stream, continuation) = AsyncStream.makeStream(of: ActivityChange.self, bufferingPolicy: .bufferingNewest(256))
-        let key = UUID()
-        shared.withLock { $0.continuations[key] = continuation }
-        continuation.onTermination = { [weak self] _ in
-            self?.removeContinuation(key)
-        }
-        return stream
+        broadcaster.stream()
     }
 
     // MARK: Health
@@ -205,12 +184,8 @@ public actor FileActivityStore: ActivityReading {
         }
         found += changedMonths.sorted().map { ActivityChange.blocks(month: $0) }
         stamps = current
-        shared.withLock { state in
-            for continuation in state.continuations.values {
-                for change in found {
-                    continuation.yield(change)
-                }
-            }
+        for change in found {
+            broadcaster.yield(change)
         }
     }
 
@@ -241,10 +216,6 @@ public actor FileActivityStore: ActivityReading {
 
     // MARK: Helpers
 
-    private nonisolated func removeContinuation(_ key: UUID) {
-        shared.withLock { $0.continuations[key] = nil }
-    }
-
     /// The parsed month file at `url`, from the cache while unchanged.
     private func monthFile(_ url: URL) throws(ActivityError) -> BlockLogFile {
         let path = url.path
@@ -257,7 +228,7 @@ public actor FileActivityStore: ActivityReading {
         }
         let file = try BlockLogFile(contentsOf: url)
         if file.malformedLines > 0 {
-            Logger.core.notice("\(url.lastPathComponent, privacy: .public): \(file.malformedLines) malformed lines")
+            Self.logger.notice("\(url.lastPathComponent, privacy: .public): \(file.malformedLines) malformed lines")
         }
         months[path] = CachedMonth(stamp: stamp, file: file)
         shared.withLock { $0.contexts.merge(file.contexts) { _, new in new } }
@@ -278,7 +249,7 @@ public actor FileActivityStore: ActivityReading {
         do {
             return try TrackerSettings(contentsOf: folders.settingsURL).exclusions(homeDirectory: homeDirectory)
         } catch {
-            Logger.core.error("settings.toml: \(error.localizedDescription, privacy: .public)")
+            logger.error("settings.toml: \(error.localizedDescription, privacy: .public)")
             return TrackerSettings.defaults.exclusions(homeDirectory: homeDirectory)
         }
     }
@@ -309,7 +280,6 @@ public actor FileActivityStore: ActivityReading {
 private struct SharedState {
     var exclusions: ExclusionRules
     var contexts: [String: String] = [:]
-    var continuations: [UUID: AsyncStream<ActivityChange>.Continuation] = [:]
 }
 
 private struct CachedMonth {

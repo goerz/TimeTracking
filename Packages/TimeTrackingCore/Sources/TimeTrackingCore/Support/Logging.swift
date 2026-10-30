@@ -26,8 +26,3 @@ public enum Logging {
         Logger(subsystem: subsystem, category: category)
     }
 }
-
-extension Logger {
-    /// The library's logger.
-    static let core = Logging.logger(category: "TimeTrackingCore")
-}
