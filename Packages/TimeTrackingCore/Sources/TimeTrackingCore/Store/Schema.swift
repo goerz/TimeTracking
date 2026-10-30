@@ -30,6 +30,15 @@ enum Schema {
         if let found, found > version {
             throw StoreError.newerSchema(version: found)
         }
+        let current = try writer.read { database in
+            try migrator.hasCompletedMigrations(database)
+                && String.fetchOne(database, sql: "SELECT value FROM meta WHERE key = 'store_id'") != nil
+        }
+        // An up-to-date file is left untouched, so read-mostly openers
+        // (a dry-run import) do not take the write lock for nothing.
+        guard !current else {
+            return
+        }
         try migrator.migrate(writer)
         try writer.write { database in
             try database.execute(

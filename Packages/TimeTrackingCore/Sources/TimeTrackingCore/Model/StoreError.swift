@@ -22,6 +22,8 @@ public enum StoreError: Error, Equatable, Sendable, LocalizedError {
     case newerSchema(version: Int)
     /// The store was opened read-only.
     case readOnly
+    /// Another process held the write lock past the busy timeout.
+    case busy
     /// SQLite failed; the message is for logs.
     case database(String)
 

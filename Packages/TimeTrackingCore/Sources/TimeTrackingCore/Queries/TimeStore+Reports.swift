@@ -112,7 +112,7 @@ extension TimeStore: Reporting {
                 return filter.includeNoProject && filter.projects == nil && filter.areas == nil && filter.clients == nil
                     && (needle.isEmpty || row.entry.task.folded.contains(needle))
             }
-            return (filter.includeArchived || !row.projectArchived)
+            return !filter.noProjectOnly && (filter.includeArchived || !row.projectArchived)
                 && (filter.projects.map { $0.contains(projectID) } ?? true)
                 && (filter.areas.map { ids in row.areaID.map(ids.contains) ?? false } ?? true)
                 && (filter.clients.map { ids in row.clientID.map(ids.contains) ?? false } ?? true)

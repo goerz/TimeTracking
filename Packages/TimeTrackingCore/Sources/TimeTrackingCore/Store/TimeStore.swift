@@ -99,12 +99,22 @@ public actor TimeStore {
     /// Opens the store, runs the invariant pass (a writer splits a running
     /// entry that passed midnight), and listens for other processes.
     public static func open(_ configuration: Configuration) async throws -> TimeStore {
-        let store = try TimeStore(configuration)
+        let store: TimeStore
+        do {
+            store = try TimeStore(configuration)
+        } catch let error as DatabaseError {
+            throw StoreError(error)
+        }
         if !configuration.readOnly {
             try await store.checkInvariants()
         }
         await store.listenForExternalChanges()
         return store
+    }
+
+    /// The schema version this library reads and writes.
+    public static var schemaVersion: Int {
+        Schema.version
     }
 
     /// An empty in-memory store.
@@ -162,7 +172,7 @@ public actor TimeStore {
                 return (result, TransactionOutcome(transaction))
             }
         } catch let error as DatabaseError {
-            throw StoreError.database(String(describing: error))
+            throw StoreError(error)
         }
     }
 
@@ -170,7 +180,7 @@ public actor TimeStore {
         do {
             return try reader.read(body)
         } catch let error as DatabaseError {
-            throw StoreError.database(String(describing: error))
+            throw StoreError(error)
         }
     }
 
@@ -279,5 +289,18 @@ struct TransactionOutcome: Sendable {
 
     var hasChanges: Bool {
         queuedCount > 0 || !changedEntryIDs.isEmpty || structureChanged || liveStateChanged || !changedSettings.isEmpty
+    }
+}
+
+extension StoreError {
+    /// The store error for a SQLite error: `busy` for a lock held past the
+    /// busy timeout, `database` otherwise.
+    init(_ error: DatabaseError) {
+        switch error.resultCode {
+        case .SQLITE_BUSY, .SQLITE_LOCKED:
+            self = .busy
+        default:
+            self = .database(String(describing: error))
+        }
     }
 }

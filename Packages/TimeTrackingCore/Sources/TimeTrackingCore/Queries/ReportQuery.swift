@@ -33,6 +33,8 @@ public struct EntryFilter: Hashable, Sendable {
     public var taskContains: String?
     public var includeNoProject: Bool
     public var includeArchived: Bool
+    /// Only entries without a project (the tool's `--no-project`).
+    public var noProjectOnly: Bool
 
     // swiftlint:disable discouraged_optional_collection
     public init(
@@ -41,7 +43,8 @@ public struct EntryFilter: Hashable, Sendable {
         projects: Set<ProjectID>? = nil,
         taskContains: String? = nil,
         includeNoProject: Bool = true,
-        includeArchived: Bool = true
+        includeArchived: Bool = true,
+        noProjectOnly: Bool = false
     ) {
         // swiftlint:enable discouraged_optional_collection
         self.clients = clients
@@ -50,6 +53,7 @@ public struct EntryFilter: Hashable, Sendable {
         self.taskContains = taskContains
         self.includeNoProject = includeNoProject
         self.includeArchived = includeArchived
+        self.noProjectOnly = noProjectOnly
     }
 }
 
