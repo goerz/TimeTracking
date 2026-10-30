@@ -78,7 +78,7 @@ extension AgentEngine {
     }
 
     private func reapplyExclusions(fromDay: String, toDay: String) throws {
-        monitor.reload()
+        reloadSettings()
         let rules = resolveContext().exclusions
         for folder in logFolders {
             for url in MonthFileRewriter.monthFiles(in: folder, fromDay: fromDay, toDay: toDay) {

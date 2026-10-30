@@ -74,9 +74,7 @@ final class AgentEngine {
     /// Takes one sample now and processes it; returns the sample.
     @discardableResult
     func tick() async -> Sample {
-        if monitor.reload() {
-            blocker.settings = settings.blocks
-        }
+        reloadSettings()
         let now = environment.clock.now
         let reading = environment.presence.read()
         var context = resolveContext()
@@ -120,6 +118,14 @@ final class AgentEngine {
         process(sample)
         runMaintenance(now: now)
         return sample
+    }
+
+    /// Reloads `settings.toml` if it changed and hands new block settings
+    /// to the live Blocker (§7: applied from the next tick).
+    func reloadSettings() {
+        if monitor.reload() {
+            blocker.settings = settings.blocks
+        }
     }
 
     /// Stores a sample, runs the Blocker, writes closed blocks and `current.json`.

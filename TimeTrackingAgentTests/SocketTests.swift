@@ -111,6 +111,22 @@ struct SocketTests {
         #expect(samplesBefore.contains { $0.contains("news.example.com") })
     }
 
+    @Test("TRK-22 TRK-23 a [blocks] change that reapply-exclusions reads first reaches the Blocker at the next tick")
+    func reapplyExclusionsKeepsBlockSettings() async throws {
+        let harness = try AgentHarness(settings: "[blocks]\nidle_close = \"5m\"\n")
+        await harness.engine.tick()
+        #expect(harness.engine.blocker.settings.idleClose == 300)
+        let url = harness.folders.shared.appending(path: "settings.toml", directoryHint: .notDirectory)
+        try "[blocks]\nidle_close = \"2m\"\nsplit_after = \"10m\"\n".write(to: url, atomically: true, encoding: .utf8)
+        let line = TrackerCommand.reapplyExclusions(from: "2024-03-14", to: "2024-03-14").line
+        #expect(await harness.engine.handle(line: line) == TrackerReply.success.line)
+        harness.advance(30)
+        await harness.engine.tick()
+        #expect(harness.engine.settings.blocks.idleClose == 120)
+        #expect(harness.engine.blocker.settings.idleClose == 120)
+        #expect(harness.engine.blocker.settings.splitAfter == 600)
+    }
+
     @Test("TRK-22 delete-block and forget-day remove their block or day from both logs and the samples")
     func deleteAndForget() async throws {
         let harness = try await twoDays()
