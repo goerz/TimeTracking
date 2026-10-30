@@ -5,52 +5,30 @@ import TimeTrackingCore
 
 /// The sources, their display names, and their current status and reason.
 nonisolated struct SourceHealthBoard: Hashable, Sendable {
-    /// Every source of §2.3 in table order with its name.
-    static let sources: [(id: String, name: String)] = [
-        ("window", "Window titles"),
-        ("terminal", "Terminal"),
-        ("tmux", "tmux"),
-        ("editor", "Editor file"),
-        ("agents", "Coding agents"),
-        ("tmux_events", "tmux hooks"),
-        ("agent_events", "Agent hooks"),
-        ("browser", "Browsers"),
-        ("history", "Browser history"),
-        ("knowledge", "Knowledge store"),
-        ("files", "Modified files"),
-        ("shared_folder", "iCloud Drive folder"),
-        ("device_events", "iPhone and iPad"),
-        ("synced_safari", "Synced Safari history"),
-    ]
-
-    private var entries: [String: TrackerSourceHealth]
+    private var entries: [SourceID: TrackerSourceHealth]
 
     init() {
-        var initial: [String: TrackerSourceHealth] = [:]
-        for source in Self.sources {
-            initial[source.id] = TrackerSourceHealth(id: source.id, name: source.name, status: .active)
+        var initial: [SourceID: TrackerSourceHealth] = [:]
+        for source in SourceID.allCases {
+            initial[source] = TrackerSourceHealth(id: source.rawValue, name: source.name, status: .active)
         }
-        initial["device_events"]?.status = .off
-        initial["device_events"]?.reason = "Not fetched yet"
+        initial[.deviceEvents]?.status = .off
+        initial[.deviceEvents]?.reason = "Not fetched yet"
         self.entries = initial
     }
 
     /// Sets a source's status; `reason` is cleared for `active`.
-    mutating func set(_ id: String, _ status: TrackerSourceStatus, _ reason: String = "") {
+    mutating func set(_ id: SourceID, _ status: TrackerSourceStatus, _ reason: String = "") {
         entries[id]?.status = status
         entries[id]?.reason = status == .active ? "" : reason
     }
 
-    func status(_ id: String) -> TrackerSourceStatus? {
+    func status(_ id: SourceID) -> TrackerSourceStatus? {
         entries[id]?.status
-    }
-
-    func reason(_ id: String) -> String {
-        entries[id]?.reason ?? ""
     }
 
     /// Every source in table order.
     var all: [TrackerSourceHealth] {
-        Self.sources.compactMap { entries[$0.id] }
+        SourceID.allCases.compactMap { entries[$0] }
     }
 }

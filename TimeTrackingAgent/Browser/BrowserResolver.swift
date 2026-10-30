@@ -86,7 +86,7 @@ final class BrowserResolver {
     private func readTab(app: FrontApp, browser: BrowserApp, window: WindowInfo?) -> Tab {
         var tab = Tab(url: window?.url, title: window?.title ?? "")
         guard let script = browser.script(bundleID: app.bundleID) else {
-            tab.health.append(SourceReport("browser", .fallback, "\(app.name) has no scripting dictionary; using the window's URL"))
+            tab.health.append(SourceReport(.browser, .fallback, "\(app.name) has no scripting dictionary; using the window's URL"))
             return tab
         }
         switch environment.scripts.run(script) {
@@ -97,9 +97,9 @@ final class BrowserResolver {
                 tab.url = lines[1]
                 tab.title = lines.count > 2 ? lines[2] : tab.title
             }
-            tab.health.append(SourceReport("browser", .active))
+            tab.health.append(SourceReport(.browser, .active))
         case .denied:
-            tab.health.append(SourceReport("browser", .fallback, "Automation not granted for \(app.name)"))
+            tab.health.append(SourceReport(.browser, .fallback, "Automation not granted for \(app.name)"))
         case .failed:
             break
         }
@@ -148,7 +148,7 @@ final class BrowserResolver {
                 item.detail = ""
                 item.groupKey = parts.domain
                 loggedURL = ""
-                health.append(SourceReport("history", .fallback, "Full Disk Access not granted; Safari URLs keep only the domain"))
+                health.append(SourceReport(.history, .fallback, SourceID.noFullDiskAccessReason))
             } else if !isVerified(url, now: environment.clock.now) {
                 return BrowserObservation(item: Self.privateItem(browser, app), url: "", title: "", domain: nil, health: health)
             }

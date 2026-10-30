@@ -22,12 +22,12 @@ extension TerminalResolver {
                 if let socket = neovimSocket(forPaneOf: facts.pid, snapshot: snapshot),
                    let fromRPC = await environment.editorRPC.currentFile(socket: socket, timeout: Self.rpcTimeout), fromRPC != path
                 {
-                    return (path, [SourceReport("editor", .fallback, "The pane title and Neovim disagree about the file")])
+                    return (path, [SourceReport(.editor, .fallback, "The pane title and Neovim disagree about the file")])
                 }
             }
-            return (path, [SourceReport("editor", .active)])
+            return (path, [SourceReport(.editor, .active)])
         }
-        let report = SourceReport("editor", .fallback, "\(program) does not name its file in the pane title")
+        let report = SourceReport(.editor, .fallback, "\(program) does not name its file in the pane title")
         if program == "nvim", let socket = neovimSocket(forPaneOf: facts.pid, snapshot: snapshot),
            now.timeIntervalSince(silentSockets[socket] ?? .distantPast) >= Self.silentBackoff
         {

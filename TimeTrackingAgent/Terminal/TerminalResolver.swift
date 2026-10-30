@@ -44,16 +44,16 @@ final class TerminalResolver {
         var health: [SourceReport] = []
         var located = await adapterTTY(terminal, snapshot: snapshot)
         if located != nil {
-            health.append(SourceReport("terminal", .active))
+            health.append(SourceReport(.terminal, .active))
         } else {
             located = fallbackTTY(below: app.pid, snapshot: snapshot)
             let cause = terminal.adapter == nil ? "No adapter for \(app.name)" : "\(app.name) did not answer"
-            health.append(SourceReport("terminal", .fallback, cause + "; using the process tree"))
+            health.append(SourceReport(.terminal, .fallback, cause + "; using the process tree"))
         }
         if snapshot.tmuxExecutable == nil || snapshot.tmux.servers.isEmpty {
-            health.append(SourceReport("tmux", .fallback, "tmux is not running"))
+            health.append(SourceReport(.tmux, .fallback, "tmux is not running"))
         } else {
-            health.append(SourceReport("tmux", .active))
+            health.append(SourceReport(.tmux, .active))
         }
         guard let tty = located?.tty else {
             let item = SampleItem(

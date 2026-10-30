@@ -5,11 +5,11 @@ import TimeTrackingCore
 
 /// A source's status as one resolver saw it; the engine applies it to the board.
 nonisolated struct SourceReport: Hashable, Sendable {
-    var id: String
+    var id: SourceID
     var status: TrackerSourceStatus
     var reason: String
 
-    init(_ id: String, _ status: TrackerSourceStatus, _ reason: String = "") {
+    init(_ id: SourceID, _ status: TrackerSourceStatus, _ reason: String = "") {
         self.id = id
         self.status = status
         self.reason = reason

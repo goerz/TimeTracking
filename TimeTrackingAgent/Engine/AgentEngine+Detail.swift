@@ -36,7 +36,7 @@ extension AgentEngine {
             presence.insert(before, at: 0)
         }
         var dwell: [ActivityDwell] = []
-        if health.status("knowledge") == .active, case let .data(_, web, _) = environment.knowledge.read(from: block.start, to: block.end) {
+        if health.status(.knowledge) == .active, case let .data(_, web, _) = environment.knowledge.read(from: block.start, to: block.end) {
             for interval in web {
                 let start = max(interval.start, block.start)
                 let seconds = Int(min(interval.end, block.end).timeIntervalSince(start))

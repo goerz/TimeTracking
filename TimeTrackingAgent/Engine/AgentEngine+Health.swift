@@ -25,34 +25,34 @@ extension AgentEngine {
     /// Health of the sources checked at every tick.
     func updateStaticHealth(snapshot: TerminalSnapshot, now: Date) {
         if snapshot.sessions == nil {
-            health.set("agents", .fallback, "No Claude Code sessions folder; busy state unknown")
+            health.set(.agents, .fallback, "No Claude Code sessions folder; busy state unknown")
         } else {
-            health.set("agents", .active)
+            health.set(.agents, .active)
         }
-        updateEventSource("tmux_events", key: "event.tmux", reason: "No tmux hook event in the last 7 days; the tick alone", now: now)
-        updateEventSource("agent_events", key: "event.agent", reason: "No agent hook event in the last 7 days; the tick alone", now: now)
+        updateEventSource(.tmuxEvents, key: Self.tmuxEventKey, reason: "No tmux hook event in the last 7 days; the tick alone", now: now)
+        updateEventSource(.agentEvents, key: Self.agentEventKey, reason: "No agent hook event in the last 7 days; the tick alone", now: now)
         if environment.history.canReadSafari {
-            health.set("history", .active)
+            health.set(.history, .active)
         } else {
-            health.set("history", .fallback, "Full Disk Access not granted; Safari URLs keep only the domain")
+            health.set(.history, .fallback, SourceID.noFullDiskAccessReason)
         }
         let context = resolveContext()
         if settings.files.roots.map(context.expand).contains(where: environment.files.exists) {
-            health.set("files", .active)
+            health.set(.files, .active)
         } else {
-            health.set("files", .off, "No watched folder exists")
+            health.set(.files, .off, "No watched folder exists")
         }
         if !settings.devices.syncedSafariHistory {
-            health.set("synced_safari", .off, "Turned off in the settings")
+            health.set(.syncedSafari, .off, "Turned off in the settings")
         } else if !environment.history.canReadSafari {
-            health.set("synced_safari", .off, "Full Disk Access not granted")
+            health.set(.syncedSafari, .off, "Full Disk Access not granted")
         } else {
-            health.set("synced_safari", .active)
+            health.set(.syncedSafari, .active)
         }
     }
 
     /// A pushed-event source is `active` while an event arrived in the last 7 days.
-    private func updateEventSource(_ id: String, key: String, reason: String, now: Date) {
+    private func updateEventSource(_ id: SourceID, key: String, reason: String, now: Date) {
         if let seen = try? store.date(key), now.timeIntervalSince(seen) < Self.eventSourceWindow {
             health.set(id, .active)
         } else {

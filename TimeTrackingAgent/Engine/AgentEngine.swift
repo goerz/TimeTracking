@@ -56,7 +56,7 @@ final class AgentEngine {
         self.logs = ActivityLogs(blocksFolder: choice.blocksFolder, localFolder: configuration.folders.local, device: configuration.device)
         self.terminal = TerminalResolver(environment: environment)
         self.browser = BrowserResolver(environment: environment)
-        health.set("shared_folder", choice.status, choice.reason)
+        health.set(.sharedFolder, choice.status, choice.reason)
         terminal.recentFile = { [weak self] folder in
             guard let self else {
                 return nil
@@ -210,10 +210,10 @@ final class AgentEngine {
         let contextName = AppResolver.contextName(app)
         let appOnly = SampleItem(context: contextName, subject: "", groupKey: contextName, app: app.bundleID)
         guard environment.focus.isTrusted else {
-            health.set("window", .fallback, "Accessibility not granted; app names only")
+            health.set(.window, .fallback, "Accessibility not granted; app names only")
             return Focus(item: appOnly, bundleID: app.bundleID, title: "", tmuxTarget: "", url: "", domain: nil)
         }
-        health.set("window", .active)
+        health.set(.window, .active)
         if exclusions.isNameOnlyApp(app.bundleID) {
             return Focus(item: appOnly, bundleID: app.bundleID, title: "", tmuxTarget: "", url: "", domain: nil)
         }

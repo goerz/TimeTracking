@@ -5,6 +5,10 @@ import Foundation
 import TimeTrackingCore
 
 extension AgentEngine {
+    /// The meta keys holding the time of the last pushed tmux and agent event.
+    static let tmuxEventKey = "event.tmux"
+    static let agentEventKey = "event.agent"
+
     /// A presence event at `time` (lock, sleep, display sleep, user switch,
     /// and their ends): records an event sample, closes the open block at
     /// the event time where §2.6 says so, and rewrites `current.json`.
@@ -35,11 +39,11 @@ extension AgentEngine {
             await tick()
             return .success
         case .tmuxEvent:
-            try? store.setDate(now, for: "event.tmux")
+            try? store.setDate(now, for: Self.tmuxEventKey)
             await tick()
             return .success
         case .agentEvent:
-            try? store.setDate(now, for: "event.agent")
+            try? store.setDate(now, for: Self.agentEventKey)
             await tick()
             return .success
         case .deleteBlock, .forgetDay, .reapplyExclusions:

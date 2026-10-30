@@ -87,11 +87,11 @@ extension AgentEngine {
         let read = environment.knowledge.read(from: from, to: until)
         guard case let .data(apps, _, displayOff) = read else {
             if case let .unavailable(reason) = read {
-                health.set("knowledge", .off, reason)
+                health.set(.knowledge, .off, reason)
             }
             return
         }
-        health.set("knowledge", .active)
+        health.set(.knowledge, .active)
         let gaps = downPeriods(from: from, to: until)
         let rules = resolveContext().exclusions
         var knowledgeBlocker = Blocker(
