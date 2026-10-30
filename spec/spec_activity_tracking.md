@@ -107,7 +107,7 @@ The pane's foreground program refines the item:
 - Shells: the cwd only.
 - Commands in `job_commands`: cwd plus program name.
 
-The tmux hooks `client-session-changed`, `after-select-window`, `after-select-pane`, and `pane-focus-in`, and the Claude Code hooks `UserPromptSubmit`, `Stop`, and `SessionEnd`, may call `tracker-event`, which writes one line to the agent's socket and advances the tick. The sources `tmux_events` and `agent_events` are `active` when such an event arrived in the last 7 days.
+The tmux hooks `client-session-changed`, `after-select-window`, `after-select-pane`, and `client-focus-in` (the terminal window gains focus; it needs `set -g focus-events on`), and the Claude Code hooks `UserPromptSubmit`, `Stop`, and `SessionEnd`, may call `tracker-event tmux <hook>` and `tracker-event agent <hook>`, which write one line to the agent's socket and advance the tick. The event needs the hook's name; `tracker-event tmux` alone is rejected. The snippets of 7.4 discard the tool's output and exit status, so a stopped tracker never interrupts tmux or Claude Code; the sources `tmux_events` and `agent_events` are `active` when such an event arrived in the last 7 days, which the Setup rows show.
 
 ### 3.2 Knowledge store
 
@@ -210,17 +210,26 @@ The Devices module merges events into blocks with `src` `device` and the device'
 
 ## 7. Settings and exclusions
 
-All settings live in `settings.toml` in the shared folder, read by the agent and the iOS collection. The Tracker pane (7.4) is the only editor in the product; hand edits work too. The agent reloads the file on change and applies it from the next tick.
+All settings live in `settings.toml` in the shared folder, read by the agent and the iOS collection. The file is the user's to edit in a text editor: the default file comments every setting, and the Tracker pane (7.4) shows the file and opens it. The app writes it only to create the default file when there is none, and to add an exclusion drafted in the Activity section, which inserts one value and keeps every other byte (comments, order, formatting). The agent reloads the file on change and applies it from the next tick.
 
 ### 7.1 Defaults
 
 ```toml
+# Settings of the TimeTracking activity tracker. The tracker reads this file
+# whenever it changes and applies it from its next sample (every 30 seconds),
+# on this Mac and, for the exclusions, on iPhone and iPad.
+#
 # Durations: "30s", "5m", "3h". Paths: "~" is the home folder, matched
-# case-insensitively. Domains match themselves and their subdomains.
+# case-insensitively. Domains match themselves and their subdomains. Apps
+# are named by bundle identifier, such as "com.apple.Safari"; the command
+# `osascript -e 'id of app "Safari"'` prints one.
 
 [presence]
-# Governs activity blocks only; the Timer window's idle prompt has its own threshold.
+# Time without input after which you count as away. Governs activity blocks
+# only; the Timer window's idle prompt has its own threshold.
 idle_after = "2m"
+# Apps and sites you watch or listen to without typing count as attention
+# while they are in front, for up to passive_limit.
 passive_apps = [
     "us.zoom.xos", "com.microsoft.teams2", "com.apple.FaceTime",
     "com.apple.ScreenSharing", "com.apple.QuickTimePlayerX",
@@ -229,6 +238,11 @@ passive_domains = ["youtube.com", "netflix.com", "meet.google.com"]
 passive_limit = "3h"
 
 [blocks]
+# How the timeline is cut into blocks: a block closes after idle_close away,
+# is split in two once it is longer than split_after and its two halves (each
+# at least min_half) differ by split_threshold (0 to 1), and lasts at most
+# max_block (max_passive_block when mostly passive). Its summary lists up to
+# summary_lines items with at least summary_min_share of its time.
 split_after = "20m"
 min_half = "10m"
 split_threshold = 0.7
@@ -239,13 +253,17 @@ summary_lines = 6
 summary_min_share = 0.05
 
 [files]
+# Watched folders: files you change below these folders are listed with the
+# block in which you changed them.
 roots = ["~/Documents", "~/Desktop"]
+# Folders with these names are not watched.
 prune_names = [
     ".git", "node_modules", "__pycache__", ".ipynb_checkpoints", ".venv",
     "venv", "build", "_build", ".build", ".cache", ".Trash", "target",
     "DerivedData", "dist", "Pods", ".swiftpm", ".pytest_cache",
 ]
-# A folder containing one of these is a work folder (2.2).
+# A folder containing one of these is a work folder: its files count as one
+# piece of work.
 root_markers = [".git"]
 # Otherwise, files group under the folder this many levels below their root...
 group_depth = 1
@@ -261,24 +279,41 @@ agent_processes = ["claude", "codex", "aider"]
 job_commands = ["make", "gmake", "latexmk", "pytest", "cargo", "swift", "npm"]
 
 [devices]
-# Blocks from Safari history synced from other devices (6.1).
+# Blocks from the Safari history of your other devices, synced through iCloud.
 synced_safari_history = false
 
 [privacy]
+# Exclusions apply to what is recorded from now on, and the Planner applies
+# them to past activity when it shows it. The log files keep what they hold
+# until `tracker-event reapply-exclusions <from> <to>` rewrites them.
+# Terminal command lines are never recorded; this switch has no effect.
 record_commands = false
+# Files and folders at or below these paths are recorded as "(private)";
+# the time is kept.
 exclude_paths = []           # e.g. "~/Documents/Medical"
+# Paths with a folder or file name starting with one of these, likewise.
 exclude_keywords = []        # e.g. "sparsebundle"
+# tmux sessions recorded as "tmux:(private)", without window, folder, or file.
 exclude_tmux_sessions = []
+# Coding-agent sessions started in exactly these folders keep only their
+# name and busy or idle status.
 private_agent_paths = ["~"]
+# Apps recorded by name only, without window titles or documents.
 name_only_apps = ["com.1password.1password"]
+# Apps not recorded at all; their time is a gap.
 exclude_apps = []
+# Sites recorded by domain only, without page addresses or titles.
 private_domains = []         # e.g. banks, health portals, tax services
+# Sites not recorded; the browser shows as "(private)" while one is open.
 exclude_domains = []
+# Window and tab titles containing one of these are dropped.
 exclude_title_keywords = []
 
 [browser]
+# Pages in these categories are summarized by domain only.
 summary_domain_only = ["search", "news", "shopping", "entertainment"]
 
+# Categories of sites, named after the key.
 [browser.categories]
 research = ["arxiv.org", "doi.org", "scholar.google.com", "semanticscholar.org"]
 code = ["github.com", "gitlab.com", "stackoverflow.com", "readthedocs.io"]
@@ -307,7 +342,7 @@ Exclusions apply wherever data enters (sampler, histories, file stream, Knowledg
 
 ### 7.3 Rewrite commands
 
-Settings changes never touch past logs. Three socket commands rewrite the month files and samples they touch: `delete-block <dev> <s>`, `forget-day <date>`, and `reapply-exclusions <from> <to>`. The Mac app sends them and the agent rewrites, replacing each file atomically and keeping unaffected lines byte-identical; the answer is `ok` or `error <reason>`. The UI for `delete-block` is "Delete Block from Log…" in the Calendar's activity column (`spec_planner_calendar.md`); the other two are in the Tracker pane.
+Settings changes never touch past logs. Three socket commands rewrite the month files and samples they touch: `delete-block <dev> <s>`, `forget-day <date>`, and `reapply-exclusions <from> <to>`. The agent rewrites, replacing each file atomically and keeping unaffected lines byte-identical; the answer is `ok` or `error <reason>`. The UI for `delete-block` is "Delete Block from Log…" in the Calendar's activity column (`spec_planner_calendar.md`); the other two are run with `tracker-event`, which the Tracker pane's "Activity logs" info shows.
 
 ### 7.4 The Tracker settings pane
 
@@ -315,31 +350,29 @@ The last pane of the Mac app's settings window (`spec_timer_window.md` §8, whic
 
 Status. A dot and one line by the liveness rule of 4.4: green "Tracker running · last tick 12 s ago", yellow "Tracker delayed · last tick 1 min ago" while delayed, red "Tracker not running", gray "Tracker off" when the agent is not registered; then the agent version. One button by `SMAppService` status: "Enable Tracker" (`notRegistered`; registers the agent), "Open Login Items" (`requiresApproval`), "Disable Tracker" (`enabled`; unregisters after confirmation). Nothing is recorded until the user clicks "Enable Tracker".
 
-Setup. One row per step with a mark (✓ source `active`, ! `fallback` or `off`, – no health record yet), what it enables and what applies without it, and an action. The mark shows as a symbol (✓ `checkmark.circle.fill` in green, ! `exclamationmark.triangle.fill` in orange, – `circle.dashed` in `.tertiary`) whose accessibility label is the mark's character; the row's buttons sit in one line below its text, in the small control size. A row that is not ✓ also shows numbered steps and one line on which bundle the grant belongs to and why. Rows name bundles by their file name in System Settings and Finder, `<APP_NAME>` and `TimeTrackingAgent` (in Debug both with " Debug", `spec_architecture.md` §2.2), and each "Show … in Finder" names the bundle it reveals:
+Setup. One row per step with a mark (✓ source `active`, ! `fallback` or `off`, – no health record yet), its title, one line on what the step does, and an action. The line depends on the mark: "On: …" with what the tracker records while ✓, "Off: …" with what it records instead while !, and the plain sentence while –. The background tracker and the login item rows have no line. The mark shows as a symbol (✓ `checkmark.circle.fill` in green, ! `exclamationmark.triangle.fill` in orange, – `circle.dashed` in `.tertiary`) whose accessibility label is the mark's character; the row's buttons sit in one line below its text, in the small control size. A row that is not ✓ also shows numbered steps and one line on which bundle the grant belongs to and why. Rows name bundles by their file name in System Settings and Finder, `<APP_NAME>` and `TimeTrackingAgent` (in Debug both with " Debug", `spec_architecture.md` §2.2), and each "Show … in Finder" names the bundle it reveals. Rows that need more explanation have an info button at their trailing edge (`info.circle`, borderless), which opens a popover with the explanation and, for the snippet rows, the snippet in a monospaced box with a Copy button.
 
-| Step | Source | Enables / without | Action |
+| Step | Source | On / Off | Action |
 |---|---|---|---|
-| Background tracker (required) | `SMAppService` | Recording / nothing | Enable Tracker / Open Login Items |
-| Open `<APP_NAME>` at login | `SMAppService.mainApp` (✓ enabled, ! otherwise) | Timer and menu bar after you log in / open it yourself; the tracker records either way | "Open at Login" (registers the app) / Open Login Items (`requiresApproval`) |
-| Accessibility (required) | `window` | Titles, documents, URLs / app names | Open System Settings (`Privacy_Accessibility`), "Show TimeTrackingAgent in Finder"; steps: open the pane, drag `TimeTrackingAgent` from the Finder window into the list, turn it on |
-| Automation | `browser`, `terminal` | Exact tabs and panes / guesses | Open System Settings (`Privacy_Automation`); steps: click Allow when macOS asks to control a browser or terminal; if declined, turn each one on under `<APP_NAME>` (or `TimeTrackingAgent`) in the Automation pane |
-| Full Disk Access (optional) | `history`, `knowledge` | Safari history, backfill / Safari domains | Open System Settings (`Privacy_AllFiles`), "Show `<APP_NAME>` in Finder" (reveals the app bundle), "Restart Tracker" while the tracker is enabled; steps: open the pane, drag `<APP_NAME>` into the list or click + and choose it, turn it on, and while the tracker is enabled click Restart Tracker. Why: the tracker runs on behalf of the app, so macOS checks the app's access, not the agent's |
-| iCloud Drive | `shared_folder` | Activity on iPhone and iPad / this Mac only | none |
-| Editor title (optional) | `editor` | Exact file / RPC, arguments, cwd | Copy Snippet (`set title titlestring=nvim\ %F`) |
-| tmux hooks (optional) | `tmux_events` | Exact switch times / next tick | Copy Snippet (four `set-hook -g` lines) |
-| Agent hooks (optional) | `agent_events` | Exact agent start and stop / next tick | Copy Snippet (Claude Code hooks JSON) |
+| Background tracker (required) | `SMAppService` | (none) | Enable Tracker / Open Login Items |
+| Open `<APP_NAME>` at login | `SMAppService.mainApp` (✓ enabled, ! otherwise) | (none) | "Open at Login" (registers the app) / Open Login Items (`requiresApproval`) |
+| Accessibility (required) | `window` | Window titles, open documents, and browser addresses are recorded / only app names | Open System Settings (`Privacy_Accessibility`), "Show TimeTrackingAgent in Finder"; steps: open the pane, drag `TimeTrackingAgent` from the Finder window into the list, turn it on |
+| Automation | `browser`, `terminal` | The tracker asks the browser for its current tab and the terminal for its front tab / the tab is read from the browser window, and the terminal tab is guessed | Open System Settings (`Privacy_Automation`); steps: click Allow when macOS asks to control a browser or terminal; if declined, turn each one on under `<APP_NAME>` (or `TimeTrackingAgent`) in the Automation pane. Info: which tabs and panes (3.1, 3.3), and how the fallback picks them |
+| Full Disk Access (optional) | `history`, `knowledge` | Every Safari page, and times the tracker was not running filled in / Safari pages by site only, those times empty | Open System Settings (`Privacy_AllFiles`), "Show `<APP_NAME>` in Finder" (reveals the app bundle), "Restart Tracker" while the tracker is enabled; steps: open the pane, drag `<APP_NAME>` into the list or click + and choose it, turn it on, and while the tracker is enabled click Restart Tracker. Why: the tracker runs on behalf of the app, so macOS checks the app's access, not the agent's. Info: Safari history and the Knowledge store (3.2, 3.3) |
+| iCloud Drive | `shared_folder` | This Mac's activity shows on iPhone and iPad, and theirs here / activity stays on this Mac | none |
+| Neovim title (optional) | `editor` | The open file is read from the terminal title / the tracker asks Neovim, else knows only the folder | Copy Snippet (`set title titlestring=nvim\ %F`). Info: where it goes (init.vim; the init.lua form) |
+| tmux hooks (optional) | `tmux_events` | Switches are recorded the moment they happen / at the next sample, up to 30 seconds later | Copy Snippet (`set -g focus-events on` and one `set-hook -g <hook> 'run-shell -b "tracker-event tmux <hook> >/dev/null 2>&1 \|\| true"'` line per hook of 3.1). Info: add to `~/.tmux.conf`, reload with `tmux source-file`, `tracker-event` on the PATH |
+| Claude Code hooks (optional) | `agent_events` | Start and stop of work are recorded the moment they happen / at the next sample | Copy Snippet (the hooks JSON, each command `tracker-event agent <hook> >/dev/null 2>&1 \|\| true`). Info: add to `~/.claude/settings.json`, merging into an existing `hooks` key |
 
-"Restart Tracker" restarts the agent (`launchctl kickstart -k` of its label, run by the app), then re-reads the status.
+"Restart Tracker" restarts the agent (`launchctl kickstart -k` of its label, run by the app), then re-reads the status. "Copy Snippet" and the popover's "Copy" put the snippet on the pasteboard and read "Copied" with a checkmark for 2 seconds, at the width of the longer title.
 
 Sources. Each source's name, status, and reason; degraded ones in the warning color.
 
-Exclusions. The nine lists of 7.2 with + and −: app lists pick installed apps and store bundle identifiers, path lists use an open panel and store `~`-relative paths, the rest take text. The Activity section opens the pane with a new, unsaved, focused entry (`showTrackerSettings(exclusion:)`). After saving a new exclusion, the pane offers "Also remove it from past logs…", which sends `reapply-exclusions` over a chosen range (default: the block log's first month to today).
+Exclude from Tracking. Shown only when the Activity section opened the pane with a draft (`showTrackerSettings(exclusion:)`): the list's entry name ("App (bundle identifier)", "tmux session", "Site (domain)") with a focused field holding the drafted value, and "Cancel" and "Add to Settings File" (default). Adding inserts the value into its list in `[privacy]` (7 above) and confirms under the settings file: "Added `<value>` to `<key>`."
 
-Each exclusion list is a disclosure row with its entry count ("None" when empty).
+Files. "Settings file": the path of `settings.toml` (`~` for the home folder, selectable, truncated in the middle), "Open in Editor" (the app the user chose for `.toml` files, else TextEdit) and "Show in Finder"; both first create the default file when there is none. "Activity logs": the path of `blocks/`, "Show in Finder" (disabled until the folder exists), and an info button with the maintenance commands: `tracker-event forget-day <date>` and `tracker-event reapply-exclusions <from> <to>` (7.3), with today's date in the examples. The section footer says that exclusions, watched folders, the idle threshold, and site categories are set in the file, each with a comment, and apply from the tracker's next sample.
 
-Options. Watched folders (`roots`); "Idle after" (`idle_after`), with the section footer "Idle after affects activity blocks only; the idle prompt has its own threshold in the Idle pane."; "Use Safari history synced from other devices"; "Settings file" with "Edit…" (default editor) and "Show Logs in Finder".
-
-Maintenance. "Forget a day" (date, "Forget…", confirmation) and "Reapply exclusions" (from and to dates, "Reapply…"); errors show inline with the warning symbol.
+The pane has no editors for exclusions or options and no maintenance controls: the file is where settings are changed, and rewriting logs is a command-line task.
 
 ## 8. Implementation phases
 
@@ -386,10 +419,11 @@ Maintenance. "Forget a day" (date, "Forget…", confirmation) and "Reapply exclu
 - TRK-29. The `--replay` flag reproduces the expected file byte for byte and exits 0; a changed threshold makes it exit non-zero.
 - TRK-30. The `--record` output contains no home path, host name, or URL path of the live run.
 - TRK-31. The pane's dot, button, and setup marks follow 7.4 and update within 5 seconds; the agent is not registered until "Enable Tracker".
-- TRK-32. The pane writes only `settings.toml`; confirming "Also remove it from past logs…" sends exactly one `reapply-exclusions` with the chosen range.
+- TRK-32. The pane writes `settings.toml` only to create the default file when there is none (never over a hand-edited file, and never while an iCloud Drive placeholder stands for it) and to add a drafted exclusion, which changes nothing in the file but the one inserted value.
 - TRK-33. The Full Disk Access row names the app by its bundle file name (`<APP_NAME>`, in Debug `<APP_NAME> Debug`) in its steps and its Finder button, which reveals the app bundle; the Accessibility row names and reveals `TimeTrackingAgent` (in Debug `TimeTrackingAgent Debug`).
 - TRK-34. While the tracker is enabled and the Full Disk Access row is not ✓, the row offers "Restart Tracker", which restarts the agent once and re-reads the status; it is not offered otherwise.
 - TRK-35. The "Open `<APP_NAME>` at login" row is ✓ when the app's login item is enabled; otherwise its action registers it, or opens Login Items when approval is required.
+- TRK-36. The tmux snippet sets `focus-events` and has one hook line per hook of 3.1, each calling `tracker-event tmux <hook>` with its own hook name, which the agent accepts; the Claude Code snippet does the same for its three hooks; every call discards its output and exit status.
 
 ## 10. Decisions
 

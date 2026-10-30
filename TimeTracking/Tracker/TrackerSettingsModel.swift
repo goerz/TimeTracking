@@ -1,161 +1,97 @@
-// TrackerSettingsModel: the Tracker pane's exclusions, options, and
-// maintenance (spec_activity_tracking.md §7.2 to §7.4).
+// TrackerSettingsModel: the Tracker pane's settings file and activity logs,
+// and the exclusion draft from the Activity section (spec_activity_tracking.md
+// §7, §7.4; spec_planner_activity.md §4).
 
 import Foundation
 import Observation
 import TimeTrackingCore
 
-/// The nine exclusion lists of §7.2.
+/// The exclusion lists of §7.2, by their key in `[privacy]`.
 enum ExclusionList: String, CaseIterable, Identifiable {
-    case excludePaths
-    case excludeKeywords
-    case excludeTmuxSessions
-    case privateAgentPaths
-    case nameOnlyApps
-    case excludeApps
-    case privateDomains
-    case excludeDomains
-    case excludeTitleKeywords
+    case excludePaths = "exclude_paths"
+    case excludeKeywords = "exclude_keywords"
+    case excludeTmuxSessions = "exclude_tmux_sessions"
+    case privateAgentPaths = "private_agent_paths"
+    case nameOnlyApps = "name_only_apps"
+    case excludeApps = "exclude_apps"
+    case privateDomains = "private_domains"
+    case excludeDomains = "exclude_domains"
+    case excludeTitleKeywords = "exclude_title_keywords"
 
     var id: String {
         rawValue
     }
 
-    var title: String {
-        switch self {
-        case .excludePaths: "Excluded folders"
-        case .excludeKeywords: "Excluded path keywords"
-        case .excludeTmuxSessions: "Excluded tmux sessions"
-        case .privateAgentPaths: "Private agent folders"
-        case .nameOnlyApps: "Apps recorded by name only"
-        case .excludeApps: "Excluded apps"
-        case .privateDomains: "Private domains"
-        case .excludeDomains: "Excluded domains"
-        case .excludeTitleKeywords: "Excluded title keywords"
-        }
+    /// The key in `settings.toml`.
+    var key: String {
+        rawValue
     }
 
-    /// How entries are picked: installed apps, an open panel, or text.
-    var input: Input {
+    /// What an entry is, for the draft's field.
+    var entryName: String {
         switch self {
-        case .nameOnlyApps, .excludeApps: .app
-        case .excludePaths, .privateAgentPaths: .folder
-        default: .text
-        }
-    }
-
-    enum Input {
-        case app
-        case folder
-        case text
-    }
-
-    var keyPath: WritableKeyPath<TrackerPrivacySettings, [String]> {
-        switch self {
-        case .excludePaths: \.excludePaths
-        case .excludeKeywords: \.excludeKeywords
-        case .excludeTmuxSessions: \.excludeTmuxSessions
-        case .privateAgentPaths: \.privateAgentPaths
-        case .nameOnlyApps: \.nameOnlyApps
-        case .excludeApps: \.excludeApps
-        case .privateDomains: \.privateDomains
-        case .excludeDomains: \.excludeDomains
-        case .excludeTitleKeywords: \.excludeTitleKeywords
+        case .excludeApps, .nameOnlyApps: "App (bundle identifier)"
+        case .excludeTmuxSessions: "tmux session"
+        case .excludeDomains, .privateDomains: "Site (domain)"
+        case .excludePaths, .privateAgentPaths: "Folder"
+        case .excludeKeywords, .excludeTitleKeywords: "Keyword"
         }
     }
 }
 
-/// Reads and writes `settings.toml` (the pane writes nothing else) and sends
-/// the rewrite commands.
+/// `settings.toml` and the block log folder. The file is the user's: the
+/// app writes it only to create the commented default file and to add an
+/// exclusion drafted in the Activity section, keeping every other byte.
 @Observable
 final class TrackerSettingsModel {
     @ObservationIgnored let settingsURL: URL?
-    @ObservationIgnored let commands: TrackerCommandSending
-    @ObservationIgnored let clock: any Clock
-
-    private(set) var settings = TrackerSettings.defaults
-    /// The exclusion just saved, offering "Also remove it from past logs…".
-    var offerReapply: ExclusionList?
-    /// The reapply range, default the block log's first month to today.
-    var reapplyFrom: Date
-    var reapplyTo: Date
-    var forgetDay: Date
-    private(set) var message: String?
-    /// An unsaved, focused exclusion from the Activity section (spec_planner_activity.md §4).
+    /// An unsaved, focused exclusion from the Activity section.
     var pendingExclusion: PendingExclusion?
+    /// The last exclusion added, confirmed under the settings file.
+    var lastAdded: PendingExclusion?
+    /// What went wrong with the file, shown under it.
+    private(set) var message: String?
 
-    init(settingsURL: URL?, commands: TrackerCommandSending, clock: any Clock, firstLogDay: Date? = nil) {
+    init(settingsURL: URL?) {
         self.settingsURL = settingsURL
-        self.commands = commands
-        self.clock = clock
-        self.reapplyFrom = firstLogDay ?? clock.now
-        self.reapplyTo = clock.now
-        self.forgetDay = clock.now
     }
 
-    func load() {
-        guard let settingsURL, let loaded = try? TrackerSettings(contentsOf: settingsURL) else {
-            return
+    /// `blocks/` next to the settings file: the activity logs.
+    var logsURL: URL? {
+        settingsURL?.deletingLastPathComponent().appending(path: "blocks", directoryHint: .isDirectory)
+    }
+
+    /// A path as shown in the pane, with `~` for the home folder.
+    static func displayPath(_ url: URL?) -> String {
+        guard let path = url?.path else {
+            return "Not available without an App Group container"
         }
-        settings = loaded
+        let home = NSHomeDirectory()
+        return path.hasPrefix(home + "/") ? "~" + path.dropFirst(home.count) : path
     }
 
-    func entries(_ list: ExclusionList) -> [String] {
-        settings.privacy[keyPath: list.keyPath]
-    }
-
-    /// Adds an entry and saves; then offers to apply it to past logs.
-    func add(_ value: String, to list: ExclusionList) {
-        let value = value.trimmed
-        guard !value.isEmpty, !entries(list).contains(value) else {
-            return
-        }
-        settings.privacy[keyPath: list.keyPath].append(value)
-        if save() {
-            offerReapply = list
-        }
-    }
-
-    func remove(_ value: String, from list: ExclusionList) {
-        settings.privacy[keyPath: list.keyPath].removeAll { $0 == value }
-        save()
-    }
-
-    /// "Idle after" in seconds.
-    var idleAfterSeconds: Int {
-        get { Int(settings.presence.idleAfter) }
-        set {
-            settings.presence.idleAfter = TimeInterval(newValue)
-            save()
-        }
-    }
-
-    /// Watched folders (`roots`), one per line.
-    var roots: [String] {
-        get { settings.files.roots }
-        set {
-            settings.files.roots = newValue
-            save()
-        }
-    }
-
-    var useSyncedSafariHistory: Bool {
-        get { settings.devices.syncedSafariHistory }
-        set {
-            settings.devices.syncedSafariHistory = newValue
-            save()
-        }
-    }
-
+    /// Writes the default file when there is none, so it can be opened. An
+    /// iCloud Drive placeholder (another Mac wrote the file and this one has
+    /// not downloaded it) starts the download instead and returns `false`.
     @discardableResult
-    func save() -> Bool {
+    func ensureFile() -> Bool {
         guard let settingsURL else {
+            return false
+        }
+        let manager = FileManager.default
+        if manager.fileExists(atPath: settingsURL.path) {
+            message = nil
             return true
         }
+        let placeholder = settingsURL.deletingLastPathComponent().appending(path: ".\(settingsURL.lastPathComponent).icloud")
+        if manager.fileExists(atPath: placeholder.path) {
+            try? manager.startDownloadingUbiquitousItem(at: settingsURL)
+            message = "The settings file is still downloading from iCloud Drive. Try again in a moment."
+            return false
+        }
         do {
-            let text = try settings.tomlText()
-            try FileManager.default.createDirectory(at: settingsURL.deletingLastPathComponent(), withIntermediateDirectories: true)
-            try Data(text.utf8).write(to: settingsURL, options: .atomic)
+            try manager.createDirectory(at: settingsURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+            try Data(TrackerSettings.defaultFileContents.utf8).write(to: settingsURL, options: .withoutOverwriting)
             message = nil
             return true
         } catch {
@@ -164,27 +100,31 @@ final class TrackerSettingsModel {
         }
     }
 
-    /// Confirming "Also remove it from past logs…" or "Reapply Exclusions…":
-    /// exactly one `reapply-exclusions <from> <to>`.
-    func reapplyExclusions() async {
-        offerReapply = nil
-        let command = "reapply-exclusions \(Self.day(reapplyFrom)) \(Self.day(reapplyTo))"
-        await report(commands.send(command))
-    }
-
-    /// "Forget a Day…" after confirmation.
-    func forget() async {
-        await report(commands.send("forget-day \(Self.day(forgetDay))"))
-    }
-
-    private func report(_ result: TrackerCommandResult) {
-        switch result {
-        case .accepted: message = nil
-        case let .rejected(reason): message = reason
+    /// The draft's Add button: appends the value to its list in the file,
+    /// leaving the rest of the file as it was.
+    func addPendingExclusion() {
+        guard let pending = pendingExclusion, !pending.value.trimmed.isEmpty, let settingsURL, ensureFile() else {
+            return
+        }
+        do {
+            let text = try String(contentsOf: settingsURL, encoding: .utf8)
+            let edited = try TrackerSettingsText.appending(pending.value.trimmed, to: pending.list.key, in: "privacy", of: text)
+            if edited != text {
+                try Data(edited.utf8).write(to: settingsURL, options: .atomic)
+            }
+            lastAdded = PendingExclusion(list: pending.list, value: pending.value.trimmed)
+            pendingExclusion = nil
+            message = nil
+        } catch {
+            message = error.localizedDescription
         }
     }
 
-    static func day(_ date: Date) -> String {
-        TrackingCalendar(timeZone: .current).day(containing: date).description
+    /// Entries of `list` in the file as it is now.
+    func entries(_ list: ExclusionList) -> [String] {
+        guard let settingsURL, let settings = try? TrackerSettings(contentsOf: settingsURL) else {
+            return []
+        }
+        return settings.privacy.list(list)
     }
 }

@@ -13,7 +13,7 @@ public enum TrackerCommand: Sendable, Hashable {
     /// `tick`: take a sample now.
     case tick
     /// `tmux <hook> [<argument>...]`: a tmux hook fired (`client-session-changed`,
-    /// `after-select-window`, `after-select-pane`, `pane-focus-in`); advances the tick.
+    /// `after-select-window`, `after-select-pane`, `client-focus-in`); advances the tick.
     case tmuxEvent(hook: String, arguments: [String])
     /// `agent <hook> [<argument>...]`: a coding agent hook fired
     /// (`UserPromptSubmit`, `Stop`, `SessionEnd`); advances the tick.

@@ -8,7 +8,7 @@
 // the 104-byte `sun_path` limit, so the tool connects relative to the
 // socket's folder.
 //
-//   tracker-event tmux after-select-pane        # from a tmux hook
+//   tracker-event tmux after-select-pane        # from a tmux hook (the hook's name)
 //   tracker-event agent Stop                    # from a Claude Code hook
 //   tracker-event forget-day 2024-03-14         # a rewrite command
 //

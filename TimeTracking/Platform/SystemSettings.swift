@@ -1,4 +1,4 @@
-// SystemSettings: opening System Settings panes, Finder, and the pasteboard
+// SystemSettings: opening System Settings panes, Finder, and a text editor
 // for the settings panes (spec_activity_tracking.md §7.4, spec_timer_window.md §8.1).
 
 import AppKit
@@ -28,8 +28,19 @@ enum SystemSettings {
         }
     }
 
-    static func copy(_ text: String) {
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(text, forType: .string)
+    /// Opens a text file in the app the user chose for its type, or in
+    /// TextEdit when no app claims it (as for `.toml` on a fresh Mac).
+    static func openInEditor(_ url: URL?) {
+        guard let url else {
+            return
+        }
+        let workspace = NSWorkspace.shared
+        let editor = workspace.urlForApplication(toOpen: url)
+            ?? workspace.urlForApplication(withBundleIdentifier: "com.apple.TextEdit")
+        guard let editor else {
+            workspace.open(url)
+            return
+        }
+        workspace.open([url], withApplicationAt: editor, configuration: NSWorkspace.OpenConfiguration())
     }
 }

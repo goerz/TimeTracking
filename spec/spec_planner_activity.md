@@ -123,9 +123,9 @@ A heatmap cell, bar, or segment calls `PlannerRouter.showCalendar(day:hour:highl
 
 ## 4. Exclusions
 
-"Exclude <name> from tracking…" (Mac only) calls `showTrackerSettings(exclusion:)`, which opens the Tracker pane, the only editor of `settings.toml`, with an unsaved, focused draft: the bundle identifier under `exclude_apps` for an app (left for the user to pick when the `contexts` map has none), the session name under `exclude_tmux_sessions`, or the bare domain under `exclude_domains` for a site. This view saves nothing.
+"Exclude <name> from tracking…" (Mac only) calls `showTrackerSettings(exclusion:)`, which opens the Tracker pane with an unsaved, focused draft that "Add to Settings File" inserts into `settings.toml` ([spec_activity_tracking.md](spec_activity_tracking.md) §7.4): the bundle identifier under `exclude_apps` for an app (left for the user to pick when the `contexts` map has none), the session name under `exclude_tmux_sessions`, or the bare domain under `exclude_domains` for a site. This view saves nothing.
 
-The reader applies the current rules to past data at read time on every device, with the effects of [spec_activity_tracking.md](spec_activity_tracking.md) §7.2, without rewriting the logs; time removed by a rule leaves every total, and a block left empty is not shown. Items written as `(private)` show as one gray row per context with their time kept. Rewriting past logs is the Tracker pane's "Also remove it from past logs…".
+The reader applies the current rules to past data at read time on every device, with the effects of [spec_activity_tracking.md](spec_activity_tracking.md) §7.2, without rewriting the logs; time removed by a rule leaves every total, and a block left empty is not shown. Items written as `(private)` show as one gray row per context with their time kept. Rewriting past logs is `tracker-event reapply-exclusions <from> <to>` (§7.3 there).
 
 ## 5. iPad
 

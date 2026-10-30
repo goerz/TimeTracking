@@ -4,7 +4,7 @@
 import SwiftUI
 import TimeTrackingCore
 
-/// Status, setup, sources, exclusions, options, and maintenance.
+/// Status, setup, sources, and the settings file and logs.
 struct TrackerPane: View {
     @Environment(AppModel.self) private var app
 
@@ -15,9 +15,7 @@ struct TrackerPane: View {
             setupSection
             sourcesSection
             PendingExclusionSection()
-            ExclusionsSection()
-            OptionsSection()
-            MaintenanceSection()
+            FilesSection()
         }
         .formStyle(.grouped)
         .frame(height: 620)
@@ -73,16 +71,12 @@ struct TrackerPane: View {
     }
 
     private var setupSection: some View {
-        Section {
+        Section("Setup") {
             ForEach(app.tracker.setupSteps) { step in
                 SetupStepRow(step: step) { action in
                     actionButton(action, step: step)
                 }
             }
-        } header: {
-            Text("Setup")
-        } footer: {
-            Text("Each line says what the step enables, and what you get without it.")
         }
     }
 
@@ -103,7 +97,7 @@ struct TrackerPane: View {
         case .openAtLogin:
             Button(action.title) { app.tracker.setOpensAtLogin(true) }.accessibilityIdentifier(identifier)
         case let .copySnippet(snippet):
-            Button(action.title) { SystemSettings.copy(snippet) }.accessibilityIdentifier(identifier)
+            CopyButton(title: action.title, text: snippet, showsIcon: false).accessibilityIdentifier(identifier)
         case .noAction:
             EmptyView()
         }
@@ -125,8 +119,9 @@ struct TrackerPane: View {
     }
 }
 
-/// One setup step: its mark and title, what it enables, the numbered
-/// guidance while it is not done, and its buttons below the text.
+/// One setup step: its mark and title, the on or off line, the numbered
+/// guidance while it is not done, its buttons below the text, and the info
+/// button at the trailing edge.
 private struct SetupStepRow<Actions: View>: View {
     var step: TrackerSetupStep
     @ViewBuilder var action: (TrackerSetupStep.Action) -> Actions
@@ -136,7 +131,10 @@ private struct SetupStepRow<Actions: View>: View {
             mark
             VStack(alignment: .leading, spacing: Design.Spacing.tight) {
                 Text(step.title)
-                Text(step.enables).font(.caption).foregroundStyle(.secondary)
+                if let detail = step.detail {
+                    Text(detail).font(.caption).foregroundStyle(.secondary)
+                        .accessibilityIdentifier("tracker.detail.\(step.id)")
+                }
                 if step.mark != .done {
                     ForEach(Array(step.guidance.enumerated()), id: \.offset) { index, line in
                         Text("\(index + 1). \(line)").font(.caption)
@@ -157,6 +155,9 @@ private struct SetupStepRow<Actions: View>: View {
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+            if let info = step.info {
+                InfoButton(info: info).accessibilityIdentifier("tracker.info.\(step.id)")
+            }
         }
     }
 
@@ -179,6 +180,93 @@ private struct SetupStepRow<Actions: View>: View {
     }
 }
 
+/// The info button of a row: `info.circle`, opening a popover with the
+/// explanation and, where there is one, the snippet and its Copy button.
+private struct InfoButton: View {
+    var info: TrackerSetupInfo
+    @State private var shown = false
+
+    var body: some View {
+        Button {
+            shown.toggle()
+        } label: {
+            Label("About \(info.title)", systemImage: "info.circle").labelStyle(.iconOnly)
+        }
+        .buttonStyle(.borderless)
+        .help("About \(info.title)")
+        .popover(isPresented: $shown, arrowEdge: .trailing) {
+            InfoPopover(info: info)
+        }
+    }
+}
+
+/// The popover's content: title, paragraphs, snippet.
+private struct InfoPopover: View {
+    var info: TrackerSetupInfo
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Design.Spacing.medium) {
+            Text(info.title).font(.headline)
+            ForEach(Array(info.paragraphs.enumerated()), id: \.offset) { _, paragraph in
+                Text(paragraph).fixedSize(horizontal: false, vertical: true)
+            }
+            if let snippet = info.snippet {
+                ScrollView(.horizontal) {
+                    Text(snippet)
+                        .font(.caption.monospaced())
+                        .textSelection(.enabled)
+                        .fixedSize()
+                        .padding(Design.Spacing.small)
+                }
+                .background(.quaternary, in: .rect(cornerRadius: Design.Radius.small))
+                HStack {
+                    Spacer()
+                    CopyButton(title: "Copy", text: snippet)
+                }
+            }
+        }
+        .padding(Design.Spacing.large)
+        .frame(width: 400)
+    }
+}
+
+/// A button that copies `text` and says so for two seconds, at the width of
+/// its longer title so nothing beside it moves (spec_design.md §7.1).
+private struct CopyButton: View {
+    var title: String
+    var text: String
+    /// Text-only beside other text buttons; with the symbols in the popover.
+    var showsIcon = true
+    @State private var copied = false
+
+    var body: some View {
+        Button {
+            Pasteboard.copy(text)
+            copied = true
+            Task {
+                try? await Task.sleep(for: .seconds(2))
+                copied = false
+            }
+        } label: {
+            if showsIcon {
+                labels.labelStyle(.titleAndIcon)
+            } else {
+                labels.labelStyle(.titleOnly)
+            }
+        }
+        .accessibilityValue(copied ? "Copied" : "")
+    }
+
+    /// Both titles, hidden, under the visible one: the button keeps its width.
+    private var labels: some View {
+        ZStack {
+            Label(title, systemImage: "doc.on.doc").hidden()
+            Label("Copied", systemImage: "checkmark").hidden()
+            Label(copied ? "Copied" : title, systemImage: copied ? "checkmark" : "doc.on.doc")
+        }
+    }
+}
+
 /// An error under a control: the warning symbol and the message in red.
 struct SettingsError: View {
     var text: String
@@ -190,159 +278,107 @@ struct SettingsError: View {
     }
 }
 
-/// The nine exclusion lists with + and −.
-private struct ExclusionsSection: View {
+/// The settings file and the activity logs: where they are, and buttons to
+/// open them. Everything the tracker can be told lives in the file.
+private struct FilesSection: View {
     @Environment(AppModel.self) private var app
-    @State private var drafts: [ExclusionList: String] = [:]
+
+    private var model: TrackerSettingsModel {
+        app.trackerSettings
+    }
 
     var body: some View {
-        let model = app.trackerSettings
         Section {
-            ForEach(ExclusionList.allCases) { list in
-                DisclosureGroup {
-                    ForEach(model.entries(list), id: \.self) { value in
-                        entryRow(value, in: list)
-                    }
-                    addRow(list)
-                } label: {
-                    LabeledContent(list.title) {
-                        Text(model.entries(list).isEmpty ? "None" : "\(model.entries(list).count)").monospacedDigit()
-                    }
-                }
-            }
-            if let list = model.offerReapply {
-                LabeledContent("Saved to \(list.title).") {
-                    Button("Also Remove from Past Logs…") { Task { await model.reapplyExclusions() } }
-                        .accessibilityIdentifier("tracker.reapplyOffer")
-                }
-            }
+            settingsFileRow
+            logsRow
         } header: {
-            Text("Exclusions")
+            Text("Files")
         } footer: {
-            Text("Applied before anything is written, on this Mac and on iPhone and iPad.")
-        }
-    }
-
-    private func entryRow(_ value: String, in list: ExclusionList) -> some View {
-        LabeledContent(value) {
-            Button {
-                app.trackerSettings.remove(value, from: list)
-            } label: {
-                Label("Remove", systemImage: "minus.circle").labelStyle(.iconOnly)
-            }
-            .buttonStyle(.borderless)
-            .help("Remove")
-        }
-    }
-
-    private func addRow(_ list: ExclusionList) -> some View {
-        let prompt = switch list.input {
-        case .app: "Bundle identifier"
-        case .folder: "~/Path"
-        case .text: "Entry"
-        }
-        let draft = Binding { drafts[list] ?? "" } set: { drafts[list] = $0 }
-        return HStack {
-            TextField(prompt, text: draft)
-                .labelsHidden()
-                .onSubmit { add(to: list) }
-            Button {
-                add(to: list)
-            } label: {
-                Label("Add", systemImage: "plus.circle").labelStyle(.iconOnly)
-            }
-            .buttonStyle(.borderless)
-            .help("Add")
-            .disabled((drafts[list] ?? "").trimmed.isEmpty)
-        }
-    }
-
-    private func add(to list: ExclusionList) {
-        app.trackerSettings.add(drafts[list] ?? "", to: list)
-        drafts[list] = nil
-    }
-}
-
-/// Watched folders, Idle after, synced Safari history, files.
-private struct OptionsSection: View {
-    @Environment(AppModel.self) private var app
-
-    var body: some View {
-        @Bindable var model = app.trackerSettings
-        Section {
-            LabeledContent("Watched folders") {
-                Text(model.roots.joined(separator: ", ")).foregroundStyle(.secondary)
-            }
-            StepperRow(
-                title: "Idle after",
-                value: Self.duration(model.idleAfterSeconds),
-                amount: $model.idleAfterSeconds,
-                range: 30 ... 3600,
-                step: 30
+            Text(
+                "Exclusions, watched folders, the idle threshold, and site categories are set in the settings file, "
+                    + "each with a comment that explains it. The tracker applies a change from its next sample."
             )
-            Toggle("Use Safari history synced from other devices", isOn: $model.useSyncedSafariHistory)
-            LabeledContent("Settings file") {
-                HStack(spacing: Design.Spacing.small) {
-                    Button("Edit…") { SystemSettings.open(model.settingsURL) }
-                    Button("Show Logs in Finder") { SystemSettings.reveal(model.settingsURL?.deletingLastPathComponent()) }
-                }
-            }
-        } header: {
-            Text("Options")
-        } footer: {
-            Text("Idle after affects activity blocks only; the idle prompt has its own threshold in the Idle pane.")
         }
     }
 
-    /// "5 min", "5 min 30 s".
-    static func duration(_ seconds: Int) -> String {
-        seconds.isMultiple(of: 60) ? "\(seconds / 60) min" : "\(seconds / 60) min \(seconds % 60) s"
-    }
-}
-
-/// Forget a Day… and Reapply Exclusions….
-private struct MaintenanceSection: View {
-    @Environment(AppModel.self) private var app
-    @State private var confirmForget = false
-
-    var body: some View {
-        @Bindable var model = app.trackerSettings
-        Section {
-            LabeledContent("Forget a day") {
-                HStack(spacing: Design.Spacing.small) {
-                    DatePicker("Day", selection: $model.forgetDay, displayedComponents: .date)
-                        .labelsHidden()
-                    Button("Forget…") { confirmForget = true }
+    private var settingsFileRow: some View {
+        VStack(alignment: .leading, spacing: Design.Spacing.tight) {
+            Text("Settings file")
+            path(TrackerSettingsModel.displayPath(model.settingsURL))
+            HStack(spacing: Design.Spacing.small) {
+                Button("Open in Editor") {
+                    if model.ensureFile() {
+                        SystemSettings.openInEditor(model.settingsURL)
+                    }
                 }
+                .accessibilityIdentifier("tracker.settingsFile.open")
+                Button("Show in Finder") {
+                    if model.ensureFile() {
+                        SystemSettings.reveal(model.settingsURL)
+                    }
+                }
+                .accessibilityIdentifier("tracker.settingsFile.finder")
             }
-            LabeledContent("Reapply exclusions") {
-                HStack(spacing: Design.Spacing.small) {
-                    DatePicker("From", selection: $model.reapplyFrom, displayedComponents: .date)
-                        .labelsHidden()
-                    Text("to")
-                    DatePicker("To", selection: $model.reapplyTo, displayedComponents: .date)
-                        .labelsHidden()
-                    Button("Reapply…") { Task { await model.reapplyExclusions() } }
-                }
+            .controlSize(.small)
+            .padding(.top, Design.Spacing.tight)
+            .disabled(model.settingsURL == nil)
+            if let added = model.lastAdded {
+                Label("Added \(added.value) to \(added.list.key).", systemImage: "checkmark")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .accessibilityIdentifier("tracker.settingsFile.added")
             }
             if let message = model.message {
                 SettingsError(text: message)
             }
-        } header: {
-            Text("Maintenance")
-        } footer: {
-            Text("Both change the activity logs on this Mac and in iCloud Drive.")
         }
-        .alert("Forget this day?", isPresented: $confirmForget) {
-            Button("Forget", role: .destructive) { Task { await model.forget() } }
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text("Every block of the day is removed from the logs.")
+    }
+
+    private var logsRow: some View {
+        HStack(alignment: .firstTextBaseline, spacing: Design.Spacing.small) {
+            VStack(alignment: .leading, spacing: Design.Spacing.tight) {
+                Text("Activity logs")
+                path(TrackerSettingsModel.displayPath(model.logsURL))
+                Button("Show in Finder") { SystemSettings.reveal(model.logsURL) }
+                    .controlSize(.small)
+                    .padding(.top, Design.Spacing.tight)
+                    .disabled(model.logsURL.map { !FileManager.default.fileExists(atPath: $0.path) } ?? true)
+                    .accessibilityIdentifier("tracker.logs.finder")
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            InfoButton(info: logsInfo).accessibilityIdentifier("tracker.info.logs")
         }
+    }
+
+    private func path(_ text: String) -> some View {
+        Text(text)
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .lineLimit(1)
+            .truncationMode(.middle)
+            .textSelection(.enabled)
+    }
+
+    /// The maintenance commands, with today's date in the examples.
+    private var logsInfo: TrackerSetupInfo {
+        let today = TrackingCalendar(timeZone: .current).day(containing: app.clock.now).description
+        let januaryFirst = String(today.prefix(4)) + "-01-01"
+        return TrackerSetupInfo(
+            title: "Activity logs",
+            paragraphs: [
+                "The tracker writes your activity to one file per month in this folder in iCloud Drive, where iPhone "
+                    + "and iPad read it.",
+                "To remove a day from the logs, or to apply the current exclusions to activity already recorded, "
+                    + "run these commands in Terminal with your dates. Both rewrite the logs here and in iCloud Drive, "
+                    + "and cannot be undone.",
+            ],
+            snippet: "tracker-event forget-day \(today)\ntracker-event reapply-exclusions \(januaryFirst) \(today)"
+        )
     }
 }
 
-/// The unsaved exclusion from the Activity section, focused (spec_planner_activity.md §4).
+/// The exclusion drafted in the Activity section, focused, until it is
+/// added to the settings file or cancelled (spec_planner_activity.md §4).
 private struct PendingExclusionSection: View {
     @Environment(AppModel.self) private var app
     @FocusState private var focused: Bool
@@ -350,9 +386,9 @@ private struct PendingExclusionSection: View {
     var body: some View {
         @Bindable var model = app.trackerSettings
         if let pending = model.pendingExclusion {
-            Section("New Exclusion") {
-                LabeledContent(pending.list.title) {
-                    TextField(pending.list.title, text: Binding {
+            Section {
+                LabeledContent(pending.list.entryName) {
+                    TextField(pending.list.entryName, text: Binding {
                         model.pendingExclusion?.value ?? ""
                     } set: { value in
                         model.pendingExclusion?.value = value
@@ -361,13 +397,21 @@ private struct PendingExclusionSection: View {
                     .focused($focused)
                     .accessibilityIdentifier("tracker.pendingExclusion")
                 }
+                if let message = model.message {
+                    SettingsError(text: message)
+                }
                 HStack {
                     Spacer()
                     Button("Cancel") { model.pendingExclusion = nil }
-                    Button("Add") { model.addPendingExclusion() }
+                    Button("Add to Settings File") { model.addPendingExclusion() }
                         .disabled(pending.value.trimmed.isEmpty)
                         .keyboardShortcut(.defaultAction)
+                        .accessibilityIdentifier("tracker.pendingExclusion.add")
                 }
+            } header: {
+                Text("Exclude from Tracking")
+            } footer: {
+                Text("Adds the entry to \(pending.list.key) in the settings file, which keeps everything else as it is.")
             }
             .onAppear { focused = true }
         }

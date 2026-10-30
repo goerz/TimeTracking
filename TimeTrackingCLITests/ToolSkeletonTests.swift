@@ -11,10 +11,10 @@ struct ToolSkeletonTests {
         // The first launch pays for loading the binary. Process launch time
         // varies with load, so the bound must hold for the fastest of five
         // runs; a tool that waits or retries misses it on every run.
-        _ = try ToolProcess.run("tracker-event", ["tmux", "pane-focus-in"], environment: environment)
+        _ = try ToolProcess.run("tracker-event", ["tmux", "client-focus-in"], environment: environment)
         var durations: [Duration] = []
         for _ in 0 ..< 5 {
-            let result = try ToolProcess.run("tracker-event", ["tmux", "pane-focus-in"], environment: environment)
+            let result = try ToolProcess.run("tracker-event", ["tmux", "client-focus-in"], environment: environment)
             #expect(result.status != 0)
             #expect(result.standardError.contains("not running"))
             durations.append(result.duration)

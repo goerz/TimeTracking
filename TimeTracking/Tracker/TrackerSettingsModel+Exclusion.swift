@@ -1,5 +1,6 @@
 // The Activity section's "Exclude <name> from tracking…" draft in the
-// Tracker pane (spec_planner_activity.md §4).
+// Tracker pane, and the exclusion lists of settings.toml
+// (spec_planner_activity.md §4, spec_activity_tracking.md §7.2).
 
 import Foundation
 import TimeTrackingCore
@@ -13,6 +14,7 @@ struct PendingExclusion: Equatable {
 extension TrackerSettingsModel {
     /// Prepares the draft; nothing is saved until the user adds it.
     func prepare(_ draft: TrackerExclusionDraft) {
+        lastAdded = nil
         switch draft {
         case let .app(bundleIdentifier):
             pendingExclusion = PendingExclusion(list: .excludeApps, value: bundleIdentifier ?? "")
@@ -22,13 +24,21 @@ extension TrackerSettingsModel {
             pendingExclusion = PendingExclusion(list: .excludeDomains, value: domain)
         }
     }
+}
 
-    /// The draft's Add button: adds it to its list (the pane's Save writes the file).
-    func addPendingExclusion() {
-        guard let pending = pendingExclusion, !pending.value.trimmed.isEmpty else {
-            return
+extension TrackerPrivacySettings {
+    /// The entries of one exclusion list.
+    func list(_ list: ExclusionList) -> [String] {
+        switch list {
+        case .excludePaths: excludePaths
+        case .excludeKeywords: excludeKeywords
+        case .excludeTmuxSessions: excludeTmuxSessions
+        case .privateAgentPaths: privateAgentPaths
+        case .nameOnlyApps: nameOnlyApps
+        case .excludeApps: excludeApps
+        case .privateDomains: privateDomains
+        case .excludeDomains: excludeDomains
+        case .excludeTitleKeywords: excludeTitleKeywords
         }
-        add(pending.value, to: pending.list)
-        pendingExclusion = nil
     }
 }

@@ -76,7 +76,7 @@ final class AppModel {
         self.idle = IdleModel(store: store, clock: clock, notifier: notifier, settings: settings)
         self.reminders = ReminderModel(store: store, clock: clock, notifier: notifier, settings: settings)
         self.tracker = TrackerStatusModel(agent: agent, loginItem: loginItem, clock: clock, readState: readTrackerState)
-        self.trackerSettings = TrackerSettingsModel(settingsURL: trackerSettingsURL, commands: trackerCommands, clock: clock)
+        self.trackerSettings = TrackerSettingsModel(settingsURL: trackerSettingsURL)
         self.planner = PlannerRouter(
             store: store,
             clock: clock,
@@ -118,7 +118,6 @@ final class AppModel {
         lastRunningID = timer.running?.id
         await list.reload()
         await tracker.refresh()
-        trackerSettings.load()
         guard observing else {
             return
         }
