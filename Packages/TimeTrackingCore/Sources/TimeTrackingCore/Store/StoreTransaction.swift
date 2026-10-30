@@ -121,7 +121,7 @@ public final class StoreTransaction {
     func runningEntries() throws -> [TimeEntry] {
         try Row.fetchAll(
             database,
-            sql: "SELECT * FROM time_entry WHERE deleted_at IS NULL AND \"end\" IS NULL ORDER BY start, id"
+            sql: "SELECT * FROM time_entry INDEXED BY time_entry_running WHERE deleted_at IS NULL AND \"end\" IS NULL ORDER BY start, id"
         ).map(TimeEntry.init(row:))
     }
 

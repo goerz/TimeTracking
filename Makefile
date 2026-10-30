@@ -184,7 +184,8 @@ ui-test: secrets ## (8 min) Mac UI tests, iOS UI tests on both simulators
 	$(XCB) test -scheme TimeTrackingiOS $(IPHONE_DEST) $(IPAD_DEST) -only-testing:TimeTrackingiOSUITests $(SIGN)
 
 test: unit-test ## (15 min) unit-test, slow library tests, TimeTrackingiOSTests on the iPhone simulator, ui-test
-	TIMETRACKING_TEST_SLOW=1 swift test --package-path Packages/TimeTrackingCore --filter PerformanceTests
+	@# Timing targets hold for optimized builds, one test at a time (spec_data_and_sync.md §7.5).
+	TIMETRACKING_TEST_SLOW=1 swift test --package-path Packages/TimeTrackingCore -c release -Xswiftc -enable-testing --no-parallel --filter PerformanceTests
 	@$(MAKE) --no-print-directory sim-create
 	$(XCB) test -scheme TimeTrackingiOS $(IPHONE_DEST) -only-testing:TimeTrackingiOSTests $(SIGN)
 	@$(MAKE) --no-print-directory ui-test

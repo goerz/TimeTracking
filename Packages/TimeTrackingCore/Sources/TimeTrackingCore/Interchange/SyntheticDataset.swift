@@ -56,12 +56,16 @@ public struct SyntheticDataset: Sendable {
         Self(clients: 3, areas: 6, projects: 15, days: ending(days: 30))
     }
 
-    /// 8 clients, 25 areas, 90 projects, three years, about 20,000 entries.
+    /// 8 clients, 25 areas, 90 projects, three years, about 7,000 entries.
     public static var medium: Self {
         Self(clients: 8, areas: 25, projects: 90, days: ending(days: 3 * 365))
     }
 
-    /// 10 clients, 40 areas, 120 projects, ten years, about 300,000 entries.
+    /// 10 clients, 40 areas, 120 projects, ten years, about 24,000 entries.
+    ///
+    /// §9.1 also says 300,000 entries, which the day rules above cannot give
+    /// (one person's decade is about 24,000); the day rules win, and the
+    /// §7.5 import target applies as a rate (StorePerformanceTests).
     public static func large(seed: UInt64 = 1) -> Self {
         Self(clients: 10, areas: 40, projects: 120, days: ending(days: 10 * 365), seed: seed)
     }

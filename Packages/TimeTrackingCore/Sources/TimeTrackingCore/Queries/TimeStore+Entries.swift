@@ -6,9 +6,12 @@ import GRDB
 extension TimeStore: TimeStoreReading {
     public func runningEntry() throws -> TimeEntry? {
         try read { database in
+            // The partial index holds only running entries; left alone, the
+            // planner walks the start index for the ORDER BY (§7.5: under 1 ms).
             try Row.fetchOne(
                 database,
-                sql: "SELECT * FROM time_entry WHERE deleted_at IS NULL AND \"end\" IS NULL ORDER BY start DESC, id DESC LIMIT 1"
+                sql: "SELECT * FROM time_entry INDEXED BY time_entry_running WHERE deleted_at IS NULL AND \"end\" IS NULL "
+                    + "ORDER BY start DESC, id DESC LIMIT 1"
             ).map(TimeEntry.init(row:))
         }
     }
