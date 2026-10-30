@@ -213,6 +213,11 @@
 			path = Shared;
 			sourceTree = "<group>";
 		};
+		BDAC01558DEB4F72B6AA189F /* WidgetShared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = WidgetShared;
+			sourceTree = "<group>";
+		};
 		251F061EDB52E64DC0B73519 /* TimeTrackingUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = TimeTrackingUITests;
@@ -440,6 +445,7 @@
 				94E352497C6EB672F4FB8F28 /* TimeTrackingiOS */,
 				5D92A407ABD714D9B1B49855 /* TimeTrackingWidgets */,
 				13DD0A804213BFD3B98E0422 /* TimeTrackingIntents */,
+				BDAC01558DEB4F72B6AA189F /* WidgetShared */,
 				AEF513FC787D47B547A09F7B /* TimeTrackingMonitor */,
 				C62AF442BA9D4A5213C31CA6 /* TimeTrackingWebExtension */,
 				12BD6AC29B8C15CC75031DE6 /* TimeTrackingTests */,
@@ -501,6 +507,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				5D92A407ABD714D9B1B49855 /* TimeTrackingWidgets */,
+				BDAC01558DEB4F72B6AA189F /* WidgetShared */,
 			);
 			name = TimeTrackingWidgets;
 			packageProductDependencies = (
@@ -591,6 +598,7 @@
 				FCDC7422CFE204C45E848B22 /* Resources */,
 				011B2E29E7602265D963D2F8 /* Embed Foundation Extensions */,
 				6CEBB1007C51EA288DD3404B /* Embed ExtensionKit Extensions */,
+				26513B7384EE4D919A62DB93 /* Copy store fixtures */,
 			);
 			buildRules = (
 			);
@@ -603,6 +611,7 @@
 			fileSystemSynchronizedGroups = (
 				94E352497C6EB672F4FB8F28 /* TimeTrackingiOS */,
 				19AA90C05D5E51C61B554CC6 /* Shared */,
+				BDAC01558DEB4F72B6AA189F /* WidgetShared */,
 			);
 			name = TimeTrackingiOS;
 			packageProductDependencies = (
@@ -1088,6 +1097,30 @@
 			shellScript = "exec \"$SRCROOT/scripts/lint_phase.sh\" swiftlint\n";
 		};
 		A7C3F1E2B4D5968778695A4B /* Copy store fixtures */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/scripts/fixtures_phase.sh",
+				"$(SRCROOT)/Fixtures/Store/empty.json",
+				"$(SRCROOT)/Fixtures/Store/small.json",
+				"$(SRCROOT)/Fixtures/Store/running.json",
+				"$(SRCROOT)/Fixtures/Store/large.json",
+			);
+			name = "Copy store fixtures";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/Fixtures/Store/small.json",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "exec \"$SRCROOT/scripts/fixtures_phase.sh\"\n";
+		};
+		26513B7384EE4D919A62DB93 /* Copy store fixtures */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (

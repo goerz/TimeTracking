@@ -30,9 +30,11 @@ struct ProjectPickerView: View {
                 }
             }
         }
+        #if os(macOS)
         .frame(width: 340)
         .frame(maxHeight: 440)
         .fixedSize(horizontal: false, vertical: true)
+        #endif
         .task { await model.reload() }
         .accessibilityIdentifier("picker")
     }

@@ -38,7 +38,7 @@ enum TimerAlert: Equatable, Identifiable {
 final class TimerModel {
     @ObservationIgnored let store: TimeStore
     @ObservationIgnored let clock: any Clock
-    @ObservationIgnored let notifier: NotificationPosting
+    @ObservationIgnored let notifier: NotificationAuthorizing
     @ObservationIgnored weak var undoManager: UndoManager?
     /// Called after an entry starts or stops through this model.
     @ObservationIgnored var onChange: (() async -> Void)?
@@ -71,7 +71,7 @@ final class TimerModel {
     var alert: TimerAlert?
     private(set) var lastError: String?
 
-    init(store: TimeStore, clock: any Clock, notifier: NotificationPosting) {
+    init(store: TimeStore, clock: any Clock, notifier: NotificationAuthorizing) {
         self.store = store
         self.clock = clock
         self.notifier = notifier

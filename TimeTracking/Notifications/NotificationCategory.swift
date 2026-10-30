@@ -74,7 +74,7 @@ struct NotificationRequest: Equatable, Sendable {
 /// Posts and removes notifications; `UNUserNotificationCenter` in the app,
 /// a recorder in tests.
 @MainActor
-protocol NotificationPosting: AnyObject {
+protocol NotificationPosting: NotificationAuthorizing {
     /// Requests authorization once (at the first start of an entry).
     func requestAuthorization()
     func post(_ request: NotificationRequest)
