@@ -43,6 +43,9 @@ disabled_rules:
   - discouraged_default_parameter     # default arguments are idiomatic Swift
   - optional_data_string_conversion   # String(decoding:as:) repairs invalid UTF-8, which output capture wants
   - trailing_closure                  # Swift Testing's #expect(throws:) reads better with labels
+  - function_default_parameter_at_end # memberwise initializers keep the field order of the spec tables
+  - variable_shadowing                # `let name = name.trimmed` and parameters named like properties are idiomatic
+  - switch_case_on_newline            # one-line cases in switch expressions (SwiftFormat keeps them)
 
 number_separator:
   minimum_length: 5
