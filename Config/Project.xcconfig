@@ -80,6 +80,18 @@ TT_EXECUTABLE_NAME_TimeTrackingAgent = TimeTrackingAgent
 EXECUTABLE_NAME = $(EXECUTABLE_PREFIX)$(TT_EXECUTABLE_NAME_$(TARGET_NAME):default=$(PRODUCT_NAME))$(EXECUTABLE_SUFFIX)
 PRODUCT_MODULE_NAME = $(TARGET_NAME:c99extidentifier)
 
+// App icon (AppResources/AppIcon.icon) and accent color (an AccentColor
+// asset in AppResources, and a copy in TimeTrackingWidgets), spec_design.md §6, §9.
+TT_APPICON_TimeTracking = AppIcon
+TT_APPICON_TimeTrackingAgent = AppIcon
+TT_APPICON_TimeTrackingiOS = AppIcon
+ASSETCATALOG_COMPILER_APPICON_NAME = $(TT_APPICON_$(TARGET_NAME))
+TT_ACCENT_TimeTracking = AccentColor
+TT_ACCENT_TimeTrackingAgent = AccentColor
+TT_ACCENT_TimeTrackingiOS = AccentColor
+TT_ACCENT_TimeTrackingWidgets = AccentColor
+ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = $(TT_ACCENT_$(TARGET_NAME))
+
 // Shipping products (everything except test bundles): entitlements file,
 // Info.plist file, and MainActor default isolation.
 TT_PRODUCT_TimeTracking = YES

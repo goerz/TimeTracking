@@ -12,6 +12,7 @@ One Xcode project (`TimeTracking.xcodeproj`, hand-authored, file-system-synchron
 | `TimeTracking/` | Mac app: scenes, Timer window, Planner, status item, settings, agent registration, global shortcuts, AppKit glue in `Platform/`, URL handler, `LiveStatePublisher` and `WidgetPushSender` |
 | `TimeTrackingiOS/` | iOS app: scenes, Timer tab, iPad tabs, background refresh and silent pushes, widget push token upload, URL handler |
 | `Shared/` | Views compiled into both apps; platform differences are `#if os(macOS)` around a modifier |
+| `AppResources/` | The app icon (`AppIcon.icon`) and the `AccentColor` asset, in the Mac app, the agent, and the iOS app (`spec_design.md` §9) |
 | `TimeTrackingAgent/` | The tracker login item (`LSUIElement`; flags `--record`, `--replay`, `--unregister`) |
 | `TrackerEvent/` | `tracker-event`: one line to the agent's socket; links only Foundation |
 | `TimeTrackingCLI/` | `timetracking`: argument parsing and output only; never touches CloudKit |

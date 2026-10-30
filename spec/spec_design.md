@@ -141,7 +141,21 @@ A sidebar shows its symbols in the accent color (the system sidebar style); no m
 
 ## 9. App icon and identity
 
-One icon for the Mac and iOS apps, made in Icon Composer (`.icon`, layered for the system's light, dark, and tinted appearances). Its dominant hue is the app's accent color. The widgets and the menu bar use SF Symbols, not the icon.
+One icon, `AppResources/AppIcon.icon` (Icon Composer), for the Mac app, the tracker agent (it appears in Login Items and System Settings), and the iOS app. The `AppResources` folder belongs to those three targets; `ASSETCATALOG_COMPILER_APPICON_NAME` is set for them in `Project.xcconfig`. The widgets and the menu bar use SF Symbols, not the icon.
+
+The icon is a ring of five flat arcs on a near-black navy squircle: time filling up with project colors, a white knob at the open end as the running entry. The geometry is exact on the 1024 pt grid:
+
+| Element | Value |
+|---|---|
+| Background | Vertical gradient `#141E40` to `#0A1028` (dark appearance `#10141D` to `#07090E`) |
+| Ring | Center (512, 512), centerline radius 300, width 96 (radii 252 to 348) |
+| Track | Full ring, white at 7% opacity |
+| Arcs | Butt caps, 4° gaps; boundaries at 0, 72, 128, 196, 248, 300° clockwise from 12 o'clock; `#4FA8FF`, `#5EE0B5`, `#FFD15C`, `#FF9F59`, `#F2706A` |
+| Knob | White circle, diameter 128, on the centerline at 298° |
+
+Layers are flat: no glass, specular highlight, shadow, or translucency. The system derives the tinted and clear appearances.
+
+The accent color is `#2F7FE0` (dark appearance `#6FB2FF`), the blue of the first arc deepened for contrast on white. It lives in `AppResources/Assets.xcassets` (`AccentColor`, set as `ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME`), with a copy in `TimeTrackingWidgets/Assets.xcassets`.
 
 ## 10. Verification
 

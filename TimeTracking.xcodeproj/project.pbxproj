@@ -295,6 +295,11 @@
 			path = Fixtures/Agent;
 			sourceTree = "<group>";
 		};
+		A0A1C0DE00000000000000A1 /* AppResources */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = AppResources;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -446,6 +451,7 @@
 				BD13AA3ACFF3D0C2ED6E4720 /* Config */,
 				5087E0EC0D586B105C51F34B /* TimeTracking */,
 				19AA90C05D5E51C61B554CC6 /* Shared */,
+				A0A1C0DE00000000000000A1 /* AppResources */,
 				8661ECAEF201E5737367ACB7 /* TimeTrackingAgent */,
 				C55017EF20C81BA9B2FA35B5 /* TimeTrackingCLI */,
 				A6A1F2167B8A77286C311110 /* TrackerEvent */,
@@ -539,6 +545,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				8661ECAEF201E5737367ACB7 /* TimeTrackingAgent */,
+				A0A1C0DE00000000000000A1 /* AppResources */,
 			);
 			name = TimeTrackingAgent;
 			packageProductDependencies = (
@@ -618,6 +625,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				94E352497C6EB672F4FB8F28 /* TimeTrackingiOS */,
+				A0A1C0DE00000000000000A1 /* AppResources */,
 				19AA90C05D5E51C61B554CC6 /* Shared */,
 				BDAC01558DEB4F72B6AA189F /* WidgetShared */,
 				C0115EC7ED0A1B2C3D4E5F60 /* CollectionShared */,
@@ -791,6 +799,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				5087E0EC0D586B105C51F34B /* TimeTracking */,
+				A0A1C0DE00000000000000A1 /* AppResources */,
 				19AA90C05D5E51C61B554CC6 /* Shared */,
 			);
 			name = TimeTracking;

@@ -54,6 +54,7 @@ User interface targets hold views, view state, and platform glue only. A view mo
 | `TimeTracking/` | Scenes, Timer window, Planner, status item, settings window (with the Tracker pane), agent registration (1.4), global shortcuts, AppKit glue (4.2), URL handler, and the live-update side: it runs `LiveStatePublisher` and `WidgetPushSender` |
 | `TimeTrackingiOS/` | Scenes, Timer tab, iPad tabs, background refresh and silent-push handlers, widget push token upload, URL handler |
 | `Shared/` | Views compiled into both apps (picker, project dialog, entry row and editor, task field, color swatch, Pomodoro ring, report chart and tree, calendar columns); platform differences are `#if os(macOS)` around a modifier |
+| `AppResources/` | The app icon (`AppIcon.icon`) and the `AccentColor` asset, in the Mac app, the agent, and the iOS app (`spec_design.md` §9) |
 | `TimeTrackingAgent/` | The tracker (`spec_activity_tracking.md`); links the library and GRDB; `LSUIElement`; flags `--record <folder>`, `--replay <file>`, `--unregister` |
 | `TrackerEvent/` | Connects to the agent's socket, writes one line, exits; links only Foundation |
 | `TimeTrackingCLI/` | Argument parsing and output formatting; everything else through the library; never touches CloudKit |
