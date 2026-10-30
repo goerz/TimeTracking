@@ -414,10 +414,12 @@ extension CalendarModel {
         undoManager.setActionName(String(name.dropFirst("Undo ".count)))
     }
 
-    /// Reloads after a write and tells the Timer.
+    /// Reloads after a write, tells the Timer, and lets the suggestions
+    /// index follow (at most every five minutes).
     func changed() async {
         await reload()
         await entriesChanged()
+        await engine.entriesChanged(titles: trainingTitles())
     }
 }
 

@@ -24,6 +24,7 @@ final class FillDayModel {
     var rows: [FillDayRow]
     /// Rows removed with Skip (recorded as `skipped`).
     private(set) var removed: [FillDayProposal] = []
+
     init(store: TimeStore, day: TrackingDay, proposals: [FillDayProposal]) {
         self.store = store
         self.day = day

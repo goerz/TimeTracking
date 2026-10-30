@@ -142,6 +142,8 @@ final class CalendarModel {
     private(set) var lastError: String?
 
     @ObservationIgnored var pendingUndo: Task<Void, Never>?
+    /// The suggestions index was loaded (from the cache or rebuilt) once.
+    @ObservationIgnored var engineLoaded = false
 
     init(
         store: TimeStore,
@@ -226,6 +228,10 @@ final class CalendarModel {
             let loaded = try await activity.blocks(in: interval, devices: nil)
             blocks = isRecordingMac ? loaded : loaded.filter { !$0.isOpen }
             await loadEvents(around: interval)
+            if !engineLoaded {
+                engineLoaded = true
+                await engine.load(titles: trainingTitles())
+            }
             summary = CalendarSummary(
                 days: days,
                 calendar: calendar,

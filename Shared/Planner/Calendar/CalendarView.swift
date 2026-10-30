@@ -111,10 +111,14 @@ struct CalendarView: View {
         }
     }
 
-    /// Follows the block log.
+    /// Follows the block log; a changed month file also updates the
+    /// suggestions index (throttled like entry changes).
     private func followActivity() async {
-        for await _ in model.activity.changes {
+        for await change in model.activity.changes {
             await model.reload()
+            if case .blocks = change {
+                await model.engine.entriesChanged(titles: model.trainingTitles())
+            }
         }
     }
 
