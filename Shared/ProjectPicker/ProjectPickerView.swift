@@ -14,10 +14,20 @@ struct ProjectPickerView: View {
 
     @FocusState private var searchFocused: Bool
 
+    #if os(macOS)
+        /// Vertical row padding: standard menu rows on the Mac.
+        private static let rowPadding: CGFloat = 5
+    #else
+        /// Vertical row padding: 44 pt touch targets on iOS.
+        private static let rowPadding: CGFloat = 11
+    #endif
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             if showsSearchField {
-                searchField.padding(10)
+                searchField
+                    .padding(.horizontal, Design.Spacing.small + 2)
+                    .padding(.vertical, Design.Spacing.small + 2)
             }
             ScrollViewReader { proxy in
                 ScrollView {
@@ -40,33 +50,40 @@ struct ProjectPickerView: View {
     }
 
     private var searchField: some View {
-        TextField(model.placeholder, text: $model.search)
-            .textFieldStyle(.roundedBorder)
-            .focused($searchFocused)
-            .accessibilityIdentifier("picker.search")
-            .onAppear { searchFocused = true }
-            .onChange(of: model.search) {
-                Task { await model.reload() }
+        HStack(spacing: Design.Spacing.tight + 2) {
+            Image(systemName: "magnifyingglass").foregroundStyle(.secondary).accessibilityHidden(true)
+            TextField(model.placeholder, text: $model.search)
+                .textFieldStyle(.plain)
+                .autocorrectionDisabled()
+                .focused($searchFocused)
+                .accessibilityIdentifier("picker.search")
+        }
+        .padding(.horizontal, Design.Spacing.small)
+        .padding(.vertical, searchPadding)
+        .background(RoundedRectangle(cornerRadius: searchRadius).fill(.fill.tertiary))
+        .onAppear { searchFocused = true }
+        .onChange(of: model.search) {
+            Task { await model.reload() }
+        }
+        .onKeyPress(.upArrow) {
+            model.moveHighlight(by: -1)
+            return .handled
+        }
+        .onKeyPress(.downArrow) {
+            model.moveHighlight(by: 1)
+            return .handled
+        }
+        .onKeyPress(.escape) {
+            onCancel()
+            return .handled
+        }
+        .onKeyPress(keys: [.return]) { press in
+            let choice = press.modifiers.contains(.command) ? model.createFromSearch() : model.chooseHighlighted()
+            if let choice {
+                onChoose(choice)
             }
-            .onKeyPress(.upArrow) {
-                model.moveHighlight(by: -1)
-                return .handled
-            }
-            .onKeyPress(.downArrow) {
-                model.moveHighlight(by: 1)
-                return .handled
-            }
-            .onKeyPress(.escape) {
-                onCancel()
-                return .handled
-            }
-            .onKeyPress(keys: [.return]) { press in
-                let choice = press.modifiers.contains(.command) ? model.createFromSearch() : model.chooseHighlighted()
-                if let choice {
-                    onChoose(choice)
-                }
-                return .handled
-            }
+            return .handled
+        }
     }
 
     @ViewBuilder private var rows: some View {
@@ -106,7 +123,7 @@ struct ProjectPickerView: View {
                 .foregroundStyle(Color.accentColor)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 12)
-                .padding(.vertical, 5)
+                .padding(.vertical, Self.rowPadding)
                 .background(highlightBackground(.create(name)))
         }
         .buttonStyle(.plain)
@@ -143,7 +160,7 @@ struct ProjectPickerView: View {
             }
             .foregroundStyle(highlighted ? AnyShapeStyle(.white) : AnyShapeStyle(.primary))
             .padding(.horizontal, 12)
-            .padding(.vertical, 5)
+            .padding(.vertical, Self.rowPadding)
             .background(highlightBackground(item))
             .contentShape(Rectangle())
         }
@@ -152,8 +169,26 @@ struct ProjectPickerView: View {
         .accessibilityIdentifier(Self.identifier(for: item))
     }
 
+    #if os(macOS)
+        private var searchPadding: CGFloat {
+            Design.Spacing.tight + 1
+        }
+
+        private var searchRadius: CGFloat {
+            Design.Radius.small
+        }
+    #else
+        private var searchPadding: CGFloat {
+            Design.Spacing.small + 1
+        }
+
+        private var searchRadius: CGFloat {
+            Design.Radius.card
+        }
+    #endif
+
     private func highlightBackground(_ item: ProjectPickerItem) -> some View {
-        RoundedRectangle(cornerRadius: 6)
+        RoundedRectangle(cornerRadius: Design.Radius.small)
             .fill(model.highlight == item ? Color.accentColor : .clear)
             .padding(.horizontal, 6)
     }

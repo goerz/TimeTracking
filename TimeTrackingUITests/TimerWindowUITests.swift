@@ -48,7 +48,7 @@ final class TimerWindowUITests: XCTestCase {
         // Drag the bottom edge up to a 190 pt tall window: it snaps to the bar.
         let height = window.frame.height
         bottom.click(forDuration: 0.2, thenDragTo: bottom.withOffset(CGVector(dx: 0, dy: -(height - 190))))
-        XCTAssertEqual(window.frame.height, 88, accuracy: 2)
+        XCTAssertEqual(window.frame.height, 106, accuracy: 2)
         XCTAssertFalse(app.descendants(matching: .any)["timer.list"].exists)
         // Dragging to 250 pt snaps to 300 pt and shows the list.
         let edge = window.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 1.0)).withOffset(CGVector(dx: 0, dy: -1))
@@ -63,7 +63,7 @@ final class TimerWindowUITests: XCTestCase {
         let window = app.windows.firstMatch
         let full = window.frame
         app.typeKey("m", modifierFlags: [.command, .shift])
-        XCTAssertEqual(window.frame.height, 88, accuracy: 2)
+        XCTAssertEqual(window.frame.height, 106, accuracy: 2)
         XCTAssertEqual(window.frame.minY, full.minY, accuracy: 2)
         app.typeKey("m", modifierFlags: [.command, .shift])
         XCTAssertEqual(window.frame.height, full.height, accuracy: 2)

@@ -9,7 +9,7 @@ import UserNotifications
 
 @MainActor
 struct PomodoroIdleTests {
-    @Test("TW-23 a Pomodoro counts down, then +0:00 at focusEnd with Focus done sent and Start Break shown")
+    @Test("TW-23 the Pomodoro button counts down, then +0:00 at focusEnd with Focus done and Start Break; the label keeps the elapsed time")
     func focusDone() async throws {
         let test = try await TestApp()
         test.app.pomodoro.sleepUntil = { _ in try await Task.sleep(for: .seconds(3600)) }
@@ -27,7 +27,7 @@ struct PomodoroIdleTests {
         #expect(posted.title == "Focus done")
         #expect(posted.body == "25 minutes on Clarify noise model. Time for a break.")
         #expect(posted.sound == .focusEnd)
-        // The elapsed time stays available for the tooltip.
+        // The timer label keeps counting the elapsed time.
         #expect(test.app.timer.timerText(at: test.clock.now) == "0:25:00")
     }
 

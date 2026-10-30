@@ -1,5 +1,5 @@
 // TimerScreen: the iPhone's Timer (spec_ios.md §2.1): a large title, the
-// settings and menu buttons, the running-entry card, the Mac activity line,
+// settings button, the running-entry card, the Mac activity line,
 // the sync pill, and the searchable day-grouped list.
 
 import AppIntents
@@ -27,7 +27,9 @@ struct TimerScreen: View {
                     recentList(includingCard: true)
                 }
             }
-            .searchable(text: Bindable(model.list).filter, prompt: "Filter")
+            // In the drawer under the title, revealed by pulling down: the
+            // filter is occasional, so it does not cover the list.
+            .searchable(text: Bindable(model.list).filter, placement: .navigationBarDrawer, prompt: "Filter")
             .searchFocused($searchFocused)
             .onChange(of: model.list.isFilterVisible) { _, visible in
                 // ⌘F on the iPad's keyboard.
@@ -72,14 +74,16 @@ struct TimerScreen: View {
     @ViewBuilder private var cardSection: some View {
         Section {
             RunningEntryCard(model: model)
-                .listRowInsets(EdgeInsets())
-                .listRowBackground(Color.clear)
-                .listRowSeparator(.hidden)
+        } footer: {
             statusLines
         }
         if !model.settings.siriTipDismissed {
-            SiriTipView(intent: StartTimerIntent(inferProject: true), isVisible: siriTipVisible)
-                .listRowBackground(Color.clear)
+            Section {
+                SiriTipView(intent: StartTimerIntent(inferProject: true), isVisible: siriTipVisible)
+                    // The tip draws its own platter, as wide as the card.
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
+            }
         }
     }
 
@@ -92,6 +96,7 @@ struct TimerScreen: View {
                 RecentListSections(model: model)
             }
             .listStyle(.insetGrouped)
+            .listSectionSpacing(.compact)
             .accessibilityIdentifier("timer.list")
             .onChange(of: model.list.scrollToTopRequest) {
                 // ⌘↑ (spec_ios.md §10.3).
@@ -121,35 +126,37 @@ struct TimerScreen: View {
         Binding(get: { !model.settings.siriTipDismissed }, set: { model.settings.siriTipDismissed = !$0 })
     }
 
-    @ViewBuilder private var statusLines: some View {
-        ForEach(model.macLines, id: \.self) { line in
-            Label(line, systemImage: "desktopcomputer")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .listRowBackground(Color.clear)
-                .contentShape(Rectangle())
-                .accessibilityAddTraits(.isButton)
-                .onTapGesture { model.macActivityTapped() }
-                .accessibilityIdentifier("timer.macActivity")
+    /// The Mac activity lines and the sync pill, under the card.
+    private var statusLines: some View {
+        VStack(alignment: .leading, spacing: Design.Spacing.tight) {
+            ForEach(model.macLines, id: \.self) { line in
+                Label(line, systemImage: "desktopcomputer")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .contentShape(Rectangle())
+                    .accessibilityAddTraits(.isButton)
+                    .onTapGesture { model.macActivityTapped() }
+                    .accessibilityIdentifier("timer.macActivity")
+            }
+            // Nothing while no pill can show (sending shows after 10 s).
+            if model.syncPill(at: .distantFuture) != nil {
+                syncPill
+            }
         }
-        // No empty row while no pill can show (sending shows after 10 s).
-        if model.syncPill(at: .distantFuture) != nil {
-            syncPillRow
-        }
+        .textCase(nil)
     }
 
-    private var syncPillRow: some View {
+    private var syncPill: some View {
         TimelineView(.periodic(from: .now, by: 1)) { _ in
             if let pill = model.syncPill(at: model.clock.now) {
                 Label(pill, systemImage: "icloud.slash")
                     .font(.caption)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 4)
+                    .padding(.horizontal, Design.Spacing.small)
+                    .padding(.vertical, Design.Spacing.tight)
                     .background(Capsule().fill(.quaternary))
                     .accessibilityIdentifier("timer.syncPill")
             }
         }
-        .listRowBackground(Color.clear)
     }
 
     @ViewBuilder private var bannerView: some View {
@@ -175,25 +182,6 @@ struct TimerScreen: View {
                 Label("Settings", systemImage: "gearshape")
             }
             .accessibilityIdentifier("timer.settings")
-        }
-        ToolbarItem(placement: .topBarTrailing) {
-            Menu {
-                Button("Continue Latest", systemImage: "arrow.counterclockwise") {
-                    Task { await model.timer.continueEntry() }
-                }
-                .disabled(model.timer.mostRecentOther == nil)
-                Button("Stop", systemImage: "stop.fill") {
-                    Task { await model.timer.stop() }
-                }
-                .disabled(!model.timer.isRunning)
-                Button("Discard", systemImage: "xmark.circle", role: .destructive) {
-                    Task { await model.timer.requestDiscard(skipAlert: false) }
-                }
-                .disabled(!model.timer.isRunning)
-            } label: {
-                Label("More", systemImage: "ellipsis.circle")
-            }
-            .accessibilityIdentifier("timer.menu")
         }
     }
 

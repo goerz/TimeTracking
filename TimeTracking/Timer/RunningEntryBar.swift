@@ -1,67 +1,87 @@
-// RunningEntryBar: the bar of the Timer window (spec_timer_window.md §2, §5.1).
+// RunningEntryBar: the bar of the Timer window (spec_timer_window.md §2, §5.1;
+// spec_design.md §7, §8).
 
 import SwiftUI
 import TimeTrackingCore
 
-/// Row 1: traffic lights, task field, timer, start or stop, discard.
-/// Row 2: project chip, Pomodoro button, pin.
+/// The title-bar row holds only the traffic lights and the pin. Below it:
+/// Pomodoro button, task field, timer, start or stop, discard; then the
+/// project chip under the task field's text.
 struct RunningEntryBar: View {
     @Environment(AppModel.self) private var app
 
-    /// Room for the traffic lights.
-    static let leadingInset: CGFloat = 76
+    /// The height of the title-bar row (the traffic lights' row).
+    static let titleRowHeight: CGFloat = 32
+    /// The leading inset of the task field's text: window inset, the
+    /// Pomodoro circle, and the spacing after it.
+    static let taskLeading: CGFloat = Design.Spacing.window + Design.CircleDiameter.bar + Design.Spacing.medium
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 10) {
+        VStack(alignment: .leading, spacing: 0) {
+            titleRow
+            HStack(spacing: Design.Spacing.medium) {
+                pomodoroButton
                 TaskFieldView()
                 timerLabel
-                startStopButton
-                if app.timer.isRunning {
-                    discardButton
-                } else {
-                    Color.clear.frame(width: 22, height: 22)
+                HStack(spacing: Design.Spacing.small) {
+                    startStopButton
+                    if app.timer.isRunning {
+                        discardButton
+                    }
                 }
             }
-            HStack(spacing: 10) {
-                ProjectChip()
-                PomodoroControl()
-                Spacer()
-                pinButton
-            }
+            .frame(height: Design.CircleDiameter.bar)
+            .padding(.horizontal, Design.Spacing.window)
+            TimerProjectChip()
+                .padding(.leading, Self.taskLeading)
+                .padding(.trailing, Design.Spacing.window)
+                .padding(.top, Design.Spacing.small)
+            Spacer(minLength: 0)
         }
-        .padding(.leading, Self.leadingInset)
-        .padding(.trailing, 14)
-        .padding(.vertical, 10)
         .frame(height: TimerWindowGeometry.barHeight)
-        .background(.bar)
     }
 
+    /// The traffic lights' row: empty (it drags the window) up to the pin.
+    private var titleRow: some View {
+        HStack {
+            Spacer()
+            pinButton
+        }
+        .padding(.trailing, Design.Spacing.medium)
+        .frame(height: Self.titleRowHeight)
+    }
+
+    private var pomodoroButton: some View {
+        PomodoroButton(
+            state: PomodoroButtonState(
+                pomodoro: app.pomodoro.pomodoro,
+                focusMinutes: app.pomodoro.focusMinutes,
+                breakMinutes: app.pomodoro.breakMinutes,
+                isRunning: app.timer.isRunning
+            ),
+            diameter: Design.CircleDiameter.bar,
+            now: { app.clock.now },
+            perform: { app.perform($0) },
+            openSettings: { app.router?.openSettings(pane: .pomodoro) }
+        )
+    }
+
+    /// The chain's elapsed time; a click edits the running entry.
     private var timerLabel: some View {
         TimelineView(.periodic(from: .now, by: 1)) { context in
-            let now = app.clock.now
-            let elapsed = app.timer.timerText(at: now)
-            let countdown = app.pomodoro.pomodoro.countdownText(at: now)
             Button {
                 app.editEntry()
             } label: {
-                Text(countdown ?? elapsed)
-                    .font(.system(size: 22, weight: .semibold).monospacedDigit())
-                    .foregroundStyle(countdownStyle)
+                Text(app.timer.timerText(at: app.clock.now))
+                    .font(.title3.weight(.medium).monospacedDigit())
+                    .foregroundStyle(app.timer.isRunning ? AnyShapeStyle(.primary) : AnyShapeStyle(.secondary))
             }
             .buttonStyle(.plain)
-            .help(countdown == nil ? "" : elapsed)
+            .help(app.timer.isRunning ? "Edit Running Entry" : "")
             .accessibilityIdentifier("timer.timerLabel")
             .id(context.date)
         }
-    }
-
-    private var countdownStyle: AnyShapeStyle {
-        switch app.pomodoro.state {
-        case .focusOver: AnyShapeStyle(Color.accentColor)
-        case .breakOver: AnyShapeStyle(.secondary)
-        default: AnyShapeStyle(.primary)
-        }
+        .fixedSize()
     }
 
     @ViewBuilder private var startStopButton: some View {
@@ -69,18 +89,18 @@ struct RunningEntryBar: View {
             Button {
                 Task { await app.timer.stop() }
             } label: {
-                Label("Stop", systemImage: "stop.fill").labelStyle(.iconOnly)
+                Label("Stop", systemImage: "stop.fill")
             }
-            .buttonStyle(CircleButtonStyle(color: .stopRed, diameter: 36, halo: true))
+            .buttonStyle(CircleButtonStyle(color: .stopTint, diameter: Design.CircleDiameter.bar))
             .help("Stop")
             .accessibilityIdentifier("timer.stopButton")
         } else {
             Button {
                 Task { await app.timer.start() }
             } label: {
-                Label("Start", systemImage: "play.fill").labelStyle(.iconOnly)
+                Label("Start", systemImage: "play.fill")
             }
-            .buttonStyle(CircleButtonStyle(color: .startGreen, diameter: 36, halo: true))
+            .buttonStyle(CircleButtonStyle(color: .startTint, diameter: Design.CircleDiameter.bar))
             .help("Start")
             .accessibilityIdentifier("timer.startButton")
         }
@@ -91,9 +111,9 @@ struct RunningEntryBar: View {
             let skip = ModifierKeys.optionIsDown
             Task { await app.timer.requestDiscard(skipAlert: skip) }
         } label: {
-            Label("Discard", systemImage: "xmark.circle").labelStyle(.iconOnly).font(.title2).foregroundStyle(.secondary)
+            Label("Discard", systemImage: "xmark")
         }
-        .buttonStyle(.plain)
+        .buttonStyle(CircleButtonStyle.secondary(diameter: Design.CircleDiameter.bar))
         .help("Discard Running Entry")
         .accessibilityIdentifier("timer.discardButton")
     }
@@ -103,7 +123,11 @@ struct RunningEntryBar: View {
         return Button {
             app.setPinned(!pinned)
         } label: {
-            Label("Float on Top", systemImage: pinned ? "pin.fill" : "pin").labelStyle(.iconOnly).foregroundStyle(.secondary)
+            Label("Float on Top", systemImage: pinned ? "pin.fill" : "pin")
+                .labelStyle(.iconOnly)
+                .foregroundStyle(pinned ? AnyShapeStyle(Color.accentColor) : AnyShapeStyle(.secondary))
+                .frame(width: 20, height: 20)
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .help(pinned ? "Unpin" : "Float on Top")
@@ -112,30 +136,15 @@ struct RunningEntryBar: View {
     }
 }
 
-/// The project chip: area dot, project, " · " client, chevron.
-struct ProjectChip: View {
+/// The bar's project chip with the picker popover.
+struct TimerProjectChip: View {
     @Environment(AppModel.self) private var app
 
     var body: some View {
         @Bindable var presentation = app.presentation
-        let label = app.timer.chipLabel
-        Button {
+        ProjectChipButton(label: app.timer.chipLabel) {
             app.openChipPicker()
-        } label: {
-            HStack(spacing: 6) {
-                AreaDot(color: label.color)
-                Text(label.name).lineLimit(1)
-                if let client = label.client {
-                    Text("· \(client)").foregroundStyle(.secondary).lineLimit(1)
-                }
-                Image(systemName: "chevron.down").font(.caption2).foregroundStyle(.secondary).accessibilityHidden(true)
-            }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 4)
-            .background(Capsule().fill(.quaternary))
         }
-        .buttonStyle(.plain)
-        .layoutPriority(1)
         .accessibilityIdentifier("timer.projectChip")
         .popover(item: $presentation.pickerModel, arrowEdge: .bottom) { picker in
             ProjectPickerView(model: picker) { choice in

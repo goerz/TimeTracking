@@ -45,7 +45,9 @@ A 4 pt grid. The `Design` tokens in `Shared/Design/Design.swift` hold the values
 | `Design.Spacing.window` | 20 pt | Content insets in Mac windows |
 | `Design.Spacing.content` | `window` on the Mac, `large` on iOS | Content insets of views shared by both apps (the Planner sections) |
 | `Design.Radius.card` | 12 pt | Cards (Reports, Activity, iOS Timer card) |
-| `Design.Radius.small` | 6 pt | Calendar cards, swatches, tags |
+| `Design.Radius.small` | 6 pt | Calendar cards, swatches, tags, list row highlights |
+| `Design.CircleDiameter.bar` | 32 pt Mac, 44 pt iOS | Start, stop, discard, and Pomodoro buttons of the Timer bar and card |
+| `Design.CircleDiameter.row` | 24 pt Mac, 32 pt iOS | Continue buttons in list rows |
 
 Cards use `.background(.background.secondary, in: .rect(cornerRadius: Design.Radius.card))` on the Mac and the inset-grouped `List`/`Form` look on iOS. No borders and no shadows on cards; separation comes from the fill.
 
@@ -120,13 +122,13 @@ A sidebar shows its symbols in the accent color (the system sidebar style); no m
 |---|---|
 | Start, stop, continue buttons | `CircleButtonStyle`: a filled circle with a white glyph at 40% of the diameter. Timer bar: 32 pt on the Mac, 44 pt on iOS. List rows: 24 pt on the Mac (shown on hover and selection), 32 pt on iOS. No halo. |
 | Discard button | The same circle at the same size in `.quaternary` fill with a `.secondary` `xmark` glyph. |
-| Pomodoro button | A circular button the size of the start button: `timer` glyph in `.secondary` while off; while on, it widens to a capsule of the same height holding a small progress ring in the accent color (break: `.secondary`) and the remaining time in `.subheadline.monospacedDigit()`; a pending confirmation fills the circle with the accent color and shows `play.fill`. Click: off → Start Pomodoro; pending → the confirmation; otherwise the menu. The menu holds every action of `spec_timer_window.md` §5. |
+| Pomodoro button | A circular button the size of the start button: `timer` glyph in `.secondary` while off; while on, it widens to a capsule of the same height holding a small progress ring in the accent color (break: `.secondary`) and the remaining time in `.subheadline.monospacedDigit()`; a pending confirmation turns it into an accent capsule of the same height reading "Start Break" or "Start Focus" after `play.fill`, in white `.subheadline.weight(.semibold)` (a bare play glyph would read as a second start button). Click: off → Start Pomodoro; pending → the confirmation; otherwise the menu. The menu holds every action of `spec_timer_window.md` §5. |
 | Project chip | `.bordered` capsule button, `.small` control size on the Mac: area dot, project, " · client" in `.secondary`, `chevron.up.chevron.down` in `.secondary`. "No project" with a hollow dot. |
 | Area dot | 8 pt circle in the area color; hollow (1 pt `.secondary` stroke) for no project. |
 | Lists | `List` (`.inset` on the Mac, `.insetGrouped` on iOS) with section headers in `.headline`; row padding `Design.Spacing.small` vertically. |
 | Empty states | `ContentUnavailableView` with the section's symbol. |
 | Forms and settings | `Form` with `.formStyle(.grouped)`; labels in sentence case; help text as the section footer. |
-| Dialogs and sheets | Title via `navigationTitle`; Cancel leading and the confirming action trailing (`.confirmationAction`). |
+| Dialogs and sheets | iOS: title via `navigationTitle`; Cancel leading and the confirming action trailing (`.confirmationAction`). Mac sheets (no navigation bar): the title as centered `.headline` text at the top, the grouped form, and Cancel then the confirming action (`.borderedProminent`) at the bottom trailing edge. Shared dialogs use `DialogScaffold`. |
 
 ## 8. Mac windows
 

@@ -14,17 +14,17 @@ struct TimerWindowTests {
         CGRect(x: 100, y: 900 - height, width: width, height: height)
     }
 
-    @Test("TW-1 a drag released at 199 pt snaps to 88, at 200 or 250 pt to 300, width as dragged, top-left fixed")
+    @Test("TW-1 a drag released at 199 pt snaps to 106, at 200 or 250 pt to 300, width as dragged, top-left fixed")
     func snapping() {
         let compact = TimerWindowGeometry.snapped(frame(width: 500, height: 199))
-        #expect(compact.height == 88)
+        #expect(compact.height == 106)
         #expect(compact.width == 500)
         #expect(compact.maxY == 900 && compact.minX == 100)
         #expect(TimerWindowGeometry.snapped(frame(height: 200)).height == 300)
         #expect(TimerWindowGeometry.snapped(frame(height: 250)).height == 300)
-        #expect(TimerWindowGeometry.snapped(frame(height: 88)).height == 88)
+        #expect(TimerWindowGeometry.snapped(frame(height: 106)).height == 106)
         #expect(TimerWindowGeometry.snapped(frame(height: 560)).height == 560)
-        #expect(TimerWindowGeometry.snapped(frame(width: 300, height: 560)).width == 360)
+        #expect(TimerWindowGeometry.snapped(frame(width: 300, height: 560)).width == 400)
         #expect(TimerWindowGeometry.isCompact(height: 199))
         #expect(!TimerWindowGeometry.isCompact(height: 200))
     }
@@ -32,13 +32,13 @@ struct TimerWindowTests {
     @Test("TW-2 ⇧⌘M toggles between the remembered compact and full frames at the current top-left corner")
     func toggling() {
         let full = frame(width: 500, height: 620)
-        let compact = CGRect(x: 0, y: 0, width: 420, height: 88)
+        let compact = CGRect(x: 0, y: 0, width: 420, height: 106)
         let toCompact = TimerWindowGeometry.toggled(full, fullFrame: full, compactFrame: compact)
-        #expect(toCompact == CGRect(x: 100, y: 900 - 88, width: 420, height: 88))
+        #expect(toCompact == CGRect(x: 100, y: 900 - 106, width: 420, height: 106))
         let back = TimerWindowGeometry.toggled(toCompact, fullFrame: full, compactFrame: compact)
         #expect(back == CGRect(x: 100, y: 900 - 620, width: 500, height: 620))
         // Without remembered frames, the defaults.
-        #expect(TimerWindowGeometry.toggled(full, fullFrame: nil, compactFrame: nil).size == CGSize(width: 440, height: 88))
+        #expect(TimerWindowGeometry.toggled(full, fullFrame: nil, compactFrame: nil).size == CGSize(width: 480, height: 106))
     }
 
     @Test("TW-3 the frame at quit is restored unless less than 100 × 44 pt is on a screen; the pin persists")

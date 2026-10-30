@@ -12,7 +12,7 @@ struct TaskFieldView: View {
 
     var body: some View {
         TextField("What are you working on?", text: text)
-            .textFieldStyle(.roundedBorder)
+            .textFieldStyle(.plain)
             .font(.title3)
             .focused($focused)
             .accessibilityIdentifier("timer.taskField")

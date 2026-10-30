@@ -8,6 +8,8 @@ import TimeTrackingCore
 struct ProjectDialogView: View {
     @Bindable var model: ProjectDialogModel
     var preferredArea: AreaID?
+    /// Inside a navigation stack already (iOS: the picker's sheet).
+    var embedded = false
     var onDone: (Project?) -> Void
 
     @Environment(\.undoManager) private var undoManager
@@ -19,19 +21,28 @@ struct ProjectDialogView: View {
     private static let newAreaTag = "new-area"
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text(model.title).font(.headline)
-            Form {
-                TextField("Name:", text: $model.name)
+        DialogScaffold(
+            title: model.title,
+            confirmTitle: model.confirmTitle,
+            canSubmit: model.canSubmit,
+            actions: FormSheetActions(cancel: { onDone(nil) }, submit: { submit() }),
+            confirmIdentifier: "projectDialog.confirm",
+            embedded: embedded
+        ) {
+            Section {
+                TextField("Name", text: $model.name)
                     .focused($nameFocused)
                     .accessibilityIdentifier("projectDialog.name")
                     .onSubmit { submit() }
                     .onChange(of: model.name) {
                         Task { await model.validate() }
                     }
+            } footer: {
                 if let error = model.nameError {
-                    Text(error).font(.caption).foregroundStyle(.red).accessibilityIdentifier("projectDialog.nameError")
+                    Text(error).foregroundStyle(.red).accessibilityIdentifier("projectDialog.nameError")
                 }
+            }
+            Section {
                 clientPicker
                 areaPicker
                 if case .edit = model.mode {
@@ -39,10 +50,7 @@ struct ProjectDialogView: View {
                         .accessibilityIdentifier("projectDialog.archived")
                 }
             }
-            buttons
         }
-        .padding(20)
-        .frame(width: 400)
         .task {
             model.undoManager = model.undoManager ?? undoManager
             await model.load(preferredArea: preferredArea)
@@ -78,7 +86,7 @@ struct ProjectDialogView: View {
     }
 
     private var clientPicker: some View {
-        Picker("Client:", selection: clientSelection) {
+        Picker("Client", selection: clientSelection) {
             ForEach(model.clients) { client in
                 Text(client.name).tag(client.id.rawValue)
             }
@@ -89,7 +97,7 @@ struct ProjectDialogView: View {
     }
 
     private var areaPicker: some View {
-        Picker("Area:", selection: areaSelection) {
+        Picker("Area", selection: areaSelection) {
             ForEach(model.areas) { area in
                 Label {
                     Text(area.isRetired ? "\(area.name) (retired)" : area.name)
@@ -102,19 +110,6 @@ struct ProjectDialogView: View {
             Text("New Area…").tag(Self.newAreaTag)
         }
         .accessibilityIdentifier("projectDialog.area")
-    }
-
-    private var buttons: some View {
-        HStack {
-            Spacer()
-            Button("Cancel", role: .cancel) { onDone(nil) }
-                .keyboardShortcut(.cancelAction)
-            Button(model.confirmTitle) { submit() }
-                .keyboardShortcut(.return, modifiers: .command)
-                .buttonStyle(.borderedProminent)
-                .disabled(!model.canSubmit)
-                .accessibilityIdentifier("projectDialog.confirm")
-        }
     }
 
     private var clientSelection: Binding<String> {

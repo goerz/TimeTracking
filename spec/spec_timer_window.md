@@ -4,18 +4,18 @@ The Timer window is the Mac app's everyday surface: the running entry on top, re
 
 ## 1. Window
 
-One SwiftUI `Window` scene (`timer`, title "Timer") with a hidden title bar: the traffic lights sit in the bar's first row, and the bar's background drags the window.
+One SwiftUI `Window` scene (`timer`, title "Timer") with a hidden title bar. The title-bar row holds only the traffic lights and, at the far right on their center line, the pin button (1.2); the rest of the row is empty and drags the window.
 
 ### 1.1 Full and compact mode
 
 | Quantity | Value |
 |---|---|
-| Bar height (compact window height) | 88 pt |
+| Bar height (compact window height) | 106 pt: the 32 pt title-bar row, the 32 pt control row, 8 pt, the chip, and a 14 pt bottom margin |
 | Threshold | 200 pt: below it compact (bar only), at or above it full (bar and list) |
 | Minimum full height | 300 pt |
-| Minimum width (both modes) | 360 pt |
-| Default full size | 440 × 560 pt |
-| Default compact size | 440 × 88 pt |
+| Minimum width (both modes) | 400 pt |
+| Default full size | 480 × 600 pt |
+| Default compact size | 480 × 106 pt |
 
 The list hides and shows live as a resize crosses the threshold. A drag ending below the threshold animates to the bar height; one ending between the threshold and the minimum full height animates to the minimum full height, keeping the dragged width and the top-left corner.
 
@@ -33,11 +33,11 @@ Launched as a login item, the app shows only the menu bar item unless "Show the 
 
 ## 2. The running-entry bar
 
-Row 1, from left: traffic lights; task field (placeholder "What are you working on?"); timer label (`h:mm:ss`, monospaced digits, `0:00:00` when idle); start button (green circle, white play glyph), which becomes the stop button (red circle, white square) while an entry runs; discard button (`xmark.circle`), only while running. Start, stop, continue, and pause buttons share one style on every platform: a filled circle with a white glyph about 36% of its diameter; large ones carry a soft halo of their color.
+Below the title-bar row, using the full width between the window's 20 pt insets, from left: the Pomodoro button (5.1); the borderless task field (placeholder "What are you working on?", `.title3`), which takes the remaining width; the timer label (`h:mm:ss` in `.title3`, medium weight, monospaced digits; `0:00:00` in the secondary color when idle); the start button, which becomes the stop button while an entry runs; and the discard button, only while running. The buttons are the 32 pt circle buttons of `spec_design.md` §7.
 
-Row 2, from left: project chip (area color dot, project, " · " and client in secondary color, chevron; "No project" with a hollow dot); Pomodoro button (5.1); spacer; pin button.
+Below that row, the project chip (`spec_design.md` §7: area dot, project, " · " and client in secondary color, `chevron.up.chevron.down`; "No project" with a hollow dot), its leading edge aligned with the task field's text.
 
-The timer label counts from the running entry's chain start (the earliest start among the live entries sharing its `splitRootID` root, `spec_data_and_sync.md` 1.5), so it does not reset when the library splits the entry at midnight.
+The timer label always shows the elapsed time, also during a Pomodoro, and counts from the running entry's chain start (the earliest start among the live entries sharing its `splitRootID` root, `spec_data_and_sync.md` 1.5), so it does not reset when the library splits the entry at midnight.
 
 ### 2.1 Start, stop, continue, discard
 
@@ -69,7 +69,7 @@ The picker's "Create Project" row opens the project dialog (`spec_planner_projec
 
 Entries are grouped by day. Headers read "Today", "Yesterday", then "EEE, MMM d" ("Tue, Oct 27"), with the year for other years, and show the day total `h:mm:ss` at the right. The running entry is not a row, but counts toward today's total, which ticks every second. Empty days are omitted. The list loads the 14 most recent days with entries; "Load Earlier Entries" (or scrolling to the end) appends 14 more. Each entry is its own row.
 
-A row shows the task ("No task" in placeholder style), below it the chip's project line, and the duration at the right; hovering shows a continue button; the tooltip shows the range ("9:10 to 9:35").
+A row shows the task ("No task" in placeholder style), below it the project line (area dot, project, " · client" in secondary), and the duration at the right; every row has the same height. The continue button (24 pt circle) shows on hover and on the selected row, in space the row always reserves, so the duration never moves; the tooltip shows the range ("9:10 to 9:35"). Without entries the list shows "No Entries"; a filter without matches shows the system's search empty state.
 
 | Input | Effect |
 |---|---|
@@ -87,7 +87,7 @@ Filter: Edit > Find (⌘F) shows a field above the list; only entries whose task
 
 ## 4. The edit popover
 
-Clicking a row, Return on a selection, ⌘E, or clicking the timer label opens the edit popover; the Planner's Calendar reuses it. Fields, top to bottom: Task, Project, Start and Stop, Duration, Date, the chain lines of 4.3, Delete.
+Clicking a row, Return on a selection, ⌘E, or clicking the timer label opens the edit popover; the Planner's Calendar reuses it. Fields, top to bottom, as rows with trailing-aligned labels: Task, Project (the chip), Start, Stop, Duration, Date; then the chain lines of 4.3 and the notices; then "Delete Entry…".
 
 ### 4.1 Fields
 
@@ -128,9 +128,16 @@ The Pomodoro lays focus and break phases over the running entry and notifies at 
 
 ### 5.1 Controls and display
 
-The Pomodoro button (`timer`) is a menu button. Off, it reads "Pomodoro" and offers "Start Pomodoro (25 min)" (the focus duration; disabled while idle). On, it reads the phase and countdown ("Focus 24:59", "Break 4:30", "Focus +1:20") and offers the actions 5.3 allows and "Cancel Pomodoro". Both menus end with "Pomodoro Settings…".
+The Pomodoro button is the countdown's only place; the timer label keeps the elapsed time. Its look is that of `spec_design.md` §7:
 
-While on, the timer label shows the countdown `m:ss` (`h:mm:ss` from one hour), in overtime `+m:ss` counting up (accent color after focus, secondary after a break); the elapsed time moves to its tooltip. A pending confirmation replaces the Pomodoro button with a prominent default button ("Start Break" or "Start Focus"), so ⌘↩ confirms anywhere in the window.
+| State | Shows | Click | Menu |
+|---|---|---|---|
+| Off, an entry runs | `timer` in a 32 pt circle | Start Pomodoro | Press and hold: "Start Pomodoro (25 min)" (the focus duration) |
+| Off, idle | The same | The menu | "Start Pomodoro (25 min)", disabled |
+| Focus, break | A capsule: progress ring (accent color in focus, secondary on a break) and the countdown `m:ss` (`h:mm:ss` from one hour) | The menu | The phase and countdown ("Focus 24:59", "Break 4:30"), then the actions 5.3 allows and "Cancel Pomodoro" |
+| Focus over, break over | An accent capsule reading "Start Break" or "Start Focus" with `play.fill` | The confirmation; ⌘↩ anywhere in the window | Secondary click: the actions 5.3 allows and "Cancel Pomodoro" |
+
+Every menu ends with "Pomodoro Settings…". The tooltip and the accessibility value name the phase and the countdown, in overtime as `+m:ss` counting up ("Focus +1:20").
 
 ### 5.2 Settings (Settings > Pomodoro)
 
@@ -284,8 +291,8 @@ Clicking a notification shows the Timer window (with the idle prompt for `idle`)
 
 ## 11. Testable behaviors
 
-- TW-1. Height drags snap per §1.1: release at 199 pt gives 88 pt, at 200 pt gives 300 pt, 88 to 250 pt gives 300 pt, with width as dragged and top-left fixed.
-- TW-2. ⇧⌘M toggles between the remembered compact and full frames at the current top-left corner.
+- TW-1. Height drags snap per §1.1: release at 199 pt gives 106 pt, at 200 pt gives 300 pt, 106 to 250 pt gives 300 pt, with width as dragged (at least 400 pt) and top-left fixed.
+- TW-2. ⇧⌘M toggles between the remembered compact and full frames at the current top-left corner; without remembered frames, between 480 × 106 and 480 × 600 pt.
 - TW-3. After relaunch the window has its mode, frame, and pin state from quit; with the pin on it stays above another app's key window.
 - TW-4. ⌥⌘R shows the window with the task field focused, or hides the app when the window is key; Window > Timer Window displays the recorded shortcut and none when cleared.
 - TW-5. Launched as a login item with "Show the Timer window at login" off, the app shows no window; quitting leaves a running entry running.
@@ -306,7 +313,7 @@ Clicking a notification shows the Timer window (with the idle prompt for `idle`)
 - TW-20. Stop 00:35 on an entry starting 23:10 stores two pieces split at midnight and shows "Continues on <next day> until 00:35".
 - TW-21. A task change on one piece of a chain changes every piece; a Start change changes only that piece.
 - TW-22. An overlapping change shows the inline notice; "Keep" stores it, "Revert" restores the field.
-- TW-23. A Pomodoro shows the countdown, then `+0:00` counting up at `focusEnd` with "Focus done" sent and "Start Break" shown; the tooltip keeps the elapsed time.
+- TW-23. A Pomodoro shows the countdown and a filling ring on the Pomodoro button, then `+0:00` counting up at `focusEnd` with "Focus done" sent and "Start Break" shown on the button; the timer label keeps the elapsed time throughout.
 - TW-24. Through a focus, break, and focus cycle the store holds one running entry and no stopped entry.
 - TW-25. Every transition of §5.3 holds, including that pending notifications are removed when the state turns off.
 - TW-26. A focus duration change during focus does not move `focusEnd`; waking after `focusEnd` lands in `focusOver` and notifies at wake.
@@ -325,6 +332,7 @@ Clicking a notification shows the Timer window (with the idle prompt for `idle`)
 - The Pomodoro never changes entries; idle detection handles real absence.
 - The Pomodoro belongs to the person: replacing the entry keeps the phase; only "nothing runs" ends it.
 - The timer label counts the chain, day totals count each day's piece.
+- The Pomodoro countdown lives on its button, so the running entry's elapsed time is never hidden.
 - Task and project edits propagate along a chain; time edits do not.
 - Edits commit per field; there is no Save button.
 - The Timer window only starts entries; past intervals belong in the Calendar.

@@ -16,7 +16,7 @@ struct AreaFormView: View {
             canSubmit: model.canSubmit,
             actions: FormSheetActions(cancel: { onDone(nil) }, submit: submit)
         ) {
-            TextField("Name:", text: $model.name)
+            TextField("Name", text: $model.name)
                 .disabled(!model.nameEditable)
                 .accessibilityIdentifier("areaForm.name")
                 .onSubmit(submit)
@@ -45,7 +45,7 @@ struct AreaColorWell: View {
     @Binding var hex: String
 
     var body: some View {
-        ColorPicker("Color:", selection: color, supportsOpacity: false)
+        ColorPicker("Color", selection: color, supportsOpacity: false)
     }
 
     private var color: Binding<Color> {

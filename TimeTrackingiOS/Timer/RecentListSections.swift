@@ -15,13 +15,18 @@ struct RecentListSections: View {
                     EntryRow(model: model, listing: listing)
                 }
             } header: {
-                HStack {
+                HStack(alignment: .firstTextBaseline) {
                     Text(model.list.title(for: day.day))
                     Spacer()
                     TimelineView(.periodic(from: .now, by: 1)) { _ in
                         Text(DurationText.clock(day.totalSeconds(at: model.clock.now))).monospacedDigit()
                     }
                 }
+                .font(.headline)
+                .foregroundStyle(.primary)
+                .textCase(nil)
+                // The total lines up with the rows' durations.
+                .padding(.trailing, Design.CircleDiameter.row + Design.Spacing.medium)
                 .accessibilityIdentifier("day.\(day.day)")
             }
         }
@@ -39,50 +44,20 @@ struct EntryRow: View {
     @Bindable var model: PhoneModel
     var listing: EntryListing
 
-    private var archived: Bool {
-        listing.project?.isArchived ?? false
-    }
-
-    private var labels: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack(spacing: 6) {
-                Text(listing.entry.task.isEmpty ? "No task" : listing.entry.task)
-                    .foregroundStyle(listing.entry.task.isEmpty ? .secondary : .primary)
-                    .lineLimit(1)
-                if model.badged.contains(listing.id) {
-                    Image(systemName: "exclamationmark.circle.fill")
-                        .foregroundStyle(.orange)
-                        .accessibilityLabel("Adjusted")
-                        .accessibilityIdentifier("row.badge.\(listing.id)")
-                }
-            }
-            HStack(spacing: 6) {
-                AreaDot(color: listing.area?.color)
-                Text(listing.project?.name ?? "No project")
-                    .foregroundStyle(archived || listing.project == nil ? .secondary : .primary)
-                if let client = listing.client?.name {
-                    Text("· \(client)").foregroundStyle(.secondary)
-                }
-            }
-            .font(.subheadline)
-            .lineLimit(1)
-        }
-    }
-
     var body: some View {
-        HStack(spacing: 12) {
-            labels
-            Spacer(minLength: 8)
+        HStack(spacing: Design.Spacing.medium) {
+            EntryRowLabels(listing: listing, badged: model.badged.contains(listing.id))
+            Spacer(minLength: Design.Spacing.small)
             Text(DurationText.clock(listing.entry.seconds(at: model.clock.now))).monospacedDigit()
             Button {
                 Task { await model.timer.continueEntry(listing.id) }
             } label: {
-                Image(systemName: "play.fill")
+                Label("Continue", systemImage: "play.fill")
             }
-            .buttonStyle(CircleButtonStyle(color: .startGreen, diameter: 36))
-            .accessibilityLabel("Continue")
+            .buttonStyle(CircleButtonStyle(color: .startTint, diameter: Design.CircleDiameter.row))
             .accessibilityIdentifier("row.continue.\(listing.id)")
         }
+        .padding(.vertical, Design.Spacing.tight)
         .contentShape(Rectangle())
         .onTapGesture { model.openEditor(listing.id) }
         .accessibilityAddTraits(.isButton)
@@ -92,7 +67,7 @@ struct EntryRow: View {
             Button("Continue", systemImage: "play.fill") {
                 Task { await model.timer.continueEntry(listing.id) }
             }
-            .tint(.startGreen)
+            .tint(.startTint)
         }
         .swipeActions(edge: .trailing) {
             Button("Delete", systemImage: "trash", role: .destructive) {

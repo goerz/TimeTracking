@@ -28,8 +28,23 @@ enum Design {
     enum Radius {
         /// Cards: Reports, Activity, the iOS Timer card.
         static let card: CGFloat = 12
-        /// Calendar cards, swatches, tags.
+        /// Calendar cards, swatches, tags, list row highlights.
         static let small: CGFloat = 6
+    }
+
+    /// Circle button diameters (spec_design.md §7).
+    enum CircleDiameter {
+        #if os(macOS)
+            /// Start, stop, discard, and Pomodoro in the Timer window's bar.
+            static let bar: CGFloat = 32
+            /// Continue in list rows, shown on hover and selection.
+            static let row: CGFloat = 24
+        #else
+            /// Start, stop, discard, and Pomodoro on the Timer card.
+            static let bar: CGFloat = 44
+            /// Continue in list rows.
+            static let row: CGFloat = 32
+        #endif
     }
 }
 

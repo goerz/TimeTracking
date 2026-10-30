@@ -44,10 +44,11 @@ struct TimerListView: View {
     /// ⌘F's filter field; Escape clears and hides it.
     private var filterField: some View {
         @Bindable var list = app.list
-        return TextField("Filter", text: $list.filter)
+        return TextField("Filter", text: $list.filter, prompt: Text("Filter by task, project, or client"))
             .textFieldStyle(.roundedBorder)
             .focused($filterFocused)
-            .padding(8)
+            .padding(.horizontal, Design.Spacing.window)
+            .padding(.vertical, Design.Spacing.small)
             .accessibilityIdentifier("timer.filterField")
             .onAppear { filterFocused = true }
             .onChange(of: list.filter) { Task { await app.list.reload() } }
@@ -70,13 +71,14 @@ struct TimerListView: View {
                             Task { await app.list.loadMore() }
                         }
                         .buttonStyle(.link)
-                        .padding(16)
+                        .padding(Design.Spacing.large)
                         .accessibilityIdentifier("timer.loadMore")
                     }
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
+                .padding(.horizontal, Design.Spacing.medium)
+                .padding(.bottom, Design.Spacing.medium)
             }
+            .overlay { emptyState }
             .onChange(of: app.list.scrollToTopRequest) {
                 proxy.scrollTo("top", anchor: .top)
             }
@@ -84,6 +86,21 @@ struct TimerListView: View {
                 if let selection {
                     proxy.scrollTo(selection)
                 }
+            }
+        }
+    }
+
+    /// No entries yet, or none matching the filter.
+    @ViewBuilder private var emptyState: some View {
+        if app.list.days.isEmpty {
+            if app.list.filter.isEmpty {
+                ContentUnavailableView(
+                    "No Entries",
+                    systemImage: "stopwatch",
+                    description: Text("Entries you track appear here by day.")
+                )
+            } else {
+                ContentUnavailableView.search(text: app.list.filter)
             }
         }
     }
@@ -95,28 +112,30 @@ private struct DaySection: View {
     var day: TimerListDay
 
     var body: some View {
-        HStack {
-            Text(app.list.title(for: day.day)).font(.headline)
+        HStack(alignment: .firstTextBaseline) {
+            Text(app.list.title(for: day.day))
             Spacer()
             TimelineView(.periodic(from: .now, by: 1)) { _ in
                 Text(DurationText.clock(day.totalSeconds(at: app.clock.now)))
-                    .font(.headline.monospacedDigit())
+                    .monospacedDigit()
                     .accessibilityIdentifier("timer.dayTotal.\(day.day)")
             }
         }
-        .padding(.top, 14)
-        .padding(.bottom, 4)
+        .font(.headline)
+        .padding(.leading, Design.Spacing.small)
+        // The trailing edge lines up with the rows' durations.
+        .padding(.trailing, Design.CircleDiameter.row + 2 * Design.Spacing.small)
+        .padding(.top, Design.Spacing.large)
+        .padding(.bottom, Design.Spacing.tight)
         .accessibilityIdentifier("timer.day.\(day.day)")
         ForEach(day.rows) { listing in
             EntryRowView(listing: listing)
-            if listing.id != day.rows.last?.id {
-                Divider()
-            }
         }
     }
 }
 
-/// A row: task, project line, duration, and the continue button on hover.
+/// A row: task, project line, duration, and the continue button on hover
+/// and selection.
 struct EntryRowView: View {
     @Environment(AppModel.self) private var app
     var listing: EntryListing
@@ -125,38 +144,28 @@ struct EntryRowView: View {
 
     var body: some View {
         let entry = listing.entry
-        let label = ProjectLabel(listing)
         let selected = app.list.selection == entry.id
-        HStack(spacing: 10) {
-            VStack(alignment: .leading, spacing: 3) {
-                Text(entry.task.isEmpty ? "No task" : entry.task)
-                    .foregroundStyle(entry.task.isEmpty ? AnyShapeStyle(.tertiary) : AnyShapeStyle(.primary))
-                    .lineLimit(1)
-                HStack(spacing: 6) {
-                    AreaDot(color: label.color)
-                    Text(label.name).lineLimit(1)
-                    if let client = label.client {
-                        Text("· \(client)").foregroundStyle(.secondary).lineLimit(1)
-                    }
-                }
-                .font(.callout)
-            }
-            Spacer()
+        HStack(spacing: Design.Spacing.small) {
+            EntryRowLabels(listing: listing)
+            Spacer(minLength: Design.Spacing.small)
             Text(DurationText.clock(entry.seconds(at: app.clock.now))).monospacedDigit()
-            if hovering {
-                Button {
-                    Task { await app.timer.continueEntry(entry.id) }
-                } label: {
-                    Label("Continue", systemImage: "play.fill").labelStyle(.iconOnly)
+            ZStack {
+                if hovering || selected {
+                    Button {
+                        Task { await app.timer.continueEntry(entry.id) }
+                    } label: {
+                        Label("Continue", systemImage: "play.fill")
+                    }
+                    .buttonStyle(CircleButtonStyle(color: .startTint, diameter: Design.CircleDiameter.row))
+                    .help("Continue")
+                    .accessibilityIdentifier("timer.row.continue")
                 }
-                .buttonStyle(CircleButtonStyle(color: .startGreen, diameter: 26))
-                .help("Continue")
-                .accessibilityIdentifier("timer.row.continue")
             }
+            .frame(width: Design.CircleDiameter.row)
         }
-        .padding(.vertical, 8)
-        .padding(.horizontal, 8)
-        .background(RoundedRectangle(cornerRadius: 8).fill(selected || hovering ? AnyShapeStyle(.quaternary) : AnyShapeStyle(.clear)))
+        .padding(.vertical, Design.Spacing.small)
+        .padding(.horizontal, Design.Spacing.small)
+        .background(RoundedRectangle(cornerRadius: Design.Radius.small).fill(rowFill(selected: selected)))
         .contentShape(Rectangle())
         .onHover { hovering = $0 }
         .help(Self.range(entry))
@@ -187,6 +196,16 @@ struct EntryRowView: View {
             if editing == entry.id {
                 editor = makeEditor()
             }
+        }
+    }
+
+    private func rowFill(selected: Bool) -> AnyShapeStyle {
+        if selected {
+            AnyShapeStyle(.fill.secondary)
+        } else if hovering {
+            AnyShapeStyle(.fill.quaternary)
+        } else {
+            AnyShapeStyle(.clear)
         }
     }
 

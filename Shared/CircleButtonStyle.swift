@@ -1,27 +1,43 @@
-// CircleButtonStyle: start, stop, continue, and pause buttons
-// (spec_timer_window.md §2).
+// CircleButtonStyle: start, stop, continue, and discard buttons
+// (spec_design.md §7).
 
 import SwiftUI
 
-/// A filled circle with a white glyph about 36% of its diameter; large ones
-/// carry a soft halo of their color.
+/// A filled circle with a glyph at 40% of its diameter: white on a color
+/// (start, stop, continue), or secondary on a quaternary fill (discard).
 struct CircleButtonStyle: ButtonStyle {
-    var color: Color
+    var fill: AnyShapeStyle
+    var glyph: AnyShapeStyle
     var diameter: CGFloat
-    var halo = false
+
+    /// A white glyph on `color`.
+    init(color: Color, diameter: CGFloat) {
+        self.fill = AnyShapeStyle(color)
+        self.glyph = AnyShapeStyle(.white)
+        self.diameter = diameter
+    }
+
+    /// The secondary circle of the discard button.
+    static func secondary(diameter: CGFloat) -> Self {
+        var style = Self(color: .clear, diameter: diameter)
+        style.fill = AnyShapeStyle(.quaternary)
+        style.glyph = AnyShapeStyle(.secondary)
+        return style
+    }
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.system(size: diameter * 0.36, weight: .bold))
-            .foregroundStyle(.white)
+            .labelStyle(.iconOnly)
+            .font(.system(size: diameter * 0.4, weight: .semibold))
+            .foregroundStyle(glyph)
             .frame(width: diameter, height: diameter)
-            .background(Circle().fill(color.opacity(configuration.isPressed ? 0.8 : 1)))
-            .background(Circle().fill(color.opacity(halo ? 0.25 : 0)).padding(-4))
+            .background(Circle().fill(fill).opacity(configuration.isPressed ? 0.75 : 1))
             .contentShape(Circle())
     }
 }
 
 extension Color {
+    // Kept until every surface uses `startTint` and `stopTint`.
     static let startGreen = Color(red: 0.30, green: 0.69, blue: 0.43)
     static let stopRed = Color(red: 0.87, green: 0.42, blue: 0.36)
 }

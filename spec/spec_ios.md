@@ -26,17 +26,23 @@ Entry writes go through the app process. Interactive widget and control buttons 
 
 ### 2.1 Layout
 
-A navigation bar with the large title "Timer", a settings button (`gearshape`), and a menu button (`ellipsis.circle`) with Continue Latest, Stop, and Discard. Below it, one scrolling list with the running-entry card pinned at the top, the Mac activity line (2.3), and the day-grouped recent list (2.6). The list is `searchable`: its filter matches and sums as the Timer window's ⌘F filter ([spec_timer_window.md](spec_timer_window.md) §3). The iPhone has no tab bar, no calendar view, and no manual mode.
+A navigation bar with the large title "Timer" and a settings button (`gearshape`). Below it, one inset-grouped list: the running-entry card as the first section, the Mac activity line (2.3) and the sync pill as its footer, the Siri tip until dismissed, and the day-grouped recent list (2.6). The list is `searchable` with the search field in the navigation bar's drawer (revealed by pulling down; ⌘F on a hardware keyboard focuses it): its filter matches and sums as the Timer window's ⌘F filter ([spec_timer_window.md](spec_timer_window.md) §3). Stop and Discard are on the card, Continue on every row. The iPhone has no tab bar, no calendar view, and no manual mode.
 
 ### 2.2 The running-entry card
 
-The card is the Timer window's running-entry bar ([spec_timer_window.md](spec_timer_window.md) §2) in rows: task field, project chip, Pomodoro button, time, Start or Stop button, and, while running, the Discard button (`xmark.circle`).
+The card is the Timer window's running-entry bar ([spec_timer_window.md](spec_timer_window.md) §2) in pocket form, with the 44 pt circle buttons of `spec_design.md` §7, in three rows:
+
+1. The Pomodoro button (2.8) and the borderless task field (`.title2`, placeholder "What are you working on?").
+2. The project chip.
+3. The time (`.title2`, medium weight, monospaced digits), then at the trailing edge the Discard button while running and the Start or Stop button.
+
+The chip and the time line up with the task field's text.
 
 | State | Time shown | Actions |
 |---|---|---|
 | Nothing running | `0:00:00`, green Start button | Start (button, or Return in the task field) starts an entry with the field's task and the chip's project |
 | Running | Elapsed time `h:mm:ss` since the midnight chain's start, as the Timer window's label; red Stop button | Stop, and Discard with the Timer window's confirmation text; Stop keeps the task and project as the draft; Discard is undoable (shake or three-finger undo) until the next change |
-| Running with a Pomodoro | The phase countdown (2.8) | As above |
+| Running with a Pomodoro | The elapsed time as above; the countdown is on the Pomodoro button (2.8) | As above |
 
 Starting while another entry runs, from any surface, stops the running entry at the new start (`start(projectID:task:at:)`). The task field's commit timing, autocompletion, and `@` trigger are those of [spec_timer_window.md](spec_timer_window.md) §2.2; the suggestions appear as a list above the keyboard.
 
@@ -54,7 +60,7 @@ Continuing an entry whose project is archived shows the Timer window's alert ("R
 
 ### 2.6 The recent list
 
-Grouping, headers, day totals (today's live with the running entry), the 14-day paging, and the row content are those of [spec_timer_window.md](spec_timer_window.md) §3. The running entry is not a row. Each row has a play button at the trailing edge.
+Grouping, headers, day totals (today's live with the running entry), the 14-day paging, and the row content are those of [spec_timer_window.md](spec_timer_window.md) §3. Section headers use `.headline` in the primary color, without uppercasing. The running entry is not a row. Each row has a 32 pt continue button at the trailing edge.
 
 | Gesture | Action |
 |---|---|
@@ -71,7 +77,7 @@ The future, overlap, and midnight-chain rules and their messages are those of [s
 
 ### 2.8 Pomodoro
 
-States, transitions, the Pomodoro button's menu and labels, and the countdown display are those of [spec_timer_window.md](spec_timer_window.md) §5, with the synced `pomodoro.focusMinutes` and `pomodoro.breakMinutes` and the device setting `pomodoro.sounds`. The Pomodoro is device-local: one started on the Mac is invisible on the phone, and the reverse. As on the Mac, Start Pomodoro is disabled while nothing runs. A pending confirmation turns the Pomodoro button into "Start Break" or "Start Focus".
+States, transitions, and the Pomodoro button (its look, countdown, ring, menu, and confirmation) are those of [spec_timer_window.md](spec_timer_window.md) §5, with the synced `pomodoro.focusMinutes` and `pomodoro.breakMinutes` and the device setting `pomodoro.sounds`; a tap acts as the Mac's click and a long press opens the menu where the Mac presses and holds. The card's time keeps the elapsed time. The Pomodoro is device-local: one started on the Mac is invisible on the phone, and the reverse. As on the Mac, Start Pomodoro is disabled while nothing runs. A pending confirmation turns the Pomodoro button into "Start Break" or "Start Focus".
 
 What iOS adds:
 

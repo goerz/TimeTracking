@@ -32,8 +32,8 @@ struct TimerWindowView: View {
             }
             .overlay(alignment: .topLeading) {
                 TaskFieldPopup()
-                    .padding(.leading, RunningEntryBar.leadingInset)
-                    .offset(y: TimerWindowGeometry.barHeight - 6)
+                    .padding(.leading, RunningEntryBar.taskLeading - Design.Spacing.medium)
+                    .offset(y: RunningEntryBar.titleRowHeight + Design.CircleDiameter.bar + Design.Spacing.tight)
                     .zIndex(2)
             }
         }
@@ -134,12 +134,20 @@ struct IdlePromptView: View {
     @Environment(AppModel.self) private var app
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("You have been away").font(.headline)
-            TimelineView(.periodic(from: .now, by: 30)) { _ in
-                Text(app.idle.sinceText(at: app.clock.now)).accessibilityIdentifier("idle.since")
+        VStack(alignment: .leading, spacing: Design.Spacing.window) {
+            HStack(alignment: .top, spacing: Design.Spacing.large) {
+                Image(systemName: "moon.zzz")
+                    .font(.largeTitle)
+                    .foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: Design.Spacing.tight) {
+                    Text("You have been away").font(.headline)
+                    TimelineView(.periodic(from: .now, by: 30)) { _ in
+                        Text(app.idle.sinceText(at: app.clock.now)).accessibilityIdentifier("idle.since")
+                    }
+                    Text(app.idle.prompt?.runningText ?? "").foregroundStyle(.secondary).lineLimit(2)
+                }
             }
-            Text(app.idle.prompt?.runningText ?? "").foregroundStyle(.secondary)
             HStack {
                 button(.split, key: "s", modifiers: .command)
                 button(.discardAndContinue, key: "d", modifiers: [.command, .shift])
@@ -150,8 +158,8 @@ struct IdlePromptView: View {
                     .accessibilityIdentifier("idle.keep")
             }
         }
-        .padding(20)
-        .frame(width: 460)
+        .padding(Design.Spacing.window)
+        .frame(width: 480)
         .onKeyPress(.escape) {
             resolve(.keep)
             return .handled

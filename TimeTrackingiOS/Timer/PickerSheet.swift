@@ -24,7 +24,7 @@ struct PickerSheet: View {
             }
             .navigationDestination(isPresented: dialogShown) {
                 if let dialog = model.dialogModel {
-                    ProjectDialogView(model: dialog, preferredArea: nil) { project in
+                    ProjectDialogView(model: dialog, preferredArea: nil, embedded: true) { project in
                         Task { await model.dialogFinished(project) }
                     }
                     .navigationBarBackButtonHidden()

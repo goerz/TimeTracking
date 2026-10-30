@@ -15,7 +15,7 @@ struct ClientFormView: View {
             canSubmit: model.canSubmit,
             actions: FormSheetActions(cancel: { onDone(nil, nil) }, submit: submit)
         ) {
-            TextField("Name:", text: $model.name)
+            TextField("Name", text: $model.name)
                 .accessibilityIdentifier("clientForm.name")
                 .onSubmit(submit)
                 .onChange(of: model.name) { Task { await model.validate() } }
@@ -37,13 +37,7 @@ struct ClientFormView: View {
     }
 }
 
-/// Cancel and the confirm button's actions.
-struct FormSheetActions {
-    var cancel: () -> Void
-    var submit: () -> Void
-}
-
-/// Title, fields, Cancel and the confirm button.
+/// A small dialog: title, fields, Cancel and the confirm button.
 struct FormSheet<Fields: View>: View {
     var title: String
     var confirmTitle: String
@@ -52,21 +46,8 @@ struct FormSheet<Fields: View>: View {
     @ViewBuilder var fields: Fields
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(title).font(.headline)
-            Form {
-                fields
-            }
-            HStack {
-                Spacer()
-                Button("Cancel", role: .cancel, action: actions.cancel).keyboardShortcut(.cancelAction)
-                Button(confirmTitle, action: actions.submit)
-                    .keyboardShortcut(.defaultAction)
-                    .disabled(!canSubmit)
-                    .accessibilityIdentifier("form.confirm")
-            }
+        DialogScaffold(title: title, confirmTitle: confirmTitle, canSubmit: canSubmit, actions: actions, width: 360) {
+            fields
         }
-        .padding(20)
-        .frame(width: 340)
     }
 }

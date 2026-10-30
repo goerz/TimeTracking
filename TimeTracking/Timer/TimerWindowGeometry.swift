@@ -7,12 +7,12 @@ import CoreGraphics
 /// coordinates (origin bottom-left), so "keeping the top-left corner" keeps
 /// `maxY`.
 enum TimerWindowGeometry {
-    static let barHeight: CGFloat = 88
+    static let barHeight: CGFloat = 106
     static let threshold: CGFloat = 200
     static let minimumFullHeight: CGFloat = 300
-    static let minimumWidth: CGFloat = 360
-    static let defaultFullSize = CGSize(width: 440, height: 560)
-    static let defaultCompactSize = CGSize(width: 440, height: 88)
+    static let minimumWidth: CGFloat = 400
+    static let defaultFullSize = CGSize(width: 480, height: 600)
+    static let defaultCompactSize = CGSize(width: 480, height: 106)
     /// A restored frame needs this much on some screen.
     static let minimumVisible = CGSize(width: 100, height: 44)
 

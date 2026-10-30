@@ -170,8 +170,23 @@ public struct Pomodoro: Hashable, Sendable, Codable {
         return interval >= 0 ? Int(interval.rounded(.up)) : -Int((-interval).rounded(.down))
     }
 
-    /// The timer label while on: `m:ss` (`h:mm:ss` from an hour) counting
-    /// down, `+m:ss` counting up in overtime.
+    /// The fraction of the phase that has passed, 0 to 1, or `nil` when off.
+    /// The phase length is the current duration setting (in seconds), at
+    /// least the time remaining, so a setting changed mid-phase never
+    /// shows a negative fraction.
+    public func progress(at now: Date, focus: TimeInterval, break breakDuration: TimeInterval) -> Double? {
+        guard let remaining = remaining(at: now) else {
+            return nil
+        }
+        if state.isPendingConfirmation || remaining <= 0 {
+            return 1
+        }
+        let length = max(state.isFocusPhase ? focus : breakDuration, TimeInterval(remaining), 1)
+        return min(max(1 - TimeInterval(remaining) / length, 0), 1)
+    }
+
+    /// The Pomodoro button's countdown while on: `m:ss` (`h:mm:ss` from an
+    /// hour) counting down, `+m:ss` counting up in overtime.
     public func countdownText(at now: Date) -> String? {
         guard let remaining = remaining(at: now) else {
             return nil
@@ -182,7 +197,8 @@ public struct Pomodoro: Hashable, Sendable, Codable {
         return DurationText.countdown(remaining)
     }
 
-    /// The Pomodoro button's title: "Pomodoro", "Focus 24:59", "Break 4:30", "Focus +1:20".
+    /// The Pomodoro button's accessibility label and tooltip: "Pomodoro",
+    /// "Focus 24:59", "Break 4:30", "Focus +1:20".
     public func buttonTitle(at now: Date) -> String {
         guard let text = countdownText(at: now) else {
             return "Pomodoro"

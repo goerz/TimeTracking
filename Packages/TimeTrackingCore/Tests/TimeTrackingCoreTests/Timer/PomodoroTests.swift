@@ -29,6 +29,21 @@ struct PomodoroTests {
         #expect(long.countdownText(at: start) == "1:30:00")
     }
 
+    @Test("TW-23 the Pomodoro button's ring fills with the phase and stays full in overtime")
+    func progressRing() {
+        var pomodoro = Pomodoro()
+        #expect(pomodoro.progress(at: start, focus: focus, break: pause) == nil)
+        pomodoro.perform(.start, at: start, focus: focus, break: pause, isRunning: true)
+        #expect(pomodoro.progress(at: start, focus: focus, break: pause) == 0)
+        #expect(pomodoro.progress(at: start + focus / 2, focus: focus, break: pause) == 0.5)
+        // A focus setting shortened mid-phase never gives a negative fraction.
+        #expect(pomodoro.progress(at: start + 60, focus: 10 * 60, break: pause) == 0)
+        pomodoro.advance(to: start + focus + 30)
+        #expect(pomodoro.progress(at: start + focus + 30, focus: focus, break: pause) == 1)
+        pomodoro.perform(.startBreak, at: start + focus + 30, focus: focus, break: pause, isRunning: true)
+        #expect(abs((pomodoro.progress(at: start + focus + 30 + 60, focus: focus, break: pause) ?? 0) - 0.2) < 1e-9)
+    }
+
     @Test("TW-25 every transition of the state machine holds; turning off removes pending notifications")
     func transitions() {
         var pomodoro = Pomodoro()

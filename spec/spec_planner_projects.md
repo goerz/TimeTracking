@@ -126,7 +126,7 @@ Two live projects of one client with the same name (created offline on two devic
 
 ## 3. The project dialog
 
-One dialog serves creation (from Projects or the picker's "Create Project" row) and editing, as a sheet on the invoking window (on iOS also a page pushed inside the picker's sheet). Edit mode is titled "Edit Project", its button reads "Save", and it adds an "Archived" check box.
+One dialog serves creation (from Projects or the picker's "Create Project" row) and editing, as a sheet on the invoking window (on iOS also a page pushed inside the picker's sheet). It is a grouped form in the dialog layout of `spec_design.md` §7: the title ("New Project"), a Name section, then Client, Area, and in edit mode Archived. Edit mode is titled "Edit Project", its button reads "Save", and it adds an "Archived" switch.
 
 ### 3.1 Fields
 
@@ -135,7 +135,7 @@ One dialog serves creation (from Projects or the picker's "Create Project" row) 
 | Name | Text field, focused | Required, trimmed, unique among the client's projects (any state), case- and diacritic-insensitively |
 | Client | Popup: clients alphabetically, separator, "New Client…" | Required. "New Client…" opens the client sheet (4.2) and selects the new client and its general area |
 | Area | Popup: the client's non-retired areas in order with swatches, general area first, separator, "New Area…" | Required. Resets to the general area when the client changes. "New Area…" opens the area sheet (4.3) and selects the new area. In edit mode a retired current area is listed as "(retired)" |
-| Archived | Check box, edit mode | As Archive and Restore (2.5), including the retired-area confirmation |
+| Archived | Switch, edit mode | As Archive and Restore (2.5), including the retired-area confirmation |
 
 Create (or Save) is disabled until Name is valid; a duplicate shows "A project with this name already exists for Consulting" under the field. ↩ confirms from the Name field, ⌘↩ from anywhere, Escape cancels. A client or area created through a sub-sheet persists if the dialog is canceled.
 
@@ -192,7 +192,7 @@ Display forms, derived from the stored value by `AreaColor`, the same in light a
 
 | Use | Derivation |
 |---|---|
-| Dot | 10 pt solid circle (table, picker, Timer list, Reports) |
+| Dot | 8 pt solid circle (table, picker, Timer list, chips, Reports); "No project" is a hollow circle with a 1 pt secondary stroke |
 | Swatch | 16 pt solid rounded square (Clients & Areas, popups, sheets) |
 | Background for text | The color at 22% opacity (light) or 30% (dark), 4 pt solid leading bar, primary label text (Calendar cards, report rows) |
 | Text on the solid color | Black or white, whichever has the higher WCAG contrast ratio |
@@ -204,7 +204,7 @@ Every place that assigns a project to an entry or a time block uses this picker 
 
 Contents, top to bottom:
 
-1. Search field, placeholder "Search projects".
+1. Search field with a `magnifyingglass` glyph on a filled rounded background, placeholder "Search projects".
 2. "No Project", with an empty circle (hidden while searching).
 3. With an empty search, "Recent": the five active projects with the most recent entry starts (running entry included, via `recentProjects`), newest first; archived ones are skipped and the next fills in; shorter or absent with less history. Rows: dot, name, trailing "Client · Area" in secondary label color ("Client" alone for a general area).
 4. One group per client with an active project, alphabetically, header in small uppercase secondary text; projects by area order, then name. Rows: dot, name, trailing area name (omitted for the general area). Recent projects appear here too.

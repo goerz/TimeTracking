@@ -36,6 +36,7 @@ final class TimerWindowController: NSObject, TimerWindowControlling {
         }
         self.window = window
         window.identifier = NSUserInterfaceItemIdentifier("timer")
+        applyTestingAppearance()
         window.minSize = CGSize(width: TimerWindowGeometry.minimumWidth, height: TimerWindowGeometry.barHeight)
         window.titlebarAppearsTransparent = true
         window.titleVisibility = .hidden
@@ -54,6 +55,16 @@ final class TimerWindowController: NSObject, TimerWindowControlling {
             hideOnAttach = false
             window.orderOut(nil)
         }
+    }
+
+    /// `-UITesting YES -UITestingAppearance dark` (or `light`) sets the
+    /// app's appearance for screenshots without the system setting.
+    private func applyTestingAppearance() {
+        let defaults = UserDefaults.standard
+        guard defaults.bool(forKey: "UITesting"), let name = defaults.string(forKey: "UITestingAppearance") else {
+            return
+        }
+        NSApp.appearance = NSAppearance(named: name == "dark" ? .darkAqua : .aqua)
     }
 
     private func observe(_ window: NSWindow) {

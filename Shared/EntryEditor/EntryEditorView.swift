@@ -3,7 +3,8 @@
 import SwiftUI
 import TimeTrackingCore
 
-/// Task, Project, Start and Stop, Duration, Date, the chain lines, Delete.
+/// Task, Project, Start and Stop, Duration, Date as labeled rows; the chain
+/// lines and notices; Delete.
 struct EntryEditorView: View {
     @Bindable var model: EntryEditorModel
     var makePicker: (ProjectID?) -> ProjectPickerModel
@@ -21,26 +22,29 @@ struct EntryEditorView: View {
         case duration
     }
 
+    /// The width of the time and duration fields.
+    private static let timeFieldWidth: CGFloat = 96
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            TextField("Task", text: $model.task)
-                .focused($focus, equals: .task)
-                .onSubmit { Task { await model.commitTask() } }
-                .accessibilityIdentifier("editor.task")
-            projectChip
-            timeFields
-            DatePicker("Date", selection: $model.date, displayedComponents: .date)
-                .disabled(model.isRunning)
-                .onChange(of: model.date) { Task { await model.commitDate() } }
-                .accessibilityIdentifier("editor.date")
+        VStack(alignment: .leading, spacing: Design.Spacing.medium) {
+            Grid(alignment: .leadingFirstTextBaseline, horizontalSpacing: Design.Spacing.small, verticalSpacing: Design.Spacing.small) {
+                subjectRows
+                timeRows
+            }
             notices
             Divider()
-            Button("Delete…", role: .destructive) { confirmDelete = true }
-                .keyboardShortcut(.delete, modifiers: .command)
-                .accessibilityIdentifier("editor.delete")
+            Button(role: .destructive) {
+                confirmDelete = true
+            } label: {
+                Label("Delete Entry…", systemImage: "trash")
+            }
+            .buttonStyle(.borderless)
+            .foregroundStyle(.red)
+            .keyboardShortcut(.delete, modifiers: .command)
+            .accessibilityIdentifier("editor.delete")
         }
-        .padding(16)
-        .frame(width: 320)
+        .padding(Design.Spacing.large)
+        .frame(width: 340)
         .task {
             model.undoManager = undoManager
             await model.load()
@@ -60,19 +64,68 @@ struct EntryEditorView: View {
         }
     }
 
-    @ViewBuilder private var timeFields: some View {
-        HStack {
+    /// Task and Project.
+    @ViewBuilder private var subjectRows: some View {
+        GridRow {
+            rowLabel("Task")
+            TextField("Task", text: $model.task, prompt: Text("No task"))
+                .labelsHidden()
+                .textFieldStyle(.roundedBorder)
+                .focused($focus, equals: .task)
+                .onSubmit { Task { await model.commitTask() } }
+                .accessibilityIdentifier("editor.task")
+        }
+        GridRow(alignment: .center) {
+            rowLabel("Project")
+            projectChip
+        }
+    }
+
+    /// Start, Stop, Duration, and Date.
+    @ViewBuilder private var timeRows: some View {
+        GridRow {
+            rowLabel("Start")
             timeField("Start", text: $model.startText, field: .start, identifier: "editor.start") {
                 await model.commitStart()
             }
-            timeField("Stop", text: $model.stopText, field: .stop, identifier: "editor.stop") {
-                await model.commitStop()
-            }
-            .disabled(model.isRunning)
         }
-        TimelineView(.periodic(from: .now, by: 1)) { context in
+        GridRow {
+            rowLabel("Stop")
             if model.isRunning {
-                LabeledContent("Duration", value: model.durationDisplay(at: context.date))
+                Text("running").foregroundStyle(.secondary).accessibilityIdentifier("editor.stop")
+            } else {
+                timeField("Stop", text: $model.stopText, field: .stop, identifier: "editor.stop") {
+                    await model.commitStop()
+                }
+            }
+        }
+        GridRow {
+            rowLabel("Duration")
+            duration
+        }
+        GridRow(alignment: .center) {
+            rowLabel("Date")
+            DatePicker("Date", selection: $model.date, displayedComponents: .date)
+                .labelsHidden()
+                .fixedSize()
+                .disabled(model.isRunning)
+                .onChange(of: model.date) { Task { await model.commitDate() } }
+                .accessibilityIdentifier("editor.date")
+        }
+    }
+
+    private func rowLabel(_ title: String) -> some View {
+        Text(title)
+            .foregroundStyle(.secondary)
+            .gridColumnAlignment(.trailing)
+    }
+
+    /// The live elapsed time while running, else the editable duration.
+    private var duration: some View {
+        TimelineView(.periodic(from: .now, by: 1)) { _ in
+            if model.isRunning {
+                Text(model.durationDisplay(at: model.clock.now))
+                    .monospacedDigit()
                     .accessibilityIdentifier("editor.duration")
             } else {
                 timeField("Duration", text: $model.durationText, field: .duration, identifier: "editor.duration") {
@@ -83,37 +136,39 @@ struct EntryEditorView: View {
     }
 
     @ViewBuilder private var notices: some View {
-        ForEach(model.chainLines, id: \.self) { line in
-            Text(line).font(.caption).foregroundStyle(.secondary)
-        }
-        if let message = model.message {
-            Text(message).font(.caption).foregroundStyle(.red).accessibilityIdentifier("editor.message")
-        }
-        if let overlap = model.overlap {
-            HStack {
-                Text(overlap.text).font(.caption)
-                Spacer()
-                Button("Keep") { Task { await model.keepOverlap() } }.accessibilityIdentifier("editor.keepOverlap")
-                Button("Revert") { model.revertOverlap() }.accessibilityIdentifier("editor.revertOverlap")
+        if !model.chainLines.isEmpty || model.message != nil || model.overlap != nil {
+            VStack(alignment: .leading, spacing: Design.Spacing.tight) {
+                ForEach(model.chainLines, id: \.self) { line in
+                    Text(line).font(.caption).foregroundStyle(.secondary)
+                }
+                if let message = model.message {
+                    Label(message, systemImage: "exclamationmark.triangle")
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                        .accessibilityIdentifier("editor.message")
+                }
+                if let overlap = model.overlap {
+                    VStack(alignment: .leading, spacing: Design.Spacing.tight) {
+                        Label(overlap.text, systemImage: "exclamationmark.triangle").font(.caption)
+                        HStack {
+                            Button("Keep") { Task { await model.keepOverlap() } }
+                                .accessibilityIdentifier("editor.keepOverlap")
+                            Button("Revert") { model.revertOverlap() }
+                                .accessibilityIdentifier("editor.revertOverlap")
+                        }
+                        .controlSize(.small)
+                    }
+                    .accessibilityElement(children: .contain)
+                    .accessibilityIdentifier("editor.overlap")
+                }
             }
-            .accessibilityIdentifier("editor.overlap")
         }
     }
 
     private var projectChip: some View {
-        Button {
+        ProjectChipButton(label: model.label) {
             picker = makePicker(model.entry.projectID)
-        } label: {
-            HStack(spacing: 6) {
-                AreaDot(color: model.label.color)
-                Text(model.label.name)
-                if let client = model.label.client {
-                    Text("· \(client)").foregroundStyle(.secondary)
-                }
-                Image(systemName: "chevron.down").font(.caption2).accessibilityHidden(true)
-            }
         }
-        .buttonStyle(.plain)
         .keyboardShortcut("p", modifiers: .command)
         .accessibilityIdentifier("editor.project")
         .popover(item: $picker) { picker in
@@ -135,13 +190,14 @@ struct EntryEditorView: View {
         identifier: String,
         commit: @escaping () async -> Void
     ) -> some View {
-        LabeledContent(title) {
-            TextField(title, text: text)
-                .labelsHidden()
-                .focused($focus, equals: field)
-                .onSubmit { Task { await commit() } }
-                .accessibilityIdentifier(identifier)
-        }
+        TextField(title, text: text)
+            .labelsHidden()
+            .textFieldStyle(.roundedBorder)
+            .monospacedDigit()
+            .frame(width: Self.timeFieldWidth)
+            .focused($focus, equals: field)
+            .onSubmit { Task { await commit() } }
+            .accessibilityIdentifier(identifier)
     }
 
     private func commitOnFocusLoss(_ field: Field?) {
