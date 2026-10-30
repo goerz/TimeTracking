@@ -1,5 +1,6 @@
-// CalendarOverlap: the trim/overlap/cancel choice, side-by-side lanes,
-// and coverage of blocks by entries (spec_planner_calendar.md §2.6, §3.1, §3.3).
+// OverlapResolution: the trim/overlap/cancel choice, with CalendarLane's
+// side-by-side lanes and CalendarCoverage's coverage of blocks by entries
+// (spec_planner_calendar.md §2.6, §3.1, §3.3).
 
 public import Foundation
 

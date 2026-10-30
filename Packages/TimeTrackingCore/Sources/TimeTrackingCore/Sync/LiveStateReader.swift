@@ -57,10 +57,3 @@ extension LiveState {
         )
     }
 }
-
-extension InMemoryTransport: LiveStateFetching {
-    public func fetch(_ ref: SyncRecordRef) async throws -> SyncRecord? {
-        try await server.checkReachable(device)
-        return await server.record(ref)
-    }
-}

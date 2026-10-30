@@ -52,7 +52,7 @@ public enum SyncTransportError: Error, Hashable, Sendable, LocalizedError {
 }
 
 /// The private database zone `TimeTracking` as the sync engine sees it.
-/// Implemented by `CloudKitTransport` (step 5) and `InMemoryTransport`.
+/// Implemented by `CloudKitTransport` and `InMemoryTransport`.
 public protocol SyncTransport: Sendable {
     /// Saves and deletes records; one result per record and deletion.
     func send(saving records: [SyncRecord], deleting refs: [SyncRecordRef]) async throws -> [SyncSaveResult]
