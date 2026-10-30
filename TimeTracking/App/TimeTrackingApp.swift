@@ -33,11 +33,18 @@ struct TimeTrackingApp: App {
 
         Window("Planner", id: "planner") {
             HostedContent(host: delegate.host) { app in
-                PlannerPlaceholderView().environment(app)
+                PlannerWindowView()
+                    .environment(app)
+                    .modifier(RouterActions(router: delegate.router))
             }
         }
         .defaultLaunchBehavior(.suppressed)
+        .restorationBehavior(.disabled)
         .defaultSize(width: 1360, height: 840)
+        .windowResizability(.contentMinSize)
+        .commands {
+            PlannerCommands(host: delegate.host)
+        }
 
         Settings {
             HostedContent(host: delegate.host) { app in
@@ -77,16 +84,5 @@ private struct RouterActions: ViewModifier {
             router?.openSettingsAction = openSettings
             router?.openWindowAction = openWindow
         }
-    }
-}
-
-/// The Planner window until the Planner exists (step 7 replaces it).
-struct PlannerPlaceholderView: View {
-    var body: some View {
-        Text("Planner")
-            .font(.title)
-            .foregroundStyle(.secondary)
-            .frame(minWidth: 820, minHeight: 560)
-            .accessibilityIdentifier("planner.placeholder")
     }
 }

@@ -57,11 +57,30 @@ final class URLRouter {
         case .show:
             app.router?.showTimer(focusTask: false)
             return .shown
-        case .calendar, .reports, .projects, .activity, .project:
-            // The Planner's sections arrive with step 7; until then the
-            // Planner opens on its last section.
-            app.router?.openPlanner()
+        case let .calendar(date):
+            app.planner.showCalendar(day: date ?? TrackingCalendar(timeZone: .current).day(containing: app.clock.now))
+            return .shown
+        case let .reports(from, to):
+            await app.planner.showReports(range: Self.range(from: from, to: to), filter: ReportFilters())
+            return .shown
+        case .projects:
+            app.planner.showProjects()
+            return .shown
+        case let .activity(date):
+            app.planner.showActivity(range: date.map { ReportRange.days($0, $0) })
+            return .shown
+        case let .project(id):
+            await app.planner.showProject(id)
             return .shown
         }
+    }
+
+    /// `from` and `to` of a reports URL (`to` excluded) as a range.
+    static func range(from: TrackingDay?, to: TrackingDay?) -> ReportRange? {
+        guard let from else {
+            return nil
+        }
+        let last = to.map { $0.adding(days: -1) } ?? from
+        return .days(from, max(from, last))
     }
 }

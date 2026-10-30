@@ -24,6 +24,10 @@ final class AppModel {
     let reminders: ReminderModel
     let tracker: TrackerStatusModel
     let trackerSettings: TrackerSettingsModel
+    /// The Planner's sections and router.
+    let planner: PlannerRouter
+    /// Whether the Planner window is open (its sections follow store changes).
+    private(set) var plannerIsOpen = false
 
     /// Sync and live updates; `nil` under `-UITesting` and in tests.
     var live: LiveUpdates?
@@ -63,11 +67,41 @@ final class AppModel {
         self.reminders = ReminderModel(store: store, clock: clock, notifier: notifier, settings: settings)
         self.tracker = TrackerStatusModel(agent: agent, clock: clock, readState: readTrackerState)
         self.trackerSettings = TrackerSettingsModel(settingsURL: trackerSettingsURL, commands: trackerCommands, clock: clock)
+        self.planner = PlannerRouter(store: store, clock: clock, device: settings.device)
         timer.onChange = { [weak self] in await self?.afterChange() }
         list.onChange = { [weak self] in await self?.afterChange() }
         idle.onChange = { [weak self] in await self?.afterChange() }
         idle.showTimer = { [weak self] focus in self?.router?.showTimer(focusTask: focus) }
         pomodoro.currentTask = { [weak self] in self?.timer.running?.task ?? "" }
+        planner.projects.startTimer = { [weak self] id in await self?.startTimer(on: id) }
+        planner.reports.continueEntry = { [weak self] id in await self?.timer.continueEntry(id) }
+        planner.reports.entriesChanged = { [weak self] in await self?.afterChange() }
+        planner.openWindow = { [weak self] in self?.router?.openPlanner() }
+        planner.openTrackerSettings = { [weak self] _ in self?.router?.openSettings(pane: .tracker) }
+        planner.copyText = { Pasteboard.copy($0) }
+        planner.projects.optionKeyDown = { ModifierKeys.optionIsDown }
+        ModifierState.optionDown = { ModifierKeys.optionIsDown }
+    }
+
+    /// The Planner's Start Timer: an entry on the project with an empty task,
+    /// stopping a running one; the Planner stays key.
+    func startTimer(on project: ProjectID) async {
+        do {
+            _ = try await store.start(projectID: project, task: "", at: clock.now)
+        } catch {
+            timer.report(error)
+        }
+        await afterChange()
+    }
+
+    /// The Planner window appeared.
+    func plannerOpened() {
+        plannerIsOpen = true
+    }
+
+    /// The Planner window closed: its undo stack goes with it.
+    func plannerClosed() {
+        plannerIsOpen = false
     }
 
     /// Loads everything; with `observing`, follows the store's changes.
@@ -104,6 +138,10 @@ final class AppModel {
             return
         case .entries, .runningEntry, .structure:
             await afterChange()
+            if plannerIsOpen {
+                await planner.projects.reload()
+                await planner.reports.reload()
+            }
         }
     }
 

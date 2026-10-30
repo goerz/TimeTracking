@@ -8,6 +8,7 @@ import TimeTrackingCore
 struct TimerCommands: Commands {
     var host: AppHost
     @FocusedValue(\.timerWindowActive) private var timerActive
+    @FocusedValue(\.plannerWindowActive) private var plannerActive
 
     private var app: AppModel? {
         host.model
@@ -49,9 +50,9 @@ struct TimerCommands: Commands {
             pomodoroCommands
         }
         CommandGroup(after: .textEditing) {
-            Button("Find") { app?.list.showFilter() }
+            Button("Find") { find() }
                 .keyboardShortcut("f")
-                .disabled(!timerKey)
+                .disabled(!timerKey && plannerActive != true)
         }
         CommandGroup(before: .toolbar) {
             Toggle("Compact Mode", isOn: Binding(
@@ -103,6 +104,20 @@ struct TimerCommands: Commands {
             button.keyboardShortcut(KeyEquivalent(character), modifiers: key.eventModifiers)
         } else {
             button
+        }
+    }
+
+    /// ⌘F: the Timer list's filter, or the Planner section's search field.
+    private func find() {
+        guard let app else {
+            return
+        }
+        if timerKey {
+            app.list.showFilter()
+        } else if app.planner.section == .reports {
+            app.planner.reports.focusTaskFilter()
+        } else if app.planner.section == .projects {
+            app.planner.projects.focusSearch()
         }
     }
 

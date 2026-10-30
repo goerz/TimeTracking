@@ -16,7 +16,16 @@ final class ProjectDialogModel {
     /// The area of the last project created this session (a default).
     static var lastCreatedArea: AreaID?
 
+    /// A question before Save: moving a project with entries to another
+    /// client (§3.3), or restoring into a retired area (§2.5).
+    struct Confirmation: Equatable {
+        var title: String
+        var message: String
+        var confirmTitle: String
+    }
+
     @ObservationIgnored let store: TimeStore
+    @ObservationIgnored weak var undoManager: UndoManager?
     let mode: Mode
 
     var name: String
@@ -28,6 +37,8 @@ final class ProjectDialogModel {
     /// "A project with this name already exists for Consulting".
     private(set) var nameError: String?
     private(set) var lastError: String?
+    /// Asked before Save; `submit(confirmed: true)` proceeds.
+    var confirmation: Confirmation?
 
     init(store: TimeStore, mode: Mode, name: String = "") {
         self.store = store
@@ -98,32 +109,26 @@ final class ProjectDialogModel {
         nameError = taken ? "A project with this name already exists for \(clientName)" : nil
     }
 
-    /// "New Client…": the client persists even if the dialog is canceled.
-    func createClient(name: String) async {
-        do {
-            let (client, general) = try await store.createClient(name: name, generalAreaColor: nil)
-            clients = try await store.clients(includeRetired: true)
-            await select(client: client.id, area: general.id)
-        } catch {
-            lastError = error.localizedDescription
-        }
+    /// "New Client…" created a client (it persists if the dialog is
+    /// canceled): select it and its general area.
+    func clientCreated(_ client: Client, general: Area?) async {
+        clients = await (try? store.clients(includeRetired: true)) ?? clients
+        await select(client: client.id, area: general?.id)
     }
 
-    /// "New Area…" in the selected client.
-    func createArea(name: String, color: String?) async {
-        guard let clientID else {
-            return
-        }
-        do {
-            let area = try await store.createArea(AreaDraft(clientID: clientID, name: name, color: color))
-            await select(client: clientID, area: area.id)
-        } catch {
-            lastError = error.localizedDescription
-        }
+    /// "New Area…" created an area in the selected client.
+    func areaCreated(_ area: Area) async {
+        await select(client: area.clientID, area: area.id)
     }
 
-    /// Create or Save. Returns the project.
-    func submit() async -> Project? {
+    /// The selected client's name.
+    var clientName: String {
+        clients.first { $0.id == clientID }?.name ?? ""
+    }
+
+    /// Create or Save. Returns the project, or `nil` while a confirmation
+    /// is pending or on failure.
+    func submit(confirmed: Bool = false) async -> Project? {
         await validate()
         guard canSubmit, let areaID else {
             return nil
@@ -135,20 +140,69 @@ final class ProjectDialogModel {
                 Self.lastCreatedArea = areaID
                 return project
             case let .edit(project):
-                try await store.updateProject(project.id, ProjectChange(name: name.trimmed, areaID: areaID))
-                if isArchived != project.isArchived {
-                    if isArchived {
-                        try await store.archive(project.id)
-                    } else {
-                        try await store.restoreProject(project.id)
-                    }
+                if !confirmed, let question = try await confirmationNeeded(for: project, areaID: areaID) {
+                    confirmation = question
+                    return nil
                 }
+                confirmation = nil
+                try await save(project, areaID: areaID)
                 return try await store.project(project.id)
             }
         } catch {
             lastError = error.localizedDescription
             return nil
         }
+    }
+
+    /// The question §3.3 or §2.5 asks before this edit, if any.
+    private func confirmationNeeded(for project: Project, areaID: AreaID) async throws -> Confirmation? {
+        let areas = try await store.areas(of: nil, includeRetired: true)
+        let oldArea = areas.first { $0.id == project.areaID }
+        let newArea = areas.first { $0.id == areaID }
+        if let newArea, oldArea?.clientID != newArea.clientID {
+            let rows = try await store.projects(filter: ProjectFilter(state: .all))
+            let count = rows.first { $0.id == project.id }?.entryCount ?? 0
+            if count > 0 {
+                let client = clients.first { $0.id == newArea.clientID }?.name ?? ""
+                let place = newArea.isGeneral ? client : "\(client) · \(newArea.name)"
+                return Confirmation(
+                    title: "Move “\(name.trimmed)” and its \(count) \(count == 1 ? "entry" : "entries") to \(place)?",
+                    message: "Reports for past dates will show them there.",
+                    confirmTitle: "Move"
+                )
+            }
+        }
+        if project.isArchived, !isArchived, let newArea, newArea.isRetired {
+            return Confirmation(
+                title: "Restore “\(name.trimmed)” and un-retire “\(newArea.name)”?",
+                message: "The area “\(newArea.name)” is retired. Restoring the project makes it active again.",
+                confirmTitle: "Restore"
+            )
+        }
+        return nil
+    }
+
+    /// Writes the edit and registers its inverse for ⌘Z.
+    private func save(_ project: Project, areaID: AreaID) async throws {
+        try await store.updateProject(project.id, ProjectChange(name: name.trimmed, areaID: areaID))
+        if isArchived != project.isArchived {
+            if isArchived {
+                try await store.archive(project.id)
+            } else {
+                try await store.restoreProject(project.id)
+            }
+        }
+        undoManager?.registerUndo(withTarget: store) { store in
+            Task {
+                try? await store.updateProject(project.id, ProjectChange(name: project.name, areaID: project.areaID))
+                if project.isArchived {
+                    try? await store.archive(project.id)
+                } else {
+                    try? await store.restoreProject(project.id)
+                }
+            }
+        }
+        undoManager?.setActionName("Edit Project")
     }
 }
 

@@ -10,10 +10,10 @@ struct ProjectDialogView: View {
     var preferredArea: AreaID?
     var onDone: (Project?) -> Void
 
+    @Environment(\.undoManager) private var undoManager
     @FocusState private var nameFocused: Bool
-    @State private var newClient: String?
-    @State private var newArea: String?
-    @State private var newAreaColor = Color.accentColor
+    @State private var clientForm: ClientFormModel?
+    @State private var areaForm: AreaFormModel?
 
     private static let newClientTag = "new-client"
     private static let newAreaTag = "new-area"
@@ -36,6 +36,7 @@ struct ProjectDialogView: View {
                 areaPicker
                 if case .edit = model.mode {
                     Toggle("Archived", isOn: $model.isArchived)
+                        .accessibilityIdentifier("projectDialog.archived")
                 }
             }
             buttons
@@ -43,24 +44,36 @@ struct ProjectDialogView: View {
         .padding(20)
         .frame(width: 400)
         .task {
+            model.undoManager = model.undoManager ?? undoManager
             await model.load(preferredArea: preferredArea)
             nameFocused = true
         }
-        .sheet(item: Binding(get: { newClient.map(NameRequest.init) }, set: { newClient = $0?.name })) { _ in
-            NameSheet(title: "New Client", name: Binding(get: { newClient ?? "" }, set: { newClient = $0 })) { name in
-                newClient = nil
-                if let name {
-                    Task { await model.createClient(name: name) }
+        .sheet(item: $clientForm) { form in
+            ClientFormView(model: form) { client, general in
+                clientForm = nil
+                if let client {
+                    Task { await model.clientCreated(client, general: general) }
                 }
             }
         }
-        .sheet(item: Binding(get: { newArea.map(NameRequest.init) }, set: { newArea = $0?.name })) { _ in
-            NameSheet(title: "New Area", name: Binding(get: { newArea ?? "" }, set: { newArea = $0 }), color: $newAreaColor) { name in
-                newArea = nil
-                if let name {
-                    Task { await model.createArea(name: name, color: newAreaColor.hexString) }
+        .sheet(item: $areaForm) { form in
+            AreaFormView(model: form) { area in
+                areaForm = nil
+                if let area {
+                    Task { await model.areaCreated(area) }
                 }
             }
+        }
+        .alert(
+            model.confirmation?.title ?? "",
+            isPresented: .isPresent($model.confirmation),
+            presenting: model.confirmation
+        ) { confirmation in
+            Button(confirmation.confirmTitle) { submit(confirmed: true) }
+                .accessibilityIdentifier("projectDialog.confirmMove")
+            Button("Cancel", role: .cancel) { model.confirmation = nil }
+        } message: { confirmation in
+            Text(confirmation.message)
         }
     }
 
@@ -109,7 +122,7 @@ struct ProjectDialogView: View {
             model.clientID?.rawValue ?? ""
         } set: { tag in
             if tag == Self.newClientTag {
-                newClient = ""
+                Task { clientForm = await ClientFormModel.create(store: model.store) }
             } else if let id = ClientID(tag) {
                 Task { await model.select(client: id) }
             }
@@ -121,68 +134,38 @@ struct ProjectDialogView: View {
             model.areaID?.rawValue ?? ""
         } set: { tag in
             if tag == Self.newAreaTag {
-                newArea = ""
+                if let client = model.clientID {
+                    Task { areaForm = await AreaFormModel.create(store: model.store, client: client) }
+                }
             } else {
                 model.areaID = AreaID(tag)
             }
         }
     }
 
-    private func submit() {
+    private func submit(confirmed: Bool = false) {
         guard model.canSubmit else {
             return
         }
         Task {
-            if let project = await model.submit() {
+            if let project = await model.submit(confirmed: confirmed) {
                 onDone(project)
             }
         }
     }
 }
 
-/// A request for a name sheet.
-private struct NameRequest: Identifiable {
-    var name: String
-
-    var id: String {
-        "request"
-    }
-}
-
-/// The client and area sheets: a name and, for areas, a color.
-private struct NameSheet: View {
-    var title: String
-    @Binding var name: String
-    var color: Binding<Color>?
-    var onDone: (String?) -> Void
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(title).font(.headline)
-            TextField("Name", text: $name).onSubmit { onDone(name.trimmed.isEmpty ? nil : name) }
-            if let color {
-                ColorPicker("Color", selection: color, supportsOpacity: false)
-            }
-            HStack {
-                Spacer()
-                Button("Cancel", role: .cancel) { onDone(nil) }.keyboardShortcut(.cancelAction)
-                Button("Create") { onDone(name) }
-                    .keyboardShortcut(.defaultAction)
-                    .disabled(name.trimmed.isEmpty)
-            }
-        }
-        .padding(20)
-        .frame(width: 320)
-    }
-}
-
 extension Color {
-    /// The color as uppercase `#RRGGBB` in sRGB, clamped and rounded to 8 bits.
+    /// The color as uppercase `#RRGGBB` in sRGB: converted from its own
+    /// space (Display P3 included), clamped, and rounded to 8 bits.
     var hexString: String? {
         let resolved = resolve(in: EnvironmentValues())
-        func byte(_ value: Float) -> Int {
-            Int((min(max(Double(value), 0), 1) * 255).rounded())
+        guard let space = CGColorSpace(name: CGColorSpace.extendedSRGB),
+              let converted = resolved.cgColor.converted(to: space, intent: .defaultIntent, options: nil),
+              let parts = converted.components, parts.count >= 3
+        else {
+            return nil
         }
-        return String(format: "#%02X%02X%02X", byte(resolved.red), byte(resolved.green), byte(resolved.blue))
+        return AreaColor(red: Double(parts[0]), green: Double(parts[1]), blue: Double(parts[2])).hex
     }
 }
