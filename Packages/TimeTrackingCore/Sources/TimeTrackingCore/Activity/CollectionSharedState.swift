@@ -17,9 +17,8 @@ public protocol LadderStore: Sendable {
 
 /// Values in the App Group's `UserDefaults` suite, read and written by the
 /// app and the App Intents, monitor, and Safari extensions.
-public struct CollectionSharedState: LadderStore, @unchecked Sendable {
-    /// UserDefaults is thread-safe.
-    private let defaults: UserDefaults
+public struct CollectionSharedState: LadderStore {
+    private let suite: AppGroupDefaults
 
     private enum Key {
         static let enabled = "collection.enabled"
@@ -34,12 +33,16 @@ public struct CollectionSharedState: LadderStore, @unchecked Sendable {
     }
 
     public init(defaults: UserDefaults) {
-        self.defaults = defaults
+        self.suite = AppGroupDefaults(defaults: defaults)
     }
 
     /// The App Group suite of `identity`, or the standard defaults.
     public init(identity: AppIdentity?) {
-        self.defaults = identity.flatMap { UserDefaults(suiteName: $0.appGroup) } ?? .standard
+        self.suite = AppGroupDefaults(identity: identity)
+    }
+
+    private var defaults: UserDefaults {
+        suite.defaults
     }
 
     /// The master switch of the Activity collection screen (off by default).

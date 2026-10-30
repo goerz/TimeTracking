@@ -7,9 +7,8 @@ public import Foundation
 
 /// Values in the App Group's `UserDefaults` suite, read and written by the
 /// app and the widget extension.
-public struct WidgetSharedState: @unchecked Sendable {
-    /// UserDefaults is thread-safe.
-    private let defaults: UserDefaults
+public struct WidgetSharedState: Sendable {
+    private let suite: AppGroupDefaults
 
     private enum Key {
         static let running = "widget.liveState.running"
@@ -25,12 +24,16 @@ public struct WidgetSharedState: @unchecked Sendable {
     }
 
     public init(defaults: UserDefaults) {
-        self.defaults = defaults
+        self.suite = AppGroupDefaults(defaults: defaults)
     }
 
     /// The App Group suite of `identity`, or the standard defaults.
     public init(identity: AppIdentity?) {
-        self.defaults = identity.flatMap { UserDefaults(suiteName: $0.appGroup) } ?? .standard
+        self.suite = AppGroupDefaults(identity: identity)
+    }
+
+    private var defaults: UserDefaults {
+        suite.defaults
     }
 
     /// The last `LiveState` the resolver or the app recorded.
