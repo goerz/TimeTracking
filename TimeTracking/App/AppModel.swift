@@ -96,7 +96,6 @@ final class AppModel {
         planner.openWindow = { [weak self] in self?.router?.openPlanner() }
         wirePlannerSections(trackerCommands: trackerCommands)
         planner.copyText = { Pasteboard.copy($0) }
-        planner.projects.optionKeyDown = { ModifierKeys.optionIsDown }
         ModifierState.optionDown = { ModifierKeys.optionIsDown }
     }
 

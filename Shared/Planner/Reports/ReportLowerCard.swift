@@ -285,8 +285,3 @@ struct ReportBreakdownTable: View {
         return .handled
     }
 }
-
-/// Whether ⌥ is held during a click; the Mac sets it from AppKit.
-enum ModifierState {
-    @MainActor static var optionDown: () -> Bool = { false }
-}

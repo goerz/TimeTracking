@@ -35,8 +35,6 @@ final class ProjectsModel {
     @ObservationIgnored weak var undoManager: UndoManager?
     /// Starts an entry on the project (the Mac's Timer; iOS's Timer tab).
     @ObservationIgnored var startTimer: (ProjectID) async -> Void = { _ in }
-    /// Whether ⌥ is held (⌥-click on a group triangle toggles all groups).
-    @ObservationIgnored var optionKeyDown: () -> Bool = { false }
     @ObservationIgnored private(set) var pendingUndo: Task<Void, Never>?
 
     /// The stored state selector, filters, grouping, and sort.
@@ -129,7 +127,7 @@ final class ProjectsModel {
 
     /// A group's triangle; with ⌥ every group follows.
     func setExpanded(_ group: String, _ expanded: Bool) {
-        let ids = optionKeyDown() ? Set(table.groups.map(\.id)) : [group]
+        let ids = ModifierState.optionDown() ? Set(table.groups.map(\.id)) : [group]
         var set = collapsed[options.grouping.rawValue, default: []]
         if expanded {
             set.subtract(ids)
