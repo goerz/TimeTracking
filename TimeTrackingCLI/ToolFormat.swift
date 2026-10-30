@@ -1,5 +1,6 @@
-// TextTable and ToolFormat: the human-readable output, which may change
-// between versions (spec_automation.md §1, §3).
+// ToolFormat: times, dates, durations, and entry descriptions of the
+// human-readable output, which may change between versions
+// (spec_automation.md §1, §3).
 
 import Foundation
 import TimeTrackingCore

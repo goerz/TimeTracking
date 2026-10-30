@@ -1,5 +1,5 @@
-// RangeOptions and FilterOptions: the range and name filter options of
-// entries, report, and export (spec_automation.md §3.2, §3.6, §3.7).
+// FilterOptions: the name filter options of entries, report, and export
+// (spec_automation.md §3.6, §3.7).
 
 import ArgumentParser
 import Foundation

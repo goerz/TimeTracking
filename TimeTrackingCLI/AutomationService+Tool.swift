@@ -1,7 +1,6 @@
-// RangeOptions and FilterOptions: the range and name filter options of
-// entries, report, and export (spec_automation.md §3.2, §3.6, §3.7).
+// AutomationService+Tool: the time and project arguments of the write
+// commands (spec_automation.md §3.2, §3.3).
 
-import ArgumentParser
 import Foundation
 import TimeTrackingCore
 
