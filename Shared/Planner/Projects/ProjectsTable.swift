@@ -53,6 +53,7 @@ struct ProjectsTable: View {
         } primaryAction: { _ in
             model.editSelection()
         }
+        #if os(macOS)
         .onDeleteCommand {
             // ⌫: Archive on active rows, Restore on archived ones.
             Task {
@@ -63,6 +64,7 @@ struct ProjectsTable: View {
                 }
             }
         }
+        #endif
         .onKeyPress(keys: [.return, .leftArrow, .rightArrow]) { press in
             switch press.key {
             case .return: model.editSelection()

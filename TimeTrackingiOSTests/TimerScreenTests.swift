@@ -69,8 +69,11 @@ struct TimerScreenTests {
         await test.model.choose(.create("Garden"))
         let dialog = try #require(test.model.dialogModel)
         await dialog.load()
-        await dialog.createClient(name: "Family")
-        await dialog.createArea(name: "Outdoors", color: "#3A7D44")
+        // What the dialog's client and area forms do on Create.
+        let (client, general) = try await test.store.createClient(name: "Family")
+        await dialog.clientCreated(client, general: general)
+        let area = try await test.store.createArea(AreaDraft(clientID: client.id, name: "Outdoors", color: "#3A7D44"))
+        await dialog.areaCreated(area)
         let project = try #require(await dialog.submit())
         await test.model.dialogFinished(project)
         #expect(test.model.sheet == nil)
