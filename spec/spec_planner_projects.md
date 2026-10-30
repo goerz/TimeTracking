@@ -62,7 +62,7 @@ The window title is "Projects" with no leading toolbar items. The trailing items
 | State | "Active" or "Archived" | 90 pt; hidden while the state selector is "Active" or "Archived" |
 | Created | `createdAt` | 100 pt |
 | Last tracked | Start of the most recent entry, running entry included; "Never" if none | 120 pt |
-| Total tracked | Sum of all entries, `h:mm:ss` with unbounded hours; the running entry counts to now, refreshed once a minute | 120 pt |
+| Total tracked | Sum of all entries in the `XhYYm` format of [spec_design.md](spec_design.md) §2 with unbounded hours ("432h 21m"); the running entry counts to now, refreshed once a minute | 120 pt |
 
 Dates read "Today", "Yesterday", the weekday within the last 7 days, "Oct 27" within the current year, "2024" otherwise; the tooltip shows the full date. The header's context menu toggles column visibility; column order is fixed. Last tracked and Total tracked come from the library's cached project rows.
 

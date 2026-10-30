@@ -198,9 +198,9 @@ struct ProjectsTable: View {
     private func totalCell(_ item: ProjectTableItem) -> some View {
         switch item {
         case let .group(group):
-            Text(DurationText.clock(group.totalSeconds)).fontWeight(.semibold).monospacedDigit()
+            Text(ActivityText.duration(group.totalSeconds)).fontWeight(.semibold).monospacedDigit()
         case let .project(row):
-            Text(DurationText.clock(row.row.totalSeconds)).monospacedDigit()
+            Text(ActivityText.duration(row.row.totalSeconds)).monospacedDigit()
         }
     }
 

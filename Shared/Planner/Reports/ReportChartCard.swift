@@ -119,7 +119,7 @@ struct ReportChartCard: View {
             ForEach(bucket.segments, id: \.key.value) { segment in
                 BarMark(x: .value("Period", bucket.id.description), y: .value("Hours", Double(segment.seconds) / 3600))
                     .foregroundStyle(segment.key.color.fill)
-                    .opacity(opacity(bucket: bucket, key: segment.key.value))
+                    .opacity(opacity(bucket: bucket, key: segment.key.value, hovered: hoveredBucket(chart)))
                     .accessibilityLabel(tooltipText(bucket))
             }
             if !bucket.isFuture {
@@ -167,8 +167,9 @@ struct ReportChartCard: View {
         return chart.buckets.first { $0.id.description == hovered && !$0.isFuture }
     }
 
-    private func opacity(bucket: ChartBucket, key: GroupKeyValue) -> Double {
-        if let hovered, hovered != bucket.id.description {
+    /// Hovering an empty or future slot dims nothing.
+    private func opacity(bucket: ChartBucket, key: GroupKeyValue, hovered: ChartBucket?) -> Double {
+        if let hovered, hovered.id != bucket.id {
             return 0.35
         }
         if let highlighted = model.highlightedKey, highlighted != key {

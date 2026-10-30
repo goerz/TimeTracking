@@ -30,7 +30,8 @@ Every duration that changes while visible, and every column of durations, uses m
 | Running timer, Timer list rows and day totals | `h:mm:ss` | `0:25:00` |
 | Pomodoro countdown | `m:ss`, `+m:ss` in overtime | `24:59` |
 | Calendar cards and day headers, Activity, Reports summaries and charts | `XhYYm` (`25m` below one hour) | `4h 07m` |
-| Reports tables | `XhYYm` | `6h 24m` |
+| Reports breakdown, entry list, and bar tooltips | `XhYYmZZs` (to the second, [spec_planner_reports.md](spec_planner_reports.md) §5.2, §6) | `6h 24m 23s` |
+| Projects table totals | `XhYYm`, unbounded hours | `432h 21m` |
 
 ## 3. Layout and spacing
 
@@ -150,4 +151,5 @@ Every surface is checked in screenshots in light and dark appearance, on the Mac
 
 - System text styles over a custom type scale: sizes follow the platform and Dynamic Type for free.
 - System green and red for start and stop: they adapt to dark mode and Increase Contrast; the accent color is free to carry the brand.
+- Reports tables and tooltips keep seconds: rows must add up to the footer and to the CSV export exactly, and the running row visibly counts up (PR-13, PR-17). Every other summary rounds to the minute.
 - The Pomodoro countdown lives on its button, and the timer label always shows the elapsed time, so the running entry's duration is never hidden.

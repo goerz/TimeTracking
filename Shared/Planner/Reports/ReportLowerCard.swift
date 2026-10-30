@@ -187,7 +187,7 @@ struct ReportBreakdownTable: View {
             Text(String(row.node.entryCount)).monospacedDigit().frame(width: 70, alignment: .trailing)
             GeometryReader { geometry in
                 Capsule()
-                    .fill(barColor(row).flatMap(\.self).map { Color(hex: $0) } ?? .accentColor)
+                    .fill(barColor(row).flatMap(\.self).map { Color(hex: $0) } ?? fallbackBarColor(row))
                     .frame(width: max(2, geometry.size.width * ReportText.fraction(row.node.seconds, of: total)), height: 8)
                     .frame(maxHeight: .infinity, alignment: .center)
             }
@@ -227,6 +227,11 @@ struct ReportBreakdownTable: View {
                 Text("(\(row.node.children.count))").foregroundStyle(.secondary)
             }
         }
+    }
+
+    /// "No area" and "No project" in the chart's gray; other levels in the accent color.
+    private func fallbackBarColor(_ row: BreakdownRow) -> Color {
+        row.level == .area || row.level == .project ? StackColor.gray.color : .accentColor
     }
 
     /// Area color for area nodes; the lightness step for project nodes.
