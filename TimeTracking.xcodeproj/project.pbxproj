@@ -754,6 +754,7 @@
 				D8042AEBA863AD2DE4DDA012 /* Embed Login Items */,
 				E4FCD7F94622B39E52714B91 /* Embed Helpers */,
 				BF44BD456D1E7E8BF2F92338 /* Generate launchd plist */,
+				A7C3F1E2B4D5968778695A4B /* Copy store fixtures */,
 			);
 			buildRules = (
 			);
@@ -1077,6 +1078,30 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "exec \"$SRCROOT/scripts/lint_phase.sh\" swiftlint\n";
+		};
+		A7C3F1E2B4D5968778695A4B /* Copy store fixtures */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/scripts/fixtures_phase.sh",
+				"$(SRCROOT)/Fixtures/Store/empty.json",
+				"$(SRCROOT)/Fixtures/Store/small.json",
+				"$(SRCROOT)/Fixtures/Store/running.json",
+				"$(SRCROOT)/Fixtures/Store/large.json",
+			);
+			name = "Copy store fixtures";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/Fixtures/Store/small.json",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "exec \"$SRCROOT/scripts/fixtures_phase.sh\"\n";
 		};
 		BF44BD456D1E7E8BF2F92338 /* Generate launchd plist */ = {
 			isa = PBXShellScriptBuildPhase;

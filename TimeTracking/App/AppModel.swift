@@ -13,6 +13,9 @@ final class AppModel {
     @ObservationIgnored let clock: any Clock
     @ObservationIgnored let notifier: NotificationPosting
     @ObservationIgnored weak var router: AppRouting?
+    @ObservationIgnored weak var window: TimerWindowControlling?
+    let presentation = TimerUIState()
+    let taskField: TaskFieldModel
     let settings: AppSettings
     let timer: TimerModel
     let list: TimerListModel
@@ -28,6 +31,10 @@ final class AppModel {
     private(set) var revision = 0
     /// The recorded show/hide shortcut, for menus.
     var showHideKey: MenuKey? = .command("r", .option)
+    /// Reads the recorded show/hide shortcut (KeyboardShortcuts in the app).
+    @ObservationIgnored var shortcutSource: () -> MenuKey? = { .command("r", .option) }
+    /// Whether the Timer window is key (menus enable "Timer key" commands).
+    private(set) var timerIsKey = false
 
     @ObservationIgnored private var changeTask: Task<Void, Never>?
     @ObservationIgnored private var lastRunningID: EntryID?
@@ -47,6 +54,7 @@ final class AppModel {
         self.settings = settings
         self.notifier = notifier
         self.timer = TimerModel(store: store, clock: clock, notifier: notifier)
+        self.taskField = TaskFieldModel(store: store)
         self.list = TimerListModel(store: store, clock: clock)
         self.pomodoro = PomodoroModel(store: store, clock: clock, notifier: notifier, settings: settings)
         self.idle = IdleModel(store: store, clock: clock, notifier: notifier, settings: settings)
@@ -185,6 +193,73 @@ final class AppModel {
         if openSettings {
             router?.openSettings(pane: .tracker)
         }
+    }
+
+    // MARK: Timer window commands
+
+    /// The chip's picker, with task matching (spec_timer_window.md §2.3).
+    func openChipPicker() {
+        presentation.pickerModel = ProjectPickerModel(store: store, currentProject: timer.chipProjectID, taskMatching: true)
+    }
+
+    /// A picker choice from the chip or the `@` trigger.
+    func choose(_ choice: ProjectPickerChoice) async {
+        presentation.pickerModel = nil
+        switch choice {
+        case let .project(id):
+            await timer.setProject(id)
+        case let .create(name):
+            presentation.dialogModel = ProjectDialogModel(store: store, mode: .create, name: name)
+        }
+    }
+
+    /// The dialog opened from the picker closed; Create assigns the project.
+    func dialogFinished(_ project: Project?) async {
+        presentation.dialogModel = nil
+        if let project {
+            await timer.setProject(project.id)
+        }
+    }
+
+    /// ⌘E: the running entry from the bar, else the selected row.
+    func editEntry() {
+        if presentation.listFocused, let selection = list.selection {
+            presentation.editing = selection
+        } else if let running = timer.running {
+            presentation.editing = running.id
+        } else {
+            presentation.editing = list.selection
+        }
+    }
+
+    /// ⌘O: the selection while the Timer window is key, else the most recent entry.
+    func continueCommand(timerKey: Bool) async {
+        if timerKey, let selection = list.selection {
+            await timer.continueEntry(selection)
+        } else {
+            await continueLatest()
+        }
+    }
+
+    /// ⇧⌘M.
+    func toggleCompact() {
+        window?.toggleCompact()
+    }
+
+    /// The pin, View > Float on Top, and the General pane's checkbox.
+    func setPinned(_ pinned: Bool) {
+        settings.timerPinned = pinned
+        window?.applyPin(pinned)
+    }
+
+    /// The show/hide shortcut was recorded or cleared.
+    func refreshShortcutDisplay() {
+        showHideKey = shortcutSource()
+    }
+
+    /// The Timer window became key or resigned.
+    func timerKeyChanged() {
+        timerIsKey = window?.isKey ?? false
     }
 
     /// The menu bar's inputs.

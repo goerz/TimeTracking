@@ -151,3 +151,9 @@ final class ProjectDialogModel {
         }
     }
 }
+
+extension ProjectDialogModel: Identifiable {
+    var id: ObjectIdentifier {
+        ObjectIdentifier(self)
+    }
+}

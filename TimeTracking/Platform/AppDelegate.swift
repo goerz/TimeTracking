@@ -1,0 +1,146 @@
+// AppDelegate: launch, the status item, the Dock tile and menu, activation
+// policy, global shortcuts, and notifications (spec_timer_window.md §1.3,
+// §8; spec_menubar.md §1, §4).
+
+import AppKit
+import KeyboardShortcuts
+import Observation
+import os
+import TimeTrackingCore
+
+/// The app delegate: creates the status item at launch and wires the
+/// AppKit side to the `AppModel`.
+final class AppDelegate: NSObject, NSApplicationDelegate {
+    let host = AppHost()
+    private(set) var timerWindow: TimerWindowController?
+    private(set) var router: WindowRouter?
+    private var statusItem: StatusItemController?
+    private var systemEvents: SystemEvents?
+    private var notifications: UserNotifications?
+    private var launchedAsLoginItem = false
+
+    func applicationWillFinishLaunching(_: Notification) {
+        let event = NSAppleEventManager.shared().currentAppleEvent
+        launchedAsLoginItem = event?.eventID == kAEOpenApplication
+            && event?.paramDescriptor(forKeyword: keyAEPropData)?.enumCodeValue == keyAELaunchedAsLogInItem
+    }
+
+    func applicationDidFinishLaunching(_: Notification) {
+        guard !AppHost.isTestHost else {
+            return
+        }
+        Task { await launch() }
+    }
+
+    private static let logger = Logging.logger(category: "App")
+
+    private func launch() async {
+        let identity = AppIdentity.main
+        let uiTesting = host.arguments.uiTesting
+        Self.logger.notice("Launching (UI testing: \(uiTesting, privacy: .public))")
+        let notifier: NotificationPosting
+        if uiTesting {
+            notifier = RecordingNotifier()
+        } else {
+            let live = UserNotifications()
+            notifications = live
+            notifier = live
+        }
+        let agent: AgentService = identity.map { LoginItemAgentService(identity: $0) } ?? FakeAgentService()
+        let folders = uiTesting ? nil : await Self.activityFolders(identity)
+        let activity = folders.map { FileActivityStore(folders: $0) }
+        let socket = identity?.groupContainerURL.flatMap { container in identity.map { $0.agentSocketURL(in: container) } }
+        guard let app = await host.load(
+            notifier: notifier,
+            agent: agent,
+            readTrackerState: { await activity?.currentState() },
+            trackerCommands: uiTesting || socket == nil ? RecordingTrackerCommands() : TrackerSocket(url: socket ?? URL(filePath: "/")),
+            trackerSettingsURL: folders?.settingsURL
+        ) else {
+            return
+        }
+        Self.logger.notice("Store open")
+        wire(app)
+        await app.start(observing: true)
+        Self.logger.notice("Launched")
+        app.showTrackerOnboardingIfNeeded()
+    }
+
+    private static func activityFolders(_ identity: AppIdentity?) async -> ActivityFolders? {
+        guard let identity else {
+            return nil
+        }
+        return await Task.detached { ActivityFolders.resolve(identity: identity) }.value
+    }
+
+    private func wire(_ app: AppModel) {
+        let window = TimerWindowController(settings: app.settings)
+        window.hideOnAttach = launchedAsLoginItem && !app.settings.showTimerAtLogin
+        window.onKeyChange = { [weak app] in app?.timerKeyChanged() }
+        let router = WindowRouter(timerWindow: window)
+        router.app = app
+        app.router = router
+        app.window = window
+        timerWindow = window
+        self.router = router
+        let status = StatusItemController(app: app)
+        statusItem = status
+        let events = SystemEvents(app: app, statusItem: status)
+        events.start()
+        systemEvents = events
+        app.reminders.isLocked = { [weak events] in events?.isLocked ?? false }
+        app.idle.isAppActive = { NSApp.isActive }
+        notifications?.onResponse = { [weak app, weak router] _, action in
+            guard let app else {
+                return
+            }
+            if let action {
+                Task { await app.handle(action) }
+            } else {
+                router?.showTimer(focusTask: false)
+            }
+        }
+        GlobalShortcuts.register(
+            toggleTimer: { [weak router] in router?.toggleTimer() },
+            continueOrStop: { [weak app] in Task { await app?.continueOrStop() } }
+        )
+        app.shortcutSource = { GlobalShortcuts.showHideKey }
+        app.refreshShortcutDisplay()
+        followDockIconSetting(app)
+    }
+
+    /// Applies "Show Dock icon" at launch and on every change.
+    private func followDockIconSetting(_ app: AppModel) {
+        withObservationTracking {
+            ActivationPolicy.apply(showDockIcon: app.settings.showDockIcon, keyWindow: timerWindow?.window)
+        } onChange: { [weak self, weak app] in
+            Task { @MainActor in
+                if let app {
+                    self?.followDockIconSetting(app)
+                }
+            }
+        }
+    }
+
+    // MARK: Dock
+
+    func applicationShouldHandleReopen(_: NSApplication, hasVisibleWindows _: Bool) -> Bool {
+        router?.showTimer(focusTask: false)
+        return false
+    }
+
+    func applicationDockMenu(_: NSApplication) -> NSMenu? {
+        statusItem?.dockMenu()
+    }
+
+    /// The app keeps running when its last window closes.
+    func applicationShouldTerminateAfterLastWindowClosed(_: NSApplication) -> Bool {
+        false
+    }
+
+    func applicationWillTerminate(_: Notification) {
+        // Quitting ends the Pomodoro; the running entry keeps running.
+        host.model?.pomodoro.reset()
+        host.model?.stop()
+    }
+}

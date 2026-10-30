@@ -1,0 +1,166 @@
+// TaskFieldView: the task field with autocompletion and the `@` trigger
+// (spec_timer_window.md §2.2).
+
+import SwiftUI
+import TimeTrackingCore
+
+/// The task field. While an entry runs it edits its task; otherwise it
+/// holds the draft.
+struct TaskFieldView: View {
+    @Environment(AppModel.self) private var app
+    @FocusState private var focused: Bool
+
+    var body: some View {
+        TextField("What are you working on?", text: text)
+            .textFieldStyle(.roundedBorder)
+            .font(.title3)
+            .focused($focused)
+            .accessibilityIdentifier("timer.taskField")
+            .onKeyPress(.upArrow) { move(-1) }
+            .onKeyPress(.downArrow) { move(1) }
+            .onKeyPress(.tab) {
+                guard let suggestion = app.taskField.acceptSuggestion() else {
+                    return .ignored
+                }
+                Task { await app.timer.accept(suggestion) }
+                return .handled
+            }
+            .onKeyPress(.return) {
+                submit()
+                return .handled
+            }
+            .onKeyPress(.escape) {
+                escape()
+                return .handled
+            }
+            .onChange(of: focused) { _, isFocused in
+                if !isFocused {
+                    app.taskField.reset()
+                    Task { await app.timer.commitTask() }
+                }
+            }
+            .onChange(of: app.timer.focusTaskFieldRequest) {
+                focused = true
+            }
+            .onAppear {
+                if !app.timer.isRunning {
+                    focused = true
+                }
+            }
+    }
+
+    /// User edits go through this binding; programmatic changes do not.
+    private var text: Binding<String> {
+        Binding {
+            app.timer.taskText
+        } set: { newValue in
+            // AppKit writes the value back on focus; only real edits count.
+            guard newValue != app.timer.taskText else {
+                return
+            }
+            app.timer.taskText = newValue
+            if TaskFieldModel.trigger(in: newValue) == nil {
+                app.timer.taskTextChanged()
+            }
+            let chip = app.timer.chipProjectID
+            Task { await app.taskField.userEdited(newValue, chipProject: chip) }
+        }
+    }
+
+    private func move(_ offset: Int) -> KeyPress.Result {
+        guard app.taskField.picker != nil || app.taskField.isShowingSuggestions else {
+            return .ignored
+        }
+        app.taskField.move(by: offset)
+        return .handled
+    }
+
+    private func submit() {
+        if let choice = app.taskField.choosePickerHighlight() {
+            app.timer.taskText = TaskFieldModel.removingTrigger(from: app.timer.taskText)
+            Task {
+                await app.choose(choice)
+                await app.timer.commitTask()
+            }
+            return
+        }
+        if let suggestion = app.taskField.acceptSuggestion() {
+            Task {
+                await app.timer.accept(suggestion)
+                if !app.timer.isRunning {
+                    await app.timer.start()
+                }
+            }
+            return
+        }
+        Task { await app.timer.submitTask() }
+    }
+
+    private func escape() {
+        if app.taskField.escape(text: app.timer.taskText) {
+            return
+        }
+        if !app.timer.revertTask() {
+            app.presentation.focusList()
+        }
+    }
+}
+
+/// The popup under the bar: suggestions or the `@` picker.
+struct TaskFieldPopup: View {
+    @Environment(AppModel.self) private var app
+
+    var body: some View {
+        if let picker = app.taskField.picker {
+            ProjectPickerView(model: picker, showsSearchField: false) { choice in
+                app.timer.taskText = TaskFieldModel.removingTrigger(from: app.timer.taskText)
+                app.taskField.reset()
+                Task {
+                    await app.choose(choice)
+                    await app.timer.commitTask()
+                }
+            }
+            .popupBackground()
+        } else if app.taskField.isShowingSuggestions {
+            VStack(alignment: .leading, spacing: 0) {
+                ForEach(Array(app.taskField.suggestions.enumerated()), id: \.offset) { index, suggestion in
+                    suggestionRow(index, suggestion)
+                }
+            }
+            .padding(.vertical, 6)
+            .frame(width: 340)
+            .popupBackground()
+            .accessibilityIdentifier("timer.suggestions")
+        }
+    }
+
+    private func suggestionRow(_ index: Int, _ suggestion: TaskSuggestion) -> some View {
+        let label = suggestion.projectID.flatMap { app.taskField.labels[$0] } ?? .noProject
+        let highlighted = app.taskField.highlightedSuggestion == index
+        return Button {
+            app.taskField.closeSuggestions()
+            Task { await app.timer.accept(suggestion) }
+        } label: {
+            HStack(spacing: 8) {
+                Text(suggestion.task).lineLimit(1)
+                Spacer()
+                AreaDot(color: label.color, size: 8)
+                Text(label.name).lineLimit(1).foregroundStyle(highlighted ? AnyShapeStyle(.white.opacity(0.85)) : AnyShapeStyle(.secondary))
+            }
+            .foregroundStyle(highlighted ? AnyShapeStyle(.white) : AnyShapeStyle(.primary))
+            .padding(.horizontal, 12)
+            .padding(.vertical, 4)
+            .background(RoundedRectangle(cornerRadius: 6).fill(highlighted ? Color.accentColor : .clear).padding(.horizontal, 6))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("timer.suggestion.\(index)")
+    }
+}
+
+extension View {
+    /// The floating panel look of the task field's popup.
+    func popupBackground() -> some View {
+        background(RoundedRectangle(cornerRadius: 10).fill(.regularMaterial).shadow(radius: 8, y: 2))
+    }
+}
