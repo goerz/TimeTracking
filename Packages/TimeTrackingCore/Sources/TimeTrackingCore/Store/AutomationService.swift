@@ -132,17 +132,20 @@ public struct AutomationService: Sendable {
         let now = now
         let calendar = calendar
         let listings = try await run { () async throws -> [EntryListing] in
-            var listings: [EntryListing]
+            var entries: [TimeEntry] = []
             if runningOnly {
-                let running = try await store.runningEntry().map { [$0] } ?? []
-                listings = try await store.listings(for: running).filter { filter.matches($0) }
+                if let running = try await store.runningEntry() {
+                    let instant = DateInterval(start: running.start, duration: 0)
+                    entries = try await store.entries(matching: ReportQuery.allTime(filter: filter, around: instant))
+                        .filter { $0.id == running.id }
+                }
             } else {
                 let interval = range.map { $0.interval(in: calendar) }
-                let entries = try await store.entries(matching: ReportQuery.allTime(filter: filter, around: interval))
+                entries = try await store.entries(matching: ReportQuery.allTime(filter: filter, around: interval))
                     .filter { entry in interval.map { entry.start >= $0.start && entry.start < $0.end } ?? true }
                     .sorted { ($0.start, $0.id) < ($1.start, $1.id) }
-                listings = try await store.listings(for: entries)
             }
+            var listings = try await store.listings(for: entries)
             if descending {
                 listings.reverse()
             }
@@ -257,31 +260,6 @@ public struct EntriesResult: Hashable, Sendable {
     public func hash(into hasher: inout Hasher) {
         hasher.combine(range)
         hasher.combine(listings)
-    }
-}
-
-extension EntryFilter {
-    /// Whether `listing` passes the filter.
-    public func matches(_ listing: EntryListing) -> Bool {
-        if let clients, !(listing.client.map { clients.contains($0.id) } ?? false) {
-            return false
-        }
-        if let areas, !(listing.area.map { areas.contains($0.id) } ?? false) {
-            return false
-        }
-        if let projects, !(listing.project.map { projects.contains($0.id) } ?? false) {
-            return false
-        }
-        if listing.project == nil, !includeNoProject {
-            return false
-        }
-        if noProjectOnly, listing.project != nil {
-            return false
-        }
-        if let text = taskContains?.folded, !text.isEmpty, !listing.entry.task.folded.contains(text) {
-            return false
-        }
-        return true
     }
 }
 
