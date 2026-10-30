@@ -152,19 +152,31 @@ final class PhoneModel {
         sync?.stop()
     }
 
-    /// The scene came to the foreground (and at launch): register the device,
-    /// upload the push token, sync, and run the fan-out.
+    /// The scene came to the foreground (and at launch): the app's own
+    /// `foreground` line and flush (spec_ios.md §9.6, §9.7), then as a wake.
     func foreground() async {
+        await collection.appMoved(toForeground: true)
+        await wake()
+    }
+
+    /// The scene went to the background: the app's `background` line.
+    func background() async {
+        await collection.appMoved(toForeground: false)
+    }
+
+    /// The `BGAppRefreshTask`: a wake and a flush, without UI.
+    func refreshTask() async {
+        await wake()
+        await collection.flush()
+    }
+
+    /// Register the device, upload the push token, sync, and run the fan-out.
+    private func wake() async {
         await registerDevice()
         await uploadPushToken()
         await sync?.fetchNow()
         _ = try? await store.checkInvariants()
         await fanOut(structureChanged: false)
-    }
-
-    /// The `BGAppRefreshTask`: as a foreground, without UI.
-    func refreshTask() async {
-        await foreground()
     }
 
     // MARK: Changes

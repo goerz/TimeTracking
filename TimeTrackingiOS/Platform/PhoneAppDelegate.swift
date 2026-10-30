@@ -30,6 +30,8 @@ final class PhoneAppDelegate: NSObject, UIApplicationDelegate {
                 fanOut: {
                     await model.uploadPushToken()
                     await model.fanOut(structureChanged: true)
+                    // Every CloudKit push flushes the collection (spec_ios.md §9.6).
+                    await model.collection.flush()
                 }
             )
             await handler.handle { inTime in

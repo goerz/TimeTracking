@@ -36,7 +36,7 @@ extension DeviceSettingKey where Value == Int {
 
 extension DeviceSettingKey where Value == String {
     /// This device's name for its `Device` record.
-    static var deviceName: Self {
+    nonisolated static var deviceName: Self {
         Self("deviceName", default: "")
     }
 }

@@ -218,6 +218,11 @@
 			path = WidgetShared;
 			sourceTree = "<group>";
 		};
+		C0115EC7ED0A1B2C3D4E5F60 /* CollectionShared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = CollectionShared;
+			sourceTree = "<group>";
+		};
 		251F061EDB52E64DC0B73519 /* TimeTrackingUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = TimeTrackingUITests;
@@ -446,6 +451,7 @@
 				5D92A407ABD714D9B1B49855 /* TimeTrackingWidgets */,
 				13DD0A804213BFD3B98E0422 /* TimeTrackingIntents */,
 				BDAC01558DEB4F72B6AA189F /* WidgetShared */,
+				C0115EC7ED0A1B2C3D4E5F60 /* CollectionShared */,
 				AEF513FC787D47B547A09F7B /* TimeTrackingMonitor */,
 				C62AF442BA9D4A5213C31CA6 /* TimeTrackingWebExtension */,
 				12BD6AC29B8C15CC75031DE6 /* TimeTrackingTests */,
@@ -612,6 +618,7 @@
 				94E352497C6EB672F4FB8F28 /* TimeTrackingiOS */,
 				19AA90C05D5E51C61B554CC6 /* Shared */,
 				BDAC01558DEB4F72B6AA189F /* WidgetShared */,
+				C0115EC7ED0A1B2C3D4E5F60 /* CollectionShared */,
 			);
 			name = TimeTrackingiOS;
 			packageProductDependencies = (
@@ -635,6 +642,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				AEF513FC787D47B547A09F7B /* TimeTrackingMonitor */,
+				C0115EC7ED0A1B2C3D4E5F60 /* CollectionShared */,
 			);
 			name = TimeTrackingMonitor;
 			packageProductDependencies = (

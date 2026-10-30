@@ -1,5 +1,5 @@
-// SettingsScreen: the iOS Settings (spec_ios.md §2.9). Activity collection
-// and Privacy belong to step 8b; Calendars to the iPad tabs (step 8c).
+// SettingsScreen: the iOS Settings (spec_ios.md §2.9), with the Activity
+// Collection and Privacy sections; Calendars belong to the iPad tabs (step 8c).
 
 import AppIntents
 import SwiftUI
@@ -20,8 +20,9 @@ struct SettingsScreen: View {
                 pomodoroSection
                 notificationSection
                 widgetSection
-                Section("Activity Collection") {
-                    LabeledContent("Collection", value: "Off")
+                if let collection = model.collection as? CollectionModel {
+                    ActivityCollectionSection(collection: collection)
+                    PrivacySection(privacy: collection.privacy)
                 }
                 aboutSection
             }
@@ -46,6 +47,10 @@ struct SettingsScreen: View {
         self.pinned = pinned
         notificationsDenied = await model.notifications.isDenied()
         await model.refreshOutbox()
+        if let collection = model.collection as? CollectionModel {
+            collection.refresh()
+            await collection.refreshSettingsCopy()
+        }
     }
 
     private func pinnedPicker(_ picker: ProjectPickerModel) -> some View {

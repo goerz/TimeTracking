@@ -39,6 +39,7 @@ struct TimeTrackingiOSApp: App {
                 Task { await model.foreground() }
             } else if phase == .background {
                 RefreshScheduler.schedule()
+                Task { await model.background() }
             }
         }
         .backgroundTask(.appRefresh(RefreshScheduler.identifier)) {

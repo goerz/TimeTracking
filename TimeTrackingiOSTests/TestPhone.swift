@@ -23,7 +23,8 @@ struct TestPhone {
         store existing: TimeStore? = nil,
         settings: PhoneSettings = .ephemeral(),
         scheduler: RecordingScheduler = RecordingScheduler(),
-        sync: (TimeStore) -> SyncDriving? = { _ in nil }
+        sync: (TimeStore) -> SyncDriving? = { _ in nil },
+        collection: (ManualClock, WidgetSharedState) -> CollectionFlushing = { _, _ in NoCollection() }
     ) async throws {
         let clock = try ManualClock(Self.date(now))
         self.clock = clock
@@ -46,7 +47,8 @@ struct TestPhone {
             notifications: scheduler,
             widgets: widgets,
             shortcuts: shortcuts,
-            shared: shared
+            shared: shared,
+            collection: collection(clock, shared)
         )
         model.sync = sync(store)
         model.timer.debounce = { _ in }

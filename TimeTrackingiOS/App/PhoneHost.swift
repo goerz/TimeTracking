@@ -52,8 +52,8 @@ final class PhoneHost {
         }
         let settings = PhoneSettings(device: device, isPad: DeviceInfo.isPad)
         let model = testing
-            ? testingModel(store: store, clock: clock, settings: settings, shared: shared)
-            : liveModel(store: store, clock: clock, settings: settings, shared: shared, container: identity?.cloudKitContainer)
+            ? testingModel(store: store, clock: clock, settings: settings, shared: shared, defaults: defaults ?? .standard)
+            : liveModel(store: store, clock: clock, settings: settings, shared: shared, identity: identity)
         let container = testing ? nil : identity?.cloudKitContainer
         let onboarding = OnboardingModel(settings: settings, shared: shared) {
             await AccountStatus.check(containerIdentifier: container)
@@ -68,9 +68,19 @@ final class PhoneHost {
     }
 
     /// Recording services, no sync; set up and onboarded unless asked.
-    private func testingModel(store: TimeStore, clock: any Clock, settings: PhoneSettings, shared: WidgetSharedState) -> PhoneModel {
+    private func testingModel(
+        store: TimeStore,
+        clock: any Clock,
+        settings: PhoneSettings,
+        shared: WidgetSharedState,
+        defaults: UserDefaults
+    ) -> PhoneModel {
         shared.setupComplete = true
         settings.onboarded = !UITestingOptions.forcesOnboarding
+        let folder = FileManager.default.temporaryDirectory.appending(path: "collection-uitesting", directoryHint: .isDirectory)
+        if arguments.resetState {
+            try? FileManager.default.removeItem(at: folder)
+        }
         return PhoneModel(
             store: store,
             clock: clock,
@@ -78,20 +88,23 @@ final class PhoneHost {
             notifications: RecordingScheduler(),
             widgets: RecordingWidgetReloader(),
             shortcuts: RecordingShortcuts(),
-            shared: shared
+            shared: shared,
+            collection: CollectionModel.local(folder: folder, defaults: defaults, shared: shared, clock: clock)
         )
     }
 
-    /// Notifications, WidgetKit, App Shortcuts, and CloudKit sync.
+    /// Notifications, WidgetKit, App Shortcuts, CloudKit sync, and the
+    /// activity collection.
     private func liveModel(
         store: TimeStore,
         clock: any Clock,
         settings: PhoneSettings,
         shared: WidgetSharedState,
-        container: String?
+        identity: AppIdentity?
     ) -> PhoneModel {
         let notifications = UserNotifications()
         let widgets = WidgetCenterReloader()
+        let collection = identity.flatMap { CollectionModel.live(identity: $0, device: settings.device, shared: shared, clock: clock) }
         let model = PhoneModel(
             store: store,
             clock: clock,
@@ -99,9 +112,10 @@ final class PhoneHost {
             notifications: notifications,
             widgets: widgets,
             shortcuts: AppShortcutsUpdater(),
-            shared: shared
+            shared: shared,
+            collection: collection ?? NoCollection()
         )
-        if let container {
+        if let container = identity?.cloudKitContainer {
             model.sync = CoordinatorSync(store: store, containerIdentifier: container) {
                 await widgets.reloadTimelines()
                 await widgets.reloadControls()
