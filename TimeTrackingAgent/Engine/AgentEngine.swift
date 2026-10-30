@@ -78,7 +78,7 @@ final class AgentEngine {
         let now = environment.clock.now
         let reading = environment.presence.read()
         var context = resolveContext()
-        let snapshot = await TerminalSnapshot.read(environment: environment, settings: settings)
+        let snapshot = await TerminalSnapshot.read(environment: environment)
         updateStaticHealth(snapshot: snapshot, now: now)
         var sample: Sample
         let before = presence.state
@@ -136,7 +136,7 @@ final class AgentEngine {
         } catch {
             logger.error("samples: \(error.localizedDescription, privacy: .public)")
         }
-        recorder?.record(sample, utcOffset: offset, device: configuration.device)
+        recorder?.record(sample, utcOffset: offset)
         lastSample = sample
         for closed in blocker.add(sample) {
             write(closed)

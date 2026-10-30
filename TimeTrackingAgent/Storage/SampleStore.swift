@@ -86,10 +86,6 @@ final class SampleStore {
         try rows(from: .distantPast, to: .distantFuture)
     }
 
-    func count() throws -> Int {
-        try database.read { database in try Int.fetchOne(database, sql: "SELECT COUNT(*) FROM sample") ?? 0 }
-    }
-
     /// The raw line texts in `[from, to)` (tests check them byte for byte).
     func lines(from: Date = .distantPast, to: Date = .distantFuture) throws -> [String] {
         try database.read { database in
@@ -124,13 +120,6 @@ final class SampleStore {
     /// Deletes samples older than `date`.
     func purge(before date: Date) throws {
         try delete(from: .distantPast, to: date)
-    }
-
-    /// The time of the latest sample before `date`.
-    func lastSampleTime(before date: Date = .distantFuture) throws -> Date? {
-        try database.read { database in
-            try Double.fetchOne(database, sql: "SELECT MAX(time) FROM sample WHERE time < ?", arguments: [date.timeIntervalSince1970])
-        }.map { Date(timeIntervalSince1970: $0) }
     }
 
     /// The sample times in `[from, to)`, for finding when the agent was down.

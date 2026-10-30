@@ -32,7 +32,7 @@ final class Recorder {
     }
 
     /// Appends one sample to its day's file.
-    func record(_ sample: Sample, utcOffset: Int, device _: String) {
+    func record(_ sample: Sample, utcOffset: Int) {
         let day = ActivityTimestamp.day(sample.time, utcOffset: utcOffset)
         let url = folder.appending(path: "samples", directoryHint: .isDirectory).appending(
             path: "\(day).jsonl",

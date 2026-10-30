@@ -127,11 +127,6 @@ struct ResolveContext {
 
     // MARK: Exclusions
 
-    /// The item for an app in `name_only_apps`: its name only.
-    static func nameOnly(_ item: SampleItem) -> SampleItem {
-        SampleItem(context: item.context, subject: "", detail: "", groupKey: item.context, app: item.app)
-    }
-
     /// Applies `exclude_title_keywords` to a window title.
     func filteredTitle(_ title: String) -> String {
         exclusions.excludesTitle(title) ? "" : title

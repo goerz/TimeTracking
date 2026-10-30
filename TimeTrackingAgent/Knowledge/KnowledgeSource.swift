@@ -33,8 +33,6 @@ protocol KnowledgeSource {
 /// Reads `knowledgeC.db` (and its WAL) through a copy in a temporary
 /// folder, after checking that the schema is the expected one.
 struct KnowledgeStoreReader: KnowledgeSource {
-    /// The Core Data reference date the store's times count from.
-    static let referenceDate = Date(timeIntervalSinceReferenceDate: 0)
     static let requiredObjectColumns: Set = ["ZSTREAMNAME", "ZSTARTDATE", "ZENDDATE", "ZVALUESTRING", "ZSTRUCTUREDMETADATA"]
     static let webURLColumn = "Z_DKDIGITALHEALTHMETADATAKEY__WEBPAGEURL"
 

@@ -5,7 +5,6 @@
 // swiftlint:disable discouraged_optional_collection
 
 import Foundation
-import TimeTrackingCore
 
 /// What the terminal sources saw at one tick.
 struct TerminalSnapshot {
@@ -17,7 +16,7 @@ struct TerminalSnapshot {
     var tmuxExecutable: String?
 
     /// Reads the table, every tmux server under the socket folder, and the sessions.
-    static func read(environment: AgentEnvironment, settings _: TrackerSettings) async -> Self {
+    static func read(environment: AgentEnvironment) async -> Self {
         let table = await ProcessTable(psOutput: environment.commands.run(ProcessTable.command) ?? "")
         var tmux = TmuxSnapshot()
         let executable = TmuxSnapshot.executables.first { environment.files.exists($0) }
