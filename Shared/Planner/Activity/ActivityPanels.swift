@@ -5,7 +5,8 @@ import Charts
 import SwiftUI
 import TimeTrackingCore
 
-/// The panels in two columns above 1100 points, one below.
+/// The panels in two columns above 1100 points (the left one fits a
+/// day-row heatmap: 24 cells of 14 pt with 3 pt gaps), one below.
 struct ActivityPanels: View {
     var model: ActivityModel
     var summary: ActivitySummary
@@ -18,13 +19,13 @@ struct ActivityPanels: View {
                     ContextsPanel(model: model, summary: summary)
                     BackgroundPanel(summary: summary)
                 }
-                .frame(width: 540)
+                .frame(width: 564)
                 VStack(spacing: 16) {
                     BarsPanel(model: model, summary: summary)
                     SubjectsPanel(model: model)
                     AwayPanel(summary: summary)
                 }
-                .frame(width: 540)
+                .frame(width: 520)
             }
             VStack(spacing: 16) {
                 HeatmapPanel(model: model, summary: summary)
@@ -71,7 +72,7 @@ private struct HeatmapPanel: View {
         Panel(title: "Active time by hour") {
             VStack(alignment: .leading, spacing: gap) {
                 HStack(spacing: gap) {
-                    Color.clear.frame(width: 70, height: 10)
+                    Color.clear.frame(width: 56, height: 10)
                     ForEach(0 ..< 24, id: \.self) { hour in
                         Text(ActivityHeatmap.labeledHours.contains(hour) ? "\(hour)" : "").font(.caption2).frame(width: cell)
                     }
@@ -85,6 +86,7 @@ private struct HeatmapPanel: View {
                 legend(cell: cell)
             }
         }
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("activity.heatmap")
     }
 
@@ -98,7 +100,7 @@ private struct HeatmapPanel: View {
             }
             .font(.caption)
             .foregroundStyle(row.isEmpty ? .tertiary : .primary)
-            .frame(width: 70, alignment: .leading)
+            .frame(width: 56, alignment: .leading)
             ForEach(0 ..< 24, id: \.self) { hour in
                 RoundedRectangle(cornerRadius: 2)
                     .fill(shade(row.minutes[hour]))
@@ -107,8 +109,9 @@ private struct HeatmapPanel: View {
                     .accessibilityAddTraits(.isButton)
                     .onTapGesture { model.showInCalendar(row: row, hour: hour) }
                     .focusable()
+                    .accessibilityIdentifier("activity.cell.\(row.id).\(hour)")
             }
-            Text(row.totalText).font(.caption).foregroundStyle(.secondary).frame(width: 90, alignment: .trailing)
+            Text(row.totalText).font(.caption).foregroundStyle(.secondary).frame(width: 64, alignment: .trailing)
         }
     }
 

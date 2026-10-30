@@ -44,9 +44,11 @@ final class PlannerUITests: XCTestCase {
         // Move the window by its title bar; the frame is the one to come back.
         let window = app.windows["planner"]
         XCTAssertTrue(window.waitForExistence(timeout: 5))
+        let original = window.frame
         let titleBar = window.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0)).withOffset(CGVector(dx: 0, dy: 12))
-        titleBar.press(forDuration: 0.2, thenDragTo: titleBar.withOffset(CGVector(dx: -60, dy: 40)))
+        titleBar.click(forDuration: 0.2, thenDragTo: titleBar.withOffset(CGVector(dx: -60, dy: 40)))
         let moved = window.frame
+        XCTAssertNotEqual(moved, original)
         app.terminate()
         app = launch(reset: false)
         XCTAssertFalse(app.descendants(matching: .any)["planner.sidebar"].exists)
@@ -91,7 +93,7 @@ final class PlannerUITests: XCTestCase {
         XCTAssertTrue(tracked.waitForExistence(timeout: 5))
         let start = tracked.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.3))
         let end = tracked.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.35))
-        start.press(forDuration: 0.1, thenDragTo: end)
+        start.click(forDuration: 0.1, thenDragTo: end)
         XCTAssertTrue(app.textFields["calendar.draft.task"].waitForExistence(timeout: 5))
         app.typeKey(.escape, modifierFlags: [])
         XCTAssertFalse(app.descendants(matching: .any)["calendar.draft"].exists)
@@ -113,10 +115,14 @@ final class PlannerUITests: XCTestCase {
         let app = launch()
         _ = openPlanner(app)
         app.typeKey("4", modifierFlags: .command)
-        XCTAssertTrue(app.descendants(matching: .any)["planner.activity"].waitForExistence(timeout: 5))
-        app.typeKey("2", modifierFlags: .command)
-        XCTAssertTrue(app.descendants(matching: .any)["planner.calendar"].waitForExistence(timeout: 5))
+        // The week of 2024-03-14; under -UITesting the block log comes from the fixture.
+        let cell = app.descendants(matching: .any)["activity.cell.day:2024-03-13.10"]
+        XCTAssertTrue(cell.waitForExistence(timeout: 10))
+        cell.click()
+        XCTAssertTrue(app.descendants(matching: .any)["calendar.header.2024-03-13"].waitForExistence(timeout: 5))
         app.typeKey("4", modifierFlags: .command)
-        XCTAssertTrue(app.descendants(matching: .any)["activity.footer"].waitForExistence(timeout: 5))
+        // The same range again.
+        XCTAssertTrue(cell.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.descendants(matching: .any)["activity.footer"].exists)
     }
 }

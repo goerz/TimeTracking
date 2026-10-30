@@ -52,7 +52,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         let agent: AgentService = identity.map { LoginItemAgentService(identity: $0) } ?? FakeAgentService()
         let folders = uiTesting ? nil : await Self.activityFolders(identity)
-        let activity = folders.map { FileActivityStore(folders: $0) }
+        let activity = if uiTesting {
+            await Self.fixtureActivity(host.arguments, clock: host.arguments.clock(honorFixedNow: identity?.isDebug ?? true))
+        } else {
+            folders.map { FileActivityStore(folders: $0) }
+        }
         let socket = identity?.groupContainerURL.flatMap { container in identity.map { $0.agentSocketURL(in: container) } }
         guard let app = await host.load(
             notifier: notifier,
@@ -99,6 +103,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         )
         app.live = live
         await live.start()
+    }
+
+    /// `-UITesting` with a store fixture: the block log the same dataset
+    /// generates, in a temporary folder; `nil` (an empty in-memory log) for
+    /// `empty` and unknown names.
+    private static func fixtureActivity(_ arguments: LaunchArguments, clock: any Clock) async -> FileActivityStore? {
+        guard let name = arguments.fixture, name != "empty", let dataset = SyntheticDataset.fixture(named: name) else {
+            return nil
+        }
+        let folder = FileManager.default.temporaryDirectory.appending(
+            path: "uitesting-activity-\(UUID().uuidString)",
+            directoryHint: .isDirectory
+        )
+        do {
+            try await dataset.activityLog(to: folder)
+        } catch {
+            logger.error("UI testing block log: \(error.localizedDescription, privacy: .public)")
+            return nil
+        }
+        return FileActivityStore(folders: ActivityFolders(shared: folder, local: folder, isFallback: true), clock: clock)
     }
 
     private static func activityFolders(_ identity: AppIdentity?) async -> ActivityFolders? {

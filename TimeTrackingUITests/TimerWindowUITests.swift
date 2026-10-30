@@ -15,9 +15,9 @@ final class TimerWindowUITests: XCTestCase {
 
     /// The app on the fixture at the fixed test time, onboarding answered.
     @MainActor
-    private func launch(fixture: String = "small", reset: Bool = true) -> XCUIApplication {
+    private func launch(fixture: String = "small", reset: Bool = true, arguments: [String] = []) -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["-UITesting", "YES", "-Fixture", fixture] + (reset ? ["-ResetState", "YES"] : [])
+        app.launchArguments = ["-UITesting", "YES", "-Fixture", fixture] + (reset ? ["-ResetState", "YES"] : []) + arguments
         app.launchEnvironment["TIMETRACKING_NOW"] = "2024-03-14T10:00:00"
         app.launch()
         let later = app.buttons["onboarding.later"]
@@ -42,15 +42,17 @@ final class TimerWindowUITests: XCTestCase {
     func testTW1_collapseBelowThreshold() {
         let app = launch()
         let window = app.windows.firstMatch
-        let bottom = window.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 1.0))
+        // Just inside the bottom edge: the resize area, not the desktop below.
+        // On the Mac only `click(forDuration:thenDragTo:)` drags; `press` does not.
+        let bottom = window.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 1.0)).withOffset(CGVector(dx: 0, dy: -1))
         // Drag the bottom edge up to a 190 pt tall window: it snaps to the bar.
         let height = window.frame.height
-        bottom.press(forDuration: 0.2, thenDragTo: bottom.withOffset(CGVector(dx: 0, dy: -(height - 190))))
+        bottom.click(forDuration: 0.2, thenDragTo: bottom.withOffset(CGVector(dx: 0, dy: -(height - 190))))
         XCTAssertEqual(window.frame.height, 88, accuracy: 2)
         XCTAssertFalse(app.descendants(matching: .any)["timer.list"].exists)
         // Dragging to 250 pt snaps to 300 pt and shows the list.
-        let edge = window.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 1.0))
-        edge.press(forDuration: 0.2, thenDragTo: edge.withOffset(CGVector(dx: 0, dy: 162)))
+        let edge = window.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 1.0)).withOffset(CGVector(dx: 0, dy: -1))
+        edge.click(forDuration: 0.2, thenDragTo: edge.withOffset(CGVector(dx: 0, dy: 162)))
         XCTAssertEqual(window.frame.height, 300, accuracy: 2)
         app.terminate()
     }
@@ -91,14 +93,21 @@ final class TimerWindowUITests: XCTestCase {
 
     @MainActor
     func testTW4_showHideShortcut() {
-        let app = launch()
-        app.typeKey("r", modifierFlags: [.option, .command])
+        // A recorded ⌃⌥⌘R: another app on the test Mac may hold ⌥⌘R and take
+        // the activation. StatusItemTests checks the ⌥⌘R default.
+        let recorded = #""{\"carbonKeyCode\":15,\"carbonModifiers\":6400}""#
+        let app = launch(fixture: "empty", arguments: ["-KeyboardShortcuts_showHideTimer", recorded])
+        let shortcut: XCUIElement.KeyModifierFlags = [.control, .option, .command]
+        // The window is key: the shortcut hides the app.
+        app.typeKey("r", modifierFlags: shortcut)
         XCTAssertTrue(app.wait(for: .runningBackground, timeout: 5))
-        app.typeKey("r", modifierFlags: [.option, .command])
+        // System-wide: pressed in another app, it brings the window back.
+        XCUIApplication(bundleIdentifier: "com.apple.finder").typeKey("r", modifierFlags: shortcut)
         XCTAssertTrue(app.wait(for: .runningForeground, timeout: 5))
-        // The task field has keyboard focus: typing goes into it.
-        app.typeText("Focus")
-        XCTAssertEqual(app.textFields["timer.taskField"].value as? String, "Focus")
+        // The task field has keyboard focus. (Synthesized typing right after
+        // the shortcut loses keys under XCUITest; TW-6 and TW-9 cover typing.)
+        let field = app.textFields["timer.taskField"]
+        wait(for: [expectation(for: NSPredicate(format: "hasKeyboardFocus == true"), evaluatedWith: field)], timeout: 5)
         app.terminate()
     }
 
@@ -185,8 +194,6 @@ final class TimerWindowUITests: XCTestCase {
     }
 
     /// Disable Tracker and its confirmation, if the agent is registered.
-    /// Only the app can unregister its agent (`SMAppService` works on the
-    /// calling bundle's plists), so the cleanup goes through the pane.
     @MainActor
     private func disableIfRegistered(_ app: XCUIApplication, _ button: XCUIElement) {
         guard button.label == "Disable Tracker" else {
@@ -220,6 +227,40 @@ final class TimerWindowUITests: XCTestCase {
         wait(for: [done], timeout: 10)
         disableIfRegistered(app, button)
         XCTAssertEqual(button.label, "Enable Tracker")
+        app.terminate()
+    }
+
+    /// The Debug agent embedded in the app next to the test runner.
+    private static func debugAgentExecutable() throws -> URL {
+        let products = Bundle.main.bundleURL.deletingLastPathComponent()
+        let agent = "Contents/Library/LoginItems/TimeTrackingAgent.app/Contents/MacOS/TimeTrackingAgent"
+        let apps = try FileManager.default.contentsOfDirectory(at: products, includingPropertiesForKeys: nil)
+        return try XCTUnwrap(apps.map { $0.appending(path: agent) }.first { FileManager.default.isExecutableFile(atPath: $0.path) })
+    }
+
+    @MainActor
+    func testARCH8_agentUnregisterFlagRemovesTheRegistration() throws {
+        addTeardownBlock { @MainActor in
+            let app = self.launch(reset: false)
+            self.disableIfRegistered(app, self.trackerButton(app))
+            app.terminate()
+        }
+        let agent = try Self.debugAgentExecutable()
+        let app = launch()
+        let button = trackerButton(app)
+        button.click()
+        let registered = NSPredicate(format: "label IN %@", ["Disable Tracker", "Open Login Items"])
+        wait(for: [expectation(for: registered, evaluatedWith: button)], timeout: 10)
+        // What make mac-debug-unregister runs.
+        let process = Process()
+        process.executableURL = agent
+        process.arguments = ["--unregister"]
+        try process.run()
+        process.waitUntilExit()
+        XCTAssertEqual(process.terminationStatus, 0)
+        // The pane re-reads the registration every 5 s.
+        let off = expectation(for: NSPredicate(format: "label == %@", "Enable Tracker"), evaluatedWith: button)
+        wait(for: [off], timeout: 15)
         app.terminate()
     }
 }

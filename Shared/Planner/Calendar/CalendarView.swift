@@ -33,6 +33,7 @@ struct CalendarView: View {
             }
         }
         .navigationTitle("Calendar")
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("planner.calendar")
         .task {
             model.undoManager = undoManager
@@ -346,6 +347,7 @@ private struct CalendarDayHeader: View {
         .contentShape(Rectangle())
         .accessibilityAddTraits(.isButton)
         .onTapGesture { Task { await model.showDay(day, alone: ModifierState.optionDown()) } }
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("calendar.header.\(day)")
     }
 

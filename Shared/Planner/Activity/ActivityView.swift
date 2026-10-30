@@ -32,6 +32,7 @@ struct ActivityView: View {
             ActivityFooter(model: model)
         }
         .navigationTitle("Activity")
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("planner.activity")
         .task(id: model.router?.activityRequests) { await model.reload() }
         .task { await followChanges() }
@@ -242,6 +243,7 @@ private struct ActivityFooter: View {
                 try? await Task.sleep(for: .seconds(10))
             }
         }
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("activity.footer")
     }
 }

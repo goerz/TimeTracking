@@ -8,6 +8,9 @@ struct TimerWindowView: View {
     @Environment(AppModel.self) private var app
     @Environment(\.undoManager) private var undoManager
     @State private var runningEditor: EntryEditorModel?
+    /// The hidden title bar's height. The hosting view adds it to the
+    /// content's minimum, so the content asks for that much less.
+    @State private var titleBarInset: CGFloat = 0
 
     var body: some View {
         @Bindable var app = app
@@ -35,7 +38,10 @@ struct TimerWindowView: View {
                     .zIndex(2)
             }
         }
-        .frame(minWidth: TimerWindowGeometry.minimumWidth, minHeight: TimerWindowGeometry.barHeight)
+        .frame(minWidth: TimerWindowGeometry.minimumWidth, minHeight: TimerWindowGeometry.barHeight - titleBarInset)
+        .background(WindowAccessor { window in
+            titleBarInset = window.frame.height - window.contentLayoutRect.height
+        })
         .ignoresSafeArea()
         .focusedSceneValue(\.timerWindowActive, true)
         .onAppear {
