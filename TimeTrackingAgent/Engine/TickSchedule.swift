@@ -9,7 +9,7 @@ nonisolated struct TickSchedule: Hashable, Sendable {
     let interval: TimeInterval
     private(set) var next: Date
 
-    init(start: Date, interval: TimeInterval = 30) {
+    init(start: Date, interval: TimeInterval = AgentEngine.tickInterval) {
         self.interval = interval
         self.next = start
     }

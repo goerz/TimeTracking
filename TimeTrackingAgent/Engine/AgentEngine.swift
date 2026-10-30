@@ -12,7 +12,7 @@ import TimeTrackingCore
 @MainActor
 final class AgentEngine {
     /// The tick interval of §2.1.
-    static let tickInterval: TimeInterval = 30
+    nonisolated static let tickInterval: TimeInterval = 30
     /// How recent a pushed event must be for its source to be `active`.
     static let eventSourceWindow: TimeInterval = 7 * 86_400
 
@@ -192,9 +192,9 @@ final class AgentEngine {
     struct Focus {
         var item: SampleItem?
         var bundleID: String
-        var title: String
-        var tmuxTarget: String
-        var url: String
+        var title = ""
+        var tmuxTarget = ""
+        var url = ""
         var domain: String?
     }
 
@@ -205,31 +205,28 @@ final class AgentEngine {
         }
         let exclusions = context.exclusions
         if exclusions.excludesApp(app.bundleID) {
-            return Focus(item: nil, bundleID: "", title: "", tmuxTarget: "", url: "", domain: nil)
+            return Focus(item: nil, bundleID: "")
         }
         let contextName = AppResolver.contextName(app)
         let appOnly = SampleItem(context: contextName, subject: "", groupKey: contextName, app: app.bundleID)
         guard environment.focus.isTrusted else {
             health.set(.window, .fallback, "Accessibility not granted; app names only")
-            return Focus(item: appOnly, bundleID: app.bundleID, title: "", tmuxTarget: "", url: "", domain: nil)
+            return Focus(item: appOnly, bundleID: app.bundleID)
         }
         health.set(.window, .active)
         if exclusions.isNameOnlyApp(app.bundleID) {
-            return Focus(item: appOnly, bundleID: app.bundleID, title: "", tmuxTarget: "", url: "", domain: nil)
+            return Focus(item: appOnly, bundleID: app.bundleID)
         }
         let window = environment.focus.focusedWindow(of: app)
         let title = context.filteredTitle(window?.title ?? "")
         if TerminalApp.known[app.bundleID] != nil {
             let observation = await terminal.resolve(app: app, title: title, snapshot: snapshot, context: &context)
             apply(observation.health)
-            let kept = Self.debugTitle(title, item: observation.item, exclusions: exclusions)
             return Focus(
                 item: observation.item,
                 bundleID: app.bundleID,
-                title: kept,
-                tmuxTarget: observation.tmuxTarget,
-                url: "",
-                domain: nil
+                title: Self.debugTitle(title, item: observation.item, exclusions: exclusions),
+                tmuxTarget: observation.tmuxTarget
             )
         }
         if BrowserApp.known[app.bundleID] != nil {
@@ -239,19 +236,22 @@ final class AgentEngine {
                 item: observation.item,
                 bundleID: app.bundleID,
                 title: Self.debugTitle(observation.title, item: observation.item, exclusions: exclusions),
-                tmuxTarget: "",
                 url: observation.url,
                 domain: observation.domain
             )
         }
         let item = AppResolver(environment: environment).resolve(app: app, window: window, context: &context)
-        return Focus(
-            item: item,
-            bundleID: app.bundleID,
-            title: Self.debugTitle(title, item: item, exclusions: exclusions),
-            tmuxTarget: "",
-            url: "",
-            domain: nil
-        )
+        return Focus(item: item, bundleID: app.bundleID, title: Self.debugTitle(title, item: item, exclusions: exclusions))
+    }
+
+    /// The window title kept as a debug field: none for a hidden item or
+    /// a title naming an excluded path.
+    static func debugTitle(_ title: String, item: SampleItem, exclusions: ExclusionRules) -> String {
+        let marker = ExclusionRules.privateMarker
+        if item.context.contains(marker) || item.subject.contains(marker) || item.detail.contains(marker) {
+            return ""
+        }
+        let paths = title.split(separator: " ").filter { $0.hasPrefix("/") || $0.hasPrefix("~") || $0.hasPrefix("file://") }
+        return paths.contains { exclusions.excludesPath(String($0)) } ? "" : title
     }
 }

@@ -5,17 +5,7 @@ import Foundation
 import TimeTrackingCore
 
 extension AgentEngine {
-    /// The window title kept as a debug field: none for a hidden item or
-    /// a title naming an excluded path.
-    static func debugTitle(_ title: String, item: SampleItem, exclusions: ExclusionRules) -> String {
-        let marker = ExclusionRules.privateMarker
-        if item.context.contains(marker) || item.subject.contains(marker) || item.detail.contains(marker) {
-            return ""
-        }
-        let paths = title.split(separator: " ").filter { $0.hasPrefix("/") || $0.hasPrefix("~") || $0.hasPrefix("file://") }
-        return paths.contains { exclusions.excludesPath(String($0)) } ? "" : title
-    }
-
+    /// Applies what a resolver reported to the board.
     func apply(_ entries: [SourceReport]) {
         for entry in entries {
             health.set(entry.id, entry.status, entry.reason)
