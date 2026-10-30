@@ -11,12 +11,10 @@ extension AgentEngine {
     static let syncedSafariInterval: TimeInterval = 300
 
     /// Runs what is due at `now`; the first tick runs everything.
-    func runMaintenance(now: Date) async {
+    func runMaintenance(now: Date) {
         if isDue("purge", every: Self.purgeInterval, now: now) {
+            // Device events are purged by `syncDeviceEvents`, off the tick.
             purge(now: now)
-            if let deviceEvents {
-                try? await deviceEvents.purge(before: now.addingTimeInterval(-SampleStore.retention))
-            }
         }
         if isDue("knowledge", every: Self.knowledgeInterval, now: now) {
             backfillFromKnowledge(now: now)
@@ -52,7 +50,7 @@ extension AgentEngine {
         }
     }
 
-    private func isDue(_ key: String, every interval: TimeInterval, now: Date) -> Bool {
+    func isDue(_ key: String, every interval: TimeInterval, now: Date) -> Bool {
         if let last = lastMaintenance[key], now.timeIntervalSince(last) < interval, now >= last {
             return false
         }

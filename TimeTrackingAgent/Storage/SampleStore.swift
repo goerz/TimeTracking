@@ -10,7 +10,7 @@ final class SampleStore {
     /// How long samples are kept.
     static let retention: TimeInterval = 90 * 86_400
 
-    private let database: any DatabaseWriter
+    let database: any DatabaseWriter
 
     /// A row: the sample with the offset its line was written at.
     struct Row: Hashable {
@@ -38,6 +38,20 @@ final class SampleStore {
             );
             CREATE INDEX sample_time ON sample(time);
             CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
+            """)
+        }
+        migrator.registerMigration("v2") { database in
+            try database.execute(sql: """
+            CREATE TABLE device_event (
+                name TEXT PRIMARY KEY,
+                device TEXT NOT NULL,
+                day TEXT NOT NULL,
+                time REAL NOT NULL,
+                utc_offset INTEGER NOT NULL,
+                line TEXT NOT NULL
+            );
+            CREATE INDEX device_event_day ON device_event(device, day);
+            CREATE INDEX device_event_time ON device_event(time);
             """)
         }
         try migrator.migrate(database)

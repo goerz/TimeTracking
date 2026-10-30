@@ -14,6 +14,7 @@ final class AgentRunner {
     private let observer = PresenceObserver()
     private var fileStream: FileEventStream?
     private var loop: Task<Void, Never>?
+    private var deviceLoop: Task<Void, Never>?
     private var schedule: TickSchedule
     private var watchedRoots: [String] = []
 
@@ -64,6 +65,10 @@ final class AgentRunner {
         do {
             let engine = try AgentEngine(environment: environment, configuration: configuration)
             engine.recorder = recorder
+            // CloudKit stops a process without the container entitlement (ad-hoc builds).
+            if CloudKitAvailability.check(containerIdentifier: identity.cloudKitContainer) {
+                engine.deviceEvents = CloudKitDeviceEventSource(containerIdentifier: identity.cloudKitContainer)
+            }
             return AgentRunner(engine: engine)
         } catch {
             Logging.logger(category: "Agent").error("cannot start: \(error.localizedDescription, privacy: .public)")
@@ -110,6 +115,16 @@ final class AgentRunner {
                 try? await Task.sleep(for: .seconds(1))
             }
         }
+        // The device events, off the tick loop: CloudKit may take seconds.
+        deviceLoop = Task { [weak self] in
+            while !Task.isCancelled {
+                guard let engine = self?.engine else {
+                    return
+                }
+                await engine.syncDeviceEvents(now: engine.environment.clock.now)
+                try? await Task.sleep(for: .seconds(AgentEngine.deviceFetchInterval))
+            }
+        }
     }
 
     /// Takes the regular tick if due and keeps the file stream on the current roots.
@@ -130,6 +145,7 @@ final class AgentRunner {
 
     func stop() {
         loop?.cancel()
+        deviceLoop?.cancel()
         observer.stop()
         fileStream?.stop()
         socket.stop()

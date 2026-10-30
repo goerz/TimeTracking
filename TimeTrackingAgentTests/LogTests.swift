@@ -164,6 +164,9 @@ struct LogTests {
         let times = harness.samples().map(\.time)
         #expect(!times.contains(old))
         #expect(times.count == 2)
+        // The device events are purged by the device fetch, off the tick.
+        await harness.engine.syncDeviceEvents(now: harness.clock.now)
+        await harness.engine.syncDeviceEvents(now: harness.clock.now)
         #expect(await events.purges == [harness.time(-90 * 86_400)])
     }
 }

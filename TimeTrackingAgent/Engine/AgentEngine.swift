@@ -118,7 +118,7 @@ final class AgentEngine {
             transitions.append(ActivityPresenceTransition(time: presence.since, state: presence.state))
         }
         process(sample)
-        await runMaintenance(now: now)
+        runMaintenance(now: now)
         return sample
     }
 

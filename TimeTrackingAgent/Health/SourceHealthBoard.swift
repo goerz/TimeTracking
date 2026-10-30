@@ -31,7 +31,7 @@ nonisolated struct SourceHealthBoard: Hashable, Sendable {
             initial[source.id] = TrackerSourceHealth(id: source.id, name: source.name, status: .active)
         }
         initial["device_events"]?.status = .off
-        initial["device_events"]?.reason = "Not collected by this version"
+        initial["device_events"]?.reason = "Not fetched yet"
         self.entries = initial
     }
 
