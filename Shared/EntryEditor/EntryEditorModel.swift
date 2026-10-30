@@ -137,10 +137,8 @@ final class EntryEditorModel {
                 return
             }
             let draft = EntryDraft(projectID: entry.projectID, task: entry.task, start: result.start, end: result.end)
-            let others = await (try? store.overlaps(for: draft, excluding: entry.id)) ?? []
-            let chain = await Set(((try? store.chain(of: entry.id)) ?? []).map(\.id))
-            if let other = others.first(where: { !chain.contains($0.id) }) {
-                overlap = await OverlapNotice(text: overlapText(other), change: result)
+            if let other = await (try? store.overlaps(for: draft, outsideChainOf: entry.id))?.first {
+                overlap = await OverlapNotice(text: OverlapNotice.text(for: other, in: store), change: result)
                 return
             }
             await store(result)
@@ -255,14 +253,5 @@ final class EntryEditorModel {
             lines.append("Continues on \(LocalDateText.day(next.start)) until \(until)")
         }
         chainLines = lines
-    }
-
-    private func overlapText(_ other: TimeEntry) async -> String {
-        var name = other.task
-        if name.isEmpty, let listing = try? await store.listings(for: [other]).first {
-            name = listing.project?.name ?? "No task"
-        }
-        let end = other.end.map(LocalDateText.time) ?? "now"
-        return "Overlaps “\(name)” (\(LocalDateText.time(other.start)) to \(end))"
     }
 }

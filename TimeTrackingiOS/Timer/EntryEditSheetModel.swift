@@ -67,12 +67,10 @@ final class EntryEditSheetModel {
 
     /// Shown under the duration before saving an interval across midnight.
     var midnightNoticeText: String? {
-        guard let entry, !isRunning, end > start else {
+        guard let entry, !isRunning, EntryEditRules.crossesMidnight(start: start, end: end, in: entry.zone) else {
             return nil
         }
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = entry.zone
-        return calendar.isDate(start, inSameDayAs: end) || end == calendar.startOfDay(for: end) ? nil : Self.midnightNotice
+        return Self.midnightNotice
     }
 
     /// Done: checks the rules and saves; `true` when the sheet may close.
@@ -81,20 +79,13 @@ final class EntryEditSheetModel {
             return true
         }
         message = nil
-        let now = clock.now
-        if start > now || (!isRunning && end > now) {
-            message = Self.futureMessage
-            return false
-        }
-        if !isRunning, end <= start {
-            message = Self.orderMessage
+        if case let .failure(error) = EntryEditRules.check(start: start, end: isRunning ? nil : end, now: clock.now) {
+            message = error == .inFuture ? Self.futureMessage : Self.orderMessage
             return false
         }
         let draft = EntryDraft(projectID: projectID, task: task, start: start, end: isRunning ? nil : end)
-        let chain = await Set(((try? store.chain(of: entry.id)) ?? []).map(\.id))
-        let others = await ((try? store.overlaps(for: draft, excluding: entry.id)) ?? []).filter { !chain.contains($0.id) }
-        if overlap == nil, let other = others.first {
-            overlap = await overlapText(other)
+        if overlap == nil, let other = await (try? store.overlaps(for: draft, outsideChainOf: entry.id))?.first {
+            overlap = await OverlapNotice.text(for: other, in: store)
             return false
         }
         return await write()
@@ -140,14 +131,5 @@ final class EntryEditSheetModel {
             message = error.localizedDescription
             return false
         }
-    }
-
-    private func overlapText(_ other: TimeEntry) async -> String {
-        var name = other.task
-        if name.isEmpty, let listing = try? await store.listings(for: [other]).first {
-            name = listing.project?.name ?? "No task"
-        }
-        let until = other.end.map(LocalDateText.time) ?? "now"
-        return "Overlaps “\(name)” (\(LocalDateText.time(other.start)) to \(until))"
     }
 }
