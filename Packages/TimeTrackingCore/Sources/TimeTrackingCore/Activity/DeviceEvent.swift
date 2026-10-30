@@ -1,5 +1,5 @@
 // DeviceEvent: a raw activity event of an iPhone or iPad
-// (spec_data_and_sync.md §6, spec_activity_tracking.md §6.2).
+// (spec_data_and_sync.md §6, spec_activity_tracking.md §6.2, spec_ios.md §9.1).
 
 public import Foundation
 
@@ -21,19 +21,25 @@ public struct DeviceEvent: Sendable, Hashable, Codable {
     }
 
     enum CodingKeys: String, CodingKey {
-        case deviceID, time, source, label, kind, payload, sequence
+        case deviceID, time, source, label, kind, payload, sequence, utcOffset, deviceName
     }
 
     public var deviceID: String
     public var time: Date
     public var source: Source
     public var label: String
-    /// The event kind of the tracker spec, e.g. a threshold or on/off.
+    /// The event kind of the tracker spec, e.g. `minute` or `on`.
     public var kind: String
     /// Optional JSON text with source-specific fields.
     public var payload: String?
-    /// Distinguishes events of one device in the same millisecond.
+    /// Distinguishes events of one device; the staging file assigns it,
+    /// increasing with every append.
     public var sequence: Int
+    /// Seconds east of UTC of the device clock when the event happened.
+    public var utcOffset: Int?
+    /// The device's name, stamped by the app's flush (the extensions do not
+    /// know it); the Mac writes it as the blocks' `dev`.
+    public var deviceName: String?
 
     public init(
         deviceID: String,
@@ -42,7 +48,9 @@ public struct DeviceEvent: Sendable, Hashable, Codable {
         label: String,
         kind: String,
         payload: String? = nil,
-        sequence: Int = 0
+        sequence: Int = 0,
+        utcOffset: Int? = nil,
+        deviceName: String? = nil
     ) {
         self.deviceID = deviceID
         self.time = time
@@ -51,6 +59,8 @@ public struct DeviceEvent: Sendable, Hashable, Codable {
         self.kind = kind
         self.payload = payload
         self.sequence = sequence
+        self.utcOffset = utcOffset
+        self.deviceName = deviceName
     }
 
     /// The time in whole milliseconds since 1970.
@@ -73,6 +83,8 @@ public struct DeviceEvent: Sendable, Hashable, Codable {
         self.kind = try container.decode(String.self, forKey: .kind)
         self.payload = try container.decodeIfPresent(String.self, forKey: .payload)
         self.sequence = try container.decodeIfPresent(Int.self, forKey: .sequence) ?? 0
+        self.utcOffset = try container.decodeIfPresent(Int.self, forKey: .utcOffset)
+        self.deviceName = try container.decodeIfPresent(String.self, forKey: .deviceName)
     }
 
     /// Encodes `time` as milliseconds since 1970.
@@ -85,5 +97,34 @@ public struct DeviceEvent: Sendable, Hashable, Codable {
         try container.encode(kind, forKey: .kind)
         try container.encodeIfPresent(payload, forKey: .payload)
         try container.encode(sequence, forKey: .sequence)
+        try container.encodeIfPresent(utcOffset, forKey: .utcOffset)
+        try container.encodeIfPresent(deviceName, forKey: .deviceName)
+    }
+
+    // MARK: Payload
+
+    /// The integer `key` of the payload object.
+    public func payloadInt(_ key: String) -> Int? {
+        payloadValue(key) as? Int
+    }
+
+    /// The boolean `key` of the payload object, `fallback` when absent.
+    public func payloadBool(_ key: String, default fallback: Bool) -> Bool {
+        (payloadValue(key) as? Bool) ?? fallback
+    }
+
+    private func payloadValue(_ key: String) -> Any? {
+        guard let payload, let object = try? JSONSerialization.jsonObject(with: Data(payload.utf8)) as? [String: Any] else {
+            return nil
+        }
+        return object[key]
+    }
+
+    /// Payload JSON text with sorted keys, or `nil` for no fields.
+    public static func payloadText(_ fields: [String: any Sendable]) -> String? {
+        guard !fields.isEmpty, let data = try? JSONSerialization.data(withJSONObject: fields, options: [.sortedKeys]) else {
+            return nil
+        }
+        return String(decoding: data, as: UTF8.self)
     }
 }

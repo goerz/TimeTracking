@@ -1,63 +1,94 @@
 // DeviceEventStagingFile: the append-only events.jsonl of the iOS App Group
-// (spec_data_and_sync.md §6, spec_activity_tracking.md §6.2).
+// (spec_data_and_sync.md §6, spec_activity_tracking.md §6.2, spec_ios.md
+// §9.1, §9.6).
 
 public import Foundation
 
 /// Stages device events in `events.jsonl` until the app flushes them.
 ///
 /// The app and its extensions append from separate processes, so every
-/// access holds an exclusive `flock` on the file. A flush uploads what it
-/// read through the injected uploader and then removes only those bytes,
-/// keeping events appended during the upload. A malformed line is skipped
-/// and removed with the flushed ones.
+/// access holds an exclusive `flock` on the file. Each append gets the next
+/// `sequence`; the sidecar `events.state` keeps the next sequence and
+/// `lastFlushedSeq`, the highest sequence CloudKit acknowledged. A flush
+/// uploads the lines above `lastFlushedSeq` through the injected uploader,
+/// advances `lastFlushedSeq` only when the upload returns, and then
+/// removes only the bytes it read, keeping events appended during the
+/// upload. A flush interrupted after the acknowledgement skips the
+/// acknowledged lines next time; one interrupted before it re-sends them
+/// under the same record names. A malformed line is skipped and removed
+/// with the flushed ones.
 public struct DeviceEventStagingFile: DeviceEventSink {
     public typealias Uploader = @Sendable ([DeviceEvent]) async throws -> Void
 
     /// The staging file, `<folder>/events.jsonl`.
     public let fileURL: URL
+    /// The sidecar with the sequence counters, `<folder>/events.state`.
+    public let stateURL: URL
     private let uploader: Uploader
 
     public init(folder: URL, uploader: @escaping Uploader) {
         self.fileURL = folder.appending(path: "events.jsonl", directoryHint: .notDirectory)
+        self.stateURL = folder.appending(path: "events.state", directoryHint: .notDirectory)
         self.uploader = uploader
     }
 
-    /// Appends `event` as one JSON line.
+    /// A file the extensions append to; flushing it throws (only the app flushes).
+    public init(folder: URL) {
+        self.init(folder: folder) { _ in
+            throw ActivityError.fileSystem("only the app flushes the collection file")
+        }
+    }
+
+    /// Appends `event` as one JSON line with the next sequence number.
     public func append(_ event: DeviceEvent) throws(ActivityError) {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
-        let line: Data
-        do {
-            line = try encoder.encode(event) + Data("\n".utf8)
-        } catch {
-            throw .fileSystem("cannot encode an event: \(error.localizedDescription)")
-        }
         try withLockedFile { handle in
+            var counters = readCounters()
+            var numbered = event
+            numbered.sequence = counters.next
+            counters.next += 1
+            // The counter first: a crash in between skips a number, never reuses one.
+            try writeCounters(counters)
+            let line = try encoder.encode(numbered) + Data("\n".utf8)
             try handle.seekToEnd()
             try handle.write(contentsOf: line)
         }
     }
 
-    /// Every staged event, oldest first.
+    /// Every staged event not yet acknowledged, oldest first.
     public func readAll() throws(ActivityError) -> [DeviceEvent] {
         try withLockedFile { handle in
-            try Self.decode(handle.readToEnd() ?? Data()).events
+            let flushed = readCounters().flushed
+            return try Self.decode(handle.readToEnd() ?? Data()).events.filter { $0.sequence > flushed }
         }
     }
 
+    /// The highest sequence the uploader acknowledged (0 before the first flush).
+    public func lastFlushedSequence() throws(ActivityError) -> Int {
+        try withLockedFile { _ in readCounters().flushed }
+    }
+
     /// Uploads the staged events and removes them from the file. When the
-    /// upload throws, the file is unchanged and the error propagates.
+    /// upload throws, the file and `lastFlushedSeq` are unchanged and the
+    /// error propagates.
     public func flush() async throws {
         let staged = try withLockedFile { handle in
-            try Self.decode(handle.readToEnd() ?? Data())
+            let flushed = readCounters().flushed
+            var read = try Self.decode(handle.readToEnd() ?? Data())
+            read.events.removeAll { $0.sequence <= flushed }
+            return read
         }
         if !staged.events.isEmpty {
             try await uploader(staged.events)
         }
-        guard staged.consumedBytes > 0 else {
+        guard staged.consumedBytes > 0 || !staged.events.isEmpty else {
             return
         }
         try withLockedFile { handle in
+            var counters = readCounters()
+            counters.flushed = max(counters.flushed, staged.events.map(\.sequence).max() ?? 0)
+            try writeCounters(counters)
             try handle.seek(toOffset: 0)
             let remainder = try handle.readToEnd()?.dropFirst(staged.consumedBytes) ?? Data()
             try handle.truncate(atOffset: 0)
@@ -80,6 +111,21 @@ public struct DeviceEventStagingFile: DeviceEventSink {
         return StagedEvents(events: events, consumedBytes: complete.count)
     }
 
+    /// The counters of the sidecar; call with the lock held.
+    private func readCounters() -> Counters {
+        guard let data = try? Data(contentsOf: stateURL), let counters = try? JSONDecoder().decode(Counters.self, from: data) else {
+            return Counters(next: 1, flushed: 0)
+        }
+        return counters
+    }
+
+    /// Replaces the sidecar atomically; call with the lock held.
+    private func writeCounters(_ counters: Counters) throws {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        try encoder.encode(counters).write(to: stateURL, options: .atomic)
+    }
+
     /// Runs `body` with the file open for reading and writing under an
     /// exclusive lock, creating the folder and the file as needed.
     private func withLockedFile<Value>(_ body: (FileHandle) throws -> Value) throws(ActivityError) -> Value {
@@ -100,6 +146,8 @@ public struct DeviceEventStagingFile: DeviceEventSink {
         defer { flock(descriptor, LOCK_UN) }
         do {
             return try body(handle)
+        } catch let error as ActivityError {
+            throw error
         } catch {
             throw .fileSystem("\(fileURL.lastPathComponent): \(error.localizedDescription)")
         }
@@ -110,4 +158,15 @@ public struct DeviceEventStagingFile: DeviceEventSink {
 private struct StagedEvents {
     var events: [DeviceEvent]
     var consumedBytes: Int
+}
+
+/// The sidecar `events.state`: the next sequence and `lastFlushedSeq`.
+private struct Counters: Codable {
+    enum CodingKeys: String, CodingKey {
+        case next
+        case flushed = "lastFlushedSeq"
+    }
+
+    var next: Int
+    var flushed: Int
 }
