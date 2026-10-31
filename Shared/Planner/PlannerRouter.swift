@@ -1,6 +1,6 @@
-// PlannerRouter: the Planner's sections and the requests that switch
-// between them (spec_planner_projects.md §1.3). On the Mac the router opens
-// the Planner window; on the iPad it selects tabs.
+// PlannerRouter: the Planner's sections, the requests that switch between
+// them, and their links to the Timer (spec_planner_projects.md §1.3). On the
+// Mac the router opens the Planner window; on the iPad it selects tabs.
 
 import Foundation
 import Observation
@@ -117,6 +117,15 @@ final class PlannerRouter {
         reports.router = self
         calendar.router = self
         self.activity.router = self
+    }
+
+    /// The sections' links to the Timer: Start Timer and Continue act
+    /// through it, and every other write of a section ends in `afterWrite`.
+    func wireTimer(_ timer: TimerModel, afterWrite: @escaping () async -> Void) {
+        projects.startTimer = { [weak timer] id in await timer?.startEmpty(on: id) }
+        reports.continueEntry = { [weak timer] id in await timer?.continueEntry(id) }
+        reports.entriesChanged = afterWrite
+        calendar.entriesChanged = afterWrite
     }
 
     /// Applies a pending `showCalendar` request to the Calendar section.

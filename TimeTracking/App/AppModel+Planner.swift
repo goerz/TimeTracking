@@ -27,7 +27,6 @@ extension AppModel {
             self?.router?.openSettings(pane: .tracker)
         }
         let calendar = planner.calendar
-        calendar.entriesChanged = { [weak self] in await self?.afterChange() }
         calendar.sendTrackerCommand = { command in
             switch await trackerCommands.send(command) {
             case .accepted: nil

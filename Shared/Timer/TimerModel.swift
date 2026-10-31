@@ -162,6 +162,17 @@ final class TimerModel {
         requestTaskFieldFocus()
     }
 
+    /// The Planner's Start Timer: an entry on `project` with an empty task,
+    /// stopping a running one.
+    func startEmpty(on project: ProjectID) async {
+        do {
+            _ = try await store.start(projectID: project, task: "", at: clock.now)
+        } catch {
+            report(error)
+        }
+        await onChange?()
+    }
+
     /// Stops the running entry; its task and project stay as the draft.
     func stop() async {
         guard let running else {
@@ -268,6 +279,16 @@ final class TimerModel {
         } catch {
             report(error)
         }
+    }
+
+    /// A project picked or created in the picker that `@` opens: the
+    /// `@query` leaves the task, the task commits, and the project is
+    /// assigned (`nil` is No Project). A task without `@query` commits
+    /// unchanged.
+    func assignPicked(_ id: ProjectID?) async {
+        taskText = TaskFieldModel.removingTrigger(from: taskText)
+        await commitTask()
+        await setProject(id)
     }
 
     // MARK: Helpers

@@ -48,20 +48,7 @@ extension PhoneModel {
             }
             padTab = PadTab(section)
         }
-        router.projects.startTimer = { [weak self] id in
-            guard let self else {
-                return
-            }
-            do {
-                _ = try await store.start(projectID: id, task: "", at: clock.now)
-            } catch {
-                timer.report(error)
-            }
-            await localWrite()
-        }
-        router.reports.continueEntry = { [weak self] id in await self?.timer.continueEntry(id) }
-        router.reports.entriesChanged = { [weak self] in await self?.localWrite() }
-        router.calendar.entriesChanged = { [weak self] in await self?.localWrite() }
+        router.wireTimer(timer) { [weak self] in await self?.localWrite() }
         router.copyText = { Clipboard.copy($0) }
         router.calendar.openEvent = { CalendarLink.open($0.start) }
         if let identity = AppIdentity.main {

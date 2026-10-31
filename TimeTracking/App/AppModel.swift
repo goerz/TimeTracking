@@ -90,24 +90,11 @@ final class AppModel {
         idle.onChange = { [weak self] in await self?.afterChange() }
         idle.showTimer = { [weak self] focus in self?.router?.showTimer(focusTask: focus) }
         pomodoro.currentTask = { [weak self] in self?.timer.running?.task ?? "" }
-        planner.projects.startTimer = { [weak self] id in await self?.startTimer(on: id) }
-        planner.reports.continueEntry = { [weak self] id in await self?.timer.continueEntry(id) }
-        planner.reports.entriesChanged = { [weak self] in await self?.afterChange() }
+        planner.wireTimer(timer) { [weak self] in await self?.afterChange() }
         planner.openWindow = { [weak self] in self?.router?.openPlanner() }
         wirePlannerSections(trackerCommands: trackerCommands)
         planner.copyText = { Pasteboard.copy($0) }
         ModifierState.optionDown = { ModifierKeys.optionIsDown }
-    }
-
-    /// The Planner's Start Timer: an entry on the project with an empty task,
-    /// stopping a running one; the Planner stays key.
-    func startTimer(on project: ProjectID) async {
-        do {
-            _ = try await store.start(projectID: project, task: "", at: clock.now)
-        } catch {
-            timer.report(error)
-        }
-        await afterChange()
     }
 
     /// Loads everything; with `observing`, follows the store's changes.

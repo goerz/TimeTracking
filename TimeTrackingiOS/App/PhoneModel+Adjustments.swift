@@ -75,9 +75,7 @@ extension PhoneModel {
         switch choice {
         case let .project(id):
             sheet = nil
-            timer.taskText = TaskFieldModel.removingTrigger(from: timer.taskText)
-            await timer.commitTask()
-            await timer.setProject(id)
+            await timer.assignPicked(id)
         case let .create(name):
             dialogModel = ProjectDialogModel(store: store, mode: .create, name: name)
         }
@@ -90,8 +88,6 @@ extension PhoneModel {
             return
         }
         sheet = nil
-        timer.taskText = TaskFieldModel.removingTrigger(from: timer.taskText)
-        await timer.commitTask()
-        await timer.setProject(project.id)
+        await timer.assignPicked(project.id)
     }
 }
