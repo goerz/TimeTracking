@@ -29,6 +29,7 @@ struct DateRangeToolbar: ToolbarContent {
                 onChange()
             },
             today: today,
+            currentDay: { range.today },
             dateControl: { rangeMenu }
         )
     }

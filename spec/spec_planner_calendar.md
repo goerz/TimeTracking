@@ -11,8 +11,8 @@ The window title is "Calendar" and its subtitle the visible range, "Mon, Oct 26 
 | Control | Behavior |
 |---|---|
 | ‹ › | Scroll by one day (with ⌥: by the number of visible days) |
-| Go to Today | `calendar.badge.clock`; centers today (1.2) |
-| Go to Date… | `calendar`; opens a month picker whose chosen day becomes the first visible day |
+| Go to Today | `31.calendar` with today's day of the month; centers today (1.2) |
+| Go to Date… | `ellipsis.calendar`; opens a month picker whose chosen day becomes the first visible day |
 | Days | Segmented control 1, 3, 5, 7; a count of 2, 4, or 6 (from ⌥⌘[ and ⌥⌘] or a pinch) shows as an extra segment |
 | Columns | Menu (`rectangle.split.3x1`) with check-marked Activity Column and Calendar Column; Tracked has none |
 | Zoom − + | Vertical zoom (1.3) |

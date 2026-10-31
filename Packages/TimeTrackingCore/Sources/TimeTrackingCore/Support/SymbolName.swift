@@ -65,10 +65,15 @@ public enum SymbolName {
 
     public static let previous = "chevron.left"
     public static let next = "chevron.right"
-    /// Go to Today in the Calendar, Reports, and Activity.
-    public static let today = "calendar.badge.clock"
-    /// The Calendar's Go to Date… (its date picker).
-    public static let goToDate = "calendar"
+    /// Go to Today in the Calendar, Reports, and Activity: a calendar page
+    /// showing today's day of the month (`1.calendar` to `31.calendar`).
+    public static func today(_ day: TrackingDay) -> String {
+        "\(day.day).calendar"
+    }
+
+    /// The Calendar's Go to Date… (its date picker): the page of `today`
+    /// with an ellipsis.
+    public static let goToDate = "ellipsis.calendar"
     /// A collapsed row (`next`) opens to `expanded`.
     public static let expanded = "chevron.down"
     public static let ascending = "chevron.up"

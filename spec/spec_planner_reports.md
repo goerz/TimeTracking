@@ -16,7 +16,7 @@ Days run midnight to midnight; each entry counts whole for its day, the running 
 
 ### 2.2 Presets and the date popover
 
-Go to Today (`calendar.badge.clock`) goes to today (2.3). The range menu's title names the selection: the preset's name ("This month") while the range equals a preset, else the range by kind ("Wed 10/28", "Week 43", "August 2026", "2025", "Oct 5 – 18"). The menu lists the presets, the current one checked, then "Choose Dates…", which opens the date popover (⇧⌘D opens it too): the presets and a two-month calendar. The range is shared with the Activity section ([spec_planner_activity.md](spec_planner_activity.md) adds its 366-day cap), stored per device, default This week.
+Go to Today (today's day of the month on a calendar page, `31.calendar`) goes to today (2.3). The range menu's title names the selection: the preset's name ("This month") while the range equals a preset, else the range by kind ("Wed 10/28", "Week 43", "August 2026", "2025", "Oct 5 – 18"). The menu lists the presets, the current one checked, then "Choose Dates…", which opens the date popover (⇧⌘D opens it too): the presets and a two-month calendar. The range is shared with the Activity section ([spec_planner_activity.md](spec_planner_activity.md) adds its 366-day cap), stored per device, default This week.
 
 | Preset | Range (inclusive days) | Subtitle |
 |---|---|---|

@@ -19,6 +19,8 @@ struct PlannerPeriodToolbar<DateControl: View>: ToolbarContent {
     var previous: () -> Void
     var next: () -> Void
     var today: () -> Void
+    /// Today's day from the section's clock, for Go to Today's symbol.
+    var currentDay: () -> TrackingDay
     /// The section's date control, which anchors its own popover.
     @ViewBuilder var dateControl: () -> DateControl
 
@@ -40,11 +42,14 @@ struct PlannerPeriodToolbar<DateControl: View>: ToolbarContent {
         }
         .visibilityPriority(.high)
         ToolbarItem(placement: .navigation) {
-            Button(action: today) {
-                Label("Go to Today", systemImage: SymbolName.today)
+            // Re-read every minute, so the date on the symbol turns at midnight.
+            TimelineView(.everyMinute) { _ in
+                Button(action: today) {
+                    Label("Go to Today", systemImage: SymbolName.today(currentDay()))
+                }
+                .help("Go to Today")
+                .accessibilityIdentifier("\(identifier).today")
             }
-            .help("Go to Today")
-            .accessibilityIdentifier("\(identifier).today")
         }
         .visibilityPriority(.high)
         ToolbarItem(placement: .navigation) {
