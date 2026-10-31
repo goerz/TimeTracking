@@ -82,13 +82,5 @@ struct TrackerSetupStep: Identifiable, Equatable {
     /// The outcome of the row's last action, under its buttons.
     var outcome: String?
     /// The row's info button: what the step does and what to do.
-    var info: TrackerSetupInfo?
-}
-
-/// The popover of a setup row's info button.
-struct TrackerSetupInfo: Equatable {
-    var title: String
-    var paragraphs: [String]
-    /// The text to copy, shown in a monospaced box with a Copy button.
-    var snippet: String?
+    var info: SettingsInfo?
 }

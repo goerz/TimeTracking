@@ -192,93 +192,6 @@ private struct SetupStepRow<Actions: View>: View {
     }
 }
 
-/// The info button of a row: `info.circle`, opening a popover with the
-/// explanation and, where there is one, the snippet and its Copy button.
-private struct InfoButton: View {
-    var info: TrackerSetupInfo
-    @State private var shown = false
-
-    var body: some View {
-        Button {
-            shown.toggle()
-        } label: {
-            Label("About \(info.title)", systemImage: SymbolName.info).labelStyle(.iconOnly)
-        }
-        .buttonStyle(.borderless)
-        .help("About \(info.title)")
-        .popover(isPresented: $shown, arrowEdge: .trailing) {
-            InfoPopover(info: info)
-        }
-    }
-}
-
-/// The popover's content: title, paragraphs, snippet.
-private struct InfoPopover: View {
-    var info: TrackerSetupInfo
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: Design.Spacing.medium) {
-            Text(info.title).font(.headline)
-            ForEach(Array(info.paragraphs.enumerated()), id: \.offset) { _, paragraph in
-                Text(paragraph).fixedSize(horizontal: false, vertical: true)
-            }
-            if let snippet = info.snippet {
-                ScrollView(.horizontal) {
-                    Text(snippet)
-                        .font(.caption.monospaced())
-                        .textSelection(.enabled)
-                        .fixedSize()
-                        .padding(Design.Spacing.small)
-                }
-                .background(.quaternary, in: .rect(cornerRadius: Design.Radius.small))
-                HStack {
-                    Spacer()
-                    CopyButton(title: "Copy", text: snippet)
-                }
-            }
-        }
-        .padding(Design.Spacing.large)
-        .frame(width: 400)
-    }
-}
-
-/// A button that copies `text` and says so for two seconds, at the width of
-/// its longer title so nothing beside it moves (spec_design.md §7.1).
-private struct CopyButton: View {
-    var title: String
-    var text: String
-    /// Text-only beside other text buttons; with the symbols in the popover.
-    var showsIcon = true
-    @State private var copied = false
-
-    var body: some View {
-        Button {
-            Pasteboard.copy(text)
-            copied = true
-            Task {
-                try? await Task.sleep(for: .seconds(2))
-                copied = false
-            }
-        } label: {
-            if showsIcon {
-                labels.labelStyle(.titleAndIcon)
-            } else {
-                labels.labelStyle(.titleOnly)
-            }
-        }
-        .accessibilityValue(copied ? "Copied" : "")
-    }
-
-    /// Both titles, hidden, under the visible one: the button keeps its width.
-    private var labels: some View {
-        ZStack {
-            Label(title, systemImage: SymbolName.copy).hidden()
-            Label("Copied", systemImage: SymbolName.checkmark).hidden()
-            Label(copied ? "Copied" : title, systemImage: copied ? SymbolName.checkmark : SymbolName.copy)
-        }
-    }
-}
-
 /// The settings file and the activity logs: where they are, and buttons to
 /// open them. Everything the tracker can be told lives in the file.
 private struct FilesSection: View {
@@ -361,10 +274,10 @@ private struct FilesSection: View {
     }
 
     /// The maintenance commands, with today's date in the examples.
-    private var logsInfo: TrackerSetupInfo {
+    private var logsInfo: SettingsInfo {
         let today = TrackingCalendar(timeZone: .current).day(containing: app.clock.now).description
         let januaryFirst = String(today.prefix(4)) + "-01-01"
-        return TrackerSetupInfo(
+        return SettingsInfo(
             title: "Activity logs",
             paragraphs: [
                 "The tracker writes your activity to one file per month in this folder in iCloud Drive, where iPhone "

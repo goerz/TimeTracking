@@ -226,7 +226,7 @@ Every pane is a grouped `Form` 520 pt wide (`spec_design.md` §8). The window ta
 | (none) | Show the Timer window at login | off | Disabled while "Open at login" is off |
 | Menu bar and Dock | Show timer, Show seconds, Show project, During a Pomodoro, show | on, off, off, Timer and countdown | `spec_menubar.md` §6 |
 | Menu bar and Dock | Show Dock icon | on | `spec_menubar.md` §4 |
-| iCloud | "Sync" ("Up to date", "Not signed in to iCloud. Entries stay on this Mac.", "Couldn't sync with iCloud. The app will try again.") and "Widget updates" ("Instant", "Last sent at 10:42", "Off (no push key)" without a push key, with a footer saying that widgets then change only when iOS reloads them and naming `make apns-key`, "Not working" with the detail in the log) | | `spec_data_and_sync.md` §3.1, §4.3 |
+| iCloud | "Sync" ("Up to date", "Not signed in to iCloud. Entries stay on this Mac.", "Couldn't sync with iCloud. The app will try again.") and "Widget updates" ("Instant", "Last sent at 10:42", "Off (no push key)" without a push key, "Not working" with the detail in the log), followed by an info button (as in the Tracker pane, `spec_activity_tracking.md` §7.4) whose popover says that the Mac pushes each timer change to the widgets within seconds, that without the APNs key widgets change only when iOS reloads them, and how to create the key, with `make apns-key P8=…` as the snippet | | `spec_data_and_sync.md` §3.1, §4.3 |
 
 Without notification authorization, a last section shows "Notifications are off for this app." with the warning symbol and a button to the app's Notifications settings. The Pomodoro, Idle, and Reminders panes hold the settings of 5.2, 6.2, and 7, with footers that say what the durations and thresholds do.
 

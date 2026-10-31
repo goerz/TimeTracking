@@ -103,7 +103,7 @@ extension TrackerStatusModel {
         result.note = "Automation belongs to \(bundles.appName): the tracker runs on its behalf. macOS can ask only for open "
             + "apps; the others are asked the first time the tracker reads their tab or pane."
         result.outcome = automationOutcome
-        result.info = TrackerSetupInfo(title: "Automation", paragraphs: [
+        result.info = SettingsInfo(title: "Automation", paragraphs: [
             "In a browser, the tracker records the page you are on; in a terminal, the tab or tmux pane you work in "
                 + "and the program running there.",
             "With Automation, it asks Safari, Chrome, Arc, Brave, Edge, and Vivaldi for the current tab's address and "
@@ -159,7 +159,7 @@ extension TrackerStatusModel {
             result.guidance.append("Click Restart Tracker, so the running tracker gets the access.")
         }
         result.note = "The tracker runs on behalf of \(app), so macOS checks \(app)'s Full Disk Access, not \(bundles.agentName)'s."
-        result.info = TrackerSetupInfo(title: "Full Disk Access", paragraphs: [
+        result.info = SettingsInfo(title: "Full Disk Access", paragraphs: [
             "Full Disk Access lets the tracker read Safari's history and the app usage macOS records on its own.",
             "From Safari's history it lists every page you visited, not only the one on screen when the tracker last "
                 + "looked. From the usage records it fills in the apps you used while the tracker was not running, "
@@ -180,7 +180,7 @@ extension TrackerStatusModel {
             ),
             actions: [.copySnippet(TrackerSnippets.editor)]
         )
-        result.info = TrackerSetupInfo(
+        result.info = SettingsInfo(
             title: "Neovim title",
             paragraphs: [
                 "Neovim can show the path of the open file in the terminal's title, and in tmux in the pane's title. "
@@ -204,7 +204,7 @@ extension TrackerStatusModel {
             ),
             actions: [.copySnippet(TrackerSnippets.tmux)]
         )
-        result.info = TrackerSetupInfo(
+        result.info = SettingsInfo(
             title: "tmux hooks",
             paragraphs: [
                 "With these hooks, tmux tells the tracker when you change session, window, or pane, and when the "
@@ -228,7 +228,7 @@ extension TrackerStatusModel {
             ),
             actions: [.copySnippet(TrackerSnippets.agentHooks)]
         )
-        result.info = TrackerSetupInfo(
+        result.info = SettingsInfo(
             title: "Claude Code hooks",
             paragraphs: [
                 "With these hooks, Claude Code tells the tracker when you submit a prompt, when it stops working, "
