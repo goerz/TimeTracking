@@ -6,7 +6,7 @@ The Reports section of the main window shows where the time went in a date range
 
 From top to bottom: the filter bar while filters are active (3), four tiles, the chart card (fixed 280 pt high), and a card holding either the breakdown table or the entry list, chosen by a segmented control. The lower card fills the rest and scrolls. Below 700 pt of content height the tiles collapse into one line and the chart shrinks to 180 pt. Tiles and cards are filled cards of [spec_design.md](spec_design.md) §3; tile values use the metric style (§1 there).
 
-The window title is "Reports" and its subtitle the range label ("This week · W44"). Toolbar ([spec_design.md](spec_design.md) §4): leading the previous- and next-period arrows and Today with the date menu (2.2); trailing Filters, the granularity menu ("Show Totals By"), Print, and Export. The chart card's header holds "Logged time" and "Stack by"; the lower card's header the segmented control (Breakdown | Entries), the level chain, and Expand All / Collapse All.
+The window title is "Reports" and its subtitle the range label ("This week · W44"). Toolbar ([spec_design.md](spec_design.md) §4): leading the previous- and next-period arrows, Go to Today, and the range menu (2.2); trailing Filters, the granularity menu ("Show Totals By"), Print, and Export. The chart card's header holds "Logged time" and "Stack by"; the lower card's header the segmented control (Breakdown | Entries), the level chain, and Expand All / Collapse All.
 
 ## 2. Date range
 
@@ -16,9 +16,9 @@ Days run midnight to midnight; each entry counts whole for its day, the running 
 
 ### 2.2 Presets and the date popover
 
-A click on Today goes to today (2.3). Today's menu lists the presets, the current one checked, then "Choose Dates…", which opens the date popover (⇧⌘D opens it too): the presets and a two-month calendar. The range is shared with the Activity section ([spec_planner_activity.md](spec_planner_activity.md) adds its 366-day cap), stored per device, default This week.
+Go to Today (`calendar.badge.clock`) goes to today (2.3). The range menu's title names the selection: the preset's name ("This month") while the range equals a preset, else the range by kind ("Wed 10/28", "Week 43", "August 2026", "2025", "Oct 5 – 18"). The menu lists the presets, the current one checked, then "Choose Dates…", which opens the date popover (⇧⌘D opens it too): the presets and a two-month calendar. The range is shared with the Activity section ([spec_planner_activity.md](spec_planner_activity.md) adds its 366-day cap), stored per device, default This week.
 
-| Preset | Range (inclusive days) | Button label |
+| Preset | Range (inclusive days) | Subtitle |
 |---|---|---|
 | Today | Today | "Today · Thu 10/29" |
 | Yesterday | Yesterday | "Yesterday · Wed 10/28" |
@@ -54,7 +54,7 @@ The arrows shift the range by its own unit and keep its kind.
 | Any other n days | The n days before its first day / after its last day |
 | All time | Arrows disabled |
 
-After a shift the label names the range by kind ("Week 43 · Oct 19 – 25", "September 2026", "2025", "Oct 5 – 18, 2026"), and the preset lists (Today's menu, the popover) mark a preset only when the range equals it. "Go to Today" (⌘T, a click on Today) applies the current kind to today: a shifted week becomes This week, a shifted month This month, n days the n days ending today.
+After a shift the label names the range by kind ("Week 43 · Oct 19 – 25", "September 2026", "2025", "Oct 5 – 18, 2026"), and the preset lists (the range menu, the popover) mark a preset only when the range equals it. "Go to Today" (⌘T, the toolbar button) applies the current kind to today: a shifted week becomes This week, a shifted month This month, n days the n days ending today.
 
 ## 3. Filters
 
@@ -212,7 +212,7 @@ The router's `showReports(range:filter:)` sets the range, replaces the filters (
 - PR-6. The task filter "noise" matches "Clarify Noise Model"; "grosse" matches "Große".
 - PR-7. After a project moves to another area, last year's report by area shows its time under the new area.
 - PR-8. The arrows shift as in 2.3: Week to date goes to the full previous week; This month shifted back twice from October is August; Last 7 days shifts by 7 days; All time disables both.
-- PR-9. Go to Today from a shifted week selects This week, and from a custom 10-day range the 10 days ending today; the preset list highlights a preset exactly when the range equals it.
+- PR-9. Go to Today from a shifted week selects This week, and from a custom 10-day range the 10 days ending today; the preset list highlights a preset exactly when the range equals it, and the range menu's title is that preset's name, else the range by kind ("Week 41", "August 2026").
 - PR-10. Changing the range in Reports changes it in Activity, and the reverse; a stored "This week" restored in a later week shows the later week.
 - PR-11. Double-clicking a day bar makes that day the range; ⌘[ restores the previous range and a second ⌘[ does nothing.
 - PR-12. "This week" on Thursday draws seven slots, Friday to Sunday without bar or label; the average line's value equals the Average per day tile.

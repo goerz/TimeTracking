@@ -65,6 +65,10 @@ public enum SymbolName {
 
     public static let previous = "chevron.left"
     public static let next = "chevron.right"
+    /// Go to Today in the Calendar, Reports, and Activity.
+    public static let today = "calendar.badge.clock"
+    /// The Calendar's Go to Date… (its date picker).
+    public static let goToDate = "calendar"
     /// A collapsed row (`next`) opens to `expanded`.
     public static let expanded = "chevron.down"
     public static let ascending = "chevron.up"

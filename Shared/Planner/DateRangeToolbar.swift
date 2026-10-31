@@ -1,5 +1,5 @@
 // DateRangeToolbar: the shared range's toolbar items (the period arrows,
-// Today, and its menu of presets) and the date popover
+// Today, and the range menu titled by the selection) and the date popover
 // (spec_planner_reports.md §2). Activity uses the same items on the same model.
 
 import SwiftUI
@@ -29,14 +29,26 @@ struct DateRangeToolbar: ToolbarContent {
                 onChange()
             },
             today: today,
-            dateMenu: { DateRangeMenu(range: range, showsPopover: $showsPopover, onChange: onChange) },
-            showsPopover: $showsPopover,
-            datePopover: { DateRangePopover(range: range, onChange: onChange) }
+            dateControl: { rangeMenu }
         )
+    }
+
+    /// Titled by the selection; anchors the date popover.
+    private var rangeMenu: some View {
+        Menu {
+            DateRangeMenu(range: range, showsPopover: $showsPopover, onChange: onChange)
+        } label: {
+            Text(range.menuTitle)
+        }
+        .help("Date Range")
+        .accessibilityIdentifier("range.menu")
+        .popover(isPresented: $showsPopover, arrowEdge: .bottom) {
+            DateRangePopover(range: range, onChange: onChange)
+        }
     }
 }
 
-/// Today's menu: the presets, the current one checked, then "Choose Dates…".
+/// The range menu: the presets, the current one checked, then "Choose Dates…".
 struct DateRangeMenu: View {
     var range: DateRangeModel
     @Binding var showsPopover: Bool

@@ -19,21 +19,7 @@ struct CalendarToolbar: ToolbarContent {
             previous: { shift(-1) },
             next: { shift(1) },
             today: { Task { await model.goToToday() } },
-            dateMenu: {
-                Button("Go to Date…") { model.showsMonthPicker = true }
-                    .accessibilityIdentifier("calendar.range")
-            },
-            showsPopover: $model.showsMonthPicker,
-            datePopover: {
-                DatePicker("First day", selection: $pickedDate, displayedComponents: .date)
-                    .datePickerStyle(.graphical)
-                    .labelsHidden()
-                    .padding(Design.Spacing.large)
-                    .onChange(of: pickedDate) { _, date in
-                        model.showsMonthPicker = false
-                        Task { await model.showDay(model.calendar.day(containing: date)) }
-                    }
-            }
+            dateControl: { goToDate }
         )
         ToolbarItem(placement: .primaryAction) {
             Picker("Days", selection: Binding { model.visibleDays } set: { count in Task { await model.setVisibleDays(count) } }) {
@@ -80,6 +66,25 @@ struct CalendarToolbar: ToolbarContent {
                 .accessibilityIdentifier("calendar.fillDay")
         }
         .visibilityPriority(.high)
+    }
+
+    /// Go to Date…: a month picker whose chosen day becomes the first visible day.
+    private var goToDate: some View {
+        Button { model.showsMonthPicker = true } label: {
+            Label("Go to Date…", systemImage: SymbolName.goToDate)
+        }
+        .help("Go to Date…")
+        .accessibilityIdentifier("calendar.range")
+        .popover(isPresented: $model.showsMonthPicker, arrowEdge: .bottom) {
+            DatePicker("First day", selection: $pickedDate, displayedComponents: .date)
+                .datePickerStyle(.graphical)
+                .labelsHidden()
+                .padding(Design.Spacing.large)
+                .onChange(of: pickedDate) { _, date in
+                    model.showsMonthPicker = false
+                    Task { await model.showDay(model.calendar.day(containing: date)) }
+                }
+        }
     }
 
     /// 1, 3, 5, 7, and the current count when it is 2, 4, or 6.

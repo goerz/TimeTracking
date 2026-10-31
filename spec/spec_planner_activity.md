@@ -8,7 +8,7 @@ Vocabulary: an item has a context (an app, a terminal session such as `tmux:pape
 
 ## 1. Layout
 
-The window title is "Activity" and its subtitle the range label. The toolbar follows [spec_design.md](spec_design.md) §4: leading the period arrows and Today with its date menu, trailing the device popup (1.2). Below it, from top to bottom: the header (1.2), the context chips (1.3), the panels, and the health footer (1.10). The footer stays fixed; the rest scrolls. Panels are cards (12 point corner radius, 16 point padding, 16 point gaps), in two columns above 1100 points of content width and one column below, in the order heatmap, by-day chart, Apps (the contexts), Subjects, In the background, Away.
+The window title is "Activity" and its subtitle the range label. The toolbar follows [spec_design.md](spec_design.md) §4: leading the period arrows, Go to Today, and the range menu, trailing the device popup (1.2). Below it, from top to bottom: the header (1.2), the context chips (1.3), the panels, and the health footer (1.10). The footer stays fixed; the rest scrolls. Panels are cards (12 point corner radius, 16 point padding, 16 point gaps), in two columns above 1100 points of content width and one column below, in the order heatmap, by-day chart, Apps (the contexts), Subjects, In the background, Away.
 
 ### 1.1 Date range
 

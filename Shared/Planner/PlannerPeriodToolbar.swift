@@ -1,14 +1,15 @@
 // PlannerPeriodToolbar: the leading toolbar items that Calendar, Reports,
-// and Activity share: the period arrows and Today with its date menu
-// (spec_design.md §4; spec_planner_projects.md §1.1).
+// and Activity share: the period arrows, Today, and the section's date
+// control (spec_design.md §4; spec_planner_projects.md §1.1).
 
 import SwiftUI
 import TimeTrackingCore
 
-/// Previous and next as one control group, then Today; Today's menu holds
-/// the section's date choices. The items sit in `.navigation`, so they keep
-/// their place when the section changes.
-struct PlannerPeriodToolbar<DateMenu: View, DatePopover: View>: ToolbarContent {
+/// Previous and next as one control group, then Today, then the section's
+/// date control (Calendar: Go to Date…; Reports and Activity: the range
+/// menu). The items sit in `.navigation`, so they keep their place when the
+/// section changes.
+struct PlannerPeriodToolbar<DateControl: View>: ToolbarContent {
     /// "Previous Day", "Previous Period".
     var previousTitle: String
     var nextTitle: String
@@ -18,10 +19,8 @@ struct PlannerPeriodToolbar<DateMenu: View, DatePopover: View>: ToolbarContent {
     var previous: () -> Void
     var next: () -> Void
     var today: () -> Void
-    @ViewBuilder var dateMenu: () -> DateMenu
-    /// The date popover, anchored to Today.
-    @Binding var showsPopover: Bool
-    @ViewBuilder var datePopover: () -> DatePopover
+    /// The section's date control, which anchors its own popover.
+    @ViewBuilder var dateControl: () -> DateControl
 
     var body: some ToolbarContent {
         // One group, so the system draws the arrows as one glass capsule.
@@ -41,16 +40,15 @@ struct PlannerPeriodToolbar<DateMenu: View, DatePopover: View>: ToolbarContent {
         }
         .visibilityPriority(.high)
         ToolbarItem(placement: .navigation) {
-            Menu {
-                dateMenu()
-            } label: {
-                Text("Today")
-            } primaryAction: {
-                today()
+            Button(action: today) {
+                Label("Go to Today", systemImage: SymbolName.today)
             }
             .help("Go to Today")
             .accessibilityIdentifier("\(identifier).today")
-            .popover(isPresented: $showsPopover, arrowEdge: .bottom, content: datePopover)
+        }
+        .visibilityPriority(.high)
+        ToolbarItem(placement: .navigation) {
+            dateControl()
         }
         .visibilityPriority(.high)
     }

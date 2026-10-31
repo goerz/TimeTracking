@@ -47,6 +47,11 @@ final class DateRangeModel {
         range.label(today: today, earliest: earliest)
     }
 
+    /// The range menu's title: "This month", "Week 43".
+    var menuTitle: String {
+        range.menuTitle(today: today, earliest: earliest)
+    }
+
     var canShift: Bool {
         range.canShift
     }

@@ -1,4 +1,5 @@
-// The date-range button's labels (spec_planner_reports.md §2.2, §2.3).
+// The date range's labels: the subtitle and the range menu's title
+// (spec_planner_reports.md §2.2, §2.3).
 
 import Foundation
 
@@ -32,6 +33,34 @@ extension ReportRange {
             case .days:
                 return DayText.span(range, withYear: true)
             }
+        }
+    }
+}
+
+extension ReportRange {
+    /// The range menu's title, naming the selection: the preset's name while
+    /// the range equals one ("This month"), else the range by kind
+    /// ("Wed 10/28", "Week 43", "August 2026", "2025", "Oct 5 – 18").
+    public func menuTitle(today: TrackingDay, earliest: TrackingDay?) -> String {
+        if case let .preset(preset) = self {
+            return preset.title
+        }
+        if let preset = matchingPresets(today: today, earliest: earliest).first {
+            return preset.title
+        }
+        let range = days(today: today, earliest: earliest)
+        let first = range.lowerBound
+        switch unit {
+        case .day:
+            return DayText.weekdayShortDate(first)
+        case .week:
+            return "Week \(first.isoWeek.week)"
+        case .month:
+            return DayText.monthYear(first)
+        case .year:
+            return String(first.year)
+        case .days, nil:
+            return DayText.span(range, withYear: false)
         }
     }
 }

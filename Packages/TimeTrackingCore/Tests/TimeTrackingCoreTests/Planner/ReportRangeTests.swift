@@ -84,6 +84,22 @@ struct ReportRangeTests {
         #expect(ReportRange.preset(.thisMonth).shifted(by: -1, today: today)?.goingToToday(today: today) == .preset(.thisMonth))
     }
 
+    @Test("PR-9 the range menu's title is the preset's name exactly when the range equals a preset, else the range by kind")
+    func menuTitle() throws {
+        func title(_ range: ReportRange?) -> String? {
+            range?.menuTitle(today: today, earliest: nil)
+        }
+        #expect(title(.preset(.thisMonth)) == "This month")
+        let week = ReportRange.preset(.thisWeek)
+        #expect(title(week.shifted(by: -1, today: today)) == "Last week")
+        #expect(title(week.shifted(by: -3, today: today)) == "Week 41")
+        #expect(title(week.shifted(by: -3, today: today)?.shifted(by: 3, today: today)) == "This week")
+        #expect(title(ReportRange.preset(.thisMonth).shifted(by: -2, today: today)) == "August 2026")
+        #expect(title(ReportRange.preset(.thisYear).shifted(by: -2, today: today)) == "2024")
+        #expect(title(ReportRange.preset(.today).shifted(by: -2, today: today)) == "Tue 10/27")
+        #expect(try title(ReportRange.days(day("2026-10-05"), day("2026-10-18"))) == "Oct 5 – 18")
+    }
+
     @Test("PR-10 a stored This week restored in a later week shows the later week")
     func storedRange() throws {
         let data = try JSONEncoder().encode(ReportRange.preset(.thisWeek))
