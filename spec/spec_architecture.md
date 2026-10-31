@@ -122,7 +122,7 @@ All builds are development-signed with automatic provisioning (`-allowProvisioni
 
 | Target | Entitlements | Sandbox |
 |---|---|---|
-| `TimeTracking` | App Group; iCloud (CloudKit, iCloud Documents, `TT_CLOUDKIT_CONTAINER`); `aps-environment`; calendars | no |
+| `TimeTracking` | Apple Events; App Group; iCloud (CloudKit, iCloud Documents, `TT_CLOUDKIT_CONTAINER`); `aps-environment`; calendars | no |
 | `TimeTrackingAgent` | Apple Events; App Group; iCloud as the app; `aps-environment` | no |
 | `TimeTrackingCLI` | App Group | no |
 | `TrackerEvent` | none | no |
@@ -132,7 +132,7 @@ All builds are development-signed with automatic provisioning (`-allowProvisioni
 | `TimeTrackingMonitor` | App Group; Family Controls | yes |
 | `TimeTrackingWebExtension` | App Group | yes |
 
-Mac targets use the hardened runtime. Sending pushes needs only the auth key (2.4), no entitlement. Info.plists: the Mac app carries `NSCalendarsFullAccessUsageDescription`, the URL scheme, and `NSSupportsAutomaticTermination` false; the agent `NSAppleEventsUsageDescription`; the iOS app `NSCalendarsFullAccessUsageDescription`, `UIBackgroundModes` (`fetch`, `remote-notification`), `BGTaskSchedulerPermittedIdentifiers`, and the URL scheme.
+Mac targets use the hardened runtime. Sending pushes needs only the auth key (2.4), no entitlement. Info.plists: the Mac app carries `NSCalendarsFullAccessUsageDescription`, `NSAppleEventsUsageDescription`, the URL scheme, and `NSSupportsAutomaticTermination` false; the agent `NSAppleEventsUsageDescription`; the iOS app `NSCalendarsFullAccessUsageDescription`, `UIBackgroundModes` (`fetch`, `remote-notification`), `BGTaskSchedulerPermittedIdentifiers`, and the URL scheme.
 
 After building, `build-mac` verifies the Release products (app, agent, both tools present; no `get-task-allow` or `com.apple.security.cs.` entitlement; hardened runtime; entitlements exactly as in the table; launchd plist names the agent) and fails on any violation.
 

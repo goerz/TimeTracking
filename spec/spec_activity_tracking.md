@@ -184,7 +184,7 @@ The agent, `TimeTrackingAgent.app`, is a headless login item with `KeepAlive` (b
 | `--replay <fixture>` | Runs the Blocker over a recorded sample stream, compares with `<fixture>.expected.jsonl`, exits non-zero on a difference |
 | `--unregister` | Removes the login item registration and exits |
 
-Permissions: Accessibility (required), granted to `TimeTrackingAgent.app`; Automation per browser and scriptable terminal, prompted at first use; Full Disk Access (optional) for the Knowledge store and Safari's history and synced tabs, granted to the app because the agent runs on its behalf. A new Full Disk Access grant reached the running agent only after a restart, so the Tracker pane offers "Restart Tracker" (7.4).
+Permissions: Accessibility (required), granted to `TimeTrackingAgent.app`; Automation per browser and scriptable terminal, prompted at first use and, like Full Disk Access, checked for the app because the agent runs on its behalf (so the app carries the Apple Events entitlement and `NSAppleEventsUsageDescription` as well as the agent; without them macOS refuses the agent's Apple Events with `-1743` and never asks); Full Disk Access (optional) for the Knowledge store and Safari's history and synced tabs, granted to the app because the agent runs on its behalf. A new Full Disk Access grant reached the running agent only after a restart, so the Tracker pane offers "Restart Tracker" (7.4).
 
 ## 6. Other Apple devices
 

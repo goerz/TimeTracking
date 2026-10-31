@@ -17,6 +17,8 @@
 	</array>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.productivity</string>
+	<key>NSAppleEventsUsageDescription</key>
+	<string>The tracker asks terminals and browsers which window, tab, or document is in front, to record where your attention goes.</string>
 	<key>NSCalendarsFullAccessUsageDescription</key>
 	<string>The Calendar section shows your time blocks and the calendar events you choose next to your tracked time.</string>
 	<key>NSSupportsAutomaticTermination</key>
