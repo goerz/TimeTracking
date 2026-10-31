@@ -26,9 +26,13 @@ Window > Planner (⌥⌘P) opens the window on the last selected section, or bri
 | View | Projects, Calendar, Reports, Activity | ⌘1 to ⌘4 | Planner window is key |
 | View | Clients & Areas | ⌥⌘1 | Planner key; selects Projects and shows Clients & Areas (4) |
 | View | Show/Hide Sidebar | ⌃⌘S | Planner key |
-| Edit | Find | ⌘F | Planner key; focuses the section's search field |
+| View | Go to Today | ⌘T | Calendar, Reports, Activity |
+| View | Previous Period / Next Period | ⌥⌘← / ⌥⌘→ | Reports, Activity |
+| View | Date Range… | ⇧⌘D | Reports, Activity |
+| View | Calendar, Report, Activity submenus | | Each enabled only while its section shows |
+| Edit | Find | ⌘F | Projects and Reports; focuses the section's search field |
 
-The Timer window's selection commands (⌘P, ⌘E, ⌘⌫, ⌘F) act only while it is key ([spec_timer_window.md](spec_timer_window.md) §9); Planner sections define their own.
+The main menu is the same in both windows ([spec_timer_window.md](spec_timer_window.md) §9): a Planner command is listed while the Timer window is key, disabled and without its key equivalent, so the Timer window's commands on the same keys (⌘P, ⌘E, ⌘⌫, ⌘F) reach the Timer window, and the reverse.
 
 ### 1.3 Router
 
@@ -103,7 +107,7 @@ Empty states: "No projects match" with "Clear Filters"; with no projects at all,
 
 ### 2.5 Actions
 
-Rows support extended selection and ⌘A. Right-click or ⋯ opens the context menu for the selection; the same commands form a "Project" menu while Projects is active.
+Rows support extended selection and ⌘A. Right-click or ⋯ opens the context menu for the selection; the same commands form the Project menu, enabled while Projects shows its table.
 
 | Action | Applies to | Effect | Shortcut |
 |---|---|---|---|
@@ -116,7 +120,7 @@ Rows support extended selection and ⌘A. Right-click or ⋯ opens the context m
 | Merge Into… | One project | Picker of all other projects (any state, any client), then "Move N entries of “X” to “Y” and delete “X”?"; calls `merge(project:into:)` | |
 | Delete… | Projects without entries | "Delete “X”? This cannot be undone."; disabled with tooltip "Has N entries; archive it instead" otherwise | ⌘⌫ |
 | Show in Reports | One project | `showReports` with this project as the only filter and range "All time" | ⇧⌘R |
-| Copy Name | Selection | Names, one per line | ⌘C |
+| Copy Name | Selection | Names, one per line | ⌘C (Edit › Copy) |
 
 A mixed selection offers both Archive and Restore, each applying to the rows it fits. Archive, Restore, Rename, and dialog edits are undoable (⌘Z) while the Planner is key; the window's undo stack is cleared when it closes. Delete and Merge Into are not undoable.
 

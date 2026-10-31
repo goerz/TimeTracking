@@ -47,6 +47,8 @@ final class ActivityModel {
     var showsMore = false
     var showsAllContexts = false
     var showsAllSubjects = false
+    /// The date popover, also opened by View › Date Range… (⇧⌘D).
+    var showsDatePopover = false
     /// The focused heatmap cell (row id, hour) for the arrow keys.
     var focusedCell: (row: Int, hour: Int)?
 

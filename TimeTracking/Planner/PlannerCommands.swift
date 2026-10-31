@@ -1,121 +1,52 @@
-// PlannerCommands: the View, Project, Report, File, and Edit commands of the
-// Planner (spec_planner_projects.md §1.2, §2.5; spec_planner_reports.md §7, §8).
+// PlannerCommands: the File menu's Export and Print and the Project menu
+// (spec_planner_projects.md §2.5, §4; spec_planner_reports.md §7, §8).
 
 import SwiftUI
 import TimeTrackingCore
 
-/// Which Planner commands apply: sections while the Planner is key, the
-/// Project menu while Projects shows its table, Report while Reports shows.
-struct PlannerMenuState: Equatable {
-    var plannerKey: Bool
-    var section: PlannerSection
-    var showsClientsAndAreas: Bool
-    /// A popover, editor, or sheet of the Calendar takes the plain keys.
-    var calendarEditing = false
-
-    var calendarCommands: Bool {
-        plannerKey && section == .calendar
-    }
-
-    /// Whether a Calendar command's menu item is enabled (plain keys only
-    /// while nothing takes text input).
-    func isEnabled(_ command: CalendarKeyCommand) -> Bool {
-        calendarCommands && (command.shortcut.modifiers.contains(.command) || !calendarEditing)
-    }
-
-    /// Activity's range shortcuts and its submenu.
-    var activityCommands: Bool {
-        plannerKey && section == .activity
-    }
-
-    var sectionCommands: Bool {
-        plannerKey
-    }
-
-    var projectCommands: Bool {
-        plannerKey && section == .projects && !showsClientsAndAreas
-    }
-
-    var clientsAndAreasCommands: Bool {
-        plannerKey && section == .projects && showsClientsAndAreas
-    }
-
-    var reportCommands: Bool {
-        plannerKey && section == .reports
-    }
-}
-
-/// The Planner's menu commands.
+/// The Planner's own menu commands; the View menu's are in `ViewCommands`.
 struct PlannerCommands: Commands {
     var host: AppHost
+    @FocusedValue(\.timerWindowActive) private var timerActive
     @FocusedValue(\.plannerWindowActive) private var plannerActive
 
     private var router: PlannerRouter? {
         host.model?.planner
     }
 
-    private var state: PlannerMenuState {
-        PlannerMenuState(
-            plannerKey: plannerActive ?? false,
-            section: router?.section ?? .projects,
-            showsClientsAndAreas: router?.projects.showsClientsAndAreas ?? false,
-            calendarEditing: router?.calendar.takesTextInput ?? false
-        )
+    private var state: MenuState {
+        MenuState(host: host, timerKey: timerActive ?? false, plannerKey: plannerActive ?? false)
     }
 
     var body: some Commands {
-        SidebarCommands()
-        CommandGroup(before: .sidebar) {
-            ForEach(PlannerSection.allCases) { section in
-                Button(section.title) { router?.select(section) }
-                    .keyboardShortcut(KeyEquivalent(section.key))
-                    .disabled(!state.sectionCommands)
-            }
-            Button("Clients & Areas") { router?.showClientsAndAreas() }
-                .keyboardShortcut("1", modifiers: [.command, .option])
-                .disabled(!state.sectionCommands)
-            if state.reportCommands, let reports = router?.reports {
-                ReportMenu(model: reports)
-            }
-            if state.calendarCommands, let calendar = router?.calendar {
-                CalendarViewMenu(model: calendar, state: state)
-            }
-            if state.activityCommands, let activity = router?.activity {
-                ActivityMenu(model: activity)
-            }
-            Divider()
-        }
-        CommandMenu("Entry") {
-            if let calendar = router?.calendar {
-                CalendarEntryItems(model: calendar, state: state)
-            }
-        }
         CommandMenu("Project") {
             if let projects = router?.projects {
                 Button("New Project…") { projects.newProject() }
-                    .keyboardShortcut("n", modifiers: [.command, .option])
-                    .disabled(!state.projectCommands)
+                    .contextCommand(KeyboardShortcut("n", modifiers: [.command, .option]), enabled: state.projectCommands)
                 ProjectMenuItems(model: projects, enabled: state.projectCommands)
                 Divider()
+                // ⌥⌘N is New Project in the table, New Client in Clients & Areas.
                 Button("New Client") { Task { await projects.clientsAndAreas.newClient() } }
-                    .disabled(!state.clientsAndAreasCommands)
+                    .contextCommand(KeyboardShortcut("n", modifiers: [.command, .option]), enabled: state.clientsAndAreasCommands)
                 Button("New Area…") { Task { await projects.clientsAndAreas.newArea() } }
-                    .keyboardShortcut("n", modifiers: [.command, .option, .shift])
-                    .disabled(!state.clientsAndAreasCommands || projects.clientsAndAreas.selectedClient == nil)
+                    .contextCommand(
+                        KeyboardShortcut("n", modifiers: [.command, .option, .shift]),
+                        enabled: state.clientsAndAreasCommands && projects.clientsAndAreas.selectedClient != nil
+                    )
                 AreaMoveItems(model: projects.clientsAndAreas, enabled: state.clientsAndAreasCommands)
             }
         }
         CommandGroup(after: .importExport) {
-            if state.reportCommands, let reports = router?.reports {
-                Button("Export…") { reports.requestExport() }
-                    .keyboardShortcut("e", modifiers: [.command, .shift])
-            }
+            Button("Export…") { router?.reports.requestExport() }
+                .contextCommand(KeyboardShortcut("e", modifiers: [.command, .shift]), enabled: state.reportCommands)
         }
         CommandGroup(replacing: .printItem) {
-            if state.reportCommands, let reports = router?.reports {
-                Button("Print…") { ReportPrinter.print(reports) }
-                    .keyboardShortcut("p")
+            Button("Print…") {
+                if let reports = router?.reports {
+                    ReportPrinter.print(reports)
+                }
             }
+            .contextCommand(KeyboardShortcut("p"), enabled: state.reportCommands)
         }
     }
 }
@@ -127,13 +58,11 @@ private struct ProjectMenuItems: View {
 
     var body: some View {
         Button("Start Timer") { Task { await model.startTimerOnSelection() } }
-            .keyboardShortcut(.return, modifiers: .command)
-            .disabled(!enabled || !model.canStartTimer)
+            .contextCommand(KeyboardShortcut(.return, modifiers: .command), enabled: enabled && model.canStartTimer)
         Button("Edit…") { model.editSelection() }
             .disabled(!enabled || model.single == nil)
         Button("Rename") { model.renaming = model.single?.id }
-            .keyboardShortcut(.return, modifiers: .option)
-            .disabled(!enabled || model.single == nil)
+            .contextCommand(KeyboardShortcut(.return, modifiers: .option), enabled: enabled && model.single != nil)
         Button(model.canArchive || !model.canRestore ? "Archive" : "Restore") {
             Task {
                 if model.canArchive {
@@ -147,13 +76,11 @@ private struct ProjectMenuItems: View {
         Button("Merge Into…") { model.mergeSource = model.single?.id }
             .disabled(!enabled || model.single == nil)
         Button("Delete…") { model.requestDelete() }
-            .keyboardShortcut(.delete, modifiers: .command)
-            .disabled(!enabled || !model.canDelete)
+            .contextCommand(KeyboardShortcut(.delete, modifiers: .command), enabled: enabled && model.canDelete)
         Button("Show in Reports") { Task { await model.showInReports() } }
-            .keyboardShortcut("r", modifiers: [.command, .shift])
-            .disabled(!enabled || model.single == nil)
+            .contextCommand(KeyboardShortcut("r", modifiers: [.command, .shift]), enabled: enabled && model.single != nil)
+        // ⌘C is Edit › Copy, which copies the same names from the table.
         Button("Copy Name") { model.router?.copyText(model.copyNames()) }
-            .keyboardShortcut("c")
             .disabled(!enabled || model.selection.isEmpty)
     }
 }
@@ -176,58 +103,12 @@ private struct AreaMoveItems: View {
                 Task { await model.move(id, by: -1) }
             }
         }
-        .keyboardShortcut(.upArrow, modifiers: [.command, .option])
-        .disabled(!enabled || !(area?.canMoveUp ?? false))
+        .contextCommand(KeyboardShortcut(.upArrow, modifiers: [.command, .option]), enabled: enabled && (area?.canMoveUp ?? false))
         Button("Move Down") {
             if let id = area?.id {
                 Task { await model.move(id, by: 1) }
             }
         }
-        .keyboardShortcut(.downArrow, modifiers: [.command, .option])
-        .disabled(!enabled || !(area?.canMoveDown ?? false))
-    }
-}
-
-/// View › Report (spec_planner_reports.md §8).
-private struct ReportMenu: View {
-    var model: ReportsModel
-
-    var body: some View {
-        Menu("Report") {
-            PlannerMenuItems.reportPeriod(model)
-            Button("Go to Today") { Task { await model.goToToday() } }
-                .keyboardShortcut("t")
-            PlannerMenuItems.reportRange(model)
-            Divider()
-            ReportViewItems(model: model)
-        }
-    }
-}
-
-/// The Report submenu's filter, card, chart, and table commands.
-private struct ReportViewItems: View {
-    var model: ReportsModel
-
-    var body: some View {
-        PlannerMenuItems.reportFilters(model)
-        Divider()
-        PlannerMenuItems.reportCards(model)
-        Divider()
-        Menu("Show Totals By") {
-            Button("Automatic") { Task { await model.setGranularity(nil) } }
-            ForEach([Granularity.day, .week, .month, .year], id: \.self) { granularity in
-                Button(granularity.title) { Task { await model.setGranularity(granularity) } }
-            }
-        }
-        Menu("Stack By") {
-            ForEach(StackKind.allCases, id: \.self) { kind in
-                Button(kind.title) { Task { await model.setStack(kind) } }
-            }
-        }
-        Divider()
-        Button("Expand All") { model.expandAll() }
-            .keyboardShortcut(.rightArrow, modifiers: [.command, .shift])
-        Button("Collapse All") { model.collapseAll() }
-            .keyboardShortcut(.leftArrow, modifiers: [.command, .shift])
+        .contextCommand(KeyboardShortcut(.downArrow, modifiers: [.command, .option]), enabled: enabled && (area?.canMoveDown ?? false))
     }
 }

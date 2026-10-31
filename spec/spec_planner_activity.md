@@ -117,7 +117,7 @@ A one-line footer. On the Mac it shows the Tracker pane's status dot and line fr
 | Toggle a focused chip or row | Space |
 | Leave a subject drill-down, else clear the filter | Escape |
 
-Every action is also in an "Activity" submenu of the View menu while the section is shown, plus "Exclude from Tracking…" for the selected context or site row (no shortcut).
+Every action is also a menu item, enabled while the section is shown: the range commands are View › Go to Today, Previous Period, Next Period, and Date Range… (shared with Reports), and the "Activity" submenu of the View menu holds Clear Filter or Back (Escape's two steps) and "Exclude from Tracking…" for the selected context or site row (no shortcut).
 
 ## 3. Drill-down into the Calendar
 

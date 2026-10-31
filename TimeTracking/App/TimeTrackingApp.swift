@@ -39,8 +39,10 @@ struct TimeTrackingApp: App {
         .windowStyle(.hiddenTitleBar)
         .windowResizability(.contentMinSize)
         .defaultSize(TimerWindowGeometry.defaultFullSize)
-        .commands {
-            TimerCommands(host: delegate.host)
+        // The scene's own Window menu item would list the Timer a second
+        // time next to Window › Timer Window; the main menu replaces it.
+        .commandsReplaced {
+            MainMenuCommands(host: delegate.host)
         }
 
         Window("Planner", id: "planner") {
@@ -54,9 +56,8 @@ struct TimeTrackingApp: App {
         .restorationBehavior(.disabled)
         .defaultSize(width: 1360, height: 840)
         .windowResizability(.contentMinSize)
-        .commands {
-            PlannerCommands(host: delegate.host)
-        }
+        // Window › Planner (in MainMenuCommands) replaces the scene's item.
+        .commandsRemoved()
 
         Settings {
             HostedContent(host: delegate.host) { app in

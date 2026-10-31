@@ -7,7 +7,6 @@ import TimeTrackingCore
 /// The Activity section.
 struct ActivityView: View {
     @Bindable var model: ActivityModel
-    @State private var showsDatePopover = false
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
@@ -36,7 +35,7 @@ struct ActivityView: View {
             .navigationBarTitleDisplayMode(.inline)
         #endif
             .toolbar {
-                DateRangeToolbar(range: model.range, showsPopover: $showsDatePopover) {
+                DateRangeToolbar(range: model.range, showsPopover: $model.showsDatePopover) {
                     model.range.goToToday()
                     Task { await model.reload() }
                 } onChange: {

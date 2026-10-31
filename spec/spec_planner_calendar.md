@@ -208,7 +208,7 @@ Fixtures (a synthetic week of blocks in block-log format, entries, calendar titl
 | Time block | Create Entry…, Edit…, Delete |
 | External event | Create Entry…, Open in Calendar, Hide This Calendar |
 
-Each key is an item of the Planner's View or Entry menu while the section is shown:
+Each key is an item of the main menu, enabled while the section is shown ([spec_timer_window.md](spec_timer_window.md) §9): ⌘T is View › Go to Today, the other view keys are the View › Calendar submenu, and the selection keys and Fill Day are the Entry menu, where Return and Delete are the Entry menu's Edit and Delete items:
 
 | Key | Effect |
 |---|---|

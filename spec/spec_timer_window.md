@@ -252,29 +252,44 @@ Window > Timer Window and the menu bar's "Show Timer Window" display the show/hi
 
 ## 9. Menus and keyboard
 
-"Timer key" commands are enabled only while the Timer window is key; the Planner sections define their own commands on the same keys.
+This section owns the main menu as a whole; the Planner specs list their sections' commands. The menu bar is the same in both windows: every menu and item is always listed, and an item that applies to one window or section is disabled elsewhere rather than hidden. Such an item holds its key equivalent only while it is enabled, because AppKit sends a key equivalent to the first item that has it, even a disabled one; this lets one key serve several contexts (⌘P is Set Project… in the Timer window and Print… in Reports) and keeps a disabled item from taking a key from a text field. A command that several contexts share is one item acting on the key window: Find, Go to Today, Previous and Next Period, Edit, and Delete.
+
+| Menu | Holds |
+|---|---|
+| App | Settings…, Hide, Quit (standard) |
+| File | Close (standard), Export… and Print… of Reports |
+| Edit | Undo, Redo, the pasteboard commands (standard), Find |
+| View | The Planner's sections and their navigation, the Calendar, Report, and Activity submenus, then the Timer window's view options |
+| Timer | The running entry and the Pomodoro, from any window; the menu bar item's menu has the same commands |
+| Entry | Commands on the selected entry: the Timer window's running or selected entry, or the Calendar's selection |
+| Project | Commands on the selected projects, clients, and areas of the Projects section |
+| Window | Timer Window and Planner, then the standard items |
+
+"Timer key" is the scope of an item enabled only while the Timer window is key.
 
 | Menu | Command | Shortcut | Scope |
 |---|---|---|---|
 | App | Settings… | ⌘, | App |
 | App | Hide, Quit | ⌘H, ⌘Q | App |
 | Edit | Undo, Redo | ⌘Z, ⇧⌘Z | Delete, discard, and popover edits |
-| Edit | Find | ⌘F | Timer key |
+| Edit | Find | ⌘F | Timer key; Projects and Reports ([spec_planner_projects.md](spec_planner_projects.md) §1.2) |
+| View | Compact Mode | ⇧⌘M | Timer key |
+| View | Float on Top | | Timer key |
+| View | Scroll to Today | ⌘↑ | Timer key |
 | Timer | New | ⌘N | App |
 | Timer | Continue | ⌘O | App (selection only while Timer key) |
 | Timer | Stop | ⌘S | App |
 | Timer | Discard Running Entry | ⌥⌘⌫ | App |
-| Timer | Set Project… | ⌘P | Timer key |
-| Timer | Edit Entry… | ⌘E | Timer key: running entry from the bar, selected row from the list |
-| Timer | Delete Entry… | ⌘⌫ | Timer key, list focus |
 | Timer | Start Pomodoro / Cancel Pomodoro | ⇧⌘P | App |
 | Timer | The next step, titled by its action: End Focus Now, Start Break, End Break Now, or Start Focus (End Focus Now, disabled, while the Pomodoro is off) | ⌃⌘P | App |
-| View | Compact Mode | ⇧⌘M | Timer key |
-| View | Float on Top | | Timer key |
-| View | Scroll to Today | ⌘↑ | Timer key |
+| Entry | Set Project… | ⌘P | Timer key |
+| Entry | Edit Entry… | ⌘E | Timer key: running entry from the bar, selected row from the list; in the Calendar the item is "Edit Selection…" (Return) |
+| Entry | Delete Entry… | ⌘⌫ | Timer key, list focus, a selected row; in the Calendar the item is "Delete" (Delete) |
 | Window | Timer Window | ⌥⌘R (displayed, 8.3) | App |
 | Window | Planner | ⌥⌘P | App |
 | Window | Close, Minimize | ⌘W, ⌘M | Standard |
+
+The Window menu lists each window once: the Timer and Planner scenes contribute no items of their own.
 
 ## 10. Notifications
 
@@ -325,6 +340,7 @@ Clicking a notification shows the Timer window (with the idle prompt for `idle`)
 - TW-32. Each notification category offers exactly its listed actions; the settings window reopens on the last pane shown.
 - TW-33. The first-launch alert of §8.2 appears once per Mac; "Open Tracker Settings" opens the Tracker pane, and the agent stays unregistered until "Enable Tracker".
 - TW-34. The first-launch alert's "Open `<APP_NAME>` at login" checkbox is on by default; checked, either button turns on "Open at login", unchecked neither does; under `-UITesting` the real login item is never registered.
+- TW-35. With the Timer window key and with the Planner key, the menu bar has the same menus (File, Edit, View, Timer, Entry, Project, Window); Window lists "Timer Window" and "Planner" once each; with the Timer window key the Project menu's items and Go to Today are disabled and Set Project… is enabled, and in the Planner's Calendar Set Project… is disabled and the Entry menu's Calendar items are enabled.
 
 ## 12. Decisions
 

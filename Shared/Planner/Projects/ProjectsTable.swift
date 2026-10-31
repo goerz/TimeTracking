@@ -64,6 +64,13 @@ struct ProjectsTable: View {
                 }
             }
         }
+        .onCopyCommand {
+            // Edit › Copy (⌘C): the selected projects' names, as Copy Name.
+            let text = model.copyNames()
+            // NSItemProvider writes plain text from an NSString only.
+            // swiftlint:disable:next legacy_objc_type
+            return text.isEmpty ? [] : [NSItemProvider(object: text as NSString)]
+        }
         #endif
         .onKeyPress(keys: [.return, .leftArrow, .rightArrow]) { press in
             switch press.key {

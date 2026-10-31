@@ -12,9 +12,9 @@ struct PlannerProjectsTests {
     @Test("PP-1 ⌘1 to ⌘4 select sections only while the Planner is key")
     func sectionCommands() async throws {
         let test = try await TestApp()
-        let timerKey = PlannerMenuState(plannerKey: false, section: .projects, showsClientsAndAreas: false)
+        let timerKey = MenuState(plannerKey: false, section: .projects, showsClientsAndAreas: false)
         #expect(!timerKey.sectionCommands)
-        let plannerKey = PlannerMenuState(plannerKey: true, section: .projects, showsClientsAndAreas: false)
+        let plannerKey = MenuState(plannerKey: true, section: .projects, showsClientsAndAreas: false)
         #expect(plannerKey.sectionCommands)
         #expect(PlannerSection.allCases.map(\.key) == ["1", "2", "3", "4"])
         for section in PlannerSection.allCases {

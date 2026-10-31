@@ -1,44 +1,43 @@
-// CalendarViewMenu: the Calendar's View and Entry menu items and Activity's
-// View submenu (spec_planner_calendar.md §6, spec_planner_activity.md §2).
+// CalendarViewMenu: the View menu's Calendar and Activity submenus and the
+// Calendar's key commands as menu items (spec_planner_calendar.md §6,
+// spec_planner_activity.md §2).
 
 import SwiftUI
 import TimeTrackingCore
 
-/// The Calendar's view commands in the View menu.
+/// View › Calendar: the Calendar's view commands; Today is View › Go to Today.
 struct CalendarViewMenu: View {
     var model: CalendarModel
-    var state: PlannerMenuState
+    var state: MenuState
 
     var body: some View {
         Menu("Calendar") {
-            ForEach(CalendarKeyCommand.allCases.filter(\.isViewCommand)) { command in
-                CalendarCommandButton(model: model, command: command, enabled: state.isEnabled(command))
-            }
+            items([.zoomIn, .zoomOut, .zoomReset])
+            Divider()
+            items([.fewerDays, .moreDays])
+            Divider()
+            items([.previousDay, .nextDay, .previousSpan, .nextSpan])
+            Divider()
+            items([.toggleActivity, .toggleCalendar])
         }
     }
-}
 
-/// The Calendar's entry commands in the Entry menu.
-struct CalendarEntryItems: View {
-    var model: CalendarModel
-    var state: PlannerMenuState
-
-    var body: some View {
-        ForEach(CalendarKeyCommand.allCases.filter { !$0.isViewCommand }) { command in
+    private func items(_ commands: [CalendarKeyCommand]) -> some View {
+        ForEach(commands) { command in
             CalendarCommandButton(model: model, command: command, enabled: state.isEnabled(command))
         }
     }
 }
 
-private struct CalendarCommandButton: View {
+/// One Calendar key command; the key works only while the item is enabled.
+struct CalendarCommandButton: View {
     var model: CalendarModel
     var command: CalendarKeyCommand
     var enabled: Bool
 
     var body: some View {
         Button(title) { Task { await model.perform(command) } }
-            .keyboardShortcut(command.shortcut)
-            .disabled(!enabled)
+            .contextCommand(command.shortcut, enabled: enabled)
     }
 
     private var title: String {
@@ -50,21 +49,17 @@ private struct CalendarCommandButton: View {
     }
 }
 
-/// View › Activity (spec_planner_activity.md §2).
+/// View › Activity (spec_planner_activity.md §2); its range commands are
+/// View › Go to Today, Previous Period, Next Period, and Date Range….
 struct ActivityMenu: View {
     var model: ActivityModel
+    var enabled: Bool
 
     var body: some View {
         Menu("Activity") {
-            PlannerMenuItems.activityPeriod(model)
-            Button("Go to Today") {
-                model.range.goToToday()
-                Task { await model.reload() }
-            }
-            .keyboardShortcut("t")
             // Escape's two steps, titled by the one it takes now.
             Button(model.drill == nil ? "Clear Filter" : "Back") { Task { await model.escape() } }
-                .disabled(model.drill == nil && model.contexts.isEmpty)
+                .disabled(!enabled || (model.drill == nil && model.contexts.isEmpty))
             Divider()
             Button("Exclude from Tracking…") {
                 if let context = model.contexts.first {
@@ -73,7 +68,7 @@ struct ActivityMenu: View {
                     model.exclude(site: site)
                 }
             }
-            .disabled(model.contexts.count != 1 && model.drill == nil)
+            .disabled(!enabled || (model.contexts.count != 1 && model.drill == nil))
         }
     }
 }
