@@ -10,6 +10,8 @@ The Timer item is laid out as the iPad's Timer tab: above 900 pt of width the ru
 
 The Mini Timer is a second SwiftUI `Window` scene (`timer`, title "Mini Timer") with a hidden title bar, a small window for the bar and list like Music's MiniPlayer. The title-bar row holds only the traffic lights and, at the far right on their center line, the pin button (1.2); the rest of the row is empty and drags the window. Sections 1.1 to 1.3 are the Mini Timer's; the bar, list, and popover (§2 to §4) are the same in both places.
 
+The two Timers are independent views of the same data. Each has its own selection, filter, and scroll position, its own task-field suggestions and `@` picker, project picker, edit popover, and project dialog, and its own keyboard focus: nothing opened, selected, or focused in one appears in the other, and the other shows the result once it is stored. Commands of the main menu act on the Timer of the key window. The Timer's alerts (Discard, Delete, Restore Project and Continue) appear in the Timer where the action was taken; one raised from elsewhere (the menu bar, a shortcut, a notification) appears in the Mini Timer while it is on screen, else in the main window. The idle prompt is the Mini Timer's (6.3).
+
 ### 1.1 Full and compact mode
 
 | Quantity | Value |
@@ -48,7 +50,7 @@ The timer label always shows the elapsed time, also during a Pomodoro, and count
 | Action | How | Effect |
 |---|---|---|
 | Start | Start button; Return in the task field while idle | Starts an entry with the field's task and the chip's project (both may be empty). |
-| New | ⌘N | Starts an entry with empty task and no project; shows the Timer (the Mini Timer while it is open, else the main window's Timer item) with the task field focused. |
+| New | ⌘N | Starts an entry with empty task and no project; shows the Timer (the key window's; otherwise the Mini Timer while it is open, else the main window's Timer item) with the task field focused. |
 | Stop | Stop button; ⌘S; continue/stop shortcut | Stops the running entry; the task field, project chip, and timer go blank as at startup. Resuming it is a Continue on its row, the first of the list. |
 | Continue | Row's continue button; double-click; ⌘O; continue/stop shortcut while idle | Starts an entry with the source's task and project. ⌘O continues the selected row, else the most recent entry other than the running one. |
 | Discard | Discard button; ⌥⌘⌫ | Deletes the running entry after the alert "Discard the running entry? 0:12:34 will be lost." (Discard, Cancel); ⌥-click skips the alert. Undoable with ⌘Z. |
@@ -347,6 +349,7 @@ Clicking a notification shows the Mini Timer (with the idle prompt for `idle`). 
 - TW-33. The first-launch alert of §8.2 appears once per Mac; "Open Tracker Settings" opens the Tracker pane, and the agent stays unregistered until "Enable Tracker".
 - TW-34. The first-launch alert's "Open `<APP_NAME>` at login" checkbox is on by default; checked, either button turns on "Open at login", unchecked neither does; under `-UITesting` the real login item is never registered.
 - TW-35. Every window has the menus File, Edit, View, Timer, Entry, Project, and Window; Window lists the main window and "Mini Timer" once each. With the Timer shown Entry › Set Project… is enabled and View › Go to Today and the Project menu's items are not. In the Calendar Entry › Fill Day… and View › Go to Today and Previous Period are enabled, Set Project… is not, and there is no Next Day, Next Entry, or Deselect item. In Projects Project › Edit Project… is enabled for a selected project and File › New Project… always; there is no Start Timer item outside the Timer menu. View › Compact Mode is enabled only while the Mini Timer is key.
+- TW-36. The Mini Timer and the main window's Timer are independent: the project picker, an edit popover, the selection, the filter, and a task-field focus request in one leave the other unchanged; a project chosen in one is the project of both; New from the main menu focuses the key window's Timer; a store change reloads both lists.
 
 ## 12. Decisions
 

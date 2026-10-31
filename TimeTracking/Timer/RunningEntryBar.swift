@@ -12,6 +12,7 @@ struct RunningEntryBar: View {
     /// tab has neither (experiment).
     var showsTitleRow = true
     @Environment(AppModel.self) private var app
+    @Environment(TimerUIState.self) private var view
 
     /// The height of the title-bar row (the traffic lights' row).
     static let titleRowHeight: CGFloat = 32
@@ -23,11 +24,11 @@ struct RunningEntryBar: View {
             VStack(alignment: .leading, spacing: Design.Spacing.small) {
                 HStack(spacing: Design.Spacing.medium) {
                     pomodoroButton
-                    TaskFieldView(inMiniTimer: showsTitleRow)
+                    TaskFieldView()
                         .onGeometryChange(for: CGFloat.self) { proxy in
                             proxy.frame(in: .global).minX
                         } action: { leading in
-                            app.presentation.taskFieldLeading = leading
+                            view.taskFieldLeading = leading
                         }
                     timerLabel
                     HStack(spacing: Design.Spacing.tight) {
@@ -83,7 +84,7 @@ struct RunningEntryBar: View {
     /// (spec_design.md §7.1).
     private var timerLabel: some View {
         Button {
-            app.editEntry()
+            app.editEntry(in: view)
         } label: {
             TimelineView(.periodic(from: .now, by: 1)) { _ in
                 Text(app.timer.timerText(at: app.clock.now))
@@ -127,21 +128,22 @@ struct RunningEntryBar: View {
     }
 }
 
-/// The bar's project chip with the picker popover.
+/// The bar's project chip with its Timer view's picker popover.
 struct TimerProjectChip: View {
     @Environment(AppModel.self) private var app
+    @Environment(TimerUIState.self) private var view
 
     var body: some View {
-        @Bindable var presentation = app.presentation
+        @Bindable var view = view
         ProjectChipButton(label: app.timer.chipLabel) {
-            app.openChipPicker()
+            app.openChipPicker(in: view)
         }
         .accessibilityIdentifier("timer.projectChip")
-        .popover(item: $presentation.pickerModel, arrowEdge: .bottom) { picker in
+        .popover(item: $view.pickerModel, arrowEdge: .bottom) { picker in
             ProjectPickerView(model: picker) { choice in
-                Task { await app.choose(choice) }
+                Task { await app.choose(choice, in: view) }
             } onCancel: {
-                app.presentation.pickerModel = nil
+                view.pickerModel = nil
             }
         }
     }

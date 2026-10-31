@@ -33,7 +33,7 @@ struct ViewCommands: Commands {
             Divider()
             if let router {
                 // Shared with the iPad, then the Mac's own Mini Timer options.
-                ViewDisplayItems(router: router, state: state) { app?.list.scrollToTop() }
+                ViewDisplayItems(router: router, state: state) { app?.activeTimer.list.scrollToTop() }
                 Section("Mini Timer") {
                     miniTimerItems
                 }

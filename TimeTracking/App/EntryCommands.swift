@@ -21,11 +21,13 @@ struct EntryCommands: Commands {
     var body: some Commands {
         CommandMenu("Entry") {
             if let app {
+                // The Timer view in the key window.
+                let view = app.activeTimer
                 EntryMenuItems(router: app.planner, state: state, timer: TimerEntryActions(
-                    setProject: { app.openChipPicker() },
-                    edit: { app.editEntry() },
-                    delete: { app.timer.alert = app.list.deleteAlert() },
-                    canDelete: app.list.selection != nil && app.presentation.listFocused
+                    setProject: { app.openChipPicker(in: view) },
+                    edit: { app.editEntry(in: view) },
+                    delete: { app.timer.alert = view.list.deleteAlert() },
+                    canDelete: view.list.selection != nil && view.listFocused
                 ))
             }
         }

@@ -12,6 +12,7 @@ struct TimerWindowView: View {
     var embedded = false
     @Environment(AppModel.self) private var app
     @Environment(\.undoManager) private var undoManager
+    @Environment(\.appearsActive) private var appearsActive
     /// The hidden title bar's height. The hosting view adds it to the
     /// content's minimum, so the content asks for that much less.
     @State private var titleBarInset: CGFloat = 0
@@ -21,8 +22,14 @@ struct TimerWindowView: View {
     /// The iPad's width for two columns (`TimerScreen.twoColumnWidth`).
     static let twoColumnWidth: CGFloat = 900
 
+    /// This view's own state: the main window's or the Mini Timer's.
+    private var view: TimerUIState {
+        embedded ? app.mainTimer : app.miniTimer
+    }
+
     var body: some View {
-        GeometryReader { geometry in
+        @Bindable var view = view
+        return GeometryReader { geometry in
             if embedded {
                 embeddedLayout(width: geometry.size.width)
             } else {
@@ -35,17 +42,24 @@ struct TimerWindowView: View {
         })
         .ignoresSafeArea(embedded ? [] : .all)
         .focusedSceneValue(\.timerWindowActive, true)
+        .environment(view)
         .onAppear {
-            app.timer.undoManager = undoManager
-            app.list.undoManager = undoManager
+            view.list.undoManager = undoManager
         }
-        .timerAlert(timer: app.timer, list: app.list, active: presents)
+        .onChange(of: appearsActive, initial: true) { _, active in
+            app.timerViewActivated(view, isKey: active, undoManager: undoManager)
+        }
+        .onDisappear {
+            app.timerViewActivated(view, isKey: false, undoManager: nil)
+        }
+        // The alert shows in the Timer view where the action happened.
+        .timerAlert(timer: app.timer, list: view.list) { [app, view] in app.activeTimer === view }
         .sheet(item: idlePrompt) { _ in
             IdlePromptView()
         }
-        .sheet(item: dialogModel) { dialog in
+        .sheet(item: $view.dialogModel) { dialog in
             ProjectDialogView(model: dialog) { project in
-                Task { await app.dialogFinished(project) }
+                Task { await app.dialogFinished(project, in: view) }
             }
         }
         // The first-launch alert, once the window shows (AppKit, TrackerOnboardingAlert).
@@ -79,12 +93,12 @@ struct TimerWindowView: View {
     /// The bar without the title row, its editor popover, and the task
     /// field's suggestions.
     private var embeddedBar: some View {
-        @Bindable var presentation = app.presentation
+        @Bindable var view = view
         return RunningEntryBar(showsTitleRow: false)
             .padding(.top, Design.Spacing.medium)
             .modifier(EntryEditorPopover(
                 entry: app.timer.running,
-                editing: $presentation.editing,
+                editing: $view.editing,
                 store: app.store,
                 clock: app.clock,
                 taskMatching: true,
@@ -97,7 +111,7 @@ struct TimerWindowView: View {
             }
             .overlay(alignment: .topLeading) {
                 TaskFieldPopup()
-                    .padding(.leading, app.presentation.taskFieldLeading - barMinX - Design.Spacing.medium)
+                    .padding(.leading, view.taskFieldLeading - barMinX - Design.Spacing.medium)
                     .offset(y: Design.Spacing.medium + Design.CircleDiameter.bar + Design.Spacing.tight)
             }
             .zIndex(1)
@@ -105,12 +119,12 @@ struct TimerWindowView: View {
 
     /// The Mini Timer (the former Timer window), unchanged.
     private func windowLayout(height: CGFloat) -> some View {
-        @Bindable var presentation = app.presentation
+        @Bindable var view = view
         return VStack(spacing: 0) {
             RunningEntryBar()
                 .modifier(EntryEditorPopover(
                     entry: app.timer.running,
-                    editing: $presentation.editing,
+                    editing: $view.editing,
                     store: app.store,
                     clock: app.clock,
                     taskMatching: true,
@@ -124,16 +138,10 @@ struct TimerWindowView: View {
         }
         .overlay(alignment: .topLeading) {
             TaskFieldPopup()
-                .padding(.leading, app.presentation.taskFieldLeading - Design.Spacing.medium)
+                .padding(.leading, view.taskFieldLeading - Design.Spacing.medium)
                 .offset(y: RunningEntryBar.titleRowHeight + Design.CircleDiameter.bar + Design.Spacing.tight)
                 .zIndex(2)
         }
-    }
-
-    /// The Timer's alerts and the project dialog show in the Mini Timer
-    /// while it is on screen, else in the main window, never in both.
-    private var presents: Bool {
-        !embedded || app.window?.isVisible != true
     }
 
     /// The idle prompt is the Mini Timer's (the prompt brings it forward).
@@ -141,14 +149,6 @@ struct TimerWindowView: View {
         Binding {
             embedded ? nil : app.idle.prompt.map { IdlePromptItem(prompt: $0) }
         } set: { _ in }
-    }
-
-    private var dialogModel: Binding<ProjectDialogModel?> {
-        Binding {
-            presents ? app.presentation.dialogModel : nil
-        } set: { model in
-            app.presentation.dialogModel = model
-        }
     }
 }
 

@@ -21,15 +21,15 @@ enum TimerRowMenuItem: CaseIterable {
 }
 
 extension AppModel {
-    /// Return in the task field: the `@` picker's highlighted project
+    /// Return in `view`'s task field: the `@` picker's highlighted project
     /// (the `@query` leaves the text), else the highlighted suggestion,
     /// else the task is submitted. The returned task finishes the command.
     @discardableResult
-    func taskFieldReturn() -> Task<Void, Never> {
-        if let choice = taskField.choosePickerHighlight() {
-            return assignPicked(choice)
+    func taskFieldReturn(in view: TimerUIState) -> Task<Void, Never> {
+        if let choice = view.taskField.choosePickerHighlight() {
+            return assignPicked(choice, in: view)
         }
-        if let suggestion = taskField.acceptSuggestion() {
+        if let suggestion = view.taskField.acceptSuggestion() {
             return Task {
                 await timer.accept(suggestion)
                 if !timer.isRunning {
@@ -40,26 +40,26 @@ extension AppModel {
         return Task { await timer.submitTask() }
     }
 
-    /// A click on a project in the `@` picker list.
+    /// A click on a project in `view`'s `@` picker list.
     @discardableResult
-    func taskFieldPicked(_ choice: ProjectPickerChoice) -> Task<Void, Never> {
-        taskField.reset()
-        return assignPicked(choice)
+    func taskFieldPicked(_ choice: ProjectPickerChoice, in view: TimerUIState) -> Task<Void, Never> {
+        view.taskField.reset()
+        return assignPicked(choice, in: view)
     }
 
     /// Removes the `@query` from the task and assigns the chosen project.
-    private func assignPicked(_ choice: ProjectPickerChoice) -> Task<Void, Never> {
+    private func assignPicked(_ choice: ProjectPickerChoice, in view: TimerUIState) -> Task<Void, Never> {
         timer.taskText = TaskFieldModel.removingTrigger(from: timer.taskText)
         return Task {
-            await choose(choice)
+            await choose(choice, in: view)
             await timer.commitTask()
         }
     }
 
-    /// A click on a row: select it and open the edit popover.
-    func rowClicked(_ id: EntryID) {
-        list.selection = id
-        presentation.editing = id
+    /// A click on a row of `view`: select it and open the edit popover.
+    func rowClicked(_ id: EntryID, in view: TimerUIState) {
+        view.list.selection = id
+        view.editing = id
     }
 
     /// A double-click on a row: Continue.
@@ -68,16 +68,16 @@ extension AppModel {
         Task { await timer.continueEntry(id) }
     }
 
-    /// A context-menu item of a row.
+    /// A context-menu item of a row of `view`.
     @discardableResult
-    func performRowMenu(_ item: TimerRowMenuItem, on id: EntryID) -> Task<Void, Never>? {
+    func performRowMenu(_ item: TimerRowMenuItem, on id: EntryID, in view: TimerUIState) -> Task<Void, Never>? {
         switch item {
         case .continueEntry:
             return rowDoubleClicked(id)
         case .edit:
-            rowClicked(id)
+            rowClicked(id, in: view)
         case .delete:
-            timer.alert = list.deleteAlert(for: id)
+            timer.alert = view.list.deleteAlert(for: id)
         }
         return nil
     }

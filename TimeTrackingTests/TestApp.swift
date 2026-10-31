@@ -59,7 +59,8 @@ struct TestApp {
         app.router = router
         app.timer.debounce = { _ in }
         app.timer.undoManager = undo
-        app.list.undoManager = undo
+        app.miniTimer.list.undoManager = undo
+        app.mainTimer.list.undoManager = undo
         await app.start(observing: observing)
     }
 
@@ -94,7 +95,8 @@ struct TestApp {
     func undoLast() async {
         undo.undo()
         await app.timer.pendingUndo?.value
-        await app.list.pendingUndo?.value
+        await app.miniTimer.list.pendingUndo?.value
+        await app.mainTimer.list.pendingUndo?.value
         await app.afterChange()
     }
 }

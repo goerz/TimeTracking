@@ -53,7 +53,7 @@ struct MainMenuCommands: Commands {
             return
         }
         if state.timerKey {
-            app.list.showFilter()
+            app.activeTimer.list.showFilter()
         } else if state.reportCommands {
             app.planner.reports.focusTaskFilter()
         } else if state.projectCommands {

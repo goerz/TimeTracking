@@ -104,7 +104,7 @@ struct TimerWindowTests {
         }
         try await test.entry("Same", from: "09:00", to: "09:10")
         try await test.entry("Same", from: "09:10", to: "09:20")
-        let list = test.app.list
+        let list = test.app.activeTimer.list
         #expect(list.days.count == 14)
         #expect(list.days[0].rows.map(\.entry.task) == ["Same", "Same"])
         #expect(list.canLoadMore)
@@ -125,7 +125,7 @@ struct TimerWindowTests {
         let projects = try await test.projects(["Household"])
         try await test.entry("Order toner", projects[0], from: "08:00", to: "08:25")
         try await test.entry("Plan", from: "09:00", to: "09:30")
-        let list = test.app.list
+        let list = test.app.activeTimer.list
         list.moveSelection(by: 1)
         #expect(list.selection == list.rows[0].id)
         list.moveSelection(by: 1)
@@ -134,9 +134,9 @@ struct TimerWindowTests {
         list.moveSelection(by: 1)
         #expect(list.selection == toner.id)
         // Return or click: the edit popover.
-        test.app.presentation.listFocused = true
-        test.app.editEntry()
-        #expect(test.app.presentation.editing == toner.id)
+        test.app.activeTimer.listFocused = true
+        test.app.editEntry(in: test.app.activeTimer)
+        #expect(test.app.activeTimer.editing == toner.id)
         // ⌘O continues the selection while the Timer window is key.
         await test.app.continueCommand(timerKey: true)
         #expect(test.app.timer.running?.task == "Order toner")
@@ -164,27 +164,64 @@ struct TimerWindowTests {
         let projects = try await test.projects(["Household"])
         try await test.entry("Order toner", projects[0], from: "08:00", to: "08:25")
         try await test.entry("Plan", from: "09:00", to: "09:30")
-        let list = test.app.list
+        let list = test.app.activeTimer.list
         let toner = try #require(list.rows.first { $0.entry.task == "Order toner" })
-        test.app.rowClicked(toner.id)
+        test.app.rowClicked(toner.id, in: test.app.activeTimer)
         #expect(list.selection == toner.id)
-        #expect(test.app.presentation.editing == toner.id)
-        test.app.presentation.editing = nil
+        #expect(test.app.activeTimer.editing == toner.id)
+        test.app.activeTimer.editing = nil
         await test.app.rowDoubleClicked(toner.id).value
         #expect(test.app.timer.running?.task == "Order toner")
         #expect(test.app.timer.running?.projectID == projects[0].id)
         await test.app.timer.stop()
         #expect(TimerRowMenuItem.allCases.map(\.title) == ["Continue", "Edit…", "Delete…"])
         let plan = try #require(list.rows.first { $0.entry.task == "Plan" })
-        await test.app.performRowMenu(.continueEntry, on: plan.id)?.value
+        await test.app.performRowMenu(.continueEntry, on: plan.id, in: test.app.activeTimer)?.value
         #expect(test.app.timer.running?.task == "Plan")
         await test.app.timer.stop()
-        #expect(test.app.performRowMenu(.edit, on: plan.id) == nil)
-        #expect(test.app.presentation.editing == plan.id)
+        #expect(test.app.performRowMenu(.edit, on: plan.id, in: test.app.activeTimer) == nil)
+        #expect(test.app.activeTimer.editing == plan.id)
         #expect(list.selection == plan.id)
-        test.app.performRowMenu(.delete, on: toner.id)
+        test.app.performRowMenu(.delete, on: toner.id, in: test.app.activeTimer)
         #expect(test.app.timer.alert == list.deleteAlert(for: toner.id))
         #expect(test.app.timer.alert?.message == "Delete this entry? 0:25:00, Household")
+    }
+
+    @Test("TW-36 the Mini Timer and the main Timer keep their own picker, popover, selection, filter, and focus; both show stored data")
+    func independentTimers() async throws {
+        let test = try await TestApp()
+        let projects = try await test.projects(["Household", "Website"])
+        try await test.entry("Order toner", projects[0], from: "08:00", to: "08:25")
+        let mini = test.app.miniTimer
+        let main = test.app.mainTimer
+        // The chip's picker in the main window only; its choice is the draft's project for both.
+        test.app.openChipPicker(in: main)
+        #expect(main.pickerModel != nil)
+        #expect(mini.pickerModel == nil)
+        await test.app.choose(.project(projects[1].id), in: main)
+        #expect(main.pickerModel == nil)
+        #expect(test.app.timer.draftProjectID == projects[1].id)
+        // A row's edit popover and selection in the Mini Timer only.
+        let toner = try #require(mini.list.rows.first)
+        test.app.rowClicked(toner.id, in: mini)
+        #expect(mini.editing == toner.id && mini.list.selection == toner.id)
+        #expect(main.editing == nil && main.list.selection == nil)
+        // The filter.
+        mini.list.showFilter()
+        #expect(!main.list.isFilterVisible)
+        // New from the main menu while the main window's Timer is key.
+        test.app.timerViewActivated(main, isKey: true, undoManager: test.undo)
+        #expect(test.app.activeTimer === main)
+        await test.app.newEntry(in: test.app.activeTimer)
+        #expect(main.wantsTaskFieldFocus && !mini.wantsTaskFieldFocus)
+        #expect(test.router.calls == [.showMainTimer])
+        test.app.timerViewActivated(mini, isKey: true, undoManager: test.undo)
+        test.app.timerViewActivated(main, isKey: false, undoManager: nil)
+        #expect(test.app.activeTimer === mini)
+        // A store change reloads both lists.
+        try await test.entry("Deploy", projects[1], from: "08:30", to: "08:40")
+        #expect(mini.list.rows.contains { $0.entry.task == "Deploy" })
+        #expect(main.list.rows.contains { $0.entry.task == "Deploy" })
     }
 
     @Test("TW-17 ⌘F with noise leaves only matching entries, and day totals sum them; Escape clears the filter")
@@ -194,7 +231,7 @@ struct TimerWindowTests {
         try await test.entry("Draft", projects[0], from: "08:00", to: "08:10")
         try await test.entry("Deploy", projects[1], from: "08:10", to: "08:40")
         try await test.entry("Fix noise plot", projects[1], from: "08:40", to: "08:45")
-        let list = test.app.list
+        let list = test.app.activeTimer.list
         list.showFilter()
         list.filter = "noise"
         await list.reload()

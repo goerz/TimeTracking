@@ -18,7 +18,7 @@ struct TaskFieldTests {
             try await test.entry("Clarify item \(index)", projects[1], from: start, to: end)
         }
         try await test.entry("Clarify noise model", projects[0], from: "06:00", to: "06:30")
-        let field = test.app.taskField
+        let field = test.app.miniTimer.taskField
         await field.userEdited("cla", chipProject: projects[0].id)
         #expect(field.suggestions.count == 8)
         #expect(field.suggestions.first?.task == "Clarify noise model")
@@ -37,7 +37,7 @@ struct TaskFieldTests {
     func atTrigger() async throws {
         let test = try await TestApp()
         let projects = try await test.projects(["Noise Model", "Website"])
-        let field = test.app.taskField
+        let field = test.app.miniTimer.taskField
         #expect(TaskFieldModel.trigger(in: "a@b") == nil)
         await field.userEdited("a@b", chipProject: nil)
         #expect(field.picker == nil)
@@ -49,14 +49,14 @@ struct TaskFieldTests {
         #expect(picker.taskMatching)
         #expect(picker.highlight == .project(projects[0].id))
         // Return in the field: the highlight is assigned and "@noi" removed.
-        await test.app.taskFieldReturn().value
+        await test.app.taskFieldReturn(in: test.app.miniTimer).value
         #expect(field.picker == nil)
         #expect(test.app.timer.taskText == "Clarify")
         #expect(test.app.timer.draftProjectID == projects[0].id)
         // A click in the list does the same.
         test.app.timer.taskText = "Fix @web"
         await field.userEdited("Fix @web", chipProject: nil)
-        await test.app.taskFieldPicked(.project(projects[1].id)).value
+        await test.app.taskFieldPicked(.project(projects[1].id), in: test.app.miniTimer).value
         #expect(field.picker == nil)
         #expect(test.app.timer.taskText == "Fix")
         #expect(test.app.timer.draftProjectID == projects[1].id)
@@ -79,8 +79,8 @@ struct TaskFieldTests {
         let test = try await TestApp()
         let projects = try await test.projects(["Paper", "Website"])
         try await test.entry("Clarify noise model", projects[0], from: "2024-02-20T09:00", to: "2024-02-20T10:00")
-        test.app.openChipPicker()
-        let picker = try #require(test.app.presentation.pickerModel)
+        test.app.openChipPicker(in: test.app.miniTimer)
+        let picker = try #require(test.app.miniTimer.pickerModel)
         picker.search = "noise"
         await picker.reload()
         #expect(picker.content.groups.flatMap(\.rows).map(\.project.name) == ["Paper"])
@@ -92,27 +92,27 @@ struct TaskFieldTests {
         let test = try await TestApp()
         _ = try await test.projects(["Website"])
         // The draft.
-        test.app.openChipPicker()
-        let picker = try #require(test.app.presentation.pickerModel)
+        test.app.openChipPicker(in: test.app.miniTimer)
+        let picker = try #require(test.app.miniTimer.pickerModel)
         picker.search = " noise "
         await picker.reload()
         #expect(picker.content.createName == "noise")
-        try await test.app.choose(#require(picker.createFromSearch()))
-        let dialog = try #require(test.app.presentation.dialogModel)
+        try await test.app.choose(#require(picker.createFromSearch()), in: test.app.miniTimer)
+        let dialog = try #require(test.app.miniTimer.dialogModel)
         #expect(dialog.name == "noise")
         await dialog.load()
         #expect(dialog.areaID != nil)
         let project = try #require(await dialog.submit())
-        await test.app.dialogFinished(project)
+        await test.app.dialogFinished(project, in: test.app.miniTimer)
         #expect(test.app.timer.draftProjectID == project.id)
-        #expect(test.app.presentation.dialogModel == nil)
+        #expect(test.app.miniTimer.dialogModel == nil)
         // The running entry.
         await test.app.timer.start()
-        await test.app.choose(.create("Second"))
-        let next = try #require(test.app.presentation.dialogModel)
+        await test.app.choose(.create("Second"), in: test.app.miniTimer)
+        let next = try #require(test.app.miniTimer.dialogModel)
         await next.load()
         let created = try #require(await next.submit())
-        await test.app.dialogFinished(created)
+        await test.app.dialogFinished(created, in: test.app.miniTimer)
         #expect(try await test.store.runningEntry()?.projectID == created.id)
     }
 

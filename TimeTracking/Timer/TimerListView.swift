@@ -7,34 +7,35 @@ import TimeTrackingCore
 /// and "Load Earlier Entries".
 struct TimerListView: View {
     @Environment(AppModel.self) private var app
+    @Environment(TimerUIState.self) private var view
     @FocusState private var listFocused: Bool
     @FocusState private var filterFocused: Bool
 
     var body: some View {
         VStack(spacing: 0) {
-            if app.list.isFilterVisible {
+            if view.list.isFilterVisible {
                 filterField
             }
             scrollingList
                 .focusable()
                 .focusEffectDisabled()
                 .focused($listFocused)
-                .onChange(of: listFocused) { _, focused in app.presentation.listFocused = focused }
-                .onChange(of: app.presentation.focusListRequest) { listFocused = true }
+                .onChange(of: listFocused) { _, focused in view.listFocused = focused }
+                .onChange(of: view.focusListRequest) { listFocused = true }
                 .onKeyPress(.upArrow) {
-                    app.list.moveSelection(by: -1)
+                    view.list.moveSelection(by: -1)
                     return .handled
                 }
                 .onKeyPress(.downArrow) {
-                    app.list.moveSelection(by: 1)
+                    view.list.moveSelection(by: 1)
                     return .handled
                 }
                 .onKeyPress(.return) {
-                    app.presentation.editing = app.list.selection
+                    view.editing = view.list.selection
                     return .handled
                 }
                 .onKeyPress(.escape) {
-                    app.list.clearSelection()
+                    view.list.clearSelection()
                     return .handled
                 }
                 .accessibilityIdentifier("timer.list")
@@ -43,7 +44,7 @@ struct TimerListView: View {
 
     /// ⌘F's filter field; Escape clears and hides it.
     private var filterField: some View {
-        @Bindable var list = app.list
+        @Bindable var list = view.list
         return TextField("Filter", text: $list.filter, prompt: Text("Filter by task, project, or client"))
             .textFieldStyle(.roundedBorder)
             .focused($filterFocused)
@@ -51,9 +52,9 @@ struct TimerListView: View {
             .padding(.vertical, Design.Spacing.small)
             .accessibilityIdentifier("timer.filterField")
             .onAppear { filterFocused = true }
-            .onChange(of: list.filter) { Task { await app.list.reload() } }
+            .onChange(of: list.filter) { Task { await view.list.reload() } }
             .onKeyPress(.escape) {
-                Task { await app.list.hideFilter() }
+                Task { await view.list.hideFilter() }
                 return .handled
             }
     }
@@ -63,12 +64,12 @@ struct TimerListView: View {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 0) {
                     Color.clear.frame(height: 0).id("top")
-                    ForEach(app.list.days) { day in
+                    ForEach(view.list.days) { day in
                         DaySection(day: day)
                     }
-                    if app.list.canLoadMore {
+                    if view.list.canLoadMore {
                         Button("Load Earlier Entries") {
-                            Task { await app.list.loadMore() }
+                            Task { await view.list.loadMore() }
                         }
                         .buttonStyle(.link)
                         .padding(Design.Spacing.large)
@@ -79,10 +80,10 @@ struct TimerListView: View {
                 .padding(.bottom, Design.Spacing.medium)
             }
             .overlay { emptyState }
-            .onChange(of: app.list.scrollToTopRequest) {
+            .onChange(of: view.list.scrollToTopRequest) {
                 proxy.scrollTo("top", anchor: .top)
             }
-            .onChange(of: app.list.selection) { _, selection in
+            .onChange(of: view.list.selection) { _, selection in
                 if let selection {
                     proxy.scrollTo(selection)
                 }
@@ -92,15 +93,15 @@ struct TimerListView: View {
 
     /// No entries yet, or none matching the filter.
     @ViewBuilder private var emptyState: some View {
-        if app.list.days.isEmpty {
-            if app.list.filter.isEmpty {
+        if view.list.days.isEmpty {
+            if view.list.filter.isEmpty {
                 ContentUnavailableView(
                     "No Entries",
                     systemImage: SymbolName.timer,
                     description: Text("Entries you track appear here by day.")
                 )
             } else {
-                ContentUnavailableView.search(text: app.list.filter)
+                ContentUnavailableView.search(text: view.list.filter)
             }
         }
     }
@@ -109,10 +110,11 @@ struct TimerListView: View {
 /// One day: header with title and total, then its rows.
 private struct DaySection: View {
     @Environment(AppModel.self) private var app
+    @Environment(TimerUIState.self) private var view
     var day: TimerListDay
 
     var body: some View {
-        DayHeaderLabel(day: day, title: app.list.title(for: day.day), clock: app.clock)
+        DayHeaderLabel(day: day, title: view.list.title(for: day.day), clock: app.clock)
             .font(.headline)
             .padding(.leading, Design.Spacing.small)
             // The trailing edge lines up with the rows' durations.
@@ -132,6 +134,7 @@ private struct DaySection: View {
 /// color, no continue button; a click opens its edit popover on the bar.
 private struct RunningRowView: View {
     @Environment(AppModel.self) private var app
+    @Environment(TimerUIState.self) private var view
     var listing: EntryListing
     @State private var hovering = false
 
@@ -149,7 +152,7 @@ private struct RunningRowView: View {
         .contentShape(Rectangle())
         .onHover { hovering = $0 }
         .help("Running since \(listing.entry.start.formatted(date: .omitted, time: .shortened))")
-        .onTapGesture { app.presentation.editing = listing.id }
+        .onTapGesture { view.editing = listing.id }
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(.isButton)
         .accessibilityValue("running")
@@ -161,12 +164,13 @@ private struct RunningRowView: View {
 /// and selection.
 struct EntryRowView: View {
     @Environment(AppModel.self) private var app
+    @Environment(TimerUIState.self) private var view
     var listing: EntryListing
     @State private var hovering = false
 
     var body: some View {
         let entry = listing.entry
-        let selected = app.list.selection == entry.id
+        let selected = view.list.selection == entry.id
         HStack(spacing: Design.Spacing.small) {
             EntryRowLabels(listing: listing)
             Spacer(minLength: Design.Spacing.small)
@@ -196,11 +200,11 @@ struct EntryRowView: View {
         }
         .accessibilityAddTraits(.isButton)
         .onTapGesture {
-            app.rowClicked(entry.id)
+            app.rowClicked(entry.id, in: view)
         }
         .contextMenu {
             ForEach(TimerRowMenuItem.allCases, id: \.self) { item in
-                Button(item.title) { app.performRowMenu(item, on: entry.id) }
+                Button(item.title) { app.performRowMenu(item, on: entry.id, in: view) }
             }
         }
         .id(entry.id)
@@ -209,7 +213,7 @@ struct EntryRowView: View {
         .accessibilityValue(selected ? "selected" : "")
         .modifier(EntryEditorPopover(
             entry: entry,
-            editing: Bindable(app.presentation).editing,
+            editing: Bindable(view).editing,
             store: app.store,
             clock: app.clock,
             arrowEdge: .leading

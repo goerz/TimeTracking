@@ -27,15 +27,9 @@ struct TimerCommands: Commands {
     var body: some Commands {
         CommandMenu("Timer") {
             Button("New Entry") {
-                // In the Mini Timer if it is open, else the main window's Timer.
-                if let router = app?.router as? WindowRouter {
-                    if router.timerWindow.window?.isVisible == true {
-                        router.showTimer(focusTask: false)
-                    } else {
-                        router.showMainTimer()
-                    }
-                }
-                run { await $0.newEntry() }
+                // In the key window's Timer, else the Mini Timer if it is
+                // open, else the main window's Timer.
+                run { await $0.newEntry(in: $0.activeTimer) }
             }
             .keyboardShortcut("n")
             // The selection in the view shown: "Start Timer" on a project.
@@ -43,7 +37,7 @@ struct TimerCommands: Commands {
                 run { [state] in await $0.continueCommand(timerKey: state.timerKey, plannerKey: state.plannerKey) }
             }
             .keyboardShortcut("o")
-            .disabled(app?.timer.mostRecentOther == nil && app?.list.selection == nil && plannerTarget == nil)
+            .disabled(app?.timer.mostRecentOther == nil && app?.activeTimer.list.selection == nil && plannerTarget == nil)
             Button("Stop") { run { await $0.stopEntry() } }
                 .keyboardShortcut("s")
                 .disabled(app?.timer.isRunning != true)

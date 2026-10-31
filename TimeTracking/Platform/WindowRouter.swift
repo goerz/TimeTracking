@@ -27,7 +27,7 @@ final class WindowRouter: AppRouting {
             timerWindow.show()
         }
         if focusTask {
-            app?.timer.requestTaskFieldFocus()
+            app?.miniTimer.focusTaskField()
         }
     }
 

@@ -117,7 +117,7 @@ struct TimerModelTests {
         await test.app.afterChange()
         #expect(timer.timerText(at: test.clock.now) == "0:55:00")
         // The list shows the earlier piece under its own day.
-        let days = test.app.list.days
+        let days = test.app.activeTimer.list.days
         #expect(days.map(\.day) == [TrackingDay(year: 2024, month: 3, day: 14), TrackingDay(year: 2024, month: 3, day: 13)])
         #expect(days[1].rows.first?.entry.task == "Night")
         // Today's total includes the running piece and ticks.

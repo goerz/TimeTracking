@@ -14,11 +14,14 @@ final class AppModel {
     @ObservationIgnored let notifier: NotificationPosting
     @ObservationIgnored weak var router: AppRouting?
     @ObservationIgnored weak var window: TimerWindowControlling?
-    let presentation = TimerUIState()
-    let taskField: TaskFieldModel
+    /// The Mini Timer's own list, popovers, picker, dialog, and focus.
+    let miniTimer: TimerUIState
+    /// The main window's Timer's own list, popovers, picker, dialog, and focus.
+    let mainTimer: TimerUIState
+    /// The Timer view whose window is key, if any (set by the views).
+    private(set) var keyTimer: TimerUIState?
     let settings: AppSettings
     let timer: TimerModel
-    let list: TimerListModel
     let pomodoro: PomodoroModel
     let idle: IdleModel
     let reminders: ReminderModel
@@ -77,8 +80,8 @@ final class AppModel {
         self.settings = settings
         self.notifier = notifier
         self.timer = TimerModel(store: store, clock: clock, notifier: notifier)
-        self.taskField = TaskFieldModel(store: store)
-        self.list = TimerListModel(store: store, clock: clock)
+        self.miniTimer = TimerUIState(place: .miniTimer, store: store, clock: clock)
+        self.mainTimer = TimerUIState(place: .mainWindow, store: store, clock: clock)
         self.pomodoro = PomodoroModel(store: store, clock: clock, notifier: notifier, settings: settings)
         self.idle = IdleModel(store: store, clock: clock, notifier: notifier, settings: settings)
         self.reminders = ReminderModel(store: store, clock: clock, notifier: notifier, settings: settings)
@@ -99,7 +102,9 @@ final class AppModel {
             suggestionsCache: suggestionsCache
         )
         timer.onChange = { [weak self] in await self?.afterChange() }
-        list.onChange = { [weak self] in await self?.afterChange() }
+        for view in [miniTimer, mainTimer] {
+            view.list.onChange = { [weak self] in await self?.afterChange() }
+        }
         idle.onChange = { [weak self] in await self?.afterChange() }
         idle.showTimer = { [weak self] focus in self?.router?.showTimer(focusTask: focus) }
         pomodoro.currentTask = { [weak self] in self?.timer.running?.task ?? "" }
@@ -116,7 +121,7 @@ final class AppModel {
         await pomodoro.loadSettings()
         await timer.refresh()
         lastRunningID = timer.running?.id
-        await list.reload()
+        await reloadLists()
         await tracker.refresh()
         guard observing else {
             return
@@ -154,12 +159,18 @@ final class AppModel {
         }
     }
 
-    /// Re-reads the timer and list and reacts to a start or stop: the
+    /// Both Timer views' lists.
+    private func reloadLists() async {
+        await miniTimer.list.reload()
+        await mainTimer.list.reload()
+    }
+
+    /// Re-reads the timer and lists and reacts to a start or stop: the
     /// Pomodoro ends when nothing runs, the idle prompt closes, and the
     /// focus settings of §8.3 apply.
     func afterChange() async {
         await timer.refresh()
-        await list.reload()
+        await reloadLists()
         let running = timer.running
         if running?.id != lastRunningID {
             pomodoro.runningChanged(isRunning: running != nil)
@@ -176,10 +187,17 @@ final class AppModel {
 
     // MARK: Commands of the menus, Dock, notifications, and shortcuts
 
-    /// New: starts an empty entry and shows the window with the task field focused.
-    func newEntry() async {
+    /// New: starts an empty entry and shows a Timer with the task field
+    /// focused: `view` (the main menu passes `activeTimer`), else the Mini
+    /// Timer (the menu bar, the Dock, notifications).
+    func newEntry(in view: TimerUIState? = nil) async {
         await timer.new()
-        router?.showTimer(focusTask: true)
+        if view?.place == .mainWindow {
+            router?.showMainTimer()
+            mainTimer.focusTaskField()
+        } else {
+            router?.showTimer(focusTask: true)
+        }
     }
 
     /// Continue the most recent entry other than the running one, without
@@ -230,38 +248,14 @@ final class AppModel {
 
     // MARK: Timer window commands
 
-    /// The chip's picker, with task matching (spec_timer_window.md §2.3).
-    func openChipPicker() {
-        presentation.pickerModel = ProjectPickerModel(store: store, currentProject: timer.chipProjectID, taskMatching: true)
-    }
-
-    /// A picker choice from the chip or the `@` trigger.
-    func choose(_ choice: ProjectPickerChoice) async {
-        presentation.pickerModel = nil
-        switch choice {
-        case let .project(id):
-            await timer.setProject(id)
-        case let .create(name):
-            presentation.dialogModel = ProjectDialogModel(store: store, mode: .create, name: name)
-        }
-    }
-
-    /// The dialog opened from the picker closed; Create assigns the project.
-    func dialogFinished(_ project: Project?) async {
-        presentation.dialogModel = nil
-        if let project {
-            await timer.setProject(project.id)
-        }
-    }
-
-    /// ⌘E: the running entry from the bar, else the selected row.
-    func editEntry() {
-        if presentation.listFocused, let selection = list.selection {
-            presentation.editing = selection
-        } else if let running = timer.running {
-            presentation.editing = running.id
-        } else {
-            presentation.editing = list.selection
+    /// A Timer view's window became key (`true`) or resigned.
+    func timerViewActivated(_ view: TimerUIState, isKey: Bool, undoManager: UndoManager?) {
+        if isKey {
+            keyTimer = view
+            // Undo of the Timer's commands goes to the window they came from.
+            timer.undoManager = undoManager
+        } else if keyTimer === view {
+            keyTimer = nil
         }
     }
 
@@ -271,7 +265,7 @@ final class AppModel {
         if plannerKey, await planner.continueSelection() {
             return
         }
-        if timerKey, let selection = list.selection {
+        if timerKey, let selection = activeTimer.list.selection {
             await timer.continueEntry(selection)
         } else {
             await continueLatest()

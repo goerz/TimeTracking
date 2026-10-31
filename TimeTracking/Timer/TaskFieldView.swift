@@ -5,11 +5,11 @@ import SwiftUI
 import TimeTrackingCore
 
 /// The task field. While an entry runs it edits its task; otherwise it
-/// holds the draft.
+/// holds the draft. Its suggestions, `@` picker, and focus are its Timer
+/// view's own.
 struct TaskFieldView: View {
-    /// The Mini Timer's field; otherwise the main window's.
-    var inMiniTimer = true
     @Environment(AppModel.self) private var app
+    @Environment(TimerUIState.self) private var view
     @FocusState private var focused: Bool
 
     var body: some View {
@@ -21,7 +21,7 @@ struct TaskFieldView: View {
             .onKeyPress(.upArrow) { move(-1) }
             .onKeyPress(.downArrow) { move(1) }
             .onKeyPress(.tab) {
-                guard let suggestion = app.taskField.acceptSuggestion() else {
+                guard let suggestion = view.taskField.acceptSuggestion() else {
                     return .ignored
                 }
                 Task { await app.timer.accept(suggestion) }
@@ -37,15 +37,16 @@ struct TaskFieldView: View {
             }
             .onChange(of: focused) { _, isFocused in
                 if !isFocused {
-                    app.taskField.reset()
+                    view.taskField.reset()
                     Task { await app.timer.commitTask() }
                 }
             }
-            .onChange(of: app.timer.focusTaskFieldRequest) {
-                // A request goes to the Mini Timer while it is on screen,
-                // else to the main window's Timer, not to both.
-                if inMiniTimer || app.window?.isVisible != true {
+            // Only this view's requests; a request made before the view
+            // appeared applies when it does.
+            .onChange(of: view.wantsTaskFieldFocus, initial: true) { _, wants in
+                if wants {
                     focused = true
+                    view.wantsTaskFieldFocus = false
                 }
             }
             .onAppear {
@@ -69,28 +70,28 @@ struct TaskFieldView: View {
                 app.timer.taskTextChanged()
             }
             let chip = app.timer.chipProjectID
-            Task { await app.taskField.userEdited(newValue, chipProject: chip) }
+            Task { await view.taskField.userEdited(newValue, chipProject: chip) }
         }
     }
 
     private func move(_ offset: Int) -> KeyPress.Result {
-        guard app.taskField.picker != nil || app.taskField.isShowingSuggestions else {
+        guard view.taskField.picker != nil || view.taskField.isShowingSuggestions else {
             return .ignored
         }
-        app.taskField.move(by: offset)
+        view.taskField.move(by: offset)
         return .handled
     }
 
     private func submit() {
-        app.taskFieldReturn()
+        app.taskFieldReturn(in: view)
     }
 
     private func escape() {
-        if app.taskField.escape(text: app.timer.taskText) {
+        if view.taskField.escape(text: app.timer.taskText) {
             return
         }
         if !app.timer.revertTask() {
-            app.presentation.focusList()
+            view.focusList()
         }
     }
 }
@@ -98,16 +99,17 @@ struct TaskFieldView: View {
 /// The popup under the bar: suggestions or the `@` picker.
 struct TaskFieldPopup: View {
     @Environment(AppModel.self) private var app
+    @Environment(TimerUIState.self) private var view
 
     var body: some View {
-        if let picker = app.taskField.picker {
+        if let picker = view.taskField.picker {
             ProjectPickerView(model: picker, showsSearchField: false) { choice in
-                app.taskFieldPicked(choice)
+                app.taskFieldPicked(choice, in: view)
             }
             .popupBackground()
-        } else if app.taskField.isShowingSuggestions {
+        } else if view.taskField.isShowingSuggestions {
             VStack(alignment: .leading, spacing: 0) {
-                ForEach(Array(app.taskField.suggestions.enumerated()), id: \.offset) { index, suggestion in
+                ForEach(Array(view.taskField.suggestions.enumerated()), id: \.offset) { index, suggestion in
                     suggestionRow(index, suggestion)
                 }
             }
@@ -119,10 +121,10 @@ struct TaskFieldPopup: View {
     }
 
     private func suggestionRow(_ index: Int, _ suggestion: TaskSuggestion) -> some View {
-        let label = suggestion.projectID.flatMap { app.taskField.labels[$0] } ?? .noProject
-        let highlighted = app.taskField.highlightedSuggestion == index
+        let label = suggestion.projectID.flatMap { view.taskField.labels[$0] } ?? .noProject
+        let highlighted = view.taskField.highlightedSuggestion == index
         return Button {
-            app.taskField.closeSuggestions()
+            view.taskField.closeSuggestions()
             Task { await app.timer.accept(suggestion) }
         } label: {
             SuggestionLabel(
