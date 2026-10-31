@@ -82,14 +82,14 @@ Synced settings are records; device settings live in the App Group's `UserDefaul
 
 | Key | Scope | Type | Default | Owner |
 |---|---|---|---|---|
-| `pomodoro.focusMinutes` | synced | Int | 25 | Timer window |
-| `pomodoro.breakMinutes` | synced | Int | 5 | Timer window |
+| `pomodoro.focusMinutes` | synced | Int | 25 | Timer |
+| `pomodoro.breakMinutes` | synced | Int | 5 | Timer |
 | `pinnedProjectIDs` | synced | [UUID] | [] | iOS widgets |
 | `activity.contextColors` | synced | [String: Int] (context to hue index) | {} | Activity |
 | `calendar.timeBlockCalendarID` | synced | String? | nil | Calendar |
 | `deviceID` | device | UUID | created on first launch | this spec |
-| `pomodoro.sounds` | device | Bool | true | Timer window |
-| `idle.thresholdMinutes` | device | Int | 10 | Timer window |
+| `pomodoro.sounds` | device | Bool | true | Timer |
+| `idle.thresholdMinutes` | device | Int | 10 | Timer |
 
 Shortcuts, menu bar display, window frames, shown external calendars, and Pomodoro state are device settings of their owner specs. Synced settings merge per key by last writer, except `activity.contextColors`, which merges as the union, the smaller index winning for a context assigned differently. A new context takes the hue index used by the fewest contexts, lowest on ties.
 
@@ -547,7 +547,7 @@ Assumed:
 - Architecture: `<APP_ID>`, App Groups, `iCloud.<APP_ID>` in the development environment, `<APP_ID>.changed`, GRDB.swift, the CloudKit entitlement on the widget extension, the APNs credentials and request (§2.4).
 - Tracker: log formats, blocks closed at midnight, `DeviceEvent` access only through `DeviceEventSource`.
 - iOS: calls `setWidgetPushToken`, uses `LiveStateReader` in timeline providers, appends through `DeviceEventSink` and calls `flush()`, shows `.adjusted` as a banner.
-- Timer window and Calendar: refuse future entries and decide on overlaps before writing; the settings window shows `WidgetPushStatus`.
+- Timer and Calendar: refuse future entries and decide on overlaps before writing; the settings window shows `WidgetPushStatus`.
 - Projects and Reports: tint and lightness-step parameters for `AreaColor`; Projects offers "Merge into" and reassignment for duplicates and orphans.
 - Automation: the CSV columns of `ReportCSVWriter`.
 - Calendar: time blocks live in the EventKit calendar `calendar.timeBlockCalendarID`; the suggestion engine uses `suggestion_feedback`.

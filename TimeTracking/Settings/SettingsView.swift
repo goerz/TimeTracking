@@ -85,7 +85,7 @@ struct GeneralPane: View {
                     set: { app.tracker.setOpensAtLogin($0) }
                 ))
                 .accessibilityIdentifier("settings.openAtLogin")
-                Toggle("Show the Timer window at login", isOn: $settings.showTimerAtLogin)
+                Toggle("Show the main window at login", isOn: $settings.showTimerAtLogin)
                     .disabled(!app.tracker.opensAtLogin)
             }
             menuBarSection
@@ -285,9 +285,9 @@ struct ShortcutsPane: View {
                 Text("These work in every app.")
             }
             Section {
-                Toggle("Show the Timer window when an entry starts", isOn: $settings.focusOnStart)
+                Toggle("Show the Mini Timer when an entry starts", isOn: $settings.focusOnStart)
                     .accessibilityIdentifier("settings.focusOnStart")
-                Toggle("Show the Timer window when an entry stops", isOn: $settings.focusOnStop)
+                Toggle("Show the Mini Timer when an entry stops", isOn: $settings.focusOnStop)
             } footer: {
                 Text(
                     "Shows the Timer window after a start or stop from a shortcut, the menu bar, "

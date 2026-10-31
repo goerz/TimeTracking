@@ -1,5 +1,6 @@
-// What only real windows show: the Timer window, the menu bar item, the
-// settings window (spec_timer_window.md, spec_menubar.md, spec_architecture.md §8).
+// What only real windows show: the main window's Timer, the Mini Timer, the
+// menu bar item, the settings window (spec_timer_window.md, spec_menubar.md,
+// spec_architecture.md §8).
 
 import XCTest
 
@@ -39,7 +40,7 @@ final class TimerWindowUITests: XCTestCase {
     @MainActor
     func testTW1_collapseBelowThreshold() {
         let app = launch()
-        let window = app.windows.firstMatch
+        let window = app.openMiniTimer()
         // Just inside the bottom edge: the resize area, not the desktop below.
         // On the Mac only `click(forDuration:thenDragTo:)` drags; `press` does not.
         let bottom = window.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 1.0)).withOffset(CGVector(dx: 0, dy: -1))
@@ -47,7 +48,7 @@ final class TimerWindowUITests: XCTestCase {
         let height = window.frame.height
         bottom.click(forDuration: 0.2, thenDragTo: bottom.withOffset(CGVector(dx: 0, dy: -(height - 190))))
         XCTAssertEqual(window.frame.height, 106, accuracy: 2)
-        XCTAssertFalse(app.descendants(matching: .any)["timer.list"].exists)
+        XCTAssertFalse(window.descendants(matching: .any)["timer.list"].exists)
         // Dragging to 250 pt snaps to 300 pt and shows the list.
         let edge = window.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 1.0)).withOffset(CGVector(dx: 0, dy: -1))
         edge.click(forDuration: 0.2, thenDragTo: edge.withOffset(CGVector(dx: 0, dy: 250 - window.frame.height)))
@@ -58,7 +59,7 @@ final class TimerWindowUITests: XCTestCase {
     @MainActor
     func testTW2_compactModeShortcut() {
         let app = launch()
-        let window = app.windows.firstMatch
+        let window = app.openMiniTimer()
         let full = window.frame
         app.typeKey("m", modifierFlags: [.command, .shift])
         XCTAssertEqual(window.frame.height, 106, accuracy: 2)
@@ -71,16 +72,17 @@ final class TimerWindowUITests: XCTestCase {
     @MainActor
     func testTW3_restoresFrameAndPin() {
         var app = launch()
+        _ = app.openMiniTimer()
         let pin = app.buttons["timer.pinButton"]
         pin.click()
         XCTAssertEqual(pin.value as? String, "pinned")
         app.typeKey("m", modifierFlags: [.command, .shift])
-        let frame = app.windows.firstMatch.frame
+        let frame = app.windows["timer"].frame
         app.terminate()
         app = launch(reset: false)
+        // Opened again, the Mini Timer comes back pinned, compact, and in place.
+        let restored = app.openMiniTimer().frame
         XCTAssertEqual(app.buttons["timer.pinButton"].value as? String, "pinned")
-        // Compact mode, origin, and size all come back.
-        let restored = app.windows.firstMatch.frame
         XCTAssertEqual(restored.height, frame.height, accuracy: 2)
         XCTAssertEqual(restored.width, frame.width, accuracy: 2)
         XCTAssertEqual(restored.minX, frame.minX, accuracy: 2)
@@ -96,15 +98,19 @@ final class TimerWindowUITests: XCTestCase {
         let recorded = #""{\"carbonKeyCode\":15,\"carbonModifiers\":6400}""#
         let app = launch(fixture: "empty", arguments: ["-KeyboardShortcuts_showHideTimer", recorded])
         let shortcut: XCUIElement.KeyModifierFlags = [.control, .option, .command]
-        // The window is key: the shortcut hides the app.
+        // From the main window the shortcut opens the Mini Timer; while the
+        // Mini Timer is key it hides the app.
+        app.typeKey("r", modifierFlags: shortcut)
+        XCTAssertTrue(app.windows["timer"].waitForExistence(timeout: 5))
         app.typeKey("r", modifierFlags: shortcut)
         XCTAssertTrue(app.wait(for: .runningBackground, timeout: 5))
         // System-wide: pressed in another app, it brings the window back.
         XCUIApplication(bundleIdentifier: "com.apple.finder").typeKey("r", modifierFlags: shortcut)
         XCTAssertTrue(app.wait(for: .runningForeground, timeout: 5))
-        // The task field has keyboard focus. (Synthesized typing right after
-        // the shortcut loses keys under XCUITest; TW-6 and TW-9 cover typing.)
-        let field = app.textFields["timer.taskField"]
+        // The Mini Timer's task field has keyboard focus. (Synthesized typing
+        // right after the shortcut loses keys under XCUITest; TW-6 and TW-9
+        // cover typing.)
+        let field = app.windows["timer"].textFields["timer.taskField"]
         wait(for: [expectation(for: NSPredicate(format: "hasKeyboardFocus == true"), evaluatedWith: field)], timeout: 5)
         app.terminate()
     }
@@ -112,7 +118,7 @@ final class TimerWindowUITests: XCTestCase {
     @MainActor
     func testTW6_startAndStopFromTheBar() {
         let app = launch(fixture: "empty")
-        let field = app.textFields["timer.taskField"]
+        let field = app.mainWindow.textFields["timer.taskField"]
         field.click()
         field.typeText("Clarify noise model\r")
         XCTAssertTrue(app.buttons["timer.stopButton"].waitForExistence(timeout: 5))
@@ -125,7 +131,7 @@ final class TimerWindowUITests: XCTestCase {
     @MainActor
     func testTW9_atTriggerOpensPicker() {
         let app = launch()
-        let field = app.textFields["timer.taskField"]
+        let field = app.mainWindow.textFields["timer.taskField"]
         field.click()
         field.typeText("Review @no")
         XCTAssertTrue(app.descendants(matching: .any)["picker"].waitForExistence(timeout: 5))

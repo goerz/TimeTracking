@@ -9,9 +9,13 @@ import TimeTrackingCore
 struct TimerAlertPresentation: ViewModifier {
     @Bindable var timer: TimerModel
     var list: TimerListModel
+    /// Off in a Timer view that leaves the alert to another (the Mac's
+    /// main window while the Mini Timer shows).
+    var active = true
 
     func body(content: Content) -> some View {
-        content.alert(timer.alert?.message ?? "", isPresented: .isPresent($timer.alert), presenting: timer.alert) { alert in
+        let isPresented: Binding<Bool> = active ? .isPresent($timer.alert) : .constant(false)
+        content.alert(timer.alert?.message ?? "", isPresented: isPresented, presenting: timer.alert) { alert in
             buttons(alert)
         }
     }
@@ -36,7 +40,7 @@ struct TimerAlertPresentation: ViewModifier {
 
 extension View {
     /// The Timer's confirmation alerts (`TimerModel.alert`).
-    func timerAlert(timer: TimerModel, list: TimerListModel) -> some View {
-        modifier(TimerAlertPresentation(timer: timer, list: list))
+    func timerAlert(timer: TimerModel, list: TimerListModel, active: Bool = true) -> some View {
+        modifier(TimerAlertPresentation(timer: timer, list: list, active: active))
     }
 }

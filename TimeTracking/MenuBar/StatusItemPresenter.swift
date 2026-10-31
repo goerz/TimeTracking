@@ -131,8 +131,8 @@ enum StatusItemPresenter {
         entries += pomodoroItems(state.pomodoro, isRunning: state.running != nil)
         entries += [
             .separator,
-            .item(title: "Show Timer Window", key: state.showHideKey, enabled: true, command: .showTimer),
-            .item(title: "Open Planner", key: .command("p", .option), enabled: true, command: .openPlanner),
+            .item(title: "Show Mini Timer", key: state.showHideKey, enabled: true, command: .showTimer),
+            .item(title: "Open \(state.appName)", key: nil, enabled: true, command: .openMainWindow),
             .item(title: "Settings…", key: .command(","), enabled: true, command: .settings),
             .separator,
             .item(title: "Quit \(state.appName)", key: .command("q"), enabled: true, command: .quit),

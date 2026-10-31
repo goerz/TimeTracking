@@ -253,7 +253,7 @@ Property names match the JSON records of section 3.
 | `TodayTotalIntent` | `date: Date?` (today) | `Measurement<UnitDuration>` including the running entry, dialog "4 hours 2 minutes today" |
 | `EntriesIntent` | `from`, `to`, `project?`, `client?` | `[TimeEntryEntity]`, half-open range as `entries` |
 | `CreateProjectIntent` | `name`, `area: AreaEntity` | `ProjectEntity`; fails as `project create` |
-| `ShowTimerIntent` | none | Opens the Timer window or tab |
+| `ShowTimerIntent` | none | Opens the Mini Timer (Mac) or the Timer tab |
 
 No intent deletes, archives, or edits.
 
@@ -266,7 +266,7 @@ Both apps handle `timetracking` (`timetracking-debug` in Debug) with `onOpenURL`
 | `timetracking://start?project=NAME&task=TEXT` | Start an entry (both optional; `project_id=<uuid>` is the exact form), stopping the running one | Mac, iOS |
 | `timetracking://stop` | Stop the running entry | Mac, iOS |
 | `timetracking://continue` | Continue the most recent entry | Mac, iOS |
-| `timetracking://show` | Show the Timer window or tab | Mac, iOS |
+| `timetracking://show` | Show the Mini Timer (Mac) or the Timer tab | Mac, iOS |
 | `timetracking://planner/calendar?date=2026-10-29` | Calendar on that day (default today) | Mac, iPad |
 | `timetracking://planner/reports?from=2026-10-19&to=2026-10-26` | Reports on that range (`to` exclusive) | Mac, iPad |
 | `timetracking://planner/projects` | Projects section | Mac, iPad |

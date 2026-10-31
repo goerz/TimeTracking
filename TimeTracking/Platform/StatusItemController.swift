@@ -213,7 +213,7 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         case .stop: await app.stopEntry()
         case let .pomodoro(action): app.perform(action)
         case .showTimer: app.router?.showTimer(focusTask: false)
-        case .openPlanner: app.router?.openPlanner()
+        case .openMainWindow: (app.router as? WindowRouter)?.showMainWindow()
         case .settings: app.router?.openSettings(pane: nil)
         case .quit: NSApp.terminate(nil)
         }

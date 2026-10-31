@@ -31,6 +31,9 @@ final class AppModel {
     /// Experiment: the one window shows the Timer (the sidebar's first item)
     /// instead of a Planner section.
     var showsTimer = true
+    /// Launched as a login item with "Show the main window at login" off:
+    /// the main window closes as it appears.
+    @ObservationIgnored var hidesMainWindowOnAttach = false
 
     /// Sync and live updates; `nil` under `-UITesting` and in tests.
     var live: LiveUpdates?

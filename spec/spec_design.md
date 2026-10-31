@@ -1,6 +1,6 @@
 # Spec: Design Language
 
-The visual rules every surface follows: the Mac Timer window, menu bar item, Planner, and settings; the iPhone and iPad app; widgets and controls. A component spec describes what a surface contains and how it behaves; this spec decides how it looks. Where a component spec gives a size, symbol, or style that conflicts with this one, this one wins and the component spec is corrected.
+The visual rules every surface follows: the Mac main window with the Timer and the Planner sections, the Mini Timer, the menu bar item, and settings; the iPhone and iPad app; widgets and controls. A component spec describes what a surface contains and how it behaves; this spec decides how it looks. Where a component spec gives a size, symbol, or style that conflicts with this one, this one wins and the component spec is corrected.
 
 The app looks like it was made by Apple for the current OS: system text styles, SF Symbols, standard controls, system materials, and the platform's toolbar. Custom drawing is reserved for data (calendar cards, charts, heatmaps) and for the start and stop buttons.
 
@@ -146,7 +146,7 @@ Nothing moves or resizes on its own once it is on screen; only the viewer's acti
 
 ## 8. Mac windows
 
-- Timer window: hidden title bar; the title-bar row holds only the traffic lights and, at the far right, the pin button. The running-entry bar starts below it (`spec_timer_window.md` §2).
+- Mini Timer: hidden title bar; the title-bar row holds only the traffic lights and, at the far right, the pin button. The running-entry bar starts below it (`spec_timer_window.md` §2). The main window's Timer item has no such row.
 - Planner: `NavigationSplitView` with a sidebar of fixed sections; the toolbar of §4.
 - Settings: `TabView` panes with a symbol per tab, each pane a grouped `Form` with a fixed width of 520 pt whose window takes the pane's height (scrolling off, height fixed to the content); only a pane longer than the screen allows (Tracker) has a fixed height and scrolls. Numbers are a trailing value with a stepper after it; a dependent setting is disabled, not indented.
 - Menu bar item: the dial icon (the app icon's ring and knob as one template color, `spec_menubar.md` §1.1), the elapsed time as text, and during a Pomodoro a trailing segment with the phase glyph and the countdown (the rule of §11). The menu is the system menu style; a running entry shows as a header view (task in `.headline`; area dot, project, " · client" in `.secondary`; `clock`, "Started 09:35 · 0:25 elapsed" in `.secondary`), never as grayed-out disabled items (`spec_menubar.md` §2.1).

@@ -1,10 +1,14 @@
-# Spec: Timer Window (Mac app)
+# Spec: Timer and Main Window (Mac app)
 
-The Timer window is the Mac app's everyday surface: the running entry on top, recent entries by day below. This spec also owns the Pomodoro, idle detection, reminders, the settings window, the global shortcuts, and the shared entry editor.
+The Timer is the Mac app's everyday surface: the running entry on top, recent entries by day below. It is the first item of the main window and, as the Mini Timer, a small window of its own. This spec also owns the main window, the main menu, the Pomodoro, idle detection, reminders, the settings window, the global shortcuts, and the shared entry editor.
 
-## 1. Window
+## 1. Windows
 
-One SwiftUI `Window` scene (`timer`, title "Timer") with a hidden title bar. The title-bar row holds only the traffic lights and, at the far right on their center line, the pin button (1.2); the rest of the row is empty and drags the window.
+The main window is one SwiftUI `Window` scene titled `<APP_NAME>`, opened at launch. Its sidebar is the iPad's adaptable tab view ([spec_ios.md](spec_ios.md) §10.1), shown on the Mac as a sidebar: Timer, Calendar, Reports, Projects, Activity, selected with View › Timer to Activity (⌘1 to ⌘5). The four Planner sections are specified in [spec_planner_projects.md](spec_planner_projects.md) §1 and the section specs. Default size 1100 × 760 pt; the window is no smaller than the shown item's minimum. At launch it shows the Timer; clicking the Dock tile shows the window on its current item. Closing it keeps the app running.
+
+The Timer item is laid out as the iPad's Timer tab: above 900 pt of width the running-entry bar (§2) is a column 40% of the width (400 to 480 pt) beside the list (§3), below it the bar sits above the list. It has no title-bar row and no pin; its minimum is 400 × 300 pt.
+
+The Mini Timer is a second SwiftUI `Window` scene (`timer`, title "Mini Timer") with a hidden title bar, a small window for the bar and list like Music's MiniPlayer. The title-bar row holds only the traffic lights and, at the far right on their center line, the pin button (1.2); the rest of the row is empty and drags the window. Sections 1.1 to 1.3 are the Mini Timer's; the bar, list, and popover (§2 to §4) are the same in both places.
 
 ### 1.1 Full and compact mode
 
@@ -19,21 +23,21 @@ One SwiftUI `Window` scene (`timer`, title "Timer") with a hidden title bar. The
 
 The list hides and shows live as a resize crosses the threshold. A drag ending below the threshold animates to the bar height; one ending between the threshold and the minimum full height animates to the minimum full height, keeping the dragged width and the top-left corner.
 
-Each mode's last frame is remembered (device settings `timerFullFrame`, `timerCompactFrame`). View > Compact Mode (⇧⌘M, checkmark) switches modes at the current top-left corner with the other mode's remembered size; a drag across the threshold applies the other mode's remembered height.
+Each mode's last frame is remembered (device settings `timerFullFrame`, `timerCompactFrame`). View › Compact Mode (⇧⌘M, checkmark, enabled while the Mini Timer is key) switches modes at the current top-left corner with the other mode's remembered size; a drag across the threshold applies the other mode's remembered height.
 
 ### 1.2 Pin
 
-The pin button (`pin`, `pin.fill` while pinned) toggles window level `.floating`: above every app's normal windows, not joining other apps' full-screen spaces, without activating the window. It persists (device setting `timerPinned`, default off) and mirrors View > Float on Top. Settings has no separate checkbox for it.
+The pin button (`pin`, `pin.fill` while pinned) toggles window level `.floating`: above every app's normal windows, not joining other apps' full-screen spaces, without activating the window. It persists (device setting `timerPinned`, default off) and mirrors View › Float on Top. Settings has no separate checkbox for it.
 
 ### 1.3 Opening, closing, and restoration
 
-The window opens from Window > Timer, the menu bar, the show/hide shortcut (8.3), and the Dock tile. At launch it restores mode, frame, and pin; a frame with less than 100 × 44 pt on any screen moves to the main screen's center. The list starts at the top, the filter is cleared, and the task field is focused when nothing runs.
+The Mini Timer opens from Window › Mini Timer, the menu bar's "Show Mini Timer", and the show/hide shortcut (8.3); it never opens at launch. Opening it restores mode, frame, and pin; a frame with less than 100 × 44 pt on any screen moves to the main screen's center. The list starts at the top, the filter is cleared, and the task field is focused when nothing runs.
 
-Launched as a login item, the app shows only the menu bar item unless "Show the Timer window at login" is on; otherwise it shows the window. Closing the window keeps the app running. Quitting does not stop the running entry.
+Launched as a login item, the app shows only the menu bar item unless "Show the main window at login" is on; otherwise it shows the main window. Closing a window keeps the app running. Quitting does not stop the running entry.
 
 ## 2. The running-entry bar
 
-Below the title-bar row, using the full width between the window's 20 pt insets, from left: the Pomodoro button (5.1, 32 pt circle while off, a fixed-width capsule while on); the borderless task field (placeholder "What are you working on?", `.title3`), which takes the remaining width; the timer label (`h:mm:ss` in `.title3`, medium weight, monospaced digits; `0:00:00` in the secondary color when idle); the start button (32 pt circle), which becomes the stop button while an entry runs; and the borderless discard button, only while running (`spec_design.md` §7).
+At the top of the Timer item, or below the Mini Timer's title-bar row, using the full width between the 20 pt insets, from left: the Pomodoro button (5.1, 32 pt circle while off, a fixed-width capsule while on); the borderless task field (placeholder "What are you working on?", `.title3`), which takes the remaining width; the timer label (`h:mm:ss` in `.title3`, medium weight, monospaced digits; `0:00:00` in the secondary color when idle); the start button (32 pt circle), which becomes the stop button while an entry runs; and the borderless discard button, only while running (`spec_design.md` §7).
 
 Below that row, the project chip (`spec_design.md` §7: area dot, project, " · " and client in secondary color, `chevron.up.chevron.down`; "No project" with a hollow dot). The chip starts at the content inset, under the Pomodoro button and in line with the list rows, so it stays put in every Pomodoro state.
 
@@ -44,7 +48,7 @@ The timer label always shows the elapsed time, also during a Pomodoro, and count
 | Action | How | Effect |
 |---|---|---|
 | Start | Start button; Return in the task field while idle | Starts an entry with the field's task and the chip's project (both may be empty). |
-| New | ⌘N | Starts an entry with empty task and no project; shows the window with the task field focused. |
+| New | ⌘N | Starts an entry with empty task and no project; shows the Timer (the Mini Timer while it is open, else the main window's Timer item) with the task field focused. |
 | Stop | Stop button; ⌘S; continue/stop shortcut | Stops the running entry; the task field, project chip, and timer go blank as at startup. Resuming it is a Continue on its row, the first of the list. |
 | Continue | Row's continue button; double-click; ⌘O; continue/stop shortcut while idle | Starts an entry with the source's task and project. ⌘O continues the selected row, else the most recent entry other than the running one. |
 | Discard | Discard button; ⌥⌘⌫ | Deletes the running entry after the alert "Discard the running entry? 0:12:34 will be lost." (Discard, Cancel); ⌥-click skips the alert. Undoable with ⌘Z. |
@@ -61,7 +65,7 @@ The `@` trigger: an `@` at the start of the field or after a space opens the pic
 
 ### 2.3 Project chip, picker, and quick creation
 
-Clicking the chip, ⌘P, Space on the chip (Tab reaches it from the task field), or `@` opens the shared project picker (`spec_planner_projects.md` §5) on the chip, with task matching on. Its search field takes focus except when opened by `@`. A choice sets the running entry's project at once, or the draft's.
+Clicking the chip, Entry › Set Project… (⌘J), Space on the chip (Tab reaches it from the task field), or `@` opens the shared project picker (`spec_planner_projects.md` §5) on the chip, with task matching on. Its search field takes focus except when opened by `@`. A choice sets the running entry's project at once, or the draft's.
 
 The picker's "Create Project" row opens the project dialog (`spec_planner_projects.md` §3) as a sheet; Create assigns the new project the same way.
 
@@ -81,9 +85,9 @@ A row shows the task ("No task" in placeholder style), below it the project line
 | ⌘O | Continue selection |
 | ⌘⌫ | Delete after the alert "Delete this entry? 0:25:00, Household" (Delete, Cancel); undoable with ⌘Z |
 | Escape | Clear selection |
-| ⌘↑ | Scroll to top (View > Scroll to Today) |
+| ⌘↑ | Scroll to top (View › Scroll to Today) |
 
-Filter: Edit > Find (⌘F) shows a field above the list; only entries whose task, project, client, or area contains the text (case- and diacritic-insensitive) remain, and day totals sum the shown entries. Escape clears and hides the field.
+Filter: Edit › Find (⌘F) shows a field above the list; only entries whose task, project, client, or area contains the text (case- and diacritic-insensitive) remain, and day totals sum the shown entries. Escape clears and hides the field.
 
 ## 4. The edit popover
 
@@ -94,7 +98,7 @@ Clicking a row, Return on a selection, ⌘E, or clicking the timer label opens t
 | Field | Input |
 |---|---|
 | Task | Text with the autocompletion of 2.2, no `@` trigger |
-| Project | The chip; click or ⌘P opens the picker |
+| Project | The chip; click or ⌘J opens the picker |
 | Start, Stop | Time of day in the system's 12- or 24-hour format; `9:1` reads as 09:10; stored seconds are kept |
 | Duration | `h:mm:ss`, also `25m`, `1h 30m`, `1:30` |
 | Date | Date picker |
@@ -120,7 +124,7 @@ The library stores an interval across midnight as pieces sharing a root (`spec_d
 - For any piece of a chain, lines name the adjacent pieces: "Continued from Wed, Oct 28, 23:10" and "Continues on Thu, Oct 29 until 00:35".
 - Task and Project changes apply to every live piece of the chain in one transaction; Start, Stop, Duration, Date, and Delete apply to the edited piece only.
 
-The Timer window creates entries only by starting them; past intervals are created in the Calendar.
+The Timer creates entries only by starting them; past intervals are created in the Calendar.
 
 ## 5. Pomodoro
 
@@ -135,7 +139,7 @@ The Pomodoro button is the countdown's only place; the timer label keeps the ela
 | Off, an entry runs | The apple (`pomodoro`, `spec_design.md` §5) in a 32 pt circle | Start Pomodoro | Press and hold: "Start Pomodoro (25 min)" (the focus duration) |
 | Off, idle | The same | The menu | "Start Pomodoro (25 min)", disabled |
 | Focus, break | A capsule: progress ring (accent color in focus, secondary on a break) and the countdown `m:ss` (`h:mm:ss` from one hour) | The menu | The phase and countdown ("Focus 24:59", "Break 4:30"), then the actions 5.3 allows and "Cancel Pomodoro" |
-| Focus over, break over | The same capsule tinted with the accent color: `cup.and.saucer` and "Break", or `pomodoro` and "Focus"; tooltip "Start Break (⌘↩)" or "Start Focus (⌘↩)" | The confirmation; ⌘↩ anywhere in the window | Secondary click: the actions 5.3 allows and "Cancel Pomodoro" |
+| Focus over, break over | The same capsule tinted with the accent color: `cup.and.saucer` and "Break", or `pomodoro` and "Focus"; tooltip "Start Break (⌘↩)" or "Start Focus (⌘↩)" | The confirmation; ⌘↩ anywhere in the Timer's window | Secondary click: the actions 5.3 allows and "Cancel Pomodoro" |
 
 Every menu ends with "Pomodoro Settings…". The tooltip and the accessibility value name the phase and the countdown, in overtime as `+m:ss` counting up ("Focus +1:20").
 
@@ -189,7 +193,7 @@ While the tracker is running (`spec_activity_tracking.md` §4.4), the app also r
 
 ### 6.3 The prompt
 
-When input resumes after an idle period of at least the threshold (or a lock or sleep with "Ask when I return") while an entry runs and presence was not `passive`, the Timer window comes forward with the sheet "You have been away": "Idle since 14:02 (23 minutes).", "Running: <task> · <project>", and the buttons Split, Discard and Continue, Discard, Keep. If the app is not frontmost, the `idle` notification is posted too. A new idle period extends an open prompt.
+When input resumes after an idle period of at least the threshold (or a lock or sleep with "Ask when I return") while an entry runs and presence was not `passive`, the Mini Timer comes forward with the sheet "You have been away": "Idle since 14:02 (23 minutes).", "Running: <task> · <project>", and the buttons Split, Discard and Continue, Discard, Keep. If the app is not frontmost, the `idle` notification is posted too. A new idle period extends an open prompt.
 
 | Option | Effect | Key |
 |---|---|---|
@@ -223,7 +227,7 @@ Every pane is a grouped `Form` 520 pt wide (`spec_design.md` §8). The window ta
 | Section | Setting | Default | Notes |
 |---|---|---|---|
 | (none) | Open at login | off | `SMAppService.mainApp`; the first-launch alert proposes it (8.2) and the Tracker pane's setup shows it (`spec_activity_tracking.md` §7.4) |
-| (none) | Show the Timer window at login | off | Disabled while "Open at login" is off |
+| (none) | Show the main window at login | off | Disabled while "Open at login" is off |
 | Menu bar and Dock | Show timer, Show seconds, Show project, During a Pomodoro, show | on, off, off, Timer and countdown | `spec_menubar.md` §6 |
 | Menu bar and Dock | Show Dock icon | on | `spec_menubar.md` §4 |
 | iCloud | "Sync" ("Up to date", "Not signed in to iCloud. Entries stay on this Mac.", "Couldn't sync with iCloud. The app will try again.") and "Widget updates" ("Instant", "Last sent at 10:42", "Off (no push key)" without a push key, "Not working" with the detail in the log), followed by an info button (as in the Tracker pane, `spec_activity_tracking.md` §7.4) whose popover says that the Mac pushes each timer change to the widgets within seconds, that without the APNs key widgets change only when iOS reloads them, and how to create the key, with `make apns-key P8=…` as the snippet | | `spec_data_and_sync.md` §3.1, §4.3 |
@@ -234,7 +238,7 @@ Without notification authorization, a last section shows "Notifications are off 
 
 The pane's contents are specified in `spec_activity_tracking.md` §7.4. The tracker is registered only from the pane's "Enable Tracker" button.
 
-At the first launch on a Mac, after the Timer window appears, an alert asks "Set up activity tracking?" with the text "The tracker records which apps, sites, and terminal sessions you work in, so the Calendar can suggest entries. It needs a few permissions.", the buttons "Open Tracker Settings" (opens this pane) and "Later", and the checkbox "Open `<APP_NAME>` at login", on by default. Either button sets the device setting `trackerOnboardingPrompted`, so the alert appears once per Mac, and, with the checkbox on, turns on "Open at login" (8.1). Under `-UITesting` the app never registers its real login item.
+At the first launch on a Mac, a sheet on the main window asks "Set up activity tracking?" with the text "The tracker records which apps, sites, and terminal sessions you work in, so the Calendar can suggest entries. It needs a few permissions.", the buttons "Open Tracker Settings" (opens this pane) and "Later", and the checkbox "Open `<APP_NAME>` at login", on by default. Either button sets the device setting `trackerOnboardingPrompted`, so the sheet appears once per Mac, and, with the checkbox on, turns on "Open at login" (8.1). Under `-UITesting` the app never registers its real login item.
 
 ### 8.3 Shortcuts
 
@@ -242,54 +246,56 @@ The two recorders use the KeyboardShortcuts package (names `showHideTimer`, `con
 
 | Setting | Default | Behavior |
 |---|---|---|
-| Show/hide Timer window | ⌥⌘R | If the Timer window is not the key window of the active app, activate the app and show the window with the task field focused; otherwise hide the app. |
-| Continue/stop timer | unassigned | Stop the running entry, or continue the most recent entry when nothing runs. The window is not shown. |
-| Show the Timer window when an entry starts | off | After an entry starts from the global shortcut, the menu bar, a notification, an intent, or another device, show the Timer window with the task field focused. |
-| Show the Timer window when an entry stops | off | The same after an entry stops from those sources. |
+| Show/hide Mini Timer | ⌥⌘R | If the Mini Timer is not the key window of the active app, activate the app and show the Mini Timer with the task field focused; otherwise hide the app. |
+| Continue/stop timer | unassigned | Stop the running entry, or continue the most recent entry when nothing runs. No window is shown. |
+| Show the Mini Timer when an entry starts | off | After an entry starts from the global shortcut, the menu bar, a notification, an intent, or another device, show the Mini Timer with the task field focused. |
+| Show the Mini Timer when an entry stops | off | The same after an entry stops from those sources. |
 
-Window > Timer and the menu bar's "Show Timer Window" display the show/hide shortcut as key equivalent (none when unassigned); choosing either only shows the window.
+Window › Mini Timer and the menu bar's "Show Mini Timer" display the show/hide shortcut as key equivalent (none when unassigned); choosing either only shows the Mini Timer.
 
 ## 9. Menus and keyboard
 
-This section owns the main menu as a whole, on the Mac and, with the differences of [spec_ios.md](spec_ios.md) §10.3, on the iPad; the Planner specs list their sections' commands. The menu bar is the same in both windows: File, Edit, View, Timer, the section menu, and Window. The section menu is named for what the Planner section's commands act on (Project, Calendar, Report, Activity) and lists that section's commands; its title and items follow the section shown in the Planner.
+This section owns the main menu as a whole, on the Mac and, with the differences of [spec_ios.md](spec_ios.md) §10.3, on the iPad; the Planner specs list their sections' commands. The menus are object menus, as in Music or Mail: every window has the same menus, File, Edit, View, Timer, Entry, Project, and Window, and Entry and Project act on what is selected in the view shown.
 
-Every menu and item is always listed, and an item that applies to one window or section is disabled elsewhere rather than hidden. Such an item holds its key equivalent only while it is enabled, because AppKit sends a key equivalent to the first item that has it, even a disabled one; this lets one key serve several contexts (⌘P is Set Project… in the Timer window and Print… in Reports) and keeps a disabled item from taking a key from a text field. A command that several contexts share is one item acting on the key window: Find, Continue, Go to Today, Previous and Next Period, and Date Range…. Navigation keys that a view handles itself (arrows, Tab, Escape) are not menu items, as elsewhere on the Mac.
+Every menu and item is always listed, and an item that applies to one view is disabled elsewhere rather than hidden. Such an item holds its key equivalent only while it is enabled, because AppKit sends a key equivalent to the first item that has it, even a disabled one; this lets one key serve several views (⌘⌫ deletes a Timer row and a project, Delete a Calendar selection) and keeps a disabled item from taking a key from a text field. A command that several views share is one item acting on the view shown: Find, Continue, Edit Entry…, Delete, Go to Today, Previous and Next Period, and Date Range…. Navigation keys that a view handles itself (arrows, Tab, Escape) are not menu items, as elsewhere on the Mac.
 
 | Menu | Holds |
 |---|---|
 | App | Settings…, Hide, Quit (standard) |
-| File | Close (standard), Export… and Print… of Reports |
+| File | New Project…, New Area…, New Client… ([spec_planner_projects.md](spec_planner_projects.md) §2.5); Close (standard); Export… and Print… of Reports |
 | Edit | Undo, Redo, the pasteboard commands (standard), Find |
-| View | The Planner's sections, which open the Planner from either window; the shown range's navigation; the Timer window's view options |
-| Timer | The running entry and the Pomodoro, from any window (the menu bar item's menu has the same commands); then the Timer window's own entry commands |
-| Section menu | The commands of the Planner's section ([spec_planner_projects.md](spec_planner_projects.md) §2.5 and §4, [spec_planner_calendar.md](spec_planner_calendar.md) §6, [spec_planner_reports.md](spec_planner_reports.md) §8, [spec_planner_activity.md](spec_planner_activity.md) §2), enabled while the Planner is key |
-| Window | Timer and Planner, then the standard items |
+| View | The sidebar's items, the sidebar toggle, the shown range's navigation, then each view's display options under its own header (Timer, Calendar, Report, Activity), then the Mini Timer's |
+| Timer | The running entry and the Pomodoro, from any window (the menu bar item's menu has the same commands) |
+| Entry | The selected entry in the view shown: the Timer's running entry or row, the Calendar's selection ([spec_planner_calendar.md](spec_planner_calendar.md) §6), or the Reports entry list's row |
+| Project | The selected project, area, or client in Projects ([spec_planner_projects.md](spec_planner_projects.md) §2.5) |
+| Window | Mini Timer, then the standard items and the main window |
 
-"Timer key" is the scope of an item enabled only while the Timer window is key.
+"Timer view" is the scope of an item enabled while the Timer is shown, in the main window or the Mini Timer; "Mini Timer key" while the Mini Timer is the key window.
 
 | Menu | Command | Shortcut | Scope |
 |---|---|---|---|
 | App | Settings… | ⌘, | App |
 | App | Hide, Quit | ⌘H, ⌘Q | App |
 | Edit | Undo, Redo | ⌘Z, ⇧⌘Z | Delete, discard, and popover edits |
-| Edit | Find | ⌘F | Timer key; Projects and Reports ([spec_planner_projects.md](spec_planner_projects.md) §1.2) |
-| View | Compact Mode | ⇧⌘M | Timer key |
-| View | Float on Top | | Timer key |
-| View | Scroll to Today | ⌘↑ | Timer key |
-| Timer | New | ⌘N | App |
-| Timer | Continue | ⌘O | App: the selection of the key window (a Timer row; in the Planner a selected project, titled "Start Timer", or the one selected Calendar or Reports entry), else the most recent other entry |
+| Edit | Find | ⌘F | Timer view; Projects and Reports ([spec_planner_projects.md](spec_planner_projects.md) §1.2) |
+| View | Timer, Calendar, Reports, Projects, Activity | ⌘1 to ⌘5 | App; shows the main window on that item |
+| View | Scroll to Today | ⌘↑ | Timer view |
+| View | Compact Mode | ⇧⌘M | Mini Timer key |
+| View | Float on Top | | Mini Timer key |
+| Timer | New Entry | ⌘N | App |
+| Timer | Continue | ⌘O | App: the selection of the view shown (a Timer row; a selected project, titled "Start Timer"; or the one selected Calendar or Reports entry), else the most recent other entry |
 | Timer | Stop | ⌘S | App |
 | Timer | Discard Running Entry | ⌥⌘⌫ | App |
 | Timer | Start Pomodoro / Cancel Pomodoro | ⇧⌘P | App |
 | Timer | The next step, titled by its action: End Focus Now, Start Break, End Break Now, or Start Focus (End Focus Now, disabled, while the Pomodoro is off) | ⌃⌘P | App |
-| Timer | Set Project… | ⌘P | Timer key |
-| Timer | Edit Entry… | ⌘E | Timer key: running entry from the bar, selected row from the list |
-| Timer | Delete Entry… | ⌘⌫ | Timer key, list focus, a selected row |
-| Window | Timer | ⌥⌘R (displayed, 8.3) | App |
-| Window | Planner | ⌥⌘P | App |
+| Entry | Edit Entry… | ⌘E; ↩ in the Calendar | Timer view (running entry from the bar, selected row from the list), the Calendar's selection, the Reports list's row |
+| Entry | Set Project… | ⌘J | Timer view |
+| Entry | The Calendar's entry commands | [spec_planner_calendar.md](spec_planner_calendar.md) §6 | Calendar |
+| Entry | Delete Entry… | ⌘⌫; Delete in the Calendar | Timer view with a selected row in the focused list; the Calendar's selection |
+| Window | Mini Timer | ⌥⌘R (displayed, 8.3) | App |
 | Window | Close, Minimize | ⌘W, ⌘M | Standard |
 
-The Window menu lists each window once, by its title: the Timer and Planner scenes contribute no items of their own.
+The Window menu lists each window once, by its title: the Mini Timer scene contributes no item of its own besides Window › Mini Timer.
 
 ## 10. Notifications
 
@@ -302,15 +308,15 @@ The Mac app sends these through `UNUserNotificationCenter`, requesting authoriza
 | `idle` | "You have been away" / "Idle since 14:02 while tracking Clarify noise model." | Keep, Discard, Discard and Continue, Split | default |
 | `reminder` | "Nothing is being tracked" / "Last entry stopped at 13:40." | Start New, Continue Latest, Snooze | default |
 
-Clicking a notification shows the Timer window (with the idle prompt for `idle`). Pending Pomodoro and idle notifications are removed when their state resolves elsewhere. Without authorization, the confirmation button and the idle sheet still work.
+Clicking a notification shows the Mini Timer (with the idle prompt for `idle`). Pending Pomodoro and idle notifications are removed when their state resolves elsewhere. Without authorization, the confirmation button and the idle sheet still work.
 
 ## 11. Testable behaviors
 
-- TW-1. Height drags snap per §1.1: release at 199 pt gives 106 pt, at 200 pt gives 300 pt, 106 to 250 pt gives 300 pt, with width as dragged (at least 400 pt) and top-left fixed.
+- TW-1. Mini Timer height drags snap per §1.1: release at 199 pt gives 106 pt, at 200 pt gives 300 pt, 106 to 250 pt gives 300 pt, with width as dragged (at least 400 pt) and top-left fixed.
 - TW-2. ⇧⌘M toggles between the remembered compact and full frames at the current top-left corner; without remembered frames, between 480 × 106 and 480 × 600 pt.
-- TW-3. After relaunch the window has its mode, frame, and pin state from quit; with the pin on it stays above another app's key window.
-- TW-4. ⌥⌘R shows the window with the task field focused, or hides the app when the window is key; Window > Timer displays the recorded shortcut and none when cleared.
-- TW-5. Launched as a login item with "Show the Timer window at login" off, the app shows no window; quitting leaves a running entry running.
+- TW-3. Opened after a relaunch, the Mini Timer has its mode, frame, and pin state from quit; with the pin on it stays above another app's key window.
+- TW-4. ⌥⌘R shows the Mini Timer with the task field focused, or hides the app when the Mini Timer is key; Window › Mini Timer displays the recorded shortcut and none when cleared.
+- TW-5. Launched as a login item with "Show the main window at login" off, the app shows no window; quitting leaves a running entry running.
 - TW-6. Each action of §2.1 has its effect; ⌘N and Continue stop a running entry at the instant the new one starts; ⌘O without selection continues the most recent other entry.
 - TW-7. A task edit of the running entry is stored within 500 ms of the last keystroke; Escape reverts it.
 - TW-8. Typing three characters shows at most 8 suggestions, the current project's first; accepting sets task and project.
@@ -336,22 +342,23 @@ Clicking a notification shows the Timer window (with the idle prompt for `idle`)
 - TW-28. The prompt's options act as in §6.3.
 - TW-29. Lock, sleep, and shutdown follow the settings of §6.2, using the lock or shutdown time.
 - TW-30. With reminders every 10 min, 09:00 to 17:00, weekdays, a reminder arrives 10 min after a stop at 10:00 on a Tuesday, none at 17:05 or on a Saturday; Snooze suppresses them for its duration.
-- TW-31. The continue/stop shortcut stops or continues; with "Show the Timer window when an entry starts" on, the window then appears with the task field focused.
+- TW-31. The continue/stop shortcut stops or continues; with "Show the Mini Timer when an entry starts" on, the Mini Timer then appears with the task field focused.
 - TW-32. Each notification category offers exactly its listed actions; the settings window reopens on the last pane shown.
 - TW-33. The first-launch alert of §8.2 appears once per Mac; "Open Tracker Settings" opens the Tracker pane, and the agent stays unregistered until "Enable Tracker".
 - TW-34. The first-launch alert's "Open `<APP_NAME>` at login" checkbox is on by default; checked, either button turns on "Open at login", unchecked neither does; under `-UITesting` the real login item is never registered.
-- TW-35. In both windows the menu bar has File, Edit, View, Timer, the section menu, and Window, and no Entry menu; Window lists "Timer" and "Planner" once each. With the Timer window key Timer › Set Project… and View › Compact Mode are enabled, and View › Go to Today and the section menu's items are not. With the Planner key the section menu is the Calendar menu in Calendar (Fill Day… enabled; no Next Day, Next Entry, or Deselect item) and the Project menu in Projects (New Project… enabled; no Start Timer); Set Project… and Compact Mode are disabled there, and Go to Today and Previous Period are enabled in Calendar.
+- TW-35. Every window has the menus File, Edit, View, Timer, Entry, Project, and Window; Window lists the main window and "Mini Timer" once each. With the Timer shown Entry › Set Project… is enabled and View › Go to Today and the Project menu's items are not. In the Calendar Entry › Fill Day… and View › Go to Today and Previous Period are enabled, Set Project… is not, and there is no Next Day, Next Entry, or Deselect item. In Projects Project › Edit Project… is enabled for a selected project and File › New Project… always; there is no Start Timer item outside the Timer menu. View › Compact Mode is enabled only while the Mini Timer is key.
 
 ## 12. Decisions
 
-- The mode follows the window height, so it restores with the frame.
+- One main window holds every view, as on the iPad, so the main menu is the same everywhere and needs no per-window menus; the Mini Timer keeps the small floating window of the former Timer window for people who want it.
+- The Mini Timer's mode follows its height, so it restores with the frame.
 - The Pomodoro never changes entries; idle detection handles real absence.
 - The Pomodoro belongs to the person: replacing the entry keeps the phase; only "nothing runs" ends it.
 - The timer label counts the chain, day totals count each day's piece.
 - The Pomodoro countdown lives on its button, so the running entry's elapsed time is never hidden.
 - Task and project edits propagate along a chain; time edits do not.
 - Edits commit per field; there is no Save button.
-- The Timer window only starts entries; past intervals belong in the Calendar.
+- The Timer only starts entries; past intervals belong in the Calendar.
 
 ## 13. Interfaces
 
@@ -369,5 +376,5 @@ Provided:
 
 - The entry editor (§4) for the Planner Calendar.
 - An observable timer display state for the menu bar: running entry summary, chain start, most recent other entry, today's last stopped entry, Pomodoro state and phase end.
-- Commands New, Continue, Stop, the Pomodoro actions, show the Timer window (optionally focusing the task field), and open Settings on a pane.
+- Commands New, Continue, Stop, the Pomodoro actions, show the Mini Timer (optionally focusing the task field), show the main window, and open Settings on a pane.
 - The Pomodoro state machine (§5.3), which iOS implements with persisted state.

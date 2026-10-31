@@ -15,7 +15,7 @@ extension XCUIApplication {
     }
 
     /// Launches, answers the first-launch alert with Later if it shows, and
-    /// waits for the Timer window's task field.
+    /// waits for the main window's Timer task field.
     func launchPastOnboarding() {
         launch()
         let later = buttons["onboarding.later"]
@@ -23,5 +23,21 @@ extension XCUIApplication {
             later.click()
         }
         XCTAssertTrue(textFields["timer.taskField"].waitForExistence(timeout: 10))
+    }
+
+    /// The main window (`planner`).
+    var mainWindow: XCUIElement {
+        windows["planner"]
+    }
+
+    /// Window › Mini Timer, chosen from the menu (another app on the test
+    /// Mac may hold ⌥⌘R); returns the Mini Timer window once it is key.
+    func openMiniTimer() -> XCUIElement {
+        let window = menuBars.firstMatch.menuBarItems["Window"]
+        window.click()
+        window.menus.firstMatch.menuItems["Mini Timer"].click()
+        let mini = windows["timer"]
+        XCTAssertTrue(mini.waitForExistence(timeout: 5))
+        return mini
     }
 }

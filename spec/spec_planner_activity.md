@@ -1,6 +1,6 @@
 # Spec: Planner Activity
 
-The Activity section of the Planner window (fourth sidebar item, ⌘4) shows what the tracker recorded over a date range: how much of each day was active, at which hours, in which apps, terminal sessions, and browsers, and where inside them the time went. It renders the block log, the detail log, and the current state through the shared library's `ActivityReading` ([spec_data_and_sync.md](spec_data_and_sync.md) §6) and never writes them; collection and formats belong to [spec_activity_tracking.md](spec_activity_tracking.md). On the iPad it is the Activity tab (section 7); the iPhone has none.
+The Activity section of the main window (fifth sidebar item, ⌘5) shows what the tracker recorded over a date range: how much of each day was active, at which hours, in which apps, terminal sessions, and browsers, and where inside them the time went. It renders the block log, the detail log, and the current state through the shared library's `ActivityReading` ([spec_data_and_sync.md](spec_data_and_sync.md) §6) and never writes them; collection and formats belong to [spec_activity_tracking.md](spec_activity_tracking.md). On the iPad it is the Activity tab (section 7); the iPhone has none.
 
 Not included: editing, deleting, or merging blocks (the Calendar's activity column deletes a block); assigning projects or creating entries; reading the tracker's sample database; exporting.
 
@@ -22,7 +22,7 @@ Durations read `Nh Mm` from one hour, `Mm` below, and `Ss` below one minute.
 
 ### 1.3 Context chips and colors
 
-An "All" chip, then one chip per context ranked by time: the first eight on the line, the rest behind "N more…", a popover with a searchable list and durations. A chip shows the context's glyph in its color, its display name, and its duration on hover. Clicking toggles a chip (several may be on); "All" turns the others off. The filter applies to every panel except Away; it resets to "All" when the range changes other than by a period arrow and when the Planner window reopens, and it does not sync.
+An "All" chip, then one chip per context ranked by time: the first eight on the line, the rest behind "N more…", a popover with a searchable list and durations. A chip shows the context's glyph in its color, its display name, and its duration on hover. Clicking toggles a chip (several may be on); "All" turns the others off. The filter applies to every panel except Away; it resets to "All" when the range changes other than by a period arrow and when the main window reopens, and it does not sync.
 
 | Context | Kind | Display | Glyph |
 |---|---|---|---|
@@ -109,7 +109,7 @@ A one-line footer. On the Mac it shows the Tracker pane's status dot and line fr
 
 | Action | Keys |
 |---|---|
-| Show the section | ⌘4 |
+| Show the section | ⌘5 |
 | Range: previous, next, today, date popover | As in Reports (⌥⌘←, ⌥⌘→, ⌘T, ⇧⌘D) |
 | Move between heatmap cells | Arrow keys |
 | Show a focused cell's or segment's details | Space |
@@ -117,11 +117,11 @@ A one-line footer. On the Mac it shows the Tracker pane's status dot and line fr
 | Toggle a focused chip or row | Space |
 | Leave a subject drill-down, else clear the filter | Escape |
 
-Every action is also a menu item while the section is shown: the range commands are View › Go to Today, Previous Period, Next Period, and Date Range… (shared with the Calendar and Reports), and the Activity menu, the section menu ([spec_timer_window.md](spec_timer_window.md) §9), holds Clear Filter or Back (Escape's two steps) and "Exclude from Tracking…" for the selected context or site row (no shortcut).
+Every action is also a menu item while the section is shown: the range commands are View › Go to Today, Previous Period, Next Period, and Date Range… (shared with the Calendar and Reports), and the View menu's Activity header ([spec_timer_window.md](spec_timer_window.md) §9) holds Clear Filter or Back (Escape's two steps) and "Exclude from Tracking…" for the selected context or site row (no shortcut).
 
 ## 3. Drill-down into the Calendar
 
-A heatmap cell, bar, or segment calls `PlannerRouter.showCalendar(day:hour:highlight:)` ([spec_planner_calendar.md](spec_planner_calendar.md) §1.2) with the day, the cell's hour (nil for a bar), and as `highlight` the cell's hour or the segment's context. Range, filter, and scroll position here stay unchanged, and ⌘4 returns to them. The iPad selects the Calendar tab the same way.
+A heatmap cell, bar, or segment calls `PlannerRouter.showCalendar(day:hour:highlight:)` ([spec_planner_calendar.md](spec_planner_calendar.md) §1.2) with the day, the cell's hour (nil for a bar), and as `highlight` the cell's hour or the segment's context. Range, filter, and scroll position here stay unchanged, and ⌘5 returns to them. The iPad selects the Calendar tab the same way.
 
 ## 4. Exclusions
 
@@ -151,7 +151,7 @@ The Activity tab shows the same panels from the synced block log, without subjec
 14. A subject has a chevron only on the Mac holding a detail record for one of its blocks, with "details for N of M periods" when some lack one; elsewhere the note shows.
 15. Away counts only gaps over `idle_close` between same-device blocks of one day, classified on the recording Mac and unknown elsewhere.
 16. The Mac footer's dot matches the Tracker pane's status for the same `current.json`; the iPad footer shows `lastTick` from `LiveState` without sources.
-17. Clicking a cell opens the Calendar at that day and hour with the hour's blocks pulsed; ⌘4 returns with range, filter, and scroll unchanged.
+17. Clicking a cell opens the Calendar at that day and hour with the hour's blocks pulsed; ⌘5 returns with range, filter, and scroll unchanged.
 18. With an empty log and no tracker set up the setup card shows and opens the Tracker pane; after a block exists it does not return.
 19. "Exclude <name> from Tracking…" opens the Tracker pane with the right list and value and saves nothing; after saving, past items of that rule disappear from every total while the log files stay byte-identical.
 20. The view never modifies the block log, detail log, `current.json`, or `settings.toml`.

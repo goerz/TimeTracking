@@ -58,6 +58,9 @@ struct TimeTrackingApp: App {
         .windowResizability(.contentMinSize)
         .defaultSize(TimerWindowGeometry.defaultFullSize)
         .defaultLaunchBehavior(.suppressed)
+        // Never reopened at launch, also not by state restoration; its
+        // frame and mode come from TimerWindowController.
+        .restorationBehavior(.disabled)
         // Window › Mini Timer (in MainMenuCommands) replaces the scene's item.
         .commandsRemoved()
 

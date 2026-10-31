@@ -26,11 +26,11 @@ Entry writes go through the app process. Interactive widget and control buttons 
 
 ### 2.1 Layout
 
-A navigation bar with the large title "Timer" and a settings button (`gearshape`). Below it, one inset-grouped list: the running-entry card as the first section, the Mac activity line (2.3) and the sync pill as its footer, the Siri tip until dismissed, and the day-grouped recent list (2.6). The list is `searchable` with the search field in the navigation bar's drawer (revealed by pulling down; ⌘F on a hardware keyboard focuses it): its filter matches and sums as the Timer window's ⌘F filter ([spec_timer_window.md](spec_timer_window.md) §3). Stop and Discard are on the card, Continue on every row. The iPhone has no tab bar, no calendar view, and no manual mode.
+A navigation bar with the large title "Timer" and a settings button (`gearshape`). Below it, one inset-grouped list: the running-entry card as the first section, the Mac activity line (2.3) and the sync pill as its footer, the Siri tip until dismissed, and the day-grouped recent list (2.6). The list is `searchable` with the search field in the navigation bar's drawer (revealed by pulling down; ⌘F on a hardware keyboard focuses it): its filter matches and sums as the Mac Timer's ⌘F filter ([spec_timer_window.md](spec_timer_window.md) §3). Stop and Discard are on the card, Continue on every row. The iPhone has no tab bar, no calendar view, and no manual mode.
 
 ### 2.2 The running-entry card
 
-The card is the Timer window's running-entry bar ([spec_timer_window.md](spec_timer_window.md) §2) in pocket form, with the 44 pt circle buttons of `spec_design.md` §7, in three rows:
+The card is the Mac Timer's running-entry bar ([spec_timer_window.md](spec_timer_window.md) §2) in pocket form, with the 44 pt circle buttons of `spec_design.md` §7, in three rows:
 
 1. The borderless task field, full width (`.title2`, placeholder "What are you working on?").
 2. The project chip, at the card's leading edge.
@@ -41,7 +41,7 @@ The Pomodoro countdown thus sits next to the elapsed time.
 | State | Time shown | Actions |
 |---|---|---|
 | Nothing running | `0:00:00`, green Start button | Start (button, or Return in the task field) starts an entry with the field's task and the chip's project |
-| Running | Elapsed time `h:mm:ss` since the midnight chain's start, as the Timer window's label; red Stop button | Stop, and Discard with the Timer window's confirmation text; Stop blanks the task field and project chip, as at startup; Discard is undoable (shake or three-finger undo) until the next change |
+| Running | Elapsed time `h:mm:ss` since the midnight chain's start, as the Mac Timer's label; red Stop button | Stop, and Discard with the Mac Timer's confirmation text; Stop blanks the task field and project chip, as at startup; Discard is undoable (shake or three-finger undo) until the next change |
 | Running with a Pomodoro | The elapsed time as above; the countdown is on the Pomodoro button (2.8) | As above |
 
 Starting while another entry runs, from any surface, stops the running entry at the new start (`start(projectID:task:at:)`). The task field's commit timing, autocompletion, and `@` trigger are those of [spec_timer_window.md](spec_timer_window.md) §2.2; the suggestions appear as a list above the keyboard.
@@ -56,7 +56,7 @@ The picker of [spec_planner_projects.md](spec_planner_projects.md) appears as a 
 
 ### 2.5 Archived projects
 
-Continuing an entry whose project is archived shows the Timer window's alert ("Restore Project and Continue", "Cancel"). A row whose project is archived shows the project name in the secondary color.
+Continuing an entry whose project is archived shows the Mac Timer's alert ("Restore Project and Continue", "Cancel"). A row whose project is archived shows the project name in the secondary color.
 
 ### 2.6 The recent list
 
@@ -66,7 +66,7 @@ Grouping, headers, day totals (today's live with the running entry), the 14-day 
 |---|---|
 | Tap row | Edit sheet (2.7) |
 | Tap ▶, or full leading swipe | Continue (`continue(_:at:)`) |
-| Trailing swipe | Delete after the Timer window's confirmation; undoable until the next change |
+| Trailing swipe | Delete after the Mac Timer's confirmation; undoable until the next change |
 | Long press | Context menu: Continue, Edit, Copy Task, Delete |
 
 ### 2.7 Entry editing
@@ -208,8 +208,8 @@ Local notifications only. Authorization is requested at the first start of an en
 
 | Category | Trigger | Text | Actions | Level |
 |---|---|---|---|---|
-| `pomodoroFocusDone` | Scheduled at focus start for `focusEnd` | Timer window's | Start Break, Skip Break | `timeSensitive` |
-| `pomodoroBreakDone` | Scheduled at break start for `breakEnd` | Timer window's | Start Focus, End Pomodoro | `timeSensitive` |
+| `pomodoroFocusDone` | Scheduled at focus start for `focusEnd` | The Mac's | Start Break, Skip Break | `timeSensitive` |
+| `pomodoroBreakDone` | Scheduled at break start for `breakEnd` | The Mac's | Start Focus, End Pomodoro | `timeSensitive` |
 | `longRunning` | N hours (setting) after the running entry's chain start, whichever device started it | "Still tracking Plan the widget layout?" / "Running for 4 hours." | Keep Running, Stop | `active` |
 | `syncAdjusted` | Section 7, item 3 applies while the app is in the background | "An entry was changed" / the explanation | None; tap opens the entry | `passive` |
 
@@ -288,16 +288,16 @@ The Calendar tab requests calendar access per [spec_planner_calendar.md](spec_pl
 
 ### 10.3 Hardware keyboard
 
-The iPadOS menu bar, also shown in the ⌘-hold overlay, has the Mac's menus, items, titles, and keys ([spec_timer_window.md](spec_timer_window.md) §9), built from the same shared menu items: File, Edit, View, Timer, the section menu (Calendar, Report, Project, Activity, for the last Planner tab), and Window. The Timer tab stands in for the Mac's Timer window and a Planner tab for the Planner window: an item of the Timer window is enabled only in the Timer tab, an item of a Planner section only in its tab, and, as on the Mac, a disabled item holds no key equivalent. In the Planner tabs every key is that tab's spec's; the Calendar's navigation keys are the view's, as on the Mac.
+The iPadOS menu bar, also shown in the ⌘-hold overlay, has the Mac's menus, items, titles, and keys ([spec_timer_window.md](spec_timer_window.md) §9), built from the same shared menu items: File, Edit, View, Timer, Entry, Project, and Window. The tabs are the Mac's sidebar items: an item of the Timer is enabled only in the Timer tab, an item of a Planner section only in its tab, and, as on the Mac, a disabled item holds no key equivalent. In the Planner tabs every key is that tab's spec's; the Calendar's navigation keys are the view's, as on the Mac.
 
 The iPad differs from the Mac only where it has no counterpart:
 
 | Mac | iPad |
 |---|---|
-| Window › Timer (⌥⌘R) and Planner (⌥⌘P) | View › Timer (⌥⌘R, task field focused) and Planner (⌥⌘P, the most recently selected Planner tab, Projects at first), next to the tabs |
-| Continue (⌘O) in the Timer window continues its selected row | Continue in the Timer tab continues the most recent other entry; in a Planner tab it acts on the selection as on the Mac |
+| Window › Mini Timer (⌥⌘R) | None (no second window); View › Timer (⌘1) selects the Timer tab with the task field focused |
+| Continue (⌘O) in the Timer continues its selected row | Continue in the Timer tab continues the most recent other entry; in a Planner tab it acts on the selection as on the Mac |
 | Delete Entry… (⌘⌫) needs the list's focus | Delete Entry… needs a selected row |
-| View › Compact Mode, Float on Top; File › Print…; Activity › Exclude from Tracking… and Back | None (no window modes, no printing, and no exclusion or drill-down in Activity, [spec_planner_activity.md](spec_planner_activity.md) §5) |
+| View › Mini Timer's Compact Mode and Float on Top; File › Print…; View › Activity's Exclude from Tracking… and Back | None (no window modes, no printing, and no exclusion or drill-down in Activity, [spec_planner_activity.md](spec_planner_activity.md) §5) |
 | Edit › Copy (⌘C) copies the selected project names | Project › Copy Name only |
 
 Esc closes a sheet or popover and clears a search.
@@ -347,12 +347,12 @@ The iPad reads the block log through `ActivityReading` and the Mac's activity fr
 - IOS-31. A wrapper intent flushes only when the last flush is more than 5 minutes old.
 - IOS-32. With Screen Time authorization denied, every other collector works.
 - IOS-33. The iPhone never shows a calendar permission prompt; the iPad requests access when the Calendar tab first opens.
-- IOS-34. On the iPad, ⌥⌘R selects the Timer tab, ⌘2 to ⌘5 select the four Planner tabs, and ⌘T does nothing in the Timer and Projects tabs.
+- IOS-34. On the iPad, ⌘1 selects the Timer tab with the task field focused, ⌘2 to ⌘5 select the four Planner tabs, and ⌘T does nothing in the Timer and Projects tabs.
 - IOS-35. Drawing in the iPad's Tracked column creates an entry and opens the editor; a drawing past now is refused.
 - IOS-36. The iPad never writes to `Activity/blocks/`.
 - IOS-37. First launch without an iCloud account shows the blocking screen and nothing else.
 - IOS-38. Opening `timetracking://start?project=Household` shows the Timer with a running Household entry; on the iPad `timetracking://planner/reports` selects the Reports tab.
-- IOS-39. The iPad's menu context follows the Mac's: in the Timer tab Set Project… and Find are enabled and the section menu's items are not; in Projects the section menu is "Project" with its commands enabled, Find focuses the search field, Set Project… is disabled, ⌘O on a selected project starts a timer on it, and with an area row selected the Project menu acts on the area and ⌘O has no project; in Calendar the section menu is "Calendar", and Go to Today and the period commands are enabled but Find is not; Reports and Activity enable the period commands, and Date Range… opens their date popover.
+- IOS-39. The iPad's menu context follows the Mac's: in the Timer tab Set Project… and Find are enabled and the Project menu's items are not; in Projects the Project menu's commands are enabled, Find focuses the search field, Set Project… is disabled, ⌘O on a selected project starts a timer on it, and with an area row selected the Project menu acts on the area and ⌘O has no project; in Calendar the Calendar's Entry and View commands, Go to Today, and the period commands are enabled but Find is not; Reports and Activity enable the period commands, and Date Range… opens their date popover.
 
 ## 13. Decisions
 

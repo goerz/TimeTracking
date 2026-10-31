@@ -1,6 +1,6 @@
 # Spec: Menu Bar Item
 
-The Mac app's status item shows the running entry's elapsed time and, during a Pomodoro, the countdown next to an icon, and its menu starts, continues, and stops entries, drives the Pomodoro, and opens the app's windows. This spec also owns the Dock icon setting and the Dock menu, and the warning when the activity tracker has stopped. State and commands come from the Timer window (`spec_timer_window.md` §13).
+The Mac app's status item shows the running entry's elapsed time and, during a Pomodoro, the countdown next to an icon, and its menu starts, continues, and stops entries, drives the Pomodoro, and opens the app's windows. This spec also owns the Dock icon setting and the Dock menu, and the warning when the activity tracker has stopped. State and commands come from the Timer (`spec_timer_window.md` §13).
 
 ## 1. The status item
 
@@ -49,8 +49,8 @@ Stop                            ⌘S
 ─────────────────────────────
 Start Pomodoro                 ⇧⌘P  (items per 2.3)
 ─────────────────────────────
-Show Timer Window              ⌥⌘R  (the recorded show/hide shortcut)
-Open Planner                   ⌥⌘P
+Show Mini Timer                ⌥⌘R  (the recorded show/hide shortcut)
+Open TimeTracking
 Settings…                       ⌘,
 ─────────────────────────────
 Quit TimeTracking               ⌘Q
@@ -75,11 +75,11 @@ Command items carry the symbols of `spec_design.md` §5 (New `plus`, Continue `p
 
 | Item | Key | Enabled when | Action |
 |---|---|---|---|
-| New | ⌘N | Always | The Timer window's New: starts an empty entry and shows the window with the task field focused. |
-| Continue | ⌘O | An entry other than the running one exists | Continues the most recent entry other than the running one, without showing the window; an archived project shows the restore alert. |
+| New | ⌘N | Always | The Timer's New: starts an empty entry and shows the Mini Timer with the task field focused. |
+| Continue | ⌘O | An entry other than the running one exists | Continues the most recent entry other than the running one, without showing a window; an archived project shows the restore alert. |
 | Stop | ⌘S | An entry runs | Stops the running entry. |
-| Show Timer Window | the show/hide shortcut | Always | Shows the Timer window and activates the app (`spec_timer_window.md` 8.3). |
-| Open Planner | ⌥⌘P | Always | Shows the Planner on its last section. |
+| Show Mini Timer | the show/hide shortcut | Always | Shows the Mini Timer and activates the app (`spec_timer_window.md` 8.3). |
+| Open `<APP_NAME>` | | Always | Shows the main window on its current item and activates the app. |
 | Settings… | ⌘, | Always | Opens the settings window on its last pane. |
 | Quit TimeTracking | ⌘Q | Always | Quits; the running entry keeps running. |
 
@@ -109,10 +109,10 @@ While active, the icon carries the badge and the menu starts with the warning he
 
 | Show Dock icon | Policy | Consequences |
 |---|---|---|
-| On (default) | Regular | Dock tile with a Dock menu; in ⌘-Tab. Clicking the tile shows the Timer window. |
+| On (default) | Regular | Dock tile with a Dock menu; in ⌘-Tab. Clicking the tile shows the main window. |
 | Off | Accessory | No Dock tile, not in ⌘-Tab; windows open normally and the main menu shows while one is key. |
 
-The app keeps running when its last window closes. Switching to accessory with a window open re-activates the app so the window that was key (the settings window, when the change comes from there; else the Timer window) stays key and in front. The Dock menu has "New Entry", "Continue Latest", and "Stop", with the enablement and actions of 2.2.
+The app keeps running when its last window closes. Switching to accessory with a window open re-activates the app so the window that was key (the settings window, when the change comes from there; else the main window or the Mini Timer) stays key and in front. The Dock menu has "New Entry", "Continue Latest", and "Stop", with the enablement and actions of 2.2.
 
 ## 5. Refresh
 
@@ -146,8 +146,8 @@ Device settings, edited in Settings > General (`spec_timer_window.md` 8.1).
 - MB-4. With "Show project" on and a 30-character name, the title ends in " · " and 24 characters including the ellipsis; with "Show timer" and "Show project" off, the title is empty and the dial shows the minutes (40 minutes: two thirds of a turn).
 - MB-5. A 25-minute focus phase keeps the elapsed time as the title and adds the segment `pomodoro` `25:00`, also with "Show timer" off; two minutes past `focusEnd` without confirmation the segment shows `+2:00` and the menu offers "Start Break".
 - MB-6. The header lines follow 2.1 for a running entry, no entry, and a Pomodoro, with their styles and symbols.
-- MB-7. Command enablement and actions follow 2.2; Continue does not show the Timer window, and New focuses its task field.
-- MB-8. Show Timer Window displays the recorded show/hide shortcut and none when it is cleared.
+- MB-7. Command enablement and actions follow 2.2; Continue shows no window, and New shows the Mini Timer with its task field focused.
+- MB-8. Show Mini Timer displays the recorded show/hide shortcut and none when it is cleared; Open `<APP_NAME>` has no key equivalent.
 - MB-9. In each Pomodoro state the menu has exactly the items of 2.3, and "Start Break" in `focusOver` moves the state to `break`.
 - MB-10. Turning "Show Dock icon" off switches to accessory without relaunch and keeps an open window key; turning it on restores the Dock tile; the Dock menu items match 2.2's enablement.
 - MB-11. Ticks follow §5; after a simulated 2 h sleep the first render after wake includes the 2 h.
@@ -163,9 +163,9 @@ Device settings, edited in Settings > General (`spec_timer_window.md` 8.1).
 
 - The icon is the dial rather than an SF Symbol such as `stopwatch`: it ties the item to the app icon, and it carries information on its own (the minutes, or the Pomodoro's progress) when the text is off.
 - An `NSStatusItem` rather than `MenuBarExtra`, for control of the text's font features, clicks, and removal.
-- Both clicks open the menu; the global shortcut already shows the Timer window.
+- Both clicks open the menu; the global shortcut already shows the Mini Timer.
 - Seconds are hidden by default; the Pomodoro countdown always shows them.
-- The Pomodoro countdown is a segment after the elapsed time, as on the Timer window's Pomodoro button, so the running entry's duration stays visible by default; "During a Pomodoro, show" trades either one away for a narrower item.
+- The Pomodoro countdown is a segment after the elapsed time, as on the Timer's Pomodoro button, so the running entry's duration stays visible by default; "During a Pomodoro, show" trades either one away for a narrower item.
 - The header is a hosted view rather than disabled items, which AppKit draws grayed out and without the area color.
 - The menu bar warns only about a stopped tracker, which loses data.
 - New starts the entry at once; the task can follow.
@@ -175,7 +175,7 @@ Device settings, edited in Settings > General (`spec_timer_window.md` 8.1).
 
 Assumed from `spec_timer_window.md`: the timer display state (running entry, chain start, most recent other entry, today's last stopped entry, Pomodoro state and phase end), the commands, the restore alert, and the recorded show/hide shortcut.
 
-Assumed from `spec_planner_projects.md`: showing the Planner on its last section.
+Assumed from `spec_timer_window.md` §1: showing the main window on its current item and showing the Mini Timer.
 
 Assumed from `spec_activity_tracking.md`: `current.json` with `health.last_tick` (via `ActivityReading.currentState()`) and the login item's status.
 

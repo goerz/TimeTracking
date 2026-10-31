@@ -1,6 +1,6 @@
 # Spec: Planner Calendar
 
-The Calendar section of the Planner window shows one to seven days side by side. Each day has up to three columns: Activity (the tracker's blocks), Tracked (time entries), and Calendar (time blocks and events from system calendars the user selects). Entries are drawn, moved, and resized here, made from activity blocks and calendar events with a suggested project, and filled in for a day of untracked activity through a review sheet. The section also holds the suggestion engine (section 5). The iPad's Calendar tab is the same view with the touch equivalents of [spec_ios.md](spec_ios.md) §10.2, without the open activity block, gap labels, or "Delete This Activity…"; the iPhone has no calendar view and never requests calendar access.
+The Calendar section of the main window shows one to seven days side by side. Each day has up to three columns: Activity (the tracker's blocks), Tracked (time entries), and Calendar (time blocks and events from system calendars the user selects). Entries are drawn, moved, and resized here, made from activity blocks and calendar events with a suggested project, and filled in for a day of untracked activity through a review sheet. The section also holds the suggestion engine (section 5). The iPad's Calendar tab is the same view with the touch equivalents of [spec_ios.md](spec_ios.md) §10.2, without the open activity block, gap labels, or "Delete This Activity…"; the iPhone has no calendar view and never requests calendar access.
 
 ## 1. Layout
 
@@ -60,7 +60,7 @@ No part of an entry can lie after now. Gestures clamp at the now-line; a drop th
 
 ### 2.3 Drawing
 
-Dragging vertically in empty space draws a provisional entry. Both ends snap to `snapMinutes` (default 5), or 1 minute with ⌥, and stop at the now-line and midnight. Under 1 minute creates nothing (and deselects). Otherwise the entry stays with a dashed border and the Timer window's edit popover ([spec_timer_window.md](spec_timer_window.md) §4) opens on it with the times filled in. Return commits (empty task and no project allowed); Escape removes it; a click elsewhere commits if a project or task was given and cancels otherwise. The minimum entry length everywhere is 1 minute.
+Dragging vertically in empty space draws a provisional entry. Both ends snap to `snapMinutes` (default 5), or 1 minute with ⌥, and stop at the now-line and midnight. Under 1 minute creates nothing (and deselects). Otherwise the entry stays with a dashed border and the Timer's edit popover ([spec_timer_window.md](spec_timer_window.md) §4) opens on it with the times filled in. Return commits (empty task and no project allowed); Escape removes it; a click elsewhere commits if a project or task was given and cancels otherwise. The minimum entry length everywhere is 1 minute.
 
 ### 2.4 Moving and resizing
 
@@ -208,7 +208,7 @@ Fixtures (a synthetic week of blocks in block-log format, entries, calendar titl
 | Time block | Create Entry…, Edit…, Delete |
 | External event | Create Entry…, Open in Calendar, Hide This Calendar |
 
-The navigation keys (← → ⇧← ⇧→, Tab and ⇧Tab, Escape) are the view's own, as on every Mac, and are no menu items; they are off while a popover, editor, or sheet takes text input. ⌘T is View › Go to Today, and View › Previous Period and Next Period (⌥⌘← ⌥⌘→) and Go to Date… (⇧⌘D, the month picker) act on the Calendar too. Every other key is an item of the Calendar menu, the section menu while the section is shown ([spec_timer_window.md](spec_timer_window.md) §9): Edit Selection…, Create Entry from Selection, Duplicate to Next Day, and Delete; Move Earlier, Move Later, Lengthen, and Shorten; Fill Day…; the zoom and day-count items; and the two column toggles. Timer › Continue (⌘O) continues the one selected entry.
+The navigation keys (← → ⇧← ⇧→, Tab and ⇧Tab, Escape) are the view's own, as on every Mac, and are no menu items; they are off while a popover, editor, or sheet takes text input. ⌘T is View › Go to Today, and View › Previous Period and Next Period (⌥⌘← ⌥⌘→) and Go to Date… (⇧⌘D, the month picker) act on the Calendar too. Every other key is a menu item ([spec_timer_window.md](spec_timer_window.md) §9), enabled while the Calendar is shown: in the Entry menu Edit Selection…, Create Entry from Selection, Duplicate to Next Day, and Delete; Move Earlier, Move Later, Lengthen, and Shorten; and Fill Day…; under View's Calendar header the zoom and day-count items and the two column toggles. Timer › Continue (⌘O) continues the one selected entry.
 
 | Key | Effect |
 |---|---|
@@ -268,7 +268,7 @@ Per device: `pointsPerHour` (72), `visibleDays` (5), column toggles (on), calend
 21. Without calendar access, or without an iCloud calendar account, the column shows its notice and the rest of the view works.
 22. The 5.6 fixtures pass; feedback is written for each outcome and source; examples from accepted suggestions weigh 2.
 23. The call `showCalendar(day: Oct 29, hour: 9, highlight: hour)` makes October 29 leftmost with 09:00 at the top, Activity on, the hour's blocks pulsed, zoom and day count unchanged.
-24. Every key of section 6 has its effect; the arrows, Tab, and Escape are the view's keys, ⌘T and the period keys View menu items acting on the Calendar (⌥⌘→ by the visible span, ⇧⌘D opening the month picker), the rest Calendar menu items; ⌘O continues the one selected entry.
+24. Every key of section 6 has its effect; the arrows, Tab, and Escape are the view's keys, ⌘T and the period keys View menu items acting on the Calendar (⌥⌘→ by the visible span, ⇧⌘D opening the month picker), the rest items of the Entry menu and of View's Calendar header; ⌘O continues the one selected entry.
 
 ## 9. Decisions
 

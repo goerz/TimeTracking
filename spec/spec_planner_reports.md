@@ -1,6 +1,6 @@
 # Spec: Planner Window, Reports Section
 
-The Reports section of the Planner window shows where the time went in a date range. It reads through the library's report queries ([spec_data_and_sync.md](spec_data_and_sync.md) §7.3) and never writes; entries change only through the Timer window's edit popover and continue command.
+The Reports section of the main window shows where the time went in a date range. It reads through the library's report queries ([spec_data_and_sync.md](spec_data_and_sync.md) §7.3) and never writes; entries change only through the Timer's edit popover and continue command.
 
 ## 1. Layout
 
@@ -157,7 +157,7 @@ One row per matching entry, with a footer "Total 18h 50m 14s · 22 entries".
 | Project | Name with its area's dot; "–" without a project |
 | Task | Truncated, full text in the tooltip |
 
-Default sort: start descending; every column sorts. ↩ or double-click opens the Timer window's edit popover anchored to the row ([spec_timer_window.md](spec_timer_window.md) §4). The context menu offers "Edit…", "Continue" (the Timer window's continue command), and "Show in Calendar" (`showCalendar` at the entry's day). There is no delete or bulk action.
+Default sort: start descending; every column sorts. ↩ or double-click opens the Timer's edit popover anchored to the row ([spec_timer_window.md](spec_timer_window.md) §4). The context menu offers "Edit…", "Continue" (the Timer's continue command), and "Show in Calendar" (`showCalendar` at the entry's day). There is no delete or bulk action.
 
 ## 7. Export and printing
 
@@ -174,7 +174,7 @@ File › Print… (⌘P) uses the standard print panel (its PDF button saves a P
 
 ## 8. Commands and keyboard
 
-The commands live in the Report menu, the section menu while Reports is shown in the Planner ([spec_timer_window.md](spec_timer_window.md) §9); Go to Today, Previous and Next Period, and Date Range… are the View menu's own items, shared with the Calendar and Activity, and Export and Print are in File, enabled only while Reports is active in the key Planner window. Timer › Continue (⌘O) continues the one selected row of the entry list.
+The commands live under the View menu's Report header ([spec_timer_window.md](spec_timer_window.md) §9), enabled while Reports is shown; Go to Today, Previous and Next Period, and Date Range… are the View menu's own items, shared with the Calendar and Activity, Edit Entry… for the one selected row of the entry list is in the Entry menu, and Export and Print are in File, enabled only while Reports is shown in the key main window. Timer › Continue (⌘O) continues the one selected row of the entry list.
 
 | Command | Shortcut |
 |---|---|
@@ -223,7 +223,7 @@ The router's `showReports(range:filter:)` sets the range, replaces the filters (
 - PR-17. The list's footer total equals the Logged time tile to the second; the running entry's Duration increases each second.
 - PR-18. Double-clicking a list row opens the edit popover; a saved edit updates tiles, chart, and table. The context menu has Edit…, Continue, and Show in Calendar.
 - PR-19. Both CSV exports are byte-identical to the CLI's output for the same range, filters, and levels.
-- PR-20. The commands of section 8 are enabled only while Reports is active in the key Planner window, where the section menu is titled "Report"; ⌃⌘1 and ⌃⌘2 switch the card without changing the Planner section.
+- PR-20. The commands of section 8 are enabled only while Reports is shown in the key main window, under the View menu's "Report" header; ⌃⌘1 and ⌃⌘2 switch the card without changing the section.
 - PR-21. With a running entry in the range the Logged time tile changes within 60 seconds; with none, no periodic timer runs.
 - PR-22. Calling `showReports` with a project and "All time" sets exactly that filter, turns "Include archived projects" on, and shows the Breakdown.
 
@@ -234,8 +234,8 @@ The router's `showReports(range:filter:)` sets the range, replaces the filters (
 - Breakdown levels are free in order and include Day, covering a daily log and a per-project calendar with one control.
 - Stacking defaults to Area because areas carry the colors; client colors are a fixed fallback.
 - The chart's x axis is categorical so empty and future days keep their width.
-- The section never writes; corrections go through the Timer window's edit popover.
-- Show Breakdown and Show Entries use ⌃⌘1 and ⌃⌘2 because ⌘1 to ⌘4 switch Planner sections.
+- The section never writes; corrections go through the Timer's edit popover.
+- Show Breakdown and Show Entries use ⌃⌘1 and ⌃⌘2 because ⌘1 to ⌘5 switch the sidebar items.
 
 ## 12. Interfaces
 
@@ -248,6 +248,6 @@ Assumed:
 
 - Data library: `Reporting`, `TrackingCalendar`, the earliest live entry's start, `StoreObserving`.
 - Automation: `ReportCSVWriter` columns ([spec_automation.md](spec_automation.md) §8.2).
-- Timer window: the edit popover (anchorable to another window's row) and the continue command.
+- Timer: the edit popover (anchorable to a row of another view) and the continue command.
 - Projects: `PlannerRouter`, area order, general-area display, and `AreaColor` derivations.
 - iOS: the iPad Reports tab uses this layout, with touch for hover and the share sheet for printing.

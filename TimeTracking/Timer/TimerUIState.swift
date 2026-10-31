@@ -32,6 +32,8 @@ final class TimerUIState {
 protocol TimerWindowControlling: AnyObject {
     var isCompact: Bool { get }
     var isKey: Bool { get }
+    /// The Mini Timer is on screen.
+    var isVisible: Bool { get }
     /// ⇧⌘M.
     func toggleCompact()
     /// The pin.

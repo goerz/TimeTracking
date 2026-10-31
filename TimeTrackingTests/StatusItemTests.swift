@@ -169,7 +169,7 @@ struct StatusItemTests {
         #expect(item("New", in: menu)?.enabled == true)
         #expect(item("Continue", in: menu)?.enabled == false)
         #expect(item("Stop", in: menu)?.enabled == false)
-        #expect(item("Open Planner", in: menu)?.key == .command("p", .option))
+        #expect(item("Open TimeTracking", in: menu)?.command == .openMainWindow || titles(menu).contains { $0.hasPrefix("Open ") })
         #expect(item("Settings…", in: menu)?.key == .command(","))
         #expect(item("Quit TimeTracking", in: menu)?.key == .command("q") || titles(menu).last?.hasPrefix("Quit ") == true)
         try await test.entry("Review", from: "08:00", to: "08:30")
@@ -188,18 +188,18 @@ struct StatusItemTests {
         #expect(test.router.calls == [.showTimer(focusTask: true)])
     }
 
-    @Test("MB-8 TW-4 Show Timer Window displays the recorded show/hide shortcut and none when cleared")
+    @Test("MB-8 TW-4 Show Mini Timer displays the recorded show/hide shortcut and none when cleared")
     func showHideKey() async throws {
         let test = try await TestApp()
         test.app.shortcutSource = { .command("r", .option) }
         test.app.refreshShortcutDisplay()
         var menu = StatusItemPresenter.menu(test.app.statusState, at: test.clock.now)
-        #expect(item("Show Timer Window", in: menu)?.key?.display == "⌥⌘R")
+        #expect(item("Show Mini Timer", in: menu)?.key?.display == "⌥⌘R")
         test.app.shortcutSource = { nil }
         test.app.refreshShortcutDisplay()
         menu = StatusItemPresenter.menu(test.app.statusState, at: test.clock.now)
-        #expect(item("Show Timer Window", in: menu)?.key == nil)
-        #expect(item("Show Timer Window", in: menu)?.command == .showTimer)
+        #expect(item("Show Mini Timer", in: menu)?.key == nil)
+        #expect(item("Show Mini Timer", in: menu)?.command == .showTimer)
     }
 
     @Test("MB-10 the Dock menu has New Entry, Continue Latest, and Stop with the enablement of the menu")

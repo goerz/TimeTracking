@@ -29,6 +29,10 @@ final class TimerWindowController: NSObject, TimerWindowControlling {
         window?.isKeyWindow ?? false
     }
 
+    var isVisible: Bool {
+        window?.isVisible ?? false
+    }
+
     /// Takes over `window` (called once its content is installed).
     func attach(_ window: NSWindow) {
         guard self.window !== window else {

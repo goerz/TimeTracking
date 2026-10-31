@@ -38,7 +38,13 @@ struct PlannerWindowView: View {
         .tabViewStyle(.sidebarAdaptable)
         .accessibilityIdentifier("planner.sidebar")
         .focusedSceneValue(\.plannerWindowActive, true)
-        .background(WindowAccessor(onWindow: PlannerWindowSetup.configure))
+        .background(WindowAccessor { window in
+            PlannerWindowSetup.configure(window)
+            if app.hidesMainWindowOnAttach {
+                app.hidesMainWindowOnAttach = false
+                window.close()
+            }
+        })
         .onAppear { app.plannerOpened() }
         .onDisappear { app.plannerClosed() }
     }

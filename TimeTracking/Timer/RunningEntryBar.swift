@@ -23,7 +23,7 @@ struct RunningEntryBar: View {
             VStack(alignment: .leading, spacing: Design.Spacing.small) {
                 HStack(spacing: Design.Spacing.medium) {
                     pomodoroButton
-                    TaskFieldView()
+                    TaskFieldView(inMiniTimer: showsTitleRow)
                         .onGeometryChange(for: CGFloat.self) { proxy in
                             proxy.frame(in: .global).minX
                         } action: { leading in

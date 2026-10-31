@@ -52,7 +52,7 @@ struct PadTests {
         #expect(events.access() == .fullAccess)
     }
 
-    @Test("IOS-34 ⌥⌘R selects the Timer with the task field focused, ⌘2 to ⌘5 the Planner tabs; ⌘T does nothing in Timer and Projects")
+    @Test("IOS-34 ⌘1 selects the Timer with the task field focused, ⌘2 to ⌘5 the Planner tabs; ⌘T does nothing in Timer and Projects")
     func keyboard() async throws {
         let test = try await Self.pad()
         let model = test.model

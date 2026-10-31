@@ -1,41 +1,39 @@
-# Spec: Planner Window and Projects Section
+# Spec: Planner Sections and Projects
 
-This spec covers the Mac app's Planner window shell and its Projects section: the projects table with its clients and areas, the project dialog, the area colors, and the shared project picker. Entities and their store rules are in [spec_data_and_sync.md](spec_data_and_sync.md) §1.
+This spec covers the Planner, the four sections of the main window after the Timer (Calendar, Reports, Projects, Activity), and its Projects section: the projects table with its clients and areas, the project dialog, the area colors, and the shared project picker. Entities and their store rules are in [spec_data_and_sync.md](spec_data_and_sync.md) §1.
 
-## 1. The Planner window
+## 1. The Planner
 
 ### 1.1 Layout
 
-There is at most one Planner window: a two-column split view with a sidebar and the selected section. The sidebar entries are Timer, Calendar (`calendar`), Reports (`chart.bar`), Projects (`folder`), and Activity (`waveform.path.ecg`), with no headings and no other items: the views used daily first, then the rarely edited projects, clients, and areas, then the tracker's log. The window title is the section's name. Each section owns its toolbar items, placed by the one scheme of [spec_design.md](spec_design.md) §4, so the period arrows and Today of Calendar, Reports, and Activity keep their place when the section changes; the shell adds only the sidebar toggle. The Planner has no running-timer controls.
+The Planner is the main window's sidebar items after the Timer ([spec_timer_window.md](spec_timer_window.md) §1): Calendar (`calendar`), Reports (`chart.bar`), Projects (`folder`), and Activity (`waveform.path.ecg`). The sidebar has no headings and no other items: the Timer and the views used daily first, then the rarely edited projects, clients, and areas, then the tracker's log. The window title is the shown item's name. Each section owns its toolbar items, placed by the one scheme of [spec_design.md](spec_design.md) §4, so the period arrows and Today of Calendar, Reports, and Activity keep their place when the section changes; the shell adds only the sidebar toggle. The sections have no running-timer controls.
 
 | Property | Value |
 |---|---|
-| Default size | 1360 x 840 pt |
-| Minimum size | 820 x 560 pt |
-| Sidebar width | 200 pt, resizable from 160 to 280 |
-| At launch | Never opened, even if it was open at quit |
-| Remembered per device | Frame, sidebar visibility and width, selected section, each section's view state |
+| Minimum size of a section | 620 × 560 pt |
+| Remembered per device | The window's frame, the last selected section, each section's view state |
 
-Window > Planner (⌥⌘P) opens the window on the last selected section, or brings it forward. For Projects the view state is the state selector, filters, grouping, sort, column visibility and widths, and the collapsed groups; the search text is not kept.
+At launch the main window shows the Timer; View › Calendar to Activity (⌘2 to ⌘5), the sidebar, and the router's requests (1.3) select a section, showing the main window if needed. For Projects the view state is the state selector, filters, grouping, sort, column visibility and widths, and the collapsed groups; the search text is not kept.
 
 ### 1.2 Commands
 
 | Menu | Command | Shortcut | Availability |
 |---|---|---|---|
-| Window | Planner | ⌥⌘P | Always; also the key equivalent of the menu bar item's "Open Planner" |
 | View | Timer, Calendar, Reports, Projects, Activity | ⌘1 to ⌘5 | Always; the sidebar's items in order |
-| View | Show/Hide Sidebar | ⌃⌘S | Planner key |
+| View | Show/Hide Sidebar | ⌃⌘S | Main window key |
 | View | Go to Today | ⌘T | Calendar, Reports, Activity |
 | View | Previous Period / Next Period | ⌥⌘← / ⌥⌘→ | Calendar (by the visible span), Reports, Activity |
 | View | Date Range… (in the Calendar: Go to Date…) | ⇧⌘D | Calendar (its month picker), Reports, Activity |
+| View | A section's display options, under its header (Calendar, Report, Activity) | | That section shown |
 | Edit | Find | ⌘F | Projects and Reports; focuses the section's search field |
-| Section menu | Project, Calendar, Report, or Activity | | The Planner section's commands, enabled while the Planner is key |
+| Entry | The selected entry's commands | | Calendar and the Reports entry list ([spec_timer_window.md](spec_timer_window.md) §9) |
+| Project | The selected project, area, or client's commands (2.5) | | Projects shown |
 
-The shared menus are the same in both windows ([spec_timer_window.md](spec_timer_window.md) §9): a Planner command in them is listed while the Timer window is key, disabled and without its key equivalent, so the Timer window's commands on the same keys (⌘P, ⌘E, ⌘⌫, ⌘F) reach the Timer window, and the reverse.
+The menus are the same in every window and view ([spec_timer_window.md](spec_timer_window.md) §9): a section's command is listed while another view is shown, disabled and without its key equivalent, so the Timer's commands on the same keys (⌘E, ⌘⌫, ⌘F) reach the Timer, and the reverse.
 
 ### 1.3 Router
 
-The `PlannerRouter` opens the window if needed, selects a section, and passes it a request; no section changes another's state directly.
+The `PlannerRouter` shows the main window if needed, selects a section, and passes it a request; no section changes another's state directly.
 
 | Request | Effect |
 |---|---|
@@ -116,7 +114,7 @@ The Project menu acts on the selected row of any kind, each item titled for it: 
 | Action | Applies to | Effect | Shortcut |
 |---|---|---|---|
 | New Project… | | Project dialog (3) | ⌥⌘N |
-| Start Timer | One active project | Starts an entry on it with an empty task (stopping a running one); the Planner stays key | ⌘O (Timer › Start Timer) |
+| Start Timer | One active project | Starts an entry on it with an empty task (stopping a running one); Projects stays shown | ⌘O (Timer › Start Timer) |
 | Edit… | One project | Dialog in edit mode | ↩, double-click |
 | Rename | One project | In-place edit; ↩ commits, Escape reverts; validation of 3.1 | ⌥↩ |
 | Archive | Active projects | Archives them; entries untouched; a running entry keeps running | ⌫ |
@@ -126,7 +124,7 @@ The Project menu acts on the selected row of any kind, each item titled for it: 
 | Show in Reports | One project | `showReports` with this project as the only filter and range "All time" | ⇧⌘R |
 | Copy Name | Selection | Names, one per line | ⌘C (Edit › Copy) |
 
-A mixed selection offers both Archive and Restore, each applying to the rows it fits. Archive, Restore, Rename, and dialog edits are undoable (⌘Z) while the Planner is key; the window's undo stack is cleared when it closes. Delete and Merge Into are not undoable.
+A mixed selection offers both Archive and Restore, each applying to the rows it fits. Archive, Restore, Rename, and dialog edits are undoable (⌘Z) while Projects is shown; the undo stack is cleared when the main window closes. Delete and Merge Into are not undoable.
 
 ### 2.6 Irregular rows from sync
 
@@ -206,7 +204,7 @@ Display forms, derived from the stored value by `AreaColor`, the same in light a
 
 ## 5. The project picker
 
-Every place that assigns a project to an entry or a time block uses this picker (Timer window, Calendar editors and Fill Day rows, iOS Timer); the owner decides where it opens and what the choice does. On the Mac it is a popover 340 pt wide and at most 440 pt tall, scrolling; on iOS a sheet (iPhone) or popover (iPad).
+Every place that assigns a project to an entry or a time block uses this picker (Timer, Calendar editors and Fill Day rows, iOS Timer); the owner decides where it opens and what the choice does. On the Mac it is a popover 340 pt wide and at most 440 pt tall, scrolling; on iOS a sheet (iPhone) or popover (iPad).
 
 Contents, top to bottom:
 
@@ -216,12 +214,12 @@ Contents, top to bottom:
 4. One group per client with an active project, alphabetically, header in small uppercase secondary text; projects by area order, then name. Rows: dot, name, trailing area name (omitted for the general area). Recent projects appear here too.
 5. When the search is non-empty and equals no active project's name (case- and diacritic-insensitively, trimmed), a row below a separator: "+ Create Project “<search text>”", opening the dialog (3) with the name prefilled.
 
-Archived projects and retired areas never appear. The entry's current project has a check mark; with an empty search its Recent row (else its client row) is highlighted on open, otherwise the first Recent row. Searching uses the word match of 2.4 over project, area, and client names, hides Recent, drops empty client groups, and highlights the first match. An owner may add task matching (tasks tracked under a project in the last 90 days) and its own placeholder; the Timer window and iOS Timer do ([spec_timer_window.md](spec_timer_window.md) §2.3). ↑ ↓ move the highlight, ↩ chooses, Escape closes, ⌘↩ creates from the search text.
+Archived projects and retired areas never appear. The entry's current project has a check mark; with an empty search its Recent row (else its client row) is highlighted on open, otherwise the first Recent row. Searching uses the word match of 2.4 over project, area, and client names, hides Recent, drops empty client groups, and highlights the first match. An owner may add task matching (tasks tracked under a project in the last 90 days) and its own placeholder; the Mac Timer and the iOS Timer do ([spec_timer_window.md](spec_timer_window.md) §2.3). ↑ ↓ move the highlight, ↩ chooses, Escape closes, ⌘↩ creates from the search text.
 
 ## 6. Testable behaviors
 
-- PP-1. ⌘2 to ⌘5 select Calendar, Reports, Projects, Activity; the section menu is titled Calendar, Report, Project, or Activity.
-- PP-2. Launch never opens the Planner, even if it was open at quit; ⌥⌘P opens it on the last section and frame.
+- PP-1. ⌘2 to ⌘5 select Calendar, Reports, Projects, Activity; their commands are headed by what they act on: Calendar, Report, Project, or Activity.
+- PP-2. Launch shows the main window on the Timer, not on a Planner section; the Planner remembers its last selected section across launches.
 - PP-3. State selector "Archived", Group by Client, and sort Last tracked descending survive close and relaunch; the search is empty. With no stored state the table groups by Client and Area and sorts Name ascending.
 - PP-4. Every column but Project can be hidden from the header menu, persistently; State shows only on "All".
 - PP-5. Total tracked descending orders by summed duration, ties by name ascending; Last tracked puts "Never" last in both directions.
@@ -231,7 +229,7 @@ Archived projects and retired areas never appear. The entry's current project ha
 - PP-9. The search "noise consulting" matches "Noise Model" under Consulting and not "Noise Model" under another client.
 - PP-10. Archiving three projects removes them while the selector is "Active"; ⌘Z restores all three.
 - PP-11. Delete… is disabled for a project with one entry, with the tooltip of 2.5.
-- PP-12. Start Timer (⌘O, Timer › Start Timer on the selected project) while another entry runs stops it, starts an entry on the project with an empty task, and leaves the Planner key; it is disabled for an archived project.
+- PP-12. Start Timer (⌘O, Timer › Start Timer on the selected project) while another entry runs stops it, starts an entry on the project with an empty task, and leaves Projects shown; it is disabled for an archived project.
 - PP-13. Show in Reports selects Reports with the project as the only filter and range "All time".
 - PP-14. Opening `timetracking://project/<uuid>` for an archived project while the selector is "Active" and a search is set selects Projects, sets "All", clears the search, and selects and scrolls to the row.
 - PP-15. Moving a project with entries to another client shows the confirmation, and afterwards last year's report by client shows its time under the new client; a move between areas of one client shows no confirmation and ⌘Z undoes it.
@@ -275,6 +273,6 @@ Assumed of the data library ([spec_data_and_sync.md](spec_data_and_sync.md)):
 
 Assumed of other components:
 
-- Timer window, Calendar, iOS: host the picker and dialog.
+- Timer, Calendar, iOS: host the picker and dialog.
 - Reports, Calendar, Activity: implement their router requests.
 - Automation: `timetracking://planner/projects` and `timetracking://project/<uuid>` map to the router.

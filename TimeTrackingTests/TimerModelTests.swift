@@ -132,9 +132,9 @@ struct TimerModelTests {
         let test = try await TestApp()
         let controller = TimerWindowController(settings: test.app.settings)
         #expect(!controller.hideOnAttach)
-        #expect(AppDelegate.hidesTimer(launchedAsLoginItem: true, showAtLogin: false))
-        #expect(!AppDelegate.hidesTimer(launchedAsLoginItem: true, showAtLogin: true))
-        #expect(!AppDelegate.hidesTimer(launchedAsLoginItem: false, showAtLogin: false))
+        #expect(AppDelegate.hidesMainWindow(launchedAsLoginItem: true, showAtLogin: false))
+        #expect(!AppDelegate.hidesMainWindow(launchedAsLoginItem: true, showAtLogin: true))
+        #expect(!AppDelegate.hidesMainWindow(launchedAsLoginItem: false, showAtLogin: false))
         await test.app.timer.start()
         test.app.perform(.start)
         // Quit: the Pomodoro ends, the entry keeps running.

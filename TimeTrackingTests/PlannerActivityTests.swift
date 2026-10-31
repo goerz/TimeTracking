@@ -152,7 +152,7 @@ struct PlannerActivityTests {
         await loop.value
     }
 
-    @Test("PA-17 clicking a cell opens the Calendar at that day and hour with the hour's blocks pulsed; ⌘4 returns unchanged")
+    @Test("PA-17 clicking a cell opens the Calendar at that day and hour with the hour's blocks pulsed; ⌘5 returns unchanged")
     func drillIntoCalendar() async throws {
         let test = try await TestApp()
         let (router, _) = try Self.router(test, blocks: Self.week())

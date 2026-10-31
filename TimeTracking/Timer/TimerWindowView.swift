@@ -1,13 +1,14 @@
-// TimerWindowView: the Timer window's content (spec_timer_window.md §1 to §3, §6.3).
+// TimerWindowView: the Timer's content, in the main window and in the Mini
+// Timer (spec_timer_window.md §1 to §3, §6.3).
 
 import SwiftUI
 import TimeTrackingCore
 
 /// The bar, and the list at or above the threshold height.
 struct TimerWindowView: View {
-    /// Experiment: shown as the main window's Timer tab, laid out as the
-    /// iPad's Timer tab (the bar beside the list above 900 pt, above it
-    /// below), without the pin or compact mode.
+    /// The main window's Timer item, laid out as the iPad's Timer tab (the
+    /// bar beside the list above 900 pt, above it below), without the pin
+    /// or compact mode; otherwise the Mini Timer.
     var embedded = false
     @Environment(AppModel.self) private var app
     @Environment(\.undoManager) private var undoManager
@@ -21,7 +22,6 @@ struct TimerWindowView: View {
     static let twoColumnWidth: CGFloat = 900
 
     var body: some View {
-        @Bindable var presentation = app.presentation
         GeometryReader { geometry in
             if embedded {
                 embeddedLayout(width: geometry.size.width)
@@ -39,11 +39,11 @@ struct TimerWindowView: View {
             app.timer.undoManager = undoManager
             app.list.undoManager = undoManager
         }
-        .timerAlert(timer: app.timer, list: app.list)
+        .timerAlert(timer: app.timer, list: app.list, active: presents)
         .sheet(item: idlePrompt) { _ in
             IdlePromptView()
         }
-        .sheet(item: $presentation.dialogModel) { dialog in
+        .sheet(item: dialogModel) { dialog in
             ProjectDialogView(model: dialog) { project in
                 Task { await app.dialogFinished(project) }
             }
@@ -130,10 +130,25 @@ struct TimerWindowView: View {
         }
     }
 
+    /// The Timer's alerts and the project dialog show in the Mini Timer
+    /// while it is on screen, else in the main window, never in both.
+    private var presents: Bool {
+        !embedded || app.window?.isVisible != true
+    }
+
+    /// The idle prompt is the Mini Timer's (the prompt brings it forward).
     private var idlePrompt: Binding<IdlePromptItem?> {
         Binding {
-            app.idle.prompt.map { IdlePromptItem(prompt: $0) }
+            embedded ? nil : app.idle.prompt.map { IdlePromptItem(prompt: $0) }
         } set: { _ in }
+    }
+
+    private var dialogModel: Binding<ProjectDialogModel?> {
+        Binding {
+            presents ? app.presentation.dialogModel : nil
+        } set: { model in
+            app.presentation.dialogModel = model
+        }
     }
 }
 

@@ -7,6 +7,8 @@ import TimeTrackingCore
 /// The task field. While an entry runs it edits its task; otherwise it
 /// holds the draft.
 struct TaskFieldView: View {
+    /// The Mini Timer's field; otherwise the main window's.
+    var inMiniTimer = true
     @Environment(AppModel.self) private var app
     @FocusState private var focused: Bool
 
@@ -40,7 +42,11 @@ struct TaskFieldView: View {
                 }
             }
             .onChange(of: app.timer.focusTaskFieldRequest) {
-                focused = true
+                // A request goes to the Mini Timer while it is on screen,
+                // else to the main window's Timer, not to both.
+                if inMiniTimer || app.window?.isVisible != true {
+                    focused = true
+                }
             }
             .onAppear {
                 if !app.timer.isRunning {

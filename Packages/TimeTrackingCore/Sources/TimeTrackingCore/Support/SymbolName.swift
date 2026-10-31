@@ -29,8 +29,10 @@ public enum SymbolName {
     public static let running = "record.circle"
     /// The start time of an entry.
     public static let startTime = "clock"
-    /// The Timer tab and the menu bar's Show Timer Window.
+    /// The Timer tab and the menu bar's Show Mini Timer.
     public static let timer = "stopwatch"
+    /// The menu bar's Open (the main window).
+    public static let mainWindow = "macwindow"
 
     // MARK: Pomodoro
 

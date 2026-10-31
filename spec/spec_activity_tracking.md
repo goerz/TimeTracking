@@ -170,9 +170,9 @@ Rewritten atomically (temporary file, then rename) on every tick and presence ev
 
 The `block` is the open block summarized as of now, without `e` (or `null`); `primary` is `null` while idle; `presence.state` is `active`, `passive`, `idle`, `locked`, `asleep`, or `other_user`, and `since` is the time of the event or input that set it, not of the tick that noticed it; `health.sources` lists every source of 2.3.
 
-Every reader derives the tracker's liveness from `health.last_tick` by one rule: the tracker is running while the last tick is younger than 2 minutes, and not running when it is 2 minutes old or older or `current.json` is missing. While running, a last tick of 90 seconds or older counts as delayed. The Tracker pane (7.4), the Activity footer, the menu bar warning, the Timer window's idle detection, and `agentRunning` in `LiveState` all use this rule.
+Every reader derives the tracker's liveness from `health.last_tick` by one rule: the tracker is running while the last tick is younger than 2 minutes, and not running when it is 2 minutes old or older or `current.json` is missing. While running, a last tick of 90 seconds or older counts as delayed. The Tracker pane (7.4), the Activity footer, the menu bar warning, the Timer's idle detection, and `agentRunning` in `LiveState` all use this rule.
 
-The agent pushes nothing. The Timer window reads `presence` for its own idle detection (`spec_timer_window.md`). The Mac app's `LiveStatePublisher` copies the tracker fields of this Mac into `LiveState` (fields and rules in `spec_data_and_sync.md`); they are already filtered by the exclusions.
+The agent pushes nothing. The Timer reads `presence` for its own idle detection (`spec_timer_window.md`). The Mac app's `LiveStatePublisher` copies the tracker fields of this Mac into `LiveState` (fields and rules in `spec_data_and_sync.md`); they are already filtered by the exclusions.
 
 ## 5. Agent
 
@@ -226,7 +226,7 @@ All settings live in `settings.toml` in the shared folder, read by the agent and
 
 [presence]
 # Time without input after which you count as away. Governs activity blocks
-# only; the Timer window's idle prompt has its own threshold.
+# only; the Timer's idle prompt has its own threshold.
 idle_after = "2m"
 # Apps and sites you watch or listen to without typing count as attention
 # while they are in front, for up to passive_limit.
@@ -444,7 +444,7 @@ Not included: Screen Time data from other devices; terminal adapters beyond WezT
 
 ## 11. Interfaces
 
-Provided, read through the shared library: the block log (4.2, every device), the detail log (4.3, recording Mac only), `current.json` (4.4: Timer window, menu bar, Calendar and Activity open block, Tracker pane, `LiveStatePublisher`), the socket and `tracker-event` (7.3), `settings.toml` (7: agent, iOS collection, Tracker pane), the device-event merge (6.2), and the Tracker pane (7.4).
+Provided, read through the shared library: the block log (4.2, every device), the detail log (4.3, recording Mac only), `current.json` (4.4: Timer, menu bar, Calendar and Activity open block, Tracker pane, `LiveStatePublisher`), the socket and `tracker-event` (7.3), `settings.toml` (7: agent, iOS collection, Tracker pane), the device-event merge (6.2), and the Tracker pane (7.4).
 
 Assumed:
 

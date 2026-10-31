@@ -7,7 +7,7 @@ import TimeTrackingCore
 /// A hardware-keyboard command of the iPad outside the Planner tabs' own
 /// keys (spec_ios.md §10.3).
 enum PadCommand: Hashable, CaseIterable {
-    /// ⌥⌘R: the Timer tab with the task field focused.
+    /// ⌘1: the Timer tab with the task field focused.
     case timerTab
     /// ⌘2 to ⌘5, after the Timer's ⌘1.
     case calendar, reports, projects, activity

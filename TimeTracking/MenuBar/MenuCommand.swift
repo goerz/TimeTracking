@@ -11,7 +11,7 @@ enum MenuCommand: Hashable {
     case stop
     case pomodoro(PomodoroAction)
     case showTimer
-    case openPlanner
+    case openMainWindow
     case settings
     case quit
 }
@@ -27,7 +27,7 @@ extension MenuCommand {
         case .pomodoro(.start), .pomodoro(.startFocus): SymbolName.pomodoro
         case .pomodoro(.startBreak): SymbolName.pomodoroBreak
         case .showTimer: SymbolName.timer
-        case .openPlanner: SymbolName.calendar
+        case .openMainWindow: SymbolName.mainWindow
         case .settings: SymbolName.settings
         case .openTrackerSettings: SymbolName.activity
         case .pomodoro, .quit: nil
