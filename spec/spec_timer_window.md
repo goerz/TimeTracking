@@ -251,9 +251,9 @@ Window > Timer and the menu bar's "Show Timer Window" display the show/hide shor
 
 ## 9. Menus and keyboard
 
-This section owns the main menu as a whole, on the Mac and, with the differences of [spec_ios.md](spec_ios.md) §10.3, on the iPad; the Planner specs list their sections' commands. The two windows share File, Edit, View, Timer, and Window. A sixth menu, the section menu, exists only while the Planner is the main window: it is named for what the shown section's commands act on (Project, Calendar, Report, Activity) and holds only that section's commands, the way an editor menu follows the editor shown. With the Timer window in front the menu bar holds no menu whose items could never apply.
+This section owns the main menu as a whole, on the Mac and, with the differences of [spec_ios.md](spec_ios.md) §10.3, on the iPad; the Planner specs list their sections' commands. The menu bar is the same in both windows: File, Edit, View, Timer, the section menu, and Window. The section menu is named for what the Planner section's commands act on (Project, Calendar, Report, Activity) and lists that section's commands; its title and items follow the section shown in the Planner.
 
-Within the shared menus every item is always listed, and an item that applies to one window or section is disabled elsewhere rather than hidden. Such an item holds its key equivalent only while it is enabled, because AppKit sends a key equivalent to the first item that has it, even a disabled one; this lets one key serve several contexts (⌘P is Set Project… in the Timer window and Print… in Reports) and keeps a disabled item from taking a key from a text field. A command that several contexts share is one item acting on the key window: Find, Continue, Go to Today, Previous and Next Period, and Date Range…. Navigation keys that a view handles itself (arrows, Tab, Escape) are not menu items, as elsewhere on the Mac.
+Every menu and item is always listed, and an item that applies to one window or section is disabled elsewhere rather than hidden. Such an item holds its key equivalent only while it is enabled, because AppKit sends a key equivalent to the first item that has it, even a disabled one; this lets one key serve several contexts (⌘P is Set Project… in the Timer window and Print… in Reports) and keeps a disabled item from taking a key from a text field. A command that several contexts share is one item acting on the key window: Find, Continue, Go to Today, Previous and Next Period, and Date Range…. Navigation keys that a view handles itself (arrows, Tab, Escape) are not menu items, as elsewhere on the Mac.
 
 | Menu | Holds |
 |---|---|
@@ -262,7 +262,7 @@ Within the shared menus every item is always listed, and an item that applies to
 | Edit | Undo, Redo, the pasteboard commands (standard), Find |
 | View | The Planner's sections, which open the Planner from either window; the shown range's navigation; the Timer window's view options |
 | Timer | The running entry and the Pomodoro, from any window (the menu bar item's menu has the same commands); then the Timer window's own entry commands |
-| Section menu | The commands of the Planner section shown ([spec_planner_projects.md](spec_planner_projects.md) §2.5 and §4, [spec_planner_calendar.md](spec_planner_calendar.md) §6, [spec_planner_reports.md](spec_planner_reports.md) §8, [spec_planner_activity.md](spec_planner_activity.md) §2); only while the Planner is the main window, which it stays while one of its popovers or sheets is key |
+| Section menu | The commands of the Planner's section ([spec_planner_projects.md](spec_planner_projects.md) §2.5 and §4, [spec_planner_calendar.md](spec_planner_calendar.md) §6, [spec_planner_reports.md](spec_planner_reports.md) §8, [spec_planner_activity.md](spec_planner_activity.md) §2), enabled while the Planner is key |
 | Window | Timer and Planner, then the standard items |
 
 "Timer key" is the scope of an item enabled only while the Timer window is key.
@@ -340,7 +340,7 @@ Clicking a notification shows the Timer window (with the idle prompt for `idle`)
 - TW-32. Each notification category offers exactly its listed actions; the settings window reopens on the last pane shown.
 - TW-33. The first-launch alert of §8.2 appears once per Mac; "Open Tracker Settings" opens the Tracker pane, and the agent stays unregistered until "Enable Tracker".
 - TW-34. The first-launch alert's "Open `<APP_NAME>` at login" checkbox is on by default; checked, either button turns on "Open at login", unchecked neither does; under `-UITesting` the real login item is never registered.
-- TW-35. With the Timer window key the menu bar has File, Edit, View, Timer, and Window and no section or Entry menu; Window lists "Timer" and "Planner" once each; Timer › Set Project… and View › Compact Mode are enabled and View › Go to Today is not. With the Planner key it adds the Calendar menu in Calendar (Fill Day… enabled; no Next Day, Next Entry, or Deselect item) and the Project menu in Projects (New Project… enabled; no Start Timer); Set Project… and Compact Mode are disabled there, and Go to Today and Previous Period are enabled in Calendar. Returning to the Timer window removes the section menu.
+- TW-35. In both windows the menu bar has File, Edit, View, Timer, the section menu, and Window, and no Entry menu; Window lists "Timer" and "Planner" once each. With the Timer window key Timer › Set Project… and View › Compact Mode are enabled, and View › Go to Today and the section menu's items are not. With the Planner key the section menu is the Calendar menu in Calendar (Fill Day… enabled; no Next Day, Next Entry, or Deselect item) and the Project menu in Projects (New Project… enabled; no Start Timer); Set Project… and Compact Mode are disabled there, and Go to Today and Previous Period are enabled in Calendar.
 
 ## 12. Decisions
 

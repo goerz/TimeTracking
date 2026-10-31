@@ -12,21 +12,22 @@ struct ProjectMenuContent: View {
     var state: MenuState
 
     var body: some View {
-        if state.clientsAndAreasCommands {
+        if state.showsClientsAndAreas {
+            let enabled = state.clientsAndAreasCommands
             Button("New Client") { Task { await model.clientsAndAreas.newClient() } }
-                .contextCommand(KeyboardShortcut("n", modifiers: [.command, .option]), enabled: true)
+                .contextCommand(KeyboardShortcut("n", modifiers: [.command, .option]), enabled: enabled)
             Button("New Area…") { Task { await model.clientsAndAreas.newArea() } }
                 .contextCommand(
                     KeyboardShortcut("n", modifiers: [.command, .option, .shift]),
-                    enabled: model.clientsAndAreas.selectedClient != nil
+                    enabled: enabled && model.clientsAndAreas.selectedClient != nil
                 )
             Divider()
-            AreaMoveItems(model: model.clientsAndAreas)
-        } else if state.projectCommands {
+            AreaMoveItems(model: model.clientsAndAreas, enabled: enabled)
+        } else {
             Button("New Project…") { model.newProject() }
-                .keyboardShortcut("n", modifiers: [.command, .option])
+                .contextCommand(KeyboardShortcut("n", modifiers: [.command, .option]), enabled: state.projectCommands)
             Divider()
-            ProjectSelectionItems(model: model)
+            ProjectSelectionItems(model: model, enabled: state.projectCommands)
         }
     }
 }
@@ -34,12 +35,13 @@ struct ProjectMenuContent: View {
 /// The commands on the selected projects.
 private struct ProjectSelectionItems: View {
     var model: ProjectsModel
+    var enabled: Bool
 
     var body: some View {
         Button("Edit…") { model.editSelection() }
-            .disabled(model.single == nil)
+            .disabled(!enabled || model.single == nil)
         Button("Rename") { model.renaming = model.single?.id }
-            .contextCommand(KeyboardShortcut(.return, modifiers: .option), enabled: model.single != nil)
+            .contextCommand(KeyboardShortcut(.return, modifiers: .option), enabled: enabled && model.single != nil)
         Button(model.canArchive || !model.canRestore ? "Archive" : "Restore") {
             Task {
                 if model.canArchive {
@@ -49,23 +51,24 @@ private struct ProjectSelectionItems: View {
                 }
             }
         }
-        .disabled(!(model.canArchive || model.canRestore))
+        .disabled(!enabled || !(model.canArchive || model.canRestore))
         Button("Merge Into…") { model.mergeSource = model.single?.id }
-            .disabled(model.single == nil)
+            .disabled(!enabled || model.single == nil)
         Button("Delete…") { model.requestDelete() }
-            .contextCommand(KeyboardShortcut(.delete, modifiers: .command), enabled: model.canDelete)
+            .contextCommand(KeyboardShortcut(.delete, modifiers: .command), enabled: enabled && model.canDelete)
         Divider()
         Button("Show in Reports") { Task { await model.showInReports() } }
-            .contextCommand(KeyboardShortcut("r", modifiers: [.command, .shift]), enabled: model.single != nil)
+            .contextCommand(KeyboardShortcut("r", modifiers: [.command, .shift]), enabled: enabled && model.single != nil)
         // On the Mac ⌘C is Edit › Copy, which copies the same names from the table.
         Button("Copy Name") { model.router?.copyText(model.copyNames()) }
-            .disabled(model.selection.isEmpty)
+            .disabled(!enabled || model.selection.isEmpty)
     }
 }
 
 /// Move Up and Move Down in Clients & Areas.
 private struct AreaMoveItems: View {
     var model: ClientsAreasModel
+    var enabled: Bool
 
     private var area: AreaOutline? {
         if case let .area(id) = model.selection {
@@ -80,12 +83,12 @@ private struct AreaMoveItems: View {
                 Task { await model.move(id, by: -1) }
             }
         }
-        .contextCommand(KeyboardShortcut(.upArrow, modifiers: [.command, .option]), enabled: area?.canMoveUp ?? false)
+        .contextCommand(KeyboardShortcut(.upArrow, modifiers: [.command, .option]), enabled: enabled && (area?.canMoveUp ?? false))
         Button("Move Down") {
             if let id = area?.id {
                 Task { await model.move(id, by: 1) }
             }
         }
-        .contextCommand(KeyboardShortcut(.downArrow, modifiers: [.command, .option]), enabled: area?.canMoveDown ?? false)
+        .contextCommand(KeyboardShortcut(.downArrow, modifiers: [.command, .option]), enabled: enabled && (area?.canMoveDown ?? false))
     }
 }

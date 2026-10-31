@@ -1,5 +1,5 @@
-// The main menu in the real app: the shared menus in both windows, the
-// section menu only while the Planner is in front, each window listed once
+// The main menu in the real app: the same menus in both windows, the
+// section menu following the Planner's section, each window listed once
 // (spec_timer_window.md §9).
 
 import XCTest
@@ -18,13 +18,15 @@ final class MenuUITests: XCTestCase {
     private static let sectionMenus = ["Project", "Calendar", "Report", "Activity"]
 
     @MainActor
-    func testTW35_sectionMenuOnlyInThePlanner() {
+    func testTW35_sameMenusSectionMenuFollowsThePlanner() {
         let app = XCUIApplication.timeTracking(reset: true)
         app.launchPastOnboarding()
         XCTAssertTrue(app.descendants(matching: .any)["timer.list"].waitForExistence(timeout: 5))
 
-        // Timer window: the shared menus, no section menu, no Entry menu.
-        assertMenus(app, sectionMenu: nil)
+        // Timer window: the same menus; the section menu (Projects at first)
+        // is listed, its items disabled.
+        assertMenus(app, sectionMenu: "Project")
+        assertItem(app, menu: "Project", item: "New Project…", enabled: false)
         let window = items(app, menu: "Window")
         XCTAssertEqual(window.filter { $0.title == "Timer" }.count, 1)
         XCTAssertEqual(window.filter { $0.title == "Planner" }.count, 1)
@@ -55,20 +57,20 @@ final class MenuUITests: XCTestCase {
         XCTAssertTrue(project.contains { $0.title == "New Project…" && $0.enabled })
         XCTAssertFalse(project.contains { $0.title == "Start Timer" })
 
-        // Back to the Timer window: the section menu goes.
+        // Back to the Timer window: the section menu stays, disabled.
         // Window › Timer, chosen from the menu: another app on the test Mac
         // may hold ⌥⌘R (as in TW-4).
         app.menuBars.firstMatch.menuBarItems["Window"].click()
         app.menuBars.firstMatch.menuBarItems["Window"].menus.firstMatch.menuItems["Timer"].click()
-        XCTAssertTrue(app.menuBars.firstMatch.menuBarItems["Project"].waitForNonExistence(timeout: 5))
-        assertMenus(app, sectionMenu: nil)
+        assertMenus(app, sectionMenu: "Project")
+        assertItem(app, menu: "Project", item: "New Project…", enabled: false)
         app.terminate()
     }
 
     /// The shared menus are in the menu bar, and of the section menus only
     /// `sectionMenu`.
     @MainActor
-    private func assertMenus(_ app: XCUIApplication, sectionMenu: String?) {
+    private func assertMenus(_ app: XCUIApplication, sectionMenu: String) {
         let titles = app.menuBars.firstMatch.menuBarItems.allElementsBoundByIndex.map(\.title)
         for menu in Self.sharedMenus {
             XCTAssertTrue(titles.contains(menu), "missing menu \(menu) in \(titles)")

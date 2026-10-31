@@ -112,7 +112,7 @@ struct PadTests {
         let model = test.model
         let router = try #require(model.pad?.router)
 
-        // The Timer tab: Timer's entry commands; no section menu content.
+        // The Timer tab: Timer's entry commands; the section menu's disabled.
         model.padTab = .timer
         #expect(model.padMenuState.timerKey)
         #expect(!model.padMenuState.plannerKey)

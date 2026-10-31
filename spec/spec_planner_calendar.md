@@ -208,7 +208,7 @@ Fixtures (a synthetic week of blocks in block-log format, entries, calendar titl
 | Time block | Create Entry…, Edit…, Delete |
 | External event | Create Entry…, Open in Calendar, Hide This Calendar |
 
-The navigation keys (← → ⇧← ⇧→, Tab and ⇧Tab, Escape) are the view's own, as on every Mac, and are no menu items; they are off while a popover, editor, or sheet takes text input. ⌘T is View › Go to Today, and View › Previous Period and Next Period (⌥⌘← ⌥⌘→) and Go to Date… (⇧⌘D, the month picker) act on the Calendar too. Every other key is an item of the Calendar menu, which exists while the section is shown ([spec_timer_window.md](spec_timer_window.md) §9): Edit Selection…, Create Entry from Selection, Duplicate to Next Day, and Delete; Move Earlier, Move Later, Lengthen, and Shorten; Fill Day…; the zoom and day-count items; and the two column toggles. Timer › Continue (⌘O) continues the one selected entry.
+The navigation keys (← → ⇧← ⇧→, Tab and ⇧Tab, Escape) are the view's own, as on every Mac, and are no menu items; they are off while a popover, editor, or sheet takes text input. ⌘T is View › Go to Today, and View › Previous Period and Next Period (⌥⌘← ⌥⌘→) and Go to Date… (⇧⌘D, the month picker) act on the Calendar too. Every other key is an item of the Calendar menu, the section menu while the section is shown ([spec_timer_window.md](spec_timer_window.md) §9): Edit Selection…, Create Entry from Selection, Duplicate to Next Day, and Delete; Move Earlier, Move Later, Lengthen, and Shorten; Fill Day…; the zoom and day-count items; and the two column toggles. Timer › Continue (⌘O) continues the one selected entry.
 
 | Key | Effect |
 |---|---|

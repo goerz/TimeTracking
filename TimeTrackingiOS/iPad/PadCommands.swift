@@ -101,8 +101,7 @@ struct PadCommands: Commands {
             Divider()
             ForEach([PadCommand.setProject, .edit, .delete], id: \.self, content: item)
         }
-        // Named for the Planner tab shown; empty, and so absent from the
-        // menu bar, in the Timer tab.
+        // Named for the last Planner tab; its items are disabled in the Timer tab.
         CommandMenu(state.sectionMenuTitle) {
             if let router {
                 SectionMenuContent(router: router, state: state)

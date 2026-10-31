@@ -5,9 +5,9 @@
 import SwiftUI
 import TimeTrackingCore
 
-/// The Planner's own menus: one menu named for the section shown (Project,
-/// Calendar, Report, Activity), present only while the Planner is the main
-/// window (`SectionMenuVisibility` hides it otherwise), and Reports'
+/// The Planner's own menus: one menu named for the Planner's section
+/// (Project, Calendar, Report, Activity), always in the menu bar with that
+/// section's commands, enabled while the Planner is key; and Reports'
 /// Export… and Print… in File.
 struct PlannerCommands: Commands {
     var host: AppHost

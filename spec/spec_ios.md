@@ -288,7 +288,7 @@ The Calendar tab requests calendar access per [spec_planner_calendar.md](spec_pl
 
 ### 10.3 Hardware keyboard
 
-The iPadOS menu bar, also shown in the ⌘-hold overlay, has the Mac's menus, items, titles, and keys ([spec_timer_window.md](spec_timer_window.md) §9), built from the same shared menu items: File, Edit, View, Timer, Window, and, in a Planner tab, the section menu (Project, Calendar, Report, Activity) of that tab. The Timer tab stands in for the Mac's Timer window and a Planner tab for the Planner window: an item of the Timer window is enabled only in the Timer tab, an item of a Planner section only in its tab, and, as on the Mac, a disabled item holds no key equivalent. In the Timer tab the section menu has no items, and iPadOS shows no menu without items. In the Planner tabs every key is that tab's spec's; the Calendar's navigation keys are the view's, as on the Mac.
+The iPadOS menu bar, also shown in the ⌘-hold overlay, has the Mac's menus, items, titles, and keys ([spec_timer_window.md](spec_timer_window.md) §9), built from the same shared menu items: File, Edit, View, Timer, the section menu (Project, Calendar, Report, Activity, for the last Planner tab), and Window. The Timer tab stands in for the Mac's Timer window and a Planner tab for the Planner window: an item of the Timer window is enabled only in the Timer tab, an item of a Planner section only in its tab, and, as on the Mac, a disabled item holds no key equivalent. In the Planner tabs every key is that tab's spec's; the Calendar's navigation keys are the view's, as on the Mac.
 
 The iPad differs from the Mac only where it has no counterpart:
 
@@ -299,7 +299,6 @@ The iPad differs from the Mac only where it has no counterpart:
 | Delete Entry… (⌘⌫) needs the list's focus | Delete Entry… needs a selected row |
 | View › Compact Mode, Float on Top; File › Print…; Activity › Exclude from Tracking… and Back | None (no window modes, no printing, and no exclusion or drill-down in Activity, [spec_planner_activity.md](spec_planner_activity.md) §5) |
 | Edit › Copy (⌘C) copies the selected project names | Project › Copy Name only |
-| The section menu is hidden by the app while the Timer window is in front | The section menu is empty in the Timer tab |
 
 Esc closes a sheet or popover and clears a search.
 
@@ -353,7 +352,7 @@ The iPad reads the block log through `ActivityReading` and the Mac's activity fr
 - IOS-36. The iPad never writes to `Activity/blocks/`.
 - IOS-37. First launch without an iCloud account shows the blocking screen and nothing else.
 - IOS-38. Opening `timetracking://start?project=Household` shows the Timer with a running Household entry; on the iPad `timetracking://planner/reports` selects the Reports tab.
-- IOS-39. The iPad's menu context follows the Mac's: in the Timer tab Set Project… and Find are enabled and the section menu has no content; in Projects the section menu is "Project" with its commands, Find focuses the search field, Set Project… is disabled, ⌘O on a selected project starts a timer on it, and Clients & Areas enables its own items instead; in Calendar the section menu is "Calendar", and Go to Today and the period commands are enabled but Find is not; Reports and Activity enable the period commands, and Date Range… opens their date popover.
+- IOS-39. The iPad's menu context follows the Mac's: in the Timer tab Set Project… and Find are enabled and the section menu's items are not; in Projects the section menu is "Project" with its commands enabled, Find focuses the search field, Set Project… is disabled, ⌘O on a selected project starts a timer on it, and Clients & Areas enables its own items instead; in Calendar the section menu is "Calendar", and Go to Today and the period commands are enabled but Find is not; Reports and Activity enable the period commands, and Date Range… opens their date popover.
 
 ## 13. Decisions
 

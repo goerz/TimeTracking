@@ -30,9 +30,9 @@ Window > Planner (⌥⌘P) opens the window on the last selected section, or bri
 | View | Previous Period / Next Period | ⌥⌘← / ⌥⌘→ | Calendar (by the visible span), Reports, Activity |
 | View | Date Range… (in the Calendar: Go to Date…) | ⇧⌘D | Calendar (its month picker), Reports, Activity |
 | Edit | Find | ⌘F | Projects and Reports; focuses the section's search field |
-| Section menu | Project, Calendar, Report, or Activity | | Only while the Planner is the main window; the shown section's commands |
+| Section menu | Project, Calendar, Report, or Activity | | The Planner section's commands, enabled while the Planner is key |
 
-The shared menus are the same in both windows ([spec_timer_window.md](spec_timer_window.md) §9): a Planner command in them is listed while the Timer window is key, disabled and without its key equivalent, so the Timer window's commands on the same keys (⌘P, ⌘E, ⌘⌫, ⌘F) reach the Timer window, and the reverse. The section menu is absent while the Timer window is in front.
+The shared menus are the same in both windows ([spec_timer_window.md](spec_timer_window.md) §9): a Planner command in them is listed while the Timer window is key, disabled and without its key equivalent, so the Timer window's commands on the same keys (⌘P, ⌘E, ⌘⌫, ⌘F) reach the Timer window, and the reverse.
 
 ### 1.3 Router
 

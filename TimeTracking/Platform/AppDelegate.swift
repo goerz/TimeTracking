@@ -33,7 +33,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard !AppHost.isTestHost else {
             return
         }
-        SectionMenuVisibility.start()
         Task { await launch() }
     }
 
