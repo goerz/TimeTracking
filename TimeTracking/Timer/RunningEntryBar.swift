@@ -72,22 +72,23 @@ struct RunningEntryBar: View {
         )
     }
 
-    /// The chain's elapsed time; a click edits the running entry. The button
-    /// keeps its identity across ticks: a new one each second reset focus and
-    /// made SwiftUI rebuild the main menu, even while a menu was open.
+    /// The chain's elapsed time; a click edits the running entry. Only the
+    /// label's text ticks: a button rebuilt each second reset focus and made
+    /// SwiftUI rebuild the main menu, even while a menu was open
+    /// (spec_design.md §7.1).
     private var timerLabel: some View {
-        TimelineView(.periodic(from: .now, by: 1)) { _ in
-            Button {
-                app.editEntry()
-            } label: {
+        Button {
+            app.editEntry()
+        } label: {
+            TimelineView(.periodic(from: .now, by: 1)) { _ in
                 Text(app.timer.timerText(at: app.clock.now))
                     .font(.title3.weight(.medium).monospacedDigit())
                     .foregroundStyle(app.timer.isRunning ? AnyShapeStyle(.primary) : AnyShapeStyle(.secondary))
             }
-            .buttonStyle(.plain)
-            .help(app.timer.isRunning ? "Edit Running Entry" : "")
-            .accessibilityIdentifier("timer.timerLabel")
         }
+        .buttonStyle(.plain)
+        .help(app.timer.isRunning ? "Edit Running Entry" : "")
+        .accessibilityIdentifier("timer.timerLabel")
         .fixedSize()
     }
 
