@@ -119,12 +119,11 @@ struct TaskFieldPopup: View {
             app.taskField.closeSuggestions()
             Task { await app.timer.accept(suggestion) }
         } label: {
-            HStack(spacing: 8) {
-                Text(suggestion.task).lineLimit(1)
-                Spacer()
-                AreaDot(color: label.color, size: 8)
-                Text(label.name).lineLimit(1).foregroundStyle(highlighted ? AnyShapeStyle(.white.opacity(0.85)) : AnyShapeStyle(.secondary))
-            }
+            SuggestionLabel(
+                suggestion: suggestion,
+                label: label,
+                projectStyle: highlighted ? AnyShapeStyle(.white.opacity(0.85)) : AnyShapeStyle(.secondary)
+            )
             .foregroundStyle(highlighted ? AnyShapeStyle(.white) : AnyShapeStyle(.primary))
             .padding(.horizontal, 12)
             .padding(.vertical, 4)

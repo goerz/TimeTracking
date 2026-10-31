@@ -18,19 +18,13 @@ struct RecentListSections: View {
                     EntryRow(model: model, listing: listing)
                 }
             } header: {
-                HStack(alignment: .firstTextBaseline) {
-                    Text(model.list.title(for: day.day))
-                    Spacer()
-                    TimelineView(.periodic(from: .now, by: 1)) { _ in
-                        Text(DurationText.clock(day.totalSeconds(at: model.clock.now))).monospacedDigit()
-                    }
-                }
-                .font(.headline)
-                .foregroundStyle(.primary)
-                .textCase(nil)
-                // The total lines up with the rows' durations.
-                .padding(.trailing, Design.CircleDiameter.row + Design.Spacing.medium)
-                .accessibilityIdentifier("day.\(day.day)")
+                DayHeaderLabel(day: day, title: model.list.title(for: day.day), clock: model.clock)
+                    .font(.headline)
+                    .foregroundStyle(.primary)
+                    .textCase(nil)
+                    // The total lines up with the rows' durations.
+                    .padding(.trailing, Design.CircleDiameter.row + Design.Spacing.medium)
+                    .accessibilityIdentifier("day.\(day.day)")
             }
         }
         if model.list.canLoadMore {
@@ -52,11 +46,7 @@ struct RunningRow: View {
         HStack(spacing: Design.Spacing.medium) {
             EntryRowLabels(listing: listing, badged: model.badged.contains(listing.id))
             Spacer(minLength: Design.Spacing.small)
-            TimelineView(.periodic(from: .now, by: 1)) { _ in
-                Text(DurationText.clock(listing.entry.seconds(at: model.clock.now)))
-                    .monospacedDigit()
-                    .foregroundStyle(Color.accentColor)
-            }
+            RunningDurationText(entry: listing.entry, clock: model.clock)
             Color.clear.frame(width: Design.CircleDiameter.row, height: 1)
         }
         .padding(.vertical, Design.Spacing.tight)

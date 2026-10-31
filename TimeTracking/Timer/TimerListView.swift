@@ -112,22 +112,14 @@ private struct DaySection: View {
     var day: TimerListDay
 
     var body: some View {
-        HStack(alignment: .firstTextBaseline) {
-            Text(app.list.title(for: day.day))
-            Spacer()
-            TimelineView(.periodic(from: .now, by: 1)) { _ in
-                Text(DurationText.clock(day.totalSeconds(at: app.clock.now)))
-                    .monospacedDigit()
-                    .accessibilityIdentifier("timer.dayTotal.\(day.day)")
-            }
-        }
-        .font(.headline)
-        .padding(.leading, Design.Spacing.small)
-        // The trailing edge lines up with the rows' durations.
-        .padding(.trailing, Design.CircleDiameter.row + 2 * Design.Spacing.small)
-        .padding(.top, Design.Spacing.large)
-        .padding(.bottom, Design.Spacing.tight)
-        .accessibilityIdentifier("timer.day.\(day.day)")
+        DayHeaderLabel(day: day, title: app.list.title(for: day.day), clock: app.clock)
+            .font(.headline)
+            .padding(.leading, Design.Spacing.small)
+            // The trailing edge lines up with the rows' durations.
+            .padding(.trailing, Design.CircleDiameter.row + 2 * Design.Spacing.small)
+            .padding(.top, Design.Spacing.large)
+            .padding(.bottom, Design.Spacing.tight)
+            .accessibilityIdentifier("timer.day.\(day.day)")
         if let running = day.runningListing {
             RunningRowView(listing: running)
         }
@@ -148,11 +140,7 @@ private struct RunningRowView: View {
         HStack(spacing: Design.Spacing.small) {
             EntryRowLabels(listing: listing)
             Spacer(minLength: Design.Spacing.small)
-            TimelineView(.periodic(from: .now, by: 1)) { _ in
-                Text(DurationText.clock(listing.entry.seconds(at: app.clock.now)))
-                    .monospacedDigit()
-                    .foregroundStyle(Color.accentColor)
-            }
+            RunningDurationText(entry: listing.entry, clock: app.clock)
             Color.clear.frame(width: Design.CircleDiameter.row, height: 1)
         }
         .padding(.vertical, Design.Spacing.small)

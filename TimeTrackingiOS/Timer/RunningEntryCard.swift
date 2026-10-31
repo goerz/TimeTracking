@@ -34,7 +34,12 @@ struct RunningEntryCard: View {
                     .buttonStyle(CircleButtonStyle.borderless(diameter: Design.CircleDiameter.bar))
                     .accessibilityIdentifier("timer.discardButton")
                 }
-                startStopButton
+                StartStopButton(isRunning: timer.isRunning, diameter: Design.CircleDiameter.bar) {
+                    taskFocused = false
+                    Task { await timer.start() }
+                } stop: {
+                    Task { await timer.stop() }
+                }
             }
         }
         .padding(.vertical, Design.Spacing.small)
@@ -99,16 +104,9 @@ struct RunningEntryCard: View {
                     model.taskField.reset()
                     Task { await timer.accept(suggestion) }
                 } label: {
-                    HStack(spacing: Design.Spacing.small) {
-                        Text(suggestion.task).lineLimit(1)
-                        Spacer()
-                        if let id = suggestion.projectID, let label = model.taskField.labels[id] {
-                            AreaDot(color: label.color)
-                            Text(label.name).foregroundStyle(.secondary).lineLimit(1)
-                        }
-                    }
-                    .padding(.vertical, Design.Spacing.small)
-                    .contentShape(Rectangle())
+                    SuggestionLabel(suggestion: suggestion, label: suggestion.projectID.flatMap { model.taskField.labels[$0] })
+                        .padding(.vertical, Design.Spacing.small)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("timer.suggestion")
@@ -149,27 +147,6 @@ struct RunningEntryCard: View {
                 .foregroundStyle(timer.isRunning ? AnyShapeStyle(.primary) : AnyShapeStyle(.secondary))
                 .lineLimit(1)
                 .accessibilityIdentifier("timer.time")
-        }
-    }
-
-    @ViewBuilder private var startStopButton: some View {
-        if timer.isRunning {
-            Button {
-                Task { await timer.stop() }
-            } label: {
-                Label("Stop", systemImage: "stop.fill")
-            }
-            .buttonStyle(CircleButtonStyle(color: .stopTint, diameter: Design.CircleDiameter.bar))
-            .accessibilityIdentifier("timer.stopButton")
-        } else {
-            Button {
-                taskFocused = false
-                Task { await timer.start() }
-            } label: {
-                Label("Start", systemImage: "play.fill")
-            }
-            .buttonStyle(CircleButtonStyle(color: .startTint, diameter: Design.CircleDiameter.bar))
-            .accessibilityIdentifier("timer.startButton")
         }
     }
 }

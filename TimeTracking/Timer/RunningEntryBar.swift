@@ -26,7 +26,11 @@ struct RunningEntryBar: View {
                         }
                     timerLabel
                     HStack(spacing: Design.Spacing.tight) {
-                        startStopButton
+                        StartStopButton(isRunning: app.timer.isRunning, diameter: Design.CircleDiameter.bar) {
+                            Task { await app.timer.start() }
+                        } stop: {
+                            Task { await app.timer.stop() }
+                        }
                         if app.timer.isRunning {
                             discardButton
                         }
@@ -85,28 +89,6 @@ struct RunningEntryBar: View {
             .accessibilityIdentifier("timer.timerLabel")
         }
         .fixedSize()
-    }
-
-    @ViewBuilder private var startStopButton: some View {
-        if app.timer.isRunning {
-            Button {
-                Task { await app.timer.stop() }
-            } label: {
-                Label("Stop", systemImage: "stop.fill")
-            }
-            .buttonStyle(CircleButtonStyle(color: .stopTint, diameter: Design.CircleDiameter.bar))
-            .help("Stop")
-            .accessibilityIdentifier("timer.stopButton")
-        } else {
-            Button {
-                Task { await app.timer.start() }
-            } label: {
-                Label("Start", systemImage: "play.fill")
-            }
-            .buttonStyle(CircleButtonStyle(color: .startTint, diameter: Design.CircleDiameter.bar))
-            .help("Start")
-            .accessibilityIdentifier("timer.startButton")
-        }
     }
 
     private var discardButton: some View {
