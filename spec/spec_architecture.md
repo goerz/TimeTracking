@@ -192,7 +192,7 @@ The `help` target prints the targets grouped as below, from `##@` and `##` lines
 | | `distclean` | Removes `build.noindex/`; refuses while the Debug agent is registered ("run make mac-debug-unregister first") |
 | | `help` | The grouped listing |
 
-The variable `ARGS` passes launch arguments. The apps understand `-UITesting YES` (in-memory store and transport, fixture, no animations), `-Fixture <name>`, and `-ResetState YES`. The tool reads `TIMETRACKING_STORE` and `TIMETRACKING_NOW` (`spec_automation.md`).
+The variable `ARGS` passes launch arguments. The apps understand `-UITesting YES` (in-memory store and transport, fixture, no animations), `-Fixture <name>`, and `-ResetState YES`; UI tests that must register the real Debug agent add `-RealAgent YES`, without which `-UITesting` uses a fake agent service. The tool reads `TIMETRACKING_STORE` and `TIMETRACKING_NOW` (`spec_automation.md`).
 
 Git hooks `pre-commit`, `commit-msg`, and `pre-push` run `check-private` in modes `staged`, `message <file>`, and `push`; `pre-push` also runs `make lint`. Bypassing them is not allowed.
 
@@ -292,7 +292,7 @@ TimeTracking/
 ├── TimeTrackingWidgets/  TimeTrackingIntents/  TimeTrackingMonitor/  TimeTrackingWebExtension/
 ├── <test bundles of 1.1>/
 ├── Fixtures/             Store/ Activity/ Agent/
-├── scripts/              check_behaviors.sh  unregister_builds.sh  test_make.sh  make_fixtures.swift
+├── scripts/              check_behaviors.sh  unregister_builds.sh  debug_unregister.sh  common.sh  test_make.sh  make_fixtures.swift
 ├── spec/
 └── build.noindex/
 ```

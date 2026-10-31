@@ -12,15 +12,17 @@ One Xcode project (`TimeTracking.xcodeproj`, hand-authored, file-system-synchron
 | `TimeTracking/` | Mac app: scenes, Timer window, Planner, status item, settings, agent registration, global shortcuts, AppKit glue in `Platform/`, URL handler, `LiveStatePublisher` and `WidgetPushSender` |
 | `TimeTrackingiOS/` | iOS app: scenes, Timer tab, iPad tabs, background refresh and silent pushes, widget push token upload, URL handler |
 | `Shared/` | Views compiled into both apps; platform differences are `#if os(macOS)` around a modifier |
+| `WidgetShared/`, `CollectionShared/` | Code compiled into the iOS app and the widget extension, and into the iOS app and the monitor extension |
 | `AppResources/` | The app icon (`AppIcon.icon`) and the `AccentColor` asset, in the Mac app, the agent, and the iOS app (`spec_design.md` §9) |
 | `TimeTrackingAgent/` | The tracker login item (`LSUIElement`; flags `--record`, `--replay`, `--unregister`) |
 | `TrackerEvent/` | `tracker-event`: one line to the agent's socket; links only Foundation |
 | `TimeTrackingCLI/` | `timetracking`: argument parsing and output only; never touches CloudKit |
 | `TimeTrackingWidgets/`, `TimeTrackingIntents/`, `TimeTrackingMonitor/`, `TimeTrackingWebExtension/` | iOS extensions: rendering and forwarding only |
 | `*Tests/`, `*UITests/` | Test bundles (see Testing) |
+| `AppTestSupport/` | Test helpers compiled into both hosted test bundles (`TimeTrackingTests`, `TimeTrackingiOSTests`) |
 | `Config/` | `Project.xcconfig`, `<target>.entitlements`, `<target>-Info.plist` |
 | `Fixtures/` | `Store/<name>.json` (export format), `Activity/`, `Agent/`; synthetic, dates in 2024 |
-| `scripts/` | `check_behaviors.sh`, `test_make.sh`, `check_products.sh`, `install.sh`, `apns_key.sh`, lint helpers |
+| `scripts/` | `check_behaviors.sh`, `test_make.sh`, `check_products.sh`, `install.sh`, `apns_key.sh`, `debug_unregister.sh`, `common.sh` (shared by the install and unregister scripts), lint helpers |
 
 A view model may hold selection, drafts, sort order, and presentation state and call the library. It may not compute totals, overlaps, or export formats. If a view model test needs a store fixture, the logic belongs in the library.
 
@@ -87,7 +89,7 @@ Every `xcodebuild` call uses `-quiet -project TimeTracking.xcodeproj -derivedDat
 
 Every numbered item in a spec's "Testable behaviors" is backed by a test carrying its identifier (`ARCH`, `DATA`, `TW`, `MB`, `PP`, `PC`, `PR`, `PA`, `TRK`, `IOS`, `AUTO`): in a Swift Testing display name, `@Test("TW-1 releasing below 200 pt collapses to the bar")`; in an XCUITest method name, `testTW1_collapseBelowThreshold()`; in `scripts/test_make.sh`, `behavior "ARCH-2 ..."`. One test may name several. `make check-behaviors` (optionally `ONLY=TW,MB`) fails on a behavior without a test, an identifier no spec defines, or a non-continuous list.
 
-Rules: `make test` needs no network and no permission grant; it uses the in-memory store and transport only. UI tests find controls by accessibility identifier (`timer.startButton`), never by visible text, and launch with `-UITesting YES` (in-memory store and transport, `-Fixture <name>`, no animations), which may not change what a control does. Tests never sleep: use `ManualClock`, drive the agent's tick, fix `TIMETRACKING_NOW`. The test clock is `ManualClock.fixture()`, 2024-03-14T10:00:00 local time. A test over 10 seconds is tagged `.slow`.
+Rules: `make test` needs no network and no permission grant; it uses the in-memory store and transport only. UI tests find controls by accessibility identifier (`timer.startButton`), never by visible text, and launch with `-UITesting YES` (in-memory store and transport, a fake agent service, `-Fixture <name>`, no animations), which may not change what a control does. Only the ARCH-8 UI tests add `-RealAgent YES` to register the real Debug agent, and they unregister it again. Tests never sleep: use `ManualClock`, drive the agent's tick, fix `TIMETRACKING_NOW`. The test clock is `ManualClock.fixture()`, 2024-03-14T10:00:00 local time. A test over 10 seconds is tagged `.slow`.
 
 ## Code conventions (§4)
 
