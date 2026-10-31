@@ -4,7 +4,8 @@
 import SwiftUI
 import TimeTrackingCore
 
-/// The section: the table, or Clients & Areas in its place.
+/// The section: the toolbar, table, and status row, with the project
+/// dialog, confirmations, and Merge Into.
 struct ProjectsView: View {
     @Bindable var model: ProjectsModel
     var now: Date
@@ -12,52 +13,35 @@ struct ProjectsView: View {
     @Environment(\.undoManager) private var undoManager
 
     var body: some View {
-        Group {
-            #if os(iOS)
-                // The iPad pushes Clients & Areas (spec_planner_projects.md §1.4).
-                ProjectsTableView(model: model, now: now)
-                    .navigationDestination(isPresented: $model.showsClientsAndAreas) {
-                        ClientsAreasView(model: model.clientsAndAreas, projects: model)
-                            .navigationTitle("Clients & Areas")
-                    }
-            #else
-                if model.showsClientsAndAreas {
-                    ClientsAreasView(model: model.clientsAndAreas, projects: model)
-                        .navigationTitle("Clients & Areas")
-                } else {
-                    ProjectsTableView(model: model, now: now)
-                }
-            #endif
-        }
-        .navigationTitle("Projects")
-        .onChange(of: now) {
-            // Total tracked counts the running entry to now, once a minute.
-            Task { await model.reload() }
-        }
-        .task {
-            model.undoManager = undoManager
-            model.clientsAndAreas.undoManager = undoManager
-            await model.reload()
-        }
-        .sheet(item: $model.dialog) { dialog in
-            ProjectDialogView(model: dialog, preferredArea: model.dialogDefaultArea) { project in
-                Task { await model.dialogFinished(project) }
+        ProjectsTableView(model: model, now: now)
+            .navigationTitle("Projects")
+            .onChange(of: now) {
+                // Total tracked counts the running entry to now, once a minute.
+                Task { await model.reload() }
             }
-        }
-        .alert(
-            model.confirmation?.title ?? "",
-            isPresented: .isPresent($model.confirmation),
-            presenting: model.confirmation
-        ) { confirmation in
-            Button(confirmation.confirmTitle, role: .destructive) { Task { await model.confirm() } }
-                .accessibilityIdentifier("projects.confirm")
-            Button("Cancel", role: .cancel) { model.confirmation = nil }
-        } message: { confirmation in
-            Text(confirmation.message)
-        }
-        .popover(isPresented: .isPresent($model.mergeSource)) {
-            ProjectsMergePicker(model: model)
-        }
+            .task {
+                model.undoManager = undoManager
+                await model.reload()
+            }
+            .sheet(item: $model.dialog) { dialog in
+                ProjectDialogView(model: dialog, preferredArea: model.dialogDefaultArea) { project in
+                    Task { await model.dialogFinished(project) }
+                }
+            }
+            .alert(
+                model.confirmation?.title ?? "",
+                isPresented: .isPresent($model.confirmation),
+                presenting: model.confirmation
+            ) { confirmation in
+                Button(confirmation.confirmTitle, role: .destructive) { Task { await model.confirm() } }
+                    .accessibilityIdentifier("projects.confirm")
+                Button("Cancel", role: .cancel) { model.confirmation = nil }
+            } message: { confirmation in
+                Text(confirmation.message)
+            }
+            .popover(isPresented: .isPresent($model.mergeSource)) {
+                ProjectsMergePicker(model: model)
+            }
     }
 }
 
@@ -124,8 +108,7 @@ private struct ProjectsTableView: View {
 }
 
 /// Trailing, in order: Filters, the state selector, Sort and Group; then
-/// Clients & Areas and New Project (spec_design.md §4). The search field
-/// follows at the far end.
+/// New Project (spec_design.md §4). The search field follows at the far end.
 private struct ProjectsToolbar: ToolbarContent {
     @Bindable var model: ProjectsModel
     @State private var showsFilters = false
@@ -174,13 +157,6 @@ private struct ProjectsToolbar: ToolbarContent {
             }
             .help("Sort and Group")
             .accessibilityIdentifier("projects.sortBy")
-        }
-        ToolbarItem(placement: .primaryAction) {
-            Button { model.showClientsAndAreas(client: nil) } label: {
-                Label("Clients & Areas", systemImage: SymbolName.clients)
-            }
-            .help("Clients & Areas")
-            .accessibilityIdentifier("projects.clientsAndAreas")
         }
         ToolbarItem(placement: .primaryAction) {
             Button { model.newProject() } label: {

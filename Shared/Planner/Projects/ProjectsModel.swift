@@ -59,8 +59,7 @@ final class ProjectsModel {
         didSet { device[.projectsColumns] = columnData }
     }
 
-    /// Clients & Areas replaces the table.
-    var showsClientsAndAreas = false
+    /// The Clients & Areas section's model.
     let clientsAndAreas: ClientsAreasModel
     /// Bumped to focus the search field (⌘F).
     private(set) var searchFocusRequests = 0
@@ -147,20 +146,12 @@ final class ProjectsModel {
 
     /// ⌘F.
     func focusSearch() {
-        showsClientsAndAreas = false
         searchFocusRequests += 1
     }
 
-    /// The Filters popover's "Show Projects" and the toolbar's Projects button.
-    func showTable() {
-        showsClientsAndAreas = false
-    }
-
+    /// A client or area's header in the table: the Clients & Areas section.
     func showClientsAndAreas(client: ClientID?) {
-        showsClientsAndAreas = true
-        if let client {
-            clientsAndAreas.selection = .client(client)
-        }
+        router?.showClientsAndAreas(client: client)
     }
 
     /// "Show Projects" of Clients & Areas: the table filtered to the client or area.
@@ -169,13 +160,12 @@ final class ProjectsModel {
         options.clients = client.map { [$0] } ?? []
         options.areas = area.map { [$0] } ?? []
         self.options = options
-        showsClientsAndAreas = false
+        router?.showProjects()
     }
 
     /// `showProject`: clears the search, shows the project's state and
     /// filters that hide it, selects and scrolls to its row.
     func reveal(_ id: ProjectID) async {
-        showsClientsAndAreas = false
         await reload()
         guard let row = rows.first(where: { $0.id == id }) else {
             return

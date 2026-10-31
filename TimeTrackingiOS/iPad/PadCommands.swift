@@ -9,9 +9,8 @@ extension PadCommand {
     var title: String {
         switch self {
         case .timerTab: "Timer"
-        case .projects, .calendar, .reports, .activity: plannerSection.title
+        case .calendar, .reports, .projects, .clientsAndAreas, .activity: plannerSection.title
         case .planner: "Planner"
-        case .clientsAndAreas: "Clients & Areas"
         case .new: "New Entry"
         case .continueLatest: "Continue"
         case .stop: "Stop"
@@ -30,9 +29,8 @@ extension PadCommand {
     var shortcut: KeyboardShortcut {
         switch self {
         case .timerTab: KeyboardShortcut("1")
-        case .projects, .calendar, .reports, .activity: KeyboardShortcut(plannerSection.mainWindowKey)
+        case .calendar, .reports, .projects, .clientsAndAreas, .activity: KeyboardShortcut(plannerSection.mainWindowKey)
         case .planner: KeyboardShortcut("p", modifiers: [.command, .option])
-        case .clientsAndAreas: KeyboardShortcut("2", modifiers: [.command, .option])
         case .new: KeyboardShortcut("n")
         case .continueLatest: KeyboardShortcut("o")
         case .stop: KeyboardShortcut("s")
@@ -72,13 +70,12 @@ struct PadCommands: Commands {
         CommandGroup(replacing: .newItem) {
             Button("New Project…") {
                 router?.select(.projects)
-                router?.projects.showsClientsAndAreas = false
                 router?.projects.newProject()
             }
             .keyboardShortcut("n", modifiers: [.command, .option])
             .disabled(router == nil)
             Button("New Client") {
-                router?.showClientsAndAreas()
+                router?.select(.clientsAndAreas)
                 if let router {
                     Task { await router.projects.clientsAndAreas.newClient() }
                 }
@@ -102,7 +99,7 @@ struct PadCommands: Commands {
             item(.find)
         }
         CommandGroup(before: .sidebar) {
-            ForEach([PadCommand.timerTab, .projects, .calendar, .reports, .activity, .clientsAndAreas], id: \.self, content: item)
+            ForEach([PadCommand.timerTab, .calendar, .reports, .projects, .clientsAndAreas, .activity], id: \.self, content: item)
             Divider()
             if let router {
                 ViewDisplayItems(router: router, state: state) { run(.scrollToToday) }

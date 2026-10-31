@@ -4,10 +4,12 @@
 import SwiftUI
 import TimeTrackingCore
 
-/// The outline that replaces the projects table.
+/// The Clients & Areas section: the outline of clients and their areas.
 struct ClientsAreasView: View {
     @Bindable var model: ClientsAreasModel
     var projects: ProjectsModel
+
+    @Environment(\.undoManager) private var undoManager
 
     var body: some View {
         List(selection: $model.selection) {
@@ -44,19 +46,12 @@ struct ClientsAreasView: View {
             return .handled
         }
         .accessibilityIdentifier("clientsAreas.list")
+        .navigationTitle("Clients & Areas")
+        .task {
+            model.undoManager = undoManager
+            await model.reload()
+        }
         .toolbar {
-            #if os(macOS)
-                // The iPad pushes this view and has the system back button.
-                ToolbarItem(placement: .navigation) {
-                    Button {
-                        projects.showTable()
-                    } label: {
-                        Label("Projects", systemImage: SymbolName.previous)
-                    }
-                    .help("Back to Projects")
-                    .accessibilityIdentifier("clientsAreas.back")
-                }
-            #endif
             ToolbarItem(placement: .primaryAction) {
                 Button {
                     Task { await model.newClient() }

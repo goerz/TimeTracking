@@ -52,15 +52,16 @@ struct PadTests {
         #expect(events.access() == .fullAccess)
     }
 
-    @Test("IOS-34 ⌥⌘R selects the Timer with the task field focused, ⌘1 to ⌘4 the Planner tabs; ⌘T does nothing in Timer and Projects")
+    @Test("IOS-34 ⌥⌘R selects the Timer with the task field focused, ⌘2 to ⌘6 the Planner tabs; ⌘T does nothing in Timer and Projects")
     func keyboard() async throws {
         let test = try await Self.pad()
         let model = test.model
         let router = try #require(model.pad?.router)
         for (command, tab) in [
-            (PadCommand.projects, PadTab.projects),
-            (.calendar, .calendar),
+            (PadCommand.calendar, PadTab.calendar),
             (.reports, .reports),
+            (.projects, .projects),
+            (.clientsAndAreas, .clientsAndAreas),
             (.activity, .activity),
         ] {
             await model.perform(command)
@@ -137,6 +138,8 @@ struct PadTests {
         await model.perform(.continueLatest)
         #expect(try await test.store.runningEntry()?.projectID == paper.id)
         router.showClientsAndAreas()
+        #expect(model.padTab == .clientsAndAreas)
+        #expect(model.padMenuState.sectionMenuTitle == "Client")
         #expect(model.padMenuState.clientsAndAreasCommands)
         #expect(!model.padMenuState.projectCommands)
         #expect(router.continueTarget == nil)

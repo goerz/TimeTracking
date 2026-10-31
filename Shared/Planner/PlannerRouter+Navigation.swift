@@ -24,7 +24,7 @@ extension PlannerRouter {
         case .activity:
             activity.range.goToToday()
             await activity.reload()
-        case .projects:
+        case .projects, .clientsAndAreas:
             break
         }
     }
@@ -36,7 +36,7 @@ extension PlannerRouter {
         case .calendar: true
         case .reports: reports.range.canShift
         case .activity: activity.range.canShift
-        case .projects: false
+        case .projects, .clientsAndAreas: false
         }
     }
 
@@ -54,7 +54,7 @@ extension PlannerRouter {
             }
         case .activity:
             await activity.shiftPeriod(by: step)
-        case .projects:
+        case .projects, .clientsAndAreas:
             break
         }
     }
@@ -71,7 +71,7 @@ extension PlannerRouter {
         case .calendar: calendar.showsMonthPicker = true
         case .reports: reports.showsDatePopover = true
         case .activity: activity.showsDatePopover = true
-        case .projects: break
+        case .projects, .clientsAndAreas: break
         }
     }
 
@@ -80,7 +80,7 @@ extension PlannerRouter {
     var continueTarget: PlannerContinueTarget? {
         switch section {
         case .projects:
-            return !projects.showsClientsAndAreas && projects.canStartTimer ? .project : nil
+            return projects.canStartTimer ? .project : nil
         case .calendar:
             guard calendar.selection.count == 1, case let .entry(id) = calendar.selection.first else {
                 return nil
@@ -91,7 +91,7 @@ extension PlannerRouter {
                 return nil
             }
             return .entry(id)
-        case .activity:
+        case .clientsAndAreas, .activity:
             return nil
         }
     }

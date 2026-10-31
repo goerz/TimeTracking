@@ -6,7 +6,7 @@ This spec covers the Mac app's Planner window shell and its Projects section: th
 
 ### 1.1 Layout
 
-There is at most one Planner window: a two-column split view with a sidebar and the selected section. The sidebar entries are Projects (`folder`), Calendar (`calendar`), Reports (`chart.bar`), and Activity (`waveform.path.ecg`), with no headings and no other items. The window title is the section's name. Each section owns its toolbar items, placed by the one scheme of [spec_design.md](spec_design.md) §4, so the period arrows and Today of Calendar, Reports, and Activity keep their place when the section changes; the shell adds only the sidebar toggle. The Planner has no running-timer controls.
+There is at most one Planner window: a two-column split view with a sidebar and the selected section. The sidebar entries are Timer, Calendar (`calendar`), Reports (`chart.bar`), Projects (`folder`), Clients & Areas (`person.crop.square`), and Activity (`waveform.path.ecg`), with no headings and no other items: the views used daily first, then the rarely edited structure, then the tracker's log. The window title is the section's name. Each section owns its toolbar items, placed by the one scheme of [spec_design.md](spec_design.md) §4, so the period arrows and Today of Calendar, Reports, and Activity keep their place when the section changes; the shell adds only the sidebar toggle. The Planner has no running-timer controls.
 
 | Property | Value |
 |---|---|
@@ -23,8 +23,7 @@ Window > Planner (⌥⌘P) opens the window on the last selected section, or bri
 | Menu | Command | Shortcut | Availability |
 |---|---|---|---|
 | Window | Planner | ⌥⌘P | Always; also the key equivalent of the menu bar item's "Open Planner" |
-| View | Projects, Calendar, Reports, Activity | ⌘1 to ⌘4 | Always; from the Timer window they open the Planner on that section |
-| View | Clients & Areas | ⌥⌘1 | Always; selects Projects and shows Clients & Areas (4) |
+| View | Timer, Calendar, Reports, Projects, Clients & Areas, Activity | ⌘1 to ⌘6 | Always; the sidebar's items in order |
 | View | Show/Hide Sidebar | ⌃⌘S | Planner key |
 | View | Go to Today | ⌘T | Calendar, Reports, Activity |
 | View | Previous Period / Next Period | ⌥⌘← / ⌥⌘→ | Calendar (by the visible span), Reports, Activity |
@@ -42,7 +41,7 @@ The `PlannerRouter` opens the window if needed, selects a section, and passes it
 |---|---|
 | `showProjects()` | Selects Projects with its current view state |
 | `showProject(id)` | Selects Projects, clears the search, sets the state selector to "All" if the project's state is hidden, clears filters that hide it, selects and scrolls to its row. Target of `timetracking://project/<uuid>` |
-| `showClientsAndAreas(client:)` | Selects Projects, shows Clients & Areas, selects the client if given |
+| `showClientsAndAreas(client:)` | Selects Clients & Areas, selects the client if given |
 | `showCalendar(day:hour:highlight:)` | Selects Calendar ([spec_planner_calendar.md](spec_planner_calendar.md) defines the arguments) |
 | `showReports(range:filter:)` | Selects Reports ([spec_planner_reports.md](spec_planner_reports.md) §9) |
 | `showActivity(range:)` | Selects Activity with the shared Reports/Activity range |
@@ -50,11 +49,11 @@ The `PlannerRouter` opens the window if needed, selects a section, and passes it
 
 ### 1.4 iPad
 
-The sections are tabs ([spec_ios.md](spec_ios.md) §10). In Projects, the Sort and Group menu replaces header clicks, long press opens context menus, rows swipe to Archive or Restore, and Clients & Areas is pushed from a toolbar button. The router maps onto tab selection.
+The sections are tabs ([spec_ios.md](spec_ios.md) §10). In Projects, the Sort and Group menu replaces header clicks, long press opens context menus, and rows swipe to Archive or Restore. Clients & Areas is its own tab. The router maps onto tab selection.
 
 ## 2. The projects table
 
-The window title is "Projects" with no leading toolbar items. The trailing items are, in order: Filters (the symbol fills and the title reads "Filters (2)" while filters are active), the state selector (segmented: Active, Archived, All), the Sort and Group menu (Group By, Sort By, and Ascending or Descending, each with a check mark), Clients & Areas, New Project (`plus`), and the search field. Below is a `Table` with group header rows, a ⋯ button on the hovered row at the trailing edge of the Project cell, and a status row.
+The window title is "Projects" with no leading toolbar items. The trailing items are, in order: Filters (the symbol fills and the title reads "Filters (2)" while filters are active), the state selector (segmented: Active, Archived, All), the Sort and Group menu (Group By, Sort By, and Ascending or Descending, each with a check mark), New Project (`plus`), and the search field. Below is a `Table` with group header rows, a ⋯ button on the hovered row at the trailing edge of the Project cell, and a status row.
 
 ### 2.1 Columns
 
@@ -157,9 +156,9 @@ Entries store only the project id, so a rename shows everywhere without touching
 
 ## 4. Clients & Areas
 
-The Clients & Areas toolbar button (⌥⌘1) replaces the table with this outline, titled "Clients & Areas"; the leading back button (`chevron.left`, "Projects") or ⌘1 returns, and New Client (`plus`) is the trailing item. Clients are listed alphabetically, each followed by its areas in order (general area first) and an "+ Add Area" row.
+The Clients & Areas section (⌘5) is this outline, titled "Clients & Areas", with New Client (`plus`) as the trailing toolbar item. Clients are listed alphabetically, each followed by its areas in order (general area first) and an "+ Add Area" row.
 
-Client rows show the name, the number of areas, and "N active · M archived" project counts (a zero archived count is omitted). Area rows show a 16 pt swatch, the name, a "general" or "retired" tag in secondary label color, and the counts. Double-click or ↩ edits. Context menus: on a client, Rename…, New Area…, Show Projects, Remove…; on an area, Edit…, Move Up, Move Down, Retire or Reactivate, Show Projects, Delete…. "Show Projects" returns to the table filtered to that client or area. ⌥⌘N creates a client here.
+Client rows show the name, the number of areas, and "N active · M archived" project counts (a zero archived count is omitted). Area rows show a 16 pt swatch, the name, a "general" or "retired" tag in secondary label color, and the counts. Double-click or ↩ edits. Context menus: on a client, Rename…, New Area…, Show Projects, Remove…; on an area, Edit…, Move Up, Move Down, Retire or Reactivate, Show Projects, Delete…. "Show Projects" selects Projects with the table filtered to that client or area. ⌥⌘N creates a client here.
 
 ### 4.1 The general area
 
@@ -218,7 +217,7 @@ Archived projects and retired areas never appear. The entry's current project ha
 
 ## 6. Testable behaviors
 
-- PP-1. ⌘1 to ⌘4 select Projects, Calendar, Reports, Activity, from the Timer window by opening the Planner on that section; the section menu is titled Project, Calendar, Report, or Activity.
+- PP-1. ⌘2 to ⌘6 select Calendar, Reports, Projects, Clients & Areas, Activity; the section menu is titled Calendar, Report, Project, Client, or Activity.
 - PP-2. Launch never opens the Planner, even if it was open at quit; ⌥⌘P opens it on the last section and frame.
 - PP-3. State selector "Archived", Group by Area, and sort Last tracked descending survive close and relaunch; the search is empty. With no stored state the table groups by Client and sorts Name ascending.
 - PP-4. Every column but Project can be hidden from the header menu, persistently; State shows only on "All".
@@ -246,7 +245,7 @@ Archived projects and retired areas never appear. The entry's current project ha
 ## 7. Decisions
 
 - Editing reuses the creation dialog, so one component serves every caller.
-- Clients & Areas is a view inside Projects (⌥⌘1), keeping four sections and four iPad tabs.
+- Clients & Areas is a section of its own, with a sidebar item and an iPad tab, so every view is reached the same way (⌘1 to ⌘6) and none needs a second shortcut or a back button. Projects and Clients & Areas follow Calendar and Reports because they are edited far less often.
 - New Project is ⌥⌘N because ⌘N is the app-wide "New" entry command.
 - A client is removable only when empty, since its general area cannot be removed alone.
 - Areas never move between clients; moving one would silently regroup all its projects.

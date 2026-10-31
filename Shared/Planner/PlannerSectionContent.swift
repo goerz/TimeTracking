@@ -14,14 +14,16 @@ struct PlannerSectionContent: View {
 
     var body: some View {
         switch section {
-        case .projects:
-            TimelineView(.periodic(from: .now, by: 60)) { _ in
-                ProjectsView(model: router.projects, now: clock.now)
-            }
         case .calendar:
             CalendarView(model: router.calendar)
         case .reports:
             ReportsView(model: router.reports, onPrint: onPrint)
+        case .projects:
+            TimelineView(.periodic(from: .now, by: 60)) { _ in
+                ProjectsView(model: router.projects, now: clock.now)
+            }
+        case .clientsAndAreas:
+            ClientsAreasView(model: router.projects.clientsAndAreas, projects: router.projects)
         case .activity:
             ActivityView(model: router.activity)
         }

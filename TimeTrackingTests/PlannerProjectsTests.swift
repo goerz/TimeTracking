@@ -9,11 +9,12 @@ import TimeTrackingCore
 
 @MainActor
 struct PlannerProjectsTests {
-    @Test("PP-1 ⌘1 to ⌘4 select Projects, Calendar, Reports, Activity; the section menu is named for the section")
+    @Test("PP-1 ⌘2 to ⌘6 select Calendar, Reports, Projects, Clients & Areas, Activity; the section menu is named for the section")
     func sectionCommands() async throws {
         let test = try await TestApp()
-        #expect(PlannerSection.allCases.map(\.key) == ["1", "2", "3", "4"])
-        #expect(PlannerSection.allCases.map(\.menuTitle) == ["Project", "Calendar", "Report", "Activity"])
+        #expect(PlannerSection.allCases.map(\.mainWindowKey) == ["2", "3", "4", "5", "6"])
+        #expect(PlannerSection.allCases.map(\.title) == ["Calendar", "Reports", "Projects", "Clients & Areas", "Activity"])
+        #expect(PlannerSection.allCases.map(\.menuTitle) == ["Calendar", "Report", "Project", "Client", "Activity"])
         for section in PlannerSection.allCases {
             test.app.planner.select(section)
             #expect(test.app.planner.section == section)
@@ -227,9 +228,10 @@ struct PlannerProjectsTests {
         let form = try #require(model.clientsAndAreas.areaForm)
         #expect(!form.nameEditable)
         #expect(form.nameNote == "Named after the client")
+        test.app.planner.showClientsAndAreas()
         model.showProjects(client: client.id, area: nil)
         #expect(model.options.clients == [client.id])
-        #expect(!model.showsClientsAndAreas)
+        #expect(test.app.planner.section == .projects)
     }
 
     @Test func clientsAndAreasActions() async throws {

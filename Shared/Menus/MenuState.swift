@@ -17,7 +17,6 @@ struct MenuState: Equatable {
     /// The Mac's Planner window is key, or the iPad shows a Planner tab.
     var plannerKey = false
     var section: PlannerSection = .projects
-    var showsClientsAndAreas = false
     /// A popover, editor, or sheet of the Calendar takes the plain keys.
     var calendarEditing = false
 
@@ -45,11 +44,11 @@ struct MenuState: Equatable {
     }
 
     var projectCommands: Bool {
-        plannerKey && section == .projects && !showsClientsAndAreas
+        plannerKey && section == .projects
     }
 
     var clientsAndAreasCommands: Bool {
-        plannerKey && section == .projects && showsClientsAndAreas
+        plannerKey && section == .clientsAndAreas
     }
 
     /// View › Go to Today, Previous Period, Next Period, and Date Range…:
@@ -70,7 +69,6 @@ extension MenuState {
             timerKey: timerKey,
             plannerKey: plannerKey,
             section: router?.section ?? .projects,
-            showsClientsAndAreas: router?.projects.showsClientsAndAreas ?? false,
             calendarEditing: router?.calendar.takesTextInput ?? false
         )
     }

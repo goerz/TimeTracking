@@ -3,7 +3,7 @@
 import SwiftUI
 import TimeTrackingCore
 
-/// The sidebar's items (⌘1 to ⌘5), the sidebar, the shown range's
+/// The sidebar's items (⌘1 to ⌘6), the sidebar, the shown range's
 /// navigation, then each view's display options under its own header,
 /// enabled while that view shows.
 struct ViewCommands: Commands {
@@ -60,8 +60,7 @@ struct ViewCommands: Commands {
         .disabled(!miniKey)
     }
 
-    /// Timer ⌘1 (the main window's tab), Projects ⌘2 to Activity ⌘5,
-    /// Clients & Areas ⌥⌘2.
+    /// Timer ⌘1 (the main window's tab), then Calendar ⌘2 to Activity ⌘6.
     @ViewBuilder private var sidebarItems: some View {
         Button("Timer") { (app?.router as? WindowRouter)?.showMainTimer() }
             .keyboardShortcut("1")
@@ -72,10 +71,5 @@ struct ViewCommands: Commands {
             }
             .keyboardShortcut(section.mainWindowKey)
         }
-        Button("Clients & Areas") {
-            router?.showClientsAndAreas()
-            app?.router?.openPlanner()
-        }
-        .keyboardShortcut("2", modifiers: [.command, .option])
     }
 }

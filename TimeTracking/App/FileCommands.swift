@@ -3,7 +3,7 @@
 import SwiftUI
 import TimeTrackingCore
 
-/// New Project, Client, and Area (they open in the Projects view), then
+/// New Project, Client, and Area (in the Projects or Clients & Areas view), then
 /// Reports' Export… and Print….
 struct FileCommands: Commands {
     var host: AppHost
@@ -25,12 +25,12 @@ struct FileCommands: Commands {
     var body: some Commands {
         CommandGroup(replacing: .newItem) {
             Button("New Project…") {
-                showProjects(clientsAndAreas: false)
+                show(.projects)
                 router?.projects.newProject()
             }
             .keyboardShortcut("n", modifiers: [.command, .option])
             Button("New Client") {
-                showProjects(clientsAndAreas: true)
+                show(.clientsAndAreas)
                 if let router {
                     Task { await router.projects.clientsAndAreas.newClient() }
                 }
@@ -59,14 +59,9 @@ struct FileCommands: Commands {
         }
     }
 
-    /// The window on Projects (its table, or Clients & Areas).
-    private func showProjects(clientsAndAreas: Bool) {
-        if clientsAndAreas {
-            router?.showClientsAndAreas()
-        } else {
-            router?.select(.projects)
-            router?.projects.showsClientsAndAreas = false
-        }
+    /// The window on Projects or Clients & Areas.
+    private func show(_ section: PlannerSection) {
+        router?.select(section)
         app?.router?.openPlanner()
     }
 }

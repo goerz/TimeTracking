@@ -6,11 +6,13 @@ import Foundation
 import Observation
 import TimeTrackingCore
 
-/// The four sections, in sidebar (and tab) order.
+/// The five sections, in sidebar (and tab) order after the Timer: the
+/// daily ones first, then the structure, then the tracker's Activity.
 nonisolated enum PlannerSection: String, Codable, CaseIterable, Identifiable, Sendable {
-    case projects
     case calendar
     case reports
+    case projects
+    case clientsAndAreas = "clients"
     case activity
 
     var id: String {
@@ -19,29 +21,21 @@ nonisolated enum PlannerSection: String, Codable, CaseIterable, Identifiable, Se
 
     var title: String {
         switch self {
-        case .projects: "Projects"
         case .calendar: "Calendar"
         case .reports: "Reports"
+        case .projects: "Projects"
+        case .clientsAndAreas: "Clients & Areas"
         case .activity: "Activity"
         }
     }
 
     var symbol: String {
         switch self {
-        case .projects: SymbolName.projects
         case .calendar: SymbolName.calendar
         case .reports: SymbolName.reports
+        case .projects: SymbolName.projects
+        case .clientsAndAreas: SymbolName.clients
         case .activity: SymbolName.activity
-        }
-    }
-
-    /// ⌘1 to ⌘4.
-    var key: Character {
-        switch self {
-        case .projects: "1"
-        case .calendar: "2"
-        case .reports: "3"
-        case .activity: "4"
         }
     }
 }
@@ -137,7 +131,7 @@ final class PlannerRouter {
         await calendar.apply(request)
     }
 
-    /// ⌘1 to ⌘4 and the sidebar.
+    /// ⌘2 to ⌘6 and the sidebar.
     func select(_ section: PlannerSection) {
         self.section = section
     }
@@ -146,7 +140,6 @@ final class PlannerRouter {
     func showProjects() {
         openWindow()
         section = .projects
-        projects.showTable()
     }
 
     /// Selects Projects and reveals the project's row (`timetracking://project/<uuid>`).
@@ -156,11 +149,13 @@ final class PlannerRouter {
         await projects.reveal(id)
     }
 
-    /// Selects Projects and shows Clients & Areas, with `client` selected.
+    /// Selects Clients & Areas, with `client` selected.
     func showClientsAndAreas(client: ClientID? = nil) {
         openWindow()
-        section = .projects
-        projects.showClientsAndAreas(client: client)
+        section = .clientsAndAreas
+        if let client {
+            projects.clientsAndAreas.selection = .client(client)
+        }
     }
 
     /// Selects Calendar and leaves the request for it.

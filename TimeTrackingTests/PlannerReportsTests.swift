@@ -125,9 +125,9 @@ struct PlannerReportsTests {
     @Test("PR-20 Report commands exist only while Reports is active in the key Planner; ⌃⌘1 and ⌃⌘2 switch the card, not the section")
     func reportCommands() async throws {
         let test = try await TestApp()
-        #expect(MenuState(plannerKey: true, section: .reports, showsClientsAndAreas: false).reportCommands)
-        #expect(!MenuState(plannerKey: false, section: .reports, showsClientsAndAreas: false).reportCommands)
-        #expect(!MenuState(plannerKey: true, section: .projects, showsClientsAndAreas: false).reportCommands)
+        #expect(MenuState(plannerKey: true, section: .reports).reportCommands)
+        #expect(!MenuState(plannerKey: false, section: .reports).reportCommands)
+        #expect(!MenuState(plannerKey: true, section: .projects).reportCommands)
         let planner = test.app.planner
         planner.select(.reports)
         await planner.reports.show(.entries)
