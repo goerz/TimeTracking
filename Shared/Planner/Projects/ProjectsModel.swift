@@ -124,9 +124,9 @@ final class ProjectsModel {
 
     // MARK: View state
 
-    /// Whether the State column shows (only on "All").
+    /// Whether the State column shows (only with archived projects included).
     var showsStateColumn: Bool {
-        options.state == .all
+        options.includeArchived
     }
 
     func isCollapsed(_ group: String) -> Bool {
@@ -184,8 +184,9 @@ final class ProjectsModel {
         searchFocusRequests += 1
     }
 
-    /// `showProject`: clears the search, shows the project's state and
-    /// filters that hide it, selects and scrolls to its row.
+    /// `showProject`: clears the search, includes archived projects for an
+    /// archived one, clears filters that hide it, selects and scrolls to its
+    /// row.
     func reveal(_ id: ProjectID) async {
         await reload()
         guard let row = rows.first(where: { $0.id == id }) else {
@@ -193,12 +194,13 @@ final class ProjectsModel {
         }
         search = ""
         var options = options
-        if options.state == .active && row.project.isArchived || options.state == .archived && !row.project.isArchived {
-            options.state = .all
+        if row.project.isArchived {
+            options.includeArchived = true
         }
         let alone = ProjectTable(rows: [row], clients: clients, areas: areas, options: options, search: "", now: clock.now)
         if !alone.rows.contains(where: { $0.id == id }) {
             options.clearFilters()
+            options.includeArchived = row.project.isArchived
         }
         self.options = options
         for group in table.allGroups where isCollapsed(group.id) && group.allRows.contains(where: { $0.id == id }) {

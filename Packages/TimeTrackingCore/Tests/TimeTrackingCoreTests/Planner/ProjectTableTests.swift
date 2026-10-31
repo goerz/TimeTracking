@@ -99,7 +99,7 @@ struct ProjectTableTests {
 
         // The retired area only under "All"; a search or filter drops empty groups.
         var options = ProjectTableOptions()
-        options.state = .all
+        options.includeArchived = true
         #expect(try await world.table(options).groups[1].subgroups.map(\.title) == ["University", "Teaching", "Research", "Old"])
         #expect(try await world.table(options).groups[1].subgroups.last?.tag == "retired")
         let searched = try await world.table(search: "lect")

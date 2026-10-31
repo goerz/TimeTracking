@@ -8,7 +8,7 @@ import TimeTrackingCore
 
 @MainActor
 struct PlannerColumnsTests {
-    @Test("PP-4 every column but Project stays hidden after a relaunch; State shows only on All")
+    @Test("PP-4 every column but Project stays hidden after a relaunch; State shows only with archived projects included")
     func columns() async throws {
         let test = try await TestApp()
         let model = test.app.planner.projects
@@ -33,9 +33,9 @@ struct PlannerColumnsTests {
         #expect(shown[visibility: "area"] == .visible)
         #expect(shown[visibility: "client"] == .hidden)
         #expect(!model.showsStateColumn)
-        model.options.state = .all
+        model.options.includeArchived = true
         #expect(model.showsStateColumn)
-        model.options.state = .archived
+        model.options.includeArchived = false
         #expect(!model.showsStateColumn)
     }
 }

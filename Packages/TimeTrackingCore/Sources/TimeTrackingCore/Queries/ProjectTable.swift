@@ -81,19 +81,13 @@ public enum LastTrackedFilter: String, Codable, Sendable, CaseIterable {
     }
 }
 
-extension ProjectFilter.State: Codable {
-    public var title: String {
-        switch self {
-        case .active: "Active"
-        case .archived: "Archived"
-        case .all: "All"
-        }
-    }
-}
+extension ProjectFilter.State: Codable {}
 
 /// The stored view state of the projects table (the search is not stored).
 public struct ProjectTableOptions: Hashable, Codable, Sendable {
-    public var state: ProjectFilter.State = .active
+    /// The Filters popover's "Include archived projects"; off shows only
+    /// active projects.
+    public var includeArchived = false
     public var clients: Set<ClientID> = []
     public var areas: Set<AreaID> = []
     public var lastTracked: LastTrackedFilter = .anyTime
@@ -115,13 +109,20 @@ public struct ProjectTableOptions: Hashable, Codable, Sendable {
         }
     }
 
-    /// The Filters badge: the active kinds (the tree, Last tracked).
+    /// The Filters badge: the restricting kinds (the tree, Last tracked).
+    /// Including archived projects widens the table and is not counted.
     public var filterCount: Int {
         (scope.isEmpty ? 0 : 1) + (lastTracked == .anyTime ? 0 : 1)
     }
 
-    /// "Clear All" in the popover.
+    /// Whether a project of this archived state passes.
+    public func shows(archived: Bool) -> Bool {
+        includeArchived || !archived
+    }
+
+    /// "Clear All" in the popover: every kind back to its default.
     public mutating func clearFilters() {
+        includeArchived = false
         clients = []
         areas = []
         lastTracked = .anyTime
@@ -135,6 +136,44 @@ public struct ProjectTableOptions: Hashable, Codable, Sendable {
             sort = key
             ascending = true
         }
+    }
+}
+
+extension ProjectTableOptions {
+    private enum CodingKeys: String, CodingKey {
+        case includeArchived, clients, areas, lastTracked, grouping, sort, ascending
+        /// The former state selector (Active, Archived, All), read only.
+        case state
+    }
+
+    /// Missing keys take their defaults; a stored state selector of
+    /// Archived or All includes archived projects.
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let defaults = Self()
+        if let include = try container.decodeIfPresent(Bool.self, forKey: .includeArchived) {
+            self.includeArchived = include
+        } else {
+            let state = try container.decodeIfPresent(ProjectFilter.State.self, forKey: .state)
+            self.includeArchived = state == .all || state == .archived
+        }
+        self.clients = try container.decodeIfPresent(Set<ClientID>.self, forKey: .clients) ?? defaults.clients
+        self.areas = try container.decodeIfPresent(Set<AreaID>.self, forKey: .areas) ?? defaults.areas
+        self.lastTracked = try container.decodeIfPresent(LastTrackedFilter.self, forKey: .lastTracked) ?? defaults.lastTracked
+        self.grouping = try container.decodeIfPresent(ProjectGrouping.self, forKey: .grouping) ?? defaults.grouping
+        self.sort = try container.decodeIfPresent(ProjectSortKey.self, forKey: .sort) ?? defaults.sort
+        self.ascending = try container.decodeIfPresent(Bool.self, forKey: .ascending) ?? defaults.ascending
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(includeArchived, forKey: .includeArchived)
+        try container.encode(clients, forKey: .clients)
+        try container.encode(areas, forKey: .areas)
+        try container.encode(lastTracked, forKey: .lastTracked)
+        try container.encode(grouping, forKey: .grouping)
+        try container.encode(sort, forKey: .sort)
+        try container.encode(ascending, forKey: .ascending)
     }
 }
 
@@ -292,7 +331,7 @@ public struct ProjectTable: Hashable, Sendable {
                 clients: clients,
                 areas: areas,
                 showsEmpty: search.trimmed.isEmpty && options.filterCount == 0,
-                showsRetired: options.state == .all
+                showsRetired: options.includeArchived
             )
             : Self.groups(sorted, grouping: options.grouping, areaOrder: order)
         self.init(
@@ -303,11 +342,8 @@ public struct ProjectTable: Hashable, Sendable {
     }
 
     static func passes(_ row: ProjectRow, options: ProjectTableOptions, search: String, now: Date) -> Bool {
-        switch options.state {
-        case .active where row.project.isArchived, .archived where !row.project.isArchived:
+        guard options.shows(archived: row.project.isArchived) else {
             return false
-        default:
-            break
         }
         if !options.clients.isEmpty || !options.areas.isEmpty {
             let byClient = row.client.map { options.clients.contains($0.id) } ?? false

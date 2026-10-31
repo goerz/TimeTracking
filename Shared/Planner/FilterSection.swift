@@ -3,7 +3,8 @@
 
 import SwiftUI
 
-/// A Filters popover's section: a headline above its control.
+/// A Filters popover's section: a headline above its control, which spans
+/// the popover's width.
 struct FilterSection<Content: View>: View {
     var title: String
     @ViewBuilder var content: Content
@@ -16,7 +17,7 @@ struct FilterSection<Content: View>: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Design.Spacing.compact) {
             Text(title).font(.headline)
-            content
+            content.frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 }

@@ -60,7 +60,7 @@ After a shift the label names the range by kind ("Week 43 · Oct 19 – 25", "Se
 
 The Filters button's title counts active filter kinds ("Filters (2)") and its symbol fills while any is active. Each checked client, area, or project, "No project", the task, and archived exclusion is a removable token in the filter bar above the tiles ("Consulting", "University · Research", "University · Research · Grant", "No project", "Task: noise", "Archived excluded", each with `xmark`), followed by "Clear All"; the bar is hidden without filters. The kinds combine with AND, and filters apply to tiles, chart, table, list, and exports.
 
-The popover is laid out as the Projects section's ([spec_planner_projects.md](spec_planner_projects.md) §2.4), with the same tree:
+The popover has the layout and the tree of the Projects section's ([spec_planner_projects.md](spec_planner_projects.md) §2.4), with the areas' projects folded below them:
 
 | Kind | Control | Matches |
 |---|---|---|

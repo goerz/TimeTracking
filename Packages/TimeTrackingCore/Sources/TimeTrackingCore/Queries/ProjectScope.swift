@@ -234,6 +234,35 @@ public struct ProjectScopeTree: Sendable {
         return rows.filter { shown.contains($0.node) }
     }
 
+    // MARK: Folding
+
+    /// Whether the node has rows below it (a disclosure triangle).
+    public func hasChildren(_ node: ProjectScopeNode) -> Bool {
+        !children[node, default: []].isEmpty
+    }
+
+    /// The rows shown with `collapsed` folded: those of `rows(matching:)`
+    /// whose ancestors are all expanded. A search unfolds everything, so
+    /// every match shows.
+    public func rows(matching search: String, collapsed: Set<ProjectScopeNode>) -> [Row] {
+        let matching = rows(matching: search)
+        guard search.folded.split(separator: " ").isEmpty else {
+            return matching
+        }
+        return matching.filter { row in !ancestors(of: row.node).contains(where: collapsed.contains) }
+    }
+
+    /// The folding a popover opens with: areas with projects are folded
+    /// unless some of their projects, but not all, are checked.
+    public func initiallyCollapsed(in scope: ProjectScope) -> Set<ProjectScopeNode> {
+        Set(rows.lazy.map(\.node).filter { node in
+            guard case .area = node, hasChildren(node) else {
+                return false
+            }
+            return state(of: node, in: scope) != .mixed
+        })
+    }
+
     // MARK: Helpers
 
     private func ancestors(of node: ProjectScopeNode) -> [ProjectScopeNode] {

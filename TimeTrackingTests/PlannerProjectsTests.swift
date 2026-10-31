@@ -31,25 +31,25 @@ struct PlannerProjectsTests {
         #expect(!test.router.calls.contains(.openPlanner))
     }
 
-    @Test("PP-3 state selector, grouping, and sort survive a relaunch; the search does not; defaults Client and Area, Name")
+    @Test("PP-3 Include archived projects, grouping, and sort survive a relaunch; the search does not; defaults Client and Area, Name")
     func storedViewState() async throws {
         let test = try await TestApp()
         let fresh = test.app.planner.projects
         #expect(fresh.options.grouping == .clientAndArea)
         #expect(fresh.options.sort == .name && fresh.options.ascending)
-        fresh.options.state = .archived
+        fresh.options.includeArchived = true
         fresh.options.grouping = .client
         fresh.options.sort(by: .lastTracked)
         fresh.options.sort(by: .lastTracked)
         fresh.search = "noise"
         let again = ProjectsModel(store: test.store, clock: test.clock, device: test.app.settings.device)
-        #expect(again.options.state == .archived)
+        #expect(again.options.includeArchived)
         #expect(again.options.grouping == .client)
         #expect(again.options.sort == .lastTracked && !again.options.ascending)
         #expect(again.search.isEmpty)
     }
 
-    @Test("PP-10 archiving three projects removes them under Active; ⌘Z restores all three")
+    @Test("PP-10 archiving three projects removes them while archived ones are hidden; ⌘Z restores all three")
     func archiveAndUndo() async throws {
         let test = try await TestApp()
         let projects = try await test.projects(["A", "B", "C", "D"])
@@ -124,7 +124,7 @@ struct PlannerProjectsTests {
         #expect(test.router.calls == [.openPlanner])
     }
 
-    @Test("PP-14 a project URL for an archived project selects Projects, sets All, clears the search, selects and scrolls to the row")
+    @Test("PP-14 a project URL for an archived project selects Projects, includes archived ones, clears the search, selects the row")
     func projectURL() async throws {
         let test = try await TestApp()
         let projects = try await test.projects(["Old", "Current"])
@@ -137,7 +137,7 @@ struct PlannerProjectsTests {
         let url = try #require(URL(string: "timetracking-debug://project/\(projects[0].id.rawValue)"))
         #expect(await router.open(url) == .shown)
         #expect(test.app.planner.section == .projects)
-        #expect(model.options.state == .all)
+        #expect(model.options.includeArchived)
         #expect(model.search.isEmpty)
         #expect(model.selection == [projects[0].id])
         #expect(model.scrollTarget == projects[0].id)
@@ -188,7 +188,7 @@ struct PlannerProjectsTests {
         #expect(!dialog.areas.contains { $0.id == projects[0].areaID })
         let model = test.app.planner.projects
         await model.reload()
-        model.options.state = .all
+        model.options.includeArchived = true
         model.selection = [projects[0].id]
         await model.restoreSelection()
         #expect(model.confirmation?.title == "Restore and reactivate “Research”?")

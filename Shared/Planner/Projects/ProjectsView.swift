@@ -139,8 +139,9 @@ private struct ProjectsTableView: View {
     }
 }
 
-/// Trailing, in order: Filters, the state selector, Sort and Group; then
-/// New (spec_design.md §4). The search field follows at the far end.
+/// Trailing, in order: Filters (with "Include archived projects"), Sort
+/// and Group; then New (spec_design.md §4). The search field follows at
+/// the far end.
 private struct ProjectsToolbar: ToolbarContent {
     @Bindable var model: ProjectsModel
     @State private var showsFilters = false
@@ -150,18 +151,6 @@ private struct ProjectsToolbar: ToolbarContent {
             PlannerFiltersButton(activeFilters: model.options.filterCount, isPresented: $showsFilters, identifier: "projects.filters") {
                 ProjectsFiltersPopover(model: model)
             }
-        }
-        .visibilityPriority(.high)
-        ToolbarItem(placement: .primaryAction) {
-            Picker("State", selection: $model.options.state) {
-                ForEach(ProjectFilter.State.allCases, id: \.self) { state in
-                    Text(state.title).tag(state)
-                }
-            }
-            .pickerStyle(.segmented)
-            .fixedSize()
-            .help("Project State")
-            .accessibilityIdentifier("projects.state")
         }
         .visibilityPriority(.high)
         ToolbarItem(placement: .primaryAction) {
