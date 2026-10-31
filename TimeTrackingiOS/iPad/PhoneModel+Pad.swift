@@ -35,29 +35,6 @@ enum PadCommand: Hashable, CaseIterable {
     }
 }
 
-extension PadTab {
-    /// The tab of a Planner section.
-    init(_ section: PlannerSection) {
-        switch section {
-        case .projects: self = .projects
-        case .calendar: self = .calendar
-        case .reports: self = .reports
-        case .activity: self = .activity
-        }
-    }
-
-    /// The Planner section of the tab; `nil` for the Timer.
-    var section: PlannerSection? {
-        switch self {
-        case .timer: nil
-        case .projects: .projects
-        case .calendar: .calendar
-        case .reports: .reports
-        case .activity: .activity
-        }
-    }
-}
-
 extension PhoneModel {
     /// The Planner's sections select tabs; its writes reach the Timer and
     /// the fan-out as the Timer's own.

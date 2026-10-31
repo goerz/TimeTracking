@@ -22,7 +22,9 @@ struct PlannerWindowView: View {
             .navigationSplitViewColumnWidth(min: 160, ideal: 200, max: 280)
             .accessibilityIdentifier("planner.sidebar")
         } detail: {
-            PlannerDetailView(router: router)
+            PlannerSectionContent(router: router, section: router.section, clock: app.clock) {
+                ReportPrinter.print(router.reports)
+            }
         }
         .frame(minWidth: 820, minHeight: 560)
         .focusedSceneValue(\.plannerWindowActive, true)
@@ -47,29 +49,6 @@ struct PlannerWindowView: View {
             if let section {
                 app.planner.select(section)
             }
-        }
-    }
-}
-
-/// The selected section.
-struct PlannerDetailView: View {
-    @Environment(AppModel.self) private var app
-    var router: PlannerRouter
-
-    var body: some View {
-        switch router.section {
-        case .projects:
-            TimelineView(.periodic(from: .now, by: 60)) { _ in
-                ProjectsView(model: router.projects, now: app.clock.now)
-            }
-        case .reports:
-            ReportsView(model: router.reports) {
-                ReportPrinter.print(router.reports)
-            }
-        case .calendar:
-            CalendarView(model: router.calendar)
-        case .activity:
-            ActivityView(model: router.activity)
         }
     }
 }

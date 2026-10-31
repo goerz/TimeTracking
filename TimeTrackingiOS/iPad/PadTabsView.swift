@@ -12,23 +12,13 @@ enum PadTab: String, Hashable, CaseIterable {
     case reports
     case activity
 
-    var title: String {
-        switch self {
-        case .timer: "Timer"
-        case .projects: "Projects"
-        case .calendar: "Calendar"
-        case .reports: "Reports"
-        case .activity: "Activity"
-        }
-    }
-
-    var systemImage: String {
-        switch self {
-        case .timer: "stopwatch"
-        case .projects: "folder"
-        case .calendar: "calendar"
-        case .reports: "chart.bar"
-        case .activity: "waveform.path.ecg"
+    /// The tab of a Planner section.
+    init(_ section: PlannerSection) {
+        switch section {
+        case .projects: self = .projects
+        case .calendar: self = .calendar
+        case .reports: self = .reports
+        case .activity: self = .activity
         }
     }
 
@@ -41,6 +31,25 @@ enum PadTab: String, Hashable, CaseIterable {
         case .activity: self = .activity
         case .start, .stop, .continue, .show: self = .timer
         }
+    }
+
+    /// The Planner section of the tab; `nil` for the Timer.
+    var section: PlannerSection? {
+        switch self {
+        case .timer: nil
+        case .projects: .projects
+        case .calendar: .calendar
+        case .reports: .reports
+        case .activity: .activity
+        }
+    }
+
+    var title: String {
+        section?.title ?? "Timer"
+    }
+
+    var systemImage: String {
+        section?.symbol ?? "stopwatch"
     }
 }
 
@@ -66,38 +75,14 @@ struct PadTabsView: View {
         if tab == .timer {
             TimerScreen(model: model)
         } else if let pad = model.pad, let section = tab.section, pad.opened.contains(section) {
-            PadSectionView(router: pad.router, section: section, clock: model.clock)
+            // Toolbars on the navigation bar.
+            NavigationStack {
+                PlannerSectionContent(router: pad.router, section: section, clock: model.clock)
+                    .navigationBarTitleDisplayMode(.inline)
+            }
+            .accessibilityIdentifier("pad.section.\(section.rawValue)")
         } else {
             Color.clear
         }
-    }
-}
-
-/// One Planner section in its tab, toolbars on the navigation bar.
-private struct PadSectionView: View {
-    var router: PlannerRouter
-    var section: PlannerSection
-    var clock: any Clock
-
-    var body: some View {
-        NavigationStack {
-            switch section {
-            case .projects:
-                TimelineView(.periodic(from: .now, by: 60)) { _ in
-                    ProjectsView(model: router.projects, now: clock.now)
-                }
-                .navigationBarTitleDisplayMode(.inline)
-            case .calendar:
-                CalendarView(model: router.calendar)
-                    .navigationBarTitleDisplayMode(.inline)
-            case .reports:
-                ReportsView(model: router.reports)
-                    .navigationBarTitleDisplayMode(.inline)
-            case .activity:
-                ActivityView(model: router.activity)
-                    .navigationBarTitleDisplayMode(.inline)
-            }
-        }
-        .accessibilityIdentifier("pad.section.\(section.rawValue)")
     }
 }

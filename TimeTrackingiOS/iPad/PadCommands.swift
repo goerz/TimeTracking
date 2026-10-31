@@ -10,10 +10,7 @@ extension PadCommand {
     var title: String {
         switch self {
         case .timerTab: "Timer"
-        case .projects: "Projects"
-        case .calendar: "Calendar"
-        case .reports: "Reports"
-        case .activity: "Activity"
+        case .projects, .calendar, .reports, .activity: plannerSection.title
         case .planner: "Last Planner Tab"
         case .clientsAndAreas: "Clients & Areas"
         case .new: "New Entry"
@@ -36,10 +33,7 @@ extension PadCommand {
     var shortcut: KeyboardShortcut {
         switch self {
         case .timerTab: KeyboardShortcut("r", modifiers: [.command, .option])
-        case .projects: KeyboardShortcut("1")
-        case .calendar: KeyboardShortcut("2")
-        case .reports: KeyboardShortcut("3")
-        case .activity: KeyboardShortcut("4")
+        case .projects, .calendar, .reports, .activity: KeyboardShortcut(KeyEquivalent(plannerSection.key))
         case .planner: KeyboardShortcut("p", modifiers: [.command, .option])
         case .clientsAndAreas: KeyboardShortcut("1", modifiers: [.command, .option])
         case .new: KeyboardShortcut("n")
