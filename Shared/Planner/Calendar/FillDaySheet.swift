@@ -11,7 +11,7 @@ struct FillDaySheet: View {
     @State private var pickerRow: Date?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Design.Spacing.medium) {
             Text("Fill \(DayText.weekdayShortDate(model.day))").font(.headline).frame(maxWidth: .infinity)
             if model.rows.isEmpty {
                 ContentUnavailableView(
@@ -52,7 +52,7 @@ struct FillDaySheet: View {
     private func rowView(_ row: FillDayRow) -> some View {
         let zone = calendar.calendar.timeZone
         let interval = row.proposal.interval
-        return HStack(spacing: 8) {
+        return HStack(spacing: Design.Spacing.small) {
             Toggle("", isOn: Binding { row.checked } set: { _ in model.toggle(row.id) }).labelsHidden()
             VStack(alignment: .leading) {
                 Text(CalendarText.range(interval.start, interval.end, zone: zone))
@@ -140,7 +140,7 @@ struct SuggestionsSheet: View {
     @State private var report: SuggestionFeedbackReport?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Design.Spacing.medium) {
             Text("Suggestions").font(.headline).frame(maxWidth: .infinity)
             Table(model.rules) {
                 TableColumn("Rule") { rule in Text(rule.kind.title) }

@@ -32,7 +32,7 @@ struct ReportFiltersPopover: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Design.Spacing.medium) {
             clientSection
             areaSection
             projectSection
@@ -53,7 +53,7 @@ struct ReportFiltersPopover: View {
                 }
             }
         }
-        .padding(14)
+        .padding(Design.Spacing.large)
         .frame(width: 360)
         .onAppear {
             task = filters.task
@@ -137,7 +137,7 @@ struct ReportFiltersPopover: View {
     }
 
     private func section(_ title: String, @ViewBuilder content: () -> some View) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: Design.Spacing.compact) {
             Text(title).font(.headline)
             content()
         }
@@ -147,13 +147,13 @@ struct ReportFiltersPopover: View {
         Button {
             update(change)
         } label: {
-            HStack(spacing: 4) {
+            HStack(spacing: Design.Spacing.tight) {
                 if let color {
                     AreaSwatch(color: color)
                 }
                 Text(title)
             }
-            .padding(.horizontal, 8)
+            .padding(.horizontal, Design.Spacing.small)
             .padding(.vertical, 3)
             .background(Capsule().fill(isOn ? Color.accentColor.opacity(0.25) : Color.secondary.opacity(0.1)))
         }
@@ -167,7 +167,7 @@ struct ReportFiltersPopover: View {
         change: @escaping (inout ReportFilters) -> Void
     ) -> some View {
         Toggle(isOn: Binding(get: { isOn }, set: { _ in update(change) })) {
-            HStack(spacing: 6) {
+            HStack(spacing: Design.Spacing.compact) {
                 if let color {
                     AreaDot(color: color)
                 }

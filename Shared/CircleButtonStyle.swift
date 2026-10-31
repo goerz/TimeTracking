@@ -39,9 +39,3 @@ struct CircleButtonStyle: ButtonStyle {
             .contentShape(Circle())
     }
 }
-
-extension Color {
-    // Kept until every surface uses `startTint` and `stopTint`.
-    static let startGreen = Color(red: 0.30, green: 0.69, blue: 0.43)
-    static let stopRed = Color(red: 0.87, green: 0.42, blue: 0.36)
-}

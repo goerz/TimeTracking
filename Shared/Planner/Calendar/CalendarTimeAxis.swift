@@ -28,7 +28,7 @@ struct CalendarTimeAxis: View {
                     Text(CalendarText.clock(model.clock.now, zone: model.calendar.timeZone))
                         .font(.caption.weight(.semibold)).monospacedDigit()
                         .foregroundStyle(.white)
-                        .padding(.horizontal, 5)
+                        .padding(.horizontal, Design.Spacing.tight)
                         .background(Capsule().fill(Color.accentColor))
                         .offset(x: -4, y: offset - 8)
                 }

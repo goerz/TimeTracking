@@ -10,16 +10,11 @@ import TimeTrackingCore
 import WidgetKit
 
 extension Color {
-    /// The color of an `#RRGGBB` value; gray for a malformed one.
+    /// The color of an `#RRGGBB` value, parsed by `AreaColor`; gray for a
+    /// malformed one (`Shared/Design/Color+Hex.swift`).
     init(hex: String) {
-        let digits = hex.hasPrefix("#") ? String(hex.dropFirst()) : hex
-        let value = UInt32(digits, radix: 16) ?? 0x808080
-        self.init(
-            .sRGB,
-            red: Double((value >> 16) & 0xFF) / 255,
-            green: Double((value >> 8) & 0xFF) / 255,
-            blue: Double(value & 0xFF) / 255
-        )
+        let color = (try? AreaColor(hex)) ?? AreaColor(red: UInt8(0x80), green: 0x80, blue: 0x80)
+        self.init(.sRGB, red: Double(color.red) / 255, green: Double(color.green) / 255, blue: Double(color.blue) / 255)
     }
 
     /// Start and continue (`Shared/Design/Design.swift`).

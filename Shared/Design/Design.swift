@@ -8,6 +8,9 @@ enum Design {
     enum Spacing {
         /// Icon to label, dot to text.
         static let tight: CGFloat = 4
+        /// Dense rows: vertical row padding in popups and compact tables, a
+        /// highlight's inset, and the status menu header's symbol gap.
+        static let compact: CGFloat = 6
         /// Between related controls; row internal spacing.
         static let small: CGFloat = 8
         /// Between groups in a bar or card.
@@ -53,4 +56,13 @@ extension Color {
     static let startTint = Color.green
     /// Stop buttons.
     static let stopTint = Color.red
+    /// Error messages under a control or in a dialog.
+    static let errorText = Color.red
+}
+
+extension View {
+    /// A card (spec_design.md §3): the secondary background in the card radius.
+    func cardBackground() -> some View {
+        background(.background.secondary, in: .rect(cornerRadius: Design.Radius.card))
+    }
 }

@@ -143,9 +143,7 @@ struct EntryEditorView: View {
                     Text(line).font(.caption).foregroundStyle(.secondary)
                 }
                 if let message = model.message {
-                    Label(message, systemImage: "exclamationmark.triangle")
-                        .font(.caption)
-                        .foregroundStyle(.red)
+                    ErrorLine(text: message)
                         .accessibilityIdentifier("editor.message")
                 }
                 if let overlap = model.overlap {

@@ -8,10 +8,10 @@ struct ProjectsFiltersPopover: View {
     @Bindable var model: ProjectsModel
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: Design.Spacing.medium) {
             Text("Clients and Areas").font(.headline)
             ScrollView {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: Design.Spacing.tight) {
                     ForEach(model.clients) { client in
                         clientToggle(client)
                         ForEach(areas(of: client.id).filter { !$0.isGeneral }) { area in
@@ -33,7 +33,7 @@ struct ProjectsFiltersPopover: View {
                     .accessibilityIdentifier("projects.filter.clear")
             }
         }
-        .padding(14)
+        .padding(Design.Spacing.large)
         .frame(width: 300)
     }
 
@@ -53,12 +53,12 @@ struct ProjectsFiltersPopover: View {
         } set: { _ in
             model.options.toggle(area: area)
         }) {
-            HStack(spacing: 6) {
+            HStack(spacing: Design.Spacing.compact) {
                 AreaSwatch(color: area.color)
                 Text(area.name).foregroundStyle(area.isRetired ? .secondary : .primary)
             }
         }
-        .padding(.leading, 20)
+        .padding(.leading, Design.Spacing.window)
     }
 
     private func areas(of client: ClientID) -> [Area] {

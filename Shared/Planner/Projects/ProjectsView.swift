@@ -241,7 +241,7 @@ private struct ProjectsMergePicker: View {
     @State private var search = ""
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: Design.Spacing.small) {
             Text("Merge Into").font(.headline)
             TextField("Search projects", text: $search).textFieldStyle(.roundedBorder)
             List(candidates) { row in
@@ -259,7 +259,7 @@ private struct ProjectsMergePicker: View {
             }
             .frame(height: 300)
         }
-        .padding(12)
+        .padding(Design.Spacing.medium)
         .frame(width: 340)
     }
 

@@ -25,10 +25,10 @@ struct AreaFormView: View {
                 Text(note).font(.caption).foregroundStyle(.secondary)
             }
             if let error = model.nameError {
-                Text(error).font(.caption).foregroundStyle(.red)
+                Text(error).font(.caption).foregroundStyle(Color.errorText)
             }
             if let error = model.lastError {
-                Text(error).font(.caption).foregroundStyle(.red).accessibilityIdentifier("areaForm.error")
+                Text(error).font(.caption).foregroundStyle(Color.errorText).accessibilityIdentifier("areaForm.error")
             }
             AreaColorWell(hex: $model.color).accessibilityIdentifier("areaForm.color")
         }

@@ -13,21 +13,21 @@ struct ActivityPanels: View {
 
     var body: some View {
         ViewThatFits(in: .horizontal) {
-            HStack(alignment: .top, spacing: 16) {
-                VStack(spacing: 16) {
+            HStack(alignment: .top, spacing: Design.Spacing.large) {
+                VStack(spacing: Design.Spacing.large) {
                     HeatmapPanel(model: model, summary: summary)
                     ContextsPanel(model: model, summary: summary)
                     BackgroundPanel(summary: summary)
                 }
                 .frame(width: 564)
-                VStack(spacing: 16) {
+                VStack(spacing: Design.Spacing.large) {
                     BarsPanel(model: model, summary: summary)
                     SubjectsPanel(model: model)
                     AwayPanel(summary: summary)
                 }
                 .frame(width: 520)
             }
-            VStack(spacing: 16) {
+            VStack(spacing: Design.Spacing.large) {
                 HeatmapPanel(model: model, summary: summary)
                 BarsPanel(model: model, summary: summary)
                 ContextsPanel(model: model, summary: summary)

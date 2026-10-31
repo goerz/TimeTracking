@@ -39,10 +39,10 @@ struct ProjectDialogView: View {
                     }
             } footer: {
                 if let error = model.nameError {
-                    Text(error).foregroundStyle(.red).accessibilityIdentifier("projectDialog.nameError")
+                    Text(error).foregroundStyle(Color.errorText).accessibilityIdentifier("projectDialog.nameError")
                 }
                 if let error = model.lastError {
-                    Text(error).foregroundStyle(.red).accessibilityIdentifier("projectDialog.error")
+                    Text(error).foregroundStyle(Color.errorText).accessibilityIdentifier("projectDialog.error")
                 }
             }
             Section {

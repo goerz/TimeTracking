@@ -35,22 +35,23 @@ Every duration that changes while visible, and every column of durations, uses m
 
 ## 3. Layout and spacing
 
-A 4 pt grid. The `Design` tokens in `Shared/Design/Design.swift` hold the values; views use them instead of literals.
+A 4 pt grid. The `Design` tokens in `Shared/Design/Design.swift` hold the values; views use them instead of literals for every spacing, padding, and corner radius. Literals remain only for optical adjustments of 1 to 3 pt (line gaps in cards, swatch radii of 1 to 2 pt, hairline offsets) and for alignment offsets that line text up with another element (a disclosure indent, a column inset). Popovers and sheets have `large` insets and `medium` spacing between their groups; popups such as completion lists and chart tooltips take the card radius.
 
 | Token | Value | Use |
 |---|---|---|
 | `Design.Spacing.tight` | 4 pt | Icon to label, dot to text |
+| `Design.Spacing.compact` | 6 pt | Dense rows: vertical row padding in popups and compact tables, a highlight's inset, the status menu header's symbol gap |
 | `Design.Spacing.small` | 8 pt | Between related controls, row internal spacing |
 | `Design.Spacing.medium` | 12 pt | Between groups in a bar or card |
 | `Design.Spacing.large` | 16 pt | Content insets on iOS, card padding |
 | `Design.Spacing.window` | 20 pt | Content insets in Mac windows |
 | `Design.Spacing.content` | `window` on the Mac, `large` on iOS | Content insets of views shared by both apps (the Planner sections) |
 | `Design.Radius.card` | 12 pt | Cards (Reports, Activity, iOS Timer card) |
-| `Design.Radius.small` | 6 pt | Calendar cards, swatches, tags, list row highlights |
+| `Design.Radius.small` | 6 pt | Calendar cards and their outlines, swatches, tags, list row highlights |
 | `Design.CircleDiameter.bar` | 32 pt Mac, 44 pt iOS | Start, stop, discard, and Pomodoro buttons of the Timer bar and card |
 | `Design.CircleDiameter.row` | 24 pt Mac, 32 pt iOS | Continue buttons in list rows |
 
-Cards use `.background(.background.secondary, in: .rect(cornerRadius: Design.Radius.card))` on the Mac and the inset-grouped `List`/`Form` look on iOS. No borders and no shadows on cards; separation comes from the fill.
+Cards use `.cardBackground()` (the secondary background in `Design.Radius.card`) on the Mac and the inset-grouped `List`/`Form` look on iOS. No borders and no shadows on cards; separation comes from the fill.
 
 Hit targets: at least 44 × 44 pt on iOS; on the Mac, standard control sizes (`.regular`, `.small` only in dense rows).
 
@@ -114,7 +115,8 @@ A sidebar shows its symbols in the accent color (the system sidebar style); no m
 - The accent color is the asset catalog's `AccentColor`, shared by both apps and the widgets; it comes from the app icon (§9). Views use `Color.accentColor` or `.tint`, never a literal.
 - Start and continue: `Color.startTint` (system green); stop: `Color.stopTint` (system red). Both are defined once in `Shared/Design/Design.swift` (the widgets keep a copy).
 - Today and now (the Calendar's highlighted date, today's tint, the now-line and its time bubble) use the accent color.
-- Area colors (user-chosen RGB) are data: they fill calendar cards, chart segments, and the 8 pt area dot. Text on an area color picks black or white by contrast.
+- Errors: `Color.errorText` (system red), for the message under a control or in a dialog. `ErrorLine` (`Shared/Design/ErrorLine.swift`) shows it with the warning symbol, in `.caption` on the Mac and `.footnote` on iOS; a dialog's inline field error is plain text in the same color.
+- Area colors (user-chosen RGB) are data: they fill calendar cards, chart segments, and the 8 pt area dot. `Color(hex:)` (`Shared/Design/Color+Hex.swift`) reads them through the library's `AreaColor`, gray for a malformed value. Text on an area color picks black or white by contrast.
 - Everything else uses semantic colors (`.primary`, `.secondary`, `.tertiary`, `.background`, `.separator`) and works in light and dark appearance and with Increase Contrast.
 
 ## 7. Components

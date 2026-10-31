@@ -20,7 +20,7 @@ struct CalendarNoticeView: View {
                     }
                 }
             }
-            .padding(10)
+            .padding(Design.Spacing.medium)
             .background(.regularMaterial, in: Capsule())
             .padding()
             .accessibilityIdentifier("calendar.notice")

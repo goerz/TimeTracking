@@ -63,27 +63,27 @@ struct ReportPrintView: View {
                 ForEach(pages.indices, id: \.self) { index in
                     VStack(alignment: .leading, spacing: 0) {
                         if index == 0 {
-                            top.padding(.bottom, 14)
+                            top.padding(.bottom, Design.Spacing.large)
                         }
                         table(rows: Array(rows[pages[index]]), footer: index == pages.count - 1)
                     }
-                    .padding(8)
+                    .padding(Design.Spacing.small)
                     .frame(width: width, height: pageHeight, alignment: .topLeading)
                 }
             }
         } else {
-            VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: Design.Spacing.large) {
                 top
                 table(rows: rows, footer: true)
             }
-            .padding(8)
+            .padding(Design.Spacing.small)
             .frame(width: width, alignment: .leading)
         }
     }
 
     /// The range, filters, print date, tiles, and chart.
     var top: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: Design.Spacing.large) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(model.range.label).font(.title2.weight(.semibold))
                 let chips = model.filterChips.map(\.text)
@@ -156,7 +156,7 @@ struct ReportPrintView: View {
     }
 
     private func row(_ columns: [String], bold: Bool) -> some View {
-        HStack(spacing: 8) {
+        HStack(spacing: Design.Spacing.small) {
             ForEach(columns.indices, id: \.self) { index in
                 Text(columns[index])
                     .lineLimit(1)

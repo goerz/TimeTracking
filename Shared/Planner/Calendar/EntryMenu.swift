@@ -17,12 +17,12 @@ struct EntryMenu<Items: View>: ViewModifier {
                     Group { items() }
                         .buttonStyle(.borderless)
                         .padding(.horizontal, Design.Spacing.large)
-                        .padding(.vertical, 10)
+                        .padding(.vertical, Design.Spacing.small)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .simultaneousGesture(TapGesture().onEnded { showsMenu = false })
                 }
                 .frame(minWidth: 220)
-                .padding(.vertical, 6)
+                .padding(.vertical, Design.Spacing.compact)
                 .presentationCompactAdaptation(.popover)
                 .accessibilityIdentifier("calendar.menu")
             }

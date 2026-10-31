@@ -64,7 +64,7 @@ struct DateRangePopover: View {
     var onChange: () -> Void
 
     var body: some View {
-        HStack(alignment: .top, spacing: 16) {
+        HStack(alignment: .top, spacing: Design.Spacing.large) {
             VStack(alignment: .leading, spacing: 2) {
                 ForEach(RangePreset.allCases, id: \.self) { preset in
                     let selected = range.matchingPresets.first == preset
@@ -74,9 +74,12 @@ struct DateRangePopover: View {
                     } label: {
                         Text(preset.title)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.horizontal, 8)
+                            .padding(.horizontal, Design.Spacing.small)
                             .padding(.vertical, 3)
-                            .background(RoundedRectangle(cornerRadius: 5).fill(selected ? Color.accentColor.opacity(0.2) : .clear))
+                            .background(
+                                RoundedRectangle(cornerRadius: Design.Radius.small)
+                                    .fill(selected ? Color.accentColor.opacity(0.2) : .clear)
+                            )
                     }
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("range.preset.\(preset.rawValue)")
@@ -84,7 +87,7 @@ struct DateRangePopover: View {
             }
             .frame(width: 150)
             Divider()
-            HStack(alignment: .top, spacing: 16) {
+            HStack(alignment: .top, spacing: Design.Spacing.large) {
                 MonthGrid(
                     month: TrackingPeriod(.month, containing: range.days.upperBound).start.adding(days: -1),
                     range: range,
@@ -93,7 +96,7 @@ struct DateRangePopover: View {
                 MonthGrid(month: range.days.upperBound, range: range, onChange: onChange)
             }
         }
-        .padding(14)
+        .padding(Design.Spacing.large)
     }
 }
 
@@ -114,7 +117,7 @@ private struct MonthGrid: View {
     }
 
     var body: some View {
-        VStack(spacing: 6) {
+        VStack(spacing: Design.Spacing.compact) {
             Text(DayText.monthYear(first)).font(.headline)
             Grid(horizontalSpacing: 2, verticalSpacing: 2) {
                 GridRow {
@@ -149,7 +152,7 @@ private struct MonthGrid: View {
         } label: {
             Text(String(day.day))
                 .frame(width: 26, height: 22)
-                .background(RoundedRectangle(cornerRadius: 4)
+                .background(RoundedRectangle(cornerRadius: Design.Radius.small)
                     .fill(pending ? Color.accentColor : inRange ? Color.accentColor.opacity(0.25) : .clear))
                 .foregroundStyle(pending ? .white : day == range.today ? Color.accentColor : .primary)
         }

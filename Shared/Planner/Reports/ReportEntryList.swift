@@ -17,8 +17,8 @@ struct ReportEntryList: View {
                 Text(model.listFooter(at: model.clock.now))
                     .fontWeight(.semibold)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
+                    .padding(.horizontal, Design.Spacing.large)
+                    .padding(.vertical, Design.Spacing.small)
                     .accessibilityIdentifier("reports.listFooter")
             }
         }
@@ -57,7 +57,7 @@ struct ReportEntryList: View {
     }
 
     private var columnHeader: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: Design.Spacing.medium) {
             header("Date", .date, width: 80)
             header("Start", .start, width: 70)
             header("Stop", .stop, width: 70)
@@ -68,8 +68,8 @@ struct ReportEntryList: View {
         }
         .font(.subheadline)
         .foregroundStyle(.secondary)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 6)
+        .padding(.horizontal, Design.Spacing.large)
+        .padding(.vertical, Design.Spacing.compact)
     }
 
     @ViewBuilder
@@ -100,12 +100,12 @@ private struct ReportEntryRow: View {
 
     var body: some View {
         let entry = listing.entry
-        HStack(spacing: 10) {
+        HStack(spacing: Design.Spacing.medium) {
             Text(DayText.weekdayShortDate(entry.day)).frame(width: 80, alignment: .leading)
             Text(entry.start.formatted(date: .omitted, time: .shortened)).frame(width: 70, alignment: .leading)
             Text(entry.end?.formatted(date: .omitted, time: .shortened) ?? "running").frame(width: 70, alignment: .leading)
             TimelineView(.periodic(from: .now, by: entry.isRunning ? 1 : 3600)) { _ in
-                HStack(spacing: 4) {
+                HStack(spacing: Design.Spacing.tight) {
                     if entry.isRunning {
                         Image(systemName: "record.circle").foregroundStyle(.red).accessibilityLabel("Running")
                     }
@@ -114,7 +114,7 @@ private struct ReportEntryRow: View {
             }
             .frame(width: 100, alignment: .leading)
             Text(listing.client?.name ?? "–").frame(width: 120, alignment: .leading)
-            HStack(spacing: 6) {
+            HStack(spacing: Design.Spacing.compact) {
                 if listing.project != nil {
                     AreaDot(color: listing.area?.color)
                 }

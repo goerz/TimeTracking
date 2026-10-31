@@ -226,7 +226,7 @@ struct ReportTilesView: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(Design.Spacing.large)
-                    .background(.background.secondary, in: .rect(cornerRadius: Design.Radius.card))
+                    .cardBackground()
                 }
             }
         }

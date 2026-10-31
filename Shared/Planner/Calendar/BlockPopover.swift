@@ -12,7 +12,7 @@ struct BlockPopover: View {
     @State private var showsOthers = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: Design.Spacing.small) {
             header
             ForEach(Array(block.items.enumerated()), id: \.offset) { _, item in
                 HStack {

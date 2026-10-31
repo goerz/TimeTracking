@@ -104,7 +104,7 @@ private struct TrackedColumn: View {
                 start: min(drawing.start, drawing.end),
                 end: max(drawing.start, drawing.end)
             )) {
-                RoundedRectangle(cornerRadius: 4).strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [4]))
+                RoundedRectangle(cornerRadius: Design.Radius.small).strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [4]))
                     .frame(width: width - 4, height: frame.height)
                     .offset(x: 2, y: frame.y)
             }
@@ -224,7 +224,7 @@ private struct EventsColumn: View {
             if let draft = model.blockDraft, model.calendar.day(containing: draft.interval.start) == day,
                let frame = axis.frame(of: draft.interval)
             {
-                RoundedRectangle(cornerRadius: 4)
+                RoundedRectangle(cornerRadius: Design.Radius.small)
                     .strokeBorder(style: StrokeStyle(lineWidth: 1.5, dash: [4]))
                     .frame(width: width - 4, height: frame.height)
                     .offset(x: 2, y: frame.y)
@@ -234,7 +234,7 @@ private struct EventsColumn: View {
                 start: min(drawing.start, drawing.end),
                 end: max(drawing.start, drawing.end)
             )) {
-                RoundedRectangle(cornerRadius: 4).strokeBorder(style: StrokeStyle(lineWidth: 1.5, dash: [4]))
+                RoundedRectangle(cornerRadius: Design.Radius.small).strokeBorder(style: StrokeStyle(lineWidth: 1.5, dash: [4]))
                     .frame(width: width - 4, height: frame.height)
                     .offset(x: 2, y: frame.y)
             }
@@ -275,17 +275,17 @@ private struct EventsColumn: View {
     @ViewBuilder private var notice: some View {
         switch model.timeBlockState {
         case .noAccess:
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: Design.Spacing.tight) {
                 Text("No calendar access").font(.caption)
                 #if os(macOS)
                     Button("Open System Settings") { SystemSettings.openPrivacy("Privacy_Calendars") }
                         .font(.caption)
                 #endif
             }
-            .padding(4)
+            .padding(Design.Spacing.tight)
             .accessibilityIdentifier("calendar.noAccess")
         case .noICloudAccount:
-            Text("Time blocks need an iCloud calendar account").font(.caption).padding(4)
+            Text("Time blocks need an iCloud calendar account").font(.caption).padding(Design.Spacing.tight)
                 .accessibilityIdentifier("calendar.noICloud")
         default:
             EmptyView()

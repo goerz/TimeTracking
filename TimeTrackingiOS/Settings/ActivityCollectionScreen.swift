@@ -162,14 +162,3 @@ private struct SetupStep: View {
         }
     }
 }
-
-/// An error under a control: the warning symbol and the message in red.
-struct ErrorLine: View {
-    var text: String
-
-    var body: some View {
-        Label(text, systemImage: "exclamationmark.triangle")
-            .font(.footnote)
-            .foregroundStyle(.red)
-    }
-}

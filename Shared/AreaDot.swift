@@ -4,20 +4,6 @@
 import SwiftUI
 import TimeTrackingCore
 
-extension Color {
-    /// The color of an `#RRGGBB` value; gray for a malformed one.
-    init(hex: String) {
-        let digits = hex.hasPrefix("#") ? String(hex.dropFirst()) : hex
-        let value = UInt32(digits, radix: 16) ?? 0x808080
-        self.init(
-            .sRGB,
-            red: Double((value >> 16) & 0xFF) / 255,
-            green: Double((value >> 8) & 0xFF) / 255,
-            blue: Double(value & 0xFF) / 255
-        )
-    }
-}
-
 /// An 8 pt solid circle in the area color, or a hollow one (1 pt secondary
 /// stroke) for "No project" (spec_design.md §7).
 struct AreaDot: View {
@@ -38,6 +24,6 @@ struct AreaSwatch: View {
     var color: String
 
     var body: some View {
-        RoundedRectangle(cornerRadius: 4).fill(Color(hex: color)).frame(width: 16, height: 16)
+        RoundedRectangle(cornerRadius: Design.Radius.small).fill(Color(hex: color)).frame(width: 16, height: 16)
     }
 }

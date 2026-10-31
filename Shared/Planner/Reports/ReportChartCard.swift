@@ -64,7 +64,7 @@ struct ReportChartCard: View {
             }
         }
         .padding(Design.Spacing.large)
-        .background(.background.secondary, in: .rect(cornerRadius: Design.Radius.card))
+        .cardBackground()
     }
 
     private func chartView(_ chart: ReportChart) -> some View {
@@ -212,7 +212,7 @@ struct ReportTooltip: View {
     var bucket: ChartBucket
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: Design.Spacing.tight) {
             Text(bucket.title).fontWeight(.semibold)
             if let note = bucket.partialNote {
                 Text(note).font(.caption).foregroundStyle(.secondary)
@@ -240,8 +240,8 @@ struct ReportTooltip: View {
                 .foregroundStyle(.secondary)
             }
         }
-        .padding(12)
+        .padding(Design.Spacing.medium)
         .frame(width: 260)
-        .background(RoundedRectangle(cornerRadius: 10).fill(.background).shadow(radius: 4))
+        .background(RoundedRectangle(cornerRadius: Design.Radius.card).fill(.background).shadow(radius: 4))
     }
 }

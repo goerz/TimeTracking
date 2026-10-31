@@ -56,7 +56,7 @@ struct SubjectsPanel: View {
     }
 
     private func drill(_ detail: ActivitySubjectDetail) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: Design.Spacing.compact) {
             HStack {
                 Button(model.displayName(detail.context)) { model.closeDrill() }.buttonStyle(.borderless)
                 Text("› \(detail.subject)")

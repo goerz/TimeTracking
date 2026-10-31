@@ -26,7 +26,7 @@ nonisolated struct ReportPDF: Transferable {
             return Data()
         }
         let page = ReportPrintView(model: model, snapshot: snapshot, printedAt: model.clock.now, width: 756)
-            .padding(18)
+            .padding(Design.Spacing.window)
             .environment(\.colorScheme, .light)
         let renderer = ImageRenderer(content: page)
         guard let data = CFDataCreateMutable(nil, 0) else {

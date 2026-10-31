@@ -32,7 +32,7 @@ struct ReportLowerCard: View {
         }
         #endif
         .frame(maxHeight: .infinity)
-        .background(.background.secondary, in: .rect(cornerRadius: Design.Radius.card))
+        .cardBackground()
         .clipShape(.rect(cornerRadius: Design.Radius.card))
     }
 
@@ -82,7 +82,7 @@ struct ReportLowerCard: View {
     }
 
     private var levelChain: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: Design.Spacing.tight) {
             ForEach(model.state.levels.indices, id: \.self) { index in
                 if index > 0 {
                     Text("›").foregroundStyle(.secondary)
@@ -159,7 +159,7 @@ struct ReportBreakdownTable: View {
     }
 
     private var columnHeader: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: Design.Spacing.medium) {
             sortButton("Name", .name).frame(minWidth: 120, maxWidth: .infinity, alignment: .leading)
             sortButton("Logged time", .loggedTime).frame(width: 120, alignment: .trailing)
             sortButton("Share", .share).frame(width: 70, alignment: .trailing)
@@ -168,8 +168,8 @@ struct ReportBreakdownTable: View {
         }
         .font(.subheadline)
         .foregroundStyle(.secondary)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 6)
+        .padding(.horizontal, Design.Spacing.large)
+        .padding(.vertical, Design.Spacing.compact)
     }
 
     private func sortButton(_ title: String, _ column: ReportColumn) -> some View {
@@ -187,7 +187,7 @@ struct ReportBreakdownTable: View {
     }
 
     private func rowView(_ row: BreakdownRow, total: Int) -> some View {
-        HStack(spacing: 12) {
+        HStack(spacing: Design.Spacing.medium) {
             nameCell(row)
                 .padding(.leading, CGFloat(row.depth) * 20)
                 .frame(minWidth: 120, maxWidth: .infinity, alignment: .leading)
@@ -208,7 +208,7 @@ struct ReportBreakdownTable: View {
 
     /// Triangle, dot, name, and the number of direct children.
     private func nameCell(_ row: BreakdownRow) -> some View {
-        HStack(spacing: 6) {
+        HStack(spacing: Design.Spacing.compact) {
             Group {
                 if row.hasChildren {
                     Button {
@@ -257,7 +257,7 @@ struct ReportBreakdownTable: View {
     }
 
     private func footer(_ total: ReportNode) -> some View {
-        HStack(spacing: 12) {
+        HStack(spacing: Design.Spacing.medium) {
             Text("Total").fontWeight(.semibold).frame(minWidth: 120, maxWidth: .infinity, alignment: .leading)
             Text(ReportText.seconds(total.seconds, padded: true)).fontWeight(.semibold).monospacedDigit()
                 .frame(width: 120, alignment: .trailing)
@@ -266,8 +266,8 @@ struct ReportBreakdownTable: View {
             Text(String(total.entryCount)).fontWeight(.semibold).frame(width: 70, alignment: .trailing)
             Text("").frame(minWidth: 40, maxWidth: 160)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
+        .padding(.horizontal, Design.Spacing.large)
+        .padding(.vertical, Design.Spacing.small)
     }
 
     /// → expands, ← collapses, ⌥→ the subtree, Space toggles, ↩ opens the entries.

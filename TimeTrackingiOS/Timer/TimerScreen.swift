@@ -168,8 +168,8 @@ struct TimerScreen: View {
                 Button("Show") { model.openEditor(banner.entryID) }
                     .accessibilityIdentifier("timer.bannerShow")
             }
-            .padding(12)
-            .background(RoundedRectangle(cornerRadius: 12).fill(.thinMaterial))
+            .padding(Design.Spacing.medium)
+            .background(RoundedRectangle(cornerRadius: Design.Radius.card).fill(.thinMaterial))
             .padding(.horizontal)
             .accessibilityIdentifier("timer.banner")
         }

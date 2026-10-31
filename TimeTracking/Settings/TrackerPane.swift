@@ -51,7 +51,7 @@ struct TrackerPane: View {
                 LabeledContent("Tracker version", value: version)
             }
             if let error = app.tracker.lastError {
-                SettingsError(text: error)
+                ErrorLine(text: error)
             }
         } footer: {
             Text(
@@ -268,17 +268,6 @@ private struct CopyButton: View {
     }
 }
 
-/// An error under a control: the warning symbol and the message in red.
-struct SettingsError: View {
-    var text: String
-
-    var body: some View {
-        Label(text, systemImage: "exclamationmark.triangle")
-            .font(.caption)
-            .foregroundStyle(.red)
-    }
-}
-
 /// The settings file and the activity logs: where they are, and buttons to
 /// open them. Everything the tracker can be told lives in the file.
 private struct FilesSection: View {
@@ -330,7 +319,7 @@ private struct FilesSection: View {
                     .accessibilityIdentifier("tracker.settingsFile.added")
             }
             if let message = model.message {
-                SettingsError(text: message)
+                ErrorLine(text: message)
             }
         }
     }
@@ -399,7 +388,7 @@ private struct PendingExclusionSection: View {
                     .accessibilityIdentifier("tracker.pendingExclusion")
                 }
                 if let message = model.message {
-                    SettingsError(text: message)
+                    ErrorLine(text: message)
                 }
                 HStack {
                     Spacer()

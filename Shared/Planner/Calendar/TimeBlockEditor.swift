@@ -11,7 +11,7 @@ struct TimeBlockEditor: View {
 
     var body: some View {
         if let draft = model.blockDraft {
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: Design.Spacing.medium) {
                 TextField("Title", text: Binding { model.blockDraft?.title ?? "" } set: { model.blockDraft?.title = $0 })
                     .accessibilityIdentifier("calendar.block.title")
                 ProjectChipButton(label: model.label(draft.projectID)) { showsPicker = true }

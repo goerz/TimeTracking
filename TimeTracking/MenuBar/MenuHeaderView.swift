@@ -18,14 +18,14 @@ struct MenuHeaderView: View {
             }
         }
         .padding(.horizontal, Self.inset)
-        .padding(.vertical, 4)
+        .padding(.vertical, Design.Spacing.tight)
         .frame(maxWidth: .infinity, alignment: .leading)
         .fixedSize(horizontal: false, vertical: true)
         .accessibilityElement(children: .combine)
     }
 
     private func row(_ line: MenuHeaderLine) -> some View {
-        HStack(spacing: 6) {
+        HStack(spacing: Design.Spacing.compact) {
             if let dot = line.dot {
                 AreaDot(color: dot.isEmpty ? nil : dot, size: 8)
                     .frame(width: 14)

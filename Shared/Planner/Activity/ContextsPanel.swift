@@ -29,7 +29,7 @@ struct ContextsPanel: View {
                 ContextGlyph(context: context)
                 Text(model.displayName(context))
                 if ActivityContext(context).kind == .session {
-                    Text("tmux").font(.caption2).padding(.horizontal, 4).overlay(Capsule().stroke(.secondary))
+                    Text("tmux").font(.caption2).padding(.horizontal, Design.Spacing.tight).overlay(Capsule().stroke(.secondary))
                 }
             } else {
                 Text("Brief activity").foregroundStyle(.secondary)

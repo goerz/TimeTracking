@@ -10,7 +10,7 @@ struct ActivityPanel<Content: View>: View {
     @ViewBuilder var content: Content
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: Design.Spacing.medium) {
             Text(title).font(.headline)
             if let subtitle {
                 Text(subtitle).font(.caption).foregroundStyle(.secondary)
@@ -19,6 +19,6 @@ struct ActivityPanel<Content: View>: View {
         }
         .padding(Design.Spacing.large)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.background.secondary, in: .rect(cornerRadius: Design.Radius.card))
+        .cardBackground()
     }
 }

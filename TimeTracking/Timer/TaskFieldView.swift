@@ -105,7 +105,7 @@ struct TaskFieldPopup: View {
                     suggestionRow(index, suggestion)
                 }
             }
-            .padding(.vertical, 6)
+            .padding(.vertical, Design.Spacing.compact)
             .frame(width: 340)
             .popupBackground()
             .accessibilityIdentifier("timer.suggestions")
@@ -125,9 +125,13 @@ struct TaskFieldPopup: View {
                 projectStyle: highlighted ? AnyShapeStyle(.white.opacity(0.85)) : AnyShapeStyle(.secondary)
             )
             .foregroundStyle(highlighted ? AnyShapeStyle(.white) : AnyShapeStyle(.primary))
-            .padding(.horizontal, 12)
-            .padding(.vertical, 4)
-            .background(RoundedRectangle(cornerRadius: 6).fill(highlighted ? Color.accentColor : .clear).padding(.horizontal, 6))
+            .padding(.horizontal, Design.Spacing.medium)
+            .padding(.vertical, Design.Spacing.tight)
+            .background(
+                RoundedRectangle(cornerRadius: Design.Radius.small)
+                    .fill(highlighted ? Color.accentColor : .clear)
+                    .padding(.horizontal, Design.Spacing.compact)
+            )
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -138,6 +142,6 @@ struct TaskFieldPopup: View {
 extension View {
     /// The floating panel look of the task field's popup.
     func popupBackground() -> some View {
-        background(RoundedRectangle(cornerRadius: 10).fill(.regularMaterial).shadow(radius: 8, y: 2))
+        background(RoundedRectangle(cornerRadius: Design.Radius.card).fill(.regularMaterial).shadow(radius: 8, y: 2))
     }
 }

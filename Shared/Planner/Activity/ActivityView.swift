@@ -142,10 +142,10 @@ struct ActivityView: View {
     }
 
     private func card(@ViewBuilder _ content: () -> some View) -> some View {
-        VStack(alignment: .leading, spacing: 8, content: content)
+        VStack(alignment: .leading, spacing: Design.Spacing.small, content: content)
             .padding(Design.Spacing.large)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(.background.secondary, in: .rect(cornerRadius: Design.Radius.card))
+            .cardBackground()
     }
 }
 
@@ -184,7 +184,7 @@ private struct ActivityChips: View {
 
     var body: some View {
         let ranking = model.summary?.ranking ?? []
-        HStack(spacing: 6) {
+        HStack(spacing: Design.Spacing.compact) {
             chip("All", selected: model.contexts.isEmpty) { Task { await model.selectAll() } }
             ForEach(ranking.prefix(8)) { total in
                 chip(model.displayName(total.context), context: total.context, selected: model.contexts.contains(total.context)) {
@@ -204,14 +204,14 @@ private struct ActivityChips: View {
 
     private func chip(_ title: String, context: String? = nil, selected: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            HStack(spacing: 4) {
+            HStack(spacing: Design.Spacing.tight) {
                 if let context {
                     ContextGlyph(context: context)
                 }
                 Text(title)
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 4)
+            .padding(.horizontal, Design.Spacing.medium)
+            .padding(.vertical, Design.Spacing.tight)
             .background(Capsule().fill(selected ? Color.accentColor : Color.secondary.opacity(0.12)))
             .foregroundStyle(selected ? .white : .primary)
         }

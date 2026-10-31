@@ -13,7 +13,7 @@ struct DraftEditor: View {
 
     var body: some View {
         if let draft = model.draft {
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: Design.Spacing.medium) {
                 Text(CalendarText.range(draft.interval.start, draft.interval.end, zone: model.calendar.timeZone))
                     .font(.headline)
                 projectButton(draft)
@@ -61,7 +61,7 @@ struct DraftEditor: View {
     private func candidates(_ draft: CalendarDraft) -> some View {
         let others = draft.candidates.filter { $0.projectID != draft.projectID || ($0.task ?? "") != draft.task }
         if !others.isEmpty {
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: Design.Spacing.tight) {
                 ForEach(Array(others.prefix(4).enumerated()), id: \.offset) { _, candidate in
                     Button {
                         model.draft?.projectID = candidate.projectID

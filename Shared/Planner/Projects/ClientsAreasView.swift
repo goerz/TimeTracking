@@ -111,7 +111,7 @@ struct ClientsAreasView: View {
     }
 
     private func areaRow(_ area: AreaOutline, client _: ClientOutline) -> some View {
-        HStack(spacing: 10) {
+        HStack(spacing: Design.Spacing.medium) {
             AreaSwatch(color: area.area.color)
             Text(area.area.isGeneral ? area.area.name : area.area.name)
                 .frame(minWidth: 200, alignment: .leading)
@@ -121,7 +121,7 @@ struct ClientsAreasView: View {
             Spacer()
             Text(area.countsText).foregroundStyle(.secondary)
         }
-        .padding(.leading, 8)
+        .padding(.leading, Design.Spacing.small)
         .moveDisabled(area.area.isGeneral)
         .accessibilityIdentifier("clientsAreas.area")
     }

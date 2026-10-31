@@ -20,10 +20,10 @@ struct ClientFormView: View {
                 .onSubmit(submit)
                 .onChange(of: model.name) { Task { await model.validate() } }
             if let error = model.nameError {
-                Text(error).font(.caption).foregroundStyle(.red)
+                Text(error).font(.caption).foregroundStyle(Color.errorText)
             }
             if let error = model.lastError {
-                Text(error).font(.caption).foregroundStyle(.red).accessibilityIdentifier("clientForm.error")
+                Text(error).font(.caption).foregroundStyle(Color.errorText).accessibilityIdentifier("clientForm.error")
             }
             if model.showsColor {
                 AreaColorWell(hex: $model.color).accessibilityIdentifier("clientForm.color")

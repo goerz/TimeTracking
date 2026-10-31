@@ -142,7 +142,7 @@ struct EntryEditSheet: View {
             Text(explanation).font(.caption).foregroundStyle(.secondary).accessibilityIdentifier("editor.explanation")
         }
         if let message = editor.message {
-            Text(message).font(.caption).foregroundStyle(.red).accessibilityIdentifier("editor.message")
+            Text(message).font(.caption).foregroundStyle(Color.errorText).accessibilityIdentifier("editor.message")
         }
         if let overlap = editor.overlap {
             VStack(alignment: .leading) {

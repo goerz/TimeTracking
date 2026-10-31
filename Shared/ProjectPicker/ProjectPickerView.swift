@@ -31,7 +31,7 @@ struct ProjectPickerView: View {
             }
             ScrollViewReader { proxy in
                 ScrollView {
-                    rows.padding(.vertical, 6)
+                    rows.padding(.vertical, Design.Spacing.compact)
                 }
                 .onChange(of: model.highlight) { _, highlight in
                     if let highlight {
@@ -105,7 +105,7 @@ struct ProjectPickerView: View {
                 }
             }
             if let name = content.createName {
-                Divider().padding(.vertical, 4)
+                Divider().padding(.vertical, Design.Spacing.tight)
                 createRow(name)
             }
         }
@@ -122,7 +122,7 @@ struct ProjectPickerView: View {
             Label("Create Project “\(name)”", systemImage: "plus")
                 .foregroundStyle(Color.accentColor)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 12)
+                .padding(.horizontal, Design.Spacing.medium)
                 .padding(.vertical, Self.rowPadding)
                 .background(highlightBackground(.create(name)))
         }
@@ -136,7 +136,7 @@ struct ProjectPickerView: View {
             .font(.caption.weight(.semibold))
             .foregroundStyle(.secondary)
             .padding(.horizontal, 30)
-            .padding(.top, 8)
+            .padding(.top, Design.Spacing.small)
             .padding(.bottom, 2)
     }
 
@@ -145,7 +145,7 @@ struct ProjectPickerView: View {
         return Button {
             onChoose(model.choice(for: item))
         } label: {
-            HStack(spacing: 8) {
+            HStack(spacing: Design.Spacing.small) {
                 Image(systemName: "checkmark")
                     .accessibilityHidden(true)
                     .font(.caption.weight(.semibold))
@@ -159,7 +159,7 @@ struct ProjectPickerView: View {
                     .foregroundStyle(highlighted ? AnyShapeStyle(.white.opacity(0.85)) : AnyShapeStyle(.secondary))
             }
             .foregroundStyle(highlighted ? AnyShapeStyle(.white) : AnyShapeStyle(.primary))
-            .padding(.horizontal, 12)
+            .padding(.horizontal, Design.Spacing.medium)
             .padding(.vertical, Self.rowPadding)
             .background(highlightBackground(item))
             .contentShape(Rectangle())
@@ -190,7 +190,7 @@ struct ProjectPickerView: View {
     private func highlightBackground(_ item: ProjectPickerItem) -> some View {
         RoundedRectangle(cornerRadius: Design.Radius.small)
             .fill(model.highlight == item ? Color.accentColor : .clear)
-            .padding(.horizontal, 6)
+            .padding(.horizontal, Design.Spacing.compact)
     }
 
     static func identifier(for item: ProjectPickerItem) -> String {

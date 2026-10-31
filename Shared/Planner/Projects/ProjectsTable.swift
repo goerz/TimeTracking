@@ -222,7 +222,7 @@ private struct ProjectNameCell: View {
     var body: some View {
         switch item {
         case let .group(group):
-            HStack(spacing: 6) {
+            HStack(spacing: Design.Spacing.compact) {
                 if let color = group.color {
                     AreaSwatch(color: color)
                 }
@@ -246,7 +246,7 @@ private struct ProjectNameCell: View {
     }
 
     private func projectLabel(_ row: ProjectTableRow) -> some View {
-        HStack(spacing: 8) {
+        HStack(spacing: Design.Spacing.small) {
             AreaDot(color: row.row.color).opacity(row.row.project.isArchived ? 0.5 : 1)
             Text(row.row.project.name)
                 .foregroundStyle(row.row.project.isArchived ? .secondary : .primary)

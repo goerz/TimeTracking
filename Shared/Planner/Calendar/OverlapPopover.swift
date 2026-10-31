@@ -10,7 +10,7 @@ struct OverlapPopover: View {
 
     var body: some View {
         if let pending = model.pendingOverlap {
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: Design.Spacing.medium) {
                 Label(pending.prompt.text(in: model.calendar.timeZone), systemImage: "exclamationmark.triangle")
                 HStack {
                     Button("Trim") { Task { await model.resolveOverlap(.trim) } }
