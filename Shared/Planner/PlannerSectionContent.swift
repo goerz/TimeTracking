@@ -22,8 +22,6 @@ struct PlannerSectionContent: View {
             TimelineView(.periodic(from: .now, by: 60)) { _ in
                 ProjectsView(model: router.projects, now: clock.now)
             }
-        case .clientsAndAreas:
-            ClientsAreasView(model: router.projects.clientsAndAreas, projects: router.projects)
         case .activity:
             ActivityView(model: router.activity)
         }

@@ -269,7 +269,7 @@ The iPad presents the Planner sections with their behavior unchanged; this secti
 
 ### 10.1 Tabs
 
-A `TabView` with the iPadOS tab bar (collapsible to a sidebar): Timer, Calendar, Reports, Projects, Clients & Areas, Activity, the Mac's sidebar items in the same order. Timer is the iPhone screen at iPad width, with the picker as a popover from the chip and the list in two columns above 900 points. The other tabs are [spec_planner_projects.md](spec_planner_projects.md) (Projects and Clients & Areas; §1.4 lists the iPad adaptations), [spec_planner_calendar.md](spec_planner_calendar.md), [spec_planner_reports.md](spec_planner_reports.md), and [spec_planner_activity.md](spec_planner_activity.md) (§5). Toolbars map onto the navigation bar with the items and order of the Mac ([spec_design.md](spec_design.md) §4): the period arrows and Today leading, the section's view options and actions trailing, the title inline, and items that do not fit in the system overflow menu. Inspectors map onto a trailing column and dialogs onto sheets.
+A `TabView` with the iPadOS tab bar (collapsible to a sidebar): Timer, Calendar, Reports, Projects, Activity, the Mac's sidebar items in the same order. Timer is the iPhone screen at iPad width, with the picker as a popover from the chip and the list in two columns above 900 points. The other tabs are [spec_planner_projects.md](spec_planner_projects.md) (§1.4 lists its iPad adaptations), [spec_planner_calendar.md](spec_planner_calendar.md), [spec_planner_reports.md](spec_planner_reports.md), and [spec_planner_activity.md](spec_planner_activity.md) (§5). Toolbars map onto the navigation bar with the items and order of the Mac ([spec_design.md](spec_design.md) §4): the period arrows and Today leading, the section's view options and actions trailing, the title inline, and items that do not fit in the system overflow menu. Inspectors map onto a trailing column and dialogs onto sheets.
 
 ### 10.2 Touch and Pencil
 
@@ -288,7 +288,7 @@ The Calendar tab requests calendar access per [spec_planner_calendar.md](spec_pl
 
 ### 10.3 Hardware keyboard
 
-The iPadOS menu bar, also shown in the ⌘-hold overlay, has the Mac's menus, items, titles, and keys ([spec_timer_window.md](spec_timer_window.md) §9), built from the same shared menu items: File, Edit, View, Timer, the section menu (Calendar, Report, Project, Client, Activity, for the last Planner tab), and Window. The Timer tab stands in for the Mac's Timer window and a Planner tab for the Planner window: an item of the Timer window is enabled only in the Timer tab, an item of a Planner section only in its tab, and, as on the Mac, a disabled item holds no key equivalent. In the Planner tabs every key is that tab's spec's; the Calendar's navigation keys are the view's, as on the Mac.
+The iPadOS menu bar, also shown in the ⌘-hold overlay, has the Mac's menus, items, titles, and keys ([spec_timer_window.md](spec_timer_window.md) §9), built from the same shared menu items: File, Edit, View, Timer, the section menu (Calendar, Report, Project, Activity, for the last Planner tab), and Window. The Timer tab stands in for the Mac's Timer window and a Planner tab for the Planner window: an item of the Timer window is enabled only in the Timer tab, an item of a Planner section only in its tab, and, as on the Mac, a disabled item holds no key equivalent. In the Planner tabs every key is that tab's spec's; the Calendar's navigation keys are the view's, as on the Mac.
 
 The iPad differs from the Mac only where it has no counterpart:
 
@@ -347,12 +347,12 @@ The iPad reads the block log through `ActivityReading` and the Mac's activity fr
 - IOS-31. A wrapper intent flushes only when the last flush is more than 5 minutes old.
 - IOS-32. With Screen Time authorization denied, every other collector works.
 - IOS-33. The iPhone never shows a calendar permission prompt; the iPad requests access when the Calendar tab first opens.
-- IOS-34. On the iPad, ⌥⌘R selects the Timer tab, ⌘2 to ⌘6 select the five Planner tabs, and ⌘T does nothing in the Timer and Projects tabs.
+- IOS-34. On the iPad, ⌥⌘R selects the Timer tab, ⌘2 to ⌘5 select the four Planner tabs, and ⌘T does nothing in the Timer and Projects tabs.
 - IOS-35. Drawing in the iPad's Tracked column creates an entry and opens the editor; a drawing past now is refused.
 - IOS-36. The iPad never writes to `Activity/blocks/`.
 - IOS-37. First launch without an iCloud account shows the blocking screen and nothing else.
 - IOS-38. Opening `timetracking://start?project=Household` shows the Timer with a running Household entry; on the iPad `timetracking://planner/reports` selects the Reports tab.
-- IOS-39. The iPad's menu context follows the Mac's: in the Timer tab Set Project… and Find are enabled and the section menu's items are not; in Projects the section menu is "Project" with its commands enabled, Find focuses the search field, Set Project… is disabled, ⌘O on a selected project starts a timer on it, and Clients & Areas, its own tab, enables its own items instead; in Calendar the section menu is "Calendar", and Go to Today and the period commands are enabled but Find is not; Reports and Activity enable the period commands, and Date Range… opens their date popover.
+- IOS-39. The iPad's menu context follows the Mac's: in the Timer tab Set Project… and Find are enabled and the section menu's items are not; in Projects the section menu is "Project" with its commands enabled, Find focuses the search field, Set Project… is disabled, ⌘O on a selected project starts a timer on it, and with an area row selected the Project menu acts on the area and ⌘O has no project; in Calendar the section menu is "Calendar", and Go to Today and the period commands are enabled but Find is not; Reports and Activity enable the period commands, and Date Range… opens their date popover.
 
 ## 13. Decisions
 

@@ -1,19 +1,20 @@
-// ClientsAreasModel: the Clients & Areas outline's state and actions
-// (spec_planner_projects.md §4). Counts and the rules for which action
-// applies come from the library's `ClientAreaOutline`.
+// ClientsAreasModel: the client and area rows of the projects table, their
+// sheets, and their actions (spec_planner_projects.md §2.5, §4). Counts and
+// the rules for which action applies come from the library's
+// `ClientAreaOutline`.
 
 import Foundation
 import Observation
 import os
 import TimeTrackingCore
 
-/// A selected outline row.
+/// A selected client or area row.
 enum ClientsAreasSelection: Hashable {
     case client(ClientID)
     case area(AreaID)
 }
 
-/// The outline, its sheets, and its confirmations.
+/// The clients and areas, their sheets, and their confirmations.
 @Observable
 final class ClientsAreasModel {
     @ObservationIgnored let store: TimeStore
@@ -23,9 +24,16 @@ final class ClientsAreasModel {
     @ObservationIgnored private(set) var pendingUndo: Task<Void, Never>?
 
     private(set) var outline: [ClientOutline] = []
-    var selection: ClientsAreasSelection?
-    /// Collapsed clients.
-    var collapsed: Set<ClientID> = []
+    /// A client or area row selected alone in the projects table; selecting
+    /// it clears the selected projects.
+    var selection: ClientsAreasSelection? {
+        didSet {
+            if selection != nil, projects?.selection.isEmpty == false {
+                projects?.selection = []
+            }
+        }
+    }
+
     var clientForm: ClientFormModel?
     var areaForm: AreaFormModel?
     var confirmation: ClientsAreasConfirmation?
@@ -72,7 +80,7 @@ final class ClientsAreasModel {
 
     // MARK: Sheets
 
-    /// "+ New Client" and ⌥⌘N here.
+    /// New Client….
     func newClient() async {
         clientForm = await ClientFormModel.create(store: store)
     }
@@ -87,7 +95,7 @@ final class ClientsAreasModel {
         clientForm = form
     }
 
-    /// "+ Add Area", New Area…, ⇧⌥⌘N.
+    /// New Area… (⇧⌥⌘N), in the given client or the selected one.
     func newArea(in client: ClientID? = nil) async {
         guard let client = client ?? selectedClient else {
             return
@@ -114,10 +122,14 @@ final class ClientsAreasModel {
         }
     }
 
-    func sheetFinished() async {
+    /// A sheet closed; a created client or area is selected.
+    func sheetFinished(created: ClientsAreasSelection? = nil) async {
         clientForm = nil
         areaForm = nil
         await projects?.reload()
+        if let created {
+            selection = created
+        }
     }
 
     // MARK: Area actions
@@ -128,14 +140,6 @@ final class ClientsAreasModel {
             return
         }
         await apply(ClientAreaOutline.move(client, area: id, by: step), in: client, name: step < 0 ? "Move Up" : "Move Down")
-    }
-
-    /// A drag within the client to position `index` among its other areas.
-    func move(_ id: AreaID, toIndex index: Int) async {
-        guard let (client, area) = area(id), !area.area.isGeneral else {
-            return
-        }
-        await apply(ClientAreaOutline.reorder(client, moving: id, to: index), in: client, name: "Move Area")
     }
 
     private func apply(_ changes: [(AreaID, Int)], in client: ClientOutline, name: String) async {
@@ -168,7 +172,7 @@ final class ClientsAreasModel {
         guard let (_, area) = area(id), area.canDelete else {
             return
         }
-        confirmation = ClientsAreasConfirmation(title: "Delete “\(area.area.name)”?", action: .deleteArea(id))
+        confirmation = ClientsAreasConfirmation(title: "Delete “\(area.area.name)”?", confirmTitle: "Delete", action: .deleteArea(id))
     }
 
     /// Remove… on a client: confirmed.
@@ -176,7 +180,7 @@ final class ClientsAreasModel {
         guard let client = client(id), client.canRemove else {
             return
         }
-        confirmation = ClientsAreasConfirmation(title: "Remove “\(client.client.name)”?", action: .removeClient(id))
+        confirmation = ClientsAreasConfirmation(title: "Remove “\(client.client.name)”?", confirmTitle: "Remove", action: .removeClient(id))
     }
 
     func confirm() async {
@@ -241,6 +245,7 @@ struct ClientsAreasConfirmation: Identifiable, Equatable {
     }
 
     var title: String
+    var confirmTitle: String
     var action: Action
 
     var id: String {

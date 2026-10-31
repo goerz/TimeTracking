@@ -134,9 +134,25 @@ extension ProjectsModel {
 
     // MARK: Dialog
 
-    /// The default area of a new project (§3.2): the one client or area the
-    /// filters restrict to; else the dialog's own rule.
+    /// The default area of a new project (§3.2): the area or client row it
+    /// was created from or that is selected, the one selected project's
+    /// area, the one client or area the filters restrict to; else the
+    /// dialog's own rule.
     var dialogDefaultArea: AreaID? {
+        if let area = newProjectArea {
+            return area
+        }
+        switch clientsAndAreas.selection {
+        case let .area(id):
+            return id
+        case let .client(id):
+            return areas.first { $0.clientID == id && $0.isGeneral }?.id
+        case nil:
+            break
+        }
+        if let row = single, row.area != nil {
+            return row.project.areaID
+        }
         if options.clients.count == 1, options.areas.isEmpty, let client = options.clients.first {
             return areas.first { $0.clientID == client && $0.isGeneral }?.id
         }
@@ -148,11 +164,17 @@ extension ProjectsModel {
 
     /// ⌥⌘N.
     func newProject() {
+        newProjectArea = nil
         dialog = ProjectDialogModel(store: store, mode: .create)
     }
 
-    /// Edit… (↩, double-click).
+    /// Edit… (↩, double-click): the project's dialog, the area's sheet, or
+    /// the client's rename sheet.
     func editSelection() {
+        if clientsAndAreas.selection != nil {
+            clientsAndAreas.editSelection()
+            return
+        }
         guard let row = single else {
             return
         }
@@ -164,6 +186,7 @@ extension ProjectsModel {
     /// The dialog closed.
     func dialogFinished(_ project: Project?) async {
         dialog = nil
+        newProjectArea = nil
         await reload()
         if let project {
             selection = [project.id]

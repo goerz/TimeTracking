@@ -4,8 +4,8 @@
 import SwiftUI
 import TimeTrackingCore
 
-/// The section: the toolbar, table, and status row, with the project
-/// dialog, confirmations, and Merge Into.
+/// The section: the toolbar, table, and status row, with the project,
+/// client, and area sheets, the confirmations, and Merge Into.
 struct ProjectsView: View {
     @Bindable var model: ProjectsModel
     var now: Date
@@ -21,6 +21,7 @@ struct ProjectsView: View {
             }
             .task {
                 model.undoManager = undoManager
+                model.clientsAndAreas.undoManager = undoManager
                 await model.reload()
             }
             .sheet(item: $model.dialog) { dialog in
@@ -41,6 +42,37 @@ struct ProjectsView: View {
             }
             .popover(isPresented: .isPresent($model.mergeSource)) {
                 ProjectsMergePicker(model: model)
+            }
+            .modifier(ClientAreaSheets(model: model.clientsAndAreas))
+    }
+}
+
+/// The client and area sheets and the Delete and Remove confirmations.
+private struct ClientAreaSheets: ViewModifier {
+    @Bindable var model: ClientsAreasModel
+
+    func body(content: Content) -> some View {
+        content
+            .sheet(item: $model.clientForm) { form in
+                ClientFormView(model: form) { client, _ in
+                    Task { await model.sheetFinished(created: client.map { .client($0.id) }) }
+                }
+            }
+            .sheet(item: $model.areaForm) { form in
+                AreaFormView(model: form) { area in
+                    Task { await model.sheetFinished(created: area.map { .area($0.id) }) }
+                }
+            }
+            .alert(
+                model.confirmation?.title ?? "",
+                isPresented: .isPresent($model.confirmation),
+                presenting: model.confirmation
+            ) { confirmation in
+                Button(confirmation.confirmTitle, role: .destructive) { Task { await model.confirm() } }
+                    .accessibilityIdentifier("clientsAreas.confirm")
+                Button("Cancel", role: .cancel) { model.confirmation = nil }
+            } message: { confirmation in
+                Text(confirmation.message)
             }
     }
 }
@@ -108,7 +140,7 @@ private struct ProjectsTableView: View {
 }
 
 /// Trailing, in order: Filters, the state selector, Sort and Group; then
-/// New Project (spec_design.md §4). The search field follows at the far end.
+/// New (spec_design.md §4). The search field follows at the far end.
 private struct ProjectsToolbar: ToolbarContent {
     @Bindable var model: ProjectsModel
     @State private var showsFilters = false
@@ -159,8 +191,16 @@ private struct ProjectsToolbar: ToolbarContent {
             .accessibilityIdentifier("projects.sortBy")
         }
         ToolbarItem(placement: .primaryAction) {
-            Button { model.newProject() } label: {
+            // A click is New Project; the menu adds New Area and New Client.
+            Menu {
+                Button("New Project…") { model.newProject() }
+                Button("New Area…") { Task { await model.clientsAndAreas.newArea(in: model.clientForNewArea) } }
+                    .disabled(model.clientForNewArea == nil)
+                Button("New Client…") { Task { await model.clientsAndAreas.newClient() } }
+            } label: {
                 Label("New Project", systemImage: SymbolName.add)
+            } primaryAction: {
+                model.newProject()
             }
             .help("New Project")
             .accessibilityIdentifier("projects.new")

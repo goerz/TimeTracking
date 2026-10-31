@@ -1,12 +1,12 @@
 # Spec: Planner Window and Projects Section
 
-This spec covers the Mac app's Planner window shell and its Projects section: the projects table, the project dialog, Clients & Areas with the area colors, and the shared project picker. Entities and their store rules are in [spec_data_and_sync.md](spec_data_and_sync.md) §1.
+This spec covers the Mac app's Planner window shell and its Projects section: the projects table with its clients and areas, the project dialog, the area colors, and the shared project picker. Entities and their store rules are in [spec_data_and_sync.md](spec_data_and_sync.md) §1.
 
 ## 1. The Planner window
 
 ### 1.1 Layout
 
-There is at most one Planner window: a two-column split view with a sidebar and the selected section. The sidebar entries are Timer, Calendar (`calendar`), Reports (`chart.bar`), Projects (`folder`), Clients & Areas (`person.crop.square`), and Activity (`waveform.path.ecg`), with no headings and no other items: the views used daily first, then the rarely edited structure, then the tracker's log. The window title is the section's name. Each section owns its toolbar items, placed by the one scheme of [spec_design.md](spec_design.md) §4, so the period arrows and Today of Calendar, Reports, and Activity keep their place when the section changes; the shell adds only the sidebar toggle. The Planner has no running-timer controls.
+There is at most one Planner window: a two-column split view with a sidebar and the selected section. The sidebar entries are Timer, Calendar (`calendar`), Reports (`chart.bar`), Projects (`folder`), and Activity (`waveform.path.ecg`), with no headings and no other items: the views used daily first, then the rarely edited projects, clients, and areas, then the tracker's log. The window title is the section's name. Each section owns its toolbar items, placed by the one scheme of [spec_design.md](spec_design.md) §4, so the period arrows and Today of Calendar, Reports, and Activity keep their place when the section changes; the shell adds only the sidebar toggle. The Planner has no running-timer controls.
 
 | Property | Value |
 |---|---|
@@ -23,7 +23,7 @@ Window > Planner (⌥⌘P) opens the window on the last selected section, or bri
 | Menu | Command | Shortcut | Availability |
 |---|---|---|---|
 | Window | Planner | ⌥⌘P | Always; also the key equivalent of the menu bar item's "Open Planner" |
-| View | Timer, Calendar, Reports, Projects, Clients & Areas, Activity | ⌘1 to ⌘6 | Always; the sidebar's items in order |
+| View | Timer, Calendar, Reports, Projects, Activity | ⌘1 to ⌘5 | Always; the sidebar's items in order |
 | View | Show/Hide Sidebar | ⌃⌘S | Planner key |
 | View | Go to Today | ⌘T | Calendar, Reports, Activity |
 | View | Previous Period / Next Period | ⌥⌘← / ⌥⌘→ | Calendar (by the visible span), Reports, Activity |
@@ -41,7 +41,6 @@ The `PlannerRouter` opens the window if needed, selects a section, and passes it
 |---|---|
 | `showProjects()` | Selects Projects with its current view state |
 | `showProject(id)` | Selects Projects, clears the search, sets the state selector to "All" if the project's state is hidden, clears filters that hide it, selects and scrolls to its row. Target of `timetracking://project/<uuid>` |
-| `showClientsAndAreas(client:)` | Selects Clients & Areas, selects the client if given |
 | `showCalendar(day:hour:highlight:)` | Selects Calendar ([spec_planner_calendar.md](spec_planner_calendar.md) defines the arguments) |
 | `showReports(range:filter:)` | Selects Reports ([spec_planner_reports.md](spec_planner_reports.md) §9) |
 | `showActivity(range:)` | Selects Activity with the shared Reports/Activity range |
@@ -49,23 +48,23 @@ The `PlannerRouter` opens the window if needed, selects a section, and passes it
 
 ### 1.4 iPad
 
-The sections are tabs ([spec_ios.md](spec_ios.md) §10). In Projects, the Sort and Group menu replaces header clicks, long press opens context menus, and rows swipe to Archive or Restore. Clients & Areas is its own tab. The router maps onto tab selection.
+The sections are tabs ([spec_ios.md](spec_ios.md) §10). In Projects, the Sort and Group menu replaces header clicks, long press opens context menus (also on client and area rows), and rows swipe to Archive or Restore. The router maps onto tab selection.
 
 ## 2. The projects table
 
-The window title is "Projects" with no leading toolbar items. The trailing items are, in order: Filters (the symbol fills and the title reads "Filters (2)" while filters are active), the state selector (segmented: Active, Archived, All), the Sort and Group menu (Group By, Sort By, and Ascending or Descending, each with a check mark), New Project (`plus`), and the search field. Below is a `Table` with group header rows, a ⋯ button on the hovered row at the trailing edge of the Project cell, and a status row.
+The window title is "Projects" with no leading toolbar items. The trailing items are, in order: Filters (the symbol fills and the title reads "Filters (2)" while filters are active), the state selector (segmented: Active, Archived, All), the Sort and Group menu (Group By, Sort By, and Ascending or Descending, each with a check mark), New (`plus`: a click is New Project…, its menu lists New Project…, New Area…, and New Client…), and the search field. Below is a `Table` with client, area, or group rows above their projects, a ⋯ button on the hovered project row at the trailing edge of the Project cell, and a status row.
 
 ### 2.1 Columns
 
 | Column | Content | Default |
 |---|---|---|
-| Project | 10 pt dot in the area's color, then the name. Archived: name in secondary label color, dot at 50% opacity | 280 pt, cannot be hidden |
+| Project | 10 pt dot in the area's color, then the name. Archived: name in secondary label color, dot at 50% opacity. A client row shows the client's name in semibold; an area row a 16 pt swatch, the name (the client's for a general area, secondary for a retired one), and a "general" or "retired" tag in secondary label color | 280 pt, cannot be hidden |
 | Client | The area's client | 140 pt |
 | Area | The area's name; a general area (4.1) shows the client's name in secondary label color | 140 pt |
 | State | "Active" or "Archived" | 90 pt; hidden while the state selector is "Active" or "Archived" |
 | Created | `createdAt` | 100 pt |
 | Last tracked | Start of the most recent entry, running entry included; "Never" if none | 120 pt |
-| Total tracked | Sum of all entries in the `XhYYm` format of [spec_design.md](spec_design.md) §2 with unbounded hours ("432h 21m"); the running entry counts to now, refreshed once a minute | 120 pt |
+| Total tracked | Sum of all entries (on a client, area, or group row, of its projects shown) in the `XhYYm` format of [spec_design.md](spec_design.md) §2 with unbounded hours ("432h 21m"); the running entry counts to now, refreshed once a minute | 120 pt |
 
 Dates read "Today", "Yesterday", the weekday within the last 7 days, "Oct 27" within the current year, "2024" otherwise; the tooltip shows the full date. The header's context menu toggles column visibility; column order is fixed. Last tracked and Total tracked come from the library's cached project rows.
 
@@ -85,14 +84,16 @@ The project name breaks every remaining tie.
 
 ### 2.3 Grouping
 
-Group by: None, Client (default), Area.
+Group by: Client and Area (default), Client, None.
 
-| Grouping | Header row | Group order |
+| Grouping | Rows | Order |
 |---|---|---|
-| Client | "Consulting · 3 projects", summed Total tracked | Client name |
-| Area | "Consulting · Research · 2 projects" ("Consulting · 2 projects" for a general area), swatch, summed Total tracked | Client name, then area order |
+| Client and Area | A row per client, under it a row per area, under each area its projects | Clients by name, areas in order (4.3, general first), projects by the sort |
+| Client | "Consulting · 3 projects" above the client's projects | Client name |
 
-Empty groups are hidden. Groups collapse with their triangle, with ← and → on a selected row, and all at once with ⌥-click; the collapsed set is remembered per grouping. Header rows are not selectable; their context menu offers "Edit Client…" and "Edit Area…".
+Under Client and Area, without a search or filter, every client and every area is listed, also without projects shown, so a new area can take its first project; a retired area only while the state selector is "All". With a search or filter, only clients and areas with projects shown are listed. Projects whose area was deleted elsewhere follow in a "(deleted area)" group. Under Client, empty groups are hidden.
+
+Client, area, and group rows collapse with their triangle, with ← and → on a selected row (a client or area row itself, or the group of selected projects), and all at once with ⌥-click; the collapsed set is remembered per grouping.
 
 ### 2.4 Filtering
 
@@ -106,7 +107,9 @@ Empty states: "No projects match" with "Clear Filters"; with no projects at all,
 
 ### 2.5 Actions
 
-Rows support extended selection and ⌘A. Right-click or ⋯ opens the context menu for the selection; the same commands form the Project menu while Projects shows its table, except Start Timer, which is Timer › Start Timer (⌘O, the Timer menu's Continue acting on the selected project).
+Project rows support extended selection and ⌘A. A client or area row is selected alone: selecting it clears the selected projects, and a selection extended over client or area rows keeps only its projects. Right-click or ⋯ opens the context menu for the selection (a client's or area's own menu, 4.2 and 4.3); the same commands form the Project menu while Projects is shown, except Start Timer, which is Timer › Start Timer (⌘O, the Timer menu's Continue acting on the selected project).
+
+The Project menu acts on the selected row of any kind, each item titled for it: Edit Project…, Edit Area…, or Rename Client… (↩, double-click); Rename (projects); Archive or Restore, or Retire Area or Reactivate Area; Merge Into… (projects); Delete Project…, Delete Area…, or Remove Client… (⌘⌫); Show in Reports (⇧⌘R) with the project, area, or client as the only filter; Copy Name; Move Area Up and Move Area Down (⌥⌘↑, ⌥⌘↓). File has New Project… (⌥⌘N), New Area… (⇧⌥⌘N, in the client of the selected row), and New Client….
 
 | Action | Applies to | Effect | Shortcut |
 |---|---|---|---|
@@ -146,7 +149,7 @@ Create (or Save) is disabled until Name is valid; a duplicate shows "A project w
 
 | Invoked from | Name | Client and Area |
 |---|---|---|
-| Projects section | Empty | The one client (and area) the Filters popover restricts to, if exactly one; else those of the last project created this session; else the first client alphabetically and its general area |
+| Projects section | Empty | The area of an area row's New Project…, or the selected area, the selected client's general area, or the one selected project's area; else the one client (and area) the Filters popover restricts to, if exactly one; else those of the last project created this session; else the first client alphabetically and its general area |
 | Picker "Create Project" row | The search text, trimmed | As above without the filter rule; on Create the picker's owner assigns the project |
 | Edit | The project's values | The project's values |
 
@@ -154,11 +157,9 @@ Create (or Save) is disabled until Name is valid; a duplicate shows "A project w
 
 Entries store only the project id, so a rename shows everywhere without touching entries, and moving a project to another area changes the color, area, and client of all its entries, past and future. When the project has entries and the client changes, the dialog confirms: "Move “X” and its N entries to University · Teaching? Reports for past dates will show them there." (Move, Cancel). A move within the same client needs no confirmation and is undoable.
 
-## 4. Clients & Areas
+## 4. Clients and areas
 
-The Clients & Areas section (⌘5) is this outline, titled "Clients & Areas", with New Client (`plus`) as the trailing toolbar item. Clients are listed alphabetically, each followed by its areas in order (general area first) and an "+ Add Area" row.
-
-Client rows show the name, the number of areas, and "N active · M archived" project counts (a zero archived count is omitted). Area rows show a 16 pt swatch, the name, a "general" or "retired" tag in secondary label color, and the counts. Double-click or ↩ edits. Context menus: on a client, Rename…, New Area…, Show Projects, Remove…; on an area, Edit…, Move Up, Move Down, Retire or Reactivate, Show Projects, Delete…. "Show Projects" selects Projects with the table filtered to that client or area. ⌥⌘N creates a client here.
+Clients and areas are rows of the projects table under Group by Client and Area (2.3), each above what it holds. Double-click or ↩ edits. Context menus: on a client, Rename…, New Area…, New Project…, Show in Reports, Remove…; on an area, Edit…, New Project…, Move Up, Move Down, Retire or Reactivate, Show in Reports, Delete…. New Project… opens the project dialog in that area (a client's general area); a client or area created through New is selected.
 
 ### 4.1 The general area
 
@@ -168,7 +169,7 @@ Every client has one general area (`general == true`), named after the client, f
 
 | Action | Rule |
 |---|---|
-| New (New Client in the toolbar, ⌥⌘N here, "New Client…" in the dialog) | Sheet with Name (required, unique among clients case- and diacritic-insensitively) and Color (the general area's color, prefilled with the default of 4.4). Creates client and general area in one transaction |
+| New (New Client… in the toolbar's New menu and in File, "New Client…" in the dialog) | Sheet with Name (required, unique among clients case- and diacritic-insensitively) and Color (the general area's color, prefilled with the default of 4.4). Creates client and general area in one transaction |
 | Rename | Sheet with Name only, same rule; renames the general area |
 | Remove | Only without areas besides the general area and without projects in any state; otherwise disabled with tooltip "Has N areas and M projects". Confirmed |
 
@@ -178,9 +179,9 @@ Clients are not archived; a client leaves the picker when it has no active proje
 
 | Action | Rule |
 |---|---|
-| Add ("+ Add Area", ⇧⌥⌘N with a client or its area selected) | Area sheet: Name (required, unique within the client case- and diacritic-insensitively, not the client's name: "This name is used by the client's general area") and Color, prefilled with the default (4.4). Goes last in the client's order |
+| Add (New Area… on a client row, in the toolbar's New menu, and in File, ⇧⌥⌘N; in the selected row's client) | Area sheet: Name (required, unique within the client case- and diacritic-insensitively, not the client's name: "This name is used by the client's general area") and Color, prefilled with the default (4.4). Goes last in the client's order |
 | Edit | Same sheet; for the general area Name is disabled with the note "Named after the client". Recoloring recolors every entry of the area's projects at once |
-| Reorder | Drag within the client, or ⌥⌘↑ / ⌥⌘↓ (Move Up, Move Down); the general area stays first. This order applies in the picker, Group by Area, and Reports |
+| Reorder | ⌥⌘↑ / ⌥⌘↓ (Move Up, Move Down); the general area stays first. This order applies in the picker, Group by Client and Area, and Reports |
 | Retire | Only without active projects. Hidden from the Area popup and the picker; archived projects keep area and color. Restoring one of its projects reactivates it |
 | Reactivate | Always available on a retired area |
 | Delete | Only without projects in any state; otherwise disabled with tooltip "Has N projects". Never for the general area. Confirmed |
@@ -196,7 +197,7 @@ Display forms, derived from the stored value by `AreaColor`, the same in light a
 | Use | Derivation |
 |---|---|
 | Dot | 8 pt solid circle (table, picker, Timer list, chips, Reports); "No project" is a hollow circle with a 1 pt secondary stroke |
-| Swatch | 16 pt solid rounded square (Clients & Areas, popups, sheets) |
+| Swatch | 16 pt solid rounded square (area rows, popups, sheets) |
 | Background for text | The color at 22% opacity (light) or 30% (dark), 4 pt solid leading bar, primary label text (Calendar cards, report rows) |
 | Text on the solid color | Black or white, whichever has the higher WCAG contrast ratio |
 | Lightness step i (0-based) | Adds the i-th value of [0, +0.12, −0.12, +0.24, −0.24, +0.36] to the HSL lightness, clamped to 0.15 to 0.90; from the seventh step the values repeat (Reports adds a hatch) |
@@ -217,12 +218,12 @@ Archived projects and retired areas never appear. The entry's current project ha
 
 ## 6. Testable behaviors
 
-- PP-1. ⌘2 to ⌘6 select Calendar, Reports, Projects, Clients & Areas, Activity; the section menu is titled Calendar, Report, Project, Client, or Activity.
+- PP-1. ⌘2 to ⌘5 select Calendar, Reports, Projects, Activity; the section menu is titled Calendar, Report, Project, or Activity.
 - PP-2. Launch never opens the Planner, even if it was open at quit; ⌥⌘P opens it on the last section and frame.
-- PP-3. State selector "Archived", Group by Area, and sort Last tracked descending survive close and relaunch; the search is empty. With no stored state the table groups by Client and sorts Name ascending.
+- PP-3. State selector "Archived", Group by Client, and sort Last tracked descending survive close and relaunch; the search is empty. With no stored state the table groups by Client and Area and sorts Name ascending.
 - PP-4. Every column but Project can be hidden from the header menu, persistently; State shows only on "All".
 - PP-5. Total tracked descending orders by summed duration, ties by name ascending; Last tracked puts "Never" last in both directions.
-- PP-6. A client group header's count and total equal its rows' count and summed Total tracked; Group by Area orders by client name then area order, and reordering an area in Clients & Areas reorders the groups at once.
+- PP-6. Group by Client and Area lists clients by name, each with its areas in order (general first, named after the client) and their projects; without a search or filter it lists areas without projects, a retired one only under "All"; with a search only the matching client and area; reordering an area reorders the rows at once. A client or area row's total and a Client group's count and total sum their projects.
 - PP-7. Checking client "Consulting" shows its projects; adding area "University · Teaching" adds that area's; checking "Consulting · Research" clears the "Consulting" check and narrows it to Research; "Clear" removes all checks and the count.
 - PP-8. "Not in the last 90 days" shows a project last tracked 91 days ago and hides one tracked 89 days ago and one never tracked; "Never" shows only the latter.
 - PP-9. The search "noise consulting" matches "Noise Model" under Consulting and not "Noise Model" under another client.
@@ -234,18 +235,19 @@ Archived projects and retired areas never appear. The entry's current project ha
 - PP-15. Moving a project with entries to another client shows the confirmation, and afterwards last year's report by client shows its time under the new client; a move between areas of one client shows no confirmation and ⌘Z undoes it.
 - PP-16. A project name differing from another of the same client only in case or diacritics is rejected with the inline message; under another client it is accepted.
 - PP-17. "Create Project" from the picker with search "noise" opens the dialog with Name "noise"; Create assigns the project to the owner's entry.
-- PP-18. A general area offers no Rename, Retire, or Delete and cannot be dragged from first place.
+- PP-18. A general area offers no Rename, Retire, or Delete, cannot move from first place, and its sheet keeps the name with the note "Named after the client".
 - PP-19. Retire is disabled for an area with an active project and enabled after archiving it; retiring hides the area from the Area popup and the picker. Restoring a project in a retired area asks for confirmation and reactivates the area.
 - PP-20. The client and area sheets prefill the color of `AreaColor.defaultColor(existing:)`; a Display P3 color outside sRGB is stored clamped as uppercase `#RRGGBB`.
 - PP-21. Text on an area color is white for `#1F3A93` and black for `#F5D76E`.
 - PP-22. The picker lists "No Project", then with an empty search Recent (five active projects by latest entry, newest first, an archived one skipped and replaced by the sixth, two rows with two tracked projects), then client groups alphabetically, projects by area order then name, without a trailing name for general-area projects.
 - PP-23. Typing in the picker hides Recent; "Create Project “x”" appears for a query matching no active project's name and not for "noise model" when "Noise Model" exists.
 - PP-24. With task matching on, "clarify" finds the project of "Clarify noise model" tracked 30 days ago and not one tracked 100 days ago.
+- PP-25. A client or area row is selected alone and the Project menu (Edit Area…, Delete Area…, Retire Area; Rename Client…, Remove Client…), ↩, and Show in Reports act on it; a selection extended over client and area rows keeps only its projects; New Project… starts in the selected area, or in the area of the one selected project.
 
 ## 7. Decisions
 
 - Editing reuses the creation dialog, so one component serves every caller.
-- Clients & Areas is a section of its own, with a sidebar item and an iPad tab, so every view is reached the same way (⌘1 to ⌘6) and none needs a second shortcut or a back button. Projects and Clients & Areas follow Calendar and Reports because they are edited far less often.
+- Clients and areas are rows of the projects table, so the whole structure (client, area, project) is edited in one place, every area shows its projects, and no second view, shortcut, or back button is needed. Projects follows Calendar and Reports because it is edited far less often.
 - New Project is ⌥⌘N because ⌘N is the app-wide "New" entry command.
 - A client is removable only when empty, since its general area cannot be removed alone.
 - Areas never move between clients; moving one would silently regroup all its projects.

@@ -9,12 +9,12 @@ import TimeTrackingCore
 
 @MainActor
 struct PlannerProjectsTests {
-    @Test("PP-1 ⌘2 to ⌘6 select Calendar, Reports, Projects, Clients & Areas, Activity; the section menu is named for the section")
+    @Test("PP-1 ⌘2 to ⌘5 select Calendar, Reports, Projects, Activity; the section menu is named for the section")
     func sectionCommands() async throws {
         let test = try await TestApp()
-        #expect(PlannerSection.allCases.map(\.mainWindowKey) == ["2", "3", "4", "5", "6"])
-        #expect(PlannerSection.allCases.map(\.title) == ["Calendar", "Reports", "Projects", "Clients & Areas", "Activity"])
-        #expect(PlannerSection.allCases.map(\.menuTitle) == ["Calendar", "Report", "Project", "Client", "Activity"])
+        #expect(PlannerSection.allCases.map(\.mainWindowKey) == ["2", "3", "4", "5"])
+        #expect(PlannerSection.allCases.map(\.title) == ["Calendar", "Reports", "Projects", "Activity"])
+        #expect(PlannerSection.allCases.map(\.menuTitle) == ["Calendar", "Report", "Project", "Activity"])
         for section in PlannerSection.allCases {
             test.app.planner.select(section)
             #expect(test.app.planner.section == section)
@@ -31,20 +31,20 @@ struct PlannerProjectsTests {
         #expect(!test.router.calls.contains(.openPlanner))
     }
 
-    @Test("PP-3 state selector, grouping, and sort survive a relaunch; the search does not; defaults group by Client and sort by Name")
+    @Test("PP-3 state selector, grouping, and sort survive a relaunch; the search does not; defaults Client and Area, Name")
     func storedViewState() async throws {
         let test = try await TestApp()
         let fresh = test.app.planner.projects
-        #expect(fresh.options.grouping == .client)
+        #expect(fresh.options.grouping == .clientAndArea)
         #expect(fresh.options.sort == .name && fresh.options.ascending)
         fresh.options.state = .archived
-        fresh.options.grouping = .area
+        fresh.options.grouping = .client
         fresh.options.sort(by: .lastTracked)
         fresh.options.sort(by: .lastTracked)
         fresh.search = "noise"
         let again = ProjectsModel(store: test.store, clock: test.clock, device: test.app.settings.device)
         #expect(again.options.state == .archived)
-        #expect(again.options.grouping == .area)
+        #expect(again.options.grouping == .client)
         #expect(again.options.sort == .lastTracked && !again.options.ascending)
         #expect(again.search.isEmpty)
     }
@@ -218,20 +218,21 @@ struct PlannerProjectsTests {
         #expect(clientForm.nameError == "A client with this name already exists")
     }
 
-    @Test("PP-18 the general area's sheet keeps its name with the note; Show Projects filters the table")
+    @Test("PP-18 a general area offers no Rename, Retire, Delete, or move, and its sheet keeps its name with the note")
     func generalAreaSheet() async throws {
         let test = try await TestApp()
         let (client, general) = try await test.store.createClient(name: "Consulting")
+        _ = try await test.store.createArea(AreaDraft(clientID: client.id, name: "Research"))
         let model = test.app.planner.projects
         await model.reload()
-        model.clientsAndAreas.editArea(general.id)
+        model.selectRows(["area:\(general.id.rawValue)"])
+        let row = try #require(model.selectedAreaRow)
+        #expect(!row.canRename && !row.canRetire && !row.canDelete && !row.canMoveUp && !row.canMoveDown)
+        #expect(!model.canArchiveSelection && !model.canDeleteSelection)
+        model.editSelection()
         let form = try #require(model.clientsAndAreas.areaForm)
         #expect(!form.nameEditable)
         #expect(form.nameNote == "Named after the client")
-        test.app.planner.showClientsAndAreas()
-        model.showProjects(client: client.id, area: nil)
-        #expect(model.options.clients == [client.id])
-        #expect(test.app.planner.section == .projects)
     }
 
     @Test func clientsAndAreasActions() async throws {

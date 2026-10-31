@@ -3,7 +3,7 @@
 import SwiftUI
 import TimeTrackingCore
 
-/// New Project, Client, and Area (in the Projects or Clients & Areas view), then
+/// New Project, Area, and Client (in the Projects view), then
 /// Reports' Export… and Print….
 struct FileCommands: Commands {
     var host: AppHost
@@ -29,21 +29,22 @@ struct FileCommands: Commands {
                 router?.projects.newProject()
             }
             .keyboardShortcut("n", modifiers: [.command, .option])
-            Button("New Client") {
-                show(.clientsAndAreas)
-                if let router {
-                    Task { await router.projects.clientsAndAreas.newClient() }
-                }
-            }
+            // In the client of the selected row.
             Button("New Area…") {
-                if let router {
-                    Task { await router.projects.clientsAndAreas.newArea() }
+                if let projects = router?.projects {
+                    Task { await projects.clientsAndAreas.newArea(in: projects.clientForNewArea) }
                 }
             }
             .contextCommand(
                 KeyboardShortcut("n", modifiers: [.command, .option, .shift]),
-                enabled: state.clientsAndAreasCommands && router?.projects.clientsAndAreas.selectedClient != nil
+                enabled: state.projectCommands && router?.projects.clientForNewArea != nil
             )
+            Button("New Client…") {
+                show(.projects)
+                if let router {
+                    Task { await router.projects.clientsAndAreas.newClient() }
+                }
+            }
         }
         CommandGroup(after: .importExport) {
             Button("Export…") { router?.reports.requestExport() }
@@ -59,7 +60,7 @@ struct FileCommands: Commands {
         }
     }
 
-    /// The window on Projects or Clients & Areas.
+    /// The window on Projects.
     private func show(_ section: PlannerSection) {
         router?.select(section)
         app?.router?.openPlanner()

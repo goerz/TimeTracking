@@ -47,7 +47,8 @@ struct ProjectTableTests {
         func table(_ options: ProjectTableOptions = ProjectTableOptions(), search: String = "") async throws -> ProjectTable {
             let rows = try await store.projects(filter: ProjectFilter(state: .all))
             let areas = try await store.areas(of: nil, includeRetired: true)
-            return ProjectTable(rows: rows, areas: areas, options: options, search: search, now: test.clock.now)
+            let clients = try await store.clients(includeRetired: true)
+            return ProjectTable(rows: rows, clients: clients, areas: areas, options: options, search: search, now: test.clock.now)
         }
     }
 
@@ -73,38 +74,59 @@ struct ProjectTableTests {
         #expect(try await world.table(options).rows.map(\.row.project.name) == ["Alpha", "Beta", "Delta", "Gamma"])
     }
 
-    @Test("PP-6 group headers count and sum their rows; Group by Area orders by client then area order, and reordering moves groups")
+    @Test("PP-6 Client and Area nests clients, areas, and projects, lists empty areas without a search, and sums totals")
     func grouping() async throws {
         let world = try await World()
         try await world.project("Website", world.consultingGeneral, hours: 1, daysAgo: 1)
         try await world.project("Audit", world.consultingResearch, hours: 2, daysAgo: 2)
         try await world.project("Lectures", world.teaching, hours: 3, daysAgo: 1)
-        try await world.project("Noise", world.universityResearch, hours: 4, daysAgo: 1)
-        let byClient = try await world.table()
-        #expect(byClient.groups.map(\.title) == ["Consulting · 2 projects", "University · 2 projects"])
-        for group in byClient.groups {
-            #expect(group.totalSeconds == group.rows.reduce(0) { $0 + $1.row.totalSeconds })
-        }
-        #expect(byClient.groups[0].totalSeconds == 3 * 3600)
+        let retired = try await world.store.createArea(AreaDraft(clientID: world.university.id, name: "Old"))
+        try await world.store.updateArea(retired.id, AreaChange(retired: true))
+        #expect(ProjectTableOptions().grouping == .clientAndArea)
+
+        // The outline: clients by name, areas in order (general first, shown
+        // with the client's name), the empty University area and Research too.
+        let outline = try await world.table()
+        #expect(outline.groups.map(\.title) == ["Consulting", "University"])
+        #expect(outline.groups[0].subgroups.map(\.title) == ["Consulting", "Research"])
+        #expect(outline.groups[0].subgroups.map(\.tag) == ["general", nil])
+        #expect(outline.groups[1].subgroups.map(\.title) == ["University", "Teaching", "Research"])
+        #expect(outline.groups[1].subgroups.map(\.count) == [0, 1, 0])
+        #expect(outline.groups[0].totalSeconds == 3 * 3600)
+        #expect(outline.groups[0].subgroups[1].totalSeconds == 2 * 3600)
+        #expect(outline.rows.map(\.row.project.name) == ["Website", "Audit", "Lectures"])
+        #expect(outline.allGroups.count == 7)
+
+        // The retired area only under "All"; a search or filter drops empty groups.
         var options = ProjectTableOptions()
-        options.grouping = .area
-        let byArea = try await world.table(options)
-        #expect(byArea.groups.map(\.title) == [
-            "Consulting · 1 project", "Consulting · Research · 1 project", "University · Teaching · 1 project",
-            "University · Research · 1 project",
-        ])
-        let outline = try await ClientAreaOutline.build(
+        options.state = .all
+        #expect(try await world.table(options).groups[1].subgroups.map(\.title) == ["University", "Teaching", "Research", "Old"])
+        #expect(try await world.table(options).groups[1].subgroups.last?.tag == "retired")
+        let searched = try await world.table(search: "lect")
+        #expect(searched.groups.map(\.title) == ["University"])
+        #expect(searched.groups[0].subgroups.map(\.title) == ["Teaching"])
+
+        // Reordering areas reorders their groups at once.
+        let clients = try await ClientAreaOutline.build(
             clients: world.store.clients(includeRetired: true),
             areas: world.store.areas(of: nil, includeRetired: true),
             projects: world.store.projects(filter: ProjectFilter(state: .all))
         )
-        let university = try #require(outline.first { $0.id == world.university.id })
+        let university = try #require(clients.first { $0.id == world.university.id })
         for (area, order) in ClientAreaOutline.move(university, area: world.universityResearch.id, by: -1) {
             try await world.store.updateArea(area, AreaChange(sortOrder: order))
         }
-        #expect(try await world.table(options).groups.map(\.title).suffix(2) == [
-            "University · Research · 1 project", "University · Teaching · 1 project",
-        ])
+        #expect(try await world.table().groups[1].subgroups.map(\.title) == ["University", "Research", "Teaching"])
+
+        // Group by Client: one header per client with its count and total.
+        options = ProjectTableOptions()
+        options.grouping = .client
+        let byClient = try await world.table(options)
+        #expect(byClient.groups.map(\.title) == ["Consulting · 2 projects", "University · 1 project"])
+        for group in byClient.groups {
+            #expect(group.totalSeconds == group.rows.reduce(0) { $0 + $1.row.totalSeconds })
+        }
+        #expect(byClient.groups[0].totalSeconds == 3 * 3600)
     }
 
     @Test(

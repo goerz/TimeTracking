@@ -50,8 +50,15 @@ final class ProjectsModel {
         didSet { rebuild() }
     }
 
-    /// Selected projects (group headers are not selectable).
-    var selection: Set<ProjectID> = []
+    /// Selected projects; selecting one clears a selected client or area row.
+    var selection: Set<ProjectID> = [] {
+        didSet {
+            if !selection.isEmpty, clientsAndAreas.selection != nil {
+                clientsAndAreas.selection = nil
+            }
+        }
+    }
+
     /// Collapsed group ids per grouping, stored.
     private(set) var collapsed: [String: Set<String>]
     /// The table's encoded column customization, stored.
@@ -59,7 +66,7 @@ final class ProjectsModel {
         didSet { device[.projectsColumns] = columnData }
     }
 
-    /// The Clients & Areas section's model.
+    /// The client and area rows' sheets and actions.
     let clientsAndAreas: ClientsAreasModel
     /// Bumped to focus the search field (⌘F).
     private(set) var searchFocusRequests = 0
@@ -70,6 +77,8 @@ final class ProjectsModel {
     var confirmation: PlannerConfirmation?
     /// The project dialog (new or edit).
     var dialog: ProjectDialogModel?
+    /// New Project… on an area or client row: the dialog's area.
+    var newProjectArea: AreaID?
     /// Merge Into…: the project whose target is being picked.
     var mergeSource: ProjectID?
     private(set) var lastError: String?
@@ -106,7 +115,7 @@ final class ProjectsModel {
     }
 
     private func rebuild() {
-        table = ProjectTable(rows: rows, areas: areas, options: options, search: search, now: clock.now)
+        table = ProjectTable(rows: rows, clients: clients, areas: areas, options: options, search: search, now: clock.now)
         let visible = Set(table.rows.map(\.id))
         if !selection.isSubset(of: visible) {
             selection.formIntersection(visible)
@@ -126,7 +135,7 @@ final class ProjectsModel {
 
     /// A group's triangle; with ⌥ every group follows.
     func setExpanded(_ group: String, _ expanded: Bool) {
-        let ids = ModifierState.optionDown() ? Set(table.groups.map(\.id)) : [group]
+        let ids = ModifierState.optionDown() ? Set(table.allGroups.map(\.id)) : [group]
         var set = collapsed[options.grouping.rawValue, default: []]
         if expanded {
             set.subtract(ids)
@@ -137,30 +146,42 @@ final class ProjectsModel {
         device[.projectsCollapsed] = collapsed
     }
 
-    /// ← and → on a selected row collapse or expand its group.
+    /// ← and → on a selected client or area row collapse or expand it; on
+    /// selected projects, their group.
     func setSelectionGroupExpanded(_ expanded: Bool) {
-        for group in table.groups where group.rows.contains(where: { selection.contains($0.id) }) {
+        if let row = clientsAndAreas.selection {
+            setExpanded(row.rowID, expanded)
+            return
+        }
+        for group in table.allGroups where group.rows.contains(where: { selection.contains($0.id) }) {
             setExpanded(group.id, expanded)
+        }
+    }
+
+    /// The table's selected rows: `project:<id>`, or one `client:<id>` or
+    /// `area:<id>`.
+    var selectedRowIDs: Set<String> {
+        if let row = clientsAndAreas.selection {
+            return [row.rowID]
+        }
+        return Set(selection.map { "project:\($0.rawValue)" })
+    }
+
+    /// The table's selection changed: a client or area row is selected
+    /// alone; a selection extended over such rows keeps only its projects.
+    func selectRows(_ ids: Set<String>) {
+        let projects = Set(ids.compactMap { id in id.hasPrefix("project:") ? ProjectID(String(id.dropFirst(8))) : nil })
+        if projects.isEmpty, ids.count == 1, let id = ids.first, let row = ClientsAreasSelection(rowID: id) {
+            clientsAndAreas.selection = row
+        } else {
+            clientsAndAreas.selection = nil
+            selection = projects
         }
     }
 
     /// ⌘F.
     func focusSearch() {
         searchFocusRequests += 1
-    }
-
-    /// A client or area's header in the table: the Clients & Areas section.
-    func showClientsAndAreas(client: ClientID?) {
-        router?.showClientsAndAreas(client: client)
-    }
-
-    /// "Show Projects" of Clients & Areas: the table filtered to the client or area.
-    func showProjects(client: ClientID?, area: AreaID?) {
-        var options = options
-        options.clients = client.map { [$0] } ?? []
-        options.areas = area.map { [$0] } ?? []
-        self.options = options
-        router?.showProjects()
     }
 
     /// `showProject`: clears the search, shows the project's state and
@@ -175,11 +196,12 @@ final class ProjectsModel {
         if options.state == .active && row.project.isArchived || options.state == .archived && !row.project.isArchived {
             options.state = .all
         }
-        if !ProjectTable(rows: [row], areas: areas, options: options, search: "", now: clock.now).rows.contains(where: { $0.id == id }) {
+        let alone = ProjectTable(rows: [row], clients: clients, areas: areas, options: options, search: "", now: clock.now)
+        if !alone.rows.contains(where: { $0.id == id }) {
             options.clearFilters()
         }
         self.options = options
-        if let group = table.groups.first(where: { $0.rows.contains { $0.id == id } }), isCollapsed(group.id) {
+        for group in table.allGroups where isCollapsed(group.id) && group.allRows.contains(where: { $0.id == id }) {
             setExpanded(group.id, true)
         }
         selection = [id]

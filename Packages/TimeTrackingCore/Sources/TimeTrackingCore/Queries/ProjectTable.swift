@@ -5,15 +5,17 @@ public import Foundation
 
 /// Group by.
 public enum ProjectGrouping: String, Codable, Sendable, CaseIterable {
-    case ungrouped = "none"
+    /// Clients, each with its areas, each with its projects (the default).
+    /// Stored as "area", the value of the former Group by Area it replaces.
+    case clientAndArea = "area"
     case client
-    case area
+    case ungrouped = "none"
 
     public var title: String {
         switch self {
-        case .ungrouped: "None"
+        case .clientAndArea: "Client and Area"
         case .client: "Client"
-        case .area: "Area"
+        case .ungrouped: "None"
         }
     }
 }
@@ -95,7 +97,7 @@ public struct ProjectTableOptions: Hashable, Codable, Sendable {
     public var clients: Set<ClientID> = []
     public var areas: Set<AreaID> = []
     public var lastTracked: LastTrackedFilter = .anyTime
-    public var grouping: ProjectGrouping = .client
+    public var grouping: ProjectGrouping = .clientAndArea
     public var sort: ProjectSortKey = .name
     public var ascending = true
 
@@ -175,21 +177,58 @@ public struct ProjectTableRow: Hashable, Sendable, Identifiable {
     }
 }
 
-/// A group header with its rows.
+/// A group header with its rows; under Client and Area a client's group
+/// holds its areas' groups.
 public struct ProjectTableGroup: Hashable, Sendable, Identifiable {
     /// The collapse key: `client:<id>`, `area:<id>`, `orphans`, or `all`.
     public var id: String
-    /// "Consulting · 3 projects", "Consulting · Research · 2 projects".
+    /// Client and Area: the client's or area's name (a general area shows
+    /// the client's); Client: "Consulting · 3 projects".
     public var title: String
     public var clientID: ClientID?
     public var areaID: AreaID?
     /// The swatch of an area group.
     public var color: String?
+    /// "general" or "retired" on an area group.
+    public var tag: String?
     public var totalSeconds: Int
     public var rows: [ProjectTableRow]
+    /// A client's area groups (Client and Area).
+    public var subgroups: [Self]
+
+    public init(
+        id: String,
+        title: String,
+        clientID: ClientID? = nil,
+        areaID: AreaID? = nil,
+        color: String? = nil,
+        tag: String? = nil,
+        rows: [ProjectTableRow] = [],
+        subgroups: [Self] = []
+    ) {
+        self.id = id
+        self.title = title
+        self.clientID = clientID
+        self.areaID = areaID
+        self.color = color
+        self.tag = tag
+        self.rows = rows
+        self.subgroups = subgroups
+        self.totalSeconds = (rows + subgroups.flatMap(\.allRows)).reduce(0) { $0 + $1.row.totalSeconds }
+    }
+
+    /// Its rows and those of its subgroups, in table order.
+    public var allRows: [ProjectTableRow] {
+        rows + subgroups.flatMap(\.allRows)
+    }
 
     public var count: Int {
-        rows.count
+        allRows.count
+    }
+
+    /// An area's group (not a client's, the orphans', or the flat list).
+    public var isArea: Bool {
+        areaID != nil
     }
 }
 
@@ -205,7 +244,12 @@ public struct ProjectTable: Hashable, Sendable {
     }
 
     public var rows: [ProjectTableRow] {
-        groups.flatMap(\.rows)
+        groups.flatMap(\.allRows)
+    }
+
+    /// The groups and their subgroups, in table order.
+    public var allGroups: [ProjectTableGroup] {
+        groups.flatMap { [$0] + $0.subgroups }
     }
 
     /// "9 projects shown (9 active, 25 archived)".
@@ -229,7 +273,14 @@ public struct ProjectTable: Hashable, Sendable {
 
     /// Builds the table from all live projects (any state) and all areas
     /// and clients (retired included).
-    public init(rows all: [ProjectRow], areas: [Area], options: ProjectTableOptions, search: String, now: Date) {
+    public init(
+        rows all: [ProjectRow],
+        clients: [Client],
+        areas: [Area],
+        options: ProjectTableOptions,
+        search: String,
+        now: Date
+    ) {
         let order = Dictionary(areas.map { ($0.id, $0.sortOrder) }, uniquingKeysWith: { first, _ in first })
         let names = Dictionary(grouping: all.filter { $0.area != nil }) { "\($0.client?.id.rawValue ?? "")/\($0.project.name.folded)" }
         let visible = all.filter { row in
@@ -243,8 +294,17 @@ public struct ProjectTable: Hashable, Sendable {
             )
         }
         let sorted = visible.sorted { Self.precedes($0, $1, options: options, areaOrder: order) }
+        let groups = options.grouping == .clientAndArea
+            ? Self.outline(
+                sorted,
+                clients: clients,
+                areas: areas,
+                showsEmpty: search.trimmed.isEmpty && options.filterCount == 0,
+                showsRetired: options.state == .all
+            )
+            : Self.groups(sorted, grouping: options.grouping, areaOrder: order)
         self.init(
-            groups: Self.groups(sorted, grouping: options.grouping, areaOrder: order),
+            groups: groups,
             activeCount: all.count { !$0.project.isArchived },
             archivedCount: all.count(where: \.project.isArchived)
         )
@@ -313,15 +373,62 @@ public struct ProjectTable: Hashable, Sendable {
         }
     }
 
+    /// Client and Area: clients by name, each with its areas in order
+    /// (general first), each with its sorted projects. Without a search or
+    /// filter, clients and areas without shown projects are listed too
+    /// (retired areas only under "All"), so a new area can take its first
+    /// project; otherwise only groups with shown projects. Orphans last.
+    static func outline(
+        _ rows: [ProjectTableRow],
+        clients: [Client],
+        areas: [Area],
+        showsEmpty: Bool,
+        showsRetired: Bool
+    ) -> [ProjectTableGroup] {
+        let byArea = Dictionary(grouping: rows.filter { !$0.isOrphan }, by: \.row.project.areaID)
+        let areasByClient = Dictionary(grouping: areas, by: \.clientID)
+        var groups: [ProjectTableGroup] = clients
+            .sorted { ($0.name.folded, $0.id) < ($1.name.folded, $1.id) }
+            .compactMap { client in
+                let ordered = (areasByClient[client.id] ?? []).sorted { lhs, rhs in
+                    (lhs.isGeneral ? 0 : 1, lhs.sortOrder, lhs.name.folded) < (rhs.isGeneral ? 0 : 1, rhs.sortOrder, rhs.name.folded)
+                }
+                let subgroups = ordered.compactMap { area -> ProjectTableGroup? in
+                    let members = byArea[area.id] ?? []
+                    guard !members.isEmpty || showsEmpty && (!area.isRetired || showsRetired) else {
+                        return nil
+                    }
+                    return ProjectTableGroup(
+                        id: "area:\(area.id.rawValue)",
+                        title: area.isGeneral ? client.name : area.name,
+                        clientID: client.id,
+                        areaID: area.id,
+                        color: area.color,
+                        tag: area.isGeneral ? "general" : area.isRetired ? "retired" : nil,
+                        rows: members
+                    )
+                }
+                guard !subgroups.isEmpty else {
+                    return nil
+                }
+                return ProjectTableGroup(id: "client:\(client.id.rawValue)", title: client.name, clientID: client.id, subgroups: subgroups)
+            }
+        let orphans = rows.filter(\.isOrphan)
+        if !orphans.isEmpty {
+            groups.append(ProjectTableGroup(id: "orphans", title: "(deleted area)", rows: orphans))
+        }
+        return groups
+    }
+
+    /// Client, or None (one untitled group).
     static func groups(_ rows: [ProjectTableRow], grouping: ProjectGrouping, areaOrder: [AreaID: Int]) -> [ProjectTableGroup] {
-        guard grouping != .ungrouped else {
-            let all = ProjectTableGroup(id: "all", title: "", totalSeconds: rows.reduce(0) { $0 + $1.row.totalSeconds }, rows: rows)
-            return rows.isEmpty ? [] : [all]
+        guard grouping == .client else {
+            return rows.isEmpty ? [] : [ProjectTableGroup(id: "all", title: "", rows: rows)]
         }
         var keys: [String] = []
         var members: [String: [ProjectTableRow]] = [:]
         for row in rows {
-            let key = groupKey(row, grouping: grouping)
+            let key = groupKey(row)
             if members[key] == nil {
                 keys.append(key)
             }
@@ -331,7 +438,7 @@ public struct ProjectTable: Hashable, Sendable {
             guard let rows = members[key], let first = rows.first else {
                 return nil
             }
-            return group(key: key, rows: rows, first: first, grouping: grouping)
+            return group(key: key, rows: rows, first: first)
         }
         return groups.sorted { lhs, rhs in
             let left = groupSortKey(lhs, areaOrder: areaOrder)
@@ -340,45 +447,19 @@ public struct ProjectTable: Hashable, Sendable {
         }
     }
 
-    private static func groupKey(_ row: ProjectTableRow, grouping: ProjectGrouping) -> String {
+    private static func groupKey(_ row: ProjectTableRow) -> String {
         if row.isOrphan {
             return "orphans"
         }
-        return grouping == .client ? "client:\(row.row.client?.id.rawValue ?? "")" : "area:\(row.row.project.areaID.rawValue)"
+        return "client:\(row.row.client?.id.rawValue ?? "")"
     }
 
-    private static func group(
-        key: String,
-        rows: [ProjectTableRow],
-        first: ProjectTableRow,
-        grouping: ProjectGrouping
-    ) -> ProjectTableGroup {
+    private static func group(key: String, rows: [ProjectTableRow], first: ProjectTableRow) -> ProjectTableGroup {
         let count = "\(rows.count) \(rows.count == 1 ? "project" : "projects")"
-        let total = rows.reduce(0) { $0 + $1.row.totalSeconds }
         if first.isOrphan {
-            return ProjectTableGroup(id: key, title: "(deleted area) · \(count)", totalSeconds: total, rows: rows)
+            return ProjectTableGroup(id: key, title: "(deleted area) · \(count)", rows: rows)
         }
-        let client = first.row.client?.name ?? ""
-        if grouping == .client {
-            return ProjectTableGroup(
-                id: key,
-                title: "\(client) · \(count)",
-                clientID: first.row.client?.id,
-                totalSeconds: total,
-                rows: rows
-            )
-        }
-        let area = first.row.area
-        let title = area?.isGeneral ?? true ? "\(client) · \(count)" : "\(client) · \(area?.name ?? "") · \(count)"
-        return ProjectTableGroup(
-            id: key,
-            title: title,
-            clientID: first.row.client?.id,
-            areaID: area?.id,
-            color: area?.color,
-            totalSeconds: total,
-            rows: rows
-        )
+        return ProjectTableGroup(id: key, title: "\(first.row.client?.name ?? "") · \(count)", clientID: first.row.client?.id, rows: rows)
     }
 
     private static func groupSortKey(_ group: ProjectTableGroup, areaOrder: [AreaID: Int]) -> String {

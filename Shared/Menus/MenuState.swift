@@ -47,10 +47,6 @@ struct MenuState: Equatable {
         plannerKey && section == .projects
     }
 
-    var clientsAndAreasCommands: Bool {
-        plannerKey && section == .clientsAndAreas
-    }
-
     /// View › Go to Today, Previous Period, Next Period, and Date Range…:
     /// the sections that show a date range.
     var periodCommands: Bool {

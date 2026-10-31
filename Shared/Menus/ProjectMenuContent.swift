@@ -4,64 +4,45 @@
 import SwiftUI
 import TimeTrackingCore
 
-/// Commands on the selected projects of the Projects view, then on the
-/// selected area in Clients & Areas. New Project, Client, and Area are in
-/// File; starting a timer on a project is Timer › Start Timer (⌘O).
+/// Commands on the selected row of the projects table: projects, or one
+/// area or client, each item titled for what it acts on. New Project, Area,
+/// and Client are in File; starting a timer on a project is Timer › Start
+/// Timer (⌘O).
 struct ProjectMenuContent: View {
     var model: ProjectsModel
     var state: MenuState
 
-    var body: some View {
-        ProjectSelectionItems(model: model, enabled: state.projectCommands)
-        Divider()
-        AreaMoveItems(model: model.clientsAndAreas, enabled: state.clientsAndAreasCommands)
+    private var enabled: Bool {
+        state.projectCommands
     }
-}
-
-/// The commands on the selected projects.
-private struct ProjectSelectionItems: View {
-    var model: ProjectsModel
-    var enabled: Bool
 
     var body: some View {
-        Button("Edit Project…") { model.editSelection() }
-            .disabled(!enabled || model.single == nil)
+        Button(model.editSelectionTitle) { model.editSelection() }
+            .disabled(!enabled || !model.canEditSelection)
         Button("Rename") { model.renaming = model.single?.id }
             .contextCommand(KeyboardShortcut(.return, modifiers: .option), enabled: enabled && model.single != nil)
-        Button(model.canArchive || !model.canRestore ? "Archive" : "Restore") {
-            Task {
-                if model.canArchive {
-                    await model.archiveSelection()
-                } else {
-                    await model.restoreSelection()
-                }
-            }
-        }
-        .disabled(!enabled || !(model.canArchive || model.canRestore))
+        Button(model.archiveSelectionTitle) { Task { await model.archiveOrRestoreSelection() } }
+            .disabled(!enabled || !model.canArchiveSelection)
         Button("Merge Into…") { model.mergeSource = model.single?.id }
             .disabled(!enabled || model.single == nil)
-        Button("Delete Project…") { model.requestDelete() }
-            .contextCommand(KeyboardShortcut(.delete, modifiers: .command), enabled: enabled && model.canDelete)
+        Button(model.deleteSelectionTitle) { model.requestDeleteSelection() }
+            .contextCommand(KeyboardShortcut(.delete, modifiers: .command), enabled: enabled && model.canDeleteSelection)
         Divider()
-        Button("Show in Reports") { Task { await model.showInReports() } }
-            .contextCommand(KeyboardShortcut("r", modifiers: [.command, .shift]), enabled: enabled && model.single != nil)
+        Button("Show in Reports") { Task { await model.showSelectionInReports() } }
+            .contextCommand(KeyboardShortcut("r", modifiers: [.command, .shift]), enabled: enabled && model.canShowSelectionInReports)
         // On the Mac ⌘C is Edit › Copy, which copies the same names from the table.
-        Button("Copy Name") { model.router?.copyText(model.copyNames()) }
-            .disabled(!enabled || model.selection.isEmpty)
+        Button("Copy Name") { model.router?.copyText(model.copySelectionNames()) }
+            .disabled(!enabled || model.copySelectionNames().isEmpty)
+        Divider()
+        AreaMoveItems(model: model.clientsAndAreas, area: model.selectedAreaRow, enabled: enabled)
     }
 }
 
-/// Move Up and Move Down of the selected area in Clients & Areas.
+/// Move Up and Move Down of the selected area row.
 private struct AreaMoveItems: View {
     var model: ClientsAreasModel
+    var area: AreaOutline?
     var enabled: Bool
-
-    private var area: AreaOutline? {
-        if case let .area(id) = model.selection {
-            return model.area(id)?.1
-        }
-        return nil
-    }
 
     var body: some View {
         Button("Move Area Up") {

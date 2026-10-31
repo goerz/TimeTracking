@@ -6,13 +6,12 @@ import Foundation
 import Observation
 import TimeTrackingCore
 
-/// The five sections, in sidebar (and tab) order after the Timer: the
-/// daily ones first, then the structure, then the tracker's Activity.
+/// The four sections, in sidebar (and tab) order after the Timer: the
+/// daily ones first, then Projects, then the tracker's Activity.
 nonisolated enum PlannerSection: String, Codable, CaseIterable, Identifiable, Sendable {
     case calendar
     case reports
     case projects
-    case clientsAndAreas = "clients"
     case activity
 
     var id: String {
@@ -24,7 +23,6 @@ nonisolated enum PlannerSection: String, Codable, CaseIterable, Identifiable, Se
         case .calendar: "Calendar"
         case .reports: "Reports"
         case .projects: "Projects"
-        case .clientsAndAreas: "Clients & Areas"
         case .activity: "Activity"
         }
     }
@@ -34,7 +32,6 @@ nonisolated enum PlannerSection: String, Codable, CaseIterable, Identifiable, Se
         case .calendar: SymbolName.calendar
         case .reports: SymbolName.reports
         case .projects: SymbolName.projects
-        case .clientsAndAreas: SymbolName.clients
         case .activity: SymbolName.activity
         }
     }
@@ -131,7 +128,7 @@ final class PlannerRouter {
         await calendar.apply(request)
     }
 
-    /// ⌘2 to ⌘6 and the sidebar.
+    /// ⌘2 to ⌘5 and the sidebar.
     func select(_ section: PlannerSection) {
         self.section = section
     }
@@ -147,15 +144,6 @@ final class PlannerRouter {
         openWindow()
         section = .projects
         await projects.reveal(id)
-    }
-
-    /// Selects Clients & Areas, with `client` selected.
-    func showClientsAndAreas(client: ClientID? = nil) {
-        openWindow()
-        section = .clientsAndAreas
-        if let client {
-            projects.clientsAndAreas.selection = .client(client)
-        }
     }
 
     /// Selects Calendar and leaves the request for it.

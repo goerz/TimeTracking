@@ -1,6 +1,6 @@
 // PadTabs: the iPad's tab bar (spec_ios.md §10.1): the Timer, then the
-// Planner's Calendar, Reports, Projects, Clients & Areas, and Activity
-// sections, as in the Mac's sidebar.
+// Planner's Calendar, Reports, Projects, and Activity sections, as in the
+// Mac's sidebar.
 
 import SwiftUI
 import TimeTrackingCore
@@ -11,7 +11,6 @@ enum PadTab: String, Hashable, CaseIterable {
     case calendar
     case reports
     case projects
-    case clientsAndAreas
     case activity
 
     /// The tab of a Planner section.
@@ -20,7 +19,6 @@ enum PadTab: String, Hashable, CaseIterable {
         case .calendar: self = .calendar
         case .reports: self = .reports
         case .projects: self = .projects
-        case .clientsAndAreas: self = .clientsAndAreas
         case .activity: self = .activity
         }
     }
@@ -43,7 +41,6 @@ enum PadTab: String, Hashable, CaseIterable {
         case .calendar: .calendar
         case .reports: .reports
         case .projects: .projects
-        case .clientsAndAreas: .clientsAndAreas
         case .activity: .activity
         }
     }

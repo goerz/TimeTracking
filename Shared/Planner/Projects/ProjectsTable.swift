@@ -1,17 +1,19 @@
-// ProjectsTable: the projects `Table` with group header rows, column
-// customization, and the hover ⋯ button (spec_planner_projects.md §2.1 to §2.3).
+// ProjectsTable: the projects `Table` with client, area, and group rows,
+// column customization, and the hover ⋯ button (spec_planner_projects.md
+// §2.1 to §2.5, §4).
 
 import SwiftUI
 import TimeTrackingCore
 
-/// A table line: a group header or a project.
+/// A table line: a client, area, or group row, or a project. The ids are
+/// the selection's row ids (`client:<id>`, `area:<id>`, `project:<id>`).
 enum ProjectTableItem: Identifiable, Hashable {
     case group(ProjectTableGroup)
     case project(ProjectTableRow)
 
     var id: String {
         switch self {
-        case let .group(group): "group:\(group.id)"
+        case let .group(group): group.id
         case let .project(row): "project:\(row.id.rawValue)"
         }
     }
@@ -24,7 +26,7 @@ enum ProjectTableItem: Identifiable, Hashable {
     }
 }
 
-/// The table; group headers collapse with their triangles.
+/// The table; client, area, and group rows collapse with their triangles.
 struct ProjectsTable: View {
     @Bindable var model: ProjectsModel
     var now: Date
@@ -56,6 +58,9 @@ struct ProjectsTable: View {
         #if os(macOS)
         .onDeleteCommand {
             // ⌫: Archive on active rows, Restore on archived ones.
+            guard !model.selection.isEmpty else {
+                return
+            }
             Task {
                 if model.canArchive {
                     await model.archiveSelection()
@@ -65,8 +70,8 @@ struct ProjectsTable: View {
             }
         }
         .onCopyCommand {
-            // Edit › Copy (⌘C): the selected projects' names, as Copy Name.
-            let text = model.copyNames()
+            // Edit › Copy (⌘C): the selected names, as Copy Name.
+            let text = model.copySelectionNames()
             // NSItemProvider writes plain text from an NSString only.
             // swiftlint:disable:next legacy_objc_type
             return text.isEmpty ? [] : [NSItemProvider(object: text as NSString)]
@@ -92,6 +97,14 @@ struct ProjectsTable: View {
                 }
             } else {
                 DisclosureTableRow(ProjectTableItem.group(group), isExpanded: expansion(group.id)) {
+                    // Client and Area: the client's areas, each with its projects.
+                    ForEach(group.subgroups) { area in
+                        DisclosureTableRow(ProjectTableItem.group(area), isExpanded: expansion(area.id)) {
+                            ForEach(area.rows) { row in
+                                TableRow(ProjectTableItem.project(row))
+                            }
+                        }
+                    }
                     ForEach(group.rows) { row in
                         TableRow(ProjectTableItem.project(row))
                     }
@@ -165,11 +178,9 @@ struct ProjectsTable: View {
 
     private var selection: Binding<Set<String>> {
         Binding {
-            Set(model.selection.map { "project:\($0.rawValue)" })
+            model.selectedRowIDs
         } set: { ids in
-            model.selection = Set(ids.compactMap { id in
-                id.hasPrefix("project:") ? ProjectID(String(id.dropFirst(8))) : nil
-            })
+            model.selectRows(ids)
         }
     }
 
@@ -181,22 +192,12 @@ struct ProjectsTable: View {
         }
     }
 
+    /// A client or area row's own commands; a project's (or the selection's).
     @ViewBuilder
     private func menu(for ids: Set<String>) -> some View {
-        if let id = ids.first, id.hasPrefix("group:"), let group = model.table.groups.first(where: { id == "group:\($0.id)" }) {
-            if let client = group.clientID {
-                Button("Edit Client…") {
-                    model.showClientsAndAreas(client: client)
-                    model.clientsAndAreas.renameClient(client)
-                }
-            }
-            if let area = group.areaID {
-                Button("Edit Area…") {
-                    model.showClientsAndAreas(client: group.clientID)
-                    model.clientsAndAreas.editArea(area)
-                }
-            }
-        } else {
+        if ids.count == 1, let id = ids.first, let row = ClientsAreasSelection(rowID: id) {
+            ClientAreaContextMenu(model: model, row: row)
+        } else if ids.contains(where: { $0.hasPrefix("project:") }) {
             ProjectContextMenu(model: model)
         }
     }
@@ -205,7 +206,9 @@ struct ProjectsTable: View {
     private func totalCell(_ item: ProjectTableItem) -> some View {
         switch item {
         case let .group(group):
-            Text(ActivityText.duration(group.totalSeconds)).fontWeight(.semibold).monospacedDigit()
+            Text(ActivityText.duration(group.totalSeconds))
+                .fontWeight(group.isArea ? .regular : .semibold)
+                .monospacedDigit()
         case let .project(row):
             Text(ActivityText.duration(row.row.totalSeconds)).monospacedDigit()
         }
@@ -218,7 +221,8 @@ struct ProjectsTable: View {
 }
 
 /// The Project cell: dot and name (or the rename field), ⚠ for a duplicate
-/// name, the ⋯ button on the selected row; group headers show their title.
+/// name, the ⋯ button on the hovered row; a client or group row shows its
+/// title, an area row its swatch, name, and tag.
 private struct ProjectNameCell: View {
     var model: ProjectsModel
     var item: ProjectTableItem
@@ -229,13 +233,21 @@ private struct ProjectNameCell: View {
     var body: some View {
         switch item {
         case let .group(group):
-            HStack(spacing: Design.Spacing.compact) {
-                if let color = group.color {
-                    AreaSwatch(color: color)
+            if group.isArea {
+                HStack(spacing: Design.Spacing.compact) {
+                    if let color = group.color {
+                        AreaSwatch(color: color)
+                    }
+                    Text(group.title).foregroundStyle(group.tag == "retired" ? .secondary : .primary)
+                    if let tag = group.tag {
+                        Text(tag).font(.callout).foregroundStyle(.secondary)
+                    }
                 }
+                .accessibilityIdentifier("projects.area")
+            } else {
                 Text(group.title).fontWeight(.semibold)
+                    .accessibilityIdentifier(group.clientID == nil ? "projects.group" : "projects.client")
             }
-            .accessibilityIdentifier("projects.group")
         case let .project(row):
             if model.renaming == row.id {
                 TextField("Name", text: $renameText)

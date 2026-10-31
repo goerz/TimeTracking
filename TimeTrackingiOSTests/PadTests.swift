@@ -52,7 +52,7 @@ struct PadTests {
         #expect(events.access() == .fullAccess)
     }
 
-    @Test("IOS-34 ⌥⌘R selects the Timer with the task field focused, ⌘2 to ⌘6 the Planner tabs; ⌘T does nothing in Timer and Projects")
+    @Test("IOS-34 ⌥⌘R selects the Timer with the task field focused, ⌘2 to ⌘5 the Planner tabs; ⌘T does nothing in Timer and Projects")
     func keyboard() async throws {
         let test = try await Self.pad()
         let model = test.model
@@ -61,7 +61,6 @@ struct PadTests {
             (PadCommand.calendar, PadTab.calendar),
             (.reports, .reports),
             (.projects, .projects),
-            (.clientsAndAreas, .clientsAndAreas),
             (.activity, .activity),
         ] {
             await model.perform(command)
@@ -137,11 +136,12 @@ struct PadTests {
         #expect(router.continueTarget == .project)
         await model.perform(.continueLatest)
         #expect(try await test.store.runningEntry()?.projectID == paper.id)
-        router.showClientsAndAreas()
-        #expect(model.padTab == .clientsAndAreas)
-        #expect(model.padMenuState.sectionMenuTitle == "Client")
-        #expect(model.padMenuState.clientsAndAreasCommands)
-        #expect(!model.padMenuState.projectCommands)
+        // An area row selected alone: the Project menu acts on the area,
+        // and ⌘O has no project to start.
+        router.projects.selectRows(["area:\(paper.areaID.rawValue)"])
+        #expect(router.projects.selection.isEmpty)
+        #expect(router.projects.editSelectionTitle == "Edit Area…")
+        #expect(model.padMenuState.projectCommands)
         #expect(router.continueTarget == nil)
 
         // Calendar: Go to Today and the period commands, no Find.

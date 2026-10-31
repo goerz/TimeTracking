@@ -9,8 +9,8 @@ import TimeTrackingCore
 enum PadCommand: Hashable, CaseIterable {
     /// ⌥⌘R: the Timer tab with the task field focused.
     case timerTab
-    /// ⌘2 to ⌘6, after the Timer's ⌘1.
-    case calendar, reports, projects, clientsAndAreas, activity
+    /// ⌘2 to ⌘5, after the Timer's ⌘1.
+    case calendar, reports, projects, activity
     /// ⌥⌘P: the most recently selected Planner tab.
     case planner
     /// ⌘N, ⌘O, ⌘S, ⌥⌘⌫.
@@ -100,7 +100,7 @@ extension PhoneModel {
         case .timerTab:
             padTab = .timer
             timer.requestTaskFieldFocus()
-        case .calendar, .reports, .projects, .clientsAndAreas, .activity:
+        case .calendar, .reports, .projects, .activity:
             padTab = PadTab(command.plannerSection)
         case .planner:
             padTab = lastPlannerTab
@@ -166,18 +166,17 @@ extension PhoneModel {
         case .timer: list.showFilter()
         case .projects: router.projects.focusSearch()
         case .reports: router.reports.focusTaskFilter()
-        case .calendar, .clientsAndAreas, .activity: break
+        case .calendar, .activity: break
         }
     }
 }
 
 extension PadCommand {
-    /// The section of ⌘2 to ⌘6 (Projects for the other commands).
+    /// The section of ⌘2 to ⌘5 (Projects for the other commands).
     var plannerSection: PlannerSection {
         switch self {
         case .calendar: .calendar
         case .reports: .reports
-        case .clientsAndAreas: .clientsAndAreas
         case .activity: .activity
         default: .projects
         }

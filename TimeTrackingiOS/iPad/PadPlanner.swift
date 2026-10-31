@@ -76,7 +76,7 @@ final class PadPlanner {
     /// Entries or structure changed: the opened tabs re-read (the Calendar
     /// only once it has opened, so no change asks for calendar access).
     func storeChanged() async {
-        if !opened.isDisjoint(with: [.projects, .clientsAndAreas]) {
+        if opened.contains(.projects) {
             await router.projects.reload()
         }
         if opened.contains(.reports) {

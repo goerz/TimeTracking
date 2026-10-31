@@ -92,7 +92,7 @@ SF Symbols, monochrome, default weight, in the text style of the adjacent text. 
 | Zoom out, zoom in | `minus.magnifyingglass`, `plus.magnifyingglass` |
 | Calendar columns (menu) | `rectangle.split.3x1` |
 | Sort and group (menu) | `arrow.up.arrow.down` |
-| Clients & Areas | `person.crop.square` (the Client symbol) |
+| Client | `person.crop.square` |
 | Share, export | `square.and.arrow.up` |
 | Print | `printer` |
 | Settings | `gearshape` |

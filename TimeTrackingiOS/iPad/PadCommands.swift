@@ -9,7 +9,7 @@ extension PadCommand {
     var title: String {
         switch self {
         case .timerTab: "Timer"
-        case .calendar, .reports, .projects, .clientsAndAreas, .activity: plannerSection.title
+        case .calendar, .reports, .projects, .activity: plannerSection.title
         case .planner: "Planner"
         case .new: "New Entry"
         case .continueLatest: "Continue"
@@ -29,7 +29,7 @@ extension PadCommand {
     var shortcut: KeyboardShortcut {
         switch self {
         case .timerTab: KeyboardShortcut("1")
-        case .calendar, .reports, .projects, .clientsAndAreas, .activity: KeyboardShortcut(plannerSection.mainWindowKey)
+        case .calendar, .reports, .projects, .activity: KeyboardShortcut(plannerSection.mainWindowKey)
         case .planner: KeyboardShortcut("p", modifiers: [.command, .option])
         case .new: KeyboardShortcut("n")
         case .continueLatest: KeyboardShortcut("o")
@@ -74,22 +74,23 @@ struct PadCommands: Commands {
             }
             .keyboardShortcut("n", modifiers: [.command, .option])
             .disabled(router == nil)
-            Button("New Client") {
-                router?.select(.clientsAndAreas)
+            // In the client of the selected row.
+            Button("New Area…") {
+                if let projects = router?.projects {
+                    Task { await projects.clientsAndAreas.newArea(in: projects.clientForNewArea) }
+                }
+            }
+            .contextCommand(
+                KeyboardShortcut("n", modifiers: [.command, .option, .shift]),
+                enabled: state.projectCommands && router?.projects.clientForNewArea != nil
+            )
+            Button("New Client…") {
+                router?.select(.projects)
                 if let router {
                     Task { await router.projects.clientsAndAreas.newClient() }
                 }
             }
             .disabled(router == nil)
-            Button("New Area…") {
-                if let router {
-                    Task { await router.projects.clientsAndAreas.newArea() }
-                }
-            }
-            .contextCommand(
-                KeyboardShortcut("n", modifiers: [.command, .option, .shift]),
-                enabled: state.clientsAndAreasCommands && router?.projects.clientsAndAreas.selectedClient != nil
-            )
         }
         CommandGroup(after: .importExport) {
             Button("Export…") { router?.reports.requestExport() }
@@ -99,7 +100,7 @@ struct PadCommands: Commands {
             item(.find)
         }
         CommandGroup(before: .sidebar) {
-            ForEach([PadCommand.timerTab, .calendar, .reports, .projects, .clientsAndAreas, .activity], id: \.self, content: item)
+            ForEach([PadCommand.timerTab, .calendar, .reports, .projects, .activity], id: \.self, content: item)
             Divider()
             if let router {
                 ViewDisplayItems(router: router, state: state) { run(.scrollToToday) }
