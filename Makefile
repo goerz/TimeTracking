@@ -136,10 +136,10 @@ stop: ## Quit the app on both simulators
 	done
 
 ifdef TT_RUNTIME_LOCKED
-mac-debug: secrets ## Build and open the Debug Mac app from build.noindex/
+mac-debug: secrets ## Build the Debug Mac app in build.noindex/; quit a running Debug app; open the new one with ARGS
 	$(require_team)
 	$(BUILD_MAC_DEBUG)
-	open "$(MAC_DEBUG_APP)" --args $(ARGS)
+	scripts/relaunch_mac_app.sh "$(MAC_DEBUG_APP)" "$(BUNDLE_ID).debug" $(ARGS)
 
 demo: secrets ## Load FIXTURE (small, large, running) moved to today into the Debug stores; open the Mac app and simulators
 	$(require_team)

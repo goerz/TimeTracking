@@ -163,7 +163,7 @@ The `help` target prints the targets grouped as below, from `##@` and `##` lines
 | Develop | `sim` | `build-sim`, boots "TimeTracking iPhone" and "TimeTracking iPad" (`sim-create` if missing), installs, launches with `ARGS`, shows both in Device Hub |
 | | `sim-create` | Creates the two simulators (2.6) unless they exist |
 | | `stop` | Quits the app on both simulators |
-| | `mac-debug` | Builds and opens the Debug Mac app from `build.noindex/` |
+| | `mac-debug` | Builds the Debug Mac app in `build.noindex/`, quits any running Debug app (from any checkout; it fails if the app does not quit within 10 seconds), and opens the new build with `ARGS` (`scripts/relaunch_mac_app.sh`) |
 | | `demo` | Builds the Debug Mac and simulator apps; replaces the Debug store, its block log, and each simulator's store with the store fixture `FIXTURE` (`small`, `large`, `running`; default `small`) moved by whole days so that its 2024-03-14 is today (times of day kept, today's entries cut or dropped at now, a running entry keeps its age); opens the Mac app and launches it on both simulators; refuses any store outside a Debug or simulator container |
 | | `mac-debug-unregister` | Quits the Debug app and agent, runs the Debug agent's `--unregister`, resets its TCC grants (`tccutil reset Accessibility\|AppleEvents\|SystemPolicyAllFiles <BUNDLE_ID>.debug.agent`), unregisters it from LaunchServices |
 | | `logs`, `sim-logs` | Stream the unified log of the installed Mac app and agent, or of the simulator app |
