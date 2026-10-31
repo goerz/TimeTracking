@@ -116,9 +116,9 @@ final class ReportsModel {
             clients = try await store.clients(includeRetired: true)
             areas = try await store.areas(of: nil, includeRetired: true)
             projects = try await store.projects(filter: ProjectFilter(state: .all))
-            let narrowed = state.filters.narrowed(areas: areas, projects: projects)
-            if narrowed != state.filters {
-                state.filters = narrowed
+            let normalized = state.filters.normalized(clients: clients, areas: areas, projects: projects)
+            if normalized != state.filters {
+                state.filters = normalized
             }
             let result = try await store.reportSnapshot(request)
             let running = try await store.runningEntry()

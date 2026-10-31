@@ -90,6 +90,10 @@ public enum SymbolName {
     public static let warningBadge = "exclamationmark.circle.fill"
     public static let done = "checkmark.circle.fill"
     public static let checkmark = "checkmark"
+    /// A filter tree's check boxes: checked, partly checked, unchecked.
+    public static let checkboxOn = "checkmark.square.fill"
+    public static let checkboxMixed = "minus.square.fill"
+    public static let checkboxOff = "square"
     public static let notChecked = "circle.dashed"
     /// A step not done yet, beside `done`.
     public static let notDone = "circle"

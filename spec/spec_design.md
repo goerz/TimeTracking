@@ -93,6 +93,7 @@ SF Symbols, monochrome, default weight, in the text style of the adjacent text. 
 | Calendar columns (menu) | `rectangle.split.3x1` |
 | Sort and group (menu) | `arrow.up.arrow.down` |
 | Client | `person.crop.square` |
+| Filter check box: checked, partly checked, unchecked | `checkmark.square.fill`, `minus.square.fill`, `square` |
 | Share, export | `square.and.arrow.up` |
 | Print | `printer` |
 | Settings | `gearshape` |
@@ -104,6 +105,7 @@ SF Symbols, monochrome, default weight, in the text style of the adjacent text. 
 | Start time, last stop (menu bar header) | `clock` |
 | Time blocks, calendar events | `calendar` |
 | Client | `person.crop.square` |
+| Filter check box: checked, partly checked, unchecked | `checkmark.square.fill`, `minus.square.fill`, `square` |
 | Area | `circle.hexagongrid` |
 | Warning | `exclamationmark.triangle` |
 | Sync problem | `icloud.slash` |

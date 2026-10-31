@@ -103,32 +103,24 @@ public struct ProjectTableOptions: Hashable, Codable, Sendable {
 
     public init() {}
 
-    /// The Filters badge: checked clients and areas, plus a Last tracked choice.
+    /// The tree's checked clients and areas: a project passes when its
+    /// client or its area is checked.
+    public var scope: ProjectScope {
+        get {
+            ProjectScope(clients: clients, areas: areas)
+        }
+        set {
+            clients = newValue.clients
+            areas = newValue.areas
+        }
+    }
+
+    /// The Filters badge: the active kinds (the tree, Last tracked).
     public var filterCount: Int {
-        clients.count + areas.count + (lastTracked == .anyTime ? 0 : 1)
+        (scope.isEmpty ? 0 : 1) + (lastTracked == .anyTime ? 0 : 1)
     }
 
-    /// Checking a client clears its areas' checks.
-    public mutating func toggle(client: ClientID, areasOfClient: [AreaID]) {
-        if clients.contains(client) {
-            clients.remove(client)
-        } else {
-            clients.insert(client)
-            areas.subtract(areasOfClient)
-        }
-    }
-
-    /// Checking an area clears its client's check.
-    public mutating func toggle(area: Area) {
-        if areas.contains(area.id) {
-            areas.remove(area.id)
-        } else {
-            areas.insert(area.id)
-            clients.remove(area.clientID)
-        }
-    }
-
-    /// "Clear" in the popover.
+    /// "Clear All" in the popover.
     public mutating func clearFilters() {
         clients = []
         areas = []

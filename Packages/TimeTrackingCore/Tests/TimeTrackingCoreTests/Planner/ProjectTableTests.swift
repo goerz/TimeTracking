@@ -129,27 +129,41 @@ struct ProjectTableTests {
         #expect(byClient.groups[0].totalSeconds == 3 * 3600)
     }
 
-    @Test(
-        "PP-7 a client check shows its projects, an area adds its own, an area check clears its client, Clear removes all"
-    )
+    @Test("PP-7 a client checks its areas; unchecking one leaves the client mixed; the last child checks it again; search")
     func filters() async throws {
         let world = try await World()
         try await world.project("Website", world.consultingGeneral)
         try await world.project("Audit", world.consultingResearch)
         try await world.project("Lectures", world.teaching)
         try await world.project("Noise", world.universityResearch)
+        let tree = try await ProjectScopeTree(
+            clients: world.store.clients(includeRetired: true),
+            areas: world.store.areas(of: nil, includeRetired: true)
+        )
         var options = ProjectTableOptions()
         options.grouping = .ungrouped
-        options.toggle(client: world.consulting.id, areasOfClient: [world.consultingGeneral.id, world.consultingResearch.id])
+        options.scope = tree.toggling(.client(world.consulting.id), in: options.scope)
         #expect(try await world.table(options).rows.map(\.row.project.name) == ["Audit", "Website"])
-        options.toggle(area: world.teaching)
+        #expect(tree.state(of: .area(world.consultingResearch.id), in: options.scope) == .checked)
+        options.scope = tree.toggling(.area(world.teaching.id), in: options.scope)
         #expect(try await world.table(options).rows.map(\.row.project.name) == ["Audit", "Lectures", "Website"])
-        #expect(options.filterCount == 2)
-        options.toggle(area: world.consultingResearch)
-        #expect(!options.clients.contains(world.consulting.id))
-        #expect(try await world.table(options).rows.map(\.row.project.name) == ["Audit", "Lectures"])
+        #expect(tree.state(of: .client(world.university.id), in: options.scope) == .mixed)
+        #expect(options.filterCount == 1)
+
+        // Unchecking an area of a checked client keeps the client's others.
+        options.scope = tree.toggling(.area(world.consultingResearch.id), in: options.scope)
+        #expect(options.scope == ProjectScope(areas: [world.consultingGeneral.id, world.teaching.id]))
+        #expect(tree.state(of: .client(world.consulting.id), in: options.scope) == .mixed)
+        #expect(try await world.table(options).rows.map(\.row.project.name) == ["Lectures", "Website"])
+        options.scope = tree.toggling(.area(world.consultingResearch.id), in: options.scope)
+        #expect(options.scope == ProjectScope(clients: [world.consulting.id], areas: [world.teaching.id]))
+
+        // Same-named areas: the search tells them apart by their client.
+        #expect(tree.rows(matching: "research university").map(\.path) == ["University", "University · Research"])
+        #expect(tree.rows(matching: "consulting").map(\.path) == ["Consulting", "Consulting", "Consulting · Research"])
+
         options.lastTracked = .never
-        #expect(options.filterCount == 3)
+        #expect(options.filterCount == 2)
         options.clearFilters()
         #expect(options.filterCount == 0)
         #expect(try await world.table(options).rows.count == 4)

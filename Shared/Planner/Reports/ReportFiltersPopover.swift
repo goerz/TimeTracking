@@ -19,11 +19,12 @@ struct ReportFiltersButton: View {
     }
 }
 
-/// Client and Area chips, the Project list, the Task field, and the archive switch.
+/// The tree of clients, areas, and projects with "No project", the Task
+/// field, the archive switch, and Clear All, laid out as the Projects
+/// popover.
 struct ReportFiltersPopover: View {
     @Bindable var model: ReportsModel
 
-    @State private var projectSearch = ""
     @State private var task = ""
     @FocusState private var taskFocused: Bool
 
@@ -33,10 +34,15 @@ struct ReportFiltersPopover: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Design.Spacing.medium) {
-            clientSection
-            areaSection
-            projectSection
-            section("Task") {
+            FilterSection("Clients, Areas, and Projects") {
+                ProjectScopeTreeView(
+                    tree: filters.tree(clients: model.clients, areas: model.areas, projects: model.projects),
+                    scope: Binding(get: { filters.scope }, set: { scope in update { $0.scope = scope } }),
+                    noProject: Binding(get: { filters.noProject }, set: { value in update { $0.noProject = value } }),
+                    identifier: "reports.filter"
+                )
+            }
+            FilterSection("Task") {
                 TextField("Task contains", text: $task)
                     .textFieldStyle(.roundedBorder)
                     .focused($taskFocused)
@@ -74,106 +80,10 @@ struct ReportFiltersPopover: View {
         }
     }
 
-    private var clientSection: some View {
-        section("Client") {
-            FlowChips {
-                ForEach(model.clients) { client in
-                    chip(client.name, isOn: filters.clients.contains(client.id)) { filters in
-                        filters.clients.formSymmetricDifference([client.id])
-                    }
-                }
-                chip("No client", isOn: filters.noClient) { filters in filters.noClient.toggle() }
-            }
-        }
-    }
-
-    private var areaSection: some View {
-        section("Area") {
-            FlowChips {
-                ForEach(filters.visibleAreas(model.areas)) { area in
-                    chip(area.name, color: area.color, isOn: filters.areas.contains(area.id)) { filters in
-                        filters.areas.formSymmetricDifference([area.id])
-                    }
-                }
-                chip("No area", isOn: filters.noArea) { filters in filters.noArea.toggle() }
-            }
-        }
-    }
-
-    private var projectSection: some View {
-        let visible = filters.visibleProjects(model.projects).filter { row in
-            projectSearch.isEmpty || row.project.name.folded.contains(projectSearch.folded)
-        }
-        let archived = visible.filter(\.project.isArchived)
-        return section("Project") {
-            TextField("Search projects", text: $projectSearch).textFieldStyle(.roundedBorder)
-            List {
-                projectToggle("(no project)", isOn: filters.noProject) { filters in filters.noProject.toggle() }
-                ForEach(visible.filter { !$0.project.isArchived }) { row in
-                    projectToggle(row)
-                }
-                if !archived.isEmpty {
-                    Section("Archived") {
-                        ForEach(archived) { row in
-                            projectToggle(row)
-                        }
-                    }
-                }
-            }
-            .frame(height: 160)
-        }
-    }
-
-    private func projectToggle(_ row: ProjectRow) -> some View {
-        projectToggle(row.project.name, color: row.color, isOn: filters.projects.contains(row.id)) { filters in
-            filters.projects.formSymmetricDifference([row.id])
-        }
-    }
-
     private func update(_ change: (inout ReportFilters) -> Void) {
         var filters = filters
         change(&filters)
         Task { await model.setFilters(filters) }
-    }
-
-    private func section(_ title: String, @ViewBuilder content: () -> some View) -> some View {
-        VStack(alignment: .leading, spacing: Design.Spacing.compact) {
-            Text(title).font(.headline)
-            content()
-        }
-    }
-
-    private func chip(_ title: String, color: String? = nil, isOn: Bool, change: @escaping (inout ReportFilters) -> Void) -> some View {
-        Button {
-            update(change)
-        } label: {
-            HStack(spacing: Design.Spacing.tight) {
-                if let color {
-                    AreaSwatch(color: color)
-                }
-                Text(title)
-            }
-            .padding(.horizontal, Design.Spacing.small)
-            .padding(.vertical, 3)
-            .background(Capsule().fill(isOn ? Color.accentColor.opacity(0.25) : Color.secondary.opacity(0.1)))
-        }
-        .buttonStyle(.plain)
-    }
-
-    private func projectToggle(
-        _ title: String,
-        color: String? = nil,
-        isOn: Bool,
-        change: @escaping (inout ReportFilters) -> Void
-    ) -> some View {
-        Toggle(isOn: Binding(get: { isOn }, set: { _ in update(change) })) {
-            HStack(spacing: Design.Spacing.compact) {
-                if let color {
-                    AreaDot(color: color)
-                }
-                Text(title)
-            }
-        }
     }
 }
 

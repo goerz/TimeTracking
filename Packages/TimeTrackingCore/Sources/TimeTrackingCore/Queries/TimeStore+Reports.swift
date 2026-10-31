@@ -225,8 +225,10 @@ extension TimeStore: Reporting {
         guard let projectID else {
             return filter.includeNoProject && (filter.projects == nil || filter.projectsIncludeNone)
                 && (filter.areas == nil || filter.areasIncludeNone) && (filter.clients == nil || filter.clientsIncludeNone)
+                && (filter.scope == nil || filter.scopeIncludesNone)
         }
         return !filter.noProjectOnly && (filter.includeArchived || !(project?.archived ?? false))
+            && (filter.scope.map { $0.contains(project: projectID, area: project?.areaID, client: project?.clientID) } ?? true)
             && (filter.projects.map { $0.contains(projectID) } ?? true)
             && (filter.areas.map { ids in project?.areaID.map(ids.contains) ?? false } ?? true)
             && (filter.clients.map { ids in project?.clientID.map(ids.contains) ?? false } ?? true)

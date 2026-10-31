@@ -41,6 +41,11 @@ public struct EntryFilter: Hashable, Sendable {
     public var areasIncludeNone = false
     /// With `projects` set, entries without a project match too ("(no project)").
     public var projectsIncludeNone = false
+    /// The Reports filter's tree: entries of projects in scope; combines
+    /// with the other rules by AND.
+    public var scope: ProjectScope?
+    /// With `scope` set, entries without a project match too ("No project").
+    public var scopeIncludesNone = false
 
     // swiftlint:disable discouraged_optional_collection
     public init(

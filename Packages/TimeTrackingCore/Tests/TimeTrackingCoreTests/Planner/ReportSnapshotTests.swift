@@ -51,7 +51,7 @@ struct ReportSnapshotTests {
         #expect(ReportText.seconds(22_203, padded: true) == "6h 10m 03s")
     }
 
-    @Test("PR-4 a client filter restricts tiles, chart, table, list, and both CSV exports; No client matches entries without a project")
+    @Test("PR-4 the tree restricts everything, an area of another client adds its entries, and No project matches entries without one")
     func clientFilter() async throws {
         let world = try await ReportWorld()
         let consulting = try await world.snapshot(filters: ReportFilters(clients: [world.consulting.id]))
@@ -61,17 +61,23 @@ struct ReportSnapshotTests {
         #expect(consulting.entries.listings.map(\.entry.task) == ["Bugfixes"])
         #expect(consulting.breakdownCSV.split(separator: "\n").count == 2)
         #expect(consulting.entriesCSV().split(separator: "\n").count == 2)
-        let none = try await world.snapshot(filters: ReportFilters(noClient: true))
+        let union = try await world.snapshot(filters: ReportFilters(clients: [world.consulting.id], areas: [world.teaching.id]))
+        #expect(Set(union.entries.listings.map(\.entry.task)) == ["Bugfixes", "Prepare lecture", "Große Aufgabe"])
+        let none = try await world.snapshot(filters: ReportFilters(noProject: true))
         #expect(none.entries.listings.map(\.entry.task) == ["Mail"])
-        let both = try await world.snapshot(filters: ReportFilters(clients: [world.consulting.id], noClient: true))
+        let both = try await world.snapshot(filters: ReportFilters(clients: [world.consulting.id], noProject: true))
         #expect(Set(both.entries.listings.map(\.entry.task)) == ["Mail", "Bugfixes"])
-        #expect(ReportFilters(clients: [world.consulting.id], noClient: true).activeKindCount == 1)
+        #expect(ReportFilters(clients: [world.consulting.id], noProject: true).activeKindCount == 1)
+        let rows = try await world.store.projects(filter: ProjectFilter(state: .all))
+        let areas = [world.consultingArea, world.research, world.teaching]
         let chips = ReportFilters(clients: [world.consulting.id], projects: [world.noise.id, world.grant.id], task: " noise ")
-            .chips(clients: [world.consulting, world.university], areas: [], projects: [])
-        #expect(chips.map(\.text) == ["Client: Consulting", "Project: 2", "Task: noise"])
+            .chips(clients: [world.consulting, world.university], areas: areas, projects: rows)
+        #expect(chips.map(\.text) == [
+            "Consulting", "University · Research · Grant", "University · Research · Noise Model", "Task: noise",
+        ])
     }
 
-    @Test("PR-5 excluding archived projects removes their entries everywhere; included, the node is marked archived")
+    @Test("PR-5 excluding archived projects removes their entries and tree rows everywhere; included, the node is marked archived")
     func archivedFilter() async throws {
         let world = try await ReportWorld()
         let excluded = try await world.snapshot(filters: ReportFilters(includeArchived: false))
@@ -82,8 +88,12 @@ struct ReportSnapshotTests {
         let included = try await world.snapshot(levels: [.project])
         let old = try #require(included.tree.children.first { $0.key == .project(world.old.id) })
         #expect(old.isArchived)
+        let clients = [world.consulting, world.university]
+        let areas = [world.consultingArea, world.research, world.teaching]
         let rows = try await world.store.projects(filter: ProjectFilter(state: .all))
-        #expect(!ReportFilters(includeArchived: false).visibleProjects(rows).contains { $0.id == world.old.id })
+        let checked = ReportFilters(projects: [world.old.id, world.lectures.id], includeArchived: false)
+        #expect(!checked.tree(clients: clients, areas: areas, projects: rows).rows.contains { $0.node == .project(world.old.id) })
+        #expect(checked.normalized(clients: clients, areas: areas, projects: rows).projects == [world.lectures.id])
     }
 
     @Test("PR-6 the task filter is case- and diacritic-insensitive: noise matches Clarify Noise Model, grosse matches Große")

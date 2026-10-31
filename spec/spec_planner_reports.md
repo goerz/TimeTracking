@@ -58,17 +58,17 @@ After a shift the label names the range by kind ("Week 43 · Oct 19 – 25", "Se
 
 ## 3. Filters
 
-The Filters button's title counts active filter kinds ("Filters (2)") and its symbol fills while any is active. Each active filter is a removable token in the filter bar above the tiles ("Client: Consulting", "Project: 2", "Task: noise", "Archived excluded", each with `xmark`), followed by "Clear All"; the bar is hidden without filters. Kinds combine with AND, choices within a kind with OR, and filters apply to tiles, chart, table, list, and exports.
+The Filters button's title counts active filter kinds ("Filters (2)") and its symbol fills while any is active. Each checked client, area, or project, "No project", the task, and archived exclusion is a removable token in the filter bar above the tiles ("Consulting", "University · Research", "University · Research · Grant", "No project", "Task: noise", "Archived excluded", each with `xmark`), followed by "Clear All"; the bar is hidden without filters. The kinds combine with AND, and filters apply to tiles, chart, table, list, and exports.
+
+The popover is laid out as the Projects section's ([spec_planner_projects.md](spec_planner_projects.md) §2.4), with the same tree:
 
 | Kind | Control | Matches |
 |---|---|---|
-| Client | Chips, one per client, plus "No client" | Entries of the chosen clients' projects; "No client" matches entries without a project |
-| Area | Chips with swatches, narrowed to chosen clients, plus "No area" | Entries of projects in the chosen areas; "No area" matches entries without a project |
-| Project | Searchable check list, narrowed by chosen clients and areas, archived projects below an "Archived" divider, plus "(no project)" | Entries of the chosen projects |
+| Clients, Areas, and Projects | "No project", then the filter tree of clients, their areas, and the areas' projects (archived projects in secondary label color while included) | Entries of projects that are checked or whose area or client is checked; "No project" matches entries without a project |
 | Task | Text field | Task contains the trimmed text, case- and diacritic-insensitively; applied 150 ms after the last keystroke |
-| Include archived projects | Check box, on by default | Off excludes archived projects' entries and hides them from the project list |
+| Include archived projects | Check box, on by default | Off excludes archived projects' entries and removes them, with their checks, from the tree |
 
-A choice that disappears from its list through narrowing is removed. "Clear All" resets every kind and turns "Include archived projects" on.
+A checked client, area, or project that leaves the tree (deleted, or archived while excluded) is unchecked. "Clear All" resets every kind and turns "Include archived projects" on.
 
 ## 4. Tiles and chart
 
@@ -207,8 +207,8 @@ The router's `showReports(range:filter:)` sets the range, replaces the filters (
 - PR-1. Average per day is Logged time divided by the days with a positive sum, 0 when there are none; on Thursday, "This week" reads "over 4 of 4 days" with entries Monday to Thursday and "over 3 of 4 days" when Wednesday has none.
 - PR-2. Automatic granularity is Day for 1 to 31 days, Week for 32 to 182, Month for 183 to 1,096, Year beyond; week buckets run Monday to Sunday.
 - PR-3. The leaves of a fully expanded tree have shares summing to 100% within rounding; under "Project › Day" a project's Entries equals the sum of its Day nodes'.
-- PR-4. A client filter restricts tiles, chart, table, list, and both CSV exports; "No client" matches entries without a project.
-- PR-5. "Include archived projects" off removes an archived project's entries everywhere; on, its node reads "(archived)".
+- PR-4. Checking a client in the tree restricts tiles, chart, table, list, and both CSV exports to its projects' entries; checking also an area of another client adds that area's; "No project" matches entries without a project; each check is a token named by its path ("University · Research · Grant").
+- PR-5. "Include archived projects" off removes an archived project's entries everywhere and its row and check from the tree; on, its node reads "(archived)".
 - PR-6. The task filter "noise" matches "Clarify Noise Model"; "grosse" matches "Große".
 - PR-7. After a project moves to another area, last year's report by area shows its time under the new area.
 - PR-8. The arrows shift as in 2.3: Week to date goes to the full previous week; This month shifted back twice from October is August; Last 7 days shifts by 7 days; All time disables both.
