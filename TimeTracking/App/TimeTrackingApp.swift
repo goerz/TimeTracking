@@ -34,8 +34,6 @@ struct TimeTrackingApp: App {
                     .modifier(RouterActions(router: delegate.router))
             }
         }
-        .defaultLaunchBehavior(.presented)
-        .restorationBehavior(.disabled)
         .defaultSize(width: 1100, height: 760)
         .windowResizability(.contentMinSize)
         // The scene keeps its Window menu item (the one window, by name).

@@ -23,12 +23,10 @@ struct PlannerWindowView: View {
                 Label("Timer", systemImage: "timer")
                     .tag(MainSidebarItem.timer)
                     .accessibilityIdentifier("planner.sidebar.timer")
-                Section("Planner") {
-                    ForEach(PlannerSection.allCases) { section in
-                        Label(section.title, systemImage: section.symbol)
-                            .tag(MainSidebarItem.section(section))
-                            .accessibilityIdentifier("planner.sidebar.\(section.rawValue)")
-                    }
+                ForEach(PlannerSection.allCases) { section in
+                    Label(section.title, systemImage: section.symbol)
+                        .tag(MainSidebarItem.section(section))
+                        .accessibilityIdentifier("planner.sidebar.\(section.rawValue)")
                 }
             }
             .navigationSplitViewColumnWidth(min: 160, ideal: 200, max: 280)

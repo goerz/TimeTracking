@@ -142,8 +142,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         router.app = app
         app.router = router
         app.window = window
-        app.onboardingPresenter = { [weak window] appName, opensAtLogin, answer in
-            TrackerOnboardingAlert.present(on: window?.window, appName: appName, opensAtLogin: opensAtLogin, answer: answer)
+        // Experiment: the alert is a sheet on the one window (there is no
+        // Timer window).
+        app.onboardingPresenter = { appName, opensAtLogin, answer in
+            let main = NSApp.windows.first { $0.identifier?.rawValue == "planner" }
+            TrackerOnboardingAlert.present(on: main, appName: appName, opensAtLogin: opensAtLogin, answer: answer)
         }
         timerWindow = window
         self.router = router

@@ -4,31 +4,33 @@
 import SwiftUI
 import TimeTrackingCore
 
-/// The running timer and the Pomodoro, from any window (each also in the
-/// menu bar item's menu), then the Timer window's own entry commands.
+/// The global timing commands, from any view (each also in the menu bar
+/// item's menu), like Music's Controls menu.
 struct TimerCommands: Commands {
     var host: AppHost
-    @FocusedValue(\.timerWindowActive) private var timerActive
-    @FocusedValue(\.plannerWindowActive) private var plannerActive
+    @FocusedValue(\.plannerWindowActive) private var windowActive
 
     private var app: AppModel? {
         host.model
     }
 
     private var state: MenuState {
-        MenuState(router: app?.planner, timerKey: timerActive ?? false, plannerKey: plannerActive == true && timerActive != true)
+        MenuState(app: app, windowKey: windowActive == true)
     }
 
-    /// What ⌘O starts from the Planner's selection, while the Planner is key.
+    /// What ⌘O starts from a Planner view's selection.
     private var plannerTarget: PlannerContinueTarget? {
         state.plannerKey ? app?.planner.continueTarget : nil
     }
 
     var body: some Commands {
         CommandMenu("Timer") {
-            Button("New") { run { await $0.newEntry() } }
-                .keyboardShortcut("n")
-            // The selection in either window: "Start Timer" on a project.
+            Button("New Entry") {
+                app?.router?.showTimer(focusTask: false)
+                run { await $0.newEntry() }
+            }
+            .keyboardShortcut("n")
+            // The selection in the view shown: "Start Timer" on a project.
             Button(plannerTarget == .project ? "Start Timer" : "Continue") {
                 run { [state] in await $0.continueCommand(timerKey: state.timerKey, plannerKey: state.plannerKey) }
             }

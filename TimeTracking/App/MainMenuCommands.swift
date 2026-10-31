@@ -1,38 +1,37 @@
-// MainMenuCommands: the Mac app's main menu, with Edit › Find and the
-// Window menu's items (spec_timer_window.md §9, spec_planner_projects.md §1.2).
+// MainMenuCommands: the Mac app's main menu (experiment: one window, object
+// menus). File, Edit, View, Timer, Entry, Project, Window: a fixed set, as
+// in Music or Mail; Entry and Project act on what is selected in the view
+// shown, and are enabled by that selection.
 
 import SwiftUI
 import TimeTrackingCore
 
-/// Every command of the main menu. The app attaches it once, in place of
-/// the Window scenes' own Window menu items (which would list the Timer
-/// and the Planner a second time).
+/// Every command of the main menu.
 struct MainMenuCommands: Commands {
     var host: AppHost
-    @FocusedValue(\.timerWindowActive) private var timerActive
-    @FocusedValue(\.plannerWindowActive) private var plannerActive
+    @FocusedValue(\.plannerWindowActive) private var windowActive
 
     private var app: AppModel? {
         host.model
     }
 
     private var state: MenuState {
-        MenuState(router: host.model?.planner, timerKey: timerActive ?? false, plannerKey: plannerActive == true && timerActive != true)
+        MenuState(app: app, windowKey: windowActive == true)
     }
 
     var body: some Commands {
-        // The app has no documents; Timer › New is ⌘N.
-        CommandGroup(replacing: .newItem) {}
+        FileCommands(host: host)
         CommandGroup(after: .textEditing) {
             Button("Find") { find() }
                 .contextCommand(KeyboardShortcut("f"), enabled: state.findCommand)
         }
         ViewCommands(host: host)
         TimerCommands(host: host)
-        PlannerCommands(host: host)
+        EntryCommands(host: host)
+        ProjectCommands(host: host)
     }
 
-    /// ⌘F: the Timer list's filter, or the Planner section's search field.
+    /// ⌘F: the Timer list's filter, or the Projects or Reports search field.
     private func find() {
         guard let app else {
             return
