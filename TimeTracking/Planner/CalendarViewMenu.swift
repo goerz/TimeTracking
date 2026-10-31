@@ -1,4 +1,4 @@
-// CalendarMenus: the Calendar's View and Entry menu items and Activity's
+// CalendarViewMenu: the Calendar's View and Entry menu items and Activity's
 // View submenu (spec_planner_calendar.md §6, spec_planner_activity.md §2).
 
 import SwiftUI
