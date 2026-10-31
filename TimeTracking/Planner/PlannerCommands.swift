@@ -194,19 +194,10 @@ private struct ReportMenu: View {
 
     var body: some View {
         Menu("Report") {
-            Button("Previous Period") { Task { await model.previousPeriod() } }
-                .keyboardShortcut(.leftArrow, modifiers: [.command, .option])
-                .disabled(!model.range.canShift)
-            Button("Next Period") { Task { await model.nextPeriod() } }
-                .keyboardShortcut(.rightArrow, modifiers: [.command, .option])
-                .disabled(!model.range.canShift)
+            PlannerMenuItems.reportPeriod(model)
             Button("Go to Today") { Task { await model.goToToday() } }
                 .keyboardShortcut("t")
-            Button("Back to Previous Range") { Task { await model.backToPreviousRange() } }
-                .keyboardShortcut("[")
-                .disabled(model.previousRange == nil)
-            Button("Date Range…") { model.showsDatePopover = true }
-                .keyboardShortcut("d", modifiers: [.command, .shift])
+            PlannerMenuItems.reportRange(model)
             Divider()
             ReportViewItems(model: model)
         }
@@ -218,15 +209,9 @@ private struct ReportViewItems: View {
     var model: ReportsModel
 
     var body: some View {
-        Button("Filters…") { model.showsFilters = true }
-            .keyboardShortcut("f", modifiers: [.command, .option])
-        Button("Clear Filters") { Task { await model.clearFilters() } }
-            .keyboardShortcut("f", modifiers: [.command, .option, .shift])
+        PlannerMenuItems.reportFilters(model)
         Divider()
-        Button("Show Breakdown") { Task { await model.show(.breakdown) } }
-            .keyboardShortcut("1", modifiers: [.command, .control])
-        Button("Show Entries") { Task { await model.show(.entries) } }
-            .keyboardShortcut("2", modifiers: [.command, .control])
+        PlannerMenuItems.reportCards(model)
         Divider()
         Menu("Show Totals By") {
             Button("Automatic") { Task { await model.setGranularity(nil) } }

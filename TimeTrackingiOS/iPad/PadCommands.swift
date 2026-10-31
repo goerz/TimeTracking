@@ -135,25 +135,10 @@ private struct PadReportMenu: View {
 
     var body: some View {
         Menu("Report") {
-            Button("Previous Period") { Task { await model.previousPeriod() } }
-                .keyboardShortcut(.leftArrow, modifiers: [.command, .option])
-                .disabled(!model.range.canShift)
-            Button("Next Period") { Task { await model.nextPeriod() } }
-                .keyboardShortcut(.rightArrow, modifiers: [.command, .option])
-                .disabled(!model.range.canShift)
-            Button("Back to Previous Range") { Task { await model.backToPreviousRange() } }
-                .keyboardShortcut("[")
-                .disabled(model.previousRange == nil)
-            Button("Date Range…") { model.showsDatePopover = true }
-                .keyboardShortcut("d", modifiers: [.command, .shift])
-            Button("Filters…") { model.showsFilters = true }
-                .keyboardShortcut("f", modifiers: [.command, .option])
-            Button("Clear Filters") { Task { await model.clearFilters() } }
-                .keyboardShortcut("f", modifiers: [.command, .option, .shift])
-            Button("Show Breakdown") { Task { await model.show(.breakdown) } }
-                .keyboardShortcut("1", modifiers: [.command, .control])
-            Button("Show Entries") { Task { await model.show(.entries) } }
-                .keyboardShortcut("2", modifiers: [.command, .control])
+            PlannerMenuItems.reportPeriod(model)
+            PlannerMenuItems.reportRange(model)
+            PlannerMenuItems.reportFilters(model)
+            PlannerMenuItems.reportCards(model)
             Button("Export…") { model.requestExport() }
                 .keyboardShortcut("e", modifiers: [.command, .shift])
         }
@@ -166,12 +151,7 @@ private struct PadActivityMenu: View {
 
     var body: some View {
         Menu("Activity") {
-            Button("Previous Period") { Task { await model.shiftPeriod(by: -1) } }
-                .keyboardShortcut(.leftArrow, modifiers: [.command, .option])
-                .disabled(!model.range.canShift)
-            Button("Next Period") { Task { await model.shiftPeriod(by: 1) } }
-                .keyboardShortcut(.rightArrow, modifiers: [.command, .option])
-                .disabled(!model.range.canShift)
+            PlannerMenuItems.activityPeriod(model)
         }
     }
 }

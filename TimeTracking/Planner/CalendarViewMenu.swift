@@ -56,12 +56,7 @@ struct ActivityMenu: View {
 
     var body: some View {
         Menu("Activity") {
-            Button("Previous Period") { Task { await model.shiftPeriod(by: -1) } }
-                .keyboardShortcut(.leftArrow, modifiers: [.command, .option])
-                .disabled(!model.range.canShift)
-            Button("Next Period") { Task { await model.shiftPeriod(by: 1) } }
-                .keyboardShortcut(.rightArrow, modifiers: [.command, .option])
-                .disabled(!model.range.canShift)
+            PlannerMenuItems.activityPeriod(model)
             Button("Go to Today") {
                 model.range.goToToday()
                 Task { await model.reload() }
