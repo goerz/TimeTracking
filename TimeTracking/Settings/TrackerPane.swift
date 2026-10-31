@@ -304,7 +304,7 @@ private struct FilesSection: View {
                 .accessibilityIdentifier("tracker.settingsFile.open")
                 Button("Show in Finder") {
                     if model.ensureFile() {
-                        SystemSettings.reveal(model.settingsURL)
+                        SystemSettings.showFolder(model.settingsURL?.deletingLastPathComponent())
                     }
                 }
                 .accessibilityIdentifier("tracker.settingsFile.finder")
@@ -329,7 +329,7 @@ private struct FilesSection: View {
             VStack(alignment: .leading, spacing: Design.Spacing.tight) {
                 Text("Activity logs")
                 path(TrackerSettingsModel.displayPath(model.logsURL))
-                Button("Show in Finder") { SystemSettings.reveal(model.logsURL) }
+                Button("Show in Finder") { SystemSettings.showFolder(model.logsURL) }
                     .controlSize(.small)
                     .padding(.top, Design.Spacing.tight)
                     .disabled(model.logsURL.map { !FileManager.default.fileExists(atPath: $0.path) } ?? true)

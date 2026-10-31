@@ -28,6 +28,14 @@ enum SystemSettings {
         }
     }
 
+    /// Opens a folder in a Finder window. For the shared `Activity/` folder
+    /// this replaces `reveal(_:)`: it lies in the iCloud Drive container
+    /// outside `Documents/`, where Finder silently ignores a request to
+    /// select an item, but it still opens the folder itself.
+    static func showFolder(_ url: URL?) {
+        open(url)
+    }
+
     /// Opens a text file in the app the user chose for its type, or in
     /// TextEdit when no app claims it (as for `.toml` on a fresh Mac).
     static func openInEditor(_ url: URL?) {
