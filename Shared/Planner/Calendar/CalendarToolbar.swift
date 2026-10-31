@@ -18,8 +18,7 @@ struct CalendarToolbar: ToolbarContent {
             identifier: "calendar",
             previous: { shift(-1) },
             next: { shift(1) },
-            today: { Task { await model.goToToday() } },
-            currentDay: { model.today },
+            goToToday: GoToToday(action: { Task { await model.goToToday() } }, currentDay: { model.today }),
             dateControl: { goToDate }
         )
         ToolbarItem(placement: .primaryAction) {

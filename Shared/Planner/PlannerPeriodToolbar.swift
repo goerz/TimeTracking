@@ -1,14 +1,14 @@
 // PlannerPeriodToolbar: the leading toolbar items that Calendar, Reports,
-// and Activity share: the period arrows, Today, and the section's date
-// control (spec_design.md §4; spec_planner_projects.md §1.1).
+// and Activity share: the period arrows, the Calendar's Go to Today, and the
+// section's date control (spec_design.md §4; spec_planner_projects.md §1.1).
 
 import SwiftUI
 import TimeTrackingCore
 
-/// Previous and next as one control group, then Today, then the section's
-/// date control (Calendar: Go to Date…; Reports and Activity: the range
-/// menu). The items sit in `.navigation`, so they keep their place when the
-/// section changes.
+/// Previous and next as one control group, then Go to Today (Calendar
+/// only), then the section's date control (Calendar: Go to Date…; Reports
+/// and Activity: the range menu). The items sit in `.navigation`, so the
+/// arrows keep their place when the section changes.
 struct PlannerPeriodToolbar<DateControl: View>: ToolbarContent {
     /// "Previous Day", "Previous Period".
     var previousTitle: String
@@ -18,9 +18,8 @@ struct PlannerPeriodToolbar<DateControl: View>: ToolbarContent {
     var identifier: String
     var previous: () -> Void
     var next: () -> Void
-    var today: () -> Void
-    /// Today's day from the section's clock, for Go to Today's symbol.
-    var currentDay: () -> TrackingDay
+    /// Go to Today, only in the Calendar (Reports and Activity have ⌘T).
+    var goToToday: GoToToday?
     /// The section's date control, which anchors its own popover.
     @ViewBuilder var dateControl: () -> DateControl
 
@@ -41,20 +40,29 @@ struct PlannerPeriodToolbar<DateControl: View>: ToolbarContent {
             .accessibilityIdentifier("\(identifier).next")
         }
         .visibilityPriority(.high)
-        ToolbarItem(placement: .navigation) {
-            // Re-read every minute, so the date on the symbol turns at midnight.
-            TimelineView(.everyMinute) { _ in
-                Button(action: today) {
-                    Label("Go to Today", systemImage: SymbolName.today(currentDay()))
+        if let goToToday {
+            ToolbarItem(placement: .navigation) {
+                // Re-read every minute, so the date on the symbol turns at midnight.
+                TimelineView(.everyMinute) { _ in
+                    Button(action: goToToday.action) {
+                        Label("Go to Today", systemImage: SymbolName.today(goToToday.currentDay()))
+                    }
+                    .help("Go to Today")
+                    .accessibilityIdentifier("\(identifier).today")
                 }
-                .help("Go to Today")
-                .accessibilityIdentifier("\(identifier).today")
             }
+            .visibilityPriority(.high)
         }
-        .visibilityPriority(.high)
         ToolbarItem(placement: .navigation) {
             dateControl()
         }
         .visibilityPriority(.high)
     }
+}
+
+/// The Go to Today button's action and today's day from the section's clock
+/// (its symbol shows the day of the month).
+struct GoToToday {
+    var action: () -> Void
+    var currentDay: () -> TrackingDay
 }

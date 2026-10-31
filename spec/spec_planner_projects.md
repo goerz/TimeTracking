@@ -6,7 +6,7 @@ This spec covers the Planner, the four sections of the main window after the Tim
 
 ### 1.1 Layout
 
-The Planner is the main window's sidebar items after the Timer ([spec_timer_window.md](spec_timer_window.md) §1): Calendar (`calendar`), Reports (`chart.bar`), Projects (`folder`), and Activity (`waveform.path.ecg`). The sidebar has no headings and no other items: the Timer and the views used daily first, then the rarely edited projects, clients, and areas, then the tracker's log. The window title is the shown item's name. Each section owns its toolbar items, placed by the one scheme of [spec_design.md](spec_design.md) §4, so the period arrows and Today of Calendar, Reports, and Activity keep their place when the section changes; the shell adds only the sidebar toggle. The sections have no running-timer controls.
+The Planner is the main window's sidebar items after the Timer ([spec_timer_window.md](spec_timer_window.md) §1): Calendar (`calendar`), Reports (`chart.bar`), Projects (`folder`), and Activity (`waveform.path.ecg`). The sidebar has no headings and no other items: the Timer and the views used daily first, then the rarely edited projects, clients, and areas, then the tracker's log. The window title is the shown item's name. Each section owns its toolbar items, placed by the one scheme of [spec_design.md](spec_design.md) §4, so the period arrows of Calendar, Reports, and Activity keep their place when the section changes; the shell adds only the sidebar toggle. The sections have no running-timer controls.
 
 | Property | Value |
 |---|---|

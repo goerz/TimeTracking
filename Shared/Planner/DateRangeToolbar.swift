@@ -1,5 +1,5 @@
-// DateRangeToolbar: the shared range's toolbar items (the period arrows,
-// Today, and the range menu titled by the selection) and the date popover
+// DateRangeToolbar: the shared range's toolbar items (the period arrows and
+// the range menu titled by the selection) and the date popover
 // (spec_planner_reports.md §2). Activity uses the same items on the same model.
 
 import SwiftUI
@@ -9,9 +9,7 @@ import TimeTrackingCore
 struct DateRangeToolbar: ToolbarContent {
     var range: DateRangeModel
     @Binding var showsPopover: Bool
-    /// Go to Today (Reports also forgets its drill-down history).
-    var today: () -> Void
-    /// Called after every other change (the section reloads).
+    /// Called after every change (the section reloads).
     var onChange: () -> Void
 
     var body: some ToolbarContent {
@@ -28,8 +26,6 @@ struct DateRangeToolbar: ToolbarContent {
                 range.next()
                 onChange()
             },
-            today: today,
-            currentDay: { range.today },
             dateControl: { rangeMenu }
         )
     }

@@ -65,7 +65,7 @@ public enum SymbolName {
 
     public static let previous = "chevron.left"
     public static let next = "chevron.right"
-    /// Go to Today in the Calendar, Reports, and Activity: a calendar page
+    /// The Calendar's Go to Today: a calendar page
     /// showing today's day of the month (`1.calendar` to `31.calendar`).
     public static func today(_ day: TrackingDay) -> String {
         "\(day.day).calendar"

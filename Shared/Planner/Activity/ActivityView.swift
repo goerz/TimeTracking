@@ -36,9 +36,6 @@ struct ActivityView: View {
         #endif
             .toolbar {
                 DateRangeToolbar(range: model.range, showsPopover: $model.showsDatePopover) {
-                    model.range.goToToday()
-                    Task { await model.reload() }
-                } onChange: {
                     Task { await model.reload() }
                 }
                 if (model.summary?.devices.count ?? 0) > 1 {

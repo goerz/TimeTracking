@@ -81,8 +81,6 @@ struct ReportsView: View {
     /// Leading: the period items; trailing: Filters, granularity, Print, Export.
     @ToolbarContentBuilder private var toolbar: some ToolbarContent {
         DateRangeToolbar(range: model.range, showsPopover: $model.showsDatePopover) {
-            Task { await model.goToToday() }
-        } onChange: {
             Task { await model.reload() }
         }
         ToolbarItem(placement: .primaryAction) {
