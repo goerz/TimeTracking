@@ -65,6 +65,22 @@ require_team = @if [ -z "$(TEAM)" ]; then echo "set TEAM in local.mk" >&2; exit 
 	unit-test agent-test ui-test test test-sync lint check-behaviors check-private check hooks \
 	secrets xcode skills clean distclean help
 
+# The runtime lock (spec_architecture.md §2.5): every checkout of the repository
+# shares the Debug bundle ID, the Debug store and agent, the simulators, and
+# /Applications, so the targets that run them hold one lock in the shared git
+# directory. Outside the lock, each such target runs make again under lockf,
+# whose kernel lock ends with the process; nested make calls inherit
+# TT_RUNTIME_LOCKED and run directly. The real rules sit in ifdef blocks below.
+RUNTIME_LOCK ?= $(shell git rev-parse --path-format=absolute --git-common-dir 2>/dev/null || echo "$(CURDIR)/$(DERIVED)")/timetracking-runtime.lock
+RUNTIME_TARGETS := sim mac-debug demo install unit-test agent-test ui-test test test-sync
+
+ifndef TT_RUNTIME_LOCKED
+$(RUNTIME_TARGETS):
+	@mkdir -p "$$(dirname "$(RUNTIME_LOCK)")"
+	@TT_RUNTIME_LOCKED=1 lockf -k -t 0 "$(RUNTIME_LOCK)" $(MAKE) --no-print-directory $@ || \
+		{ s=$$?; [ $$s != 75 ] || echo "another checkout is running sim, mac-debug, demo, install, or a test target; retry when it finishes ($(RUNTIME_LOCK))" >&2; exit $$s; }
+endif
+
 ##@ Build
 
 all build: build-mac build-ios ## build-mac and build-ios
@@ -87,6 +103,7 @@ build-sim: secrets ## Debug iOS app for the simulator
 
 ##@ Develop
 
+ifdef TT_RUNTIME_LOCKED
 sim: build-sim ## Install and launch on "TimeTracking iPhone" and "TimeTracking iPad" with ARGS
 	@for name in "$(SIM_IPHONE)" "$(SIM_IPAD)"; do \
 		xcrun simctl boot "$$name" 2>/dev/null || true; \
@@ -94,6 +111,7 @@ sim: build-sim ## Install and launch on "TimeTracking iPhone" and "TimeTracking 
 		xcrun simctl launch --terminate-running-process "$$name" "$(BUNDLE_ID).debug" $(ARGS) || exit 1; \
 	done
 	@open -a Simulator 2>/dev/null || echo "No Simulator app found; the simulators run without a window (make screenshots captures them)."
+endif
 
 sim-create: ## Create the two simulators unless they exist
 	@runtime=$$(xcrun simctl list runtimes | awk '/^iOS / && !/unavailable/ { r = $$NF } END { print r }'); \
@@ -109,6 +127,7 @@ stop: ## Quit the app on both simulators
 		xcrun simctl terminate "$$name" "$(BUNDLE_ID).debug" 2>/dev/null || true; \
 	done
 
+ifdef TT_RUNTIME_LOCKED
 mac-debug: secrets ## Build and open the Debug Mac app from build.noindex/
 	$(require_team)
 	$(BUILD_MAC_DEBUG)
@@ -121,6 +140,7 @@ demo: secrets ## Load FIXTURE (small, large, running) moved to today into the De
 	@$(MAKE) --no-print-directory sim-create
 	$(BUILD_SIM_DEBUG)
 	scripts/demo.sh "$(FIXTURE)" "$(MAC_DEBUG_APP)" "$(DEBUG_SUPPORT)" "$(BUNDLE_ID).debug" "$(SIM_APP)" "$(SIM_IPHONE)" "$(SIM_IPAD)"
+endif
 
 mac-debug-unregister: ## Quit the Debug app and agent, unregister the agent, reset its TCC grants
 	@LAUNCHCTL="$(LAUNCHCTL)" scripts/debug_unregister.sh "$(BUNDLE_ID).debug" "$(DEBUG_AGENT)" "$(LEGACY_DEBUG_AGENT)" \
@@ -143,8 +163,10 @@ screenshots: ## Simulator screenshots to build.noindex/screenshots/
 
 ##@ Use
 
+ifdef TT_RUNTIME_LOCKED
 install: build-mac ## Install into /Applications; link the tools and completions into PREFIX
 	scripts/install.sh install "$(MAC_RELEASE_APP)" "$(BUNDLE_ID)" "$(APP_NAME)" "$(PREFIX)" "$(ALIAS)"
+endif
 
 mac: install ## install, then open the app with ARGS
 	open "$(INSTALLED_APP)" --args $(ARGS)
@@ -178,6 +200,7 @@ console: ## Relaunch on DEVICE_<D> and stream its console
 
 ##@ Test
 
+ifdef TT_RUNTIME_LOCKED
 unit-test: secrets ## (3 min) swift test, then TimeTrackingTests, TimeTrackingAgentTests, TimeTrackingCLITests
 	swift test --package-path Packages/TimeTrackingCore
 	$(require_team)
@@ -204,6 +227,7 @@ test: unit-test ## (15 min) unit-test, slow library tests, TimeTrackingiOSTests 
 test-sync: secrets ## (3 min) CloudKit integration tests against iCloud.<BUNDLE_ID>.debug; never part of test
 	$(require_team)
 	TEST_RUNNER_TIMETRACKING_TEST_SYNC=1 $(XCB) test -scheme TimeTracking $(MAC_DEST) -only-testing:TimeTrackingTests $(SIGN)
+endif
 
 ##@ Check
 

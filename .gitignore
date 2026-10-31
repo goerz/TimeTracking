@@ -13,6 +13,7 @@ CLAUDE.local.md
 .private-strings
 .claude/settings.local.json
 .claude/skills/
+.claude/worktrees/
 
 # Keys and profiles
 *.p8

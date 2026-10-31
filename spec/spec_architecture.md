@@ -194,6 +194,8 @@ The `help` target prints the targets grouped as below, from `##@` and `##` lines
 
 The variable `ARGS` passes launch arguments. The apps understand `-UITesting YES` (in-memory store and transport, fixture, no animations), `-Fixture <name>`, and `-ResetState YES`; UI tests that must register the real Debug agent add `-RealAgent YES`, without which `-UITesting` uses a fake agent service. The tool reads `TIMETRACKING_STORE` and `TIMETRACKING_NOW` (`spec_automation.md`).
 
+Every worktree of the repository shares the Debug bundle ID, the Debug store and agent, the simulators, and `/Applications`, so `sim`, `mac-debug`, `demo`, `install`, `unit-test`, `agent-test`, `ui-test`, `test`, and `test-sync` hold one runtime lock: `lockf` on `timetracking-runtime.lock` in the shared git directory (`git rev-parse --git-common-dir`), taken without waiting. While another process holds it, these targets fail with "another checkout is running ..." (make reports `Error 75`) before running anything; make calls nested inside a target that holds the lock run directly. The kernel releases the lock when make exits, also on an interrupt.
+
 Git hooks `pre-commit`, `commit-msg`, and `pre-push` run `check-private` in modes `staged`, `message <file>`, and `push`; `pre-push` also runs `make lint`. Bypassing them is not allowed.
 
 ### 2.6 Simulators
@@ -346,6 +348,7 @@ Each step ends with its behaviors green and with `make install` producing a usab
 22. A `git commit` whose staged change contains the value of `TEAM` is refused by the pre-commit hook.
 23. Seeding fixture `running` at 15:00 local time on 2026-10-30 (`make demo FIXTURE=running`) puts the entries of 2024-03-13 on 2026-10-29 at the same local times, starts the running entry at 14:35, and leaves no entry after 15:00; `make demo` names only the Debug container, and a store outside a Debug or simulator container is refused and left unchanged.
 24. In Debug the Mac app is `<APP_NAME> Debug.app` and the agent `Contents/Library/LoginItems/TimeTrackingAgent Debug.app`, both with "Debug" in `CFBundleName` and `CFBundleDisplayName`, the launchd plist's `BundleProgram` names the renamed agent, and every iOS bundle's display name ends in " Debug"; executable names are unchanged, and no Release bundle's file name, `CFBundleName`, or `CFBundleDisplayName` contains "Debug".
+25. While another process holds `<git common dir>/timetracking-runtime.lock`, `make agent-test` exits non-zero with "another checkout is running" without invoking `xcodebuild`; once it is released, `make agent-test` invokes `xcodebuild`; and a `make agent-test` run from inside a target that holds the lock invokes `xcodebuild` instead of failing.
 
 ## 9. Decisions
 

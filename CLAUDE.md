@@ -107,3 +107,11 @@ System frameworks first. Third-party packages, pinned exactly in the committed `
 ## Git
 
 Hooks in `.githooks/` (enabled by `make hooks`, which every building target runs) refuse personal data: the `local.mk` values, `.private-strings` lines, the home directory, host names, the git e-mail, credentials, UDIDs, and key or profile files (`make check-private`). The pre-push hook also runs `make lint`. Never bypass a hook.
+
+## Parallel sessions
+
+Several Claude sessions often work on this repository at once. Every session that will edit files starts by calling EnterWorktree (one worktree per task, named after it, without `/`), then runs `ln -s ../../../local.mk local.mk` in the worktree before the first `make`. Read-only sessions stay in the main checkout.
+
+Commit on the worktree branch. When the task is done, committed, and its tests pass, ask the user (AskUserQuestion) whether to merge it into `master`; don't wait to be asked, and don't merge without a yes. On yes: in the worktree, `git rebase master` (resolve conflicts, rerun the affected tests); then ExitWorktree with `keep`, and in the main checkout `git merge --ff-only <branch>`. If the fast-forward refuses because the main checkout's uncommitted changes touch the same files, stop and report rather than stashing someone else's work. After the merge, ask whether to remove the worktree and its branch (`git worktree remove`, `git branch -d`).
+
+Worktrees isolate source, not runtime state: all checkouts share the Debug bundle ID, the Debug store, the Debug agent registration, the simulators, and `/Applications`. The Makefile serializes `sim`, `mac-debug`, `demo`, `install`, `unit-test`, `agent-test`, `ui-test`, `test`, and `test-sync` across checkouts with a lock in the shared git directory: while one checkout runs any of them, the others fail with "another checkout is running ..." (`Error 75`). On that message, wait for the other session (SendMessage with `notify_when_idle` to the session ListAgents shows) and rerun; never work around the lock with a bare `xcodebuild`, `xcrun simctl`, or `open` of the Debug app. `swift test --package-path Packages/TimeTrackingCore` and `make lint` don't take the lock.

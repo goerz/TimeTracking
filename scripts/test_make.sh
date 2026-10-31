@@ -706,6 +706,37 @@ test_install() {
     make -C "$root" --no-print-directory install > /dev/null
 }
 
+# --- ARCH-25
+
+test_runtime_lock() {
+    local sb fake nested lock holder status=0 output
+    sb=$(sandbox)
+    fake=$(fake_tool xcodebuild 0)
+    lock="$sb/.git/timetracking-runtime.lock"
+    # A foreign holder: it takes the lock, reports through one fifo, and
+    # releases when the other fifo is written (no sleeping).
+    mkfifo "$scratch/held" "$scratch/release"
+    lockf -k -t 0 "$lock" sh -c 'echo held > "$1"; read -r _ < "$2"' sh "$scratch/held" "$scratch/release" &
+    holder=$!
+    read -r _ < "$scratch/held"
+    rm -f "$scratch/calls"
+    output=$(make -C "$sb" --no-print-directory XCODEBUILD="$fake" agent-test 2>&1) || status=$?
+    echo > "$scratch/release"
+    wait "$holder"
+    check "a held lock fails" [ "$status" != 0 ]
+    check "a held lock is named" grep -q 'another checkout is running' <<< "$output"
+    check "a held lock stops before xcodebuild" [ ! -e "$scratch/calls" ]
+    make -C "$sb" --no-print-directory XCODEBUILD="$fake" agent-test > /dev/null
+    check "a released lock runs xcodebuild" grep -q 'test -scheme TimeTrackingAgent' "$scratch/calls"
+    # Nested: the outer run's xcodebuild runs make agent-test again while the outer make holds the lock.
+    nested="$scratch/bin/nested-xcodebuild"
+    printf '#!/bin/sh\nexec make -C "%s" --no-print-directory XCODEBUILD="%s" agent-test\n' "$sb" "$fake" > "$nested"
+    chmod +x "$nested"
+    rm -f "$scratch/calls"
+    make -C "$sb" --no-print-directory XCODEBUILD="$nested" agent-test > /dev/null
+    check "a nested run invokes xcodebuild" grep -q 'test -scheme TimeTrackingAgent' "$scratch/calls"
+}
+
 behavior "ARCH-2 make secrets writes Local.xcconfig and leaves it untouched without changes" test_secrets
 behavior "ARCH-3 without TEAM the app-building targets stop before xcodebuild" test_team_guard
 behavior "ARCH-6 the Debug identifiers carry .debug and no Release identifier does" test_debug_identifiers
@@ -720,6 +751,7 @@ behavior "ARCH-22 the pre-commit hook refuses a staged TEAM value" test_pre_comm
 behavior "ARCH-22 check-private push refuses a credential in a pushed commit message" test_pre_push
 behavior "ARCH-23 make demo seeds only the Debug container after building both Debug apps; an unknown fixture stops first" test_demo
 behavior "ARCH-24 Debug Mac bundle file names and all Debug display names contain Debug; Release names do not" test_debug_names
+behavior "ARCH-25 the runtime lock stops a second checkout before xcodebuild and lets nested make calls through" test_runtime_lock
 [ "$run_build" = 0 ] || behavior "ARCH-15 a compiler warning fails the build" test_warning_fails_build
 [ "$run_build" = 0 ] || behavior "ARCH-1 swift test passes in a copy of the checkout without local.mk, signing, or network" test_package_without_local_mk
 [ "$run_products" = 0 ] || behavior "ARCH-4 the Release Mac app holds the agent, launchd plist, and tools, and no Frameworks" test_mac_products
