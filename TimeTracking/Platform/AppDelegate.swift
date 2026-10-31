@@ -62,6 +62,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             notifier: notifier,
             agent: agent,
             loginItem: Self.appLoginItem(uiTesting: uiTesting),
+            automation: uiTesting ? FakeAutomationPermission() : AutomationPermission(),
             readTrackerState: { await activity?.currentState() },
             trackerCommands: uiTesting || socket == nil ? RecordingTrackerCommands() : TrackerSocket(url: socket ?? URL(filePath: "/")),
             trackerSettingsURL: folders?.settingsURL,

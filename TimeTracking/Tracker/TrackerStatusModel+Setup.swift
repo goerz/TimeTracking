@@ -93,14 +93,16 @@ extension TrackerStatusModel {
                 enabled: "the tracker asks your browser for its current tab and your terminal for its front tab.",
                 disabled: "the tab is read from the browser window instead, and the terminal tab is guessed."
             ),
-            actions: [.openSettings(anchor: "Privacy_Automation")]
+            actions: [.askAutomation, .openSettings(anchor: "Privacy_Automation")]
         )
         result.guidance = [
-            "When macOS asks to allow control of Safari, another browser, or a terminal, click Allow.",
+            "Open the browsers and terminals you use, click Ask for Access, and click Allow for each.",
             "If you declined: open System Settings › Privacy & Security › Automation.",
-            "Under \(bundles.appName) (or \(bundles.agentName)), turn on each browser and terminal.",
+            "Under \(bundles.appName), turn on each browser and terminal.",
         ]
-        result.note = "macOS asks once per app, the first time the tracker reads its tab or pane."
+        result.note = "Automation belongs to \(bundles.appName): the tracker runs on its behalf. macOS can ask only for open "
+            + "apps; the others are asked the first time the tracker reads their tab or pane."
+        result.outcome = automationOutcome
         result.info = TrackerSetupInfo(title: "Automation", paragraphs: [
             "In a browser, the tracker records the page you are on; in a terminal, the tab or tmux pane you work in "
                 + "and the program running there.",
@@ -112,6 +114,25 @@ extension TrackerStatusModel {
                 + "which is wrong while output scrolls by in a tab behind the one you look at.",
         ])
         return result
+    }
+
+    /// The line under the Automation buttons after "Ask for Access".
+    static func automationOutcomeLine(_ outcomes: [AutomationOutcome]) -> String {
+        guard !outcomes.isEmpty else {
+            return "None of the browsers and terminals the tracker asks are open."
+        }
+        func names(_ answer: AutomationAnswer) -> [String] {
+            outcomes.filter { $0.answer == answer }.map(\.name)
+        }
+        func line(_ prefix: String, _ names: [String], _ suffix: String = "") -> String? {
+            names.isEmpty ? nil : "\(prefix): \(names.formatted(.list(type: .and)))\(suffix)."
+        }
+        let declined = names(.declined)
+        return [
+            line("Allowed", names(.allowed)),
+            line("Declined", declined, declined.count == 1 ? "; turn it on in System Settings" : "; turn them on in System Settings"),
+            line("Couldn't ask", names(.failed)),
+        ].compactMap(\.self).joined(separator: " ")
     }
 
     /// Full Disk Access is checked for the app: the agent runs on its behalf.

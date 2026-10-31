@@ -28,6 +28,9 @@ struct TrackerSetupStep: Identifiable, Equatable {
         /// "Show <name> in Finder": reveals that bundle.
         case showInFinder(name: String, url: URL)
         case restartTracker
+        /// "Ask for Access": the macOS Automation prompt for each open
+        /// browser and terminal.
+        case askAutomation
         case openAtLogin
         case copySnippet(String)
         case noAction
@@ -40,6 +43,7 @@ struct TrackerSetupStep: Identifiable, Equatable {
             case .openSettings: "Open System Settings"
             case let .showInFinder(name, _): "Show \(name) in Finder"
             case .restartTracker: "Restart Tracker"
+            case .askAutomation: "Ask for Access"
             case .openAtLogin: "Open at Login"
             case .copySnippet: "Copy Snippet"
             case .noAction: ""
@@ -55,6 +59,7 @@ struct TrackerSetupStep: Identifiable, Equatable {
             case .openSettings: "settings"
             case .showInFinder: "finder"
             case .restartTracker: "restart"
+            case .askAutomation: "ask"
             case .openAtLogin: "openAtLogin"
             case .copySnippet: "copy"
             case .noAction: "none"
@@ -74,6 +79,8 @@ struct TrackerSetupStep: Identifiable, Equatable {
     var guidance: [String] = []
     /// Why the grant goes to this bundle.
     var note = ""
+    /// The outcome of the row's last action, under its buttons.
+    var outcome: String?
     /// The row's info button: what the step does and what to do.
     var info: TrackerSetupInfo?
 }

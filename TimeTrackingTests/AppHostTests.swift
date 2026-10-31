@@ -18,6 +18,7 @@ struct AppHostTests {
             notifier: RecordingNotifier(),
             agent: FakeAgentService(),
             loginItem: FakeAppLoginItem(),
+            automation: FakeAutomationPermission(),
             readTrackerState: { nil },
             trackerCommands: RecordingTrackerCommands(),
             trackerSettingsURL: nil,

@@ -94,6 +94,8 @@ struct TrackerPane: View {
             Button(action.title) { SystemSettings.reveal(url) }.accessibilityIdentifier(identifier)
         case .restartTracker:
             Button(action.title) { Task { await app.tracker.restartTracker() } }.accessibilityIdentifier(identifier)
+        case .askAutomation:
+            Button(action.title) { Task { await app.tracker.askForAutomation() } }.accessibilityIdentifier(identifier)
         case .openAtLogin:
             Button(action.title) { app.tracker.setOpensAtLogin(true) }.accessibilityIdentifier(identifier)
         case let .copySnippet(snippet):
@@ -143,21 +145,30 @@ private struct SetupStepRow<Actions: View>: View {
                         Text(step.note).font(.caption).foregroundStyle(.secondary)
                     }
                 }
-                let actions = step.actions.filter { $0 != .noAction }
-                if !actions.isEmpty {
-                    HStack(spacing: Design.Spacing.small) {
-                        ForEach(Array(actions.enumerated()), id: \.offset) { _, item in
-                            action(item)
-                        }
-                    }
-                    .controlSize(.small)
-                    .padding(.top, Design.Spacing.tight)
+                buttons
+                if let outcome = step.outcome {
+                    Text(outcome).font(.caption).foregroundStyle(.secondary)
+                        .accessibilityIdentifier("tracker.outcome.\(step.id)")
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             if let info = step.info {
                 InfoButton(info: info).accessibilityIdentifier("tracker.info.\(step.id)")
             }
+        }
+    }
+
+    /// The row's buttons in one line, in the small control size.
+    @ViewBuilder private var buttons: some View {
+        let actions = step.actions.filter { $0 != .noAction }
+        if !actions.isEmpty {
+            HStack(spacing: Design.Spacing.small) {
+                ForEach(Array(actions.enumerated()), id: \.offset) { _, item in
+                    action(item)
+                }
+            }
+            .controlSize(.small)
+            .padding(.top, Design.Spacing.tight)
         }
     }
 

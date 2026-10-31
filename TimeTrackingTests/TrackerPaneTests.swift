@@ -182,7 +182,9 @@ struct TrackerPaneTests {
         #expect(accessibility.actions.contains(.showInFinder(name: "TimeTrackingAgent Debug", url: agentURL)))
         #expect(accessibility.guidance.contains("Turn TimeTrackingAgent Debug on."))
         let automation = try #require(steps["automation"])
-        #expect(automation.guidance.contains { $0.contains(bundles.appName) && $0.contains(bundles.agentName) })
+        #expect(automation.guidance.contains("Under \(bundles.appName), turn on each browser and terminal."))
+        #expect(automation.note.hasPrefix("Automation belongs to \(bundles.appName)"))
+        #expect(!automation.guidance.joined().contains("TimeTrackingAgent"))
         // Release names: the installed app's file name, without " Debug".
         let release = TrackerBundles(
             app: URL(filePath: "/Applications/TimeTracking.app"),

@@ -13,6 +13,7 @@ import TimeTrackingCore
 final class TrackerStatusModel {
     @ObservationIgnored let agent: AgentService
     @ObservationIgnored let loginItem: AppLoginItemService
+    @ObservationIgnored let automation: AutomationPermissionService
     @ObservationIgnored let clock: any Clock
     @ObservationIgnored let readState: () async -> TrackerState?
     /// The bundles the setup steps name and reveal.
@@ -27,16 +28,20 @@ final class TrackerStatusModel {
     private(set) var presentSince: Date?
     var confirmDisable = false
     private(set) var lastError: String?
+    /// The answers of the last "Ask for Access" as one line; `nil` before the first.
+    private(set) var automationOutcome: String?
 
     init(
         agent: AgentService,
         loginItem: AppLoginItemService = FakeAppLoginItem(),
+        automation: AutomationPermissionService = FakeAutomationPermission(),
         clock: any Clock,
         readState: @escaping () async -> TrackerState?,
         bundles: TrackerBundles = .main
     ) {
         self.agent = agent
         self.loginItem = loginItem
+        self.automation = automation
         self.clock = clock
         self.readState = readState
         self.bundles = bundles
@@ -144,6 +149,13 @@ final class TrackerStatusModel {
         } catch {
             lastError = error.localizedDescription
         }
+        await refresh()
+    }
+
+    /// "Ask for Access": asks macOS for each scriptable browser and
+    /// terminal that is open, then re-reads the status.
+    func askForAutomation() async {
+        automationOutcome = await Self.automationOutcomeLine(automation.ask(AutomationTargets.bundleIDs))
         await refresh()
     }
 

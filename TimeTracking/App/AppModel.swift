@@ -58,6 +58,7 @@ final class AppModel {
         notifier: NotificationPosting,
         agent: AgentService,
         loginItem: AppLoginItemService,
+        automation: AutomationPermissionService = FakeAutomationPermission(),
         readTrackerState: @escaping () async -> TrackerState? = { nil },
         trackerCommands: TrackerCommandSending = RecordingTrackerCommands(),
         trackerSettingsURL: URL? = nil,
@@ -75,7 +76,13 @@ final class AppModel {
         self.pomodoro = PomodoroModel(store: store, clock: clock, notifier: notifier, settings: settings)
         self.idle = IdleModel(store: store, clock: clock, notifier: notifier, settings: settings)
         self.reminders = ReminderModel(store: store, clock: clock, notifier: notifier, settings: settings)
-        self.tracker = TrackerStatusModel(agent: agent, loginItem: loginItem, clock: clock, readState: readTrackerState)
+        self.tracker = TrackerStatusModel(
+            agent: agent,
+            loginItem: loginItem,
+            automation: automation,
+            clock: clock,
+            readState: readTrackerState
+        )
         self.trackerSettings = TrackerSettingsModel(settingsURL: trackerSettingsURL)
         self.planner = PlannerRouter(
             store: store,
