@@ -154,6 +154,7 @@ struct FixtureShiftTests {
 
         let store = try await TimeStore.open(TimeStore.Configuration(
             location: .file(storeURL),
+            clock: ManualClock(now),
             deviceID: DeviceID(),
             timeZone: { Self.newYork }
         ))
