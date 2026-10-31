@@ -41,7 +41,7 @@ extension ProjectsModel {
         return nil
     }
 
-    /// The client New Area… adds to: the selected client, the selected
+    /// The client New Area… starts on: the selected client, the selected
     /// area's client, or the one selected project's client.
     var clientForNewArea: ClientID? {
         clientsAndAreas.selectedClient ?? single?.client?.id

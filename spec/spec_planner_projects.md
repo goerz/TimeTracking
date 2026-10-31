@@ -179,8 +179,8 @@ Clients are not archived; a client leaves the picker when it has no active proje
 
 | Action | Rule |
 |---|---|
-| Add (New Area… on a client row, in the toolbar's New menu, and in File, ⇧⌥⌘N; in the selected row's client) | Area sheet: Name (required, unique within the client case- and diacritic-insensitively, not the client's name: "This name is used by the client's general area") and Color, prefilled with the default (4.4). Goes last in the client's order |
-| Edit | Same sheet; for the general area Name is disabled with the note "Named after the client". Recoloring recolors every entry of the area's projects at once |
+| Add (New Area… on a client row, in the toolbar's New menu, and in File, ⇧⌥⌘N) | Area sheet: Name (required, unique within the client case- and diacritic-insensitively, not the client's name: "This name is used by the client's general area"), Client (popup of the clients alphabetically, starting on the selected row's client, else empty with "Choose a Client" and Create disabled until one is chosen; fixed when the project dialog's "New Area…" opens it), and Color, prefilled with the default (4.4). Goes last in the client's order. Areas of different clients may share a name; each has its own color |
+| Edit | Same sheet with Client fixed; for the general area Name is disabled with the note "Named after the client". Recoloring recolors every entry of the area's projects at once |
 | Reorder | ⌥⌘↑ / ⌥⌘↓ (Move Up, Move Down); the general area stays first. This order applies in the picker, Group by Client and Area, and Reports |
 | Retire | Only without active projects. Hidden from the Area popup and the picker; archived projects keep area and color. Restoring one of its projects reactivates it |
 | Reactivate | Always available on a retired area |
@@ -243,6 +243,7 @@ Archived projects and retired areas never appear. The entry's current project ha
 - PP-23. Typing in the picker hides Recent; "Create Project “x”" appears for a query matching no active project's name and not for "noise model" when "Noise Model" exists.
 - PP-24. With task matching on, "clarify" finds the project of "Clarify noise model" tracked 30 days ago and not one tracked 100 days ago.
 - PP-25. A client or area row is selected alone and the Project menu (Edit Area…, Delete Area…, Retire Area; Rename Client…, Remove Client…), ↩, and Show in Reports act on it; a selection extended over client and area rows keeps only its projects; New Project… starts in the selected area, or in the area of the one selected project.
+- PP-26. New Area… starts its Client popup on the selected row's client, or empty with Create disabled until a client is chosen; the name rule follows the chosen client ("Research" is taken under University, free under Consulting); an existing area's client is fixed.
 
 ## 7. Decisions
 

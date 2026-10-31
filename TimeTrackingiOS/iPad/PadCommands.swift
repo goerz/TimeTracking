@@ -74,16 +74,15 @@ struct PadCommands: Commands {
             }
             .keyboardShortcut("n", modifiers: [.command, .option])
             .disabled(router == nil)
-            // In the client of the selected row.
+            // The Client popup starts on the selected row's client.
             Button("New Area…") {
+                router?.select(.projects)
                 if let projects = router?.projects {
                     Task { await projects.clientsAndAreas.newArea(in: projects.clientForNewArea) }
                 }
             }
-            .contextCommand(
-                KeyboardShortcut("n", modifiers: [.command, .option, .shift]),
-                enabled: state.projectCommands && router?.projects.clientForNewArea != nil
-            )
+            .keyboardShortcut("n", modifiers: [.command, .option, .shift])
+            .disabled(router == nil)
             Button("New Client…") {
                 router?.select(.projects)
                 if let router {

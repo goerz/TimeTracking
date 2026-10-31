@@ -95,12 +95,10 @@ final class ClientsAreasModel {
         clientForm = form
     }
 
-    /// New Area… (⇧⌥⌘N), in the given client or the selected one.
+    /// New Area… (⇧⌥⌘N); the Client popup starts on the given client or
+    /// the selected one.
     func newArea(in client: ClientID? = nil) async {
-        guard let client = client ?? selectedClient else {
-            return
-        }
-        areaForm = await AreaFormModel.create(store: store, client: client)
+        areaForm = await AreaFormModel.create(store: store, client: client ?? selectedClient)
     }
 
     /// Edit… (double-click, ↩) on an area.
@@ -108,7 +106,7 @@ final class ClientsAreasModel {
         guard let (client, area) = area(id) else {
             return
         }
-        let form = AreaFormModel(store: store, mode: .edit(area.area), clientName: client.client.name)
+        let form = AreaFormModel.edit(store: store, area: area.area, client: client.client)
         form.undoManager = undoManager
         areaForm = form
     }

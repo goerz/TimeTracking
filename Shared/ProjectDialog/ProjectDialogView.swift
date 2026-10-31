@@ -133,7 +133,7 @@ struct ProjectDialogView: View {
         } set: { tag in
             if tag == Self.newAreaTag {
                 if let client = model.clientID {
-                    Task { areaForm = await AreaFormModel.create(store: model.store, client: client) }
+                    Task { areaForm = await AreaFormModel.create(store: model.store, client: client, fixed: true) }
                 }
             } else {
                 model.areaID = AreaID(tag)

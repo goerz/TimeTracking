@@ -49,4 +49,38 @@ struct ProjectsRowsTests {
         await model.dialogFinished(nil)
         #expect(model.newProjectArea == nil)
     }
+
+    @Test("PP-26 New Area… starts on the selected row's client or on none, Create waits for a client, and the name rule follows it")
+    func newAreaClient() async throws {
+        let test = try await TestApp()
+        let (consulting, _) = try await test.store.createClient(name: "Consulting")
+        let (university, _) = try await test.store.createClient(name: "University")
+        _ = try await test.store.createArea(AreaDraft(clientID: university.id, name: "Research"))
+        let model = test.app.planner.projects
+        await model.reload()
+
+        await model.clientsAndAreas.newArea(in: model.clientForNewArea)
+        let empty = try #require(model.clientsAndAreas.areaForm)
+        #expect(empty.clientID == nil && !empty.clientFixed)
+        #expect(empty.clients.map(\.name) == ["Consulting", "University"])
+        empty.name = "Research"
+        await empty.validate()
+        #expect(!empty.canSubmit)
+        empty.clientID = university.id
+        await empty.validate()
+        #expect(empty.nameError == "An area with this name already exists for University")
+        empty.clientID = consulting.id
+        await empty.validate()
+        #expect(empty.canSubmit)
+
+        model.selectRows(["client:\(university.id.rawValue)"])
+        await model.clientsAndAreas.newArea(in: model.clientForNewArea)
+        #expect(model.clientsAndAreas.areaForm?.clientID == university.id)
+        let fixed = await AreaFormModel.create(store: test.store, client: university.id, fixed: true)
+        #expect(fixed.clientFixed)
+        let research = try #require(model.areas.first { $0.name == "Research" })
+        model.clientsAndAreas.editArea(research.id)
+        #expect(model.clientsAndAreas.areaForm?.clientFixed == true)
+        #expect(model.clientsAndAreas.areaForm?.clientID == university.id)
+    }
 }

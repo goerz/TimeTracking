@@ -29,16 +29,14 @@ struct FileCommands: Commands {
                 router?.projects.newProject()
             }
             .keyboardShortcut("n", modifiers: [.command, .option])
-            // In the client of the selected row.
+            // The Client popup starts on the selected row's client.
             Button("New Area…") {
+                show(.projects)
                 if let projects = router?.projects {
                     Task { await projects.clientsAndAreas.newArea(in: projects.clientForNewArea) }
                 }
             }
-            .contextCommand(
-                KeyboardShortcut("n", modifiers: [.command, .option, .shift]),
-                enabled: state.projectCommands && router?.projects.clientForNewArea != nil
-            )
+            .keyboardShortcut("n", modifiers: [.command, .option, .shift])
             Button("New Client…") {
                 show(.projects)
                 if let router {

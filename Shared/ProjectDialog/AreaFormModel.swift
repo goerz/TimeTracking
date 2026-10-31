@@ -5,41 +5,69 @@ import Foundation
 import Observation
 import TimeTrackingCore
 
-/// The area sheet: Name and Color; the general area's name is fixed.
+/// The area sheet: Name, Client, and Color. A new area's client is chosen
+/// in the Client popup (fixed when the project dialog asks for the area);
+/// an existing area's client and the general area's name are fixed.
 @Observable
 final class AreaFormModel {
     enum Mode: Equatable {
-        case create(ClientID)
+        case create
         case edit(Area)
     }
 
     @ObservationIgnored let store: TimeStore
     @ObservationIgnored weak var undoManager: UndoManager?
     let mode: Mode
-    /// The client's name (an area may not take it).
-    let clientName: String
+    /// The clients of the Client popup, alphabetically.
+    let clients: [Client]
+    /// The area's client; `nil` until one is chosen.
+    var clientID: ClientID?
+    /// The Client popup cannot change.
+    let clientFixed: Bool
     var name: String
     var color: String
     private(set) var nameError: String?
     private(set) var lastError: String?
 
-    init(store: TimeStore, mode: Mode, clientName: String, color: String = "#4D94CC") {
+    init(store: TimeStore, mode: Mode, clients: [Client], client: ClientID?, clientFixed: Bool, color: String = "#4D94CC") {
         self.store = store
         self.mode = mode
-        self.clientName = clientName
+        self.clients = clients.sorted { ($0.name.folded, $0.id) < ($1.name.folded, $1.id) }
         if case let .edit(area) = mode {
+            self.clientID = area.clientID
+            self.clientFixed = true
             self.name = area.name
             self.color = area.color
         } else {
+            self.clientID = client
+            self.clientFixed = clientFixed
             self.name = ""
             self.color = color
         }
     }
 
-    /// A new area of `client` with the default color prefilled.
-    static func create(store: TimeStore, client: ClientID) async -> AreaFormModel {
-        let name = await (try? store.clients(includeRetired: true).first { $0.id == client }?.name) ?? ""
-        return await AreaFormModel(store: store, mode: .create(client), clientName: name, color: defaultColor(store: store))
+    /// A new area, in `client` if given (`fixed`: only there), with the
+    /// default color prefilled.
+    static func create(store: TimeStore, client: ClientID?, fixed: Bool = false) async -> AreaFormModel {
+        let clients = await (try? store.clients(includeRetired: true)) ?? []
+        return await AreaFormModel(
+            store: store,
+            mode: .create,
+            clients: clients,
+            client: client,
+            clientFixed: fixed && client != nil,
+            color: defaultColor(store: store)
+        )
+    }
+
+    /// An existing area of `client`.
+    static func edit(store: TimeStore, area: Area, client: Client) -> AreaFormModel {
+        AreaFormModel(store: store, mode: .edit(area), clients: [client], client: area.clientID, clientFixed: true)
+    }
+
+    /// The chosen client's name (an area may not take it).
+    var clientName: String {
+        clients.first { $0.id == clientID }?.name ?? ""
     }
 
     /// `AreaColor.defaultColor(existing:)` over every live area.
@@ -76,19 +104,12 @@ final class AreaFormModel {
     }
 
     var canSubmit: Bool {
-        !name.trimmed.isEmpty && nameError == nil
-    }
-
-    private var clientID: ClientID {
-        switch mode {
-        case let .create(client): client
-        case let .edit(area): area.clientID
-        }
+        clientID != nil && !name.trimmed.isEmpty && nameError == nil
     }
 
     /// Unique within the client and not the client's name.
     func validate() async {
-        guard nameEditable, !name.trimmed.isEmpty else {
+        guard nameEditable, !name.trimmed.isEmpty, let clientID else {
             nameError = nil
             return
         }
@@ -116,8 +137,11 @@ final class AreaFormModel {
         }
         do {
             switch mode {
-            case let .create(client):
-                return try await store.createArea(AreaDraft(clientID: client, name: name.trimmed, color: color))
+            case .create:
+                guard let clientID else {
+                    return nil
+                }
+                return try await store.createArea(AreaDraft(clientID: clientID, name: name.trimmed, color: color))
             case let .edit(area):
                 let newName = nameEditable && name.trimmed != area.name ? name.trimmed : nil
                 let newColor = color.uppercased() != area.color ? color : nil

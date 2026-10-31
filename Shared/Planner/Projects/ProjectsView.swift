@@ -195,7 +195,6 @@ private struct ProjectsToolbar: ToolbarContent {
             Menu {
                 Button("New Project…") { model.newProject() }
                 Button("New Area…") { Task { await model.clientsAndAreas.newArea(in: model.clientForNewArea) } }
-                    .disabled(model.clientForNewArea == nil)
                 Button("New Client…") { Task { await model.clientsAndAreas.newClient() } }
             } label: {
                 Label("New Project", systemImage: SymbolName.add)

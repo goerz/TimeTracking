@@ -4,7 +4,7 @@
 import SwiftUI
 import TimeTrackingCore
 
-/// New Area and Edit Area.
+/// New Area and Edit Area: Name, Client, Color.
 struct AreaFormView: View {
     @Bindable var model: AreaFormModel
     var onDone: (Area?) -> Void
@@ -30,6 +30,17 @@ struct AreaFormView: View {
             if let error = model.lastError {
                 Text(error).font(.caption).foregroundStyle(Color.errorText).accessibilityIdentifier("areaForm.error")
             }
+            Picker("Client", selection: $model.clientID) {
+                if model.clientID == nil {
+                    Text("Choose a Client").tag(ClientID?.none)
+                }
+                ForEach(model.clients) { client in
+                    Text(client.name).tag(Optional(client.id))
+                }
+            }
+            .disabled(model.clientFixed)
+            .onChange(of: model.clientID) { Task { await model.validate() } }
+            .accessibilityIdentifier("areaForm.client")
             AreaColorWell(hex: $model.color).accessibilityIdentifier("areaForm.color")
         }
     }
