@@ -28,10 +28,7 @@ struct PlannerWindowView: View {
         }
         .frame(minWidth: 820, minHeight: 560)
         .focusedSceneValue(\.plannerWindowActive, true)
-        .background(WindowAccessor { window in
-            window.setFrameAutosaveName("Planner")
-            window.identifier = NSUserInterfaceItemIdentifier("planner")
-        })
+        .background(WindowAccessor(onWindow: PlannerWindowSetup.configure))
         .onAppear {
             columns = app.settings.device[.plannerSidebarVisible] ? .all : .detailOnly
             app.plannerOpened()
