@@ -174,13 +174,14 @@ struct ContextGlyph: View {
     }
 }
 
-/// "All", eight chips, "N more…" (§1.3).
+/// "All", eight chips, "N more…", wrapping onto further lines as whole
+/// chips (§1.3).
 private struct ActivityChips: View {
     @Bindable var model: ActivityModel
 
     var body: some View {
         let ranking = model.summary?.ranking ?? []
-        HStack(spacing: Design.Spacing.compact) {
+        FlowChips(spacing: Design.Spacing.compact) {
             chip("All", selected: model.contexts.isEmpty) { Task { await model.selectAll() } }
             ForEach(ranking.prefix(8)) { total in
                 chip(model.displayName(total.context), context: total.context, selected: model.contexts.contains(total.context)) {
@@ -204,7 +205,7 @@ private struct ActivityChips: View {
                 if let context {
                     ContextGlyph(context: context)
                 }
-                Text(title)
+                Text(title).lineLimit(1)
             }
             .padding(.horizontal, Design.Spacing.medium)
             .padding(.vertical, Design.Spacing.tight)

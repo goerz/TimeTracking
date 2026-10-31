@@ -22,7 +22,7 @@ Durations read `Nh Mm` from one hour, `Mm` below, and `Ss` below one minute.
 
 ### 1.3 Context chips and colors
 
-An "All" chip, then one chip per context ranked by time: the first eight on the line, the rest behind "N more…", a popover with a searchable list and durations. A chip shows the context's glyph in its color, its display name, and its duration on hover. Clicking toggles a chip (several may be on); "All" turns the others off. The filter applies to every panel except Away; it resets to "All" when the range changes other than by a period arrow and when the main window reopens, and it does not sync.
+An "All" chip, then one chip per context ranked by time: the first eight, the rest behind "N more…", a popover with a searchable list and durations. Chips that do not fit on one line wrap onto further lines as whole chips; a display name never breaks inside its chip. A chip shows the context's glyph in its color, its display name, and its duration on hover. Clicking toggles a chip (several may be on); "All" turns the others off. The filter applies to every panel except Away; it resets to "All" when the range changes other than by a period arrow and when the main window reopens, and it does not sync.
 
 | Context | Kind | Display | Glyph |
 |---|---|---|---|
