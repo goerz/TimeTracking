@@ -1,5 +1,5 @@
 // CalendarView: the Calendar section's toolbar, summary strip, day headers,
-// and day columns (spec_planner_calendar.md §1; mockups/planner_calendar.png).
+// and day columns (spec_planner_calendar.md §1).
 
 import SwiftUI
 import TimeTrackingCore

@@ -1,5 +1,5 @@
 // ProjectsView: the Projects section's toolbar, table, and status row
-// (spec_planner_projects.md §2; mockups/planner_projects.png).
+// (spec_planner_projects.md §2).
 
 import SwiftUI
 import TimeTrackingCore
