@@ -98,8 +98,6 @@ private struct ReportEntryRow: View {
     var model: ReportsModel
     var listing: EntryListing
 
-    @State private var editor: EntryEditorModel?
-
     var body: some View {
         let entry = listing.entry
         HStack(spacing: 10) {
@@ -128,34 +126,13 @@ private struct ReportEntryRow: View {
         }
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("reports.entry")
-        .popover(isPresented: editingBinding, arrowEdge: .leading) {
-            if let editor {
-                EntryEditorView(model: editor, makePicker: makePicker) {
-                    model.editing = nil
-                }
-            }
-        }
-        .onChange(of: model.editing, initial: true) { _, editing in
-            if editing == listing.id {
-                let editor = EntryEditorModel(store: model.store, clock: model.clock, entry: listing.entry)
-                editor.onChange = { await model.editorChanged() }
-                editor.onDelete = { model.editing = nil }
-                self.editor = editor
-            }
-        }
-    }
-
-    private var editingBinding: Binding<Bool> {
-        Binding {
-            model.editing == listing.id && editor != nil
-        } set: { shown in
-            if !shown {
-                model.editing = nil
-            }
-        }
-    }
-
-    private func makePicker(_ current: ProjectID?) -> ProjectPickerModel {
-        ProjectPickerModel(store: model.store, currentProject: current, taskMatching: false)
+        .modifier(EntryEditorPopover(
+            entry: entry,
+            editing: Bindable(model).editing,
+            store: model.store,
+            clock: model.clock,
+            arrowEdge: .leading,
+            opensOnAppear: true
+        ) { await model.editorChanged() })
     }
 }

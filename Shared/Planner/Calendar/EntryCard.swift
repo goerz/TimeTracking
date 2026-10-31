@@ -13,7 +13,6 @@ struct EntryCard: View {
     var dayWidth: CGFloat
     @State private var dragOffset: CGSize = .zero
     @State private var hovering = false
-    @State private var editor: EntryEditorModel?
     /// The iPad's long-press menu.
     @State private var showsMenu = false
     /// The iPad's resize preview offsets of the top and bottom edges.
@@ -85,20 +84,15 @@ struct EntryCard: View {
             Task { await model.move(entry.id, by: seconds, to: entry.day.adding(days: days)) }
         }
         .modifier(EntryMenu(showsMenu: $showsMenu) { menu })
-        .popover(isPresented: editingBinding, arrowEdge: .trailing) {
-            if let editor {
-                EntryEditorView(model: editor, makePicker: makePicker) { model.editingEntry = nil }
-            }
-        }
+        .modifier(EntryEditorPopover(
+            entry: entry,
+            editing: Bindable(model).editingEntry,
+            store: model.store,
+            clock: model.clock,
+            arrowEdge: .trailing,
+            opensOnAppear: true
+        ) { await model.changed() })
         .popover(isPresented: overlapBinding, arrowEdge: .trailing) { OverlapPopover(model: model) }
-        .onChange(of: model.editingEntry, initial: true) { _, editing in
-            if editing == entry.id {
-                let editor = EntryEditorModel(store: model.store, clock: model.clock, entry: entry)
-                editor.onChange = { await model.changed() }
-                editor.onDelete = { model.editingEntry = nil }
-                self.editor = editor
-            }
-        }
         .help("\(listing.entry.task) · \(ProjectLabel(listing).projectAndClient)")
         .accessibilityIdentifier("calendar.entry")
     }
@@ -244,7 +238,7 @@ struct EntryCard: View {
     }
 }
 
-/// The context menu, the overlap tooltip, and the popover bindings.
+/// The context menu, the overlap tooltip, and the overlap popover's binding.
 extension EntryCard {
     @ViewBuilder private var menu: some View {
         Button("Continue") { Task { await model.continueEntry(entry.id) } }
@@ -266,14 +260,6 @@ extension EntryCard {
         model.overlapHelp(for: entry)
     }
 
-    private var editingBinding: Binding<Bool> {
-        Binding { model.editingEntry == entry.id && editor != nil } set: { shown in
-            if !shown {
-                model.editingEntry = nil
-            }
-        }
-    }
-
     private var overlapBinding: Binding<Bool> {
         Binding {
             if case let .change(id) = model.pendingOverlap?.action {
@@ -285,9 +271,5 @@ extension EntryCard {
                 Task { await model.resolveOverlap(.cancel) }
             }
         }
-    }
-
-    private func makePicker(_ current: ProjectID?) -> ProjectPickerModel {
-        ProjectPickerModel(store: model.store, currentProject: current, taskMatching: false)
     }
 }

@@ -176,7 +176,6 @@ struct EntryRowView: View {
     @Environment(AppModel.self) private var app
     var listing: EntryListing
     @State private var hovering = false
-    @State private var editor: EntryEditorModel?
 
     var body: some View {
         let entry = listing.entry
@@ -221,18 +220,13 @@ struct EntryRowView: View {
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("timer.row")
         .accessibilityValue(selected ? "selected" : "")
-        .popover(isPresented: editingBinding, arrowEdge: .leading) {
-            if let editor {
-                EntryEditorView(model: editor, makePicker: makePicker) {
-                    app.presentation.editing = nil
-                }
-            }
-        }
-        .onChange(of: app.presentation.editing) { _, editing in
-            if editing == entry.id {
-                editor = makeEditor()
-            }
-        }
+        .modifier(EntryEditorPopover(
+            entry: entry,
+            editing: Bindable(app.presentation).editing,
+            store: app.store,
+            clock: app.clock,
+            arrowEdge: .leading
+        ) { await app.afterChange() })
     }
 
     private func rowFill(selected: Bool) -> AnyShapeStyle {
@@ -243,27 +237,6 @@ struct EntryRowView: View {
         } else {
             AnyShapeStyle(.clear)
         }
-    }
-
-    private var editingBinding: Binding<Bool> {
-        Binding {
-            app.presentation.editing == listing.id && editor != nil
-        } set: { shown in
-            if !shown, app.presentation.editing == listing.id {
-                app.presentation.editing = nil
-            }
-        }
-    }
-
-    private func makeEditor() -> EntryEditorModel {
-        let model = EntryEditorModel(store: app.store, clock: app.clock, entry: listing.entry)
-        model.onChange = { await app.afterChange() }
-        model.onDelete = { app.presentation.editing = nil }
-        return model
-    }
-
-    private func makePicker(_ current: ProjectID?) -> ProjectPickerModel {
-        ProjectPickerModel(store: app.store, currentProject: current, taskMatching: false)
     }
 
     /// "9:10 to 9:35".

@@ -7,7 +7,6 @@ import TimeTrackingCore
 struct TimerWindowView: View {
     @Environment(AppModel.self) private var app
     @Environment(\.undoManager) private var undoManager
-    @State private var runningEditor: EntryEditorModel?
     /// The hidden title bar's height. The hosting view adds it to the
     /// content's minimum, so the content asks for that much less.
     @State private var titleBarInset: CGFloat = 0
@@ -17,13 +16,14 @@ struct TimerWindowView: View {
         GeometryReader { geometry in
             VStack(spacing: 0) {
                 RunningEntryBar()
-                    .popover(isPresented: runningEditorShown, arrowEdge: .bottom) {
-                        if let runningEditor {
-                            EntryEditorView(model: runningEditor, makePicker: makePicker) {
-                                app.presentation.editing = nil
-                            }
-                        }
-                    }
+                    .modifier(EntryEditorPopover(
+                        entry: app.timer.running,
+                        editing: $presentation.editing,
+                        store: app.store,
+                        clock: app.clock,
+                        taskMatching: true,
+                        arrowEdge: .bottom
+                    ) { await app.afterChange() })
                     .zIndex(1)
                 if !TimerWindowGeometry.isCompact(height: geometry.size.height) {
                     Divider()
@@ -47,14 +47,6 @@ struct TimerWindowView: View {
             app.timer.undoManager = undoManager
             app.list.undoManager = undoManager
         }
-        .onChange(of: app.presentation.editing) { _, editing in
-            if let running = app.timer.running, editing == running.id {
-                let model = EntryEditorModel(store: app.store, clock: app.clock, entry: running)
-                model.onChange = { await app.afterChange() }
-                model.onDelete = { app.presentation.editing = nil }
-                runningEditor = model
-            }
-        }
         .alert(item: Binding(get: { app.timer.alert }, set: { app.timer.alert = $0 })) { alert in
             timerAlert(alert)
         }
@@ -74,24 +66,10 @@ struct TimerWindowView: View {
         }
     }
 
-    private var runningEditorShown: Binding<Bool> {
-        Binding {
-            app.timer.running.map { app.presentation.editing == $0.id } ?? false && runningEditor != nil
-        } set: { shown in
-            if !shown {
-                app.presentation.editing = nil
-            }
-        }
-    }
-
     private var idlePrompt: Binding<IdlePromptItem?> {
         Binding {
             app.idle.prompt.map { IdlePromptItem(prompt: $0) }
         } set: { _ in }
-    }
-
-    private func makePicker(_ current: ProjectID?) -> ProjectPickerModel {
-        ProjectPickerModel(store: app.store, currentProject: current, taskMatching: true)
     }
 
     private func timerAlert(_ alert: TimerAlert) -> Alert {
