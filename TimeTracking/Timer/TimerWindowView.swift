@@ -47,9 +47,7 @@ struct TimerWindowView: View {
             app.timer.undoManager = undoManager
             app.list.undoManager = undoManager
         }
-        .alert(item: Binding(get: { app.timer.alert }, set: { app.timer.alert = $0 })) { alert in
-            timerAlert(alert)
-        }
+        .timerAlert(timer: app.timer, list: app.list)
         .sheet(item: idlePrompt) { _ in
             IdlePromptView()
         }
@@ -70,31 +68,6 @@ struct TimerWindowView: View {
         Binding {
             app.idle.prompt.map { IdlePromptItem(prompt: $0) }
         } set: { _ in }
-    }
-
-    private func timerAlert(_ alert: TimerAlert) -> Alert {
-        switch alert {
-        case .discard:
-            Alert(
-                title: Text(alert.message),
-                primaryButton: .destructive(Text("Discard")) { Task { await app.timer.discard() } },
-                secondaryButton: .cancel()
-            )
-        case let .restoreProject(id, _):
-            Alert(
-                title: Text(alert.message),
-                primaryButton: .default(Text("Restore Project and Continue")) {
-                    Task { await app.timer.restoreProjectAndContinue(id) }
-                },
-                secondaryButton: .cancel()
-            )
-        case let .deleteEntry(id, _):
-            Alert(
-                title: Text(alert.message),
-                primaryButton: .destructive(Text("Delete")) { Task { await app.list.delete(id) } },
-                secondaryButton: .cancel()
-            )
-        }
     }
 }
 

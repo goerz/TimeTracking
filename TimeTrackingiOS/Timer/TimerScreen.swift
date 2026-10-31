@@ -48,13 +48,7 @@ struct TimerScreen: View {
         .sheet(item: sheetBinding) { sheet in
             sheetContent(sheet)
         }
-        .alert(
-            model.timer.alert?.message ?? "",
-            isPresented: Binding(get: { model.timer.alert != nil }, set: { model.timer.alert = $0 ? model.timer.alert : nil }),
-            presenting: model.timer.alert
-        ) { alert in
-            timerAlertButtons(alert)
-        }
+        .timerAlert(timer: model.timer, list: model.list)
         .alert(
             "Can't Open This Link",
             isPresented: Binding(get: { model.urlAlert != nil }, set: { model.urlAlert = $0 ? model.urlAlert : nil })
@@ -202,22 +196,5 @@ struct TimerScreen: View {
         case .settings:
             SettingsScreen(model: model)
         }
-    }
-
-    @ViewBuilder
-    private func timerAlertButtons(_ alert: TimerAlert) -> some View {
-        switch alert {
-        case .discard:
-            Button("Discard", role: .destructive) { Task { await model.timer.discard() } }
-                .accessibilityIdentifier("alert.discard")
-        case let .restoreProject(id, _):
-            Button("Restore Project and Continue") { Task { await model.timer.restoreProjectAndContinue(id) } }
-                .accessibilityIdentifier("alert.restore")
-        case let .deleteEntry(id, _):
-            Button("Delete", role: .destructive) { Task { await model.list.delete(id) } }
-                .accessibilityIdentifier("alert.delete")
-        }
-        Button("Cancel", role: .cancel) {}
-            .accessibilityIdentifier("alert.cancel")
     }
 }
