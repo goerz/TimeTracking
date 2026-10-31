@@ -1,6 +1,6 @@
-// PlannerWindowView: the main window's split view with the Timer and the
-// four sections (spec_planner_projects.md §1.1; experiment: the Timer is
-// the sidebar's first item, as on the iPad).
+// PlannerWindowView: the main window, the Timer and the four sections in
+// the iPad's adaptable tab view, which the Mac shows as a sidebar
+// (spec_planner_projects.md §1.1; experiment).
 
 import SwiftUI
 import TimeTrackingCore
@@ -11,51 +11,39 @@ enum MainSidebarItem: Hashable {
     case section(PlannerSection)
 }
 
-/// Sidebar and the selected item; each section owns its toolbar.
+/// The same `TabView` as the iPad's (`PadTabsView`): Timer, Projects,
+/// Calendar, Reports, Activity. On the Mac `.sidebarAdaptable` is a
+/// sidebar; each section owns its toolbar.
 struct PlannerWindowView: View {
     @Environment(AppModel.self) private var app
-    @State private var columns = NavigationSplitViewVisibility.all
 
     var body: some View {
-        @Bindable var router = app.planner
-        NavigationSplitView(columnVisibility: $columns) {
-            List(selection: sidebarSelection) {
-                Label("Timer", systemImage: "timer")
-                    .tag(MainSidebarItem.timer)
-                    .accessibilityIdentifier("planner.sidebar.timer")
-                ForEach(PlannerSection.allCases) { section in
-                    Label(section.title, systemImage: section.symbol)
-                        .tag(MainSidebarItem.section(section))
-                        .accessibilityIdentifier("planner.sidebar.\(section.rawValue)")
-                }
-            }
-            .navigationSplitViewColumnWidth(min: 160, ideal: 200, max: 280)
-            .accessibilityIdentifier("planner.sidebar")
-        } detail: {
-            if app.showsTimer {
+        TabView(selection: selection) {
+            Tab("Timer", systemImage: SymbolName.timer, value: MainSidebarItem.timer) {
                 TimerWindowView(embedded: true)
                     .navigationTitle("Timer")
                     .frame(minWidth: TimerWindowGeometry.minimumWidth, minHeight: 300)
-            } else {
-                PlannerSectionContent(router: router, section: router.section, clock: app.clock) {
-                    ReportPrinter.print(router.reports)
+            }
+            .accessibilityIdentifier("planner.sidebar.timer")
+            ForEach(PlannerSection.allCases) { section in
+                Tab(section.title, systemImage: section.symbol, value: MainSidebarItem.section(section)) {
+                    PlannerSectionContent(router: app.planner, section: section, clock: app.clock) {
+                        ReportPrinter.print(app.planner.reports)
+                    }
+                    .frame(minWidth: 620, minHeight: 560)
                 }
-                .frame(minWidth: 620, minHeight: 560)
+                .accessibilityIdentifier("planner.sidebar.\(section.rawValue)")
             }
         }
+        .tabViewStyle(.sidebarAdaptable)
+        .accessibilityIdentifier("planner.sidebar")
         .focusedSceneValue(\.plannerWindowActive, true)
         .background(WindowAccessor(onWindow: PlannerWindowSetup.configure))
-        .onAppear {
-            columns = app.settings.device[.plannerSidebarVisible] ? .all : .detailOnly
-            app.plannerOpened()
-        }
+        .onAppear { app.plannerOpened() }
         .onDisappear { app.plannerClosed() }
-        .onChange(of: columns) { _, visibility in
-            app.settings.device[.plannerSidebarVisible] = visibility != .detailOnly
-        }
     }
 
-    private var sidebarSelection: Binding<MainSidebarItem?> {
+    private var selection: Binding<MainSidebarItem> {
         Binding {
             app.showsTimer ? .timer : .section(app.planner.section)
         } set: { item in
@@ -65,15 +53,13 @@ struct PlannerWindowView: View {
             case let .section(section):
                 app.showsTimer = false
                 app.planner.select(section)
-            case nil:
-                break
             }
         }
     }
 }
 
 extension FocusedValues {
-    // Set by the Planner window while it is key.
+    // Set by the main window while it is key.
     // swiftlint:disable:next discouraged_optional_boolean
     @Entry var plannerWindowActive: Bool?
 }

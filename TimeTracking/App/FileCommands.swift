@@ -8,6 +8,7 @@ import TimeTrackingCore
 struct FileCommands: Commands {
     var host: AppHost
     @FocusedValue(\.plannerWindowActive) private var windowActive
+    @FocusedValue(\.timerWindowActive) private var timerActive
 
     private var app: AppModel? {
         host.model
@@ -18,7 +19,7 @@ struct FileCommands: Commands {
     }
 
     private var state: MenuState {
-        MenuState(app: app, windowKey: windowActive == true)
+        MenuState(app: app, mainKey: windowActive == true, timerViewKey: timerActive == true)
     }
 
     var body: some Commands {

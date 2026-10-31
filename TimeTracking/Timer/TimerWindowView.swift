@@ -5,39 +5,28 @@ import TimeTrackingCore
 
 /// The bar, and the list at or above the threshold height.
 struct TimerWindowView: View {
-    /// Experiment: shown as the main window's Timer section (no compact
-    /// mode, inside the split view's safe area).
+    /// Experiment: shown as the main window's Timer tab, laid out as the
+    /// iPad's Timer tab (the bar beside the list above 900 pt, above it
+    /// below), without the pin or compact mode.
     var embedded = false
     @Environment(AppModel.self) private var app
     @Environment(\.undoManager) private var undoManager
     /// The hidden title bar's height. The hosting view adds it to the
     /// content's minimum, so the content asks for that much less.
     @State private var titleBarInset: CGFloat = 0
+    /// The embedded bar's leading edge, for the suggestion popup.
+    @State private var barMinX: CGFloat = 0
+
+    /// The iPad's width for two columns (`TimerScreen.twoColumnWidth`).
+    static let twoColumnWidth: CGFloat = 900
 
     var body: some View {
         @Bindable var presentation = app.presentation
         GeometryReader { geometry in
-            VStack(spacing: 0) {
-                RunningEntryBar()
-                    .modifier(EntryEditorPopover(
-                        entry: app.timer.running,
-                        editing: $presentation.editing,
-                        store: app.store,
-                        clock: app.clock,
-                        taskMatching: true,
-                        arrowEdge: .bottom
-                    ) { await app.afterChange() })
-                    .zIndex(1)
-                if embedded || !TimerWindowGeometry.isCompact(height: geometry.size.height) {
-                    Divider()
-                    TimerListView()
-                }
-            }
-            .overlay(alignment: .topLeading) {
-                TaskFieldPopup()
-                    .padding(.leading, app.presentation.taskFieldLeading - Design.Spacing.medium)
-                    .offset(y: RunningEntryBar.titleRowHeight + Design.CircleDiameter.bar + Design.Spacing.tight)
-                    .zIndex(2)
+            if embedded {
+                embeddedLayout(width: geometry.size.width)
+            } else {
+                windowLayout(height: geometry.size.height)
             }
         }
         .frame(minWidth: TimerWindowGeometry.minimumWidth, minHeight: TimerWindowGeometry.barHeight - titleBarInset)
@@ -64,6 +53,80 @@ struct TimerWindowView: View {
             if shows {
                 app.presentTrackerOnboarding()
             }
+        }
+    }
+
+    /// The main window's Timer tab: as the iPad's, two columns when wide.
+    @ViewBuilder
+    private func embeddedLayout(width: CGFloat) -> some View {
+        if width > Self.twoColumnWidth {
+            HStack(alignment: .top, spacing: 0) {
+                embeddedBar
+                    .frame(width: min(480, max(TimerWindowGeometry.minimumWidth, width * 0.4)))
+                    .frame(maxHeight: .infinity, alignment: .top)
+                Divider()
+                TimerListView()
+            }
+        } else {
+            VStack(spacing: 0) {
+                embeddedBar
+                Divider()
+                TimerListView()
+            }
+        }
+    }
+
+    /// The bar without the title row, its editor popover, and the task
+    /// field's suggestions.
+    private var embeddedBar: some View {
+        @Bindable var presentation = app.presentation
+        return RunningEntryBar(showsTitleRow: false)
+            .padding(.top, Design.Spacing.medium)
+            .modifier(EntryEditorPopover(
+                entry: app.timer.running,
+                editing: $presentation.editing,
+                store: app.store,
+                clock: app.clock,
+                taskMatching: true,
+                arrowEdge: .bottom
+            ) { await app.afterChange() })
+            .onGeometryChange(for: CGFloat.self) { proxy in
+                proxy.frame(in: .global).minX
+            } action: { minX in
+                barMinX = minX
+            }
+            .overlay(alignment: .topLeading) {
+                TaskFieldPopup()
+                    .padding(.leading, app.presentation.taskFieldLeading - barMinX - Design.Spacing.medium)
+                    .offset(y: Design.Spacing.medium + Design.CircleDiameter.bar + Design.Spacing.tight)
+            }
+            .zIndex(1)
+    }
+
+    /// The Mini Timer (the former Timer window), unchanged.
+    private func windowLayout(height: CGFloat) -> some View {
+        @Bindable var presentation = app.presentation
+        return VStack(spacing: 0) {
+            RunningEntryBar()
+                .modifier(EntryEditorPopover(
+                    entry: app.timer.running,
+                    editing: $presentation.editing,
+                    store: app.store,
+                    clock: app.clock,
+                    taskMatching: true,
+                    arrowEdge: .bottom
+                ) { await app.afterChange() })
+                .zIndex(1)
+            if !TimerWindowGeometry.isCompact(height: height) {
+                Divider()
+                TimerListView()
+            }
+        }
+        .overlay(alignment: .topLeading) {
+            TaskFieldPopup()
+                .padding(.leading, app.presentation.taskFieldLeading - Design.Spacing.medium)
+                .offset(y: RunningEntryBar.titleRowHeight + Design.CircleDiameter.bar + Design.Spacing.tight)
+                .zIndex(2)
         }
     }
 

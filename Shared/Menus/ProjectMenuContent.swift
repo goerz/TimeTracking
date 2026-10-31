@@ -1,34 +1,20 @@
-// ProjectMenuContent: the Project menu's items, on the Mac and the iPad
-// (spec_planner_projects.md §2.5, §4).
+// ProjectMenuContent: the Project menu, on the Mac and the iPad (experiment:
+// object menus; spec_planner_projects.md §2.5, §4).
 
 import SwiftUI
 import TimeTrackingCore
 
-/// The projects table's commands, or, while Clients & Areas shows, its own;
-/// ⌥⌘N is New Project in the table and New Client in Clients & Areas.
-/// Starting a timer on the selection is Timer › Start Timer (⌘O).
+/// Commands on the selected projects of the Projects view, then on the
+/// selected area in Clients & Areas. New Project, Client, and Area are in
+/// File; starting a timer on a project is Timer › Start Timer (⌘O).
 struct ProjectMenuContent: View {
     var model: ProjectsModel
     var state: MenuState
 
     var body: some View {
-        if state.showsClientsAndAreas {
-            let enabled = state.clientsAndAreasCommands
-            Button("New Client") { Task { await model.clientsAndAreas.newClient() } }
-                .contextCommand(KeyboardShortcut("n", modifiers: [.command, .option]), enabled: enabled)
-            Button("New Area…") { Task { await model.clientsAndAreas.newArea() } }
-                .contextCommand(
-                    KeyboardShortcut("n", modifiers: [.command, .option, .shift]),
-                    enabled: enabled && model.clientsAndAreas.selectedClient != nil
-                )
-            Divider()
-            AreaMoveItems(model: model.clientsAndAreas, enabled: enabled)
-        } else {
-            Button("New Project…") { model.newProject() }
-                .contextCommand(KeyboardShortcut("n", modifiers: [.command, .option]), enabled: state.projectCommands)
-            Divider()
-            ProjectSelectionItems(model: model, enabled: state.projectCommands)
-        }
+        ProjectSelectionItems(model: model, enabled: state.projectCommands)
+        Divider()
+        AreaMoveItems(model: model.clientsAndAreas, enabled: state.clientsAndAreasCommands)
     }
 }
 
@@ -38,7 +24,7 @@ private struct ProjectSelectionItems: View {
     var enabled: Bool
 
     var body: some View {
-        Button("Edit…") { model.editSelection() }
+        Button("Edit Project…") { model.editSelection() }
             .disabled(!enabled || model.single == nil)
         Button("Rename") { model.renaming = model.single?.id }
             .contextCommand(KeyboardShortcut(.return, modifiers: .option), enabled: enabled && model.single != nil)
@@ -54,7 +40,7 @@ private struct ProjectSelectionItems: View {
         .disabled(!enabled || !(model.canArchive || model.canRestore))
         Button("Merge Into…") { model.mergeSource = model.single?.id }
             .disabled(!enabled || model.single == nil)
-        Button("Delete…") { model.requestDelete() }
+        Button("Delete Project…") { model.requestDelete() }
             .contextCommand(KeyboardShortcut(.delete, modifiers: .command), enabled: enabled && model.canDelete)
         Divider()
         Button("Show in Reports") { Task { await model.showInReports() } }
@@ -65,7 +51,7 @@ private struct ProjectSelectionItems: View {
     }
 }
 
-/// Move Up and Move Down in Clients & Areas.
+/// Move Up and Move Down of the selected area in Clients & Areas.
 private struct AreaMoveItems: View {
     var model: ClientsAreasModel
     var enabled: Bool
@@ -78,13 +64,13 @@ private struct AreaMoveItems: View {
     }
 
     var body: some View {
-        Button("Move Up") {
+        Button("Move Area Up") {
             if let id = area?.id {
                 Task { await model.move(id, by: -1) }
             }
         }
         .contextCommand(KeyboardShortcut(.upArrow, modifiers: [.command, .option]), enabled: enabled && (area?.canMoveUp ?? false))
-        Button("Move Down") {
+        Button("Move Area Down") {
             if let id = area?.id {
                 Task { await model.move(id, by: 1) }
             }

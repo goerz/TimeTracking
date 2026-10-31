@@ -1,8 +1,6 @@
 // PadCommands: the iPad's menu bar, also shown in the ⌘-hold overlay
-// (spec_ios.md §10.3). It has the Mac's menus and items
-// (spec_timer_window.md §9), built from the same shared pieces; the Timer
-// tab stands in for the Mac's Timer window and the Planner tabs for its
-// Planner window.
+// (spec_ios.md §10.3; experiment: the Mac's object menus, built from the
+// same shared items). The tabs are the Mac's sidebar items.
 
 import SwiftUI
 import TimeTrackingCore
@@ -14,7 +12,7 @@ extension PadCommand {
         case .projects, .calendar, .reports, .activity: plannerSection.title
         case .planner: "Planner"
         case .clientsAndAreas: "Clients & Areas"
-        case .new: "New"
+        case .new: "New Entry"
         case .continueLatest: "Continue"
         case .stop: "Stop"
         case .discard: "Discard Running Entry"
@@ -31,15 +29,15 @@ extension PadCommand {
 
     var shortcut: KeyboardShortcut {
         switch self {
-        case .timerTab: KeyboardShortcut("r", modifiers: [.command, .option])
-        case .projects, .calendar, .reports, .activity: KeyboardShortcut(KeyEquivalent(plannerSection.key))
+        case .timerTab: KeyboardShortcut("1")
+        case .projects, .calendar, .reports, .activity: KeyboardShortcut(plannerSection.mainWindowKey)
         case .planner: KeyboardShortcut("p", modifiers: [.command, .option])
-        case .clientsAndAreas: KeyboardShortcut("1", modifiers: [.command, .option])
+        case .clientsAndAreas: KeyboardShortcut("2", modifiers: [.command, .option])
         case .new: KeyboardShortcut("n")
         case .continueLatest: KeyboardShortcut("o")
         case .stop: KeyboardShortcut("s")
         case .discard: KeyboardShortcut(.delete, modifiers: [.command, .option])
-        case .setProject: KeyboardShortcut("p")
+        case .setProject: KeyboardShortcut("j")
         case .edit: KeyboardShortcut("e")
         case .delete: KeyboardShortcut(.delete, modifiers: .command)
         case .find: KeyboardShortcut("f")
@@ -71,8 +69,31 @@ struct PadCommands: Commands {
         CommandGroup(replacing: .appSettings) {
             item(.settings)
         }
-        // Timer › New is ⌘N, as on the Mac.
-        CommandGroup(replacing: .newItem) {}
+        CommandGroup(replacing: .newItem) {
+            Button("New Project…") {
+                router?.select(.projects)
+                router?.projects.showsClientsAndAreas = false
+                router?.projects.newProject()
+            }
+            .keyboardShortcut("n", modifiers: [.command, .option])
+            .disabled(router == nil)
+            Button("New Client") {
+                router?.showClientsAndAreas()
+                if let router {
+                    Task { await router.projects.clientsAndAreas.newClient() }
+                }
+            }
+            .disabled(router == nil)
+            Button("New Area…") {
+                if let router {
+                    Task { await router.projects.clientsAndAreas.newArea() }
+                }
+            }
+            .contextCommand(
+                KeyboardShortcut("n", modifiers: [.command, .option, .shift]),
+                enabled: state.clientsAndAreasCommands && router?.projects.clientsAndAreas.selectedClient != nil
+            )
+        }
         CommandGroup(after: .importExport) {
             Button("Export…") { router?.reports.requestExport() }
                 .contextCommand(KeyboardShortcut("e", modifiers: [.command, .shift]), enabled: state.reportCommands)
@@ -81,13 +102,11 @@ struct PadCommands: Commands {
             item(.find)
         }
         CommandGroup(before: .sidebar) {
-            ForEach([PadCommand.timerTab, .projects, .calendar, .reports, .activity, .clientsAndAreas, .planner], id: \.self, content: item)
+            ForEach([PadCommand.timerTab, .projects, .calendar, .reports, .activity, .clientsAndAreas], id: \.self, content: item)
             Divider()
             if let router {
-                PlannerNavigationItems(router: router, state: state)
+                ViewDisplayItems(router: router, state: state) { run(.scrollToToday) }
             }
-            Divider()
-            item(.scrollToToday)
             Divider()
         }
         CommandMenu("Timer") {
@@ -98,13 +117,20 @@ struct PadCommands: Commands {
             ForEach([PadCommand.stop, .discard], id: \.self, content: item)
             Divider()
             pomodoroItems
-            Divider()
-            ForEach([PadCommand.setProject, .edit, .delete], id: \.self, content: item)
         }
-        // Named for the last Planner tab; its items are disabled in the Timer tab.
-        CommandMenu(state.sectionMenuTitle) {
+        CommandMenu("Entry") {
             if let router {
-                SectionMenuContent(router: router, state: state)
+                EntryMenuItems(router: router, state: state, timer: TimerEntryActions(
+                    setProject: { run(.setProject) },
+                    edit: { run(.edit) },
+                    delete: { run(.delete) },
+                    canDelete: model?.isEnabled(.delete) ?? false
+                ))
+            }
+        }
+        CommandMenu("Project") {
+            if let router {
+                ProjectMenuContent(model: router.projects, state: state)
             }
         }
     }

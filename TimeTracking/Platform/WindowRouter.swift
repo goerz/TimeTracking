@@ -17,22 +17,40 @@ final class WindowRouter: AppRouting {
         self.timerWindow = timerWindow
     }
 
-    /// Experiment: the main window with the Timer selected.
+    /// The Mini Timer (the former Timer window): brought forward, or
+    /// opened the first time.
     func showTimer(focusTask: Bool) {
-        app?.showsTimer = true
-        NSApp.activate()
-        openWindowAction?(id: "planner")
+        if timerWindow.window == nil {
+            NSApp.activate()
+            openWindowAction?(id: "timer")
+        } else {
+            timerWindow.show()
+        }
         if focusTask {
             app?.timer.requestTaskFieldFocus()
         }
     }
 
+    /// ⌥⌘R, as for the former Timer window: hides the app while the Mini
+    /// Timer is key, else shows it.
     func toggleTimer() {
-        if NSApp.isActive, NSApp.keyWindow?.identifier?.rawValue == "planner", app?.showsTimer == true {
-            NSApp.hide(nil)
+        if NSApp.isActive, timerWindow.isKey {
+            timerWindow.hide()
         } else {
             showTimer(focusTask: true)
         }
+    }
+
+    /// The main window with the Timer tab selected.
+    func showMainTimer() {
+        app?.showsTimer = true
+        showMainWindow()
+    }
+
+    /// The main window on its current tab (the Dock tile).
+    func showMainWindow() {
+        NSApp.activate()
+        openWindowAction?(id: "planner")
     }
 
     /// Where the Settings window's `@AppStorage` reads its last pane.

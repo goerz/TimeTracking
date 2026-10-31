@@ -9,6 +9,7 @@ import TimeTrackingCore
 struct ViewCommands: Commands {
     var host: AppHost
     @FocusedValue(\.plannerWindowActive) private var windowActive
+    @FocusedValue(\.timerWindowActive) private var timerActive
 
     private var app: AppModel? {
         host.model
@@ -19,7 +20,7 @@ struct ViewCommands: Commands {
     }
 
     private var state: MenuState {
-        MenuState(app: app, windowKey: windowActive == true)
+        MenuState(app: app, mainKey: windowActive == true, timerViewKey: timerActive == true)
     }
 
     var body: some Commands {
@@ -31,28 +32,38 @@ struct ViewCommands: Commands {
         CommandGroup(after: .sidebar) {
             Divider()
             if let router {
-                PlannerNavigationItems(router: router, state: state)
-                Divider()
-                Section("Timer") {
-                    Button("Scroll to Today") { app?.list.scrollToTop() }
-                        .contextCommand(KeyboardShortcut(.upArrow), enabled: state.timerKey)
-                }
-                Section("Calendar") {
-                    calendarItems(router.calendar)
-                }
-                Section("Report") {
-                    ReportMenuContent(model: router.reports, enabled: state.reportCommands)
-                }
-                Section("Activity") {
-                    ActivityMenuContent(model: router.activity, enabled: state.activityCommands)
+                // Shared with the iPad, then the Mac's own Mini Timer options.
+                ViewDisplayItems(router: router, state: state) { app?.list.scrollToTop() }
+                Section("Mini Timer") {
+                    miniTimerItems
                 }
             }
         }
     }
 
-    /// Timer ⌘1, Projects ⌘2 to Activity ⌘5, Clients & Areas ⌥⌘2.
+    /// The Mini Timer is key (not the main window's Timer tab).
+    private var miniKey: Bool {
+        timerActive == true && windowActive != true
+    }
+
+    /// Compact Mode and Float on Top, as for the former Timer window.
+    @ViewBuilder private var miniTimerItems: some View {
+        Toggle("Compact Mode", isOn: Binding(
+            get: { app?.window?.isCompact ?? false },
+            set: { _ in app?.toggleCompact() }
+        ))
+        .contextCommand(KeyboardShortcut("m", modifiers: [.command, .shift]), enabled: miniKey)
+        Toggle("Float on Top", isOn: Binding(
+            get: { app?.settings.timerPinned ?? false },
+            set: { app?.setPinned($0) }
+        ))
+        .disabled(!miniKey)
+    }
+
+    /// Timer ⌘1 (the main window's tab), Projects ⌘2 to Activity ⌘5,
+    /// Clients & Areas ⌥⌘2.
     @ViewBuilder private var sidebarItems: some View {
-        Button("Timer") { app?.router?.showTimer(focusTask: false) }
+        Button("Timer") { (app?.router as? WindowRouter)?.showMainTimer() }
             .keyboardShortcut("1")
         ForEach(PlannerSection.allCases) { section in
             Button(section.title) {
@@ -66,12 +77,5 @@ struct ViewCommands: Commands {
             app?.router?.openPlanner()
         }
         .keyboardShortcut("2", modifiers: [.command, .option])
-    }
-
-    /// Zoom, the number of days, and the two columns.
-    private func calendarItems(_ calendar: CalendarModel) -> some View {
-        ForEach([CalendarKeyCommand.zoomIn, .zoomOut, .zoomReset, .fewerDays, .moreDays, .toggleActivity, .toggleCalendar]) { command in
-            CalendarCommandButton(model: calendar, command: command, enabled: state.isEnabled(command))
-        }
     }
 }

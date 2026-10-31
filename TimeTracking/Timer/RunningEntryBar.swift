@@ -8,13 +8,18 @@ import TimeTrackingCore
 /// Pomodoro button, task field, timer, start or stop, discard; then the
 /// project chip at the content inset.
 struct RunningEntryBar: View {
+    /// The Mini Timer's title-bar row with the pin; the main window's Timer
+    /// tab has neither (experiment).
+    var showsTitleRow = true
     @Environment(AppModel.self) private var app
 
     /// The height of the title-bar row (the traffic lights' row).
     static let titleRowHeight: CGFloat = 32
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            titleRow
+            if showsTitleRow {
+                titleRow
+            }
             VStack(alignment: .leading, spacing: Design.Spacing.small) {
                 HStack(spacing: Design.Spacing.medium) {
                     pomodoroButton
@@ -44,7 +49,7 @@ struct RunningEntryBar: View {
             .padding(.horizontal, Design.Spacing.window)
             Spacer(minLength: 0)
         }
-        .frame(height: TimerWindowGeometry.barHeight)
+        .frame(height: TimerWindowGeometry.barHeight - (showsTitleRow ? 0 : Self.titleRowHeight))
     }
 
     /// The traffic lights' row: empty (it drags the window) up to the pin.

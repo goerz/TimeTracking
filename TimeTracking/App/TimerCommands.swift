@@ -9,13 +9,14 @@ import TimeTrackingCore
 struct TimerCommands: Commands {
     var host: AppHost
     @FocusedValue(\.plannerWindowActive) private var windowActive
+    @FocusedValue(\.timerWindowActive) private var timerActive
 
     private var app: AppModel? {
         host.model
     }
 
     private var state: MenuState {
-        MenuState(app: app, windowKey: windowActive == true)
+        MenuState(app: app, mainKey: windowActive == true, timerViewKey: timerActive == true)
     }
 
     /// What ⌘O starts from a Planner view's selection.
@@ -26,7 +27,14 @@ struct TimerCommands: Commands {
     var body: some Commands {
         CommandMenu("Timer") {
             Button("New Entry") {
-                app?.router?.showTimer(focusTask: false)
+                // In the Mini Timer if it is open, else the main window's Timer.
+                if let router = app?.router as? WindowRouter {
+                    if router.timerWindow.window?.isVisible == true {
+                        router.showTimer(focusTask: false)
+                    } else {
+                        router.showMainTimer()
+                    }
+                }
                 run { await $0.newEntry() }
             }
             .keyboardShortcut("n")

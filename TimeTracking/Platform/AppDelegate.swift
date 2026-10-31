@@ -214,8 +214,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     // MARK: Dock
 
+    /// Experiment: the Dock tile brings back the main window.
     func applicationShouldHandleReopen(_: NSApplication, hasVisibleWindows _: Bool) -> Bool {
-        router?.showTimer(focusTask: false)
+        router?.showMainWindow()
         return false
     }
 

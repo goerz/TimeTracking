@@ -10,13 +10,14 @@ import TimeTrackingCore
 struct MainMenuCommands: Commands {
     var host: AppHost
     @FocusedValue(\.plannerWindowActive) private var windowActive
+    @FocusedValue(\.timerWindowActive) private var timerActive
 
     private var app: AppModel? {
         host.model
     }
 
     private var state: MenuState {
-        MenuState(app: app, windowKey: windowActive == true)
+        MenuState(app: app, mainKey: windowActive == true, timerViewKey: timerActive == true)
     }
 
     var body: some Commands {
@@ -29,6 +30,21 @@ struct MainMenuCommands: Commands {
         TimerCommands(host: host)
         EntryCommands(host: host)
         ProjectCommands(host: host)
+        CommandGroup(before: .windowList) {
+            miniTimerButton
+            Divider()
+        }
+    }
+
+    /// Window › Mini Timer, with the recorded show/hide shortcut (⌥⌘R), as
+    /// Music's Window › MiniPlayer.
+    @ViewBuilder private var miniTimerButton: some View {
+        let button = Button("Mini Timer") { app?.router?.showTimer(focusTask: false) }
+        if let key = app?.showHideKey, let character = key.key.first {
+            button.keyboardShortcut(KeyEquivalent(character), modifiers: key.eventModifiers)
+        } else {
+            button
+        }
     }
 
     /// ⌘F: the Timer list's filter, or the Projects or Reports search field.

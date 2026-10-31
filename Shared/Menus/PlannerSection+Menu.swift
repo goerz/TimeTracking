@@ -1,7 +1,7 @@
-// PlannerSection+Menu: the title of each section's menu
+// PlannerSection+Menu: each section's menu title and sidebar key
 // (spec_timer_window.md §9).
 
-import Foundation
+import SwiftUI
 
 extension PlannerSection {
     /// The section menu's title, named for what the section's commands act on.
@@ -14,8 +14,8 @@ extension PlannerSection {
         }
     }
 
-    /// Every section menu title (the Mac hides the menu by its title).
-    static var menuTitles: Set<String> {
-        Set(allCases.map(\.menuTitle))
+    /// ⌘2 to ⌘5 in the sidebar (Mac) or tab bar (iPad), after the Timer's ⌘1.
+    var mainWindowKey: KeyEquivalent {
+        KeyEquivalent(Character(String((Self.allCases.firstIndex(of: self) ?? 0) + 2)))
     }
 }

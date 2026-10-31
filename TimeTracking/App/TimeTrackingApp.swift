@@ -36,10 +36,30 @@ struct TimeTrackingApp: App {
         }
         .defaultSize(width: 1100, height: 760)
         .windowResizability(.contentMinSize)
-        // The scene keeps its Window menu item (the one window, by name).
+        // The scene keeps its Window menu item (the main window, by name).
         .commands {
             MainMenuCommands(host: delegate.host)
         }
+
+        // The Mini Timer: the former Timer window, a small window like
+        // Music's MiniPlayer (compact bar or bar and list, Float on Top,
+        // ⌥⌘R). It opens from Window › Mini Timer, not at launch.
+        Window("Mini Timer", id: "timer") {
+            HostedContent(host: delegate.host) { app in
+                TimerWindowView()
+                    .environment(app)
+                    .background(WindowAccessor { window in
+                        delegate.timerWindow?.attach(window)
+                    })
+                    .modifier(RouterActions(router: delegate.router))
+            }
+        }
+        .windowStyle(.hiddenTitleBar)
+        .windowResizability(.contentMinSize)
+        .defaultSize(TimerWindowGeometry.defaultFullSize)
+        .defaultLaunchBehavior(.suppressed)
+        // Window › Mini Timer (in MainMenuCommands) replaces the scene's item.
+        .commandsRemoved()
 
         Settings {
             HostedContent(host: delegate.host) { app in
