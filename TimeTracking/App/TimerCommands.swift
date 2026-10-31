@@ -16,7 +16,7 @@ struct TimerCommands: Commands {
     }
 
     private var state: MenuState {
-        MenuState(router: app?.planner, timerKey: timerActive ?? false, plannerKey: plannerActive ?? false)
+        MenuState(router: app?.planner, timerKey: timerActive ?? false, plannerKey: plannerActive == true && timerActive != true)
     }
 
     /// What ⌘O starts from the Planner's selection, while the Planner is key.
@@ -42,27 +42,7 @@ struct TimerCommands: Commands {
                 .disabled(app?.timer.isRunning != true)
             Divider()
             pomodoroCommands
-            Divider()
-            timerWindowCommands
         }
-    }
-
-    /// Set Project…, Edit Entry…, and Delete Entry…: the running entry or
-    /// the list's selected row, while the Timer window is key.
-    @ViewBuilder private var timerWindowCommands: some View {
-        Button("Set Project…") { app?.openChipPicker() }
-            .contextCommand(KeyboardShortcut("p"), enabled: state.timerKey)
-        Button("Edit Entry…") { app?.editEntry() }
-            .contextCommand(KeyboardShortcut("e"), enabled: state.timerKey)
-        Button("Delete Entry…") {
-            if let app {
-                app.timer.alert = app.list.deleteAlert()
-            }
-        }
-        .contextCommand(
-            KeyboardShortcut(.delete, modifiers: .command),
-            enabled: state.timerKey && app?.list.selection != nil && app?.presentation.listFocused == true
-        )
     }
 
     /// Start/Cancel Pomodoro, and the next step titled by what it does.

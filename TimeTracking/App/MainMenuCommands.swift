@@ -17,7 +17,7 @@ struct MainMenuCommands: Commands {
     }
 
     private var state: MenuState {
-        MenuState(router: host.model?.planner, timerKey: timerActive ?? false, plannerKey: plannerActive ?? false)
+        MenuState(router: host.model?.planner, timerKey: timerActive ?? false, plannerKey: plannerActive == true && timerActive != true)
     }
 
     var body: some Commands {
@@ -30,22 +30,6 @@ struct MainMenuCommands: Commands {
         ViewCommands(host: host)
         TimerCommands(host: host)
         PlannerCommands(host: host)
-        CommandGroup(before: .windowList) {
-            showTimerButton
-            Button("Planner") { app?.router?.openPlanner() }
-                .keyboardShortcut("p", modifiers: [.command, .option])
-            Divider()
-        }
-    }
-
-    /// Window › Timer displays the recorded show/hide shortcut.
-    @ViewBuilder private var showTimerButton: some View {
-        let button = Button("Timer") { app?.router?.showTimer(focusTask: false) }
-        if let key = app?.showHideKey, let character = key.key.first {
-            button.keyboardShortcut(KeyEquivalent(character), modifiers: key.eventModifiers)
-        } else {
-            button
-        }
     }
 
     /// ⌘F: the Timer list's filter, or the Planner section's search field.

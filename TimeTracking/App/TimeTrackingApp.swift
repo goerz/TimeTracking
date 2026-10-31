@@ -26,38 +26,22 @@ struct TimeTrackingApp: App {
     }
 
     var body: some Scene {
-        Window("Timer", id: "timer") {
-            HostedContent(host: delegate.host) { app in
-                TimerWindowView()
-                    .environment(app)
-                    .background(WindowAccessor { window in
-                        delegate.timerWindow?.attach(window)
-                    })
-                    .modifier(RouterActions(router: delegate.router))
-            }
-        }
-        .windowStyle(.hiddenTitleBar)
-        .windowResizability(.contentMinSize)
-        .defaultSize(TimerWindowGeometry.defaultFullSize)
-        // The scene's own Window menu item would list the Timer a second
-        // time next to Window › Timer; the main menu replaces it.
-        .commandsReplaced {
-            MainMenuCommands(host: delegate.host)
-        }
-
-        Window("Planner", id: "planner") {
+        // Experiment: one window, the Timer its sidebar's first item.
+        Window(AppHost.appName, id: "planner") {
             HostedContent(host: delegate.host) { app in
                 PlannerWindowView()
                     .environment(app)
                     .modifier(RouterActions(router: delegate.router))
             }
         }
-        .defaultLaunchBehavior(.suppressed)
+        .defaultLaunchBehavior(.presented)
         .restorationBehavior(.disabled)
-        .defaultSize(width: 1360, height: 840)
+        .defaultSize(width: 1100, height: 760)
         .windowResizability(.contentMinSize)
-        // Window › Planner (in MainMenuCommands) replaces the scene's item.
-        .commandsRemoved()
+        // The scene keeps its Window menu item (the one window, by name).
+        .commands {
+            MainMenuCommands(host: delegate.host)
+        }
 
         Settings {
             HostedContent(host: delegate.host) { app in

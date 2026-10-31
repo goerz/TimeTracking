@@ -28,6 +28,9 @@ final class AppModel {
     let planner: PlannerRouter
     /// Whether the Planner window is open (its sections follow store changes).
     var plannerIsOpen = false
+    /// Experiment: the one window shows the Timer (the sidebar's first item)
+    /// instead of a Planner section.
+    var showsTimer = true
 
     /// Sync and live updates; `nil` under `-UITesting` and in tests.
     var live: LiveUpdates?

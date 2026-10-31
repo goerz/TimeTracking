@@ -21,7 +21,7 @@ struct ViewCommands: Commands {
     }
 
     private var state: MenuState {
-        MenuState(router: router, timerKey: timerActive ?? false, plannerKey: plannerActive ?? false)
+        MenuState(router: router, timerKey: timerActive ?? false, plannerKey: plannerActive == true && timerActive != true)
     }
 
     var body: some Commands {
@@ -38,8 +38,10 @@ struct ViewCommands: Commands {
         }
     }
 
-    /// ⌘1 to ⌘4 and Clients & Areas: the section, in the Planner brought forward.
+    /// The sidebar's items, as on the iPad: Timer (the recorded show/hide
+    /// shortcut), ⌘1 to ⌘4, Clients & Areas, and Planner (the last section).
     @ViewBuilder private var sectionItems: some View {
+        timerButton
         ForEach(PlannerSection.allCases) { section in
             Button(section.title) {
                 router?.select(section)
@@ -52,21 +54,23 @@ struct ViewCommands: Commands {
             app?.router?.openPlanner()
         }
         .keyboardShortcut("1", modifiers: [.command, .option])
+        Button("Planner") { app?.router?.openPlanner() }
+            .keyboardShortcut("p", modifiers: [.command, .option])
     }
 
-    /// Compact Mode, Float on Top, and Scroll to Today, while the Timer
-    /// window is key.
-    @ViewBuilder private var timerItems: some View {
-        Toggle("Compact Mode", isOn: Binding(
-            get: { app?.window?.isCompact ?? false },
-            set: { _ in app?.toggleCompact() }
-        ))
-        .contextCommand(KeyboardShortcut("m", modifiers: [.command, .shift]), enabled: state.timerKey)
-        Toggle("Float on Top", isOn: Binding(
-            get: { app?.settings.timerPinned ?? false },
-            set: { app?.setPinned($0) }
-        ))
-        .disabled(!state.timerKey)
+    /// View › Timer displays the recorded show/hide shortcut.
+    @ViewBuilder private var timerButton: some View {
+        let button = Button("Timer") { app?.router?.showTimer(focusTask: false) }
+        if let key = app?.showHideKey, let character = key.key.first {
+            button.keyboardShortcut(KeyEquivalent(character), modifiers: key.eventModifiers)
+        } else {
+            button
+        }
+    }
+
+    /// Scroll to Today, while the Timer shows. Compact Mode and Float on Top
+    /// belong to a separate mini window (not in this experiment).
+    private var timerItems: some View {
         Button("Scroll to Today") { app?.list.scrollToTop() }
             .contextCommand(KeyboardShortcut(.upArrow), enabled: state.timerKey)
     }

@@ -1,10 +1,17 @@
-// PlannerWindowView: the Planner window's split view with the four
-// sections (spec_planner_projects.md §1.1; mockups/planner_projects.png).
+// PlannerWindowView: the main window's split view with the Timer and the
+// four sections (spec_planner_projects.md §1.1; experiment: the Timer is
+// the sidebar's first item, as on the iPad).
 
 import SwiftUI
 import TimeTrackingCore
 
-/// Sidebar and the selected section; each section owns its toolbar.
+/// A sidebar item: the Timer or a Planner section.
+enum MainSidebarItem: Hashable {
+    case timer
+    case section(PlannerSection)
+}
+
+/// Sidebar and the selected item; each section owns its toolbar.
 struct PlannerWindowView: View {
     @Environment(AppModel.self) private var app
     @State private var columns = NavigationSplitViewVisibility.all
@@ -12,21 +19,32 @@ struct PlannerWindowView: View {
     var body: some View {
         @Bindable var router = app.planner
         NavigationSplitView(columnVisibility: $columns) {
-            List(selection: sectionSelection) {
-                ForEach(PlannerSection.allCases) { section in
-                    Label(section.title, systemImage: section.symbol)
-                        .tag(section)
-                        .accessibilityIdentifier("planner.sidebar.\(section.rawValue)")
+            List(selection: sidebarSelection) {
+                Label("Timer", systemImage: "timer")
+                    .tag(MainSidebarItem.timer)
+                    .accessibilityIdentifier("planner.sidebar.timer")
+                Section("Planner") {
+                    ForEach(PlannerSection.allCases) { section in
+                        Label(section.title, systemImage: section.symbol)
+                            .tag(MainSidebarItem.section(section))
+                            .accessibilityIdentifier("planner.sidebar.\(section.rawValue)")
+                    }
                 }
             }
             .navigationSplitViewColumnWidth(min: 160, ideal: 200, max: 280)
             .accessibilityIdentifier("planner.sidebar")
         } detail: {
-            PlannerSectionContent(router: router, section: router.section, clock: app.clock) {
-                ReportPrinter.print(router.reports)
+            if app.showsTimer {
+                TimerWindowView(embedded: true)
+                    .navigationTitle("Timer")
+                    .frame(minWidth: TimerWindowGeometry.minimumWidth, minHeight: 300)
+            } else {
+                PlannerSectionContent(router: router, section: router.section, clock: app.clock) {
+                    ReportPrinter.print(router.reports)
+                }
+                .frame(minWidth: 620, minHeight: 560)
             }
         }
-        .frame(minWidth: 820, minHeight: 560)
         .focusedSceneValue(\.plannerWindowActive, true)
         .background(WindowAccessor(onWindow: PlannerWindowSetup.configure))
         .onAppear {
@@ -39,12 +57,18 @@ struct PlannerWindowView: View {
         }
     }
 
-    private var sectionSelection: Binding<PlannerSection?> {
+    private var sidebarSelection: Binding<MainSidebarItem?> {
         Binding {
-            app.planner.section
-        } set: { section in
-            if let section {
+            app.showsTimer ? .timer : .section(app.planner.section)
+        } set: { item in
+            switch item {
+            case .timer:
+                app.showsTimer = true
+            case let .section(section):
+                app.showsTimer = false
                 app.planner.select(section)
+            case nil:
+                break
             }
         }
     }

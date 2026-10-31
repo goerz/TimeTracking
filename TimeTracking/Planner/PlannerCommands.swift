@@ -5,26 +5,36 @@
 import SwiftUI
 import TimeTrackingCore
 
-/// The Planner's own menus: one menu named for the Planner's section
-/// (Project, Calendar, Report, Activity), always in the menu bar with that
-/// section's commands, enabled while the Planner is key; and Reports'
-/// Export… and Print… in File.
+/// The main window's own menus: one menu named for the sidebar item shown
+/// (Entry for the Timer; Project, Calendar, Report, Activity), and Reports'
+/// Export… and Print… in File. The menu always lists that item's commands;
+/// they are enabled while the window is key.
 struct PlannerCommands: Commands {
     var host: AppHost
     @FocusedValue(\.timerWindowActive) private var timerActive
     @FocusedValue(\.plannerWindowActive) private var plannerActive
+
+    private var app: AppModel? {
+        host.model
+    }
 
     private var router: PlannerRouter? {
         host.model?.planner
     }
 
     private var state: MenuState {
-        MenuState(router: router, timerKey: timerActive ?? false, plannerKey: plannerActive ?? false)
+        MenuState(router: router, timerKey: timerActive ?? false, plannerKey: plannerActive == true && timerActive != true)
+    }
+
+    private var showsTimer: Bool {
+        app?.showsTimer ?? true
     }
 
     var body: some Commands {
-        CommandMenu(state.sectionMenuTitle) {
-            if let router {
+        CommandMenu(showsTimer ? "Entry" : state.sectionMenuTitle) {
+            if showsTimer {
+                timerEntryItems
+            } else if let router {
                 SectionMenuContent(router: router, state: state)
             }
         }
@@ -40,5 +50,23 @@ struct PlannerCommands: Commands {
             }
             .contextCommand(KeyboardShortcut("p"), enabled: state.reportCommands)
         }
+    }
+
+    /// Set Project…, Edit Entry…, and Delete Entry…: the running entry or
+    /// the Timer list's selected row.
+    @ViewBuilder private var timerEntryItems: some View {
+        Button("Set Project…") { app?.openChipPicker() }
+            .contextCommand(KeyboardShortcut("p"), enabled: state.timerKey)
+        Button("Edit Entry…") { app?.editEntry() }
+            .contextCommand(KeyboardShortcut("e"), enabled: state.timerKey)
+        Button("Delete Entry…") {
+            if let app {
+                app.timer.alert = app.list.deleteAlert()
+            }
+        }
+        .contextCommand(
+            KeyboardShortcut(.delete, modifiers: .command),
+            enabled: state.timerKey && app?.list.selection != nil && app?.presentation.listFocused == true
+        )
     }
 }

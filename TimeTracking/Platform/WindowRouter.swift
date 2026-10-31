@@ -17,16 +17,19 @@ final class WindowRouter: AppRouting {
         self.timerWindow = timerWindow
     }
 
+    /// Experiment: the main window with the Timer selected.
     func showTimer(focusTask: Bool) {
-        timerWindow.show()
+        app?.showsTimer = true
+        NSApp.activate()
+        openWindowAction?(id: "planner")
         if focusTask {
             app?.timer.requestTaskFieldFocus()
         }
     }
 
     func toggleTimer() {
-        if NSApp.isActive, timerWindow.isKey {
-            timerWindow.hide()
+        if NSApp.isActive, NSApp.keyWindow?.identifier?.rawValue == "planner", app?.showsTimer == true {
+            NSApp.hide(nil)
         } else {
             showTimer(focusTask: true)
         }
@@ -43,7 +46,9 @@ final class WindowRouter: AppRouting {
         openSettingsAction?()
     }
 
+    /// The main window on the last Planner section.
     func openPlanner() {
+        app?.showsTimer = false
         NSApp.activate()
         openWindowAction?(id: "planner")
     }

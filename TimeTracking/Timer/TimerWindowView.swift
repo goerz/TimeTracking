@@ -5,6 +5,9 @@ import TimeTrackingCore
 
 /// The bar, and the list at or above the threshold height.
 struct TimerWindowView: View {
+    /// Experiment: shown as the main window's Timer section (no compact
+    /// mode, inside the split view's safe area).
+    var embedded = false
     @Environment(AppModel.self) private var app
     @Environment(\.undoManager) private var undoManager
     /// The hidden title bar's height. The hosting view adds it to the
@@ -25,7 +28,7 @@ struct TimerWindowView: View {
                         arrowEdge: .bottom
                     ) { await app.afterChange() })
                     .zIndex(1)
-                if !TimerWindowGeometry.isCompact(height: geometry.size.height) {
+                if embedded || !TimerWindowGeometry.isCompact(height: geometry.size.height) {
                     Divider()
                     TimerListView()
                 }
@@ -41,7 +44,7 @@ struct TimerWindowView: View {
         .background(WindowAccessor { window in
             titleBarInset = window.frame.height - window.contentLayoutRect.height
         })
-        .ignoresSafeArea()
+        .ignoresSafeArea(embedded ? [] : .all)
         .focusedSceneValue(\.timerWindowActive, true)
         .onAppear {
             app.timer.undoManager = undoManager
