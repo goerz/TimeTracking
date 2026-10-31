@@ -23,7 +23,7 @@ Each mode's last frame is remembered (device settings `timerFullFrame`, `timerCo
 
 ### 1.2 Pin
 
-The pin button (`pin`, `pin.fill` while pinned) toggles window level `.floating`: above every app's normal windows, not joining other apps' full-screen spaces, without activating the window. It persists (device setting `timerPinned`, default off) and mirrors View > Float on Top and the General pane's checkbox.
+The pin button (`pin`, `pin.fill` while pinned) toggles window level `.floating`: above every app's normal windows, not joining other apps' full-screen spaces, without activating the window. It persists (device setting `timerPinned`, default off) and mirrors View > Float on Top. Settings has no separate checkbox for it.
 
 ### 1.3 Opening, closing, and restoration
 
@@ -224,10 +224,9 @@ Every pane is a grouped `Form` 520 pt wide (`spec_design.md` §8). The window ta
 |---|---|---|---|
 | (none) | Open at login | off | `SMAppService.mainApp`; the first-launch alert proposes it (8.2) and the Tracker pane's setup shows it (`spec_activity_tracking.md` §7.4) |
 | (none) | Show the Timer window at login | off | Disabled while "Open at login" is off |
-| Timer window | Float above other windows | off | Same state as the pin; the footer says so |
 | Menu bar and Dock | Show timer, Show seconds, Show project, During a Pomodoro, show | on, off, off, Timer and countdown | `spec_menubar.md` §6 |
 | Menu bar and Dock | Show Dock icon | on | `spec_menubar.md` §4 |
-| iCloud | "Sync" ("Up to date", "Not signed in to iCloud. Entries stay on this Mac.", "Couldn't sync with iCloud. The app will try again.") and "Widget updates" ("Instant", "Last sent at 10:42", "Every few minutes" without a push key, "Not working" with the detail in the log) | | `spec_data_and_sync.md` §3.1, §4.3 |
+| iCloud | "Sync" ("Up to date", "Not signed in to iCloud. Entries stay on this Mac.", "Couldn't sync with iCloud. The app will try again.") and "Widget updates" ("Instant", "Last sent at 10:42", "Off (no push key)" without a push key, with a footer saying that widgets then change only when iOS reloads them and naming `make apns-key`, "Not working" with the detail in the log) | | `spec_data_and_sync.md` §3.1, §4.3 |
 
 Without notification authorization, a last section shows "Notifications are off for this app." with the warning symbol and a button to the app's Notifications settings. The Pomodoro, Idle, and Reminders panes hold the settings of 5.2, 6.2, and 7, with footers that say what the durations and thresholds do.
 

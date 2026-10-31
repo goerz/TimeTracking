@@ -88,17 +88,6 @@ struct GeneralPane: View {
                 Toggle("Show the Timer window at login", isOn: $settings.showTimerAtLogin)
                     .disabled(!app.tracker.opensAtLogin)
             }
-            Section {
-                Toggle("Float above other windows", isOn: Binding(
-                    get: { app.settings.timerPinned },
-                    set: { app.setPinned($0) }
-                ))
-                .accessibilityIdentifier("settings.floatOnTop")
-            } header: {
-                Text("Timer window")
-            } footer: {
-                Text("The same as the pin in the Timer window's title bar.")
-            }
             menuBarSection
             if let live = app.live {
                 LiveStatusSection(live: live)

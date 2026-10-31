@@ -69,7 +69,7 @@ struct LiveUpdatesTests {
         }
         #expect(await live.coordinator.isRunning == false)
         #expect(live.syncStatusText == "This copy of the app can't use iCloud.")
-        #expect(live.pushStatusText == "Every few minutes")
+        #expect(live.pushStatusText == "Off (no push key)")
         #expect(try await store.devices().map(\.name) == ["Test Mac"])
         let entry = try await store.start(projectID: nil, task: "Offline", at: clock.now)
         #expect(try await store.runningEntry()?.id == entry.id)

@@ -152,7 +152,7 @@ final class LiveUpdates {
     /// §4.3); a failure's detail goes to the log.
     var pushStatusText: String {
         switch pushStatus {
-        case .noKey: "Every few minutes"
+        case .noKey: "Off (no push key)"
         case .idle(nil): "Instant"
         case let .idle(sent?): "Last sent at \(sent.formatted(date: .omitted, time: .shortened))"
         case .failing: "Not working"

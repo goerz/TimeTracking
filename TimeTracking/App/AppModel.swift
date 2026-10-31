@@ -272,7 +272,7 @@ final class AppModel {
         window?.toggleCompact()
     }
 
-    /// The pin, View > Float on Top, and the General pane's checkbox.
+    /// The pin and View > Float on Top.
     func setPinned(_ pinned: Bool) {
         settings.timerPinned = pinned
         window?.applyPin(pinned)
