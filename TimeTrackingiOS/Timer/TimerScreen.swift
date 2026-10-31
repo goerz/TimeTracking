@@ -131,7 +131,7 @@ struct TimerScreen: View {
     private var statusLines: some View {
         VStack(alignment: .leading, spacing: Design.Spacing.tight) {
             ForEach(model.macLines, id: \.self) { line in
-                Label(line, systemImage: "desktopcomputer")
+                Label(line, systemImage: SymbolName.mac)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .contentShape(Rectangle())
@@ -150,7 +150,7 @@ struct TimerScreen: View {
     private var syncPill: some View {
         TimelineView(.periodic(from: .now, by: 1)) { _ in
             if let pill = model.syncPill(at: model.clock.now) {
-                Label(pill, systemImage: "icloud.slash")
+                Label(pill, systemImage: SymbolName.iCloudOff)
                     .font(.caption)
                     .padding(.horizontal, Design.Spacing.small)
                     .padding(.vertical, Design.Spacing.tight)
@@ -180,7 +180,7 @@ struct TimerScreen: View {
             Button {
                 model.sheet = .settings
             } label: {
-                Label("Settings", systemImage: "gearshape")
+                Label("Settings", systemImage: SymbolName.settings)
             }
             .accessibilityIdentifier("timer.settings")
         }

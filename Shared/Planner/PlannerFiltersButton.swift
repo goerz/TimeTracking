@@ -2,6 +2,7 @@
 // (spec_design.md §4, §5).
 
 import SwiftUI
+import TimeTrackingCore
 
 /// An icon-only Filters button; the symbol fills while a filter is active
 /// and the title names the count ("Filters (2)") for help and overflow.
@@ -16,7 +17,7 @@ struct PlannerFiltersButton<Popover: View>: View {
         Button {
             isPresented.toggle()
         } label: {
-            Label(title, systemImage: activeFilters > 0 ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease")
+            Label(title, systemImage: activeFilters > 0 ? SymbolName.filterActive : SymbolName.filter)
         }
         .help(title)
         .accessibilityIdentifier(identifier)

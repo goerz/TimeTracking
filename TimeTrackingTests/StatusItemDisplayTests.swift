@@ -24,7 +24,7 @@ struct StatusItemDisplayTests {
         test.app.perform(.start)
         test.app.settings.menuBarPomodoroDisplay = .countdown
         #expect(content(test).title.isEmpty)
-        #expect(content(test).pomodoro == .init(symbol: AppSymbol.pomodoro, text: "25:00"))
+        #expect(content(test).pomodoro == .init(symbol: SymbolName.pomodoro, text: "25:00"))
         #expect(content(test).accessibilityLabel == "Tracking, 40 minutes, Pomodoro focus, 25 minutes left")
         test.app.settings.menuBarShowProject = true
         #expect(content(test).title == "Thesis")

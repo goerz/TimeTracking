@@ -28,7 +28,7 @@ struct OnboardingView: View {
 
     private var noAccount: some View {
         ContentUnavailableView {
-            Label("iCloud Needed", systemImage: "icloud.slash")
+            Label("iCloud Needed", systemImage: SymbolName.iCloudOff)
         } description: {
             Text(Self.explanation)
         } actions: {
@@ -80,7 +80,7 @@ struct OnboardingView: View {
     /// The device symbol, the title, and what the name is for.
     private var deviceNameHeader: some View {
         VStack(spacing: Design.Spacing.small) {
-            Image(systemName: DeviceInfo.isPad ? "ipad" : "iphone")
+            Image(systemName: DeviceInfo.isPad ? SymbolName.iPad : SymbolName.iPhone)
                 .font(.largeTitle)
                 .foregroundStyle(.tint)
                 .accessibilityHidden(true)
@@ -102,7 +102,7 @@ struct OnboardingView: View {
 
     private func syncing(_ entries: Int) -> some View {
         ContentUnavailableView {
-            Label("Receiving Your Data", systemImage: "icloud.and.arrow.down")
+            Label("Receiving Your Data", systemImage: SymbolName.iCloudDownload)
         } description: {
             Text("Loading your entries from iCloud.")
         } actions: {

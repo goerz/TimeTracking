@@ -41,7 +41,7 @@ struct TrackerPane: View {
                         Text(app.tracker.liveness.statusLine(now: app.clock.now)).accessibilityIdentifier("tracker.status")
                     }
                 } icon: {
-                    Image(systemName: "circle.fill")
+                    Image(systemName: SymbolName.statusDot)
                         .imageScale(.small)
                         .foregroundStyle(dotColor)
                         .accessibilityHidden(true)
@@ -164,9 +164,9 @@ private struct SetupStepRow<Actions: View>: View {
     /// The mark as a symbol over its text, which stays the accessible element.
     private var mark: some View {
         let (symbol, style): (String, AnyShapeStyle) = switch step.mark {
-        case .done: ("checkmark.circle.fill", AnyShapeStyle(Color.startTint))
-        case .attention: ("exclamationmark.triangle.fill", AnyShapeStyle(.orange))
-        case .unknown: ("circle.dashed", AnyShapeStyle(.tertiary))
+        case .done: (SymbolName.done, AnyShapeStyle(Color.startTint))
+        case .attention: (SymbolName.warningFill, AnyShapeStyle(.orange))
+        case .unknown: (SymbolName.notChecked, AnyShapeStyle(.tertiary))
         }
         return Text(step.mark.rawValue)
             .foregroundStyle(.clear)
@@ -191,7 +191,7 @@ private struct InfoButton: View {
         Button {
             shown.toggle()
         } label: {
-            Label("About \(info.title)", systemImage: "info.circle").labelStyle(.iconOnly)
+            Label("About \(info.title)", systemImage: SymbolName.info).labelStyle(.iconOnly)
         }
         .buttonStyle(.borderless)
         .help("About \(info.title)")
@@ -261,9 +261,9 @@ private struct CopyButton: View {
     /// Both titles, hidden, under the visible one: the button keeps its width.
     private var labels: some View {
         ZStack {
-            Label(title, systemImage: "doc.on.doc").hidden()
-            Label("Copied", systemImage: "checkmark").hidden()
-            Label(copied ? "Copied" : title, systemImage: copied ? "checkmark" : "doc.on.doc")
+            Label(title, systemImage: SymbolName.copy).hidden()
+            Label("Copied", systemImage: SymbolName.checkmark).hidden()
+            Label(copied ? "Copied" : title, systemImage: copied ? SymbolName.checkmark : SymbolName.copy)
         }
     }
 }
@@ -313,7 +313,7 @@ private struct FilesSection: View {
             .padding(.top, Design.Spacing.tight)
             .disabled(model.settingsURL == nil)
             if let added = model.lastAdded {
-                Label("Added \(added.value) to the \(added.list.displayNameWithKey).", systemImage: "checkmark")
+                Label("Added \(added.value) to the \(added.list.displayNameWithKey).", systemImage: SymbolName.checkmark)
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("tracker.settingsFile.added")

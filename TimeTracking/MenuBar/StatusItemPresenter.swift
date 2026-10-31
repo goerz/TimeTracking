@@ -46,7 +46,7 @@ enum StatusItemPresenter {
             let phase = focus ? "focus" : "break"
             let phaseSeconds = (focus ? state.focusMinutes : state.breakMinutes) * 60
             if let text = state.pomodoro.menuBarCountdown(at: now, paddedTo: phaseSeconds) {
-                segment = .init(symbol: AppSymbol.phase(isFocus: focus), text: text)
+                segment = .init(symbol: SymbolName.phase(isFocus: focus), text: text)
             }
             if let over = state.pomodoro.overtime(at: now) {
                 spoken += ", Pomodoro \(phase) ended \(spokenDuration(over, seconds: true)) ago"
@@ -86,14 +86,14 @@ enum StatusItemPresenter {
                 started += yesterday ? " yesterday" : " " + start.formatted(.dateTime.month(.abbreviated).day())
             }
             let elapsed = DurationText.hoursMinutes(max(0, Int(now.timeIntervalSince(start))))
-            lines.append(MenuHeaderLine("Started \(started) · \(elapsed) elapsed", style: .secondary, symbol: "clock"))
+            lines.append(MenuHeaderLine("Started \(started) · \(elapsed) elapsed", style: .secondary, symbol: SymbolName.startTime))
         } else {
             lines.append(MenuHeaderLine("Not tracking", style: .title))
             if let last = state.lastStoppedToday, let end = last.end {
                 lines.append(MenuHeaderLine(
                     "Last: \(last.task.isEmpty ? "No task" : last.task), stopped \(LocalDateText.time(end))",
                     style: .secondary,
-                    symbol: "clock"
+                    symbol: SymbolName.startTime
                 ))
             }
         }
@@ -101,7 +101,7 @@ enum StatusItemPresenter {
             let focus = state.pomodoro.state.isFocusPhase
             let phase = focus ? "Focus" : "Break"
             let text = state.pomodoro.overtime(at: now) == nil ? "\(phase) · \(countdown) left" : "\(phase) ended · \(countdown)"
-            lines.append(MenuHeaderLine(text, style: .primary, symbol: AppSymbol.phase(isFocus: focus)))
+            lines.append(MenuHeaderLine(text, style: .primary, symbol: SymbolName.phase(isFocus: focus)))
         }
         return lines
     }
@@ -109,7 +109,7 @@ enum StatusItemPresenter {
     /// The tracker warning line; the warning symbol replaces a leading sign.
     static func warningLine(_ text: String) -> MenuHeaderLine {
         let trimmed = text.hasPrefix("⚠") ? String(text.dropFirst()).trimmingCharacters(in: .whitespaces) : text
-        return MenuHeaderLine(trimmed, style: .warning, symbol: "exclamationmark.triangle")
+        return MenuHeaderLine(trimmed, style: .warning, symbol: SymbolName.warning)
     }
 
     /// The whole menu of §2.

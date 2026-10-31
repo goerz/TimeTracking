@@ -67,11 +67,11 @@ struct StatusItemStateTests {
         // start time and the Pomodoro with their symbols.
         let styled = StatusItemPresenter.headerLines(test.app.statusState, at: test.clock.now)
         #expect(styled.map(\.style) == [.title, .primary, .secondary, .primary])
-        #expect(styled[1].dot?.isEmpty == true && styled[2].symbol == "clock" && styled[3].symbol == AppSymbol.pomodoro)
+        #expect(styled[1].dot?.isEmpty == true && styled[2].symbol == "clock" && styled[3].symbol == SymbolName.pomodoro)
         // With "Show timer" off the item keeps the countdown.
         test.app.settings.menuBarShowTimer = false
         let content = StatusItemPresenter.content(test.app.statusState, at: test.clock.now)
-        #expect(content.title.isEmpty && content.pomodoro == .init(symbol: AppSymbol.pomodoro, text: "25:00"))
+        #expect(content.title.isEmpty && content.pomodoro == .init(symbol: SymbolName.pomodoro, text: "25:00"))
         test.clock.advance(by: 25 * 60 + 75)
         test.app.pomodoro.tick()
         #expect(header(test).last == "Focus ended · +1:15")

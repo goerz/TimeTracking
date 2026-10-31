@@ -31,7 +31,7 @@ struct BlockCard: View {
                 label(style)
             }
             if hovering {
-                Button { Task { await model.createEntry(from: block) } } label: { Image(systemName: "plus.circle.fill") }
+                Button { Task { await model.createEntry(from: block) } } label: { Image(systemName: SymbolName.addCircle) }
                     .buttonStyle(.plain)
                     .foregroundStyle(tint)
                     .padding(Design.Spacing.tight)
@@ -91,10 +91,10 @@ struct BlockCard: View {
             Text("+\(block.background.count)").foregroundStyle(.secondary)
         }
         if block.source == .device {
-            Image(systemName: "iphone").imageScale(.small).accessibilityHidden(true)
+            Image(systemName: SymbolName.iPhone).imageScale(.small).accessibilityHidden(true)
         }
         if block.device == "remote" {
-            Image(systemName: "cloud").imageScale(.small).accessibilityHidden(true)
+            Image(systemName: SymbolName.otherDevices).imageScale(.small).accessibilityHidden(true)
         }
     }
 

@@ -2,6 +2,7 @@
 // in the error color (spec_design.md §6, §7).
 
 import SwiftUI
+import TimeTrackingCore
 
 /// An error under a control: the warning symbol and the message.
 struct ErrorLine: View {
@@ -15,7 +16,7 @@ struct ErrorLine: View {
     #endif
 
     var body: some View {
-        Label(text, systemImage: "exclamationmark.triangle")
+        Label(text, systemImage: SymbolName.warning)
             .font(Self.font)
             .foregroundStyle(Color.errorText)
     }

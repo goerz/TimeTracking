@@ -13,7 +13,7 @@ struct BackgroundPanel: View {
             ActivityPanel(title: "In the background", subtitle: "Does not count as active time") {
                 ForEach(rows) { row in
                     HStack {
-                        Image(systemName: "gearshape").accessibilityHidden(true).foregroundStyle(.secondary)
+                        Image(systemName: SymbolName.settings).accessibilityHidden(true).foregroundStyle(.secondary)
                         Text(row.title)
                         Spacer()
                         Text(ActivityText.duration(row.seconds))

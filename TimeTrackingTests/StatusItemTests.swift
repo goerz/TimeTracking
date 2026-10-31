@@ -106,7 +106,7 @@ struct StatusItemTests {
         test.app.perform(.start)
         #expect(content(test).title == "0:00")
         #expect(content(test).dial == 0)
-        #expect(content(test).pomodoro == .init(symbol: AppSymbol.pomodoro, text: "25:00"))
+        #expect(content(test).pomodoro == .init(symbol: SymbolName.pomodoro, text: "25:00"))
         #expect(content(test).visibleText == "0:00 25:00")
         #expect(content(test).accessibilityLabel == "Tracking, 0 minutes, Pomodoro focus, 25 minutes left")
         var menu = StatusItemPresenter.menu(test.app.statusState, at: test.clock.now)
@@ -115,7 +115,7 @@ struct StatusItemTests {
         test.clock.advance(by: 27 * 60)
         test.app.pomodoro.tick()
         #expect(content(test).title == "0:27")
-        #expect(content(test).pomodoro == .init(symbol: AppSymbol.pomodoro, text: "+2:00"))
+        #expect(content(test).pomodoro == .init(symbol: SymbolName.pomodoro, text: "+2:00"))
         menu = StatusItemPresenter.menu(test.app.statusState, at: test.clock.now)
         let pomodoroTitles = titles(menu).filter { ["Start Break", "Skip Break", "Cancel Pomodoro", "End Focus Now"].contains($0) }
         #expect(pomodoroTitles == ["Start Break", "Skip Break", "Cancel Pomodoro"])

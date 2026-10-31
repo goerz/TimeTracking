@@ -147,7 +147,7 @@ struct PomodoroLine: View {
             } icon: {
                 // The focus glyph is the app's apple symbol (a copy in this
                 // target's asset catalog).
-                (snapshot.pomodoro.isFocusPhase ? Image(.pomodoro) : Image(systemName: "cup.and.saucer"))
+                (snapshot.pomodoro.isFocusPhase ? Image(.pomodoro) : Image(systemName: SymbolName.pomodoroBreak))
                     .foregroundStyle(.tint)
                     .widgetAccentable()
             }
@@ -180,7 +180,7 @@ struct WidgetNotice: View {
 /// "Open <app name> to finish setting up" before the first sync.
 struct SetupNotice: View {
     var body: some View {
-        WidgetNotice(systemImage: "icloud.and.arrow.down", title: "Open \(AppDisplayName.orGeneric) to finish setting up")
+        WidgetNotice(systemImage: SymbolName.iCloudDownload, title: "Open \(AppDisplayName.orGeneric) to finish setting up")
     }
 }
 

@@ -2,6 +2,7 @@
 // icon's ring and knob (spec_menubar.md §1.1, spec_design.md §9).
 
 import AppKit
+import TimeTrackingCore
 
 extension StatusItemController {
     /// The dial's geometry in points on its 16 pt square.
@@ -60,7 +61,7 @@ extension StatusItemController {
 
     private static func drawBadge(in rect: NSRect) {
         clearCircle(at: NSPoint(x: rect.midX, y: rect.midY), radius: rect.width / 2 + 1)
-        NSImage(systemSymbolName: "exclamationmark.circle.fill", accessibilityDescription: nil)?.draw(in: rect)
+        NSImage(systemSymbolName: SymbolName.warningBadge, accessibilityDescription: nil)?.draw(in: rect)
     }
 
     private static func clearCircle(at point: NSPoint, radius: CGFloat) {

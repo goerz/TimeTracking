@@ -90,7 +90,7 @@ struct EntryEditSheet: View {
                     AreaDot(color: editor.label.color)
                     Text(editor.label.projectAndClient).foregroundStyle(.primary)
                     Spacer()
-                    Image(systemName: "chevron.right").foregroundStyle(.secondary).accessibilityHidden(true)
+                    Image(systemName: SymbolName.next).foregroundStyle(.secondary).accessibilityHidden(true)
                 }
             }
             .accessibilityIdentifier("editor.project")

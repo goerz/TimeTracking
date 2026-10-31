@@ -16,7 +16,7 @@ struct FillDaySheet: View {
             if model.rows.isEmpty {
                 ContentUnavailableView(
                     "Nothing Left to Fill",
-                    systemImage: "sparkles",
+                    systemImage: SymbolName.suggestions,
                     description: Text("All activity on this day is tracked or too short to suggest.")
                 )
                 .frame(maxHeight: .infinity)

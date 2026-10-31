@@ -96,7 +96,7 @@ struct TimerListView: View {
             if app.list.filter.isEmpty {
                 ContentUnavailableView(
                     "No Entries",
-                    systemImage: "stopwatch",
+                    systemImage: SymbolName.timer,
                     description: Text("Entries you track appear here by day.")
                 )
             } else {
@@ -176,7 +176,7 @@ struct EntryRowView: View {
                     Button {
                         Task { await app.timer.continueEntry(entry.id) }
                     } label: {
-                        Label("Continue", systemImage: "play.fill")
+                        Label("Continue", systemImage: SymbolName.start)
                     }
                     .buttonStyle(CircleButtonStyle(color: .startTint, diameter: Design.CircleDiameter.row))
                     .help("Continue")

@@ -86,7 +86,7 @@ struct ActivityCollectionScreen: View {
             Divider()
             Button("Custom…") { newGroup = collection.addSet(label: "New Group") }
         } label: {
-            Label("Add App Group", systemImage: "plus")
+            Label("Add App Group", systemImage: SymbolName.add)
         }
     }
 
@@ -152,7 +152,7 @@ private struct SetupStep: View {
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: Design.Spacing.medium) {
-            Image(systemName: done ? "checkmark.circle.fill" : "circle")
+            Image(systemName: done ? SymbolName.done : SymbolName.notDone)
                 .foregroundStyle(done ? AnyShapeStyle(Color.startTint) : AnyShapeStyle(.tertiary))
                 .accessibilityLabel(done ? "Done" : "Not done")
             VStack(alignment: .leading, spacing: Design.Spacing.tight) {

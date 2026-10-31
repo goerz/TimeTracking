@@ -11,7 +11,7 @@ struct OverlapPopover: View {
     var body: some View {
         if let pending = model.pendingOverlap {
             VStack(alignment: .leading, spacing: Design.Spacing.medium) {
-                Label(pending.prompt.text(in: model.calendar.timeZone), systemImage: "exclamationmark.triangle")
+                Label(pending.prompt.text(in: model.calendar.timeZone), systemImage: SymbolName.warning)
                 HStack {
                     Button("Trim") { Task { await model.resolveOverlap(.trim) } }
                         .keyboardShortcut(.defaultAction)

@@ -32,7 +32,7 @@ struct EventCard: View {
                 Text(project.name)
             }
             HStack(spacing: 2) {
-                Image(systemName: "calendar").imageScale(.small).accessibilityHidden(true)
+                Image(systemName: SymbolName.calendar).imageScale(.small).accessibilityHidden(true)
                 Text(ActivityText.duration(Int(block.event.interval.duration))).monospacedDigit()
             }
         }

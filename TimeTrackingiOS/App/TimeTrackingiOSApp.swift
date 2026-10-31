@@ -67,7 +67,7 @@ struct RootView: View {
         } else if let failure = host.failure {
             ContentUnavailableView(
                 "\(AppDisplayName.current ?? "The App") Couldn't Open Your Entries",
-                systemImage: "exclamationmark.triangle",
+                systemImage: SymbolName.warning,
                 description: Text(failure)
             )
         } else {

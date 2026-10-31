@@ -2,6 +2,7 @@
 // (spec_timer_window.md §13, spec_menubar.md §2.2).
 
 import Foundation
+import TimeTrackingCore
 
 /// The settings window's panes, in toolbar order (spec_timer_window.md §8).
 enum SettingsPane: String, CaseIterable, Identifiable, Sendable {
@@ -32,12 +33,12 @@ enum SettingsPane: String, CaseIterable, Identifiable, Sendable {
 
     var symbol: String {
         switch self {
-        case .general: "gearshape"
-        case .pomodoro: AppSymbol.pomodoro
-        case .idle: "moon.zzz"
-        case .reminders: "bell"
-        case .shortcuts: "keyboard"
-        case .tracker: "waveform.path.ecg"
+        case .general: SymbolName.settings
+        case .pomodoro: SymbolName.pomodoro
+        case .idle: SymbolName.idle
+        case .reminders: SymbolName.reminders
+        case .shortcuts: SymbolName.shortcuts
+        case .tracker: SymbolName.activity
         }
     }
 }

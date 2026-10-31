@@ -89,7 +89,7 @@ struct PinnedWidgetView: View {
                 SetupNotice()
             } else if snapshot.pinned.isEmpty {
                 WidgetNotice(
-                    systemImage: "pin",
+                    systemImage: SymbolName.pin,
                     title: "No Pinned Projects",
                     message: family == .systemSmall ? nil : "Add projects under Pinned projects in the app's Settings."
                 )
@@ -131,7 +131,7 @@ struct PinnedButtonView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             if button.isRunning {
-                CircleGlyph(systemImage: "stop.fill", color: .stopTint, diameter: 24)
+                CircleGlyph(systemImage: SymbolName.stop, color: .stopTint, diameter: 24)
                     .accessibilityLabel("Stop")
             }
         }

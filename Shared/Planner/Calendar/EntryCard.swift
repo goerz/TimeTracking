@@ -41,7 +41,7 @@ struct EntryCard: View {
                 content(textColor: textColor)
                 Spacer(minLength: 0)
                 if overlaps {
-                    Image(systemName: "exclamationmark.triangle.fill")
+                    Image(systemName: SymbolName.warningFill)
                         .font(.caption)
                         .foregroundStyle(textColor)
                         .padding(.top, Design.Spacing.tight)
@@ -123,7 +123,7 @@ struct EntryCard: View {
                 title
                 Text(label.projectAndClient).opacity(0.85)
                 HStack(spacing: 2) {
-                    Image(systemName: "stopwatch").imageScale(.small).accessibilityHidden(true)
+                    Image(systemName: SymbolName.timer).imageScale(.small).accessibilityHidden(true)
                     duration
                 }
                 .opacity(0.85)
@@ -139,18 +139,18 @@ struct EntryCard: View {
     private func hoverButtons(textColor: Color) -> some View {
         HStack(spacing: 2) {
             if entry.isRunning {
-                Button { Task { await model.stopRunning() } } label: { Image(systemName: "stop.circle.fill") }
+                Button { Task { await model.stopRunning() } } label: { Image(systemName: SymbolName.stopCircle) }
                     .foregroundStyle(.white, Color.stopTint)
                     .help("Stop")
                     .accessibilityLabel("Stop")
             } else {
-                Button { Task { await model.continueEntry(entry.id) } } label: { Image(systemName: "play.circle.fill") }
+                Button { Task { await model.continueEntry(entry.id) } } label: { Image(systemName: SymbolName.startCircle) }
                     .foregroundStyle(textColor.opacity(0.9))
                     .help("Continue")
                     .accessibilityLabel("Continue")
             }
             if hovering || Self.touch {
-                Button { model.editingEntry = entry.id } label: { Image(systemName: "ellipsis.circle.fill") }
+                Button { model.editingEntry = entry.id } label: { Image(systemName: SymbolName.moreCircle) }
                     .foregroundStyle(textColor.opacity(0.9))
                     .help("Edit")
                     .accessibilityLabel("Edit")

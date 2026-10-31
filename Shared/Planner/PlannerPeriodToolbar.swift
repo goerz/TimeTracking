@@ -3,6 +3,7 @@
 // (spec_design.md §4; spec_planner_projects.md §1.1).
 
 import SwiftUI
+import TimeTrackingCore
 
 /// Previous and next as one control group, then Today; Today's menu holds
 /// the section's date choices. The items sit in `.navigation`, so they keep
@@ -26,13 +27,13 @@ struct PlannerPeriodToolbar<DateMenu: View, DatePopover: View>: ToolbarContent {
         // One group, so the system draws the arrows as one glass capsule.
         ToolbarItemGroup(placement: .navigation) {
             Button(action: previous) {
-                Label(previousTitle, systemImage: "chevron.left")
+                Label(previousTitle, systemImage: SymbolName.previous)
             }
             .help(previousTitle)
             .disabled(!canShift)
             .accessibilityIdentifier("\(identifier).previous")
             Button(action: next) {
-                Label(nextTitle, systemImage: "chevron.right")
+                Label(nextTitle, systemImage: SymbolName.next)
             }
             .help(nextTitle)
             .disabled(!canShift)

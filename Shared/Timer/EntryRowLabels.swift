@@ -19,7 +19,7 @@ struct EntryRowLabels: View {
                 Text(listing.entry.task.isEmpty ? "No task" : listing.entry.task)
                     .foregroundStyle(listing.entry.task.isEmpty ? AnyShapeStyle(.tertiary) : AnyShapeStyle(.primary))
                 if badged {
-                    Image(systemName: "exclamationmark.circle.fill")
+                    Image(systemName: SymbolName.warningBadge)
                         .foregroundStyle(.orange)
                         .imageScale(.small)
                         .accessibilityLabel("Changed by another device")

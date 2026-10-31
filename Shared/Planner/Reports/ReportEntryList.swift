@@ -80,7 +80,7 @@ struct ReportEntryList: View {
             HStack(spacing: 2) {
                 Text(title)
                 if model.state.listSort == column {
-                    Image(systemName: model.state.listAscending ? "chevron.up" : "chevron.down").accessibilityHidden(true)
+                    Image(systemName: model.state.listAscending ? SymbolName.ascending : SymbolName.expanded).accessibilityHidden(true)
                 }
             }
         }
@@ -107,7 +107,7 @@ private struct ReportEntryRow: View {
             TimelineView(.periodic(from: .now, by: entry.isRunning ? 1 : 3600)) { _ in
                 HStack(spacing: Design.Spacing.tight) {
                     if entry.isRunning {
-                        Image(systemName: "record.circle").foregroundStyle(.red).accessibilityLabel("Running")
+                        Image(systemName: SymbolName.running).foregroundStyle(.red).accessibilityLabel("Running")
                     }
                     Text(ReportText.seconds(entry.seconds(at: model.clock.now))).monospacedDigit()
                 }

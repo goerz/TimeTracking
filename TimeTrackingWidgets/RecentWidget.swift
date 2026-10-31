@@ -36,7 +36,7 @@ struct RecentWidgetView: View {
             if snapshot.needsSetup {
                 SetupNotice()
             } else if snapshot.running == nil, snapshot.recent.isEmpty {
-                WidgetNotice(systemImage: "stopwatch", title: "No Recent Entries", message: "Entries you track appear here.")
+                WidgetNotice(systemImage: SymbolName.timer, title: "No Recent Entries", message: "Entries you track appear here.")
             } else {
                 HStack(alignment: .top, spacing: 16) {
                     ForEach(0 ..< columns, id: \.self) { column in
@@ -66,7 +66,7 @@ struct RecentWidgetView: View {
                     .frame(width: 64, alignment: .trailing)
                 CircleIntentButton(
                     intent: snapshot.stopIntent,
-                    systemImage: "stop.fill",
+                    systemImage: SymbolName.stop,
                     label: "Stop",
                     color: .stopTint,
                     diameter: WidgetMetrics.rowButton
@@ -77,7 +77,7 @@ struct RecentWidgetView: View {
             all.append(AnyView(RecentRow(row: row) {
                 CircleIntentButton(
                     intent: WidgetStartIntent(project: row.projectID, task: row.task),
-                    systemImage: "play.fill",
+                    systemImage: SymbolName.start,
                     label: "Continue",
                     color: .startTint,
                     diameter: WidgetMetrics.rowButton

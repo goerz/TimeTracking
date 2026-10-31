@@ -35,7 +35,7 @@ struct SubjectsPanel: View {
                 Capsule().fill(Color.accentColor).frame(width: 140 * CGFloat(row.seconds) / CGFloat(max(largest, 1)), height: 8)
                 Text(ActivityText.duration(row.seconds)).frame(width: 64, alignment: .trailing)
                 if model.isRecordingMac, row.hasDetails {
-                    Image(systemName: "chevron.right").accessibilityHidden(true).foregroundStyle(.secondary)
+                    Image(systemName: SymbolName.next).accessibilityHidden(true).foregroundStyle(.secondary)
                 }
             }
             .contentShape(Rectangle())

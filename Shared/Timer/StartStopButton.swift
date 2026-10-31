@@ -2,6 +2,7 @@
 // bar and the iPhone's card (spec_timer_window.md §2.1; spec_ios.md §2.2).
 
 import SwiftUI
+import TimeTrackingCore
 
 /// Stop while an entry runs, Start otherwise.
 struct StartStopButton: View {
@@ -13,7 +14,7 @@ struct StartStopButton: View {
     var body: some View {
         if isRunning {
             Button(action: stop) {
-                Label("Stop", systemImage: "stop.fill")
+                Label("Stop", systemImage: SymbolName.stop)
             }
             .buttonStyle(CircleButtonStyle(color: .stopTint, diameter: diameter))
             #if os(macOS)
@@ -22,7 +23,7 @@ struct StartStopButton: View {
                 .accessibilityIdentifier("timer.stopButton")
         } else {
             Button(action: start) {
-                Label("Start", systemImage: "play.fill")
+                Label("Start", systemImage: SymbolName.start)
             }
             .buttonStyle(CircleButtonStyle(color: .startTint, diameter: diameter))
             #if os(macOS)

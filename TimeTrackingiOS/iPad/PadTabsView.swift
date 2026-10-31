@@ -49,7 +49,7 @@ enum PadTab: String, Hashable, CaseIterable {
     }
 
     var systemImage: String {
-        section?.symbol ?? "stopwatch"
+        section?.symbol ?? SymbolName.timer
     }
 }
 

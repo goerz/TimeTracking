@@ -87,7 +87,7 @@ struct IdlePromptView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Design.Spacing.window) {
             HStack(alignment: .top, spacing: Design.Spacing.large) {
-                Image(systemName: "moon.zzz")
+                Image(systemName: SymbolName.idle)
                     .font(.largeTitle)
                     .foregroundStyle(.secondary)
                     .accessibilityHidden(true)

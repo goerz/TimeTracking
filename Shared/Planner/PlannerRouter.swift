@@ -28,10 +28,10 @@ nonisolated enum PlannerSection: String, Codable, CaseIterable, Identifiable, Se
 
     var symbol: String {
         switch self {
-        case .projects: "folder"
-        case .calendar: "calendar"
-        case .reports: "chart.bar"
-        case .activity: "waveform.path.ecg"
+        case .projects: SymbolName.projects
+        case .calendar: SymbolName.calendar
+        case .reports: SymbolName.reports
+        case .activity: SymbolName.activity
         }
     }
 

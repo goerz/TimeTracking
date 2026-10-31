@@ -10,7 +10,7 @@ struct StartProjectControl: ControlWidget {
     var body: some ControlWidgetConfiguration {
         AppIntentControlConfiguration(kind: WidgetKind.startProject, intent: StartProjectConfiguration.self) { configuration in
             ControlWidgetButton(action: WidgetStartIntent(project: configuration.project?.projectID, task: "")) {
-                Label(configuration.project?.name ?? "Start Project", systemImage: "play.fill")
+                Label(configuration.project?.name ?? "Start Project", systemImage: SymbolName.start)
             }
         }
         .displayName("Start Project")

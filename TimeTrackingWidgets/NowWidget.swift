@@ -98,7 +98,7 @@ struct NowSmall: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
                 .frame(maxWidth: .infinity, alignment: .leading)
-            CircleIntentButton(intent: snapshot.stopIntent, systemImage: "stop.fill", label: "Stop", color: .stopTint)
+            CircleIntentButton(intent: snapshot.stopIntent, systemImage: SymbolName.stop, label: "Stop", color: .stopTint)
         }
     }
 
@@ -120,7 +120,7 @@ struct NowSmall: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
-            CircleIntentButton(intent: snapshot.continueIntent, systemImage: "play.fill", label: "Continue", color: .startTint)
+            CircleIntentButton(intent: snapshot.continueIntent, systemImage: SymbolName.start, label: "Continue", color: .startTint)
         }
     }
 }
@@ -136,7 +136,7 @@ struct NowMedium: View {
                 idleContent
             }
             ForEach(snapshot.macLines, id: \.self) { line in
-                Label(line, systemImage: "desktopcomputer")
+                Label(line, systemImage: SymbolName.mac)
                     .font(.caption2)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
@@ -168,7 +168,7 @@ struct NowMedium: View {
                 .foregroundStyle(.secondary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            CircleIntentButton(intent: snapshot.stopIntent, systemImage: "stop.fill", label: "Stop", color: .stopTint)
+            CircleIntentButton(intent: snapshot.stopIntent, systemImage: SymbolName.stop, label: "Stop", color: .stopTint)
         }
     }
 
@@ -193,7 +193,7 @@ struct NowMedium: View {
                         .font(.subheadline)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                CircleIntentButton(intent: snapshot.continueIntent, systemImage: "play.fill", label: "Continue", color: .startTint)
+                CircleIntentButton(intent: snapshot.continueIntent, systemImage: SymbolName.start, label: "Continue", color: .startTint)
             }
         }
     }
@@ -208,10 +208,10 @@ struct NowInline: View {
             Label {
                 Text("\(elapsed) · \(running.row.projectText)")
             } icon: {
-                Image(systemName: "stopwatch")
+                Image(systemName: SymbolName.timer)
             }
         } else {
-            Label("Not tracking", systemImage: "stopwatch")
+            Label("Not tracking", systemImage: SymbolName.timer)
         }
     }
 }
@@ -224,7 +224,7 @@ struct NowCircular: View {
             AccessoryWidgetBackground()
             StopOrContinueButton(snapshot: snapshot) {
                 VStack(spacing: 1) {
-                    Image(systemName: "stop.fill")
+                    Image(systemName: SymbolName.stop)
                         .font(.body)
                         .widgetAccentable()
                         .accessibilityLabel("Stop")
@@ -235,7 +235,7 @@ struct NowCircular: View {
                         .padding(.horizontal, 4)
                 }
             } continueLabel: {
-                Image(systemName: "play.fill")
+                Image(systemName: SymbolName.start)
                     .font(.title2)
                     .widgetAccentable()
                     .accessibilityLabel("Continue")
@@ -270,9 +270,9 @@ struct NowRectangular: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             StopOrContinueButton(snapshot: snapshot) {
-                glyph("stop.circle.fill", label: "Stop")
+                glyph(SymbolName.stopCircle, label: "Stop")
             } continueLabel: {
-                glyph("play.circle.fill", label: "Continue")
+                glyph(SymbolName.startCircle, label: "Continue")
             }
         }
     }

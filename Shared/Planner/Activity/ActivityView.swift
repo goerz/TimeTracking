@@ -110,7 +110,7 @@ struct ActivityView: View {
     /// No block yet and no tracker set up (§1.9, §5).
     private var setupState: some View {
         ContentUnavailableView {
-            Label("No Activity Yet", systemImage: "waveform.path.ecg")
+            Label("No Activity Yet", systemImage: SymbolName.activity)
         } description: {
             if model.isRecordingMac {
                 Text("Set up the tracker to see where your time goes. Nothing is recorded until you enable it.")
@@ -128,7 +128,7 @@ struct ActivityView: View {
     /// No blocks in the range (§1.9).
     private func noActivityState(notRunning: Bool) -> some View {
         ContentUnavailableView {
-            Label(ActivityEmptyState.noActivityText(model.days), systemImage: "waveform.path.ecg")
+            Label(ActivityEmptyState.noActivityText(model.days), systemImage: SymbolName.activity)
         } description: {
             if notRunning {
                 Text("The tracker was not running.")

@@ -21,7 +21,7 @@ struct TimerToggleControl: ControlWidget {
     var body: some ControlWidgetConfiguration {
         StaticControlConfiguration(kind: WidgetKind.timerToggle, provider: TimerValueProvider()) { value in
             ControlWidgetToggle("Timer", isOn: value.isRunning, action: ToggleTimerIntent()) { isOn in
-                Label(isOn ? value.label : "Continue", systemImage: isOn ? "stop.fill" : "play.fill")
+                Label(isOn ? value.label : "Continue", systemImage: isOn ? SymbolName.stop : SymbolName.start)
                     .privacySensitive()
                     .controlWidgetActionHint(isOn ? "Stop tracking" : "Continue latest entry")
             }

@@ -29,7 +29,7 @@ struct RunningEntryCard: View {
                     Button {
                         Task { await timer.requestDiscard(skipAlert: false) }
                     } label: {
-                        Label("Discard", systemImage: "xmark")
+                        Label("Discard", systemImage: SymbolName.discard)
                     }
                     .buttonStyle(CircleButtonStyle.borderless(diameter: Design.CircleDiameter.bar))
                     .accessibilityIdentifier("timer.discardButton")

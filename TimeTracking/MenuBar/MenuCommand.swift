@@ -20,16 +20,16 @@ extension MenuCommand {
     /// The item's SF Symbol (spec_design.md §5), or `nil` for none.
     var symbol: String? {
         switch self {
-        case .new: "plus"
-        case .continueLatest: "play.fill"
-        case .stop: "stop.fill"
+        case .new: SymbolName.add
+        case .continueLatest: SymbolName.start
+        case .stop: SymbolName.stop
         // The phase glyph for the items that start a phase.
-        case .pomodoro(.start), .pomodoro(.startFocus): AppSymbol.pomodoro
-        case .pomodoro(.startBreak): AppSymbol.pomodoroBreak
-        case .showTimer: "stopwatch"
-        case .openPlanner: "calendar"
-        case .settings: "gearshape"
-        case .openTrackerSettings: "waveform.path.ecg"
+        case .pomodoro(.start), .pomodoro(.startFocus): SymbolName.pomodoro
+        case .pomodoro(.startBreak): SymbolName.pomodoroBreak
+        case .showTimer: SymbolName.timer
+        case .openPlanner: SymbolName.calendar
+        case .settings: SymbolName.settings
+        case .openTrackerSettings: SymbolName.activity
         case .pomodoro, .quit: nil
         }
     }

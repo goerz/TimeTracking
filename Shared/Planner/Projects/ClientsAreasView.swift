@@ -22,7 +22,7 @@ struct ClientsAreasView: View {
                     Button {
                         Task { await model.newArea(in: client.id) }
                     } label: {
-                        Label("Add Area", systemImage: "plus").foregroundStyle(Color.accentColor)
+                        Label("Add Area", systemImage: SymbolName.add).foregroundStyle(Color.accentColor)
                     }
                     .buttonStyle(.plain)
                     .padding(.leading, 26)
@@ -51,7 +51,7 @@ struct ClientsAreasView: View {
                     Button {
                         projects.showTable()
                     } label: {
-                        Label("Projects", systemImage: "chevron.left")
+                        Label("Projects", systemImage: SymbolName.previous)
                     }
                     .help("Back to Projects")
                     .accessibilityIdentifier("clientsAreas.back")
@@ -61,7 +61,7 @@ struct ClientsAreasView: View {
                 Button {
                     Task { await model.newClient() }
                 } label: {
-                    Label("New Client", systemImage: "plus")
+                    Label("New Client", systemImage: SymbolName.add)
                 }
                 .help("New Client")
                 .accessibilityIdentifier("clientsAreas.newClient")

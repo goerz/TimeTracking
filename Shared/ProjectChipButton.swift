@@ -2,6 +2,7 @@
 // and the entry editor (spec_design.md §7).
 
 import SwiftUI
+import TimeTrackingCore
 
 /// A capsule: area dot, project, " · client" in secondary, and the popup
 /// chevron. "No project" shows a hollow dot. On the Mac a small bordered
@@ -29,7 +30,7 @@ struct ProjectChipButton: View {
         HStack(spacing: Design.Spacing.tight + 2) {
             AreaDot(color: label.color)
             label.text(dimmed: label.isNone).lineLimit(1)
-            Image(systemName: "chevron.up.chevron.down")
+            Image(systemName: SymbolName.popUp)
                 .imageScale(.small)
                 .foregroundStyle(.secondary)
                 .accessibilityHidden(true)

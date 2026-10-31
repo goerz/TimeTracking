@@ -97,7 +97,7 @@ struct RunningEntryBar: View {
             let skip = ModifierKeys.optionIsDown
             Task { await app.timer.requestDiscard(skipAlert: skip) }
         } label: {
-            Label("Discard", systemImage: "xmark")
+            Label("Discard", systemImage: SymbolName.discard)
         }
         .buttonStyle(CircleButtonStyle.borderless(diameter: Design.CircleDiameter.bar))
         .help("Discard Running Entry")
@@ -109,7 +109,7 @@ struct RunningEntryBar: View {
         return Button {
             app.setPinned(!pinned)
         } label: {
-            Label("Float on Top", systemImage: pinned ? "pin.fill" : "pin")
+            Label("Float on Top", systemImage: pinned ? SymbolName.pinned : SymbolName.pin)
                 .labelStyle(.iconOnly)
                 .foregroundStyle(pinned ? AnyShapeStyle(Color.accentColor) : AnyShapeStyle(.secondary))
                 .frame(width: 20, height: 20)

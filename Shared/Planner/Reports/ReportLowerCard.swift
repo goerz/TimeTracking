@@ -13,7 +13,7 @@ struct ReportLowerCard: View {
             header.padding(Design.Spacing.medium)
             Divider()
             if (model.snapshot?.summary.entryCount ?? 0) == 0 {
-                ContentUnavailableView("No entries in this range", systemImage: "chart.bar")
+                ContentUnavailableView("No entries in this range", systemImage: SymbolName.reports)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .accessibilityIdentifier("reports.empty")
             } else if model.state.card == .breakdown {
@@ -74,7 +74,7 @@ struct ReportLowerCard: View {
             Button {
                 Task { await model.clearEntryPath() }
             } label: {
-                Label("\(chip) ×", systemImage: "line.3.horizontal.decrease")
+                Label("\(chip) ×", systemImage: SymbolName.filter)
             }
             .buttonStyle(.bordered)
             .accessibilityIdentifier("reports.pathChip")
@@ -105,7 +105,7 @@ struct ReportLowerCard: View {
                 Button {
                     Task { await model.addLevel() }
                 } label: {
-                    Image(systemName: "plus").accessibilityLabel("Add Level")
+                    Image(systemName: SymbolName.add).accessibilityLabel("Add Level")
                 }
                 .accessibilityIdentifier("reports.addLevel")
             }
@@ -179,7 +179,7 @@ struct ReportBreakdownTable: View {
             HStack(spacing: 2) {
                 Text(title)
                 if model.state.tableSort == column {
-                    Image(systemName: model.state.tableAscending ? "chevron.up" : "chevron.down").accessibilityHidden(true)
+                    Image(systemName: model.state.tableAscending ? SymbolName.ascending : SymbolName.expanded).accessibilityHidden(true)
                 }
             }
         }
@@ -218,7 +218,7 @@ struct ReportBreakdownTable: View {
                             model.toggle(row.path)
                         }
                     } label: {
-                        Image(systemName: row.isExpanded ? "chevron.down" : "chevron.right")
+                        Image(systemName: row.isExpanded ? SymbolName.expanded : SymbolName.next)
                             .font(.caption)
                             .accessibilityLabel(row.isExpanded ? "Collapse" : "Expand")
                     }

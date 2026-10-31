@@ -24,7 +24,7 @@ struct PinnedProjectsScreen: View {
         .overlay {
             if pinned.rows.isEmpty {
                 ContentUnavailableView {
-                    Label("No Pinned Projects", systemImage: "pin")
+                    Label("No Pinned Projects", systemImage: SymbolName.pin)
                 } description: {
                     Text("Pinned projects appear as buttons in the Pinned widget.")
                 } actions: {
@@ -39,7 +39,7 @@ struct PinnedProjectsScreen: View {
                 Button {
                     showPicker()
                 } label: {
-                    Label("Add Project", systemImage: "plus")
+                    Label("Add Project", systemImage: SymbolName.add)
                 }
                 .accessibilityIdentifier("settings.addPinned")
             }

@@ -5,7 +5,7 @@ struct StatusItemContent: Equatable {
     /// The Pomodoro countdown after the title: the phase glyph and `m:ss`
     /// (`+m:ss` once the phase has ended).
     struct PomodoroSegment: Equatable {
-        /// Symbol name, template: `AppSymbol.phase(isFocus:)`.
+        /// Symbol name, template: `SymbolName.phase(isFocus:)`.
         var symbol: String
         var text: String
     }

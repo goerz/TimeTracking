@@ -107,7 +107,7 @@ private struct ProjectsTableView: View {
 
     private func emptyState(_ text: String) -> some View {
         ContentUnavailableView {
-            Label(text, systemImage: "folder")
+            Label(text, systemImage: SymbolName.projects)
         } actions: {
             if model.table.activeCount + model.table.archivedCount == 0 {
                 Button("New Project") { model.newProject() }
@@ -170,21 +170,21 @@ private struct ProjectsToolbar: ToolbarContent {
                 }
                 .pickerStyle(.inline)
             } label: {
-                Label("Sort and Group", systemImage: "arrow.up.arrow.down")
+                Label("Sort and Group", systemImage: SymbolName.sort)
             }
             .help("Sort and Group")
             .accessibilityIdentifier("projects.sortBy")
         }
         ToolbarItem(placement: .primaryAction) {
             Button { model.showClientsAndAreas(client: nil) } label: {
-                Label("Clients & Areas", systemImage: "person.crop.square")
+                Label("Clients & Areas", systemImage: SymbolName.clients)
             }
             .help("Clients & Areas")
             .accessibilityIdentifier("projects.clientsAndAreas")
         }
         ToolbarItem(placement: .primaryAction) {
             Button { model.newProject() } label: {
-                Label("New Project", systemImage: "plus")
+                Label("New Project", systemImage: SymbolName.add)
             }
             .help("New Project")
             .accessibilityIdentifier("projects.new")

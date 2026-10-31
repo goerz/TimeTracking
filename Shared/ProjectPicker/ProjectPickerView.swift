@@ -51,7 +51,7 @@ struct ProjectPickerView: View {
 
     private var searchField: some View {
         HStack(spacing: Design.Spacing.tight + 2) {
-            Image(systemName: "magnifyingglass").foregroundStyle(.secondary).accessibilityHidden(true)
+            Image(systemName: SymbolName.search).foregroundStyle(.secondary).accessibilityHidden(true)
             TextField(model.placeholder, text: $model.search)
                 .textFieldStyle(.plain)
                 .autocorrectionDisabled()
@@ -119,7 +119,7 @@ struct ProjectPickerView: View {
         Button {
             onChoose(.create(name))
         } label: {
-            Label("Create Project “\(name)”", systemImage: "plus")
+            Label("Create Project “\(name)”", systemImage: SymbolName.add)
                 .foregroundStyle(Color.accentColor)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, Design.Spacing.medium)
@@ -146,7 +146,7 @@ struct ProjectPickerView: View {
             onChoose(model.choice(for: item))
         } label: {
             HStack(spacing: Design.Spacing.small) {
-                Image(systemName: "checkmark")
+                Image(systemName: SymbolName.checkmark)
                     .accessibilityHidden(true)
                     .font(.caption.weight(.semibold))
                     .opacity(checked ? 1 : 0)

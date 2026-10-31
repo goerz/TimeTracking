@@ -138,7 +138,7 @@ struct GeneralPane: View {
             LabeledContent {
                 Button("Open Notification Settings") { SystemSettings.openNotifications() }
             } label: {
-                Label("Notifications are off for this app.", systemImage: "exclamationmark.triangle")
+                Label("Notifications are off for this app.", systemImage: SymbolName.warning)
             }
         } footer: {
             Text("Pomodoro, idle, and reminder alerts need notifications.")

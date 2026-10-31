@@ -71,7 +71,7 @@ struct EntryRow: View {
             Button {
                 Task { await model.timer.continueEntry(listing.id) }
             } label: {
-                Label("Continue", systemImage: "play.fill")
+                Label("Continue", systemImage: SymbolName.start)
             }
             .buttonStyle(CircleButtonStyle(color: .startTint, diameter: Design.CircleDiameter.row))
             .accessibilityIdentifier("timer.row.continue.\(listing.id)")
@@ -83,21 +83,21 @@ struct EntryRow: View {
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("timer.row.\(listing.id)")
         .swipeActions(edge: .leading, allowsFullSwipe: true) {
-            Button("Continue", systemImage: "play.fill") {
+            Button("Continue", systemImage: SymbolName.start) {
                 Task { await model.timer.continueEntry(listing.id) }
             }
             .tint(.startTint)
         }
         .swipeActions(edge: .trailing) {
-            Button("Delete", systemImage: "trash", role: .destructive) {
+            Button("Delete", systemImage: SymbolName.delete, role: .destructive) {
                 model.timer.alert = model.list.deleteAlert(for: listing.id)
             }
         }
         .contextMenu {
-            Button("Continue", systemImage: "play.fill") { Task { await model.timer.continueEntry(listing.id) } }
-            Button("Edit", systemImage: "pencil") { model.openEditor(listing.id) }
-            Button("Copy Task", systemImage: "doc.on.doc") { Clipboard.copy(listing.entry.task) }
-            Button("Delete", systemImage: "trash", role: .destructive) {
+            Button("Continue", systemImage: SymbolName.start) { Task { await model.timer.continueEntry(listing.id) } }
+            Button("Edit", systemImage: SymbolName.edit) { model.openEditor(listing.id) }
+            Button("Copy Task", systemImage: SymbolName.copy) { Clipboard.copy(listing.entry.task) }
+            Button("Delete", systemImage: SymbolName.delete, role: .destructive) {
                 model.timer.alert = model.list.deleteAlert(for: listing.id)
             }
         }

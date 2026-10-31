@@ -5,9 +5,9 @@ import TimeTrackingCore
 extension CalendarColumn {
     var glyph: String {
         switch self {
-        case .activity: "desktopcomputer"
-        case .tracked: "stopwatch"
-        case .calendar: "calendar"
+        case .activity: SymbolName.mac
+        case .tracked: SymbolName.timer
+        case .calendar: SymbolName.calendar
         }
     }
 

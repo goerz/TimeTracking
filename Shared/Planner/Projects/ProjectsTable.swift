@@ -251,7 +251,7 @@ private struct ProjectNameCell: View {
             Text(row.row.project.name)
                 .foregroundStyle(row.row.project.isArchived ? .secondary : .primary)
             if let tooltip = row.duplicateTooltip {
-                Image(systemName: "exclamationmark.triangle")
+                Image(systemName: SymbolName.warning)
                     .foregroundStyle(.yellow)
                     .help(tooltip)
                     .accessibilityLabel(tooltip)
@@ -260,7 +260,7 @@ private struct ProjectNameCell: View {
             Menu {
                 ProjectContextMenu(model: model)
             } label: {
-                Image(systemName: "ellipsis").accessibilityLabel("Actions")
+                Image(systemName: SymbolName.more).accessibilityLabel("Actions")
             }
             .menuStyle(.button)
             .buttonStyle(.borderless)

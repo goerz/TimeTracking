@@ -36,7 +36,7 @@ struct EntryEditorView: View {
             Button(role: .destructive) {
                 confirmDelete = true
             } label: {
-                Label("Delete Entry…", systemImage: "trash")
+                Label("Delete Entry…", systemImage: SymbolName.delete)
             }
             .buttonStyle(.borderless)
             .foregroundStyle(.red)
@@ -148,7 +148,7 @@ struct EntryEditorView: View {
                 }
                 if let overlap = model.overlap {
                     VStack(alignment: .leading, spacing: Design.Spacing.tight) {
-                        Label(overlap.text, systemImage: "exclamationmark.triangle").font(.caption)
+                        Label(overlap.text, systemImage: SymbolName.warning).font(.caption)
                         HStack {
                             Button("Keep") { Task { await model.keepOverlap() } }
                                 .accessibilityIdentifier("editor.keepOverlap")

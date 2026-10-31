@@ -44,7 +44,7 @@ struct CalendarDayHeader: View {
             Spacer(minLength: 0)
             if overlaps > 0 {
                 Button { model.selectOverlaps(on: day) } label: {
-                    Label("\(overlaps) \(overlaps == 1 ? "overlap" : "overlaps")", systemImage: "exclamationmark.triangle")
+                    Label("\(overlaps) \(overlaps == 1 ? "overlap" : "overlaps")", systemImage: SymbolName.warning)
                 }
                 .buttonStyle(.borderless)
                 .labelStyle(.titleAndIcon)
@@ -52,7 +52,7 @@ struct CalendarDayHeader: View {
                 .foregroundStyle(.orange)
                 .help("Select the overlapping entries")
             }
-            Button { Task { await model.openFillDay(day) } } label: { Label("Fill Day…", systemImage: "sparkles") }
+            Button { Task { await model.openFillDay(day) } } label: { Label("Fill Day…", systemImage: SymbolName.suggestions) }
                 .buttonStyle(.borderless)
                 .labelStyle(.iconOnly)
                 .foregroundStyle(.secondary)

@@ -106,13 +106,13 @@ struct ReportsView: View {
             #if os(iOS)
                 // The share sheet's Print (spec_ios.md §10.2).
                 ShareLink(item: ReportPDF(model: model), preview: SharePreview(model.range.label)) {
-                    Label("Print", systemImage: "printer")
+                    Label("Print", systemImage: SymbolName.print)
                 }
                 .accessibilityIdentifier("reports.print")
             #else
                 if let onPrint {
                     Button(action: onPrint) {
-                        Label("Print", systemImage: "printer")
+                        Label("Print", systemImage: SymbolName.print)
                     }
                     .help("Print")
                     .accessibilityIdentifier("reports.print")
@@ -122,7 +122,7 @@ struct ReportsView: View {
                 Button("Breakdown (CSV)…") { export(entries: false) }
                 Button("Entries (CSV)…") { export(entries: true) }
             } label: {
-                Label("Export", systemImage: "square.and.arrow.up")
+                Label("Export", systemImage: SymbolName.share)
             }
             .help("Export")
             .accessibilityIdentifier("reports.export")
@@ -136,7 +136,7 @@ private struct ReportFilterBar: View {
 
     var body: some View {
         HStack(spacing: Design.Spacing.small) {
-            Image(systemName: "line.3.horizontal.decrease")
+            Image(systemName: SymbolName.filter)
                 .foregroundStyle(.secondary)
                 .accessibilityHidden(true)
             ForEach(model.filterChips) { chip in
@@ -145,7 +145,7 @@ private struct ReportFilterBar: View {
                 } label: {
                     HStack(spacing: Design.Spacing.tight) {
                         Text(chip.text)
-                        Image(systemName: "xmark").imageScale(.small).foregroundStyle(.secondary).accessibilityHidden(true)
+                        Image(systemName: SymbolName.discard).imageScale(.small).foregroundStyle(.secondary).accessibilityHidden(true)
                     }
                 }
                 .buttonStyle(.bordered)

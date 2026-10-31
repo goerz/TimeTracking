@@ -54,27 +54,27 @@ struct CalendarToolbar: ToolbarContent {
                     Label("Calendar Column", systemImage: CalendarColumn.calendar.glyph)
                 }
             } label: {
-                Label("Columns", systemImage: "rectangle.split.3x1")
+                Label("Columns", systemImage: SymbolName.calendarColumns)
             }
             .help("Columns")
             .accessibilityIdentifier("calendar.columns")
         }
         ToolbarItemGroup(placement: .primaryAction) {
-            Button { model.zoom(by: -1) } label: { Label("Zoom Out", systemImage: "minus.magnifyingglass") }
+            Button { model.zoom(by: -1) } label: { Label("Zoom Out", systemImage: SymbolName.zoomOut) }
                 .help("Zoom Out")
-            Button { model.zoom(by: 1) } label: { Label("Zoom In", systemImage: "plus.magnifyingglass") }
+            Button { model.zoom(by: 1) } label: { Label("Zoom In", systemImage: SymbolName.zoomIn) }
                 .help("Zoom In")
         }
         .visibilityPriority(.low)
         ToolbarItem(placement: .primaryAction) {
-            Button { model.showsOptions = true } label: { Label("Calendar Options", systemImage: "gearshape") }
+            Button { model.showsOptions = true } label: { Label("Calendar Options", systemImage: SymbolName.settings) }
                 .help("Calendar Options")
                 .accessibilityIdentifier("calendar.options")
                 .popover(isPresented: $model.showsOptions) { CalendarOptionsPopover(model: model) }
         }
         .visibilityPriority(.low)
         ToolbarItem(placement: .primaryAction) {
-            Button { Task { await model.openFillDay() } } label: { Label("Fill Day…", systemImage: "sparkles") }
+            Button { Task { await model.openFillDay() } } label: { Label("Fill Day…", systemImage: SymbolName.suggestions) }
                 .help("Fill Day…")
                 .disabled(!model.canFillDay)
                 .accessibilityIdentifier("calendar.fillDay")
