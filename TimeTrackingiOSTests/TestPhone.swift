@@ -61,7 +61,7 @@ struct TestPhone {
 
     /// A local time `yyyy-MM-dd'T'HH:mm[:ss]` in the current zone.
     static func date(_ text: String) throws -> Date {
-        try #require(LaunchArguments.parseInstant(text, timeZone: .current), "bad date \(text)")
+        try TestDates.date(text)
     }
 
     func date(_ text: String) throws -> Date {
@@ -70,13 +70,7 @@ struct TestPhone {
 
     /// A client, an area, and projects named `names`.
     func projects(_ names: [String]) async throws -> [Project] {
-        let (client, _) = try await store.createClient(name: "Personal")
-        let area = try await store.createArea(AreaDraft(clientID: client.id, name: "Home", color: "#2E8B57"))
-        var projects: [Project] = []
-        for name in names {
-            try await projects.append(store.createProject(ProjectDraft(areaID: area.id, name: name)))
-        }
-        return projects
+        try await TestSeed.projects(names, in: store, client: "Personal", area: "Home", color: "#2E8B57")
     }
 
     /// The next change the store reports after `action`.

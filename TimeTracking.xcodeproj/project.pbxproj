@@ -300,6 +300,11 @@
 			path = AppResources;
 			sourceTree = "<group>";
 		};
+		A0A1C0DE00000000000000A2 /* AppTestSupport */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = AppTestSupport;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -466,6 +471,7 @@
 				251F061EDB52E64DC0B73519 /* TimeTrackingUITests */,
 				2CB5BF39188A1D741CE51890 /* TimeTrackingiOSTests */,
 				25F9F9EE40EEFA6C8264509B /* TimeTrackingiOSUITests */,
+				A0A1C0DE00000000000000A2 /* AppTestSupport */,
 				DC1320E08B780356A9D25768 /* TimeTrackingAgentTests */,
 				F1A7E0C93B5D4E2A8C6B1D07 /* AgentFixtures */,
 				2BA50DFEDA2395B518E140EC /* TimeTrackingCLITests */,
@@ -594,6 +600,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				2CB5BF39188A1D741CE51890 /* TimeTrackingiOSTests */,
+				A0A1C0DE00000000000000A2 /* AppTestSupport */,
 			);
 			name = TimeTrackingiOSTests;
 			packageProductDependencies = (
@@ -701,6 +708,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				12BD6AC29B8C15CC75031DE6 /* TimeTrackingTests */,
+				A0A1C0DE00000000000000A2 /* AppTestSupport */,
 			);
 			name = TimeTrackingTests;
 			packageProductDependencies = (

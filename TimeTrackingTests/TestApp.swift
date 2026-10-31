@@ -65,7 +65,7 @@ struct TestApp {
 
     /// A local time `yyyy-MM-dd'T'HH:mm[:ss]` in the current zone.
     static func date(_ text: String) throws -> Date {
-        try #require(LaunchArguments.parseInstant(text, timeZone: .current), "bad date \(text)")
+        try TestDates.date(text)
     }
 
     func date(_ text: String) throws -> Date {
@@ -74,13 +74,7 @@ struct TestApp {
 
     /// A client "University" with area "Research" and the named projects.
     func projects(_ names: [String], client: String = "University") async throws -> [Project] {
-        let (created, _) = try await store.createClient(name: client)
-        let area = try await store.createArea(AreaDraft(clientID: created.id, name: "Research"))
-        var projects: [Project] = []
-        for name in names {
-            try await projects.append(store.createProject(ProjectDraft(areaID: area.id, name: name)))
-        }
-        return projects
+        try await TestSeed.projects(names, in: store, client: client, area: "Research")
     }
 
     /// A stopped entry from `start` to `end` (local `HH:mm` today unless a full date).

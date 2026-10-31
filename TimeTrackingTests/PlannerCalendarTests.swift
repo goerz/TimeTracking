@@ -48,24 +48,6 @@ struct PlannerCalendarTests {
         TrackingDay(text) ?? TrackingDay(year: 2000, month: 1, day: 1)
     }
 
-    /// A block today (2024-03-14) from `start` to `end`, local time.
-    static func block(_ start: String, _ end: String, context: String = "tmux:paper", open: Bool = false) throws -> ActivityBlock {
-        let begin = try TestApp.date("2024-03-14T\(start)")
-        let finish = try TestApp.date("2024-03-14T\(end)")
-        let seconds = Int(finish.timeIntervalSince(begin) * 0.9)
-        return ActivityBlock(
-            start: begin,
-            end: finish,
-            activeSeconds: seconds,
-            device: "macbook",
-            groupKey: context,
-            groupShare: 1,
-            items: [ActivityItem(context: context, subject: "~/Papers", detail: "", seconds: seconds)],
-            utcOffset: TimeZone.current.secondsFromGMT(for: begin),
-            isOpen: open
-        )
-    }
-
     @Test("PC-2 with today Thursday, ⌘T makes the first day Tuesday for 5 days, Monday for 7, Thursday for 1 and 2")
     func today() async throws {
         let world = try await World()
@@ -166,7 +148,7 @@ struct PlannerCalendarTests {
 
     @Test("PC-14 Add Entry above 0.8 with project and task creates the entry, records accepted; else the popover; below 0.35 nothing")
     func log() async throws {
-        let block = try Self.block("08:00", "08:30")
+        let block = try TestBlocks.block("08:00", "08:30")
         let world = try await World(blocks: [block])
         let model = world.model
         // Thresholds: Log skips the popover only above 0.8; below 0.35 nothing is prefilled.
@@ -195,8 +177,8 @@ struct PlannerCalendarTests {
         "PC-15 a confirmed Delete This Activity sends one delete-block; Cancel sends nothing; the open block and the iPad do not offer it"
     )
     func deleteBlockFromLog() async throws {
-        let closed = try Self.block("08:00", "08:30")
-        let open = try Self.block("09:30", "10:00", open: true)
+        let closed = try TestBlocks.block("08:00", "08:30")
+        let open = try TestBlocks.block("09:30", "10:00", open: true)
         let world = try await World(blocks: [closed, open])
         let model = world.model
         model.confirmDeleteFromLog(closed)
@@ -216,9 +198,9 @@ struct PlannerCalendarTests {
     )
     func fillDay() async throws {
         let blocks = try [
-            Self.block("07:00", "07:12"),
-            Self.block("07:30", "07:33", context: "mail"),
-            Self.block("08:00", "08:40", context: "safari"),
+            TestBlocks.block("07:00", "07:12"),
+            TestBlocks.block("07:30", "07:33", context: "mail"),
+            TestBlocks.block("08:00", "08:40", context: "safari"),
         ]
         let world = try await World(blocks: blocks)
         let model = world.model

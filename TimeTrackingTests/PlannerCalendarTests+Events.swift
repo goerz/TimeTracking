@@ -90,8 +90,8 @@ extension PlannerCalendarTests {
         "PC-23 showCalendar(day:hour:highlight:) puts the day leftmost, the hour on top, Activity on, the hour's blocks pulsed"
     )
     func showCalendarRequest() async throws {
-        let morning = try Self.block("09:10", "09:40")
-        let afternoon = try Self.block("07:00", "07:20")
+        let morning = try TestBlocks.block("09:10", "09:40")
+        let afternoon = try TestBlocks.block("07:00", "07:20")
         let world = try await World(blocks: [morning, afternoon])
         let model = world.model
         await model.toggle(.activity)
