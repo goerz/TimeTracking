@@ -210,18 +210,46 @@ struct TimerWindowTests {
         mini.list.showFilter()
         #expect(!main.list.isFilterVisible)
         // New from the main menu while the main window's Timer is key.
-        test.app.timerViewActivated(main, isKey: true, undoManager: test.undo)
+        test.app.windowActivated(.mainWindow, isKey: true, undoManager: test.undo)
         #expect(test.app.activeTimer === main)
         await test.app.newEntry(in: test.app.activeTimer)
         #expect(main.wantsTaskFieldFocus && !mini.wantsTaskFieldFocus)
         #expect(test.router.calls == [.showMainTimer])
-        test.app.timerViewActivated(mini, isKey: true, undoManager: test.undo)
-        test.app.timerViewActivated(main, isKey: false, undoManager: nil)
+        test.app.windowActivated(.miniTimer, isKey: true, undoManager: test.undo)
+        test.app.windowActivated(.mainWindow, isKey: false, undoManager: nil)
         #expect(test.app.activeTimer === mini)
         // A store change reloads both lists.
         try await test.entry("Deploy", projects[1], from: "08:30", to: "08:40")
         #expect(mini.list.rows.contains { $0.entry.task == "Deploy" })
         #expect(main.list.rows.contains { $0.entry.task == "Deploy" })
+    }
+
+    @Test("TW-36 a Timer alert shows in the key window, also over Calendar; with no key window the Mini Timer comes forward with it")
+    func alertWindow() async throws {
+        let test = try await TestApp()
+        _ = try await test.store.start(projectID: nil, task: "Review", at: test.date("2024-03-14T09:00"))
+        await test.app.afterChange()
+        // The main window on Calendar is key: Discard's alert shows there.
+        test.app.showsTimer = false
+        test.app.windowActivated(.mainWindow, isKey: true, undoManager: test.undo)
+        #expect(test.app.keyTimer == nil)
+        await test.app.timer.requestDiscard(skipAlert: false)
+        #expect(test.app.timer.alert != nil)
+        #expect(test.app.alertWindow == .mainWindow)
+        #expect(test.router.calls.isEmpty)
+        test.app.timer.alert = nil
+        // The Mini Timer is key.
+        test.app.windowActivated(.miniTimer, isKey: true, undoManager: test.undo)
+        test.app.windowActivated(.mainWindow, isKey: false, undoManager: nil)
+        await test.app.timer.requestDiscard(skipAlert: false)
+        #expect(test.app.alertWindow == .miniTimer)
+        #expect(test.router.calls.isEmpty)
+        test.app.timer.alert = nil
+        // No key window (the menu bar, a shortcut): the Mini Timer comes forward.
+        test.app.windowActivated(.miniTimer, isKey: false, undoManager: nil)
+        await test.app.timer.requestDiscard(skipAlert: false)
+        #expect(test.app.alertWindow == .miniTimer)
+        #expect(test.router.calls == [.showTimer(focusTask: false)])
     }
 
     @Test("TW-17 ⌘F with noise leaves only matching entries, and day totals sum them; Escape clears the filter")

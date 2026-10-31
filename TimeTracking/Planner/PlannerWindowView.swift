@@ -16,6 +16,8 @@ enum MainSidebarItem: Hashable {
 /// sidebar; each section owns its toolbar.
 struct PlannerWindowView: View {
     @Environment(AppModel.self) private var app
+    @Environment(\.undoManager) private var undoManager
+    @Environment(\.appearsActive) private var appearsActive
 
     var body: some View {
         TabView(selection: selection) {
@@ -46,7 +48,16 @@ struct PlannerWindowView: View {
             }
         })
         .onAppear { app.plannerOpened() }
-        .onDisappear { app.plannerClosed() }
+        .onDisappear {
+            app.plannerClosed()
+            app.windowActivated(.mainWindow, isKey: false, undoManager: nil)
+        }
+        .onChange(of: appearsActive, initial: true) { _, active in
+            app.windowActivated(.mainWindow, isKey: active, undoManager: undoManager)
+        }
+        // The Timer's alerts raised while this window is key, over any item
+        // (spec_timer_window.md §1).
+        .timerAlert(timer: app.timer, list: app.mainTimer.list, active: app.alertWindow == .mainWindow)
     }
 
     private var selection: Binding<MainSidebarItem> {

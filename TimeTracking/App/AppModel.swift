@@ -18,8 +18,10 @@ final class AppModel {
     let miniTimer: TimerUIState
     /// The main window's Timer's own list, popovers, picker, dialog, and focus.
     let mainTimer: TimerUIState
-    /// The Timer view whose window is key, if any (set by the views).
-    private(set) var keyTimer: TimerUIState?
+    /// The app's key window, if any: the main window or the Mini Timer (set by the windows' views).
+    private(set) var keyWindow: TimerUIState.Place?
+    /// The window that shows the current alert of the Timer.
+    private(set) var alertWindow: TimerUIState.Place = .miniTimer
     let settings: AppSettings
     let timer: TimerModel
     let pomodoro: PomodoroModel
@@ -102,6 +104,7 @@ final class AppModel {
             suggestionsCache: suggestionsCache
         )
         timer.onChange = { [weak self] in await self?.afterChange() }
+        timer.onAlert = { [weak self] in self?.alertRaised() }
         for view in [miniTimer, mainTimer] {
             view.list.onChange = { [weak self] in await self?.afterChange() }
         }
@@ -201,12 +204,9 @@ final class AppModel {
     }
 
     /// Continue the most recent entry other than the running one, without
-    /// showing the window (the restore alert shows it).
+    /// showing a window (the restore alert shows one, `alertRaised`).
     func continueLatest() async {
         await timer.continueEntry()
-        if timer.alert != nil {
-            router?.showTimer(focusTask: false)
-        }
     }
 
     func stopEntry() async {
@@ -248,14 +248,26 @@ final class AppModel {
 
     // MARK: Timer window commands
 
-    /// A Timer view's window became key (`true`) or resigned.
-    func timerViewActivated(_ view: TimerUIState, isKey: Bool, undoManager: UndoManager?) {
+    /// The main window or the Mini Timer became key (`true`) or resigned.
+    func windowActivated(_ place: TimerUIState.Place, isKey: Bool, undoManager: UndoManager?) {
         if isKey {
-            keyTimer = view
+            keyWindow = place
             // Undo of the Timer's commands goes to the window they came from.
             timer.undoManager = undoManager
-        } else if keyTimer === view {
-            keyTimer = nil
+        } else if keyWindow == place {
+            keyWindow = nil
+        }
+    }
+
+    /// An alert of the Timer: the key window shows it, whatever it shows;
+    /// with no key window (the menu bar, a global shortcut, a
+    /// notification) the Mini Timer comes forward with it.
+    private func alertRaised() {
+        if let keyWindow {
+            alertWindow = keyWindow
+        } else {
+            alertWindow = .miniTimer
+            router?.showTimer(focusTask: false)
         }
     }
 

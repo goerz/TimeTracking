@@ -12,7 +12,7 @@ import TimeTrackingCore
 /// result.
 @Observable
 final class TimerUIState {
-    /// Which Timer view this is.
+    /// Which Timer view this is, and the window that holds it.
     enum Place {
         case miniTimer
         case mainWindow

@@ -47,13 +47,13 @@ struct TimerWindowView: View {
             view.list.undoManager = undoManager
         }
         .onChange(of: appearsActive, initial: true) { _, active in
-            app.timerViewActivated(view, isKey: active, undoManager: undoManager)
+            // The main window reports for itself, whatever it shows.
+            if !embedded {
+                app.windowActivated(.miniTimer, isKey: active, undoManager: undoManager)
+            }
         }
-        .onDisappear {
-            app.timerViewActivated(view, isKey: false, undoManager: nil)
-        }
-        // The alert shows in the Timer view where the action happened.
-        .timerAlert(timer: app.timer, list: view.list) { [app, view] in app.activeTimer === view }
+        // The main window shows the Timer's alerts at its root, whatever it shows.
+        .timerAlert(timer: app.timer, list: view.list, active: !embedded && app.alertWindow == .miniTimer)
         .sheet(item: idlePrompt) { _ in
             IdlePromptView()
         }

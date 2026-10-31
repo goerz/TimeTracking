@@ -6,14 +6,23 @@ import Foundation
 import TimeTrackingCore
 
 extension AppModel {
-    /// The Timer view menu commands and the Timer's alerts go to: the one
-    /// in the key window, else the Mini Timer while it is on screen, else
-    /// the main window's.
+    /// The Timer view menu commands go to: the one in the key window, else
+    /// the Mini Timer while it is on screen, else the main window's.
     var activeTimer: TimerUIState {
         if let keyTimer {
             return keyTimer
         }
         return window?.isVisible == true ? miniTimer : mainTimer
+    }
+
+    /// The Timer view in the key window: the Mini Timer, or the main
+    /// window while it shows its Timer.
+    var keyTimer: TimerUIState? {
+        switch keyWindow {
+        case .miniTimer: miniTimer
+        case .mainWindow: showsTimer ? mainTimer : nil
+        case nil: nil
+        }
     }
 
     /// The chip's picker in `view`, with task matching (spec_timer_window.md §2.3).

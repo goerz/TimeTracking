@@ -68,7 +68,16 @@ final class TimerModel {
     private(set) var draftLabel: ProjectLabel = .noProject
     /// Bumped to move keyboard focus into the task field.
     private(set) var focusTaskFieldRequest = 0
-    var alert: TimerAlert?
+    var alert: TimerAlert? {
+        didSet {
+            if alert != nil, oldValue == nil {
+                onAlert?()
+            }
+        }
+    }
+
+    /// Called when an alert is raised (the Mac decides which window shows it).
+    @ObservationIgnored var onAlert: (() -> Void)?
     private(set) var lastError: String?
 
     init(store: TimeStore, clock: any Clock, notifier: NotificationAuthorizing) {
