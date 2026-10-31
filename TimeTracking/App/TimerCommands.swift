@@ -4,27 +4,36 @@
 import SwiftUI
 import TimeTrackingCore
 
-/// The running timer and the Pomodoro, from any window: each item is also
-/// in the menu bar item's menu.
+/// The running timer and the Pomodoro, from any window (each also in the
+/// menu bar item's menu), then the Timer window's own entry commands.
 struct TimerCommands: Commands {
     var host: AppHost
     @FocusedValue(\.timerWindowActive) private var timerActive
+    @FocusedValue(\.plannerWindowActive) private var plannerActive
 
     private var app: AppModel? {
         host.model
     }
 
-    private var timerKey: Bool {
-        timerActive ?? false
+    private var state: MenuState {
+        MenuState(router: app?.planner, timerKey: timerActive ?? false, plannerKey: plannerActive ?? false)
+    }
+
+    /// What ⌘O starts from the Planner's selection, while the Planner is key.
+    private var plannerTarget: PlannerContinueTarget? {
+        state.plannerKey ? app?.planner.continueTarget : nil
     }
 
     var body: some Commands {
         CommandMenu("Timer") {
             Button("New") { run { await $0.newEntry() } }
                 .keyboardShortcut("n")
-            Button("Continue") { run { [timerKey] in await $0.continueCommand(timerKey: timerKey) } }
-                .keyboardShortcut("o")
-                .disabled(app?.timer.mostRecentOther == nil && app?.list.selection == nil)
+            // The selection in either window: "Start Timer" on a project.
+            Button(plannerTarget == .project ? "Start Timer" : "Continue") {
+                run { [state] in await $0.continueCommand(timerKey: state.timerKey, plannerKey: state.plannerKey) }
+            }
+            .keyboardShortcut("o")
+            .disabled(app?.timer.mostRecentOther == nil && app?.list.selection == nil && plannerTarget == nil)
             Button("Stop") { run { await $0.stopEntry() } }
                 .keyboardShortcut("s")
                 .disabled(app?.timer.isRunning != true)
@@ -33,7 +42,27 @@ struct TimerCommands: Commands {
                 .disabled(app?.timer.isRunning != true)
             Divider()
             pomodoroCommands
+            Divider()
+            timerWindowCommands
         }
+    }
+
+    /// Set Project…, Edit Entry…, and Delete Entry…: the running entry or
+    /// the list's selected row, while the Timer window is key.
+    @ViewBuilder private var timerWindowCommands: some View {
+        Button("Set Project…") { app?.openChipPicker() }
+            .contextCommand(KeyboardShortcut("p"), enabled: state.timerKey)
+        Button("Edit Entry…") { app?.editEntry() }
+            .contextCommand(KeyboardShortcut("e"), enabled: state.timerKey)
+        Button("Delete Entry…") {
+            if let app {
+                app.timer.alert = app.list.deleteAlert()
+            }
+        }
+        .contextCommand(
+            KeyboardShortcut(.delete, modifiers: .command),
+            enabled: state.timerKey && app?.list.selection != nil && app?.presentation.listFocused == true
+        )
     }
 
     /// Start/Cancel Pomodoro, and the next step titled by what it does.

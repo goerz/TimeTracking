@@ -9,14 +9,11 @@ import TimeTrackingCore
 
 @MainActor
 struct PlannerProjectsTests {
-    @Test("PP-1 ⌘1 to ⌘4 select sections only while the Planner is key")
+    @Test("PP-1 ⌘1 to ⌘4 select Projects, Calendar, Reports, Activity; the section menu is named for the section")
     func sectionCommands() async throws {
         let test = try await TestApp()
-        let timerKey = MenuState(plannerKey: false, section: .projects, showsClientsAndAreas: false)
-        #expect(!timerKey.sectionCommands)
-        let plannerKey = MenuState(plannerKey: true, section: .projects, showsClientsAndAreas: false)
-        #expect(plannerKey.sectionCommands)
         #expect(PlannerSection.allCases.map(\.key) == ["1", "2", "3", "4"])
+        #expect(PlannerSection.allCases.map(\.menuTitle) == ["Project", "Calendar", "Report", "Activity"])
         for section in PlannerSection.allCases {
             test.app.planner.select(section)
             #expect(test.app.planner.section == section)
@@ -86,17 +83,19 @@ struct PlannerProjectsTests {
     }
 
     @Test(
-        "PP-12 Start Timer stops a running entry, starts one on the project with an empty task, and shows no window; disabled when archived"
+        "PP-12 ⌘O on a project stops a running entry, starts one on it with an empty task, and shows no window; disabled when archived"
     )
     func startTimer() async throws {
         let test = try await TestApp()
         let projects = try await test.projects(["Paper", "Old"])
         _ = try await test.store.start(projectID: nil, task: "Running", at: test.date("2024-03-14T09:00"))
         let model = test.app.planner.projects
+        test.app.planner.select(.projects)
         await model.reload()
         model.selection = [projects[0].id]
         #expect(model.canStartTimer)
-        await model.startTimerOnSelection()
+        #expect(test.app.planner.continueTarget == .project)
+        await test.app.continueCommand(timerKey: false, plannerKey: true)
         let running = try #require(try await test.store.runningEntry())
         #expect(running.projectID == projects[0].id)
         #expect(running.task.isEmpty)
@@ -106,6 +105,7 @@ struct PlannerProjectsTests {
         await model.reload()
         model.selection = [projects[1].id]
         #expect(!model.canStartTimer)
+        #expect(test.app.planner.continueTarget == nil)
     }
 
     @Test("PP-13 Show in Reports selects Reports with the project as the only filter and All time")

@@ -136,14 +136,13 @@ struct PomodoroButton: View {
             .foregroundStyle(Color.accentColor)
         }
         .buttonStyle(.plain)
-        #if os(macOS)
-            .keyboardShortcut(.return, modifiers: .command)
-        #endif
-            .help(help)
-            .contextMenu { menuItems }
-            .accessibilityLabel(help)
-            .accessibilityValue(pomodoro.buttonTitle(at: now()))
-            .accessibilityIdentifier("timer.pomodoroConfirm")
+        // ⌘↩ while the Timer shows (Mac window, iPad tab).
+        .keyboardShortcut(.return, modifiers: .command)
+        .help(help)
+        .contextMenu { menuItems }
+        .accessibilityLabel(help)
+        .accessibilityValue(pomodoro.buttonTitle(at: now()))
+        .accessibilityIdentifier("timer.pomodoroConfirm")
     }
 
     /// The capsule of the on and pending states: a glyph and a text in a

@@ -1,7 +1,11 @@
 // ModifierState: whether ⌥ is held during a click, for the Calendar, Reports,
-// and Projects (spec_planner_calendar.md §1.2, §2.3; spec_planner_projects.md §2.3).
+// and Projects, and whether ⇧ is held with a Calendar navigation key
+// (spec_planner_calendar.md §1.2, §2.3, §6; spec_planner_projects.md §2.3).
 
-/// Whether ⌥ is held during a click; the Mac sets it from AppKit.
+/// Whether ⌥ or ⇧ is held; the Mac sets them from AppKit.
 enum ModifierState {
     @MainActor static var optionDown: () -> Bool = { false }
+    /// A view's plain-arrow or Tab shortcut on the Mac may also take the
+    /// key with ⇧, so `CalendarKeyHandlers` checks ⇧ itself.
+    @MainActor static var shiftDown: () -> Bool = { false }
 }

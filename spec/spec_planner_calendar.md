@@ -208,7 +208,7 @@ Fixtures (a synthetic week of blocks in block-log format, entries, calendar titl
 | Time block | Create Entry…, Edit…, Delete |
 | External event | Create Entry…, Open in Calendar, Hide This Calendar |
 
-Each key is an item of the main menu, enabled while the section is shown ([spec_timer_window.md](spec_timer_window.md) §9): ⌘T is View › Go to Today, the other view keys are the View › Calendar submenu, and the selection keys and Fill Day are the Entry menu, where Return and Delete are the Entry menu's Edit and Delete items:
+The navigation keys (← → ⇧← ⇧→, Tab and ⇧Tab, Escape) are the view's own, as on every Mac, and are no menu items; they are off while a popover, editor, or sheet takes text input. ⌘T is View › Go to Today, and View › Previous Period and Next Period (⌥⌘← ⌥⌘→) and Go to Date… (⇧⌘D, the month picker) act on the Calendar too. Every other key is an item of the Calendar menu, which exists while the section is shown ([spec_timer_window.md](spec_timer_window.md) §9): Edit Selection…, Create Entry from Selection, Duplicate to Next Day, and Delete; Move Earlier, Move Later, Lengthen, and Shorten; Fill Day…; the zoom and day-count items; and the two column toggles. Timer › Continue (⌘O) continues the one selected entry.
 
 | Key | Effect |
 |---|---|
@@ -268,7 +268,7 @@ Per device: `pointsPerHour` (72), `visibleDays` (5), column toggles (on), calend
 21. Without calendar access, or without an iCloud calendar account, the column shows its notice and the rest of the view works.
 22. The 5.6 fixtures pass; feedback is written for each outcome and source; examples from accepted suggestions weigh 2.
 23. The call `showCalendar(day: Oct 29, hour: 9, highlight: hour)` makes October 29 leftmost with 09:00 at the top, Activity on, the hour's blocks pulsed, zoom and day count unchanged.
-24. Every key of section 6 has its effect and a menu item.
+24. Every key of section 6 has its effect; the arrows, Tab, and Escape are the view's keys, ⌘T and the period keys View menu items acting on the Calendar (⌥⌘→ by the visible span, ⇧⌘D opening the month picker), the rest Calendar menu items; ⌘O continues the one selected entry.
 
 ## 9. Decisions
 

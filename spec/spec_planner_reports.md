@@ -174,7 +174,7 @@ File › Print… (⌘P) uses the standard print panel (its PDF button saves a P
 
 ## 8. Commands and keyboard
 
-The commands live in a "Report" submenu of the View menu; Go to Today, Previous and Next Period, and Date Range… are the View menu's own items, shared with Activity (Go to Today also with the Calendar), and Export and Print are in File. They are always listed and enabled only while Reports is active in the key Planner window ([spec_timer_window.md](spec_timer_window.md) §9).
+The commands live in the Report menu, the section menu while Reports is shown in the Planner ([spec_timer_window.md](spec_timer_window.md) §9); Go to Today, Previous and Next Period, and Date Range… are the View menu's own items, shared with the Calendar and Activity, and Export and Print are in File, enabled only while Reports is active in the key Planner window. Timer › Continue (⌘O) continues the one selected row of the entry list.
 
 | Command | Shortcut |
 |---|---|
@@ -223,7 +223,7 @@ The router's `showReports(range:filter:)` sets the range, replaces the filters (
 - PR-17. The list's footer total equals the Logged time tile to the second; the running entry's Duration increases each second.
 - PR-18. Double-clicking a list row opens the edit popover; a saved edit updates tiles, chart, and table. The context menu has Edit…, Continue, and Show in Calendar.
 - PR-19. Both CSV exports are byte-identical to the CLI's output for the same range, filters, and levels.
-- PR-20. The commands of section 8 are enabled only while Reports is active in the key Planner window; ⌃⌘1 and ⌃⌘2 switch the card without changing the Planner section.
+- PR-20. The commands of section 8 are enabled only while Reports is active in the key Planner window, where the section menu is titled "Report"; ⌃⌘1 and ⌃⌘2 switch the card without changing the Planner section.
 - PR-21. With a running entry in the range the Logged time tile changes within 60 seconds; with none, no periodic timer runs.
 - PR-22. Calling `showReports` with a project and "All time" sets exactly that filter, turns "Include archived projects" on, and shows the Breakdown.
 

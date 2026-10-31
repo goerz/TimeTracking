@@ -102,6 +102,7 @@ final class AppModel {
         wirePlannerSections(trackerCommands: trackerCommands)
         planner.copyText = { Pasteboard.copy($0) }
         ModifierState.optionDown = { ModifierKeys.optionIsDown }
+        ModifierState.shiftDown = { ModifierKeys.shiftIsDown }
     }
 
     /// Loads everything; with `observing`, follows the store's changes.
@@ -258,8 +259,12 @@ final class AppModel {
         }
     }
 
-    /// ⌘O: the selection while the Timer window is key, else the most recent entry.
-    func continueCommand(timerKey: Bool) async {
+    /// ⌘O: the selection of the key window (a Timer row; a Planner project
+    /// or entry), else the most recent entry.
+    func continueCommand(timerKey: Bool, plannerKey: Bool = false) async {
+        if plannerKey, await planner.continueSelection() {
+            return
+        }
         if timerKey, let selection = list.selection {
             await timer.continueEntry(selection)
         } else {

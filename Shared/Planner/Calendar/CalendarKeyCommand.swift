@@ -94,11 +94,12 @@ enum CalendarKeyCommand: String, CaseIterable, Identifiable {
         }
     }
 
-    /// Commands grouped in the View menu (the rest in the Entry menu).
-    var isViewCommand: Bool {
+    /// Navigation keys the Calendar view handles itself (`CalendarKeyHandlers`);
+    /// as on every Mac, arrows, Tab, and Escape are not menu items. Today is
+    /// View › Go to Today; the rest are the Calendar menu's.
+    var isViewKey: Bool {
         switch self {
-        case .today, .zoomIn, .zoomOut, .zoomReset, .fewerDays, .moreDays, .previousDay, .nextDay, .previousSpan, .nextSpan,
-             .toggleActivity, .toggleCalendar:
+        case .previousDay, .nextDay, .previousSpan, .nextSpan, .nextEntry, .previousEntry, .escape:
             true
         default:
             false

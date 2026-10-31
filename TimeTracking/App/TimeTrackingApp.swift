@@ -40,7 +40,7 @@ struct TimeTrackingApp: App {
         .windowResizability(.contentMinSize)
         .defaultSize(TimerWindowGeometry.defaultFullSize)
         // The scene's own Window menu item would list the Timer a second
-        // time next to Window › Timer Window; the main menu replaces it.
+        // time next to Window › Timer; the main menu replaces it.
         .commandsReplaced {
             MainMenuCommands(host: delegate.host)
         }

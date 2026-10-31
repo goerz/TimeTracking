@@ -17,16 +17,17 @@ enum PadCommand: Hashable, CaseIterable {
     case clientsAndAreas
     /// ⌘N, ⌘O, ⌘S, ⌥⌘⌫.
     case new, continueLatest, stop, discard
-    /// ⌘P, ⌘E, ⌘⌫, ⌘F, ⌘↑ (Timer tab only).
-    case setProject, edit, delete, find, scrollToToday
-    /// ⇧⌘P, ⌃⌘P, ⌘↩.
-    case pomodoro, nextPhase, confirm
+    /// ⌘P, ⌘E, ⌘⌫, ⌘↑ (Timer tab only).
+    case setProject, edit, delete, scrollToToday
+    /// ⌘F: the Timer list's filter, the Projects and Reports search.
+    case find
+    /// ⇧⌘P, ⌃⌘P.
+    case pomodoro, nextPhase
     /// ⌘,
     case settings
-    /// ⌘T: Go to Today in Calendar, Reports, and Activity.
-    case today
 
-    /// The commands that act only while the Timer tab shows.
+    /// The commands that act only in some tabs; their menu items hold their
+    /// keys only while enabled (spec_timer_window.md §9).
     var isTimerTabOnly: Bool {
         switch self {
         case .setProject, .edit, .delete, .find, .scrollToToday: true
@@ -75,18 +76,18 @@ extension PhoneModel {
             return false
         }
         switch command {
-        case .today:
-            return [.calendar, .reports, .activity].contains(padTab)
+        case .find:
+            return padMenuState.findCommand
+        case .delete:
+            return padTab == .timer && list.selection != nil
         case .continueLatest:
-            return timer.mostRecentOther != nil
+            return timer.mostRecentOther != nil || (padTab != .timer && pad?.router.continueTarget != nil)
         case .stop, .discard:
             return timer.isRunning
         case .pomodoro:
             return pomodoro.state.isOn || timer.isRunning
         case .nextPhase:
             return pomodoro.pomodoro.nextPhaseAction != nil
-        case .confirm:
-            return pomodoro.state.isPendingConfirmation
         default:
             return !command.isTimerTabOnly || padTab == .timer
         }
@@ -111,22 +112,26 @@ extension PhoneModel {
             padTab = .timer
             await timer.new()
         case .continueLatest:
-            await timer.continueEntry()
+            // A Planner tab's selected project or entry, else the latest entry.
+            let started = padTab != .timer ? await pad.router.continueSelection() : false
+            if !started {
+                await timer.continueEntry()
+            }
         case .stop:
             await timer.stop()
         case .discard:
             await timer.requestDiscard(skipAlert: false)
         case .pomodoro:
             pomodoro.perform(pomodoro.state.isOn ? .cancel : .start, isRunning: timer.isRunning)
-        case .nextPhase, .confirm:
+        case .nextPhase:
             if let action = pomodoro.pomodoro.nextPhaseAction {
                 pomodoro.perform(action, isRunning: timer.isRunning)
             }
         case .settings:
             padTab = .timer
             sheet = .settings
-        case .today:
-            await goToToday(in: pad.router)
+        case .find:
+            find(in: pad.router)
         default:
             performTimerTab(command)
         }
@@ -146,8 +151,6 @@ extension PhoneModel {
             }
         case .delete:
             timer.alert = list.deleteAlert()
-        case .find:
-            list.showFilter()
         case .scrollToToday:
             list.scrollToTop()
         default:
@@ -155,17 +158,19 @@ extension PhoneModel {
         }
     }
 
-    private func goToToday(in router: PlannerRouter) async {
+    /// The main menu's context: the Timer tab stands in for the Mac's Timer
+    /// window, a Planner tab for its Planner window.
+    var padMenuState: MenuState {
+        MenuState(router: pad?.router, timerKey: padTab == .timer, plannerKey: padTab != .timer)
+    }
+
+    /// ⌘F: the Timer list's filter, or the Projects or Reports search.
+    private func find(in router: PlannerRouter) {
         switch padTab {
-        case .calendar:
-            await router.calendar.goToToday()
-        case .reports:
-            await router.reports.goToToday()
-        case .activity:
-            router.range.goToToday()
-            await router.activity.reload()
-        case .timer, .projects:
-            break
+        case .timer: list.showFilter()
+        case .projects: router.projects.focusSearch()
+        case .reports: router.reports.focusTaskFilter()
+        case .calendar, .activity: break
         }
     }
 }

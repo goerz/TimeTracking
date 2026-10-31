@@ -27,7 +27,7 @@ The pin button (`pin`, `pin.fill` while pinned) toggles window level `.floating`
 
 ### 1.3 Opening, closing, and restoration
 
-The window opens from Window > Timer Window, the menu bar, the show/hide shortcut (8.3), and the Dock tile. At launch it restores mode, frame, and pin; a frame with less than 100 × 44 pt on any screen moves to the main screen's center. The list starts at the top, the filter is cleared, and the task field is focused when nothing runs.
+The window opens from Window > Timer, the menu bar, the show/hide shortcut (8.3), and the Dock tile. At launch it restores mode, frame, and pin; a frame with less than 100 × 44 pt on any screen moves to the main screen's center. The list starts at the top, the filter is cleared, and the task field is focused when nothing runs.
 
 Launched as a login item, the app shows only the menu bar item unless "Show the Timer window at login" is on; otherwise it shows the window. Closing the window keeps the app running. Quitting does not stop the running entry.
 
@@ -247,22 +247,23 @@ The two recorders use the KeyboardShortcuts package (names `showHideTimer`, `con
 | Show the Timer window when an entry starts | off | After an entry starts from the global shortcut, the menu bar, a notification, an intent, or another device, show the Timer window with the task field focused. |
 | Show the Timer window when an entry stops | off | The same after an entry stops from those sources. |
 
-Window > Timer Window and the menu bar's "Show Timer Window" display the show/hide shortcut as key equivalent (none when unassigned); choosing either only shows the window.
+Window > Timer and the menu bar's "Show Timer Window" display the show/hide shortcut as key equivalent (none when unassigned); choosing either only shows the window.
 
 ## 9. Menus and keyboard
 
-This section owns the main menu as a whole; the Planner specs list their sections' commands. The menu bar is the same in both windows: every menu and item is always listed, and an item that applies to one window or section is disabled elsewhere rather than hidden. Such an item holds its key equivalent only while it is enabled, because AppKit sends a key equivalent to the first item that has it, even a disabled one; this lets one key serve several contexts (⌘P is Set Project… in the Timer window and Print… in Reports) and keeps a disabled item from taking a key from a text field. A command that several contexts share is one item acting on the key window: Find, Go to Today, Previous and Next Period, Edit, and Delete.
+This section owns the main menu as a whole, on the Mac and, with the differences of [spec_ios.md](spec_ios.md) §10.3, on the iPad; the Planner specs list their sections' commands. The two windows share File, Edit, View, Timer, and Window. A sixth menu, the section menu, exists only while the Planner is the main window: it is named for what the shown section's commands act on (Project, Calendar, Report, Activity) and holds only that section's commands, the way an editor menu follows the editor shown. With the Timer window in front the menu bar holds no menu whose items could never apply.
+
+Within the shared menus every item is always listed, and an item that applies to one window or section is disabled elsewhere rather than hidden. Such an item holds its key equivalent only while it is enabled, because AppKit sends a key equivalent to the first item that has it, even a disabled one; this lets one key serve several contexts (⌘P is Set Project… in the Timer window and Print… in Reports) and keeps a disabled item from taking a key from a text field. A command that several contexts share is one item acting on the key window: Find, Continue, Go to Today, Previous and Next Period, and Date Range…. Navigation keys that a view handles itself (arrows, Tab, Escape) are not menu items, as elsewhere on the Mac.
 
 | Menu | Holds |
 |---|---|
 | App | Settings…, Hide, Quit (standard) |
 | File | Close (standard), Export… and Print… of Reports |
 | Edit | Undo, Redo, the pasteboard commands (standard), Find |
-| View | The Planner's sections and their navigation, the Calendar, Report, and Activity submenus, then the Timer window's view options |
-| Timer | The running entry and the Pomodoro, from any window; the menu bar item's menu has the same commands |
-| Entry | Commands on the selected entry: the Timer window's running or selected entry, or the Calendar's selection |
-| Project | Commands on the selected projects, clients, and areas of the Projects section |
-| Window | Timer Window and Planner, then the standard items |
+| View | The Planner's sections, which open the Planner from either window; the shown range's navigation; the Timer window's view options |
+| Timer | The running entry and the Pomodoro, from any window (the menu bar item's menu has the same commands); then the Timer window's own entry commands |
+| Section menu | The commands of the Planner section shown ([spec_planner_projects.md](spec_planner_projects.md) §2.5 and §4, [spec_planner_calendar.md](spec_planner_calendar.md) §6, [spec_planner_reports.md](spec_planner_reports.md) §8, [spec_planner_activity.md](spec_planner_activity.md) §2); only while the Planner is the main window, which it stays while one of its popovers or sheets is key |
+| Window | Timer and Planner, then the standard items |
 
 "Timer key" is the scope of an item enabled only while the Timer window is key.
 
@@ -276,19 +277,19 @@ This section owns the main menu as a whole; the Planner specs list their section
 | View | Float on Top | | Timer key |
 | View | Scroll to Today | ⌘↑ | Timer key |
 | Timer | New | ⌘N | App |
-| Timer | Continue | ⌘O | App (selection only while Timer key) |
+| Timer | Continue | ⌘O | App: the selection of the key window (a Timer row; in the Planner a selected project, titled "Start Timer", or the one selected Calendar or Reports entry), else the most recent other entry |
 | Timer | Stop | ⌘S | App |
 | Timer | Discard Running Entry | ⌥⌘⌫ | App |
 | Timer | Start Pomodoro / Cancel Pomodoro | ⇧⌘P | App |
 | Timer | The next step, titled by its action: End Focus Now, Start Break, End Break Now, or Start Focus (End Focus Now, disabled, while the Pomodoro is off) | ⌃⌘P | App |
-| Entry | Set Project… | ⌘P | Timer key |
-| Entry | Edit Entry… | ⌘E | Timer key: running entry from the bar, selected row from the list; in the Calendar the item is "Edit Selection…" (Return) |
-| Entry | Delete Entry… | ⌘⌫ | Timer key, list focus, a selected row; in the Calendar the item is "Delete" (Delete) |
-| Window | Timer Window | ⌥⌘R (displayed, 8.3) | App |
+| Timer | Set Project… | ⌘P | Timer key |
+| Timer | Edit Entry… | ⌘E | Timer key: running entry from the bar, selected row from the list |
+| Timer | Delete Entry… | ⌘⌫ | Timer key, list focus, a selected row |
+| Window | Timer | ⌥⌘R (displayed, 8.3) | App |
 | Window | Planner | ⌥⌘P | App |
 | Window | Close, Minimize | ⌘W, ⌘M | Standard |
 
-The Window menu lists each window once: the Timer and Planner scenes contribute no items of their own.
+The Window menu lists each window once, by its title: the Timer and Planner scenes contribute no items of their own.
 
 ## 10. Notifications
 
@@ -308,7 +309,7 @@ Clicking a notification shows the Timer window (with the idle prompt for `idle`)
 - TW-1. Height drags snap per §1.1: release at 199 pt gives 106 pt, at 200 pt gives 300 pt, 106 to 250 pt gives 300 pt, with width as dragged (at least 400 pt) and top-left fixed.
 - TW-2. ⇧⌘M toggles between the remembered compact and full frames at the current top-left corner; without remembered frames, between 480 × 106 and 480 × 600 pt.
 - TW-3. After relaunch the window has its mode, frame, and pin state from quit; with the pin on it stays above another app's key window.
-- TW-4. ⌥⌘R shows the window with the task field focused, or hides the app when the window is key; Window > Timer Window displays the recorded shortcut and none when cleared.
+- TW-4. ⌥⌘R shows the window with the task field focused, or hides the app when the window is key; Window > Timer displays the recorded shortcut and none when cleared.
 - TW-5. Launched as a login item with "Show the Timer window at login" off, the app shows no window; quitting leaves a running entry running.
 - TW-6. Each action of §2.1 has its effect; ⌘N and Continue stop a running entry at the instant the new one starts; ⌘O without selection continues the most recent other entry.
 - TW-7. A task edit of the running entry is stored within 500 ms of the last keystroke; Escape reverts it.
@@ -339,7 +340,7 @@ Clicking a notification shows the Timer window (with the idle prompt for `idle`)
 - TW-32. Each notification category offers exactly its listed actions; the settings window reopens on the last pane shown.
 - TW-33. The first-launch alert of §8.2 appears once per Mac; "Open Tracker Settings" opens the Tracker pane, and the agent stays unregistered until "Enable Tracker".
 - TW-34. The first-launch alert's "Open `<APP_NAME>` at login" checkbox is on by default; checked, either button turns on "Open at login", unchecked neither does; under `-UITesting` the real login item is never registered.
-- TW-35. With the Timer window key and with the Planner key, the menu bar has the same menus (File, Edit, View, Timer, Entry, Project, Window); Window lists "Timer Window" and "Planner" once each; with the Timer window key the Project menu's items and Go to Today are disabled and Set Project… is enabled, and in the Planner's Calendar Set Project… is disabled and the Entry menu's Calendar items are enabled.
+- TW-35. With the Timer window key the menu bar has File, Edit, View, Timer, and Window and no section or Entry menu; Window lists "Timer" and "Planner" once each; Timer › Set Project… and View › Compact Mode are enabled and View › Go to Today is not. With the Planner key it adds the Calendar menu in Calendar (Fill Day… enabled; no Next Day, Next Entry, or Deselect item) and the Project menu in Projects (New Project… enabled; no Start Timer); Set Project… and Compact Mode are disabled there, and Go to Today and Previous Period are enabled in Calendar. Returning to the Timer window removes the section menu.
 
 ## 12. Decisions
 

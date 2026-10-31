@@ -8,4 +8,8 @@ enum ModifierKeys {
     static var optionIsDown: Bool {
         NSEvent.modifierFlags.contains(.option)
     }
+
+    static var shiftIsDown: Bool {
+        NSEvent.modifierFlags.contains(.shift)
+    }
 }

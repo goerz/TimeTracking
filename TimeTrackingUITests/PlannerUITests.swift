@@ -51,13 +51,12 @@ final class PlannerUITests: XCTestCase {
     }
 
     @MainActor
-    func testPP1_sectionShortcutsOnlyInPlanner() {
+    func testPP1_sectionShortcutsOpenThePlanner() {
         let app = launch()
-        // Timer key: ⌘3 does nothing.
-        app.typeKey("3", modifierFlags: .command)
+        // Timer key: ⌘3 opens the Planner on Reports.
         XCTAssertFalse(app.descendants(matching: .any)["planner.sidebar"].exists)
-        _ = openPlanner(app)
         app.typeKey("3", modifierFlags: .command)
+        XCTAssertTrue(app.descendants(matching: .any)["planner.sidebar"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.descendants(matching: .any)["reports.chart"].waitForExistence(timeout: 5))
         app.typeKey("1", modifierFlags: .command)
         XCTAssertTrue(app.descendants(matching: .any)["projects.table"].waitForExistence(timeout: 5))
@@ -88,6 +87,8 @@ final class PlannerUITests: XCTestCase {
         let end = tracked.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.35))
         start.click(forDuration: 0.1, thenDragTo: end)
         XCTAssertTrue(app.textFields["calendar.draft.task"].waitForExistence(timeout: 5))
+        // The popover keeps the Planner in front: the Calendar menu stays.
+        XCTAssertTrue(app.menuBars.firstMatch.menuBarItems["Calendar"].exists)
         app.typeKey(.escape, modifierFlags: [])
         XCTAssertFalse(app.descendants(matching: .any)["calendar.draft"].exists)
     }
@@ -99,8 +100,21 @@ final class PlannerUITests: XCTestCase {
         app.typeKey("2", modifierFlags: .command)
         XCTAssertTrue(app.descendants(matching: .any)["planner.calendar"].waitForExistence(timeout: 5))
         app.typeKey("t", modifierFlags: .command)
-        XCTAssertTrue(app.descendants(matching: .any)["calendar.header.2024-03-12"].waitForExistence(timeout: 5))
+        let header = { (day: String) in app.descendants(matching: .any)["calendar.header.\(day)"] }
+        XCTAssertTrue(header("2024-03-12").waitForExistence(timeout: 5))
         XCTAssertTrue(app.menuBars.menuItems["Fill Day…"].exists)
+        // The navigation keys are the view's, not menu items: → one day,
+        // ⇧→ the visible span; View › Previous Period (⌥⌘←) goes back a span.
+        XCTAssertFalse(app.menuBars.menuItems["Next Day"].exists)
+        app.typeKey(.rightArrow, modifierFlags: [])
+        XCTAssertTrue(header("2024-03-17").waitForExistence(timeout: 5))
+        app.typeKey(.rightArrow, modifierFlags: .shift)
+        XCTAssertTrue(header("2024-03-22").waitForExistence(timeout: 5))
+        // Chosen from the menu: a window manager on the test Mac may hold ⌥⌘←.
+        app.menuBars.firstMatch.menuBarItems["View"].click()
+        app.menuBars.firstMatch.menuItems["Previous Period"].click()
+        XCTAssertTrue(header("2024-03-17").waitForExistence(timeout: 5))
+        XCTAssertFalse(header("2024-03-22").exists)
     }
 
     @MainActor

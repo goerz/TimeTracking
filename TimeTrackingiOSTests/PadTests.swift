@@ -81,14 +81,16 @@ struct PadTests {
         let range = router.reports.range.range
         for tab in [PadTab.timer, .projects] {
             model.padTab = tab
-            #expect(!model.isEnabled(.today))
-            await model.perform(.today)
-            #expect(router.calendar.firstDay == firstDay)
-            #expect(router.reports.range.range == range)
+            #expect(!model.padMenuState.periodCommands)
             #expect(model.padTab == tab)
         }
+        model.padTab = .projects
+        await router.goToToday()
+        #expect(router.calendar.firstDay == firstDay)
+        #expect(router.reports.range.range == range)
         model.padTab = .calendar
-        await model.perform(.today)
+        #expect(model.padMenuState.periodCommands)
+        await router.goToToday()
         #expect(router.calendar.firstDay != firstDay)
         #expect(router.calendar.days.contains(router.calendar.today))
 
@@ -102,6 +104,62 @@ struct PadTests {
         if case .picker = model.sheet {} else {
             Issue.record("⌘P in the Timer tab did not open the picker")
         }
+    }
+
+    @Test("IOS-39 the iPad's menu context follows the Mac's: the Timer tab as the Timer window, a Planner tab as the Planner")
+    func menuContext() async throws {
+        let test = try await Self.pad()
+        let model = test.model
+        let router = try #require(model.pad?.router)
+
+        // The Timer tab: Timer's entry commands; no section menu content.
+        model.padTab = .timer
+        #expect(model.padMenuState.timerKey)
+        #expect(!model.padMenuState.plannerKey)
+        #expect(model.isEnabled(.setProject))
+        #expect(model.isEnabled(.find))
+        #expect(!model.isEnabled(.delete))
+        #expect(!model.padMenuState.projectCommands)
+
+        // Projects: the Project menu; ⌘O starts the selected project.
+        let paper = try #require(try await test.projects(["Paper"]).first)
+        model.padTab = .projects
+        #expect(model.padMenuState.sectionMenuTitle == "Project")
+        #expect(model.padMenuState.projectCommands)
+        #expect(!model.isEnabled(.setProject))
+        #expect(model.isEnabled(.find))
+        let searches = router.projects.searchFocusRequests
+        await model.perform(.find)
+        #expect(router.projects.searchFocusRequests == searches + 1)
+        await router.projects.reload()
+        router.projects.selection = [paper.id]
+        #expect(router.continueTarget == .project)
+        await model.perform(.continueLatest)
+        #expect(try await test.store.runningEntry()?.projectID == paper.id)
+        router.showClientsAndAreas()
+        #expect(model.padMenuState.clientsAndAreasCommands)
+        #expect(!model.padMenuState.projectCommands)
+        #expect(router.continueTarget == nil)
+
+        // Calendar: Go to Today and the period commands, no Find.
+        model.padTab = .calendar
+        #expect(model.padMenuState.sectionMenuTitle == "Calendar")
+        #expect(model.padMenuState.calendarCommands)
+        #expect(model.padMenuState.periodCommands)
+        #expect(!model.isEnabled(.find))
+
+        model.padTab = .reports
+        #expect(model.padMenuState.reportCommands)
+        #expect(model.padMenuState.periodCommands)
+        #expect(model.isEnabled(.find))
+        router.showDateRange()
+        #expect(router.reports.showsDatePopover)
+
+        model.padTab = .activity
+        #expect(model.padMenuState.activityCommands)
+        #expect(model.padMenuState.periodCommands)
+        router.showDateRange()
+        #expect(router.activity.showsDatePopover)
     }
 
     @Test("IOS-35 drawing in the iPad's Tracked column creates an entry and opens the editor; a drawing past now is refused")

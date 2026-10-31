@@ -1,7 +1,8 @@
-// PadCommands: the iPad's hardware-keyboard commands in the iPadOS menu
-// bar and the ⌘-hold overlay (spec_ios.md §10.3). The Planner tabs add
-// their own sections' keys (spec_planner_calendar.md §6,
-// spec_planner_reports.md §8, spec_planner_activity.md §2).
+// PadCommands: the iPad's menu bar, also shown in the ⌘-hold overlay
+// (spec_ios.md §10.3). It has the Mac's menus and items
+// (spec_timer_window.md §9), built from the same shared pieces; the Timer
+// tab stands in for the Mac's Timer window and the Planner tabs for its
+// Planner window.
 
 import SwiftUI
 import TimeTrackingCore
@@ -11,22 +12,20 @@ extension PadCommand {
         switch self {
         case .timerTab: "Timer"
         case .projects, .calendar, .reports, .activity: plannerSection.title
-        case .planner: "Last Planner Tab"
+        case .planner: "Planner"
         case .clientsAndAreas: "Clients & Areas"
-        case .new: "New Entry"
-        case .continueLatest: "Continue Latest Entry"
+        case .new: "New"
+        case .continueLatest: "Continue"
         case .stop: "Stop"
         case .discard: "Discard Running Entry"
         case .setProject: "Set Project…"
         case .edit: "Edit Entry…"
         case .delete: "Delete Entry…"
         case .find: "Find"
-        case .scrollToToday: "Scroll to Top"
-        case .pomodoro: "Start or Cancel Pomodoro"
-        case .nextPhase: "End Focus or Break Now"
-        case .confirm: "Start Break or Focus"
+        case .scrollToToday: "Scroll to Today"
+        case .pomodoro: "Start Pomodoro"
+        case .nextPhase: PomodoroAction.endFocusNow.title
         case .settings: "Settings…"
-        case .today: "Go to Today"
         }
     }
 
@@ -47,9 +46,7 @@ extension PadCommand {
         case .scrollToToday: KeyboardShortcut(.upArrow)
         case .pomodoro: KeyboardShortcut("p", modifiers: [.command, .shift])
         case .nextPhase: KeyboardShortcut("p", modifiers: [.command, .control])
-        case .confirm: KeyboardShortcut(.return, modifiers: .command)
         case .settings: KeyboardShortcut(",")
-        case .today: KeyboardShortcut("t")
         }
     }
 }
@@ -62,96 +59,89 @@ struct PadCommands: Commands {
         host.model.flatMap { $0.pad == nil ? nil : $0 }
     }
 
+    private var router: PlannerRouter? {
+        model?.pad?.router
+    }
+
+    private var state: MenuState {
+        model?.padMenuState ?? MenuState()
+    }
+
     var body: some Commands {
         CommandGroup(replacing: .appSettings) {
             item(.settings)
         }
-        CommandGroup(replacing: .newItem) {
-            item(.new)
+        // Timer › New is ⌘N, as on the Mac.
+        CommandGroup(replacing: .newItem) {}
+        CommandGroup(after: .importExport) {
+            Button("Export…") { router?.reports.requestExport() }
+                .contextCommand(KeyboardShortcut("e", modifiers: [.command, .shift]), enabled: state.reportCommands)
         }
-        CommandMenu("Timer") {
-            ForEach([PadCommand.continueLatest, .stop, .discard], id: \.self, content: item)
-            Divider()
-            ForEach([PadCommand.setProject, .edit, .delete], id: \.self, content: item)
-            Divider()
-            ForEach([PadCommand.pomodoro, .nextPhase, .confirm], id: \.self, content: item)
+        CommandGroup(after: .textEditing) {
+            item(.find)
         }
         CommandGroup(before: .sidebar) {
-            ForEach([PadCommand.timerTab, .projects, .calendar, .reports, .activity, .planner, .clientsAndAreas], id: \.self, content: item)
+            ForEach([PadCommand.timerTab, .projects, .calendar, .reports, .activity, .clientsAndAreas, .planner], id: \.self, content: item)
             Divider()
-            ForEach([PadCommand.find, .scrollToToday, .today], id: \.self, content: item)
+            if let router {
+                PlannerNavigationItems(router: router, state: state)
+            }
             Divider()
-            if let model, let router = model.pad?.router {
-                sectionMenus(model: model, router: router)
+            item(.scrollToToday)
+            Divider()
+        }
+        CommandMenu("Timer") {
+            item(.new)
+            Button(continueTitle) { run(.continueLatest) }
+                .keyboardShortcut(PadCommand.continueLatest.shortcut)
+                .disabled(!(model?.isEnabled(.continueLatest) ?? false))
+            ForEach([PadCommand.stop, .discard], id: \.self, content: item)
+            Divider()
+            pomodoroItems
+            Divider()
+            ForEach([PadCommand.setProject, .edit, .delete], id: \.self, content: item)
+        }
+        // Named for the Planner tab shown; empty, and so absent from the
+        // menu bar, in the Timer tab.
+        CommandMenu(state.sectionMenuTitle) {
+            if let router {
+                SectionMenuContent(router: router, state: state)
             }
         }
     }
 
-    private func item(_ command: PadCommand) -> some View {
-        Button(command.title) {
-            if let model {
-                Task { await model.perform(command) }
-            }
-        }
-        .keyboardShortcut(command.shortcut)
-        .disabled(!(model?.isEnabled(command) ?? false))
+    /// "Start Timer" on a selected project, as on the Mac.
+    private var continueTitle: String {
+        state.plannerKey && router?.continueTarget == .project ? "Start Timer" : PadCommand.continueLatest.title
     }
 
-    /// The selected Planner tab's own keys.
+    /// Start/Cancel Pomodoro, and the next step titled by what it does, as
+    /// on the Mac.
+    @ViewBuilder private var pomodoroItems: some View {
+        Button(model?.pomodoro.state.isOn == true ? "Cancel Pomodoro" : PadCommand.pomodoro.title) { run(.pomodoro) }
+            .keyboardShortcut(PadCommand.pomodoro.shortcut)
+            .disabled(!(model?.isEnabled(.pomodoro) ?? false))
+        Button(model?.pomodoro.pomodoro.nextPhaseAction?.title ?? PadCommand.nextPhase.title) { run(.nextPhase) }
+            .keyboardShortcut(PadCommand.nextPhase.shortcut)
+            .disabled(!(model?.isEnabled(.nextPhase) ?? false))
+    }
+
+    /// A command of the whole app keeps its key while disabled, as on the
+    /// Mac; one of the Timer tab holds it only while enabled.
     @ViewBuilder
-    private func sectionMenus(model: PhoneModel, router: PlannerRouter) -> some View {
-        switch model.padTab {
-        case .calendar:
-            PadCalendarMenu(model: router.calendar)
-        case .reports:
-            PadReportMenu(model: router.reports)
-        case .activity:
-            PadActivityMenu(model: router.activity)
-        case .timer, .projects:
-            EmptyView()
+    private func item(_ command: PadCommand) -> some View {
+        let enabled = model?.isEnabled(command) ?? false
+        let button = Button(command.title) { run(command) }
+        if command.isTimerTabOnly {
+            button.contextCommand(command.shortcut, enabled: enabled)
+        } else {
+            button.keyboardShortcut(command.shortcut).disabled(!enabled)
         }
     }
-}
 
-/// The Calendar's keys (⌘T is the shared Go to Today); plain keys only
-/// while no popover, editor, or sheet takes text input.
-private struct PadCalendarMenu: View {
-    var model: CalendarModel
-
-    var body: some View {
-        Menu("Calendar") {
-            ForEach(CalendarKeyCommand.allCases.filter { $0 != .today }) { command in
-                Button(command.title) { Task { await model.perform(command) } }
-                    .keyboardShortcut(command.shortcut)
-                    .disabled(!command.shortcut.modifiers.contains(.command) && model.takesTextInput)
-            }
-        }
-    }
-}
-
-/// View › Report: the period and range keys, filters, and cards.
-private struct PadReportMenu: View {
-    var model: ReportsModel
-
-    var body: some View {
-        Menu("Report") {
-            PlannerMenuItems.reportPeriod(model)
-            PlannerMenuItems.reportRange(model)
-            PlannerMenuItems.reportFilters(model)
-            PlannerMenuItems.reportCards(model)
-            Button("Export…") { model.requestExport() }
-                .keyboardShortcut("e", modifiers: [.command, .shift])
-        }
-    }
-}
-
-/// View › Activity: the period keys and Escape.
-private struct PadActivityMenu: View {
-    var model: ActivityModel
-
-    var body: some View {
-        Menu("Activity") {
-            PlannerMenuItems.activityPeriod(model)
+    private func run(_ command: PadCommand) {
+        if let model {
+            Task { await model.perform(command) }
         }
     }
 }

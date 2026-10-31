@@ -110,13 +110,28 @@ extension PlannerCalendarTests {
         #expect(model.visibleDays == 3)
     }
 
-    @Test("PC-24 every key of section 6 has a menu item and its effect")
+    @Test(
+        "PC-24 every key of section 6 has its effect; arrows, Tab, and Escape are the view's, the rest Calendar menu or View menu items"
+    )
     func keyCommands() async throws {
         let world = try await World()
         let model = world.model
         let shortcuts = CalendarKeyCommand.allCases.map { "\($0.shortcut.key.character)\($0.shortcut.modifiers.rawValue)" }
         #expect(Set(shortcuts).count == CalendarKeyCommand.allCases.count)
         #expect(CalendarKeyCommand.allCases.allSatisfy { !$0.title.isEmpty })
+        #expect(
+            Set(CalendarKeyCommand.allCases.filter(\.isViewKey))
+                == [.previousDay, .nextDay, .previousSpan, .nextSpan, .nextEntry, .previousEntry, .escape]
+        )
+        #expect(Set(CalendarKeyHandlers.commands) == Set(CalendarKeyCommand.allCases.filter(\.isViewKey)))
+        #expect(CalendarKeyHandlers.commands.count == CalendarKeyCommand.allCases.count(where: \.isViewKey))
+        // A plain key's button taking the key with ⇧ held does the ⇧ command.
+        #expect(CalendarKeyHandlers.resolved(.nextDay, shiftDown: true) == .nextSpan)
+        #expect(CalendarKeyHandlers.resolved(.previousDay, shiftDown: true) == .previousSpan)
+        #expect(CalendarKeyHandlers.resolved(.nextEntry, shiftDown: true) == .previousEntry)
+        #expect(CalendarKeyHandlers.resolved(.nextSpan, shiftDown: true) == .nextSpan)
+        #expect(CalendarKeyHandlers.resolved(.nextDay, shiftDown: false) == .nextDay)
+        try await sharedViewCommands(world)
         let first = model.firstDay
         await model.perform(.nextDay)
         #expect(model.firstDay == first.adding(days: 1))
@@ -143,6 +158,35 @@ extension PlannerCalendarTests {
         await model.perform(.today)
         #expect(model.firstDay == CalendarStrip.firstDay(centering: model.today, visibleDays: 5))
         try await entryCommands(world)
+    }
+
+    /// View › Previous Period, Next Period, and Go to Date… in the Calendar,
+    /// and Timer › Continue on its one selected entry.
+    private func sharedViewCommands(_ world: World) async throws {
+        let model = world.model
+        let router = world.router
+        router.select(.calendar)
+        #expect(router.canShiftPeriod)
+        let first = model.firstDay
+        await router.shiftPeriod(by: 1)
+        #expect(model.firstDay == first.adding(days: model.visibleDays))
+        await router.shiftPeriod(by: -1)
+        #expect(model.firstDay == first)
+        #expect(router.dateRangeTitle == "Go to Date…")
+        router.showDateRange()
+        #expect(model.showsMonthPicker)
+        model.showsMonthPicker = false
+        let entry = try await world.test.entry("Continue me", from: "07:00", to: "07:30")
+        await model.reload()
+        #expect(router.continueTarget == nil)
+        model.select(.entry(entry.id))
+        #expect(router.continueTarget == .entry(entry.id))
+        #expect(await router.continueSelection())
+        let running = try #require(try await world.test.store.runningEntry())
+        #expect(running.task == "Continue me")
+        model.selection = []
+        try await world.test.store.delete([running.id, entry.id])
+        await model.reload()
     }
 
     private func entryCommands(_ world: World) async throws {

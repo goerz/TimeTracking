@@ -19,6 +19,7 @@ struct CalendarView: View {
     var body: some View {
         VStack(spacing: 0) {
             CalendarSummaryStrip(model: model)
+                .background { CalendarKeyHandlers(model: model) }
             Divider()
             GeometryReader { proxy in
                 let dayWidth = max(60, (proxy.size.width - Self.gutter) / CGFloat(model.visibleDays))

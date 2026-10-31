@@ -23,16 +23,16 @@ Window > Planner (⌥⌘P) opens the window on the last selected section, or bri
 | Menu | Command | Shortcut | Availability |
 |---|---|---|---|
 | Window | Planner | ⌥⌘P | Always; also the key equivalent of the menu bar item's "Open Planner" |
-| View | Projects, Calendar, Reports, Activity | ⌘1 to ⌘4 | Planner window is key |
-| View | Clients & Areas | ⌥⌘1 | Planner key; selects Projects and shows Clients & Areas (4) |
+| View | Projects, Calendar, Reports, Activity | ⌘1 to ⌘4 | Always; from the Timer window they open the Planner on that section |
+| View | Clients & Areas | ⌥⌘1 | Always; selects Projects and shows Clients & Areas (4) |
 | View | Show/Hide Sidebar | ⌃⌘S | Planner key |
 | View | Go to Today | ⌘T | Calendar, Reports, Activity |
-| View | Previous Period / Next Period | ⌥⌘← / ⌥⌘→ | Reports, Activity |
-| View | Date Range… | ⇧⌘D | Reports, Activity |
-| View | Calendar, Report, Activity submenus | | Each enabled only while its section shows |
+| View | Previous Period / Next Period | ⌥⌘← / ⌥⌘→ | Calendar (by the visible span), Reports, Activity |
+| View | Date Range… (in the Calendar: Go to Date…) | ⇧⌘D | Calendar (its month picker), Reports, Activity |
 | Edit | Find | ⌘F | Projects and Reports; focuses the section's search field |
+| Section menu | Project, Calendar, Report, or Activity | | Only while the Planner is the main window; the shown section's commands |
 
-The main menu is the same in both windows ([spec_timer_window.md](spec_timer_window.md) §9): a Planner command is listed while the Timer window is key, disabled and without its key equivalent, so the Timer window's commands on the same keys (⌘P, ⌘E, ⌘⌫, ⌘F) reach the Timer window, and the reverse.
+The shared menus are the same in both windows ([spec_timer_window.md](spec_timer_window.md) §9): a Planner command in them is listed while the Timer window is key, disabled and without its key equivalent, so the Timer window's commands on the same keys (⌘P, ⌘E, ⌘⌫, ⌘F) reach the Timer window, and the reverse. The section menu is absent while the Timer window is in front.
 
 ### 1.3 Router
 
@@ -107,12 +107,12 @@ Empty states: "No projects match" with "Clear Filters"; with no projects at all,
 
 ### 2.5 Actions
 
-Rows support extended selection and ⌘A. Right-click or ⋯ opens the context menu for the selection; the same commands form the Project menu, enabled while Projects shows its table.
+Rows support extended selection and ⌘A. Right-click or ⋯ opens the context menu for the selection; the same commands form the Project menu while Projects shows its table, except Start Timer, which is Timer › Start Timer (⌘O, the Timer menu's Continue acting on the selected project).
 
 | Action | Applies to | Effect | Shortcut |
 |---|---|---|---|
 | New Project… | | Project dialog (3) | ⌥⌘N |
-| Start Timer | One active project | Starts an entry on it with an empty task (stopping a running one); the Planner stays key | ⌘↩ |
+| Start Timer | One active project | Starts an entry on it with an empty task (stopping a running one); the Planner stays key | ⌘O (Timer › Start Timer) |
 | Edit… | One project | Dialog in edit mode | ↩, double-click |
 | Rename | One project | In-place edit; ↩ commits, Escape reverts; validation of 3.1 | ⌥↩ |
 | Archive | Active projects | Archives them; entries untouched; a running entry keeps running | ⌫ |
@@ -218,7 +218,7 @@ Archived projects and retired areas never appear. The entry's current project ha
 
 ## 6. Testable behaviors
 
-- PP-1. ⌘1 to ⌘4 select Projects, Calendar, Reports, Activity while the Planner is key and do nothing while the Timer window is key.
+- PP-1. ⌘1 to ⌘4 select Projects, Calendar, Reports, Activity, from the Timer window by opening the Planner on that section; the section menu is titled Project, Calendar, Report, or Activity.
 - PP-2. Launch never opens the Planner, even if it was open at quit; ⌥⌘P opens it on the last section and frame.
 - PP-3. State selector "Archived", Group by Area, and sort Last tracked descending survive close and relaunch; the search is empty. With no stored state the table groups by Client and sorts Name ascending.
 - PP-4. Every column but Project can be hidden from the header menu, persistently; State shows only on "All".
@@ -229,7 +229,7 @@ Archived projects and retired areas never appear. The entry's current project ha
 - PP-9. The search "noise consulting" matches "Noise Model" under Consulting and not "Noise Model" under another client.
 - PP-10. Archiving three projects removes them while the selector is "Active"; ⌘Z restores all three.
 - PP-11. Delete… is disabled for a project with one entry, with the tooltip of 2.5.
-- PP-12. Start Timer while another entry runs stops it, starts an entry on the project with an empty task, and leaves the Planner key; it is disabled for an archived project.
+- PP-12. Start Timer (⌘O, Timer › Start Timer on the selected project) while another entry runs stops it, starts an entry on the project with an empty task, and leaves the Planner key; it is disabled for an archived project.
 - PP-13. Show in Reports selects Reports with the project as the only filter and range "All time".
 - PP-14. Opening `timetracking://project/<uuid>` for an archived project while the selector is "Active" and a search is set selects Projects, sets "All", clears the search, and selects and scrolls to the row.
 - PP-15. Moving a project with entries to another client shows the confirmation, and afterwards last year's report by client shows its time under the new client; a move between areas of one client shows no confirmation and ⌘Z undoes it.
