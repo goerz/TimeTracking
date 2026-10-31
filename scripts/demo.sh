@@ -7,8 +7,9 @@
 # block log in its Activity folder with Fixtures/Store/<fixture>.json moved
 # to today (the package's DemoStore tool, which refuses any store outside a
 # Debug or simulator container), and opens the app. Then, on each named
-# simulator: boots it, installs the app, replaces the app's own store the
-# same way (no block log), and launches it. The simulators do not wait for
+# simulator (scripts/simulator.sh resolves the name): boots it, installs the
+# app, replaces the app's own store the same way (no block log), launches it,
+# and shows it in Device Hub. The simulators do not wait for
 # CloudKit; records that exist only in the Debug CloudKit zone still sync
 # back once the apps are online.
 set -eu
@@ -49,11 +50,12 @@ seed "$support/store.sqlite" "$support/Activity"
 open "$mac_app"
 
 for name in "$@"; do
-    xcrun simctl boot "$name" 2>/dev/null || true
-    xcrun simctl install "$name" "$sim_app"
-    xcrun simctl terminate "$name" "$app_id" 2>/dev/null || true
-    group=$(xcrun simctl get_app_container "$name" "$app_id" "group.$app_id")
+    udid=$("$root/scripts/simulator.sh" udid "$name")
+    xcrun simctl bootstatus "$udid" -b >/dev/null
+    xcrun simctl install "$udid" "$sim_app"
+    xcrun simctl terminate "$udid" "$app_id" 2>/dev/null || true
+    group=$(xcrun simctl get_app_container "$udid" "$app_id" "group.$app_id")
     seed "$group/Library/Application Support/TimeTracking/store.sqlite"
-    xcrun simctl launch "$name" "$app_id" >/dev/null
+    xcrun simctl launch "$udid" "$app_id" >/dev/null
 done
-[ "$#" = 0 ] || open -a Simulator 2>/dev/null || echo "No Simulator app found; the simulators run without a window (make screenshots captures them)."
+[ "$#" = 0 ] || "$root/scripts/simulator.sh" show "$@"

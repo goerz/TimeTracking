@@ -12,7 +12,7 @@
 #               in a copy without local.mk and without network (ARCH-1; ~3 min)
 #   --products  checks of the Release products (ARCH-4, ARCH-5; needs make build-mac build-ios)
 #               and the Debug products' names (ARCH-24; also needs make mac-debug build-sim)
-#   --sim       recreates the two simulators (ARCH-18; ~1 min)
+#   --sim       recreates the two simulators, holding the runtime lock (ARCH-18; ~1 min)
 #   --install   make install / uninstall into a temporary PREFIX (ARCH-20; needs TEAM; reinstalls)
 set -u
 
@@ -22,6 +22,10 @@ scratch=$(mktemp -d "${TMPDIR:-/tmp}/test_make.XXXXXX")
 probes="$root/TimeTrackingCLI/ZZWarningProbe.swift $root/Packages/TimeTrackingCore/Sources/TimeTrackingCore/Support/ZZWarningProbe.swift"
 # shellcheck disable=SC2086
 trap 'rm -rf "$scratch"; rm -f $probes' EXIT
+# RUNTIME_LOCK overrides the shared lock's path for the tests that take it
+# (with_runtime_lock); the sandboxes must not inherit it (ARCH-25).
+runtime_lock="${RUNTIME_LOCK:-}"
+unset RUNTIME_LOCK
 
 run_build=0 run_products=0 run_sim=0 run_install=0
 for arg in "$@"; do
@@ -39,11 +43,11 @@ passed=0
 failed=0
 failures=()
 
-# behavior "<ID> <description>" <function>: runs one test.
+# behavior "<ID> <description>" <function> [<argument>...]: runs one test.
 behavior() {
     local name="$1" function="$2" log="$scratch/log.$((passed + failed))" status
     # Not inside `if`: set -e is ignored in a condition, also in subshells.
-    ( set -e; "$function" ) > "$log" 2>&1
+    ( set -e; "$function" "${@:3}" ) > "$log" 2>&1
     status=$?
     if [ "$status" = 0 ]; then
         passed=$((passed + 1))
@@ -639,9 +643,78 @@ test_sim_create() {
     after=$(sim_udid "TimeTracking iPhone")
     check "a second run does nothing" [ -z "$output" ]
     check "the simulator is the same" [ "$before" = "$after" ]
+    check "the lookup finds the new simulator" [ "$("$root/scripts/simulator.sh" udid "TimeTracking iPhone")" = "$after" ]
     xcodebuild -quiet -project "$root/TimeTracking.xcodeproj" -derivedDataPath "$root/build.noindex" -scheme TimeTrackingiOS \
-        -destination 'platform=iOS Simulator,name=TimeTracking iPhone' -only-testing:TimeTrackingiOSTests \
+        -destination "platform=iOS Simulator,id=$after" -only-testing:TimeTrackingiOSTests \
         -skipPackagePluginValidation -skipMacroValidation -allowProvisioningUpdates test
+}
+
+# with_runtime_lock <function>: runs it holding the Makefile's runtime lock
+# (ARCH-25), because it deletes, creates, and boots the shared simulators; make
+# calls inside see TT_RUNTIME_LOCKED and run directly. A held lock fails the test.
+with_runtime_lock() {
+    local lock holder status
+    lock="${runtime_lock:-$(git -C "$root" rev-parse --path-format=absolute --git-common-dir)/timetracking-runtime.lock}"
+    if ! lockf -k -t 0 "$lock" true; then
+        echo "another checkout is running sim, mac-debug, demo, install, or a test target; retry when it finishes ($lock)"
+        return 1
+    fi
+    rm -f "$scratch/locked" "$scratch/unlock"
+    mkfifo "$scratch/locked" "$scratch/unlock"
+    lockf -k -t 0 "$lock" sh -c 'echo held > "$1"; read -r _ < "$2"' sh "$scratch/locked" "$scratch/unlock" &
+    holder=$!
+    # Opened read-write, the fifo cannot block forever if another checkout
+    # took the lock in between and lockf exited without writing.
+    exec 3<> "$scratch/locked"
+    if ! read -r -t 30 _ <&3; then
+        exec 3<&-
+        echo "the runtime lock was taken by another checkout ($lock)"
+        return 1
+    fi
+    exec 3<&-
+    # The test runs with set -e in a subshell; the lock is released whatever it returns.
+    set +e
+    ( set -e; export TT_RUNTIME_LOCKED=1; "$1" )
+    status=$?
+    set -e
+    echo > "$scratch/unlock"
+    wait "$holder"
+    return "$status"
+}
+
+# --- ARCH-26
+
+test_simulator_destinations() {
+    local sb bin output
+    sb=$(sandbox)
+    bin="$scratch/simbin"
+    mkdir -p "$bin"
+    # The iPhone on two runtimes, and a longer name that starts with "TimeTracking iPad".
+    cat > "$bin/xcrun" << 'EOF'
+#!/bin/sh
+[ "$*" = "simctl list devices available" ] || exit 1
+printf '%s\n' '== Devices ==' '-- iOS 27.0 --' \
+    '    TimeTracking iPhone (00000000-0000-0000-0000-000000000270) (Shutdown) ' \
+    '    TimeTracking iPad Pro (00000000-0000-0000-0000-000000000999) (Shutdown) ' \
+    '-- iOS 27.2 --' \
+    '    TimeTracking iPhone (00000000-0000-0000-0000-000000000272) (Booted) ' \
+    '    TimeTracking iPad (00000000-0000-0000-0000-000000000123) (Shutdown) '
+EOF
+    chmod +x "$bin/xcrun"
+    check "the device on the newest runtime wins" \
+        [ "$(PATH="$bin:$PATH" "$sb/scripts/simulator.sh" udid "TimeTracking iPhone")" = 00000000-0000-0000-0000-000000000272 ]
+    check "a longer name does not match" \
+        [ "$(PATH="$bin:$PATH" "$sb/scripts/simulator.sh" udid "TimeTracking iPad")" = 00000000-0000-0000-0000-000000000123 ]
+    if output=$(PATH="$bin:$PATH" "$sb/scripts/simulator.sh" udid "TimeTracking Watch" 2>&1); then
+        echo "an unknown simulator was found"
+        return 1
+    fi
+    check "an unknown simulator names make sim-create" grep -q 'make sim-create' <<< "$output"
+    output=$(make -C "$sb" --no-print-directory -n build-sim ui-test test)
+    check "the iPhone is addressed by UDID" grep -qF -- '-destination "platform=iOS Simulator,id=$iphone"' <<< "$output"
+    check "the iPad is addressed by UDID" grep -qF -- '-destination "platform=iOS Simulator,id=$ipad"' <<< "$output"
+    check "the UDIDs are looked up by name" grep -qF 'iphone=$(scripts/simulator.sh udid "TimeTracking iPhone")' <<< "$output"
+    check "no destination names a simulator" not grep -q 'Simulator,name=' <<< "$output"
 }
 
 # --- ARCH-23
@@ -752,12 +825,13 @@ behavior "ARCH-22 check-private push refuses a credential in a pushed commit mes
 behavior "ARCH-23 make demo seeds only the Debug container after building both Debug apps; an unknown fixture stops first" test_demo
 behavior "ARCH-24 Debug Mac bundle file names and all Debug display names contain Debug; Release names do not" test_debug_names
 behavior "ARCH-25 the runtime lock stops a second checkout before xcodebuild and lets nested make calls through" test_runtime_lock
+behavior "ARCH-26 simulator destinations are UDIDs looked up by name, on the newest runtime that has the name" test_simulator_destinations
 [ "$run_build" = 0 ] || behavior "ARCH-15 a compiler warning fails the build" test_warning_fails_build
 [ "$run_build" = 0 ] || behavior "ARCH-1 swift test passes in a copy of the checkout without local.mk, signing, or network" test_package_without_local_mk
 [ "$run_products" = 0 ] || behavior "ARCH-4 the Release Mac app holds the agent, launchd plist, and tools, and no Frameworks" test_mac_products
 [ "$run_products" = 0 ] || behavior "ARCH-5 the Release iOS bundles have the entitlements of the table" test_ios_products
 [ "$run_products" = 0 ] || behavior "ARCH-24 the built Debug bundles carry Debug in their file and display names, the Release ones nowhere" test_product_names
-[ "$run_sim" = 0 ] || behavior "ARCH-18 make sim-create creates the simulators once; tests pass on fresh ones" test_sim_create
+[ "$run_sim" = 0 ] || behavior "ARCH-18 make sim-create creates the simulators once; tests pass on fresh ones" with_runtime_lock test_sim_create
 [ "$run_install" = 0 ] || behavior "ARCH-20 make install links a tool that prints the app's version; uninstall removes only its files" test_install
 
 echo

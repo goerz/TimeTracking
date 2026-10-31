@@ -160,7 +160,7 @@ The `help` target prints the targets grouped as below, from `##@` and `##` lines
 | | `build-mac` | Release Mac app with agent and tools; the checks of 2.3; unregisters every non-installed copy from LaunchServices |
 | | `build-ios` | Release iOS app for `generic/platform=iOS` |
 | | `build-sim` | Debug iOS app for the simulator |
-| Develop | `sim` | `build-sim`, boots "TimeTracking iPhone" and "TimeTracking iPad" (`sim-create` if missing), installs, launches with `ARGS` |
+| Develop | `sim` | `build-sim`, boots "TimeTracking iPhone" and "TimeTracking iPad" (`sim-create` if missing), installs, launches with `ARGS`, shows both in Device Hub |
 | | `sim-create` | Creates the two simulators (2.6) unless they exist |
 | | `stop` | Quits the app on both simulators |
 | | `mac-debug` | Builds and opens the Debug Mac app from `build.noindex/` |
@@ -174,7 +174,7 @@ The `help` target prints the targets grouped as below, from `##@` and `##` lines
 | | `apns-key` | 2.4 |
 | | `device` | Release build for `DEVICE_<D>`, installs and launches with `devicectl` |
 | | `iphone`, `ipad` | `make device D=iphone`, `D=ipad` |
-| | `devices`, `console` | List known devices; relaunch on a device and stream its console |
+| | `devices`, `console` | List known physical devices; relaunch on a device and stream its console |
 | Test | `unit-test` (3 min) | `swift test` in the package, then `TimeTrackingTests`, `TimeTrackingAgentTests`, `TimeTrackingCLITests` |
 | | `agent-test` (1 min) | `TimeTrackingAgentTests` |
 | | `ui-test` (8 min) | Mac UI tests, iOS UI tests on both simulators |
@@ -200,7 +200,7 @@ Git hooks `pre-commit`, `commit-msg`, and `pre-push` run `check-private` in mode
 
 ### 2.6 Simulators
 
-The simulators are "TimeTracking iPhone" (`iPhone-17-Pro`) and "TimeTracking iPad" (`iPad-Pro-13-inch-M5-12GB`) on the current runtime, addressed by name, never by UDID. Simulator builds are team-signed; tests switch CloudKit off through the in-memory transport, never through entitlements.
+The simulators are "TimeTracking iPhone" (`iPhone-17-Pro`) and "TimeTracking iPad" (`iPad-Pro-13-inch-M5-12GB`). `sim-create` creates a missing one on the newest runtime that supports its device type (simctl's choice when no runtime is named); an existing one stays on its runtime. The Makefile and scripts name them, and `scripts/simulator.sh udid <name>` turns the name into the UDID of the available device of that name (on the newest runtime that has one) at run time; every `xcodebuild` destination is `platform=iOS Simulator,id=<UDID>` and every `simctl` call takes the UDID, because a `name=` destination implies `OS=latest` and misses a device on an older runtime. No UDID is written into a tracked file. `scripts/simulator.sh show` brings the simulators to the front in Xcode's Device Hub (`devices://device/open?id=<UDID>`), which replaced Simulator.app. Simulator builds are team-signed; tests switch CloudKit off through the in-memory transport, never through entitlements.
 
 ## 3. Testing
 
@@ -349,6 +349,7 @@ Each step ends with its behaviors green and with `make install` producing a usab
 23. Seeding fixture `running` at 15:00 local time on 2026-10-30 (`make demo FIXTURE=running`) puts the entries of 2024-03-13 on 2026-10-29 at the same local times, starts the running entry at 14:35, and leaves no entry after 15:00; `make demo` names only the Debug container, and a store outside a Debug or simulator container is refused and left unchanged.
 24. In Debug the Mac app is `<APP_NAME> Debug.app` and the agent `Contents/Library/LoginItems/TimeTrackingAgent Debug.app`, both with "Debug" in `CFBundleName` and `CFBundleDisplayName`, the launchd plist's `BundleProgram` names the renamed agent, and every iOS bundle's display name ends in " Debug"; executable names are unchanged, and no Release bundle's file name, `CFBundleName`, or `CFBundleDisplayName` contains "Debug".
 25. While another process holds `<git common dir>/timetracking-runtime.lock`, `make agent-test` exits non-zero with "another checkout is running" without invoking `xcodebuild`; once it is released, `make agent-test` invokes `xcodebuild`; and a `make agent-test` run from inside a target that holds the lock invokes `xcodebuild` instead of failing.
+26. With "TimeTracking iPhone" available on iOS 27.0 and iOS 27.2, `scripts/simulator.sh udid "TimeTracking iPhone"` prints the UDID of the iOS 27.2 device; "TimeTracking iPad" does not match "TimeTracking iPad Pro"; an unknown name exits non-zero naming `make sim-create`. `make build-sim`, `ui-test`, and `test` pass simulator destinations as `platform=iOS Simulator,id=<UDID>` looked up by name, never `name=`.
 
 ## 9. Decisions
 

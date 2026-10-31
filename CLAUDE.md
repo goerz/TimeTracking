@@ -22,7 +22,7 @@ One Xcode project (`TimeTracking.xcodeproj`, hand-authored, file-system-synchron
 | `AppTestSupport/` | Test helpers compiled into both hosted test bundles (`TimeTrackingTests`, `TimeTrackingiOSTests`) |
 | `Config/` | `Project.xcconfig`, `<target>.entitlements`, `<target>-Info.plist` |
 | `Fixtures/` | `Store/<name>.json` (export format), `Activity/`, `Agent/`; synthetic, dates in 2024 |
-| `scripts/` | `check_behaviors.sh`, `test_make.sh`, `check_products.sh`, `install.sh`, `apns_key.sh`, `debug_unregister.sh`, `common.sh` (shared by the install and unregister scripts), lint helpers |
+| `scripts/` | `check_behaviors.sh`, `test_make.sh`, `check_products.sh`, `install.sh`, `apns_key.sh`, `debug_unregister.sh`, `simulator.sh` (simulator UDID by name, Device Hub), `common.sh` (shared by the install and unregister scripts), lint helpers |
 
 A view model may hold selection, drafts, sort order, and presentation state and call the library. It may not compute totals, overlaps, or export formats. If a view model test needs a store fixture, the logic belongs in the library.
 
@@ -61,11 +61,13 @@ Always use the Makefile; it sets `DEVELOPER_DIR=/Applications/Xcode.app/Contents
 | `make build-ios` / `make build-sim` | Release iOS for devices / Debug for the "TimeTracking iPhone" simulator |
 | `make mac-debug` | Debug Mac app (`<APP_NAME> Debug.app`) from `build.noindex/` |
 | `make demo [FIXTURE=small]` | The store fixture (`small`, `large`, `running`) moved to today into the Debug store and both simulators' stores, then the Debug Mac app and simulators launched; Debug containers only |
-| `make sim` | Build, install, and launch on both simulators |
+| `make sim` | Build, install, and launch on both simulators; show them in Device Hub |
 | `make install` | Install into `/Applications`, link `timetracking` and `tracker-event` into `$(PREFIX)/bin`, write completions |
 | `make lint` | SwiftFormat `--lint` and SwiftLint `--strict`; no build |
 
 Every `xcodebuild` call uses `-quiet -project TimeTracking.xcodeproj -derivedDataPath build.noindex -skipPackagePluginValidation -skipMacroValidation` and, when signing, `-allowProvisioningUpdates -allowProvisioningDeviceRegistration`. All builds are development-signed with automatic provisioning: APNs sandbox and the CloudKit development environment in Release and Debug alike. `XCFLAGS` passes extra build settings to every `xcodebuild` call.
+
+Simulator destinations are UDIDs looked up by name (`scripts/simulator.sh udid "TimeTracking iPhone"`), never `name=`. Read `docs/xcode27.md` when working with simulators, destinations, Device Hub, test results, or other Xcode 27 command-line tooling.
 
 ## Extending the project
 

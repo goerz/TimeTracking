@@ -47,12 +47,17 @@ SIM_IPAD := TimeTracking iPad
 SIM_IPHONE_TYPE := com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro
 SIM_IPAD_TYPE := com.apple.CoreSimulator.SimDeviceType.iPad-Pro-13-inch-M5-12GB
 MAC_DEST := -destination 'platform=macOS,arch=arm64'
-IPHONE_DEST := -destination 'platform=iOS Simulator,name=$(SIM_IPHONE)'
-IPAD_DEST := -destination 'platform=iOS Simulator,name=$(SIM_IPAD)'
+# The simulators by UDID, looked up by name in the recipe's shell (spec_architecture.md
+# §2.6, docs/xcode27.md): a `name=` destination implies OS=latest and misses a
+# simulator on an older runtime. SIM_UDIDS starts a recipe line that uses the two.
+SIMULATOR := scripts/simulator.sh
+SIM_UDIDS = iphone=$$($(SIMULATOR) udid "$(SIM_IPHONE)") && ipad=$$($(SIMULATOR) udid "$(SIM_IPAD)") &&
+IPHONE_DEST = -destination "platform=iOS Simulator,id=$$iphone"
+IPAD_DEST = -destination "platform=iOS Simulator,id=$$ipad"
 
 # Command lines that more than one target runs.
 BUILD_MAC_DEBUG = $(XCB) build -scheme TimeTracking -configuration Debug $(MAC_DEST) $(SIGN)
-BUILD_SIM_DEBUG = $(XCB) build -scheme TimeTrackingiOS -configuration Debug $(IPHONE_DEST) $(SIGN)
+BUILD_SIM_DEBUG = $(SIM_UDIDS) $(XCB) build -scheme TimeTrackingiOS -configuration Debug $(IPHONE_DEST) $(SIGN)
 AGENT_TEST = $(XCB) test -scheme TimeTrackingAgent $(MAC_DEST) -only-testing:TimeTrackingAgentTests $(SIGN)
 
 LOCAL_XCCONFIG := Config/Local.xcconfig
@@ -104,27 +109,30 @@ build-sim: secrets ## Debug iOS app for the simulator
 ##@ Develop
 
 ifdef TT_RUNTIME_LOCKED
-sim: build-sim ## Install and launch on "TimeTracking iPhone" and "TimeTracking iPad" with ARGS
+sim: build-sim ## Install and launch on "TimeTracking iPhone" and "TimeTracking iPad" with ARGS; show them in Device Hub
 	@for name in "$(SIM_IPHONE)" "$(SIM_IPAD)"; do \
-		xcrun simctl boot "$$name" 2>/dev/null || true; \
-		xcrun simctl install "$$name" "$(SIM_APP)" && \
-		xcrun simctl launch --terminate-running-process "$$name" "$(BUNDLE_ID).debug" $(ARGS) || exit 1; \
+		udid=$$($(SIMULATOR) udid "$$name") || exit 1; \
+		xcrun simctl bootstatus "$$udid" -b >/dev/null && \
+		xcrun simctl install "$$udid" "$(SIM_APP)" && \
+		xcrun simctl launch --terminate-running-process "$$udid" "$(BUNDLE_ID).debug" $(ARGS) || exit 1; \
 	done
-	@open -a Simulator 2>/dev/null || echo "No Simulator app found; the simulators run without a window (make screenshots captures them)."
+	@$(SIMULATOR) show "$(SIM_IPHONE)" "$(SIM_IPAD)"
 endif
 
+# Without a runtime argument, simctl picks the newest runtime that supports the
+# device type, which skips device-specific runtimes such as "iOS 27.2 iPhone19-4".
 sim-create: ## Create the two simulators unless they exist
-	@runtime=$$(xcrun simctl list runtimes | awk '/^iOS / && !/unavailable/ { r = $$NF } END { print r }'); \
-	[ -n "$$runtime" ] || { echo "no iOS simulator runtime installed" >&2; exit 1; }; \
+	@xcrun simctl list runtimes available | grep -q '^iOS ' || { echo "no iOS simulator runtime installed" >&2; exit 1; }; \
 	for pair in "$(SIM_IPHONE)=$(SIM_IPHONE_TYPE)" "$(SIM_IPAD)=$(SIM_IPAD_TYPE)"; do \
 		name="$${pair%%=*}"; type="$${pair#*=}"; \
-		if xcrun simctl list devices | grep -qF "    $$name ("; then continue; fi; \
-		xcrun simctl create "$$name" "$$type" "$$runtime" >/dev/null && echo "Created $$name ($$runtime)"; \
+		if $(SIMULATOR) udid "$$name" >/dev/null 2>&1; then continue; fi; \
+		xcrun simctl create "$$name" "$$type" >/dev/null && echo "Created $$name"; \
 	done
 
 stop: ## Quit the app on both simulators
 	@for name in "$(SIM_IPHONE)" "$(SIM_IPAD)"; do \
-		xcrun simctl terminate "$$name" "$(BUNDLE_ID).debug" 2>/dev/null || true; \
+		udid=$$($(SIMULATOR) udid "$$name" 2>/dev/null) || continue; \
+		xcrun simctl terminate "$$udid" "$(BUNDLE_ID).debug" 2>/dev/null || true; \
 	done
 
 ifdef TT_RUNTIME_LOCKED
@@ -151,14 +159,15 @@ logs: ## Stream the unified log of the installed Mac app, agent, and tools
 		--predicate 'subsystem BEGINSWITH "$(BUNDLE_ID)" AND NOT subsystem CONTAINS ".debug"'
 
 sim-logs: ## Stream the unified log of the simulator app
-	xcrun simctl spawn "$(SIM_IPHONE)" log stream --style compact --level info \
+	$(SIM_UDIDS) xcrun simctl spawn "$$iphone" log stream --style compact --level info \
 		--predicate 'subsystem BEGINSWITH "$(BUNDLE_ID).debug"'
 
 screenshots: ## Simulator screenshots to build.noindex/screenshots/
 	@mkdir -p "$(DERIVED)/screenshots"
 	@stamp=$$(date +%Y%m%d-%H%M%S); for name in "$(SIM_IPHONE)" "$(SIM_IPAD)"; do \
 		file="$(DERIVED)/screenshots/$${name// /-}-$$stamp.png"; \
-		xcrun simctl io "$$name" screenshot "$$file" >/dev/null 2>&1 && echo "$$file" || echo "$$name is not booted" >&2; \
+		udid=$$($(SIMULATOR) udid "$$name") || continue; \
+		xcrun simctl io "$$udid" screenshot "$$file" >/dev/null 2>&1 && echo "$$file" || echo "$$name is not booted" >&2; \
 	done
 
 ##@ Use
@@ -190,8 +199,8 @@ iphone: ## make device D=iphone
 ipad: ## make device D=ipad
 	@$(MAKE) --no-print-directory device D=ipad
 
-devices: ## List known devices
-	@xcrun devicectl list devices
+devices: ## List known physical devices
+	@xcrun devicectl list devices --filter "Reality = 'physical'"
 	@echo; echo "Configured in local.mk:"; $(foreach v,$(filter DEVICE_%,$(.VARIABLES)),echo "  $(v:DEVICE_%=%) = $($(v))";) true
 
 console: ## Relaunch on DEVICE_<D> and stream its console
@@ -215,13 +224,13 @@ ui-test: secrets ## (8 min) Mac UI tests, iOS UI tests on both simulators
 	$(require_team)
 	@$(MAKE) --no-print-directory sim-create
 	$(XCB) test -scheme TimeTracking $(MAC_DEST) -only-testing:TimeTrackingUITests $(SIGN)
-	$(XCB) test -scheme TimeTrackingiOS $(IPHONE_DEST) $(IPAD_DEST) -only-testing:TimeTrackingiOSUITests $(SIGN)
+	$(SIM_UDIDS) $(XCB) test -scheme TimeTrackingiOS $(IPHONE_DEST) $(IPAD_DEST) -only-testing:TimeTrackingiOSUITests $(SIGN)
 
 test: unit-test ## (15 min) unit-test, slow library tests, TimeTrackingiOSTests on the iPhone simulator, ui-test
 	@# Timing targets hold for optimized builds, one test at a time (spec_data_and_sync.md §7.5).
 	TIMETRACKING_TEST_SLOW=1 swift test --package-path Packages/TimeTrackingCore -c release -Xswiftc -enable-testing --no-parallel --filter PerformanceTests
 	@$(MAKE) --no-print-directory sim-create
-	$(XCB) test -scheme TimeTrackingiOS $(IPHONE_DEST) -only-testing:TimeTrackingiOSTests $(SIGN)
+	$(SIM_UDIDS) $(XCB) test -scheme TimeTrackingiOS $(IPHONE_DEST) -only-testing:TimeTrackingiOSTests $(SIGN)
 	@$(MAKE) --no-print-directory ui-test
 
 test-sync: secrets ## (3 min) CloudKit integration tests against iCloud.<BUNDLE_ID>.debug; never part of test
