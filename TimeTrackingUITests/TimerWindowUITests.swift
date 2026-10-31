@@ -21,15 +21,8 @@ final class TimerWindowUITests: XCTestCase {
     /// The app on the fixture at the fixed test time, onboarding answered.
     @MainActor
     private func launch(fixture: String = "small", reset: Bool = true, arguments: [String] = []) -> XCUIApplication {
-        let app = XCUIApplication()
-        app.launchArguments = ["-UITesting", "YES", "-Fixture", fixture] + (reset ? ["-ResetState", "YES"] : []) + arguments
-        app.launchEnvironment["TIMETRACKING_NOW"] = "2024-03-14T10:00:00"
-        app.launch()
-        let later = app.buttons["onboarding.later"]
-        if later.waitForExistence(timeout: 5) {
-            later.click()
-        }
-        XCTAssertTrue(app.textFields["timer.taskField"].waitForExistence(timeout: 10))
+        let app = XCUIApplication.timeTracking(fixture: fixture, reset: reset, extra: arguments)
+        app.launchPastOnboarding()
         return app
     }
 
@@ -239,14 +232,19 @@ final class TimerWindowUITests: XCTestCase {
         app.terminate()
     }
 
-    /// The Debug agent embedded in the Debug app next to the test runner
-    /// (`<APP_NAME> Debug.app/…/TimeTrackingAgent Debug.app`, spec_architecture.md §2.2).
+    /// The Debug agent embedded in the Debug app next to the test runner:
+    /// the one bundle in its `Contents/Library/LoginItems` (spec_architecture.md §2.2).
     private static func debugAgentExecutable() throws -> URL {
+        let files = FileManager.default
         let products = Bundle.main.bundleURL.deletingLastPathComponent()
-        let agent = "Contents/Library/LoginItems/TimeTrackingAgent Debug.app/Contents/MacOS/TimeTrackingAgent"
-        let apps = try FileManager.default.contentsOfDirectory(at: products, includingPropertiesForKeys: nil)
-        return try XCTUnwrap(apps.filter { $0.lastPathComponent.hasSuffix(" Debug.app") }.map { $0.appending(path: agent) }
-            .first { FileManager.default.isExecutableFile(atPath: $0.path) })
+        let apps = try files.contentsOfDirectory(at: products, includingPropertiesForKeys: nil)
+        let agents = apps.filter { $0.lastPathComponent.hasSuffix(" Debug.app") }.flatMap { app in
+            let loginItems = app.appending(path: "Contents/Library/LoginItems", directoryHint: .isDirectory)
+            let bundles = (try? files.contentsOfDirectory(at: loginItems, includingPropertiesForKeys: nil)) ?? []
+            return bundles.filter { $0.pathExtension == "app" }
+        }
+        return try XCTUnwrap(agents.map { $0.appending(path: "Contents/MacOS/TimeTrackingAgent") }
+            .first { files.isExecutableFile(atPath: $0.path) })
     }
 
     @MainActor

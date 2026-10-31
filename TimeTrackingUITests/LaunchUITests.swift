@@ -6,8 +6,7 @@ import XCTest
 final class LaunchUITests: XCTestCase {
     @MainActor
     func testLaunchesInUITestingMode() {
-        let app = XCUIApplication()
-        app.launchArguments = ["-UITesting", "YES", "-Fixture", "empty"]
+        let app = XCUIApplication.timeTracking(fixture: "empty", reset: false)
         app.launch()
         XCTAssertTrue(app.textFields["timer.taskField"].waitForExistence(timeout: 10))
         app.terminate()

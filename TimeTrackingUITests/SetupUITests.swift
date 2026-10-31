@@ -25,9 +25,7 @@ final class SetupUITests: XCTestCase {
 
     @MainActor
     func testTW34_firstLaunchAlertOpensAtLoginByDefault() {
-        let app = XCUIApplication()
-        app.launchArguments = ["-UITesting", "YES", "-Fixture", "small", "-ResetState", "YES"]
-        app.launchEnvironment["TIMETRACKING_NOW"] = "2024-03-14T10:00:00"
+        let app = XCUIApplication.timeTracking()
         app.launch()
         let later = app.buttons["onboarding.later"]
         XCTAssertTrue(later.waitForExistence(timeout: 10))
@@ -50,9 +48,7 @@ final class SetupUITests: XCTestCase {
 
     @MainActor
     func testTRK33_setupRowsNameTheBundles() {
-        let app = XCUIApplication()
-        app.launchArguments = ["-UITesting", "YES", "-Fixture", "small", "-ResetState", "YES"]
-        app.launchEnvironment["TIMETRACKING_NOW"] = "2024-03-14T10:00:00"
+        let app = XCUIApplication.timeTracking()
         app.launch()
         let later = app.buttons["onboarding.later"]
         XCTAssertTrue(later.waitForExistence(timeout: 10))

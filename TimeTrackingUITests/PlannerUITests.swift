@@ -16,15 +16,8 @@ final class PlannerUITests: XCTestCase {
     /// The app on the fixture at the fixed test time, onboarding answered.
     @MainActor
     private func launch(reset: Bool = true) -> XCUIApplication {
-        let app = XCUIApplication()
-        app.launchArguments = ["-UITesting", "YES", "-Fixture", "small"] + (reset ? ["-ResetState", "YES"] : [])
-        app.launchEnvironment["TIMETRACKING_NOW"] = "2024-03-14T10:00:00"
-        app.launch()
-        let later = app.buttons["onboarding.later"]
-        if later.waitForExistence(timeout: 5) {
-            later.click()
-        }
-        XCTAssertTrue(app.textFields["timer.taskField"].waitForExistence(timeout: 10))
+        let app = XCUIApplication.timeTracking(reset: reset)
+        app.launchPastOnboarding()
         return app
     }
 
