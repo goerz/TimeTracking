@@ -17,9 +17,6 @@ public struct ActivityHealth: Sendable, Hashable {
     public var dot: ActivityHealthDot
     /// "Tracker running · checked 12 s ago" or "Mac tracker: checked 2 min ago".
     public var statusLine: String
-    /// Always empty: the footer no longer lists working sources. Kept only
-    /// until no view reads it; remove it then.
-    public var activeSources: [String] = []
     /// "Browser history: Full Disk Access is off; Safari pages are recorded
     /// by site only", in the warning color: only sources that are limited or off.
     public var problems: [String]

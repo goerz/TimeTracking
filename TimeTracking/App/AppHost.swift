@@ -90,7 +90,6 @@ final class AppHost {
 
     /// The app's name as Finder shows it, for the failure window's title.
     static var appName: String {
-        let info = Bundle.main.infoDictionary ?? [:]
-        return info["CFBundleDisplayName"] as? String ?? info["CFBundleName"] as? String ?? "TimeTracking"
+        AppDisplayName.current ?? Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String ?? "TimeTracking"
     }
 }

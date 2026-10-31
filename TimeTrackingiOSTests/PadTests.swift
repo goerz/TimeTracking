@@ -175,8 +175,7 @@ struct PadTests {
         )
         try await test.store.setLiveActivity(mac, for: DeviceID())
         await activity.reload()
-        #expect(activity.health?.statusLine == "Mac tracker: last tick 2 min ago")
-        #expect(activity.health?.activeSources.isEmpty == true)
+        #expect(activity.health?.statusLine == "Mac tracker: checked 2 min ago")
         #expect(activity.health?.dot == .green)
         // No open block on the iPad.
         #expect(try activity.newestBlockEnd == (test.date("2024-03-14T08:30")))

@@ -74,7 +74,6 @@ extension ActivitySummaryTests {
         #expect(health.statusLine == TrackerLiveness(registration: .enabled, state: state, now: now).statusLine(now: now))
         #expect(health.statusLine == "Tracker running · checked 12 s ago")
         // Only problems, by their name on screen; never the working sources.
-        #expect(health.activeSources.isEmpty)
         #expect(health.problems == ["App usage history: Full Disk Access is off", "tmux sessions: Limited"])
         #expect(health.tooltip == ["Tracker version 1.0", "Now: paper (tmux) · draft · nvim notes.tex", "In use"])
         #expect(ActivityHealth(registration: .enabled, state: state, now: now + 600).dot == .red)
@@ -92,7 +91,6 @@ extension ActivitySummaryTests {
         )
         let ipad = ActivityHealth(remote: remote, now: now)
         #expect(ipad.statusLine == "Mac tracker: checked 2 min ago")
-        #expect(ipad.activeSources.isEmpty)
         #expect(ipad.problems == ["iCloud Drive needs attention on the Mac"])
         #expect(ipad.tooltip == ["Idle for 5 min"])
         var stopped = remote

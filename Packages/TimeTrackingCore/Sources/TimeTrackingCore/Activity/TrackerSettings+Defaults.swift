@@ -6,7 +6,7 @@ extension TrackerSettings {
     /// Decoding it gives `TrackerSettings.defaults`.
     public static let defaultFileContents = """
     # Settings of the TimeTracking activity tracker. The tracker reads this file
-    # whenever it changes and applies it from its next sample (every 30 seconds),
+    # whenever it changes and applies it within 30 seconds,
     # on this Mac and, for the exclusions, on iPhone and iPad.
     #
     # Durations: "30s", "5m", "3h". Paths: "~" is the home folder, matched

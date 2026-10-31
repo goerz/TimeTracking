@@ -216,7 +216,7 @@ All settings live in `settings.toml` in the shared folder, read by the agent and
 
 ```toml
 # Settings of the TimeTracking activity tracker. The tracker reads this file
-# whenever it changes and applies it from its next sample (every 30 seconds),
+# whenever it changes and applies it within 30 seconds,
 # on this Mac and, for the exclusions, on iPhone and iPad.
 #
 # Durations: "30s", "5m", "3h". Paths: "~" is the home folder, matched
@@ -449,4 +449,4 @@ Assumed:
 - From `spec_architecture.md`: the agent bundle, registration with `KeepAlive`, entitlements, signing, the `tracker-event` target, container identifiers.
 - From `spec_ios.md`: the collectors of 6.2 and exclusions read from `settings.toml`.
 - From `spec_timer_window.md`: the settings window, the first-launch alert, idle detection reading `presence`.
-- From `spec_planner_calendar.md`: "Delete Block from Log…" with confirmation.
+- From `spec_planner_calendar.md`: "Delete This Activity…" with confirmation.

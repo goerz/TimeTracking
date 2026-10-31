@@ -48,7 +48,7 @@ Starting while another entry runs, from any surface, stops the running entry at 
 
 ### 2.3 The Mac's current activity
 
-When the `LiveState` record carries an activity part with `agentRunning` true for a Mac ([spec_data_and_sync.md](spec_data_and_sync.md) §4.1), a secondary-color line under the card shows the device name, the primary item's context and subject (the subject alone when the context is a plain app name), and the presence ("active", "passive", "idle since 14:02", "locked since 14:02", "asleep since 14:02"). With several Macs, one line each, at most two, most recently updated first. Without such a part the line is absent. On the iPad, tapping it opens the Activity tab.
+When the `LiveState` record carries an activity part with `agentRunning` true for a Mac ([spec_data_and_sync.md](spec_data_and_sync.md) §4.1), a secondary-color line under the card shows the device name, the primary item's context and subject by their names on screen ("MacBook · paper (tmux) · draft"; the subject alone when the context is a plain app name), and the presence, omitted while the Mac is in use with input ("in use" without input, "idle since 14:02", "locked since 14:02", "asleep since 14:02", "another user since 14:02"). With several Macs, one line each, at most two, most recently updated first. Without such a part the line is absent. On the iPad, tapping it opens the Activity tab.
 
 ### 2.4 Project picker and quick creation
 

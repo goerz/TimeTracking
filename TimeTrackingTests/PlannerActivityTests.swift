@@ -118,7 +118,6 @@ struct PlannerActivityTests {
         }
         await router.activity.loadHealth()
         #expect(router.activity.health?.statusLine == "Mac tracker: checked 2 min ago")
-        #expect(router.activity.health?.activeSources.isEmpty == true)
     }
 
     @Test("PA-16 while the footer is visible it re-reads the tracker's status every 10 seconds")
