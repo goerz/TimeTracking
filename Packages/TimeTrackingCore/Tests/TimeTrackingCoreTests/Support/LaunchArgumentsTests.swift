@@ -17,12 +17,15 @@ struct LaunchArgumentsTests {
                 "YES",
                 "-ResetState",
                 "true",
+                "-RealAgent",
+                "YES",
             ],
             environment: [:]
         )
         #expect(parsed.uiTesting)
         #expect(parsed.fixture == "small")
         #expect(parsed.resetState)
+        #expect(parsed.realAgent)
         #expect(!parsed.unregister)
     }
 

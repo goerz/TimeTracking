@@ -232,6 +232,15 @@ struct PomodoroIdleTests {
         #expect(AppDelegate.appLoginItem(uiTesting: false) is MainAppLoginItem)
     }
 
+    @Test("TW-34 under -UITesting the agent registration is in memory, so the first-launch alert registers nothing real")
+    func uiTestingAgent() throws {
+        let identity = try AppIdentity(infoDictionary: Bundle.main.infoDictionary ?? [:])
+        #expect(AppDelegate.agentService(identity: identity, uiTesting: true, realAgent: false) is FakeAgentService)
+        #expect(AppDelegate.agentService(identity: identity, uiTesting: true, realAgent: true) is LoginItemAgentService)
+        #expect(AppDelegate.agentService(identity: identity, uiTesting: false, realAgent: false) is LoginItemAgentService)
+        #expect(AppDelegate.agentService(identity: nil, uiTesting: false, realAgent: false) is FakeAgentService)
+    }
+
     @Test("TW-33 the first-launch alert appears once; Open Tracker Settings opens the Tracker pane; nothing registers until Enable Tracker")
     func onboarding() async throws {
         let test = try await TestApp()

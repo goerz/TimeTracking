@@ -50,7 +50,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             notifications = live
             notifier = live
         }
-        let agent: AgentService = identity.map { LoginItemAgentService(identity: $0) } ?? FakeAgentService()
+        let agent = Self.agentService(identity: identity, uiTesting: uiTesting, realAgent: host.arguments.realAgent)
         let folders = uiTesting ? nil : await Self.activityFolders(identity)
         let activity = if uiTesting {
             await Self.fixtureActivity(host.arguments, clock: host.arguments.clock(honorFixedNow: identity?.isDebug ?? true))
@@ -185,6 +185,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 }
             }
         }
+    }
+
+    /// The tracker agent's registration: in memory under `-UITesting`, so
+    /// the first-launch alert and the Tracker pane register nothing real,
+    /// unless `-RealAgent YES` opts in (the ARCH-8 UI tests).
+    static func agentService(identity: AppIdentity?, uiTesting: Bool, realAgent: Bool) -> AgentService {
+        guard let identity, !uiTesting || realAgent else {
+            return FakeAgentService()
+        }
+        return LoginItemAgentService(identity: identity)
     }
 
     /// "Open at login": never the real login item under `-UITesting`.

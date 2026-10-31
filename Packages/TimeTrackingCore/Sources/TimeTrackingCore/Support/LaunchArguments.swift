@@ -6,8 +6,9 @@ public import Foundation
 
 /// The parsed launch arguments and test-related environment of a process.
 ///
-/// The apps understand `-UITesting YES`, `-Fixture <name>`, and
-/// `-ResetState YES` (the `-Key value` form of `UserDefaults`); the agent
+/// The apps understand `-UITesting YES`, `-Fixture <name>`,
+/// `-ResetState YES`, and `-RealAgent YES` (the `-Key value` form of
+/// `UserDefaults`); the agent
 /// understands `--record <folder>`, `--replay <file>`, and `--unregister`,
 /// which it hands to the Mac app's own `--unregister`;
 /// the tool reads `TIMETRACKING_STORE`, `TIMETRACKING_NOW`, and
@@ -20,6 +21,9 @@ public struct LaunchArguments: Sendable, Equatable {
     public var fixture: String?
     /// `-ResetState YES`: forget window frames and other device-local state.
     public var resetState: Bool
+    /// `-RealAgent YES`: under `-UITesting`, the Mac app registers the real
+    /// Debug agent instead of an in-memory one (the ARCH-8 UI tests).
+    public var realAgent: Bool
     /// `--record <folder>` (agent).
     public var recordFolder: URL?
     /// `--replay <file>` (agent).
@@ -38,6 +42,7 @@ public struct LaunchArguments: Sendable, Equatable {
         uiTesting: Bool = false,
         fixture: String? = nil,
         resetState: Bool = false,
+        realAgent: Bool = false,
         recordFolder: URL? = nil,
         replayFile: URL? = nil,
         unregister: Bool = false,
@@ -48,6 +53,7 @@ public struct LaunchArguments: Sendable, Equatable {
         self.uiTesting = uiTesting
         self.fixture = fixture
         self.resetState = resetState
+        self.realAgent = realAgent
         self.recordFolder = recordFolder
         self.replayFile = replayFile
         self.unregister = unregister
@@ -82,6 +88,9 @@ public struct LaunchArguments: Sendable, Equatable {
                 consumed = 2
             case "-ResetState":
                 self.resetState = Self.bool(value(after: index))
+                consumed = 2
+            case "-RealAgent":
+                self.realAgent = Self.bool(value(after: index))
                 consumed = 2
             case "--record":
                 self.recordFolder = value(after: index).map { URL(filePath: $0, relativeTo: currentDirectory) }

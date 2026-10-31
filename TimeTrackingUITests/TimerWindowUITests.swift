@@ -215,15 +215,19 @@ final class TimerWindowUITests: XCTestCase {
         wait(for: [off], timeout: 10)
     }
 
+    /// The real Debug agent's registration instead of the in-memory one
+    /// that `-UITesting` uses otherwise.
+    private static let realAgent = ["-RealAgent", "YES"]
+
     @MainActor
     func testARCH8_enableTrackerRegisters() {
         // Whatever fails below, the Debug agent ends unregistered.
         addTeardownBlock { @MainActor in
-            let app = self.launch(reset: false)
+            let app = self.launch(reset: false, arguments: Self.realAgent)
             self.disableIfRegistered(app, self.trackerButton(app))
             app.terminate()
         }
-        let app = launch()
+        let app = launch(arguments: Self.realAgent)
         let button = trackerButton(app)
         XCTAssertEqual(button.label, "Enable Tracker")
         button.click()
@@ -248,12 +252,12 @@ final class TimerWindowUITests: XCTestCase {
     @MainActor
     func testARCH8_agentUnregisterFlagRemovesTheRegistration() throws {
         addTeardownBlock { @MainActor in
-            let app = self.launch(reset: false)
+            let app = self.launch(reset: false, arguments: Self.realAgent)
             self.disableIfRegistered(app, self.trackerButton(app))
             app.terminate()
         }
         let agent = try Self.debugAgentExecutable()
-        let app = launch()
+        let app = launch(arguments: Self.realAgent)
         let button = trackerButton(app)
         button.click()
         let registered = NSPredicate(format: "label IN %@", ["Disable Tracker", "Open Login Items"])
