@@ -22,6 +22,15 @@ struct ReportLowerCard: View {
                 ReportEntryList(model: model)
             }
         }
+        #if os(macOS)
+        .onCopyCommand {
+            // ⌘C on the selected table or list rows (spec_planner_reports.md §7).
+            let text = model.copySelectedRows()
+            // NSItemProvider writes plain text from an NSString only.
+            // swiftlint:disable:next legacy_objc_type
+            return text.isEmpty ? [] : [NSItemProvider(object: text as NSString)]
+        }
+        #endif
         .frame(maxHeight: .infinity)
         .background(.background.secondary, in: .rect(cornerRadius: Design.Radius.card))
         .clipShape(.rect(cornerRadius: Design.Radius.card))

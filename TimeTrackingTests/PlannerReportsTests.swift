@@ -137,6 +137,39 @@ struct PlannerReportsTests {
         #expect(planner.section == .reports)
     }
 
+    @Test("spec_planner_reports.md §7: ⌘C copies the selected table or list rows as tab-separated text, levels in separate columns")
+    func copyRows() async throws {
+        let test = try await TestApp()
+        let projects = try await week(test)
+        let reports = test.app.planner.reports
+        await reports.reload()
+        reports.expandAll()
+        let research = try #require(reports.snapshot?.tree.children.first { $0.name == "Research" })
+        reports.tableSelection = [[research.key, .project(projects[0].id)], [research.key, .project(projects[1].id)]]
+        // Area › Project › Task: the task column stays empty on a project row.
+        #expect(Set(reports.copySelectedRows().components(separatedBy: "\n")) == [
+            ["Research", "Paper", "", ReportText.seconds(10_800), "66.7%", "2"].joined(separator: "\t"),
+            ["Research", "Grant", "", ReportText.seconds(3600), "22.2%", "1"].joined(separator: "\t"),
+        ])
+        await reports.show(.entries)
+        await reports.reload()
+        let draft = try #require(reports.listings.first { $0.entry.task == "Draft" })
+        let running = try #require(reports.listings.first { $0.entry.end == nil })
+        reports.listSelection = [draft.id, running.id]
+        let lines = reports.copySelectedRows().components(separatedBy: "\n").map { $0.components(separatedBy: "\t") }
+        let start = try TestApp.date("2024-03-12T09:00").formatted(date: .omitted, time: .shortened)
+        let end = try TestApp.date("2024-03-12T10:00").formatted(date: .omitted, time: .shortened)
+        #expect(lines.contains([
+            DayText.weekdayShortDate(draft.entry.day), start, end, ReportText.seconds(3600), draft.client?.name ?? "–", "Grant", "Draft",
+        ]))
+        // The running entry's stop reads "running", its duration counts to now.
+        let runningLine = try #require(lines.first { $0.last == "Clarify noise model" })
+        #expect(runningLine.count == 7)
+        #expect(runningLine[2] == "running")
+        #expect(runningLine[3] == ReportText.seconds(3600))
+        #expect(lines.count == 2)
+    }
+
     @Test("PR-21 with the running entry in the range the tiles refresh every 60 s; without one no timer runs")
     func refresh() async throws {
         let test = try await TestApp()

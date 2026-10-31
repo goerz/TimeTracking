@@ -90,6 +90,15 @@ extension ReportsModel {
         snapshot?.entriesCSV() ?? ""
     }
 
+    /// ⌘C (spec_planner_reports.md §7): the selected rows of the card that
+    /// shows, with times as the list shows them.
+    func copySelectedRows() -> String {
+        switch state.card {
+        case .breakdown: copyBreakdownRows()
+        case .entries: copyListRows { $0.formatted(date: .omitted, time: .shortened) }
+        }
+    }
+
     /// ⌘C on table rows: the visible columns, levels in separate columns.
     func copyBreakdownRows() -> String {
         let total = snapshot?.tree.seconds ?? 0
