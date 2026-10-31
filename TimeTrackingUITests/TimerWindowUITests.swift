@@ -13,6 +13,11 @@ final class TimerWindowUITests: XCTestCase {
         try await super.tearDown()
     }
 
+    /// A stopped entry's row in the list (`timer.row.<id>`).
+    private static var stoppedRow: NSPredicate {
+        NSPredicate(format: "identifier BEGINSWITH 'timer.row.' AND NOT (identifier BEGINSWITH 'timer.row.continue.')")
+    }
+
     /// The app on the fixture at the fixed test time, onboarding answered.
     @MainActor
     private func launch(fixture: String = "small", reset: Bool = true, arguments: [String] = []) -> XCUIApplication {
@@ -33,7 +38,7 @@ final class TimerWindowUITests: XCTestCase {
         let app = launch(fixture: "small")
         // The small fixture has entries today and on earlier days.
         XCTAssertTrue(app.descendants(matching: .any)["timer.list"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.descendants(matching: .any).matching(identifier: "timer.row").firstMatch.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.descendants(matching: .any).matching(Self.stoppedRow).firstMatch.waitForExistence(timeout: 5))
         XCTAssertFalse(app.descendants(matching: .any)["timer.placeholder"].exists)
         app.terminate()
     }
@@ -120,7 +125,7 @@ final class TimerWindowUITests: XCTestCase {
         XCTAssertTrue(app.buttons["timer.stopButton"].waitForExistence(timeout: 5))
         app.buttons["timer.stopButton"].click()
         XCTAssertTrue(app.buttons["timer.startButton"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.descendants(matching: .any).matching(identifier: "timer.row").firstMatch.exists)
+        XCTAssertTrue(app.descendants(matching: .any).matching(Self.stoppedRow).firstMatch.exists)
         app.terminate()
     }
 

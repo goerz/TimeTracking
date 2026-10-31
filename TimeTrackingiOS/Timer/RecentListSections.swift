@@ -24,7 +24,6 @@ struct RecentListSections: View {
                     .textCase(nil)
                     // The total lines up with the rows' durations.
                     .padding(.trailing, Design.CircleDiameter.row + Design.Spacing.medium)
-                    .accessibilityIdentifier("day.\(day.day)")
             }
         }
         if model.list.canLoadMore {
@@ -75,14 +74,14 @@ struct EntryRow: View {
                 Label("Continue", systemImage: "play.fill")
             }
             .buttonStyle(CircleButtonStyle(color: .startTint, diameter: Design.CircleDiameter.row))
-            .accessibilityIdentifier("row.continue.\(listing.id)")
+            .accessibilityIdentifier("timer.row.continue.\(listing.id)")
         }
         .padding(.vertical, Design.Spacing.tight)
         .contentShape(Rectangle())
         .onTapGesture { model.openEditor(listing.id) }
         .accessibilityAddTraits(.isButton)
         .accessibilityElement(children: .contain)
-        .accessibilityIdentifier("row.\(listing.id)")
+        .accessibilityIdentifier("timer.row.\(listing.id)")
         .swipeActions(edge: .leading, allowsFullSwipe: true) {
             Button("Continue", systemImage: "play.fill") {
                 Task { await model.timer.continueEntry(listing.id) }

@@ -119,7 +119,6 @@ private struct DaySection: View {
             .padding(.trailing, Design.CircleDiameter.row + 2 * Design.Spacing.small)
             .padding(.top, Design.Spacing.large)
             .padding(.bottom, Design.Spacing.tight)
-            .accessibilityIdentifier("timer.day.\(day.day)")
         if let running = day.runningListing {
             RunningRowView(listing: running)
         }
@@ -181,7 +180,7 @@ struct EntryRowView: View {
                     }
                     .buttonStyle(CircleButtonStyle(color: .startTint, diameter: Design.CircleDiameter.row))
                     .help("Continue")
-                    .accessibilityIdentifier("timer.row.continue")
+                    .accessibilityIdentifier("timer.row.continue.\(entry.id)")
                 }
             }
             .frame(width: Design.CircleDiameter.row)
@@ -206,7 +205,7 @@ struct EntryRowView: View {
         }
         .id(entry.id)
         .accessibilityElement(children: .combine)
-        .accessibilityIdentifier("timer.row")
+        .accessibilityIdentifier("timer.row.\(entry.id)")
         .accessibilityValue(selected ? "selected" : "")
         .modifier(EntryEditorPopover(
             entry: entry,

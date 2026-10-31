@@ -18,7 +18,8 @@ final class TimerUITests: XCTestCase {
         app.launch()
         XCTAssertTrue(app.buttons["timer.stopButton"].waitForExistence(timeout: 10))
         XCTAssertEqual(app.staticTexts["timer.time"].label, "0:25:00")
-        XCTAssertTrue(app.descendants(matching: .any).matching(NSPredicate(format: "identifier BEGINSWITH 'row.continue.'")).firstMatch
+        XCTAssertTrue(app.descendants(matching: .any).matching(NSPredicate(format: "identifier BEGINSWITH 'timer.row.continue.'"))
+            .firstMatch
             .exists)
     }
 
@@ -72,7 +73,8 @@ final class TimerUITests: XCTestCase {
         let app = XCUIApplication.timeTracking(fixture: "small")
         app.launch()
         let row = app.descendants(matching: .any)
-            .matching(NSPredicate(format: "identifier BEGINSWITH 'row.' AND NOT (identifier BEGINSWITH 'row.continue.')")).firstMatch
+            .matching(NSPredicate(format: "identifier BEGINSWITH 'timer.row.' AND NOT (identifier BEGINSWITH 'timer.row.continue.')"))
+            .firstMatch
         XCTAssertTrue(row.waitForExistence(timeout: 10))
         XCTAssertTrue(app.buttons["timer.startButton"].exists)
         // A full swipe: from the leading edge past the trailing edge.

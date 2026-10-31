@@ -98,7 +98,7 @@ struct RunningEntryCard: View {
 
     private var suggestions: some View {
         VStack(alignment: .leading, spacing: 0) {
-            ForEach(Array(model.taskField.suggestions.prefix(4).enumerated()), id: \.offset) { _, suggestion in
+            ForEach(Array(model.taskField.suggestions.prefix(4).enumerated()), id: \.offset) { index, suggestion in
                 Button {
                     taskFocused = false
                     model.taskField.reset()
@@ -109,7 +109,7 @@ struct RunningEntryCard: View {
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .accessibilityIdentifier("timer.suggestion")
+                .accessibilityIdentifier("timer.suggestion.\(index)")
             }
         }
     }

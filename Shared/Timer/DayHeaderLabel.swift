@@ -21,5 +21,6 @@ struct DayHeaderLabel: View {
                     .accessibilityIdentifier("timer.dayTotal.\(day.day)")
             }
         }
+        .accessibilityIdentifier("timer.day.\(day.day)")
     }
 }

@@ -88,7 +88,7 @@ struct RunningEntryBar: View {
         }
         .buttonStyle(.plain)
         .help(app.timer.isRunning ? "Edit Running Entry" : "")
-        .accessibilityIdentifier("timer.timerLabel")
+        .accessibilityIdentifier("timer.time")
         .fixedSize()
     }
 

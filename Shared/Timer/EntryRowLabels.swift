@@ -23,7 +23,7 @@ struct EntryRowLabels: View {
                         .foregroundStyle(.orange)
                         .imageScale(.small)
                         .accessibilityLabel("Changed by another device")
-                        .accessibilityIdentifier("row.badge.\(listing.id)")
+                        .accessibilityIdentifier("timer.badge.\(listing.id)")
                 }
             }
             HStack(spacing: Design.Spacing.tight + 2) {
