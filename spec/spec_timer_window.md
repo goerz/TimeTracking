@@ -45,7 +45,7 @@ The timer label always shows the elapsed time, also during a Pomodoro, and count
 |---|---|---|
 | Start | Start button; Return in the task field while idle | Starts an entry with the field's task and the chip's project (both may be empty). |
 | New | ⌘N | Starts an entry with empty task and no project; shows the window with the task field focused. |
-| Stop | Stop button; ⌘S; continue/stop shortcut | Stops the running entry; its task and project stay as the draft. |
+| Stop | Stop button; ⌘S; continue/stop shortcut | Stops the running entry; the task field, project chip, and timer go blank as at startup. Resuming it is a Continue on its row, the first of the list. |
 | Continue | Row's continue button; double-click; ⌘O; continue/stop shortcut while idle | Starts an entry with the source's task and project. ⌘O continues the selected row, else the most recent entry other than the running one. |
 | Discard | Discard button; ⌥⌘⌫ | Deletes the running entry after the alert "Discard the running entry? 0:12:34 will be lost." (Discard, Cancel); ⌥-click skips the alert. Undoable with ⌘Z. |
 
@@ -53,7 +53,7 @@ Every start stops a running entry at the same instant. Continuing an entry of an
 
 ### 2.2 The task field
 
-While an entry runs, the field edits its task: a change commits 500 ms after the last keystroke and on Return, focus loss, or window close. Escape reverts to the stored task; Escape in an unchanged field moves focus to the list. While nothing runs, the field holds the draft.
+While an entry runs, the field edits its task: a change commits 500 ms after the last keystroke and on Return, focus loss, or window close. Escape reverts to the stored task; Escape in an unchanged field moves focus to the list. While nothing runs, the field holds the draft, which is empty (placeholder "What are you working on?", no project) after a stop or a discard, on this or another device, until something is typed or picked.
 
 Autocompletion: from the first character a popup lists up to 8 distinct (task, project) pairs whose task contains the text (case- and diacritic-insensitive), the chip's project first, then most recent. ↑ and ↓ move, Return or Tab accepts (sets task and project; Return also starts if idle), Escape closes.
 

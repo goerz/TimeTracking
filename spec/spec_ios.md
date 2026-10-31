@@ -41,7 +41,7 @@ The Pomodoro countdown thus sits next to the elapsed time.
 | State | Time shown | Actions |
 |---|---|---|
 | Nothing running | `0:00:00`, green Start button | Start (button, or Return in the task field) starts an entry with the field's task and the chip's project |
-| Running | Elapsed time `h:mm:ss` since the midnight chain's start, as the Timer window's label; red Stop button | Stop, and Discard with the Timer window's confirmation text; Stop keeps the task and project as the draft; Discard is undoable (shake or three-finger undo) until the next change |
+| Running | Elapsed time `h:mm:ss` since the midnight chain's start, as the Timer window's label; red Stop button | Stop, and Discard with the Timer window's confirmation text; Stop blanks the task field and project chip, as at startup; Discard is undoable (shake or three-finger undo) until the next change |
 | Running with a Pomodoro | The elapsed time as above; the countdown is on the Pomodoro button (2.8) | As above |
 
 Starting while another entry runs, from any surface, stops the running entry at the new start (`start(projectID:task:at:)`). The task field's commit timing, autocompletion, and `@` trigger are those of [spec_timer_window.md](spec_timer_window.md) §2.2; the suggestions appear as a list above the keyboard.

@@ -120,9 +120,9 @@ final class TimerModel {
                 pendingTaskCommit = nil
                 if let current {
                     taskText = current.task
-                } else if let previous {
-                    // Stopped elsewhere: the stopped entry becomes the draft.
-                    await setDraftProject(previous.projectID)
+                } else if previous != nil {
+                    // Stopped elsewhere: the field goes blank, as at startup.
+                    await clearDraft()
                 }
             } else if let current, pendingTaskCommit == nil, current.task != previous?.task {
                 taskText = current.task
@@ -173,15 +173,16 @@ final class TimerModel {
         await onChange?()
     }
 
-    /// Stops the running entry; its task and project stay as the draft.
+    /// Stops the running entry; the task field, chip, and timer go blank as
+    /// at startup. The entry is continued from the list.
     func stop() async {
-        guard let running else {
+        guard isRunning else {
             return
         }
         await commitTask()
         do {
             try await store.stop(at: clock.now)
-            await setDraftProject(running.projectID)
+            await clearDraft()
             await refresh()
             await onChange?()
         } catch {
@@ -258,7 +259,7 @@ final class TimerModel {
                 await model.onChange?()
             }
             self.running = nil
-            await setDraftProject(running.projectID)
+            await clearDraft()
             await refresh()
             await onChange?()
         } catch {
@@ -292,6 +293,12 @@ final class TimerModel {
     }
 
     // MARK: Helpers
+
+    /// Empties the task field and the draft's project.
+    func clearDraft() async {
+        taskText = ""
+        await setDraftProject(nil)
+    }
 
     func setDraftProject(_ id: ProjectID?) async {
         draftProjectID = id

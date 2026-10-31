@@ -27,13 +27,14 @@ struct TimerModelTests {
         #expect(second.task.isEmpty && second.projectID == nil)
         #expect(try await test.store.entry(first.id)?.end == second.start)
         #expect(test.router.calls.last == .showTimer(focusTask: true))
-        // Stop: task and project stay as the draft.
+        // Stop: the field and chip go blank.
         timer.taskText = "Write"
         await timer.commitTask()
         test.clock.advance(by: 60)
         await timer.stop()
         #expect(timer.running == nil)
-        #expect(timer.taskText == "Write")
+        #expect(timer.taskText.isEmpty)
+        #expect(timer.chipProjectID == nil)
         // ⌘O without selection continues the most recent other entry.
         test.clock.advance(by: 60)
         await test.app.continueCommand(timerKey: true)
@@ -89,6 +90,8 @@ struct TimerModelTests {
         timer.alert = nil
         await timer.discard()
         #expect(timer.running == nil)
+        #expect(timer.taskText.isEmpty)
+        #expect(timer.chipProjectID == nil)
         await test.undoLast()
         #expect(timer.running?.id == running.id)
         await timer.stop()
