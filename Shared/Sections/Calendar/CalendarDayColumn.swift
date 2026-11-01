@@ -184,8 +184,11 @@ private struct ActivityColumn: View {
             }
             if model.isRecordingMac {
                 ForEach(Array((model.gapLabels[day] ?? []).enumerated()), id: \.offset) { _, label in
-                    Text(label.1).font(.caption).foregroundStyle(.tertiary)
-                        .offset(x: 4, y: axis.y(label.0) + 4)
+                    if let frame = axis.frame(of: label.0) {
+                        GapLabel(text: label.1)
+                            .frame(width: width, height: frame.height)
+                            .offset(y: frame.y)
+                    }
                 }
             }
         }
@@ -193,6 +196,27 @@ private struct ActivityColumn: View {
         // The cards inside keep their own identifiers.
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("calendar.activity.\(day)")
+    }
+}
+
+/// A gap's cause, centered in the gap between vertical em dashes; a gap too
+/// short for the dashes shows the text alone (§3.1).
+private struct GapLabel: View {
+    var text: String
+
+    var body: some View {
+        ViewThatFits(in: .vertical) {
+            VStack(spacing: 0) {
+                Text(verbatim: "\u{FE31}")
+                Text(text)
+                Text(verbatim: "\u{FE31}")
+            }
+            Text(text)
+        }
+        .font(.caption)
+        .foregroundStyle(.tertiary)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(text)
     }
 }
 

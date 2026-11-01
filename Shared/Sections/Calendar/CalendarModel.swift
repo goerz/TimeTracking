@@ -85,8 +85,8 @@ final class CalendarModel {
     private(set) var projectRows: [ProjectID: ProjectRow] = [:]
     private(set) var summary: CalendarSummary?
     private(set) var timeBlockState: TimeBlockCalendarState?
-    /// Gap causes per day ("idle 22m"), Mac only.
-    private(set) var gapLabels: [TrackingDay: [(Date, String)]] = [:]
+    /// Gap causes per day ("idle 22m") with the gap they label, Mac only.
+    private(set) var gapLabels: [TrackingDay: [(DateInterval, String)]] = [:]
 
     // Synced settings, written through the settings methods (§6).
     var snapMinutes = 5
@@ -300,7 +300,7 @@ final class CalendarModel {
     private(set) var contextColors: [String: Int] = [:]
 
     private func loadGapLabels() async {
-        var labels: [TrackingDay: [(Date, String)]] = [:]
+        var labels: [TrackingDay: [(DateInterval, String)]] = [:]
         let byDevice = Dictionary(grouping: blocks.filter { !$0.isOpen }) { "\($0.device) \($0.localDay)" }
         for group in byDevice.values {
             let sorted = group.sorted { $0.start < $1.start }
@@ -314,7 +314,7 @@ final class CalendarModel {
                 guard cause != .unknown, let day = TrackingDay(previous.localDay) else {
                     continue
                 }
-                labels[day, default: []].append((gap.start, "\(cause.title) \(ActivityText.duration(Int(gap.duration)))"))
+                labels[day, default: []].append((gap, "\(cause.title) \(ActivityText.duration(Int(gap.duration)))"))
             }
         }
         gapLabels = labels
