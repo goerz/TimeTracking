@@ -137,7 +137,9 @@ extension TimeStore: Reporting {
         }
         .map(TimeEntry.init(row:))
         .filter { entry in
-            Self.passes(entry.projectID.flatMap { projects[$0.rawValue] }, projectID: entry.projectID, filter: filter)
+            let project = entry.projectID.flatMap { projects[$0.rawValue] }
+            return Self.passes(project, projectID: entry.projectID, filter: filter)
+                && Self.matches(filter.search, task: entry.task, project: project)
         }
     }
 
@@ -164,7 +166,9 @@ extension TimeStore: Reporting {
         return groups.compactMap { row -> ReportRow? in
             let projectKey: String? = row["project_id"]
             let project = projectKey.flatMap { projects[$0] }
-            guard Self.passes(project, projectID: project?.id ?? projectKey.flatMap(ProjectID.init), filter: filter) else {
+            guard Self.passes(project, projectID: project?.id ?? projectKey.flatMap(ProjectID.init), filter: filter),
+                  Self.matches(filter.search, task: row["task"], project: project)
+            else {
                 return nil
             }
             let dayText: String = row["day"]
@@ -232,6 +236,17 @@ extension TimeStore: Reporting {
             && (filter.projects.map { $0.contains(projectID) } ?? true)
             && (filter.areas.map { ids in project?.areaID.map(ids.contains) ?? false } ?? true)
             && (filter.clients.map { ids in project?.clientID.map(ids.contains) ?? false } ?? true)
+    }
+
+    /// The Reports search: every word in the task or the project, area, or
+    /// client name.
+    static func matches(_ search: String, task: String, project: ReportProject?) -> Bool {
+        let words = search.folded.split(whereSeparator: \.isWhitespace)
+        guard !words.isEmpty else {
+            return true
+        }
+        let texts = [task, project?.name ?? "", project?.areaName ?? "", project?.clientName ?? ""].map(\.folded)
+        return words.allSatisfy { word in texts.contains { $0.contains(word) } }
     }
 
     private static func node(_ key: GroupKeyValue, name: String?, color: String?, rows: [ReportRow]) -> ReportNode {

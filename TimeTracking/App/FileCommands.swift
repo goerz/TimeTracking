@@ -4,7 +4,7 @@ import SwiftUI
 import TimeTrackingCore
 
 /// New Project, Area, and Client (in the Projects view), then
-/// Reports' Export… and Print….
+/// Reports' Export…; there is no Print….
 struct FileCommands: Commands {
     var host: AppHost
     @FocusedValue(\.plannerWindowActive) private var windowActive
@@ -48,14 +48,7 @@ struct FileCommands: Commands {
             Button("Export…") { router?.reports.requestExport() }
                 .contextCommand(KeyboardShortcut("e", modifiers: [.command, .shift]), enabled: state.reportCommands)
         }
-        CommandGroup(replacing: .printItem) {
-            Button("Print…") {
-                if let reports = router?.reports {
-                    ReportPrinter.print(reports)
-                }
-            }
-            .contextCommand(KeyboardShortcut("p"), enabled: state.reportCommands)
-        }
+        CommandGroup(replacing: .printItem) {}
     }
 
     /// The window on Projects.

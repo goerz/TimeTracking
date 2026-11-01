@@ -165,7 +165,7 @@ extension PhoneModel {
         switch padTab {
         case .timer: list.showFilter()
         case .projects: router.projects.focusSearch()
-        case .reports: router.reports.focusTaskFilter()
+        case .reports: router.reports.focusSearch()
         case .calendar, .activity: break
         }
     }

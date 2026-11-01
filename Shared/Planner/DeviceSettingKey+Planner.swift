@@ -23,6 +23,13 @@ extension DeviceSettingKey where Value == ReportRange {
     }
 }
 
+extension DeviceSettingKey where Value == ReportRange {
+    /// The Projects section's own range (default All time).
+    static var projectsRange: Self {
+        Self("planner.projects.range", default: .preset(.allTime))
+    }
+}
+
 extension DeviceSettingKey where Value == ProjectTableOptions {
     static var projectsOptions: Self {
         Self("planner.projects.options", default: ProjectTableOptions())

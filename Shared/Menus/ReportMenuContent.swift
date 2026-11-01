@@ -5,7 +5,7 @@ import SwiftUI
 import TimeTrackingCore
 
 /// The Report menu; its range commands are View › Go to Today, Previous
-/// Period, Next Period, and Date Range…, and Export… and Print… are in File.
+/// Period, Next Period, and Date Range…, and Export… is in File.
 struct ReportMenuContent: View {
     var model: ReportsModel
     var enabled: Bool
@@ -32,15 +32,8 @@ struct ReportMenuContent: View {
             .contextCommand(KeyboardShortcut(.leftArrow, modifiers: [.command, .shift]), enabled: enabled)
     }
 
-    /// Show Totals By and Stack By.
-    @ViewBuilder private var chartMenus: some View {
-        Menu("Show Totals By") {
-            Button("Automatic") { Task { await model.setGranularity(nil) } }
-            ForEach([Granularity.day, .week, .month, .year], id: \.self) { granularity in
-                Button(granularity.title) { Task { await model.setGranularity(granularity) } }
-            }
-        }
-        .disabled(!enabled)
+    /// Stack By.
+    private var chartMenus: some View {
         Menu("Stack By") {
             ForEach(StackKind.allCases, id: \.self) { kind in
                 Button(kind.title) { Task { await model.setStack(kind) } }

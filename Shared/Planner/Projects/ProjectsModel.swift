@@ -37,7 +37,12 @@ final class ProjectsModel {
     @ObservationIgnored var startTimer: (ProjectID) async -> Void = { _ in }
     @ObservationIgnored private(set) var pendingUndo: Task<Void, Never>?
 
-    /// The stored state selector, filters, grouping, and sort.
+    /// The section's own date range (default All time): only projects
+    /// tracked in it show, with Total tracked over it.
+    let range: DateRangeModel
+    var showsDatePopover = false
+
+    /// The stored filters, grouping, and sort.
     var options: ProjectTableOptions {
         didSet {
             device[.projectsOptions] = options
@@ -84,6 +89,8 @@ final class ProjectsModel {
     private(set) var lastError: String?
 
     private(set) var rows: [ProjectRow] = []
+    // swiftlint:disable:next discouraged_optional_collection
+    private(set) var rangeSeconds: [ProjectID: Int]? // The seconds per project in the range; nil for All time.
     private(set) var areas: [Area] = []
     private(set) var clients: [Client] = []
     private(set) var table = ProjectTable(groups: [], activeCount: 0, archivedCount: 0)
@@ -92,6 +99,7 @@ final class ProjectsModel {
         self.store = store
         self.clock = clock
         self.device = device
+        self.range = DateRangeModel(clock: clock, device: device, key: .projectsRange)
         self.options = device[.projectsOptions]
         self.collapsed = device[.projectsCollapsed]
         self.columnData = device[.projectsColumns]
@@ -101,10 +109,13 @@ final class ProjectsModel {
 
     // MARK: Loading
 
-    /// Re-reads projects, areas, and clients (also after any store change).
+    /// Re-reads projects, areas, clients, and the range's totals (also after
+    /// any store change or a range change).
     func reload() async {
+        await range.refreshEarliest(store)
         do {
             rows = try await store.projects(filter: ProjectFilter(state: .all))
+            rangeSeconds = range.isAllTime ? nil : try await store.projectSeconds(days: range.days)
             areas = try await store.areas(of: nil, includeRetired: true)
             clients = try await store.clients(includeRetired: true)
         } catch {
@@ -115,7 +126,7 @@ final class ProjectsModel {
     }
 
     private func rebuild() {
-        table = ProjectTable(rows: rows, clients: clients, areas: areas, options: options, search: search, now: clock.now)
+        table = ProjectTable(rows: rows, clients: clients, areas: areas, options: options, search: search, rangeSeconds: rangeSeconds)
         let visible = Set(table.rows.map(\.id))
         if !selection.isSubset(of: visible) {
             selection.formIntersection(visible)
@@ -185,8 +196,8 @@ final class ProjectsModel {
     }
 
     /// `showProject`: clears the search, includes archived projects for an
-    /// archived one, clears filters that hide it, selects and scrolls to its
-    /// row.
+    /// archived one, clears filters that hide it, selects All time when the
+    /// range hides it, selects and scrolls to its row.
     func reveal(_ id: ProjectID) async {
         await reload()
         guard let row = rows.first(where: { $0.id == id }) else {
@@ -197,7 +208,11 @@ final class ProjectsModel {
         if row.project.isArchived {
             options.includeArchived = true
         }
-        let alone = ProjectTable(rows: [row], clients: clients, areas: areas, options: options, search: "", now: clock.now)
+        if rangeSeconds.map({ $0[id] == nil }) ?? false {
+            range.select(.allTime)
+            rangeSeconds = nil
+        }
+        let alone = ProjectTable(rows: [row], clients: clients, areas: areas, options: options, search: "")
         if !alone.rows.contains(where: { $0.id == id }) {
             options.clearFilters()
             options.includeArchived = row.project.isArchived

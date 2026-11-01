@@ -14,7 +14,7 @@ enum PlannerContinueTarget: Equatable {
 }
 
 extension PlannerRouter {
-    /// View › Go to Today: the Calendar, Reports, or Activity shown.
+    /// View › Go to Today: the section shown.
     func goToToday() async {
         switch section {
         case .calendar:
@@ -25,18 +25,19 @@ extension PlannerRouter {
             activity.range.goToToday()
             await activity.reload()
         case .projects:
-            break
+            projects.range.goToToday()
+            await projects.reload()
         }
     }
 
     /// View › Previous Period and Next Period apply: the Calendar, or a
-    /// range of Reports or Activity that can move.
+    /// range of Reports, Projects, or Activity that can move.
     var canShiftPeriod: Bool {
         switch section {
         case .calendar: true
         case .reports: reports.range.canShift
         case .activity: activity.range.canShift
-        case .projects: false
+        case .projects: projects.range.canShift
         }
     }
 
@@ -55,7 +56,12 @@ extension PlannerRouter {
         case .activity:
             await activity.shiftPeriod(by: step)
         case .projects:
-            break
+            if step < 0 {
+                projects.range.previous()
+            } else {
+                projects.range.next()
+            }
+            await projects.reload()
         }
     }
 
@@ -64,14 +70,14 @@ extension PlannerRouter {
         section == .calendar ? "Go to Date…" : "Date Range…"
     }
 
-    /// View › Date Range…: the date popover of Reports or Activity, the
-    /// Calendar's month picker.
+    /// View › Date Range…: the date popover of Reports, Projects, or
+    /// Activity, the Calendar's month picker.
     func showDateRange() {
         switch section {
         case .calendar: calendar.showsMonthPicker = true
         case .reports: reports.showsDatePopover = true
         case .activity: activity.showsDatePopover = true
-        case .projects: break
+        case .projects: projects.showsDatePopover = true
         }
     }
 

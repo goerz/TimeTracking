@@ -281,7 +281,6 @@ A `TabView` with the iPadOS tab bar (collapsible to a sidebar): Timer, Calendar,
 | Hover tooltip or hover button | Tap shows a popover with the text and actions; Apple Pencil hover and a trackpad pointer show it as hover does |
 | Right-click context menu | Long press |
 | Vertical and horizontal zoom | Pinch vertically and horizontally; two-finger swipe scrolls days |
-| Print in Reports | The share sheet's Print |
 | Menu bar item, global shortcuts, login item, idle detection, reminders, CLI | Absent |
 
 The Calendar tab requests calendar access per [spec_planner_calendar.md](spec_planner_calendar.md); the iPhone never uses EventKit.
@@ -297,7 +296,7 @@ The iPad differs from the Mac only where it has no counterpart:
 | Window › Mini Timer (⌥⌘R) | None (no second window); View › Timer (⌘1) selects the Timer tab with the task field focused |
 | Continue (⌘O) in the Timer continues its selected row | Continue in the Timer tab continues the most recent other entry; in a Planner tab it acts on the selection as on the Mac |
 | Delete Entry… (⌘⌫) needs the list's focus | Delete Entry… needs a selected row |
-| View › Mini Timer's Compact Mode and Float on Top; File › Print…; View › Activity's Exclude from Tracking… and Back | None (no window modes, no printing, and no exclusion or drill-down in Activity, [spec_planner_activity.md](spec_planner_activity.md) §5) |
+| View › Mini Timer's Compact Mode and Float on Top; View › Activity's Exclude from Tracking… and Back | None (no window modes, and no exclusion or drill-down in Activity, [spec_planner_activity.md](spec_planner_activity.md) §5) |
 | Edit › Copy (⌘C) copies the selected project names | Project › Copy Name only |
 
 Esc closes a sheet or popover and clears a search.

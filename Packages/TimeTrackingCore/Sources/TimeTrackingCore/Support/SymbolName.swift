@@ -88,7 +88,6 @@ public enum SymbolName {
     public static let zoomOut = "minus.magnifyingglass"
     public static let calendarColumns = "rectangle.split.3x1"
     public static let share = "square.and.arrow.up"
-    public static let print = "printer"
     public static let info = "info.circle"
     /// A total (App Shortcuts' today's total).
     public static let total = "sum"

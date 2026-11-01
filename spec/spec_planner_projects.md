@@ -13,7 +13,7 @@ The Planner is the main window's sidebar items after the Timer ([spec_timer_wind
 | Minimum size of a section | 620 × 560 pt |
 | Remembered per device | The window's frame, the last selected section, each section's view state |
 
-At launch the main window shows the Timer; View › Calendar to Activity (⌘2 to ⌘5), the sidebar, and the router's requests (1.3) select a section, showing the main window if needed. For Projects the view state is the filters (with Include archived projects), grouping, sort, column visibility and widths, and the collapsed groups; the search text is not kept.
+At launch the main window shows the Timer; View › Calendar to Activity (⌘2 to ⌘5), the sidebar, and the router's requests (1.3) select a section, showing the main window if needed. For Projects the view state is its date range, the filters (with Include archived projects), grouping, sort, column visibility and widths, and the collapsed groups; the search text is not kept.
 
 ### 1.2 Commands
 
@@ -38,7 +38,7 @@ The `PlannerRouter` shows the main window if needed, selects a section, and pass
 | Request | Effect |
 |---|---|
 | `showProjects()` | Selects Projects with its current view state |
-| `showProject(id)` | Selects Projects, clears the search, turns "Include archived projects" on for an archived project, clears filters that hide it, selects and scrolls to its row. Target of `timetracking://project/<uuid>` |
+| `showProject(id)` | Selects Projects, clears the search, turns "Include archived projects" on for an archived project, clears filters that hide it, selects All time when the range hides it, selects and scrolls to its row. Target of `timetracking://project/<uuid>` |
 | `showCalendar(day:hour:highlight:)` | Selects Calendar ([spec_planner_calendar.md](spec_planner_calendar.md) defines the arguments) |
 | `showReports(range:filter:)` | Selects Reports ([spec_planner_reports.md](spec_planner_reports.md) §9) |
 | `showActivity(range:)` | Selects Activity with the shared Reports/Activity range |
@@ -50,7 +50,7 @@ The sections are tabs ([spec_ios.md](spec_ios.md) §10). In Projects, the Sort a
 
 ## 2. The projects table
 
-The window title is "Projects" with no leading toolbar items. The trailing items are, in order: Filters (the symbol fills and the title reads "Filters (2)" while filters are active), the Sort and Group menu (Group By, Sort By, and Ascending or Descending, each with a check mark), New (`plus`: a click is New Project…, its menu lists New Project…, New Area…, and New Client…), and the search field. Below is a `Table` with client, area, or group rows above their projects, a ⋯ button on the hovered project row at the trailing edge of the Project cell, and a status row.
+The window title is "Projects" and its subtitle the range label ("All time · since Mar 4, 2019"). Leading are the period arrows and the range menu of Reports ([spec_planner_reports.md](spec_planner_reports.md) §2.2, §2.3) on the section's own range (2.4). The trailing items are, in order: Filters (the symbol fills and the title reads "Filters (2)" while filters are active), the Sort and Group menu (Group By, Sort By, and Ascending or Descending, each with a check mark), New (`plus`: a click is New Project…, its menu lists New Project…, New Area…, and New Client…), and the search field. Below is a `Table` with client, area, or group rows above their projects, a ⋯ button on the hovered project row at the trailing edge of the Project cell, and a status row.
 
 ### 2.1 Columns
 
@@ -62,7 +62,7 @@ The window title is "Projects" with no leading toolbar items. The trailing items
 | State | "Active" or "Archived" | 90 pt; hidden while archived projects are not included |
 | Created | `createdAt` | 100 pt |
 | Last tracked | Start of the most recent entry, running entry included; "Never" if none | 120 pt |
-| Total tracked | Sum of all entries (on a client, area, or group row, of its projects shown) in the `XhYYm` format of [spec_design.md](spec_design.md) §2 with unbounded hours ("432h 21m"); the running entry counts to now, refreshed once a minute | 120 pt |
+| Total tracked | Sum of the entries in the range (on a client, area, or group row, of its projects shown) in the `XhYYm` format of [spec_design.md](spec_design.md) §2 with unbounded hours ("432h 21m"); the running entry counts to now, refreshed once a minute | 120 pt |
 
 Dates read "Today", "Yesterday", the weekday within the last 7 days, "Oct 27" within the current year, "2024" otherwise; the tooltip shows the full date. The header's context menu toggles column visibility; column order is fixed. Last tracked and Total tracked come from the library's cached project rows.
 
@@ -95,11 +95,13 @@ Client, area, and group rows collapse with their triangle, with ← and → on a
 
 ### 2.4 Filtering
 
-The Filters popover and the search combine with AND.
+The date range, the Filters popover, and the search combine with AND.
 
-The Filters popovers of Projects and Reports ([spec_planner_reports.md](spec_planner_reports.md) §3) share one layout, 360 pt wide: the tree under its headline, then the section's own controls, each under a headline and as wide as the popover, then the "Include archived projects" check box, then "Clear All" at the trailing edge, which resets the popover. Here the sections are "Clients and Areas" and "Last Tracked" (a pop-up button). "Include archived projects" is off by default; on, archived projects join the table in secondary label color. The count in the Filters title counts the kinds that restrict the table: the tree, and a Last tracked choice other than Any time.
+The range has the presets, arrows, date popover, and View commands of Reports ([spec_planner_reports.md](spec_planner_reports.md) §2) but is the section's own, stored per device, default All time. All time lists every project, also those never tracked; any other range lists only the projects with an entry in it, and Total tracked sums those entries. Created and Last tracked stay whole-history dates, so sorting by Last tracked finds the projects tracked longest ago.
 
-Clients and Areas is the filter tree that Reports shows with projects added: a search field above clients by name, each with its areas in order (general first, named after the client; swatches; retired areas in secondary label color), each row with a check box that is checked, partly checked (`minus.square.fill`, some descendants checked), or unchecked. A project passes if its area or its client is checked; nothing checked means no restriction. Checking a client or a partly checked row checks it with everything below it; when that completes its parent's children, the parent is checked instead. Unchecking a row under a checked client or area leaves its siblings checked and the parent partly checked. A checked client or area also covers areas and projects added later. The search matches every word against a row's name and its ancestors' names ("research university" finds University's Research and not Consulting's) and shows the matching rows with their ancestors and descendants; areas of different clients may share a name. A client or area with rows below it has a disclosure triangle (`chevron.right`, open `chevron.down`) before its check box, and leaves keep its width free so the check boxes line up; ⌥-click folds or unfolds every row. The popover opens with clients unfolded and areas with projects folded, except a partly checked one; a search unfolds the rows it shows. "Last tracked": Any time (default), In the last 30 days, In the last 90 days, Not in the last 90 days, Not in the last year, Never.
+The Filters popovers of Projects and Reports ([spec_planner_reports.md](spec_planner_reports.md) §3) are identical in layout, 360 pt wide: the tree under its headline ("Clients and Areas" here), then the "Include archived projects" check box, then "Clear All" at the trailing edge, which resets the popover. "Include archived projects" is off by default; on, archived projects join the table in secondary label color. The count in the Filters title counts the kinds that restrict the table: the tree.
+
+Clients and Areas is the filter tree that Reports shows with projects added: a search field above clients by name, each with its areas in order (general first, named after the client; swatches; retired areas in secondary label color), each row with a check box that is checked, partly checked (`minus.square.fill`, some descendants checked), or unchecked. A project passes if its area or its client is checked; nothing checked means no restriction. Checking a client or a partly checked row checks it with everything below it; when that completes its parent's children, the parent is checked instead. Unchecking a row under a checked client or area leaves its siblings checked and the parent partly checked. A checked client or area also covers areas and projects added later. The search matches every word against a row's name and its ancestors' names ("research university" finds University's Research and not Consulting's) and shows the matching rows with their ancestors and descendants; areas of different clients may share a name. A client or area with rows below it has a disclosure triangle (`chevron.right`, open `chevron.down`) before its check box, and leaves keep its width free so the check boxes line up; ⌥-click folds or unfolds every row. The popover opens with clients unfolded and areas with projects folded, except a partly checked one; a search unfolds the rows it shows.
 
 Search (⌘F): every word of the query must occur, case- and diacritic-insensitively, as a substring of the project, area, or client name. Escape clears; a second Escape returns focus to the table.
 
@@ -225,13 +227,13 @@ Archived projects and retired areas never appear. The entry's current project ha
 - PP-5. Total tracked descending orders by summed duration, ties by name ascending; Last tracked puts "Never" last in both directions.
 - PP-6. Group by Client and Area lists clients by name, each with its areas in order (general first, named after the client) and their projects; without a search or filter it lists areas without projects, a retired one only while archived projects are included; with a search only the matching client and area; reordering an area reorders the rows at once. A client or area row's total and a Client group's count and total sum their projects.
 - PP-7. Checking client "Consulting" shows its projects and checks its areas; adding area "University · Teaching" adds that area's and leaves University partly checked; unchecking "Consulting · Research" keeps Consulting's general area checked and Consulting partly checked, and checking it again checks Consulting; the search "research university" shows University and its Research only; "Clear All" removes all checks and the count.
-- PP-8. "Not in the last 90 days" shows a project last tracked 91 days ago and hides one tracked 89 days ago and one never tracked; "Never" shows only the latter.
+- PP-8. Over the last 7 days only a project tracked yesterday shows, its Total tracked being that range's time; over the last 365 days one tracked 91 days ago joins it with its own range total; All time also lists one never tracked. In Projects, View › Previous Period moves the section's range and leaves the Reports range unchanged.
 - PP-9. The search "noise consulting" matches "Noise Model" under Consulting and not "Noise Model" under another client.
 - PP-10. Archiving three projects removes them while archived projects are not included; ⌘Z restores all three.
 - PP-11. Delete… is disabled for a project with one entry, with the tooltip of 2.5.
 - PP-12. Start Timer (⌘O, Timer › Start Timer on the selected project) while another entry runs stops it, starts an entry on the project with an empty task, and leaves Projects shown; it is disabled for an archived project.
 - PP-13. Show in Reports selects Reports with the project as the only filter and range "All time".
-- PP-14. Opening `timetracking://project/<uuid>` for an archived project while archived projects are not included and a search is set selects Projects, turns "Include archived projects" on, clears the search, and selects and scrolls to the row.
+- PP-14. Opening `timetracking://project/<uuid>` for an archived project while archived projects are not included, the range is Today, and a search is set selects Projects, turns "Include archived projects" on, selects All time, clears the search, and selects and scrolls to the row.
 - PP-15. Moving a project with entries to another client shows the confirmation, and afterwards last year's report by client shows its time under the new client; a move between areas of one client shows no confirmation and ⌘Z undoes it.
 - PP-16. A project name differing from another of the same client only in case or diacritics is rejected with the inline message; under another client it is accepted.
 - PP-17. "Create Project" from the picker with search "noise" opens the dialog with Name "noise"; Create assigns the project to the owner's entry.

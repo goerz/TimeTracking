@@ -6,7 +6,7 @@ The Reports section of the main window shows where the time went in a date range
 
 From top to bottom: the filter bar while filters are active (3), four tiles, the chart card (fixed 280 pt high), and a card holding either the breakdown table or the entry list, chosen by a segmented control. The lower card fills the rest and scrolls. Below 700 pt of content height the tiles collapse into one line and the chart shrinks to 180 pt. Tiles and cards are filled cards of [spec_design.md](spec_design.md) §3; tile values use the metric style (§1 there).
 
-The window title is "Reports" and its subtitle the range label ("This week · W44"). Toolbar ([spec_design.md](spec_design.md) §4): leading the previous- and next-period arrows and the range menu (2.2); trailing Filters, the granularity menu ("Show Totals By"), Print, and Export. The chart card's header holds "Logged time" and "Stack by"; the lower card's header the segmented control (Breakdown | Entries), the level chain, and Expand All / Collapse All.
+The window title is "Reports" and its subtitle the range label ("This week · W44"). Toolbar ([spec_design.md](spec_design.md) §4): leading the previous- and next-period arrows and the range menu (2.2); trailing Filters and the search field (3.1). The chart card's header holds "Logged time" and "Stack by"; the lower card's header the segmented control (Breakdown | Entries), the level chain, Expand All / Collapse All, and Export (`square.and.arrow.up`, 7).
 
 ## 2. Date range
 
@@ -58,17 +58,20 @@ After a shift the label names the range by kind ("Week 43 · Oct 19 – 25", "Se
 
 ## 3. Filters
 
-The Filters button's title counts active filter kinds ("Filters (2)") and its symbol fills while any is active. Each checked client, area, or project, "No project", the task, and archived exclusion is a removable token in the filter bar above the tiles ("Consulting", "University · Research", "University · Research · Grant", "No project", "Task: noise", "Archived excluded", each with `xmark`), followed by "Clear All"; the bar is hidden without filters. The kinds combine with AND, and filters apply to tiles, chart, table, list, and exports.
+The Filters button's title counts active filter kinds ("Filters (2)") and its symbol fills while any is active. Each checked client, area, or project, "No project", and archived exclusion is a removable token in the filter bar above the tiles ("Consulting", "University · Research", "University · Research · Grant", "No project", "Archived excluded", each with `xmark`), followed by "Clear All"; the bar is hidden without filters. The kinds and the search combine with AND and apply to tiles, chart, table, list, and exports.
 
-The popover has the layout and the tree of the Projects section's ([spec_planner_projects.md](spec_planner_projects.md) §2.4), with the areas' projects folded below them:
+The popover is identical in layout to the Projects section's ([spec_planner_projects.md](spec_planner_projects.md) §2.4), with the same tree and the areas' projects folded below them:
 
 | Kind | Control | Matches |
 |---|---|---|
 | Clients, Areas, and Projects | "No project", then the filter tree of clients, their areas, and the areas' projects (archived projects in secondary label color while included) | Entries of projects that are checked or whose area or client is checked; "No project" matches entries without a project |
-| Task | Text field | Task contains the trimmed text, case- and diacritic-insensitively; applied 150 ms after the last keystroke |
 | Include archived projects | Check box, on by default | Off excludes archived projects' entries and removes them, with their checks, from the tree |
 
 A checked client, area, or project that leaves the tree (deleted, or archived while excluded) is unchecked. "Clear All" resets every kind and turns "Include archived projects" on.
+
+### 3.1 Search
+
+The toolbar's search field (⌘F) narrows the report to entries where every word of the query occurs, case- and diacritic-insensitively, in the task or in the project, area, or client name ("research draft"). It applies 150 ms after the last keystroke; Escape clears it. The search is not a filter: it has no token, does not count in the Filters title, and is not stored.
 
 ## 4. Tiles and chart
 
@@ -89,7 +92,7 @@ One Swift Charts `BarMark` per bucket and stack segment, x categorical (equal wi
 
 ### 4.3 Granularity
 
-Automatic, Day, Week, Month, Year. Automatic picks Day up to 31 days, Week up to 182, Month up to 1,096, Year beyond. A bucket cut by the range's edge is partial: its label shows the actual span ("Oct 29 – 31") and its tooltip says "partial week (3 days)".
+Automatic only: Day up to 31 days, Week up to 182, Month up to 1,096, Year beyond. A bucket cut by the range's edge is partial: its label shows the actual span ("Oct 29 – 31") and its tooltip says "partial week (3 days)".
 
 ### 4.4 Stacking and colors
 
@@ -159,9 +162,9 @@ One row per matching entry, with a footer "Total 18h 50m 14s · 22 entries".
 
 Default sort: start descending; every column sorts. ↩ or double-click opens the Timer's edit popover anchored to the row ([spec_timer_window.md](spec_timer_window.md) §4). The context menu offers "Edit…", "Continue" (the Timer's continue command), and "Show in Calendar" (`showCalendar` at the entry's day). There is no delete or bulk action.
 
-## 7. Export and printing
+## 7. Export
 
-File › Export… (⇧⌘E) opens a save panel with a format popup. Both formats come from the library's `ReportCSVWriter` with the columns and encoding of [spec_automation.md](spec_automation.md) §8.2, so the output is byte-identical to the CLI's for the same range, filters, and levels.
+The lower card's Export button and File › Export… (⇧⌘E) open a save panel for the card shown: the Breakdown or the Entries as CSV. Both come from the library's `ReportCSVWriter` with the columns and encoding of [spec_automation.md](spec_automation.md) §8.2, so the output is byte-identical to the CLI's for the same range, filters, and levels. There is no printing.
 
 | Format | Content | Default file name |
 |---|---|---|
@@ -170,11 +173,9 @@ File › Export… (⇧⌘E) opens a save panel with a format popup. Both format
 
 ⌘C on selected table or list rows copies the visible columns as tab-separated text, tree levels flattened into separate columns.
 
-File › Print… (⌘P) uses the standard print panel (its PDF button saves a PDF), landscape by default, light appearance with area colors. The page carries a header with the range label, the active filters, and the print date; then the tiles, the chart (`ImageRenderer` at the printer's scale), and the breakdown at its current expansion with the column header repeated on each page, or the entry list when it is showing.
-
 ## 8. Commands and keyboard
 
-The commands live under the View menu's Report header ([spec_timer_window.md](spec_timer_window.md) §9), enabled while Reports is shown; Go to Today, Previous and Next Period, and Date Range… are the View menu's own items, shared with the Calendar and Activity, Edit Entry… for the one selected row of the entry list is in the Entry menu, and Export and Print are in File, enabled only while Reports is shown in the key main window. Timer › Continue (⌘O) continues the one selected row of the entry list.
+The commands live under the View menu's Report header ([spec_timer_window.md](spec_timer_window.md) §9), enabled while Reports is shown; Go to Today, Previous and Next Period, and Date Range… are the View menu's own items, shared with the Calendar and Activity, Edit Entry… for the one selected row of the entry list is in the Entry menu, and Export is in File, enabled only while Reports is shown in the key main window. Timer › Continue (⌘O) continues the one selected row of the entry list.
 
 | Command | Shortcut |
 |---|---|
@@ -183,24 +184,22 @@ The commands live under the View menu's Report header ([spec_timer_window.md](sp
 | Back to Previous Range | ⌘[ (after a drill-down) |
 | Date Range… | ⇧⌘D |
 | Filters… | ⌥⌘F (focus on the client chips) |
-| Find Task | ⌘F (focus in the Task filter) |
+| Find | ⌘F (focus in the search field) |
 | Clear Filters | ⌥⇧⌘F |
 | Show Breakdown / Show Entries | ⌃⌘1 / ⌃⌘2 |
-| Show Totals By: Automatic, Day, Week, Month, Year | None |
 | Stack By: None, Client, Area, Project | None |
 | Expand All / Collapse All | ⇧⌘→ / ⇧⌘← |
 | Export… | ⇧⌘E |
-| Print… | ⌘P |
 
 In the table: → expands, ← collapses, ⌥→ expands the subtree, Space toggles. Each bar is an accessibility element labeled with its tooltip text.
 
 ## 9. View state and updates
 
-Per device, the section stores filters, granularity, stack key, levels, table and list sort, and the segmented control's position. The shared date range is stored as its kind plus, for custom ranges, the dates, so a restored "This week" is the current week. Expansion and drill-down history last for the session.
+Per device, the section stores filters, stack key, levels, table and list sort, and the segmented control's position; the search is not kept. The shared date range is stored as its kind plus, for custom ranges, the dates, so a restored "This week" is the current week. Expansion and drill-down history last for the session.
 
 The report recomputes on every store change and, while the running entry is in the range, every 60 seconds for tiles, chart, and table and every second for the list's running row; otherwise no timer runs. The view keeps the previous result until the new one is ready, showing a thin progress bar at the top of the content after 250 ms.
 
-The router's `showReports(range:filter:)` sets the range, replaces the filters (with "Include archived projects" on), and shows the Breakdown. The URL `timetracking://planner/reports?from=…&to=…` arrives the same way.
+The router's `showReports(range:filter:)` sets the range, replaces the filters (with "Include archived projects" on), clears the search, and shows the Breakdown. The URL `timetracking://planner/reports?from=…&to=…` arrives the same way.
 
 ## 10. Testable behaviors
 
@@ -209,7 +208,7 @@ The router's `showReports(range:filter:)` sets the range, replaces the filters (
 - PR-3. The leaves of a fully expanded tree have shares summing to 100% within rounding; under "Project › Day" a project's Entries equals the sum of its Day nodes'.
 - PR-4. Checking a client in the tree restricts tiles, chart, table, list, and both CSV exports to its projects' entries; checking also an area of another client adds that area's; "No project" matches entries without a project; each check is a token named by its path ("University · Research · Grant").
 - PR-5. "Include archived projects" off removes an archived project's entries everywhere and its row and check from the tree; on, its node reads "(archived)".
-- PR-6. The task filter "noise" matches "Clarify Noise Model"; "grosse" matches "Große".
+- PR-6. The search "noise" matches the task "Clarify Noise Model"; "grosse" matches "Große Aufgabe", and so does "course" through its project "Old Course"; "research" matches every entry of the Research area; "university draft" needs both words.
 - PR-7. After a project moves to another area, last year's report by area shows its time under the new area.
 - PR-8. The arrows shift as in 2.3: Week to date goes to the full previous week; This month shifted back twice from October is August; Last 7 days shifts by 7 days; All time disables both.
 - PR-9. Go to Today from a shifted week selects This week, and from a custom 10-day range the 10 days ending today; the preset list highlights a preset exactly when the range equals it, and the range menu's title is that preset's name, else the range by kind ("Week 41", "August 2026").
@@ -225,7 +224,7 @@ The router's `showReports(range:filter:)` sets the range, replaces the filters (
 - PR-19. Both CSV exports are byte-identical to the CLI's output for the same range, filters, and levels.
 - PR-20. The commands of section 8 are enabled only while Reports is shown in the key main window, under the View menu's "Report" header; ⌃⌘1 and ⌃⌘2 switch the card without changing the section.
 - PR-21. With a running entry in the range the Logged time tile changes within 60 seconds; with none, no periodic timer runs.
-- PR-22. Calling `showReports` with a project and "All time" sets exactly that filter, turns "Include archived projects" on, and shows the Breakdown.
+- PR-22. Calling `showReports` with a project and "All time" sets exactly that filter, turns "Include archived projects" on, clears the search, and shows the Breakdown.
 
 ## 11. Decisions
 
@@ -250,4 +249,4 @@ Assumed:
 - Automation: `ReportCSVWriter` columns ([spec_automation.md](spec_automation.md) §8.2).
 - Timer: the edit popover (anchorable to a row of another view) and the continue command.
 - Projects: `PlannerRouter`, area order, general-area display, and `AreaColor` derivations.
-- iOS: the iPad Reports tab uses this layout, with touch for hover and the share sheet for printing.
+- iOS: the iPad Reports tab uses this layout, with touch for hover.

@@ -3,21 +3,19 @@
 
 import SwiftUI
 
-/// The tree under its headline, the section's own controls, "Include
-/// archived projects", and Clear All, 360 pt wide.
-struct PlannerFiltersPopover<Tree: View, Sections: View>: View {
+/// The tree under its headline, "Include archived projects", and Clear
+/// All, 360 pt wide.
+struct PlannerFiltersPopover<Tree: View>: View {
     var treeTitle: String
     @Binding var includeArchived: Bool
     /// The prefix of the controls' identifiers ("projects.filter").
     var identifier: String
     var clearAll: () -> Void
     @ViewBuilder var tree: Tree
-    @ViewBuilder var sections: Sections
 
     var body: some View {
         VStack(alignment: .leading, spacing: Design.Spacing.medium) {
             FilterSection(treeTitle) { tree }
-            sections
             Toggle("Include archived projects", isOn: $includeArchived)
                 .accessibilityIdentifier("\(identifier).includeArchived")
             HStack {

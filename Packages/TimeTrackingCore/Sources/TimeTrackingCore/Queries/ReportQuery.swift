@@ -31,6 +31,10 @@ public struct EntryFilter: Hashable, Sendable {
     // swiftlint:enable discouraged_optional_collection
     /// Case-insensitive substring of the task.
     public var taskContains: String?
+    /// The Reports search: every word occurs, case- and
+    /// diacritic-insensitively, in the task or the project, area, or client
+    /// name. Empty does not restrict.
+    public var search = ""
     public var includeNoProject: Bool
     public var includeArchived: Bool
     /// Only entries without a project (the tool's `--no-project`).

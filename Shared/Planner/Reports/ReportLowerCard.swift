@@ -55,7 +55,21 @@ struct ReportLowerCard: View {
                 pathChip
                 Spacer()
             }
+            exportButton
         }
+    }
+
+    /// The card shown as CSV (Breakdown or Entries).
+    private var exportButton: some View {
+        Button {
+            model.requestExport()
+        } label: {
+            Label("Export…", systemImage: SymbolName.share)
+        }
+        .labelStyle(.iconOnly)
+        .help(model.state.card == .breakdown ? "Export Breakdown (CSV)" : "Export Entries (CSV)")
+        .disabled((model.snapshot?.summary.entryCount ?? 0) == 0)
+        .accessibilityIdentifier("reports.export")
     }
 
     private var expandButton: some View {

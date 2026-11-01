@@ -29,10 +29,8 @@ struct PlannerWindowView: View {
             .accessibilityIdentifier("planner.sidebar.timer")
             ForEach(PlannerSection.allCases) { section in
                 Tab(section.title, systemImage: section.symbol, value: MainSidebarItem.section(section)) {
-                    PlannerSectionContent(router: app.planner, section: section, clock: app.clock) {
-                        ReportPrinter.print(app.planner.reports)
-                    }
-                    .frame(minWidth: 620, minHeight: 560)
+                    PlannerSectionContent(router: app.planner, section: section, clock: app.clock)
+                        .frame(minWidth: 620, minHeight: 560)
                 }
                 .accessibilityIdentifier("planner.sidebar.\(section.rawValue)")
             }

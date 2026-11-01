@@ -58,6 +58,32 @@ extension TimeStore: StructureReading {
         .sorted { ($0.project.name.folded, $0.project.id) < ($1.project.name.folded, $1.project.id) }
     }
 
+    /// The seconds tracked per project in the inclusive `days` (each entry
+    /// counts whole in its day, the running one to now); projects without
+    /// an entry in the range are absent (spec_planner_projects.md §2.4).
+    public func projectSeconds(days: ClosedRange<TrackingDay>) throws -> [ProjectID: Int] {
+        let now = Time.seconds(clock.now)
+        let rows = try read { database in
+            try Row.fetchAll(
+                database,
+                sql: """
+                SELECT e.project_id, SUM(MAX(0, COALESCE(e."end", ?) - e.start)) AS seconds
+                FROM time_entry e
+                WHERE e.deleted_at IS NULL AND e.project_id IS NOT NULL AND e.day >= ? AND e.day <= ?
+                GROUP BY e.project_id
+                """,
+                arguments: [now, days.lowerBound.description, days.upperBound.description]
+            )
+        }
+        var result: [ProjectID: Int] = [:]
+        for row in rows {
+            if let id = ProjectID(row["project_id"] as String) {
+                result[id] = row["seconds"]
+            }
+        }
+        return result
+    }
+
     /// The live project `id` as `projects(filter:)` lists it, archived or
     /// not; `nil` when it is missing or deleted.
     public func projectRow(_ id: ProjectID) throws -> ProjectRow? {

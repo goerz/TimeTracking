@@ -70,10 +70,14 @@ final class ReportsModel {
     var listSelection: Set<EntryID> = []
     /// The entry whose edit popover is open.
     var editing: EntryID?
-    /// Bumped to focus the Task filter (⌘F) or open the popovers.
-    private(set) var taskFocusRequests = 0
+    /// The toolbar's search field (not stored); `appliedSearch` is what the
+    /// report shows, 150 ms after the last keystroke.
+    var search = ""
+    private(set) var appliedSearch = ""
+    /// Bumped to focus the search field (⌘F).
+    private(set) var searchFocusRequests = 0
     var showsFilters = false
-    /// File › Export… asks for the format first.
+    /// Export… (the lower card's button, File › Export…) saves the card shown.
     var exportRequested = false
     var showsDatePopover = false
     private(set) var clients: [Client] = []
@@ -98,9 +102,9 @@ final class ReportsModel {
             days: range.days,
             today: range.today,
             levels: state.levels,
-            granularity: state.granularity,
+            granularity: nil,
             stack: state.stack,
-            filter: state.filters.entryFilter,
+            filter: state.filters.entryFilter(search: appliedSearch),
             entryPath: entryPath,
             includeEntries: true
         )
@@ -192,11 +196,13 @@ final class ReportsModel {
     }
 
     /// `showReports(range:filter:)`: the range, exactly these filters with
-    /// archived projects included, and the Breakdown.
+    /// archived projects included, no search, and the Breakdown.
     func show(range newRange: ReportRange?, filters: ReportFilters) async {
         if let newRange {
             range.set(newRange)
         }
+        search = ""
+        appliedSearch = ""
         var filters = filters
         filters.includeArchived = true
         state.filters = filters
@@ -227,18 +233,21 @@ final class ReportsModel {
         await reload()
     }
 
-    /// ⌘F: focus in the Task filter.
-    func focusTaskFilter() {
-        showsFilters = true
-        taskFocusRequests += 1
+    /// ⌘F: focus in the search field.
+    func focusSearch() {
+        searchFocusRequests += 1
+    }
+
+    /// Applies the search field's text once it differs from the report's.
+    func applySearch() async {
+        guard search != appliedSearch else {
+            return
+        }
+        appliedSearch = search
+        await reload()
     }
 
     // MARK: Chart
-
-    func setGranularity(_ granularity: Granularity?) async {
-        state.granularity = granularity
-        await reload()
-    }
 
     func setStack(_ stack: StackKind) async {
         state.stack = stack

@@ -15,6 +15,10 @@ struct ProjectsView: View {
     var body: some View {
         ProjectsTableView(model: model, now: now)
             .navigationTitle("Projects")
+            .navigationSubtitle(model.range.label)
+        #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+        #endif
             .onChange(of: now) {
                 // Total tracked counts the running entry to now, once a minute.
                 Task { await model.reload() }
@@ -139,14 +143,16 @@ private struct ProjectsTableView: View {
     }
 }
 
-/// Trailing, in order: Filters (with "Include archived projects"), Sort
-/// and Group; then New (spec_design.md §4). The search field follows at
-/// the far end.
+/// Leading the period items; trailing, in order: Filters, Sort and Group,
+/// then New (spec_design.md §4). The search field follows at the far end.
 private struct ProjectsToolbar: ToolbarContent {
     @Bindable var model: ProjectsModel
     @State private var showsFilters = false
 
     var body: some ToolbarContent {
+        DateRangeToolbar(range: model.range, showsPopover: $model.showsDatePopover) {
+            Task { await model.reload() }
+        }
         ToolbarItem(placement: .primaryAction) {
             PlannerFiltersButton(activeFilters: model.options.filterCount, isPresented: $showsFilters, identifier: "projects.filters") {
                 ProjectsFiltersPopover(model: model)

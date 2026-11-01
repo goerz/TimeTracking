@@ -63,6 +63,7 @@ struct ReportWorld {
         granularity: Granularity? = nil,
         stack: StackKind = .area,
         filters: ReportFilters = ReportFilters(),
+        search: String = "",
         path: [GroupKeyValue] = []
     ) async throws -> ReportSnapshot {
         try await store.reportSnapshot(ReportRequest(
@@ -71,7 +72,7 @@ struct ReportWorld {
             levels: levels,
             granularity: granularity,
             stack: stack,
-            filter: filters.entryFilter,
+            filter: filters.entryFilter(search: search),
             entryPath: path
         ))
     }

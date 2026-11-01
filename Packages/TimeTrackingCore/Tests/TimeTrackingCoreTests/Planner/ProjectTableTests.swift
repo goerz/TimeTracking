@@ -44,11 +44,19 @@ struct ProjectTableTests {
             return project
         }
 
-        func table(_ options: ProjectTableOptions = ProjectTableOptions(), search: String = "") async throws -> ProjectTable {
+        func table(
+            _ options: ProjectTableOptions = ProjectTableOptions(),
+            search: String = "",
+            days: ClosedRange<TrackingDay>? = nil
+        ) async throws -> ProjectTable {
             let rows = try await store.projects(filter: ProjectFilter(state: .all))
             let areas = try await store.areas(of: nil, includeRetired: true)
             let clients = try await store.clients(includeRetired: true)
-            return ProjectTable(rows: rows, clients: clients, areas: areas, options: options, search: search, now: test.clock.now)
+            guard let days else {
+                return ProjectTable(rows: rows, clients: clients, areas: areas, options: options, search: search)
+            }
+            let seconds = try await store.projectSeconds(days: days)
+            return ProjectTable(rows: rows, clients: clients, areas: areas, options: options, search: search, rangeSeconds: seconds)
         }
     }
 
@@ -162,26 +170,9 @@ struct ProjectTableTests {
         #expect(tree.rows(matching: "research university").map(\.path) == ["University", "University · Research"])
         #expect(tree.rows(matching: "consulting").map(\.path) == ["Consulting", "Consulting", "Consulting · Research"])
 
-        options.lastTracked = .never
-        #expect(options.filterCount == 2)
         options.clearFilters()
         #expect(options.filterCount == 0)
         #expect(try await world.table(options).rows.count == 4)
-    }
-
-    @Test("PP-8 Not in the last 90 days shows 91 days ago, hides 89 days ago and never; Never shows only the latter")
-    func lastTracked() async throws {
-        let world = try await World()
-        try await world.project("Old", world.teaching, daysAgo: 91)
-        try await world.project("Recent", world.teaching, daysAgo: 89)
-        try await world.project("Unused", world.teaching)
-        var options = ProjectTableOptions()
-        options.lastTracked = .notLast90Days
-        #expect(try await world.table(options).rows.map(\.row.project.name) == ["Old"])
-        options.lastTracked = .never
-        #expect(try await world.table(options).rows.map(\.row.project.name) == ["Unused"])
-        options.lastTracked = .last90Days
-        #expect(try await world.table(options).rows.map(\.row.project.name) == ["Recent"])
     }
 
     @Test("PP-9 every search word must match the project, area, or client name")

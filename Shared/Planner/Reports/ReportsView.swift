@@ -8,11 +8,9 @@ import UniformTypeIdentifiers
 /// The Reports section.
 struct ReportsView: View {
     @Bindable var model: ReportsModel
-    /// Print… (the Mac's print panel; the iPad's share sheet).
-    var onPrint: (() -> Void)?
 
-    @State private var exporting: CSVDocument?
     @State private var showsProgress = false
+    @FocusState private var searchFocused: Bool
 
     var body: some View {
         GeometryReader { geometry in
@@ -33,6 +31,19 @@ struct ReportsView: View {
             .navigationBarTitleDisplayMode(.inline)
         #endif
             .toolbar { toolbar }
+            .searchable(text: $model.search, placement: .toolbar, prompt: "Search")
+            .searchFocused($searchFocused)
+            .onChange(of: model.searchFocusRequests) { searchFocused = true }
+            .task(id: model.search) {
+                // Applied 150 ms after the last keystroke.
+                guard model.search != model.appliedSearch else {
+                    return
+                }
+                try? await Task.sleep(for: .milliseconds(150))
+                if !Task.isCancelled {
+                    await model.applySearch()
+                }
+            }
             .overlay(alignment: .top) {
                 if showsProgress {
                     ProgressView().progressViewStyle(.linear)
@@ -59,26 +70,16 @@ struct ReportsView: View {
                     }
                 }
             }
-            .confirmationDialog("Export", isPresented: $model.exportRequested) {
-                Button("Breakdown (CSV)…") { export(entries: false) }
-                Button("Entries (CSV)…") { export(entries: true) }
-            }
             .fileExporter(
-                isPresented: .isPresent($exporting),
-                document: exporting,
+                isPresented: $model.exportRequested,
+                document: model.exportDocument,
                 contentType: .commaSeparatedText,
-                defaultFilename: exporting?.name
-            ) { _ in
-                exporting = nil
-            }
+                defaultFilename: model.exportDocument.name
+            ) { _ in }
     }
 
-    /// File › Export…: the chosen format's CSV.
-    func export(entries: Bool) {
-        exporting = CSVDocument(text: entries ? model.entriesCSV : model.breakdownCSV, name: model.exportFileName(entries: entries))
-    }
-
-    /// Leading: the period items; trailing: Filters, granularity, Print, Export.
+    /// Leading: the period items; trailing: Filters. The search field
+    /// follows at the far end (spec_design.md §4).
     @ToolbarContentBuilder private var toolbar: some ToolbarContent {
         DateRangeToolbar(range: model.range, showsPopover: $model.showsDatePopover) {
             Task { await model.reload() }
@@ -87,44 +88,6 @@ struct ReportsView: View {
             ReportFiltersButton(model: model)
         }
         .visibilityPriority(.high)
-        ToolbarItem(placement: .primaryAction) {
-            Picker("Show Totals By", selection: Binding(get: { model.state.granularity }, set: { value in
-                Task { await model.setGranularity(value) }
-            })) {
-                Text("Automatic").tag(Granularity?.none)
-                ForEach([Granularity.day, .week, .month, .year], id: \.self) { granularity in
-                    Text(granularity.title).tag(Granularity?.some(granularity))
-                }
-            }
-            .pickerStyle(.menu)
-            .help("Show Totals By")
-            .accessibilityIdentifier("reports.granularity")
-        }
-        ToolbarItemGroup(placement: .primaryAction) {
-            #if os(iOS)
-                // The share sheet's Print (spec_ios.md §10.2).
-                ShareLink(item: ReportPDF(model: model), preview: SharePreview(model.range.label)) {
-                    Label("Print", systemImage: SymbolName.print)
-                }
-                .accessibilityIdentifier("reports.print")
-            #else
-                if let onPrint {
-                    Button(action: onPrint) {
-                        Label("Print", systemImage: SymbolName.print)
-                    }
-                    .help("Print")
-                    .accessibilityIdentifier("reports.print")
-                }
-            #endif
-            Menu {
-                Button("Breakdown (CSV)…") { export(entries: false) }
-                Button("Entries (CSV)…") { export(entries: true) }
-            } label: {
-                Label("Export", systemImage: SymbolName.share)
-            }
-            .help("Export")
-            .accessibilityIdentifier("reports.export")
-        }
     }
 }
 

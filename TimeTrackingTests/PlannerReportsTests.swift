@@ -186,12 +186,16 @@ struct PlannerReportsTests {
         #expect(!reports.listTicks)
     }
 
-    @Test("PR-22 showReports with a project and All time sets exactly that filter, includes archived projects, and shows the Breakdown")
+    @Test(
+        "PR-22 showReports with a project and All time sets only that filter, includes archived ones, clears the search, shows Breakdown"
+    )
     func showReports() async throws {
         let test = try await TestApp()
         let projects = try await week(test)
         let planner = test.app.planner
-        await planner.reports.setFilters(ReportFilters(task: "noise", includeArchived: false))
+        await planner.reports.setFilters(ReportFilters(includeArchived: false))
+        planner.reports.search = "noise"
+        await planner.reports.applySearch()
         await planner.reports.show(.entries)
         await planner.showReports(range: .preset(.allTime), filter: .project(projects[1].id))
         #expect(planner.section == .reports)
@@ -199,6 +203,7 @@ struct PlannerReportsTests {
         #expect(planner.reports.state.filters.includeArchived)
         #expect(planner.reports.state.card == .breakdown)
         #expect(planner.range.range == .preset(.allTime))
+        #expect(planner.reports.search.isEmpty && planner.reports.appliedSearch.isEmpty)
         #expect(planner.reports.snapshot?.summary.loggedSeconds == 3600)
     }
 
@@ -232,12 +237,12 @@ struct PlannerReportsTests {
         _ = try await week(test)
         let university = try #require(try await test.store.clients(includeRetired: false).first { $0.name == "University" })
         let reports = test.app.planner.reports
-        await reports.setFilters(ReportFilters(clients: [university.id], task: "a"))
+        await reports.setFilters(ReportFilters(clients: [university.id]))
         await reports.reload()
         #expect(reports.state.levels == [.area, .project, .task])
         let week = ["--from", "2024-03-11", "--to", "2024-03-18"]
         let breakdown = try HelperTool.run(
-            ["report", "--csv"] + week + ["--group-by", "area,project,task", "--client", "University", "--task", "a"],
+            ["report", "--csv"] + week + ["--group-by", "area,project,task", "--client", "University"],
             store: url,
             now: test.clock.now
         )
@@ -261,22 +266,15 @@ struct PlannerReportsTests {
         await reports.reload()
         #expect(reports.exportFileName(entries: false) == "Report 2024-03-11 to 2024-03-17.csv")
         #expect(reports.exportFileName(entries: true) == "Entries 2024-03-11 to 2024-03-17.csv")
+        // Export… saves the card shown.
+        #expect(reports.exportDocument.name == "Report 2024-03-11 to 2024-03-17.csv")
+        #expect(reports.exportDocument.text == reports.breakdownCSV)
+        await reports.show(.entries)
+        #expect(reports.exportDocument.name == "Entries 2024-03-11 to 2024-03-17.csv")
+        #expect(reports.exportDocument.text == reports.entriesCSV)
         let tool = try await ReportCSVWriter.breakdownCSV(test.store.report(reports.request.query), levels: reports.state.levels)
         #expect(reports.breakdownCSV == tool)
         #expect(reports.entriesCSV.split(separator: "\n").count == 5)
         #expect(reports.listFooter(at: test.clock.now) == "Total 4h 30m 0s · 4 entries")
-    }
-
-    @Test("A printout repeats the column header on each page: rows split by page capacity, the footer on the last page")
-    func printPages() {
-        // Everything fits on the first page, footer included.
-        #expect(ReportPrintPages.split(rows: 3, firstCapacity: 4, capacity: 10) == [0 ..< 3])
-        // The rows fill the first page exactly: the footer moves on.
-        #expect(ReportPrintPages.split(rows: 4, firstCapacity: 4, capacity: 10) == [0 ..< 4, 4 ..< 4])
-        #expect(ReportPrintPages.split(rows: 25, firstCapacity: 5, capacity: 10) == [0 ..< 5, 5 ..< 15, 15 ..< 25, 25 ..< 25])
-        #expect(ReportPrintPages.split(rows: 20, firstCapacity: 5, capacity: 10) == [0 ..< 5, 5 ..< 15, 15 ..< 20])
-        // A first page taken by the chart starts the table on page two.
-        #expect(ReportPrintPages.split(rows: 2, firstCapacity: 0, capacity: 10) == [0 ..< 0, 0 ..< 2])
-        #expect(ReportPrintPages.capacity(height: 160) == 9)
     }
 }

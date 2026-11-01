@@ -5,16 +5,15 @@ import Foundation
 
 /// The filters of Reports, stored per device: the clients, areas, and
 /// projects checked in the tree (a project is in scope when it, its area,
-/// or its client is checked) with "No project", the task, and archived
-/// projects. They combine with AND; an empty tree does not restrict.
+/// or its client is checked) with "No project", and archived projects.
+/// They combine with AND; an empty tree does not restrict. The toolbar's
+/// search is not a filter (`EntryFilter.search`).
 public struct ReportFilters: Hashable, Codable, Sendable {
     public var clients: Set<ClientID> = []
     public var areas: Set<AreaID> = []
     public var projects: Set<ProjectID> = []
     /// "No project": entries without a project.
     public var noProject = false
-    /// Matched as a folded substring of the task.
-    public var task = ""
     public var includeArchived = true
 
     public init(
@@ -22,14 +21,12 @@ public struct ReportFilters: Hashable, Codable, Sendable {
         areas: Set<AreaID> = [],
         projects: Set<ProjectID> = [],
         noProject: Bool = false,
-        task: String = "",
         includeArchived: Bool = true
     ) {
         self.clients = clients
         self.areas = areas
         self.projects = projects
         self.noProject = noProject
-        self.task = task
         self.includeArchived = includeArchived
     }
 
@@ -55,19 +52,16 @@ public struct ReportFilters: Hashable, Codable, Sendable {
         !scope.isEmpty || noProject
     }
 
-    public var hasTaskFilter: Bool {
-        !task.trimmed.isEmpty
-    }
-
     /// The badge: the number of active kinds (the tree with "No project",
-    /// the task, archived excluded).
+    /// archived excluded).
     public var activeKindCount: Int {
-        [hasScopeFilter, hasTaskFilter, !includeArchived].count(where: \.self)
+        [hasScopeFilter, !includeArchived].count(where: \.self)
     }
 
-    /// The query filter.
-    public var entryFilter: EntryFilter {
-        var filter = EntryFilter(taskContains: hasTaskFilter ? task.trimmed : nil, includeArchived: includeArchived)
+    /// The query filter with the toolbar's `search`.
+    public func entryFilter(search: String = "") -> EntryFilter {
+        var filter = EntryFilter(includeArchived: includeArchived)
+        filter.search = search.trimmed
         if hasScopeFilter {
             filter.scope = scope
             filter.scopeIncludesNone = noProject
@@ -94,13 +88,12 @@ public struct ReportFilterChip: Hashable, Sendable, Identifiable {
     public enum Kind: Hashable, Sendable {
         case node(ProjectScopeNode)
         case noProject
-        case task
         case archived
     }
 
     public var kind: Kind
     /// "Consulting", "Consulting · Research", "Noise Model", "No project",
-    /// "Task: noise", "Archived excluded".
+    /// "Archived excluded".
     public var text: String
 
     public var id: Kind {
@@ -110,15 +103,12 @@ public struct ReportFilterChip: Hashable, Sendable, Identifiable {
 
 extension ReportFilters {
     /// A chip per checked client, area, and project in tree order, then No
-    /// project, the task, and archived excluded.
+    /// project and archived excluded.
     public func chips(clients allClients: [Client], areas allAreas: [Area], projects allProjects: [ProjectRow]) -> [ReportFilterChip] {
         let tree = ProjectScopeTree(clients: allClients, areas: allAreas, projects: allProjects)
         var chips = tree.rows.filter { scope.contains($0.node) }.map { ReportFilterChip(kind: .node($0.node), text: $0.path) }
         if noProject {
             chips.append(ReportFilterChip(kind: .noProject, text: "No project"))
-        }
-        if hasTaskFilter {
-            chips.append(ReportFilterChip(kind: .task, text: "Task: \(task.trimmed)"))
         }
         if !includeArchived {
             chips.append(ReportFilterChip(kind: .archived, text: "Archived excluded"))
@@ -135,8 +125,6 @@ extension ReportFilters {
             self.scope = scope
         case .noProject:
             noProject = false
-        case .task:
-            task = ""
         case .archived:
             includeArchived = true
         }

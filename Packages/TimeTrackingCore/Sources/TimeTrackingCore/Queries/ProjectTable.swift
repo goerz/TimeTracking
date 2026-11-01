@@ -41,46 +41,6 @@ public enum ProjectSortKey: String, Codable, Sendable, CaseIterable {
     }
 }
 
-/// The Filters popover's "Last tracked".
-public enum LastTrackedFilter: String, Codable, Sendable, CaseIterable {
-    case anyTime = "any_time"
-    case last30Days = "last_30_days"
-    case last90Days = "last_90_days"
-    case notLast90Days = "not_last_90_days"
-    case notLastYear = "not_last_year"
-    case never
-
-    public var title: String {
-        switch self {
-        case .anyTime: "Any time"
-        case .last30Days: "In the last 30 days"
-        case .last90Days: "In the last 90 days"
-        case .notLast90Days: "Not in the last 90 days"
-        case .notLastYear: "Not in the last year"
-        case .never: "Never"
-        }
-    }
-
-    /// Whether a project last tracked at `last` passes at `now`.
-    public func matches(_ last: Date?, now: Date) -> Bool {
-        let day = 86_400.0
-        switch self {
-        case .anyTime:
-            return true
-        case .last30Days:
-            return last.map { $0 >= now.addingTimeInterval(-30 * day) } ?? false
-        case .last90Days:
-            return last.map { $0 >= now.addingTimeInterval(-90 * day) } ?? false
-        case .notLast90Days:
-            return last.map { $0 < now.addingTimeInterval(-90 * day) } ?? false
-        case .notLastYear:
-            return last.map { $0 < now.addingTimeInterval(-365 * day) } ?? false
-        case .never:
-            return last == nil
-        }
-    }
-}
-
 extension ProjectFilter.State: Codable {}
 
 /// The stored view state of the projects table (the search is not stored).
@@ -90,7 +50,6 @@ public struct ProjectTableOptions: Hashable, Codable, Sendable {
     public var includeArchived = false
     public var clients: Set<ClientID> = []
     public var areas: Set<AreaID> = []
-    public var lastTracked: LastTrackedFilter = .anyTime
     public var grouping: ProjectGrouping = .clientAndArea
     public var sort: ProjectSortKey = .name
     public var ascending = true
@@ -109,10 +68,10 @@ public struct ProjectTableOptions: Hashable, Codable, Sendable {
         }
     }
 
-    /// The Filters badge: the restricting kinds (the tree, Last tracked).
-    /// Including archived projects widens the table and is not counted.
+    /// The Filters badge: the tree restricts; including archived projects
+    /// widens the table and is not counted.
     public var filterCount: Int {
-        (scope.isEmpty ? 0 : 1) + (lastTracked == .anyTime ? 0 : 1)
+        scope.isEmpty ? 0 : 1
     }
 
     /// Whether a project of this archived state passes.
@@ -125,7 +84,6 @@ public struct ProjectTableOptions: Hashable, Codable, Sendable {
         includeArchived = false
         clients = []
         areas = []
-        lastTracked = .anyTime
     }
 
     /// A header click: the same key reverses, another sorts ascending.
@@ -141,7 +99,7 @@ public struct ProjectTableOptions: Hashable, Codable, Sendable {
 
 extension ProjectTableOptions {
     private enum CodingKeys: String, CodingKey {
-        case includeArchived, clients, areas, lastTracked, grouping, sort, ascending
+        case includeArchived, clients, areas, grouping, sort, ascending
         /// The former state selector (Active, Archived, All), read only.
         case state
     }
@@ -159,7 +117,6 @@ extension ProjectTableOptions {
         }
         self.clients = try container.decodeIfPresent(Set<ClientID>.self, forKey: .clients) ?? defaults.clients
         self.areas = try container.decodeIfPresent(Set<AreaID>.self, forKey: .areas) ?? defaults.areas
-        self.lastTracked = try container.decodeIfPresent(LastTrackedFilter.self, forKey: .lastTracked) ?? defaults.lastTracked
         self.grouping = try container.decodeIfPresent(ProjectGrouping.self, forKey: .grouping) ?? defaults.grouping
         self.sort = try container.decodeIfPresent(ProjectSortKey.self, forKey: .sort) ?? defaults.sort
         self.ascending = try container.decodeIfPresent(Bool.self, forKey: .ascending) ?? defaults.ascending
@@ -170,7 +127,6 @@ extension ProjectTableOptions {
         try container.encode(includeArchived, forKey: .includeArchived)
         try container.encode(clients, forKey: .clients)
         try container.encode(areas, forKey: .areas)
-        try container.encode(lastTracked, forKey: .lastTracked)
         try container.encode(grouping, forKey: .grouping)
         try container.encode(sort, forKey: .sort)
         try container.encode(ascending, forKey: .ascending)
@@ -303,19 +259,33 @@ public struct ProjectTable: Hashable, Sendable {
     }
 
     /// Builds the table from all live projects (any state) and all areas
-    /// and clients (retired included).
+    /// and clients (retired included). With `rangeSeconds` (the seconds of
+    /// each project tracked in a date range other than All time) only those
+    /// projects show, with Total tracked over the range.
     public init(
         rows all: [ProjectRow],
         clients: [Client],
         areas: [Area],
         options: ProjectTableOptions,
         search: String,
-        now: Date
+        // swiftlint:disable:next discouraged_optional_collection
+        rangeSeconds: [ProjectID: Int]? = nil
     ) {
         let order = Dictionary(areas.map { ($0.id, $0.sortOrder) }, uniquingKeysWith: { first, _ in first })
         let names = Dictionary(grouping: all.filter { $0.area != nil }) { "\($0.client?.id.rawValue ?? "")/\($0.project.name.folded)" }
-        let visible = all.filter { row in
-            Self.passes(row, options: options, search: search, now: now)
+        let visible = all.compactMap { row -> ProjectRow? in
+            guard Self.passes(row, options: options, search: search) else {
+                return nil
+            }
+            guard let rangeSeconds else {
+                return row
+            }
+            var inRange = row
+            guard let seconds = rangeSeconds[row.id] else {
+                return nil
+            }
+            inRange.totalSeconds = seconds
+            return inRange
         }
         .map { row in
             ProjectTableRow(
@@ -330,7 +300,7 @@ public struct ProjectTable: Hashable, Sendable {
                 sorted,
                 clients: clients,
                 areas: areas,
-                showsEmpty: search.trimmed.isEmpty && options.filterCount == 0,
+                showsEmpty: search.trimmed.isEmpty && options.filterCount == 0 && rangeSeconds == nil,
                 showsRetired: options.includeArchived
             )
             : Self.groups(sorted, grouping: options.grouping, areaOrder: order)
@@ -341,7 +311,7 @@ public struct ProjectTable: Hashable, Sendable {
         )
     }
 
-    static func passes(_ row: ProjectRow, options: ProjectTableOptions, search: String, now: Date) -> Bool {
+    static func passes(_ row: ProjectRow, options: ProjectTableOptions, search: String) -> Bool {
         guard options.shows(archived: row.project.isArchived) else {
             return false
         }
@@ -350,9 +320,6 @@ public struct ProjectTable: Hashable, Sendable {
             guard byClient || options.areas.contains(row.project.areaID) else {
                 return false
             }
-        }
-        guard options.lastTracked.matches(row.lastUsed, now: now) else {
-            return false
         }
         return ProjectPickerContent.matches(search, project: row.project.name, area: row.area?.name ?? "", client: row.client?.name ?? "")
     }

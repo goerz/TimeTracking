@@ -1,11 +1,29 @@
-// The Filters popover's tree folding and "Include archived projects"
-// (spec_planner_projects.md §2.4).
+// The date range, the Filters popover's tree folding, and "Include
+// archived projects" (spec_planner_projects.md §2.4).
 
 import Foundation
 import Testing
 import TimeTrackingCore
 
 extension ProjectTableTests {
+    @Test("PP-8 a date range lists only projects tracked in it, Total tracked over the range; All time lists every project")
+    func dateRange() async throws {
+        let world = try await World()
+        try await world.project("Old", world.teaching, hours: 3, daysAgo: 91)
+        try await world.project("Recent", world.teaching, hours: 2, daysAgo: 1)
+        try await world.project("Unused", world.teaching)
+        var options = ProjectTableOptions()
+        options.grouping = .ungrouped
+        let today = TrackingCalendar(timeZone: .current).day(containing: world.test.clock.now)
+        let lastWeek = try await world.table(options, days: today.adding(days: -6) ... today)
+        #expect(lastWeek.rows.map(\.row.project.name) == ["Recent"])
+        #expect(lastWeek.rows.first?.row.totalSeconds == 2 * 3600)
+        #expect(try await world.table(options).rows.map(\.row.project.name) == ["Old", "Recent", "Unused"])
+        let year = try await world.table(options, days: today.adding(days: -364) ... today)
+        #expect(year.rows.map(\.row.project.name) == ["Old", "Recent"])
+        #expect(year.rows.first?.row.totalSeconds == 3 * 3600)
+    }
+
     @Test("PP-27 areas with projects open folded unless partly checked; unfolding shows the projects; a search unfolds")
     func treeFolding() async throws {
         let world = try await World()
@@ -64,7 +82,7 @@ extension ProjectTableTests {
         let decoder = JSONDecoder()
         for (state, included) in [("active", false), ("archived", true), ("all", true)] {
             // As stored before "Include archived projects" replaced the state selector.
-            let json = #"{"state":"\#(state)","clients":[],"areas":[],"lastTracked":"any_time","#
+            let json = #"{"state":"\#(state)","clients":[],"areas":[],"lastTracked":"never","#
                 + #""grouping":"client","sort":"last_tracked","ascending":false}"#
             let decoded = try decoder.decode(ProjectTableOptions.self, from: Data(json.utf8))
             #expect(decoded.includeArchived == included)

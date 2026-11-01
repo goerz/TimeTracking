@@ -23,7 +23,7 @@ struct ReportSnapshotTests {
         #expect(without.averagePerDay == 21_000 / 3)
         #expect(ReportText.averageCaption(summary) == "over 4 of 4 days")
         #expect(ReportText.averageCaption(without) == "over 3 of 4 days")
-        let none = try await world.snapshot(filters: ReportFilters(task: "nothing matches")).summary
+        let none = try await world.snapshot(search: "nothing matches").summary
         #expect(none.averagePerDay == 0)
         #expect(ReportText.tile(0) == "0h")
         #expect(ReportText.tile(3000) == "50m")
@@ -70,11 +70,9 @@ struct ReportSnapshotTests {
         #expect(ReportFilters(clients: [world.consulting.id], noProject: true).activeKindCount == 1)
         let rows = try await world.store.projects(filter: ProjectFilter(state: .all))
         let areas = [world.consultingArea, world.research, world.teaching]
-        let chips = ReportFilters(clients: [world.consulting.id], projects: [world.noise.id, world.grant.id], task: " noise ")
+        let chips = ReportFilters(clients: [world.consulting.id], projects: [world.noise.id, world.grant.id])
             .chips(clients: [world.consulting, world.university], areas: areas, projects: rows)
-        #expect(chips.map(\.text) == [
-            "Consulting", "University · Research · Grant", "University · Research · Noise Model", "Task: noise",
-        ])
+        #expect(chips.map(\.text) == ["Consulting", "University · Research · Grant", "University · Research · Noise Model"])
     }
 
     @Test("PR-5 excluding archived projects removes their entries and tree rows everywhere; included, the node is marked archived")
@@ -96,13 +94,20 @@ struct ReportSnapshotTests {
         #expect(checked.normalized(clients: clients, areas: areas, projects: rows).projects == [world.lectures.id])
     }
 
-    @Test("PR-6 the task filter is case- and diacritic-insensitive: noise matches Clarify Noise Model, grosse matches Große")
-    func taskFilter() async throws {
+    @Test("PR-6 every search word occurs in the task or the project, area, or client name, case- and diacritic-insensitively")
+    func search() async throws {
         let world = try await ReportWorld()
-        let noise = try await world.snapshot(filters: ReportFilters(task: "noise"))
-        #expect(Set(noise.entries.listings.map(\.entry.task)) == ["Clarify Noise Model", "Clarify noise model"])
-        let grosse = try await world.snapshot(filters: ReportFilters(task: "grosse"))
-        #expect(grosse.entries.listings.map(\.entry.task) == ["Große Aufgabe"])
+        func tasks(_ search: String) async throws -> Set<String> {
+            try await Set(world.snapshot(search: search).entries.listings.map(\.entry.task))
+        }
+        #expect(try await tasks("noise") == ["Clarify Noise Model", "Clarify noise model"])
+        #expect(try await tasks("grosse") == ["Große Aufgabe"])
+        #expect(try await tasks("course") == ["Große Aufgabe"])
+        #expect(try await tasks("research") == ["Clarify Noise Model", "Clarify noise model", "Draft"])
+        #expect(try await tasks("university draft") == ["Draft"])
+        #expect(try await tasks("mail") == ["Mail"])
+        #expect(try await world.snapshot(search: "research").summary.loggedSeconds
+            == world.snapshot(filters: ReportFilters(areas: [world.research.id])).summary.loggedSeconds)
     }
 
     @Test("PR-7 after a project moves to another area, last year's report by area shows its time under the new area")
@@ -200,13 +205,13 @@ struct ReportSnapshotTests {
     @Test("PR-19 both CSV exports are byte-identical to the tool's writers over the report query")
     func csvParity() async throws {
         let world = try await ReportWorld()
-        let filters = ReportFilters(clients: [world.university.id], task: "a")
-        let snapshot = try await world.snapshot(levels: [.client, .area, .project], filters: filters)
+        let filters = ReportFilters(clients: [world.university.id])
+        let snapshot = try await world.snapshot(levels: [.client, .area, .project], filters: filters, search: "a")
         let query = ReportQuery(
             days: ReportWorld.week,
             groupBy: [.client, .area, .project],
             granularity: .total,
-            filter: filters.entryFilter
+            filter: filters.entryFilter(search: "a")
         )
         let tool = try await ReportCSVWriter.breakdownCSV(world.store.report(query), levels: [.client, .area, .project])
         #expect(snapshot.breakdownCSV == tool)

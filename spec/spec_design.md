@@ -6,7 +6,7 @@ The app looks like it was made by Apple for the current OS: system text styles, 
 
 ## 1. Typography
 
-Only the system's semantic text styles, so Dynamic Type works on iOS and sizes match the platform on the Mac. No `.font(.system(size:))` outside widgets' fixed layouts and the print layout. Bold comes from the style (`.headline`) or `.weight(.semibold)`; never `.bold()` on running text.
+Only the system's semantic text styles, so Dynamic Type works on iOS and sizes match the platform on the Mac. No `.font(.system(size:))` outside widgets' fixed layouts. Bold comes from the style (`.headline`) or `.weight(.semibold)`; never `.bold()` on running text.
 
 | Role | Style | Notes |
 |---|---|---|
@@ -59,7 +59,7 @@ Hit targets: at least 44 × 44 pt on iOS; on the Mac, standard control sizes (`.
 
 Window-level controls live in the platform toolbar, never in a custom row inside the content.
 
-- Mac Planner: one unified toolbar. The window title is the section name; in Calendar, Reports, and Activity the shown range is the `navigationSubtitle` ("This week · W44"). Leading (`.navigation`, before the title), in these three sections: the period arrows (`chevron.left`, `chevron.right`) as one `ToolbarItemGroup` (a `ControlGroup` does not stay in `.navigation`), then the section's date controls, which anchor the date popover: in the Calendar Go to Today (`31.calendar`, showing today's day of the month) and the Go to Date… button (`ellipsis.calendar`); in Reports and Activity the range menu, a `Menu` titled by the selected range ("This month", "Week 43") that holds the presets and "Choose Dates…" (Go to Today stays a menu command there, ⌘T, without a button). A text label never names something other than what is shown. Projects has no leading items. Trailing (`.primaryAction`), in this order: view options (Filters first, then segmented pickers, menus, zoom, the options popover), the section's create action (`plus`, Fill Day), then print and export. The arrows never move when the section changes, and Filters is the first trailing item wherever it exists.
+- Mac sections (Calendar, Reports, Projects, Activity): one unified toolbar with the same structure in each. The window title is the section name and the `navigationSubtitle` the shown range ("This week · W44"). Leading (`.navigation`, before the title): the period arrows (`chevron.left`, `chevron.right`) as one `ToolbarItemGroup` (a `ControlGroup` does not stay in `.navigation`), a fixed `ToolbarSpacer`, then the section's date controls as a second group, which anchor the date popover: in the Calendar Go to Today (`31.calendar`, showing today's day of the month) and the Go to Date… button (`ellipsis.calendar`); in Reports, Projects, and Activity the range menu, a `Menu` titled by the selected range ("This month", "Week 43") that holds the presets and "Choose Dates…" (Go to Today stays a menu command there, ⌘T, without a button). A text label never names something other than what is shown. Trailing (`.primaryAction`), in this order: Filters, the section's view options (segmented pickers, menus, zoom, the options popover), the section's create action (`plus`, Fill Day), then the search field. Actions on a card's content (Expand All, Export) sit in that card's header, not in the toolbar. The arrows never move when the section changes, and Filters is the first trailing item wherever it exists.
 - Overflow: the period items, Filters, and create actions carry `.visibilityPriority(.high)`, zoom and options `.low`, so a narrow window keeps navigation and moves view options into the system overflow (`chevron.right.2`) first.
 - Icon-only toolbar items are `Label(title, systemImage:)` with `.help(title)`; the title shows in "Icon and Text" mode and in the overflow menu. A menu whose title shows the current choice (the range menu, Automatic in Reports) is text.
 - Mutually exclusive options: `Picker` with `.pickerStyle(.segmented)` (or `.menu` when there are more than four). Several on/off options of one kind (the Calendar's columns): `Toggle`s inside one toolbar `Menu`, shown as check marks. A single on/off option: `Toggle` with `.toggleStyle(.button)` and a symbol. No custom filled or tinted toolbar buttons; the system draws the toolbar's glass.
@@ -97,7 +97,6 @@ SF Symbols, monochrome, default weight, in the text style of the adjacent text. 
 | Client | `person.crop.square` |
 | Filter check box: checked, partly checked, unchecked | `checkmark.square.fill`, `minus.square.fill`, `square` |
 | Share, export | `square.and.arrow.up` |
-| Print | `printer` |
 | Settings | `gearshape` |
 | More | `ellipsis.circle` |
 | Suggestions, Fill Day | `sparkles` |

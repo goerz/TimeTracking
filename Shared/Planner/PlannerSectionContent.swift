@@ -9,15 +9,13 @@ struct PlannerSectionContent: View {
     var router: PlannerRouter
     var section: PlannerSection
     var clock: any Clock
-    /// Reports' Print… (the Mac's print panel).
-    var onPrint: (() -> Void)?
 
     var body: some View {
         switch section {
         case .calendar:
             CalendarView(model: router.calendar)
         case .reports:
-            ReportsView(model: router.reports, onPrint: onPrint)
+            ReportsView(model: router.reports)
         case .projects:
             TimelineView(.periodic(from: .now, by: 60)) { _ in
                 ProjectsView(model: router.projects, now: clock.now)

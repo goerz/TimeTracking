@@ -75,9 +75,15 @@ extension ReportsModel {
         return "\(entries ? "Entries" : "Report") \(days.lowerBound) to \(days.upperBound).csv"
     }
 
-    /// File › Export… (⇧⌘E).
+    /// Export… and File › Export… (⇧⌘E): the card shown.
     func requestExport() {
         exportRequested = true
+    }
+
+    /// The shown card's CSV and file name.
+    var exportDocument: CSVDocument {
+        let entries = state.card == .entries
+        return CSVDocument(text: entries ? entriesCSV : breakdownCSV, name: exportFileName(entries: entries))
     }
 
     /// Breakdown (CSV): the library writer the tool uses.

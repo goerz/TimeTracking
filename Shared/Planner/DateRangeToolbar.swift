@@ -5,7 +5,7 @@
 import SwiftUI
 import TimeTrackingCore
 
-/// The leading toolbar items of Reports and Activity (spec_design.md §4).
+/// The leading toolbar items of Reports, Projects, and Activity (spec_design.md §4).
 struct DateRangeToolbar: ToolbarContent {
     var range: DateRangeModel
     @Binding var showsPopover: Bool

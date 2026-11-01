@@ -1,21 +1,24 @@
-// DateRangeModel: the date range shared by Reports and Activity, with its
-// presets, arrows, Go to Today, and the popover's calendar clicks
-// (spec_planner_reports.md §2, spec_planner_activity.md §1.1).
+// DateRangeModel: a section's date range with its presets, arrows, Go to
+// Today, and the popover's calendar clicks: one shared by Reports and
+// Activity, one of Projects (spec_planner_reports.md §2,
+// spec_planner_activity.md §1.1, spec_planner_projects.md §2.4).
 
 import Foundation
 import Observation
 import TimeTrackingCore
 
-/// The stored range and what the range control shows. Activity reads the
-/// same instance, so a change in one section shows in the other.
+/// The stored range and what the range control shows. Reports and
+/// Activity read the same instance, so a change in one section shows in the
+/// other; Projects has its own.
 @Observable
 final class DateRangeModel {
     @ObservationIgnored let clock: any Clock
     @ObservationIgnored let device: DeviceSettings
+    @ObservationIgnored let key: DeviceSettingKey<ReportRange>
 
     /// Stored per device as its kind (presets resolve against today).
     private(set) var range: ReportRange {
-        didSet { device[.plannerRange] = range }
+        didSet { device[key] = range }
     }
 
     /// The day of the earliest live entry (All time).
@@ -27,10 +30,16 @@ final class DateRangeModel {
     /// The zone's calendar (rebuilt on a zone change by the view).
     var calendar = TrackingCalendar(timeZone: .current)
 
-    init(clock: any Clock, device: DeviceSettings) {
+    init(clock: any Clock, device: DeviceSettings, key: DeviceSettingKey<ReportRange> = .plannerRange) {
         self.clock = clock
         self.device = device
-        self.range = device[.plannerRange]
+        self.key = key
+        self.range = device[key]
+    }
+
+    /// All time: Projects then lists every project, also never-tracked ones.
+    var isAllTime: Bool {
+        range == .preset(.allTime)
     }
 
     var today: TrackingDay {

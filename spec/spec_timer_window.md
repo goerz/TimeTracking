@@ -264,7 +264,7 @@ Every menu and item is always listed, and an item that applies to one view is di
 | Menu | Holds |
 |---|---|
 | App | Settings…, Hide, Quit (standard) |
-| File | New Project…, New Area…, New Client… ([spec_planner_projects.md](spec_planner_projects.md) §2.5); Close (standard); Export… and Print… of Reports |
+| File | New Project…, New Area…, New Client… ([spec_planner_projects.md](spec_planner_projects.md) §2.5); Close (standard); Export… of Reports |
 | Edit | Undo, Redo, the pasteboard commands (standard), Find |
 | View | The sidebar's items, the sidebar toggle, the shown range's navigation, then each view's display options under its own header (Timer, Calendar, Report, Activity), then the Mini Timer's |
 | Timer | The running entry and the Pomodoro, from any window (the menu bar item's menu has the same commands) |

@@ -19,14 +19,10 @@ struct ReportFiltersButton: View {
     }
 }
 
-/// The tree of clients, areas, and projects with "No project", the Task
-/// field, "Include archived projects", and Clear All, in the layout shared
-/// with Projects.
+/// The tree of clients, areas, and projects with "No project", "Include
+/// archived projects", and Clear All, in the layout shared with Projects.
 struct ReportFiltersPopover: View {
     @Bindable var model: ReportsModel
-
-    @State private var task = ""
-    @FocusState private var taskFocused: Bool
 
     private var filters: ReportFilters {
         model.state.filters
@@ -39,10 +35,7 @@ struct ReportFiltersPopover: View {
                 update { filters in filters.includeArchived = value }
             }),
             identifier: "reports.filter",
-            clearAll: {
-                task = ""
-                Task { await model.clearFilters() }
-            },
+            clearAll: { Task { await model.clearFilters() } },
             tree: {
                 ProjectScopeTreeView(
                     tree: filters.tree(clients: model.clients, areas: model.areas, projects: model.projects),
@@ -50,33 +43,8 @@ struct ReportFiltersPopover: View {
                     noProject: Binding(get: { filters.noProject }, set: { value in update { $0.noProject = value } }),
                     identifier: "reports.filter"
                 )
-            },
-            sections: {
-                FilterSection("Task") {
-                    TextField("Task contains", text: $task)
-                        .textFieldStyle(.roundedBorder)
-                        .focused($taskFocused)
-                        .accessibilityIdentifier("reports.filter.task")
-                }
             }
         )
-        .onAppear {
-            task = filters.task
-            if model.taskFocusRequests > 0 {
-                taskFocused = true
-            }
-        }
-        .onChange(of: model.taskFocusRequests) { taskFocused = true }
-        .task(id: task) {
-            // Applied 150 ms after the last keystroke.
-            guard task != filters.task else {
-                return
-            }
-            try? await Task.sleep(for: .milliseconds(150))
-            if !Task.isCancelled {
-                update { filters in filters.task = task }
-            }
-        }
     }
 
     private func update(_ change: (inout ReportFilters) -> Void) {

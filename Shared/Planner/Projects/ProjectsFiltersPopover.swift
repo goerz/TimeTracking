@@ -3,8 +3,8 @@
 import SwiftUI
 import TimeTrackingCore
 
-/// The tree of clients and areas, Last tracked, "Include archived
-/// projects", and Clear All, in the layout shared with Reports.
+/// The tree of clients and areas, "Include archived projects", and Clear
+/// All, in the layout shared with Reports.
 struct ProjectsFiltersPopover: View {
     @Bindable var model: ProjectsModel
 
@@ -20,18 +20,6 @@ struct ProjectsFiltersPopover: View {
                     scope: $model.options.scope,
                     identifier: "projects.filter"
                 )
-            },
-            sections: {
-                FilterSection("Last Tracked") {
-                    Picker("Last tracked", selection: $model.options.lastTracked) {
-                        ForEach(LastTrackedFilter.allCases, id: \.self) { filter in
-                            Text(filter.title).tag(filter)
-                        }
-                    }
-                    .labelsHidden()
-                    .frame(maxWidth: .infinity)
-                    .accessibilityIdentifier("projects.filter.lastTracked")
-                }
             }
         )
     }

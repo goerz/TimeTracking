@@ -124,12 +124,13 @@ struct PlannerProjectsTests {
         #expect(test.router.calls == [.openPlanner])
     }
 
-    @Test("PP-14 a project URL for an archived project selects Projects, includes archived ones, clears the search, selects the row")
+    @Test("PP-14 a project URL for an archived project selects Projects, includes archived ones, All time, clears the search, selects it")
     func projectURL() async throws {
         let test = try await TestApp()
         let projects = try await test.projects(["Old", "Current"])
         try await test.store.archive(projects[0].id)
         let model = test.app.planner.projects
+        model.range.select(.today)
         await model.reload()
         model.search = "current"
         test.app.planner.select(.reports)
@@ -138,6 +139,7 @@ struct PlannerProjectsTests {
         #expect(await router.open(url) == .shown)
         #expect(test.app.planner.section == .projects)
         #expect(model.options.includeArchived)
+        #expect(model.range.isAllTime)
         #expect(model.search.isEmpty)
         #expect(model.selection == [projects[0].id])
         #expect(model.scrollTarget == projects[0].id)

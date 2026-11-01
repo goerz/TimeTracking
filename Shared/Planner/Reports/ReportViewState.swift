@@ -21,11 +21,10 @@ nonisolated enum EntryListColumn: String, Codable, Sendable, CaseIterable {
     case task
 }
 
-/// Filters, granularity, stack key, levels, sorts, and the card.
+/// Filters, stack key, levels, sorts, and the card. The chart's
+/// granularity is always automatic.
 nonisolated struct ReportViewState: Codable, Equatable, Sendable {
     var filters = ReportFilters()
-    /// `nil` is Automatic.
-    var granularity: Granularity?
     var stack: StackKind = .area
     var levels: [GroupKey] = [.area, .project, .task]
     var tableSort: ReportColumn = .loggedTime
