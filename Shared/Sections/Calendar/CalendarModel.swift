@@ -85,7 +85,7 @@ final class CalendarModel {
     private(set) var projectRows: [ProjectID: ProjectRow] = [:]
     private(set) var summary: CalendarSummary?
     private(set) var timeBlockState: TimeBlockCalendarState?
-    /// Gap causes per day ("idle 22m") with the gap they label, Mac only.
+    /// Gaps per day with their duration ("22m"), Mac only.
     private(set) var gapLabels: [TrackingDay: [(DateInterval, String)]] = [:]
 
     // Synced settings, written through the settings methods (§6).
@@ -204,7 +204,7 @@ final class CalendarModel {
                 now: clock.now
             )
             if isRecordingMac {
-                await loadGapLabels()
+                loadGapLabels()
             }
             await assignContextColors()
         } catch {
@@ -299,23 +299,15 @@ final class CalendarModel {
 
     private(set) var contextColors: [String: Int] = [:]
 
-    private func loadGapLabels() async {
+    /// Gaps over 15 minutes between blocks of any device, labeled with
+    /// their duration (§3.1).
+    private func loadGapLabels() {
         var labels: [TrackingDay: [(DateInterval, String)]] = [:]
-        let byDevice = Dictionary(grouping: blocks.filter { !$0.isOpen }) { "\($0.device) \($0.localDay)" }
-        for group in byDevice.values {
-            let sorted = group.sorted { $0.start < $1.start }
-            for (previous, next) in zip(sorted, sorted.dropFirst()) where next.start.timeIntervalSince(previous.end) > 900 {
-                let details = await (try? activity.details(for: [previous.id, next.id])) ?? [:]
-                guard !details.isEmpty else {
-                    continue
-                }
-                let gap = DateInterval(start: previous.end, end: next.start)
-                let cause = ActivitySummary.cause(of: gap, details: Array(details.values), idleClose: 300)
-                guard cause != .unknown, let day = TrackingDay(previous.localDay) else {
-                    continue
-                }
-                labels[day, default: []].append((gap, "\(cause.title) \(ActivityText.duration(Int(gap.duration)))"))
+        for (localDay, group) in Dictionary(grouping: blocks, by: \.localDay) {
+            guard let day = TrackingDay(localDay) else {
+                continue
             }
+            labels[day] = ActivityBlock.gaps(between: group, longerThan: 900).map { ($0, ActivityText.duration(Int($0.duration))) }
         }
         gapLabels = labels
     }

@@ -199,21 +199,18 @@ private struct ActivityColumn: View {
     }
 }
 
-/// A gap's cause, centered in the gap between vertical em dashes; a gap too
-/// short for the dashes shows the text alone (§3.1).
+/// A gap's duration, centered in the gap, with a thin line above and below
+/// it to the gap's ends (§3.1).
 private struct GapLabel: View {
     var text: String
 
     var body: some View {
-        ViewThatFits(in: .vertical) {
-            VStack(spacing: 0) {
-                Text(verbatim: "\u{FE31}")
-                Text(text)
-                Text(verbatim: "\u{FE31}")
-            }
-            Text(text)
+        VStack(spacing: 2) {
+            Rectangle().frame(width: 1)
+            Text(text).font(.caption).fixedSize()
+            Rectangle().frame(width: 1)
         }
-        .font(.caption)
+        .padding(.vertical, 2)
         .foregroundStyle(.tertiary)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(text)
