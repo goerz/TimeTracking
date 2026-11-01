@@ -25,23 +25,14 @@ struct CalendarSettingsSections: View {
             Text("Entries and time blocks you draw, move, or resize start and end on this step.")
         }
         Section {
-            LabeledContent("Calendar", value: timeBlockCalendarText)
-            Button("Create New Calendar") { Task { await model.recreateTimeBlockCalendar() } }
-                .disabled(!model.hasCalendarAccess)
+            timeBlockCalendarRow
         } header: {
             Text("Time blocks")
         } footer: {
             Text("Time blocks are events in this iCloud calendar, so they appear on all your devices and in every calendar app.")
         }
         Section {
-            ForEach(model.calendarChoices, id: \.account) { group in
-                ForEach(group.calendars) { calendar in
-                    Toggle(isOn: shown(calendar)) {
-                        Text(calendar.title)
-                        Text(group.account)
-                    }
-                }
-            }
+            calendarsToShow
         } header: {
             Text("Calendars to show")
         } footer: {
@@ -50,6 +41,77 @@ struct CalendarSettingsSections: View {
                 : "The Calendar asks for calendar access the first time it shows its Calendar column.")
         }
     }
+
+    /// A menu of the iCloud account's calendars and "New Calendar…"; the
+    /// state's text without access or an iCloud account.
+    @ViewBuilder private var timeBlockCalendarRow: some View {
+        if let current = model.timeBlockCalendar {
+            Picker("Calendar", selection: Binding { current.id } set: { id in choose(id) }) {
+                ForEach(choices(including: current)) { calendar in
+                    Text(calendar.title).tag(calendar.id)
+                }
+                Divider()
+                Text("New Calendar…").tag(Self.newCalendarTag)
+            }
+            .accessibilityIdentifier("settings.calendar.timeBlockCalendar")
+        } else {
+            LabeledContent("Calendar", value: timeBlockCalendarText)
+        }
+    }
+
+    private static let newCalendarTag = "settings.calendar.new"
+
+    /// The menu's calendars; the current one even when it is not writable.
+    private func choices(including current: CalendarInfo) -> [CalendarInfo] {
+        let choices = model.timeBlockCalendarChoices
+        return choices.contains { $0.id == current.id } ? choices : [current] + choices
+    }
+
+    private func choose(_ id: String) {
+        if id == Self.newCalendarTag {
+            Task { await model.recreateTimeBlockCalendar() }
+        } else if let calendar = model.timeBlockCalendarChoices.first(where: { $0.id == id }) {
+            Task { await model.chooseTimeBlockCalendar(calendar) }
+        }
+    }
+
+    /// On the Mac a short scrolling list of checkboxes under their
+    /// account, so the pane fits the screen; on the iPad one toggle per
+    /// calendar with its account below the title.
+    private var calendarsToShow: some View {
+        #if os(macOS)
+            ScrollView {
+                VStack(alignment: .leading, spacing: Design.Spacing.tight) {
+                    ForEach(model.calendarChoices, id: \.account) { group in
+                        Text(group.account)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .padding(.top, Design.Spacing.tight)
+                        ForEach(group.calendars) { calendar in
+                            Toggle(calendar.title, isOn: shown(calendar)).toggleStyle(.checkbox)
+                        }
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .frame(height: Self.listHeight)
+            .accessibilityIdentifier("settings.calendar.shownCalendars")
+        #else
+            ForEach(model.calendarChoices, id: \.account) { group in
+                ForEach(group.calendars) { calendar in
+                    Toggle(isOn: shown(calendar)) {
+                        Text(calendar.title)
+                        Text(group.account)
+                    }
+                }
+            }
+        #endif
+    }
+
+    #if os(macOS)
+        /// About seven calendars.
+        private static let listHeight: CGFloat = 150
+    #endif
 
     private var timeBlockCalendarText: String {
         switch model.timeBlockState {

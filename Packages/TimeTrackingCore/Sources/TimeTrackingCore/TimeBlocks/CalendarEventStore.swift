@@ -33,13 +33,16 @@ public struct CalendarInfo: Sendable, Hashable, Identifiable {
     public var sourceTitle: String
     /// `#RRGGBB`.
     public var color: String
+    /// Events can be added (not a subscribed or read-only calendar).
+    public var allowsModifications: Bool
 
-    public init(id: String, title: String, sourceID: String, sourceTitle: String, color: String) {
+    public init(id: String, title: String, sourceID: String, sourceTitle: String, color: String, allowsModifications: Bool = true) {
         self.id = id
         self.title = title
         self.sourceID = sourceID
         self.sourceTitle = sourceTitle
         self.color = color
+        self.allowsModifications = allowsModifications
     }
 
     /// The per-device "Calendars to show" key: (account title, calendar title).

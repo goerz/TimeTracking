@@ -87,6 +87,7 @@ Synced settings are records; device settings live in the App Group's `UserDefaul
 | `pinnedProjectIDs` | synced | [UUID] | [] | iOS widgets |
 | `activity.contextColors` | synced | [String: Int] (context to hue index) | {} | Activity |
 | `calendar.timeBlockCalendarID` | synced | String? | nil | Calendar |
+| `calendar.timeBlockCalendarTitle` | synced | String? | nil ("Time Blocks") | Calendar |
 | `calendar.snapMinutes` | synced | Int | 5 | Calendar |
 | `calendar.shownCalendars` | synced | [(account, calendar)] titles | [] | Calendar |
 | `deviceID` | device | UUID | created on first launch | this spec |

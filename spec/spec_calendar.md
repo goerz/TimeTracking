@@ -109,7 +109,7 @@ On the Mac, a closed block's context menu has "Delete This Activity…". It asks
 
 The Mac and the iPad request full EventKit access the first time the Calendar column is shown (usage text and entitlement: [spec_architecture.md](spec_architecture.md)). Without it the column shows a one-line notice with "Open System Settings", the rest works, and granting access fills the column without relaunch.
 
-Time blocks are events in a calendar titled "Time Blocks" in the store's iCloud (CalDAV) source, so iCloud Calendar syncs them. The synced setting `calendar.timeBlockCalendarID` holds its identifier. A device resolves it by identifier, else by that title in the iCloud source, keeping the result in device state; only when both fail does it create the calendar (neutral gray; the user may recolor it) and write the setting. Without an iCloud calendar account the column says "Time blocks need an iCloud calendar account", drawing there is disabled, and external events still show. The view refetches the visible range plus one day on each side on `EKEventStoreChanged`, deduplicating its own writes.
+Time blocks are events in one calendar of the store's iCloud (CalDAV) source, so iCloud Calendar syncs them: "Time Blocks" unless the user chooses another (section 6). The synced settings `calendar.timeBlockCalendarID` and `calendar.timeBlockCalendarTitle` hold its identifier and title (no title means "Time Blocks"). A device resolves it by identifier, else by that title in the iCloud source, else by the identifier it resolved before, keeping the result in device state; only when all fail does it create "Time Blocks" (neutral gray; the user may recolor it) and write both settings. Without an iCloud calendar account the column says "Time blocks need an iCloud calendar account", drawing there is disabled, and external events still show. The view refetches the visible range plus one day on each side on `EKEventStoreChanged`, deduplicating its own writes.
 
 ### 4.2 Time blocks
 
@@ -168,8 +168,8 @@ The navigation keys (← → ⇧← ⇧→, Tab and ⇧Tab, Escape) are the view
 The Calendar's settings are the Calendar pane of the Mac's settings window ([spec_timer.md](spec_timer.md) §8) and the Calendar screen of the iPad's Settings ([spec_ios.md](spec_ios.md) §2.9), with the same three sections:
 
 - Snap to (1, 5, 10, 15 minutes), footer "Entries and time blocks you draw, move, or resize start and end on this step.";
-- Time blocks: the time-block calendar's name ("Time blocks need an iCloud calendar account" without one, "No calendar access" without access) and "Create New Calendar" (a new calendar in the iCloud account; updates the setting), footer "Time blocks are events in this iCloud calendar, so they appear on all your devices and in every calendar app.";
-- Calendars to show (4.3), one toggle per calendar with its account below the title, footer "Events of these calendars appear in the Calendar column." (without access: "The Calendar asks for calendar access the first time it shows its Calendar column.").
+- Time blocks: a Calendar menu of the iCloud account's writable calendars by title, then a divider and "New Calendar…" (a new calendar "Time Blocks" in the iCloud account, "Time Blocks 2" and so on when the title is taken there). Choosing a calendar writes both settings of 4.1, so every device moves its time blocks to it; events already in the chosen calendar become time blocks. Without an iCloud account or access the row is text instead: "Time blocks need an iCloud calendar account" or "No calendar access". Footer "Time blocks are events in this iCloud calendar, so they appear on all your devices and in every calendar app.";
+- Calendars to show (4.3), footer "Events of these calendars appear in the Calendar column." (without access: "The Calendar asks for calendar access the first time it shows its Calendar column."). On the Mac a 150 point list that scrolls, with one checkbox per calendar under a caption with its account, so the pane stays short however many calendars there are; on the iPad one toggle per calendar with its account below the title.
 
 The settings read the calendars without asking for access; like the Calendar column, they resolve the time-block calendar (4.1), creating it when no device has.
 
@@ -178,6 +178,7 @@ The settings read the calendars without asking for access; like the Calendar col
 | `calendar.snapMinutes` | 5 | 1, 5, 10, 15 |
 | `calendar.shownCalendars` | none | (account title, calendar title) pairs |
 | `calendar.timeBlockCalendarID` | unset | written by the app (4.1) |
+| `calendar.timeBlockCalendarTitle` | unset ("Time Blocks") | written with the identifier (4.1) |
 
 Per device: `pointsPerHour` (72), `visibleDays` (5), column toggles (on), the resolved time-block calendar. Each launch starts with today centered.
 
@@ -205,6 +206,7 @@ Per device: `pointsPerHour` (72), `visibleDays` (5), column toggles (on), the re
 20. The call `showCalendar(day: Oct 29, hour: 9, highlight: hour)` makes October 29 leftmost with 09:00 at the top, Activity on, the hour's blocks pulsed, zoom and day count unchanged.
 21. Every key of section 5 has its effect; the arrows, Tab, and Escape are the view's keys, ⌘T and the period keys View menu items acting on the Calendar (⌥⌘→ by the visible span, ⇧⌘D opening the month picker), the rest items of the Entry menu and of View's Calendar header; ⌘O continues the one selected entry.
 22. Snap to and Calendars to show are synced settings: with "Team" (Google) checked on another device, checking "Work" (iCloud) here stores both and unchecking it leaves "Team".
+23. The Calendar menu lists the iCloud account's writable calendars and not a read-only one or another account's; choosing "Work" writes its identifier and title, and a device on which that identifier differs resolves "Work" by title; "New Calendar…" with "Time Blocks" taken creates "Time Blocks 2".
 
 ## 8. Decisions
 

@@ -96,6 +96,12 @@ extension SyncedSettingKey<String?> {
     public static var timeBlockCalendarID: Self {
         Self("calendar.timeBlockCalendarID", default: nil)
     }
+
+    /// The time-block calendar's title, which finds it on a device whose
+    /// identifier differs (spec_calendar.md §4.1); nil means "Time Blocks".
+    public static var timeBlockCalendarTitle: Self {
+        Self("calendar.timeBlockCalendarTitle", default: nil)
+    }
 }
 
 extension DeviceSettingKey<Bool> {

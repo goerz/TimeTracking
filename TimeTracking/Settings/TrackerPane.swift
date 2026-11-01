@@ -17,8 +17,7 @@ struct TrackerPane: View {
             PendingExclusionSection()
             FilesSection()
         }
-        .formStyle(.grouped)
-        .frame(height: 620)
+        .settingsForm()
         .task {
             await app.tracker.refreshWhileVisible()
         }

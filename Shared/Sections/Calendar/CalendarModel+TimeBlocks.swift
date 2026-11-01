@@ -185,18 +185,25 @@ extension CalendarModel {
         }
     }
 
-    /// "Create New Calendar": a new calendar in the iCloud account; updates the setting.
-    func recreateTimeBlockCalendar() async {
-        let resolution = TimeBlockCalendar.recreate(store: events)
-        if let id = resolution.settingToWrite {
-            do {
-                try await store.set(.timeBlockCalendarID, id)
-                device[.calendarTimeBlockCalendar] = id
-            } catch {
-                report(error)
-            }
+    /// The time-block calendar's menu: the writable calendars of the iCloud account.
+    var timeBlockCalendarChoices: [CalendarInfo] {
+        TimeBlockCalendar.choices(store: events)
+    }
+
+    /// Makes `calendar` the time-block calendar on every device.
+    func chooseTimeBlockCalendar(_ calendar: CalendarInfo) async {
+        guard calendar.id != timeBlockCalendar?.id else {
+            return
         }
-        await resolveTimeBlockCalendar()
+        await apply(TimeBlockCalendar.choose(calendar))
+        await loadSettings()
+        await reload()
+    }
+
+    /// "New Calendar…": a new calendar in the iCloud account; updates the setting.
+    func recreateTimeBlockCalendar() async {
+        await apply(TimeBlockCalendar.recreate(store: events))
+        await loadSettings()
         await reload()
     }
 }

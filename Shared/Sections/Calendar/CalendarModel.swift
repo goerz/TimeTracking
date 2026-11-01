@@ -262,14 +262,31 @@ final class CalendarModel {
     /// title in the iCloud source, creating it only when both fail.
     func resolveTimeBlockCalendar() async {
         let setting = await (try? store.value(.timeBlockCalendarID))
+        let title = await (try? store.value(.timeBlockCalendarTitle))
         let deviceID = device[.calendarTimeBlockCalendar]
-        let resolution = TimeBlockCalendar.resolve(store: events, settingID: setting, deviceID: deviceID.isEmpty ? nil : deviceID)
+        let resolution = TimeBlockCalendar.resolve(
+            store: events,
+            settingID: setting,
+            settingTitle: title,
+            deviceID: deviceID.isEmpty ? nil : deviceID
+        )
+        await apply(resolution)
+    }
+
+    /// Keeps a resolution's state and identifier and writes its settings.
+    func apply(_ resolution: TimeBlockCalendar.Resolution) async {
         timeBlockState = resolution.state
         if let id = resolution.resolvedID {
             device[.calendarTimeBlockCalendar] = id
         }
-        if let id = resolution.settingToWrite {
-            try? await store.set(.timeBlockCalendarID, id)
+        guard let id = resolution.settingToWrite else {
+            return
+        }
+        do {
+            try await store.set(.timeBlockCalendarID, id)
+            try await store.set(.timeBlockCalendarTitle, resolution.titleToWrite)
+        } catch {
+            report(error)
         }
     }
 

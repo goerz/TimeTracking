@@ -69,6 +69,8 @@ struct TimeTrackingApp: App {
                 SettingsView().environment(app)
             }
         }
+        // Resizable down to the panes' minimum size (spec_timer.md §8).
+        .windowResizability(.contentMinSize)
     }
 }
 

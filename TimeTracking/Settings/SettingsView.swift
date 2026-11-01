@@ -9,8 +9,11 @@ import TimeTrackingCore
 struct SettingsView: View {
     @AppStorage(SettingsPane.storageKey) private var pane = SettingsPane.general.rawValue
 
-    /// Every pane has this width (spec_design.md §8).
+    /// The window's minimum and initial width (spec_design.md §8).
     static let width: CGFloat = 520
+    /// The window's minimum and initial height.
+    static let minHeight: CGFloat = 320
+    static let idealHeight: CGFloat = 620
 
     var body: some View {
         TabView(selection: $pane) {
@@ -27,7 +30,14 @@ struct SettingsView: View {
                 }
             }
         }
-        .frame(width: Self.width)
+        .frame(
+            minWidth: Self.width,
+            idealWidth: Self.width,
+            maxWidth: .infinity,
+            minHeight: Self.minHeight,
+            idealHeight: Self.idealHeight,
+            maxHeight: .infinity
+        )
     }
 
     @ViewBuilder
@@ -45,11 +55,10 @@ struct SettingsView: View {
 }
 
 extension View {
-    /// A grouped settings form whose window fits its content.
+    /// A grouped settings form that scrolls when the window is shorter
+    /// than its content.
     func settingsForm() -> some View {
         formStyle(.grouped)
-            .scrollDisabled(true)
-            .fixedSize(horizontal: false, vertical: true)
     }
 }
 

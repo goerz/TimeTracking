@@ -48,6 +48,43 @@ struct TimeBlockTests {
         #expect(second.calendars().count == 2)
     }
 
+    @Test("PC-23 the Calendar menu lists the iCloud account's writable calendars; a chosen one is found by title elsewhere")
+    func chooseTimeBlockCalendar() {
+        let sources = [
+            CalendarSourceInfo(id: "icloud", title: "iCloud", isICloud: true),
+            CalendarSourceInfo(id: "google", title: "Google", isICloud: false),
+        ]
+        let blocks = CalendarInfo(id: "tb", title: "Time Blocks", sourceID: "icloud", sourceTitle: "iCloud", color: "#8E8E93")
+        let work = CalendarInfo(id: "work-mac", title: "Work", sourceID: "icloud", sourceTitle: "iCloud", color: "#FF0000")
+        let holidays = CalendarInfo(
+            id: "hol", title: "Holidays", sourceID: "icloud", sourceTitle: "iCloud", color: "#00FF00", allowsModifications: false
+        )
+        let team = CalendarInfo(id: "team", title: "Team", sourceID: "google", sourceTitle: "Google", color: "#0000FF")
+        let mac = InMemoryCalendarEventStore(sources: sources, calendars: [work, holidays, team, blocks])
+        #expect(TimeBlockCalendar.choices(store: mac).map(\.title) == ["Time Blocks", "Work"])
+        let chosen = TimeBlockCalendar.choose(work)
+        #expect(chosen.state == .ready(work))
+        #expect(chosen.settingToWrite == "work-mac")
+        #expect(chosen.titleToWrite == "Work")
+        // The iPad: another identifier for "Work", and its old resolution
+        // still points at Time Blocks.
+        let padWork = CalendarInfo(id: "work-pad", title: "Work", sourceID: "icloud", sourceTitle: "iCloud", color: "#FF0000")
+        let pad = InMemoryCalendarEventStore(sources: sources, calendars: [blocks, padWork])
+        let found = TimeBlockCalendar.resolve(store: pad, settingID: "work-mac", settingTitle: "Work", deviceID: "tb")
+        #expect(found.state == .ready(padWork))
+        #expect(found.settingToWrite == nil)
+        #expect(found.resolvedID == "work-pad")
+        // "New Calendar…" with "Time Blocks" taken.
+        let created = TimeBlockCalendar.recreate(store: mac)
+        guard case let .ready(calendar) = created.state else {
+            Issue.record("expected a calendar")
+            return
+        }
+        #expect(calendar.title == "Time Blocks 2")
+        #expect(created.settingToWrite == calendar.id)
+        #expect(created.titleToWrite == "Time Blocks 2")
+    }
+
     @Test("PC-16 a drawn time block is an event with title, project URL, start, and end, no store record; recreated alike")
     func timeBlockEvent() async throws {
         let events = InMemoryCalendarEventStore()

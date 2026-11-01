@@ -222,7 +222,7 @@ While on, idle, inside the hours on a selected day, and unlocked, the app sends 
 
 Settings… (⌘,) opens a SwiftUI `Settings` scene with seven toolbar panes: General (`gearshape`), Pomodoro (`pomodoro`), Idle (`moon.zzz`), Reminders (`bell`), Calendar (`calendar`), Shortcuts (`keyboard`), Tracker (`waveform.path.ecg`). It reopens on the last pane shown. Changes apply immediately.
 
-Every pane is a grouped `Form` 520 pt wide (`spec_design.md` §8). The window takes each pane's height (the form's scrolling is off and its height fixed to its content), except the Tracker pane, which is 620 pt tall and scrolls. Related settings share a section; explanations are section footers, never rows. A number with a stepper is a row with the label leading and the value, then the stepper, trailing ("Focus duration   25 min ⇅"). A dependent setting is disabled, not indented, while the setting it depends on is off.
+Every pane is a grouped `Form` (`spec_design.md` §8). The window is resizable, at least 520 by 320 pt and first 520 by 620 pt; it keeps its size when the pane changes, and a pane longer than the window scrolls. Related settings share a section; explanations are section footers, never rows. A number with a stepper is a row with the label leading and the value, then the stepper, trailing ("Focus duration   25 min ⇅"). A dependent setting is disabled, not indented, while the setting it depends on is off.
 
 ### 8.1 General
 

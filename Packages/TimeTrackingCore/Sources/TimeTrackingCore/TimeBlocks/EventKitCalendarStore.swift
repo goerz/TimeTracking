@@ -143,7 +143,8 @@ public final class EventKitCalendarStore: CalendarEventStore {
             title: calendar.title,
             sourceID: calendar.source?.sourceIdentifier ?? "",
             sourceTitle: calendar.source?.title ?? "",
-            color: hex(calendar.cgColor)
+            color: hex(calendar.cgColor),
+            allowsModifications: calendar.allowsContentModifications
         )
     }
 
