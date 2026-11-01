@@ -184,6 +184,8 @@ The `CKSyncEngine` runs in the app process with automatic sync and a database su
 4. Fetched changes are applied in one transaction followed by the invariant pass. A remote hard deletion of a live local record acts as a tombstone at `now`.
 5. A switch to another iCloud account resets the store to empty after confirmation; with no account the store works locally.
 
+CloudKit throttles and delays silent pushes, so the apps also fetch on their own. The Mac app fetches whenever it becomes active and 30 seconds after its last fetch while it runs, one fetch at a time; iOS fetches at every foreground, before acting on a widget or control button, and in its refresh task (iOS spec §6.1, §7).
+
 A start or stop on one online device appears in the app on another within 5 seconds in the common case and 30 seconds at worst before `SyncStatus` shows waiting. The `SyncStatus` values are `idle`, `sending(count)`, `fetching`, `waitingForNetwork`, `noAccount`, or `error(message)`. Writes never wait for the network. A fresh device fetches the whole zone behind a progress indicator before showing data.
 
 ### 3.2 Conflict resolution
@@ -501,6 +503,7 @@ Views use `TrackingCalendar(timeZone: .current)`, rebuilt on a time zone change.
 46. In `Europe/Berlin`, the March and October transition days are 23 and 25 hours long; 23:59:59 and 00:00:00 fall on consecutive days; weeks start on Monday and ISO week 1 of 2027 begins on 2027-01-04.
 47. A daily report over split entries gives each day its own pieces, day buckets sum to the total, and each `DayGroup.totalSeconds` equals the report's value; the running entry counts to the query time and sets `includesRunning`.
 48. A report by area puts a moved project's entries under its new area.
+49. On the Mac, with a started sync engine and a `ManualClock`, a tick 29 seconds after the start fetches nothing and one at 30 seconds fetches once; activating the app fetches at once and restarts the 30-second period; a second request while a fetch is in flight starts none.
 
 ### 9.1 Fixtures
 

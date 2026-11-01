@@ -216,6 +216,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         launchedAsLoginItem && !showAtLogin
     }
 
+    /// Activation fetches from CloudKit, whose silent pushes can lag
+    /// (spec_data_and_sync.md §3.1).
+    func applicationDidBecomeActive(_: Notification) {
+        host.model?.live?.activated()
+    }
+
     // MARK: Dock
 
     /// The Dock tile brings back the main window.

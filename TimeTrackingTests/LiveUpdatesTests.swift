@@ -1,6 +1,7 @@
 // The Mac app's live-update side without CloudKit: degraded sync, the
-// Device record, LiveState publication, and the block-log copy
-// (spec_data_and_sync.md §3.1, §4; spec_activity_tracking.md §4.1).
+// fetches on activation and every 30 seconds, the Device record, LiveState
+// publication, and the block-log copy (spec_data_and_sync.md §3.1, §4;
+// spec_activity_tracking.md §4.1).
 
 import Foundation
 import Testing
@@ -11,6 +12,31 @@ import TimeTrackingCore
 private struct UnavailableFactory: SyncEngineFactory {
     func makeEngine(for _: SyncCoordinator, state _: Data?) throws -> any SyncEngineDriving {
         throw SyncTransportError.notEntitled
+    }
+}
+
+/// An engine that only counts the fetches asked of it.
+private actor CountingEngine: SyncEngineDriving {
+    private(set) var fetches = 0
+
+    func addPending(_ changes: [SyncPendingChange]) -> Int {
+        changes.count
+    }
+
+    func removePending(_: [SyncPendingChange]) {}
+    func addZone() {}
+    func sendChanges() {}
+
+    func fetchChanges() {
+        fetches += 1
+    }
+}
+
+private struct CountingFactory: SyncEngineFactory {
+    let engine: CountingEngine
+
+    func makeEngine(for _: SyncCoordinator, state _: Data?) -> any SyncEngineDriving {
+        engine
     }
 }
 
@@ -43,12 +69,13 @@ struct LiveUpdatesTests {
         store: TimeStore,
         clock: ManualClock,
         state: TrackerState?,
-        mirror: ActivityFolderMirror? = nil
+        mirror: ActivityFolderMirror? = nil,
+        engineFactory: any SyncEngineFactory = UnavailableFactory()
     ) -> LiveUpdates {
         LiveUpdates(
             store: store,
             clock: clock,
-            engineFactory: UnavailableFactory(),
+            engineFactory: engineFactory,
             pushClient: NoKeyClient(),
             readTrackerState: { state },
             mirror: mirror,
@@ -73,6 +100,49 @@ struct LiveUpdatesTests {
         #expect(try await store.devices().map(\.name) == ["Test Mac"])
         let entry = try await store.start(projectID: nil, task: "Offline", at: clock.now)
         #expect(try await store.runningEntry()?.id == entry.id)
+        live.stop()
+    }
+
+    @Test("DATA-49 the Mac fetches when it becomes active and 30 seconds after the last fetch, one at a time")
+    func fetchesOnActivationAndPeriodically() async throws {
+        let clock = ManualClock.fixture()
+        let store = try await TimeStore.inMemory(clock: clock)
+        let engine = CountingEngine()
+        let live = Self.live(store: store, clock: clock, state: nil, engineFactory: CountingFactory(engine: engine))
+        // Before sync starts there is nothing to fetch with.
+        live.activated()
+        await live.waitForFetch()
+        await live.start(looping: false)
+        #expect(await engine.fetches == 0)
+
+        clock.advance(by: 29)
+        await live.tick()
+        await live.waitForFetch()
+        #expect(await engine.fetches == 0)
+        clock.advance(by: 1)
+        await live.tick()
+        await live.waitForFetch()
+        #expect(await engine.fetches == 1)
+
+        // Activation fetches at once and restarts the 30-second period.
+        clock.advance(by: 10)
+        live.activated()
+        await live.waitForFetch()
+        #expect(await engine.fetches == 2)
+        clock.advance(by: 29)
+        await live.tick()
+        await live.waitForFetch()
+        #expect(await engine.fetches == 2)
+        clock.advance(by: 1)
+        await live.tick()
+        await live.waitForFetch()
+        #expect(await engine.fetches == 3)
+
+        // A request while a fetch is in flight joins it.
+        live.activated()
+        live.activated()
+        await live.waitForFetch()
+        #expect(await engine.fetches == 4)
         live.stop()
     }
 

@@ -1,6 +1,6 @@
-// LiveUpdates: the Mac app's live-update side: the sync coordinator,
-// LiveStatePublisher, WidgetPushSender, the Device record, daily
-// maintenance, and the copy of the agent's fallback block log
+// LiveUpdates: the Mac app's live-update side: the sync coordinator and
+// its fetches on activation and every 30 seconds, LiveStatePublisher,
+// WidgetPushSender, the Device record, daily maintenance, and the copy of the agent's fallback block log
 // (spec_data_and_sync.md §3.1, §4; spec_activity_tracking.md §4.1;
 // spec_architecture.md §1.3).
 
@@ -16,6 +16,9 @@ import TimeTrackingCore
 final class LiveUpdates {
     /// The period of the publisher, push, and folder-copy pass.
     static let interval: Duration = .seconds(2)
+    /// The period of the fetch that backs up CloudKit's throttled silent
+    /// pushes (spec_data_and_sync.md §3.1).
+    static let fetchInterval: TimeInterval = 30
 
     @ObservationIgnored let store: TimeStore
     @ObservationIgnored let clock: any Clock
@@ -39,6 +42,9 @@ final class LiveUpdates {
     @ObservationIgnored private var statusTask: Task<Void, Never>?
     @ObservationIgnored private var lastRegistration: Date?
     @ObservationIgnored private var lastPurge: Date?
+    /// When the last fetch was asked for; nil until the coordinator started.
+    @ObservationIgnored private var lastFetch: Date?
+    @ObservationIgnored private var fetchTask: Task<Void, Never>?
     private static let logger = Logging.logger(category: "Live")
 
     init(
@@ -86,6 +92,8 @@ final class LiveUpdates {
         }
         await tick()
         await coordinator.start()
+        // The engine fetches as it starts; the periodic fetch counts from here.
+        lastFetch = clock.now
         syncStatus = await coordinator.status
         guard looping else {
             return
@@ -106,14 +114,44 @@ final class LiveUpdates {
         loop = nil
         statusTask?.cancel()
         statusTask = nil
+        fetchTask?.cancel()
+        fetchTask = nil
+        lastFetch = nil
         Task { [coordinator] in await coordinator.stop() }
     }
 
+    /// The app became active: fetch the server's changes now, since a
+    /// change made elsewhere is what the user is about to look at.
+    func activated() {
+        fetch()
+    }
+
+    /// Starts a fetch unless one is in flight, without waiting for it, so a
+    /// slow network never holds up a tick.
+    private func fetch() {
+        guard lastFetch != nil, fetchTask == nil else {
+            return
+        }
+        lastFetch = clock.now
+        fetchTask = Task { [weak self, coordinator] in
+            await coordinator.fetchNow()
+            self?.fetchTask = nil
+        }
+    }
+
+    /// Waits for the fetch in flight, if any (tests).
+    func waitForFetch() async {
+        await fetchTask?.value
+    }
+
     /// One pass: the hourly `Device` record, the daily tombstone purge,
-    /// this Mac's activity, due widget pushes, and the folder copy while the
-    /// agent cannot write the iCloud container.
+    /// the fetch every 30 seconds, this Mac's activity, due widget pushes,
+    /// and the folder copy while the agent cannot write the iCloud container.
     func tick() async {
         let now = clock.now
+        if let lastFetch, now.timeIntervalSince(lastFetch) >= Self.fetchInterval {
+            fetch()
+        }
         if lastRegistration.map({ now.timeIntervalSince($0) >= 3600 }) ?? true {
             lastRegistration = now
             do {
