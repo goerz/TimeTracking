@@ -1,4 +1,4 @@
-// The Timer window's list query (spec_timer_window.md §3).
+// The Timer list's query (spec_timer_window.md §3).
 
 import Foundation
 import Testing

@@ -184,7 +184,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func followDockIconSetting(_ app: AppModel) {
         withObservationTracking {
             // The window that is key now (Settings, when the toggle changes
-            // there) stays key, rather than the Timer window coming forward.
+            // there) stays key, rather than the Mini Timer coming forward.
             ActivationPolicy.apply(showDockIcon: app.settings.showDockIcon, keyWindow: NSApp.keyWindow ?? timerWindow?.window)
         } onChange: { [weak self, weak app] in
             Task { @MainActor in
@@ -211,7 +211,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     /// Launched as a login item, the app shows only the menu bar item unless
-    /// "Show the Timer window at login" is on.
+    /// "Show the main window at login" is on.
     static func hidesMainWindow(launchedAsLoginItem: Bool, showAtLogin: Bool) -> Bool {
         launchedAsLoginItem && !showAtLogin
     }

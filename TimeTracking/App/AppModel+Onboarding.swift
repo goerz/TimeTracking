@@ -19,7 +19,7 @@ extension AppModel {
         }
     }
 
-    /// Presents the alert once the Timer window shows, through the AppKit
+    /// Presents the alert once the main window shows, through the AppKit
     /// presenter (its checkbox is an `NSAlert` suppression button).
     func presentTrackerOnboarding() {
         guard showsTrackerOnboarding, !onboardingPresented, let present = onboardingPresenter else {

@@ -41,7 +41,7 @@ struct TimeTrackingApp: App {
             MainMenuCommands(host: delegate.host)
         }
 
-        // The Mini Timer: the former Timer window, a small window like
+        // The Mini Timer: a small window like
         // Music's MiniPlayer (compact bar or bar and list, Float on Top,
         // ⌥⌘R). It opens from Window › Mini Timer, not at launch.
         Window("Mini Timer", id: "timer") {

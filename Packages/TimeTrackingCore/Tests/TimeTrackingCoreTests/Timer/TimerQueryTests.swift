@@ -1,4 +1,4 @@
-// Queries and writes behind the Timer window, the entry editor, and the
+// Queries and writes behind the Timer, the entry editor, and the
 // project picker (spec_timer_window.md §2 to §4, spec_projects.md §3, §5).
 
 import Foundation

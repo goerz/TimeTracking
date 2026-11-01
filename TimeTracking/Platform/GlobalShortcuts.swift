@@ -5,7 +5,7 @@ import AppKit
 import KeyboardShortcuts
 
 extension KeyboardShortcuts.Name {
-    /// Show/hide the Timer window, ⌥⌘R by default.
+    /// Show/hide the Mini Timer, ⌥⌘R by default.
     static let showHideTimer = Self("showHideTimer", initial: .init(.r, modifiers: [.option, .command]))
     /// Continue/stop, unassigned by default.
     static let continueStop = Self("continueStop")

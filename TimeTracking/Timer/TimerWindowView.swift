@@ -117,7 +117,7 @@ struct TimerWindowView: View {
             .zIndex(1)
     }
 
-    /// The Mini Timer (the former Timer window), unchanged.
+    /// The Mini Timer.
     private func windowLayout(height: CGFloat) -> some View {
         @Bindable var view = view
         return VStack(spacing: 0) {
@@ -210,7 +210,8 @@ struct IdlePromptView: View {
 }
 
 extension FocusedValues {
-    // Set while the Timer window is key; the "Timer key" commands need it.
+    // Set while a Timer view (the Mini Timer or the main window's Timer item)
+    // is in the key window; the "Timer key" commands need it.
     // swiftlint:disable:next discouraged_optional_boolean
     @Entry var timerWindowActive: Bool?
 }

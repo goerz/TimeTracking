@@ -1,4 +1,4 @@
-// RunningEntryBar: the bar of the Timer window (spec_timer_window.md §2, §5.1;
+// RunningEntryBar: the running-entry bar of the Timer (spec_timer_window.md §2, §5.1;
 // spec_design.md §7, §8).
 
 import SwiftUI

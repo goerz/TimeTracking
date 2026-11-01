@@ -55,7 +55,7 @@ final class TimerUIState {
     }
 }
 
-/// The Timer window's AppKit side, as the models see it.
+/// The Mini Timer's AppKit side, as the models see it.
 @MainActor
 protocol TimerWindowControlling: AnyObject {
     var isCompact: Bool { get }

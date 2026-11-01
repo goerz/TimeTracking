@@ -1,4 +1,4 @@
-// TimerListDay: the days of the Timer window's list (spec_timer_window.md §3).
+// TimerListDay: the days of the Timer's list (spec_timer_window.md §3).
 
 public import Foundation
 import GRDB
@@ -50,7 +50,7 @@ extension TimeStore {
         }
     }
 
-    /// The list of the Timer window: the `dayLimit` most recent days with
+    /// The Timer's list: the `dayLimit` most recent days with
     /// entries, newest first; empty days are omitted. A non-empty `filter`
     /// keeps entries whose task, project, client, or area contains it (case-
     /// and diacritic-insensitive), and day totals sum what is kept.

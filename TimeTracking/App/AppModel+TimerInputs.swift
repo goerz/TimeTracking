@@ -1,4 +1,4 @@
-// The Timer window's pointer and key inputs: the task field's Return and
+// The Timer views' pointer and key inputs: the task field's Return and
 // the list rows' click, double-click, and context menu
 // (spec_timer_window.md §2.3, §3).
 

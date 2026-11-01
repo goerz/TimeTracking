@@ -1,5 +1,5 @@
 // EntryEditSheetModel: the iPhone's edit sheet (spec_ios.md §2.7): a draft
-// of task, project, start, and end that Done saves under the Timer window's
+// of task, project, start, and end that Done saves under the Mac Timer's
 // future, overlap, and midnight rules (spec_timer_window.md §4.2, §4.3).
 
 import Foundation

@@ -1,4 +1,4 @@
-// DurationText: durations and times of day as the Timer window, menu bar, and
+// DurationText: durations and times of day as the Timer, menu bar, and
 // entry editor write and read them (spec_timer_window.md §2, §4.1, §5.1;
 // spec_menubar.md §1.1), and the `HH:mm` of the tool's refusals and the Mac
 // activity line (spec_automation.md §3.5, spec_ios.md §2.3).

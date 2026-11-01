@@ -46,7 +46,7 @@ struct ViewCommands: Commands {
         timerActive == true && windowActive != true
     }
 
-    /// Compact Mode and Float on Top, as for the former Timer window.
+    /// The Mini Timer's Compact Mode and Float on Top.
     @ViewBuilder private var miniTimerItems: some View {
         Toggle("Compact Mode", isOn: Binding(
             get: { app?.window?.isCompact ?? false },

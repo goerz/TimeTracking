@@ -11,7 +11,7 @@ public final class IntentEnvironment: Sendable {
     public let service: @Sendable () async throws -> AutomationService
     /// Called after an intent changed the store (the app re-reads and syncs).
     public let didChange: @Sendable () async -> Void
-    /// Shows the Timer window or tab.
+    /// Shows the Mini Timer (Mac) or the Timer tab (iOS).
     public let showTimer: @Sendable () async -> Void
 
     @preconcurrency

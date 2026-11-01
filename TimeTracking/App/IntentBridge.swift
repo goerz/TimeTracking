@@ -1,5 +1,5 @@
 // IntentBridge: hands the library's App Intents the Mac app's store, its
-// re-read after a change, and the Timer window (spec_automation.md §5).
+// re-read after a change, and the Mini Timer (spec_automation.md §5).
 
 import AppIntents
 import Foundation

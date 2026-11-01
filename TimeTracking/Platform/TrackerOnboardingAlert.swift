@@ -5,7 +5,7 @@
 
 import AppKit
 
-/// Presents the alert as a sheet of the Timer window.
+/// Presents the alert as a sheet of the main window.
 enum TrackerOnboardingAlert {
     static let text = "The tracker records which apps, sites, and terminal sessions you work in, "
         + "so the Calendar can suggest entries. It needs a few permissions."

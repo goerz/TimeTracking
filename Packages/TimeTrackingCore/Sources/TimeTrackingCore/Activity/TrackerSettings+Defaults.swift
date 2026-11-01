@@ -16,7 +16,7 @@ extension TrackerSettings {
 
     [presence]
     # Time without input after which you count as away. Governs activity blocks
-    # only; the Timer window's idle prompt has its own threshold.
+    # only; the Timer's idle prompt has its own threshold.
     idle_after = "2m"
     # Apps and sites you watch or listen to without typing count as attention
     # while they are in front, for up to passive_limit.

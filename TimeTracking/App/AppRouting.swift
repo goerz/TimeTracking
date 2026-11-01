@@ -46,7 +46,7 @@ enum SettingsPane: String, CaseIterable, Identifiable, Sendable {
 /// Showing and hiding windows.
 @MainActor
 protocol AppRouting: AnyObject {
-    /// Shows the Timer window and activates the app; optionally focuses the task field.
+    /// Shows the Mini Timer and activates the app; optionally focuses the task field.
     func showTimer(focusTask: Bool)
     /// The show/hide shortcut: shows the window with the task field focused
     /// unless it is the key window of the active app, which hides the app.

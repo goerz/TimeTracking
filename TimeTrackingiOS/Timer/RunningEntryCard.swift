@@ -1,4 +1,4 @@
-// RunningEntryCard: the Timer window's running-entry bar in rows
+// RunningEntryCard: the Mac Timer's running-entry bar in rows
 // (spec_ios.md §2.2): task field; project chip; Pomodoro button, time,
 // Discard while running, and Start or Stop.
 

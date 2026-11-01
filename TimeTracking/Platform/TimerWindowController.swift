@@ -1,4 +1,4 @@
-// TimerWindowController: the Timer window's AppKit side: frames, compact
+// TimerWindowController: the Mini Timer's AppKit side: frames, compact
 // snapping, the pin's window level, hiding on close, restoration
 // (spec_timer_window.md §1, spec_architecture.md §4.2).
 
@@ -6,7 +6,7 @@ import AppKit
 import SwiftUI
 import TimeTrackingCore
 
-/// Owns the Timer window's `NSWindow` once SwiftUI created it.
+/// Owns the Mini Timer's `NSWindow` once SwiftUI created it.
 final class TimerWindowController: NSObject, TimerWindowControlling {
     private(set) weak var window: NSWindow?
     private let settings: AppSettings
@@ -148,7 +148,7 @@ final class TimerWindowController: NSObject, TimerWindowControlling {
     }
 }
 
-/// Keeps the Timer window alive when closed: SwiftUI's delegate receives
+/// Keeps the Mini Timer alive when closed: SwiftUI's delegate receives
 /// everything else.
 private final class WindowCloseInterceptor: NSObject, NSWindowDelegate {
     /// Only read by the Objective-C runtime on the main thread.

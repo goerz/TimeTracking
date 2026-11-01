@@ -123,7 +123,7 @@ struct StatusItemStateTests {
         #expect(application.policy == .regular)
         #expect(application.activations == 1)
         #expect(window.madeKey == 1)
-        // Without the Timer window the app's key window stays key; a hidden one is left alone.
+        // Without the Mini Timer the app's key window stays key; a hidden one is left alone.
         application.keyWindowTarget = window
         ActivationPolicy.apply(showDockIcon: false, keyWindow: nil, application: application)
         #expect(window.madeKey == 2)

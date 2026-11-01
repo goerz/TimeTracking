@@ -4,7 +4,7 @@
 import Foundation
 import TimeTrackingCore
 
-/// The inputs of the status item, gathered from the Timer window's state.
+/// The inputs of the status item, gathered from the Timer's state.
 struct StatusItemState {
     var running: TimeEntry?
     var chainStart: Date?

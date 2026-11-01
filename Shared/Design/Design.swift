@@ -38,7 +38,7 @@ enum Design {
     /// Circle button diameters (spec_design.md §7).
     enum CircleDiameter {
         #if os(macOS)
-            /// Start, stop, discard, and Pomodoro in the Timer window's bar.
+            /// Start, stop, discard, and Pomodoro in the Timer's running-entry bar.
             static let bar: CGFloat = 32
             /// Continue in list rows, shown on hover and selection.
             static let row: CGFloat = 24

@@ -1,4 +1,4 @@
-// StartStopButton: the green Start or red Stop circle of the Timer window's
+// StartStopButton: the green Start or red Stop circle of the Timer's
 // bar and the iPhone's card (spec_timer_window.md §2.1; spec_ios.md §2.2).
 
 import SwiftUI

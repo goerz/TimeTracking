@@ -9,7 +9,7 @@ import SwiftUI
 final class WindowRouter: AppRouting {
     let timerWindow: TimerWindowController
     weak var app: AppModel?
-    /// Captured from the Timer window's environment.
+    /// Captured from a scene's environment (`RouterActions`).
     var openSettingsAction: OpenSettingsAction?
     var openWindowAction: OpenWindowAction?
 
@@ -17,7 +17,7 @@ final class WindowRouter: AppRouting {
         self.timerWindow = timerWindow
     }
 
-    /// The Mini Timer (the former Timer window): brought forward, or
+    /// The Mini Timer: brought forward, or
     /// opened the first time.
     func showTimer(focusTask: Bool) {
         if timerWindow.window == nil {
@@ -31,7 +31,7 @@ final class WindowRouter: AppRouting {
         }
     }
 
-    /// ⌥⌘R, as for the former Timer window: hides the app while the Mini
+    /// ⌥⌘R: hides the app while the Mini
     /// Timer is key, else shows it.
     func toggleTimer() {
         if NSApp.isActive, timerWindow.isKey {

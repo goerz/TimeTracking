@@ -15,7 +15,7 @@ struct EntryEditorPopover: ViewModifier {
     @Binding var editing: EntryID?
     var store: TimeStore
     var clock: any Clock
-    /// Whether the picker matches the task text (the Timer window's bar).
+    /// Whether the picker matches the task text (the Timer's running-entry bar).
     var taskMatching = false
     var arrowEdge: Edge
     /// Whether a view that appears while `editing` already names its entry

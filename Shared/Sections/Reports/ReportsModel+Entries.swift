@@ -45,7 +45,7 @@ extension ReportsModel {
         return "Total \(ReportText.seconds(entries?.totalSeconds(at: now) ?? 0)) · \(count) \(count == 1 ? "entry" : "entries")"
     }
 
-    /// ↩, double-click, and "Edit…": the Timer window's edit popover.
+    /// ↩, double-click, and "Edit…": the Timer's edit popover.
     func edit(_ id: EntryID) {
         editing = id
     }

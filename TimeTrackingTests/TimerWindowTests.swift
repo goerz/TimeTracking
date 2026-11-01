@@ -59,7 +59,7 @@ struct TimerWindowTests {
         #expect(AppSettings(device: settings.device).device[.timerFrame]?.rect == stored)
     }
 
-    @Test("TW-3 a relaunched Timer window takes the compact mode, frame, and pin from quit; pinned it floats above normal windows")
+    @Test("TW-3 a relaunched Mini Timer takes the compact mode, frame, and pin from quit; pinned it floats above normal windows")
     func relaunch() async throws {
         let test = try await TestApp()
         let screen = try #require(NSScreen.main?.visibleFrame)
@@ -137,7 +137,7 @@ struct TimerWindowTests {
         test.app.activeTimer.listFocused = true
         test.app.editEntry(in: test.app.activeTimer)
         #expect(test.app.activeTimer.editing == toner.id)
-        // ⌘O continues the selection while the Timer window is key.
+        // ⌘O continues the selection while a Timer view is key.
         await test.app.continueCommand(timerKey: true)
         #expect(test.app.timer.running?.task == "Order toner")
         await test.app.timer.stop()

@@ -1,4 +1,4 @@
-// AppModel: the Mac app's state and commands, shared by the Timer window,
+// AppModel: the Mac app's state and commands, shared by the main window,
 // the menu bar item, the Dock menu, notifications, and global shortcuts
 // (spec_timer_window.md §13, spec_menubar.md §9).
 
@@ -57,7 +57,7 @@ final class AppModel {
     var showHideKey: MenuKey? = .command("r", .option)
     /// Reads the recorded show/hide shortcut (KeyboardShortcuts in the app).
     @ObservationIgnored var shortcutSource: () -> MenuKey? = { .command("r", .option) }
-    /// Whether the Timer window is key (menus enable "Timer key" commands).
+    /// Whether the Mini Timer is key.
     private(set) var timerIsKey = false
 
     @ObservationIgnored private var changeTask: Task<Void, Never>?
@@ -247,7 +247,7 @@ final class AppModel {
         .keep: .keep, .discard: .discard, .discardAndContinue: .discardAndContinue, .split: .split,
     ]
 
-    // MARK: Timer window commands
+    // MARK: Timer commands
 
     /// The main window or the Mini Timer became key (`true`) or resigned.
     func windowActivated(_ place: TimerUIState.Place, isKey: Bool, undoManager: UndoManager?) {
@@ -301,7 +301,7 @@ final class AppModel {
         showHideKey = shortcutSource()
     }
 
-    /// The Timer window became key or resigned.
+    /// The Mini Timer became key or resigned.
     func timerKeyChanged() {
         timerIsKey = window?.isKey ?? false
     }

@@ -220,7 +220,7 @@ UI tests find controls by accessibility identifier (`timer.startButton`), never 
 
 ### 3.2 Behavior identifiers
 
-Each spec has one "Testable behaviors" list numbered continuously from 1, with the prefix `ARCH`, `DATA` (data and sync), `TW` (timer window), `MB` (menu bar), `PP`, `PC`, `PR`, `PA` (the Projects, Calendar, Reports, and Activity sections), `TRK` (tracker), `IOS`, or `AUTO`. Each item names an observable input and result with concrete values.
+Each spec has one "Testable behaviors" list numbered continuously from 1, with the prefix `ARCH`, `DATA` (data and sync), `TW` (the Timer and the main window, spec_timer_window.md), `MB` (menu bar), `PP`, `PC`, `PR`, `PA` (the Projects, Calendar, Reports, and Activity sections), `TRK` (tracker), `IOS`, or `AUTO`. Each item names an observable input and result with concrete values.
 
 A test carries the identifier in its display name, `@Test("TW-1 releasing below 200 pt collapses to the bar")`, or for XCUITest in the method name, `testTW1_collapseBelowThreshold()`. One test may cover several numbers. The script `scripts/check_behaviors.sh` reads every `spec/spec_*.md`, checks that the numbers are continuous, and fails on a number without a test or a test identifier no spec defines.
 

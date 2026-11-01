@@ -6,7 +6,8 @@ import Observation
 import os
 import TimeTrackingCore
 
-/// An alert the Timer window shows.
+/// An alert of the Timer, shown in the key window (the main window or the
+/// Mini Timer).
 enum TimerAlert: Equatable, Identifiable {
     /// "Discard the running entry? 0:12:34 will be lost."
     case discard(elapsed: String)

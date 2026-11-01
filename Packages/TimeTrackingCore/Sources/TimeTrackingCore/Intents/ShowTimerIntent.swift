@@ -5,7 +5,7 @@
 public import AppIntents
 public import Foundation
 
-/// Opens the Timer window or tab.
+/// Shows the Timer: the Mini Timer on the Mac, the Timer tab on iOS.
 public struct ShowTimerIntent: AppIntent {
     public static let title: LocalizedStringResource = "Show Timer"
     public static let description = IntentDescription("Opens the Timer.")

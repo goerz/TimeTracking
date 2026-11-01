@@ -271,7 +271,7 @@ struct ShortcutsPane: View {
         @Bindable var settings = app.settings
         Form {
             Section {
-                LabeledContent("Show or hide the Timer window") {
+                LabeledContent("Show or hide the Mini Timer") {
                     KeyboardShortcuts.Recorder(for: .showHideTimer) { _ in app.refreshShortcutDisplay() }
                         .accessibilityIdentifier("settings.showHideRecorder")
                 }
@@ -290,7 +290,7 @@ struct ShortcutsPane: View {
                 Toggle("Show the Mini Timer when an entry stops", isOn: $settings.focusOnStop)
             } footer: {
                 Text(
-                    "Shows the Timer window after a start or stop from a shortcut, the menu bar, "
+                    "Shows the Mini Timer after a start or stop from a shortcut, the menu bar, "
                         + "a notification, Shortcuts, or another device."
                 )
             }

@@ -353,7 +353,7 @@ Clicking a notification shows the Mini Timer (with the idle prompt for `idle`). 
 
 ## 12. Decisions
 
-- One main window holds every view, as on the iPad, so the main menu is the same everywhere and needs no per-window menus; the Mini Timer keeps the small floating window of the former Timer window for people who want it.
+- One main window holds every view, as on the iPad, so the main menu is the same everywhere and needs no per-window menus; the Mini Timer is a small floating window for people who want the Timer beside other apps.
 - The Mini Timer's mode follows its height, so it restores with the frame.
 - The Pomodoro never changes entries; idle detection handles real absence.
 - The Pomodoro belongs to the person: replacing the entry keeps the phase; only "nothing runs" ends it.

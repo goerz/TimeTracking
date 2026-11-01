@@ -20,7 +20,7 @@ final class ProjectPickerModel {
     @ObservationIgnored let store: TimeStore
     /// The entry's current project (check mark, initial highlight).
     let currentProject: ProjectID?
-    /// Whether tasks of the last 90 days also match (Timer window, iOS Timer).
+    /// Whether tasks of the last 90 days also match (the Mac Timer, the iOS Timer).
     let taskMatching: Bool
 
     var search = ""

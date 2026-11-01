@@ -45,7 +45,7 @@ final class IdleModel {
     @ObservationIgnored var isAppActive: () -> Bool = { true }
     /// Called after the prompt or a stop changed entries.
     @ObservationIgnored var onChange: (() async -> Void)?
-    /// Brings the Timer window forward for the prompt; focuses the task field after Split.
+    /// Brings the Mini Timer forward for the prompt; focuses the task field after Split.
     @ObservationIgnored var showTimer: (_ focusTask: Bool) -> Void = { _ in }
 
     private(set) var prompt: IdlePrompt?
