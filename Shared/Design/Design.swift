@@ -61,6 +61,9 @@ extension Color {
     static let stopTint = Color.red
     /// Error messages under a control or in a dialog.
     static let errorText = Color.red
+    /// The tracker's block cards in the Calendar's Activity column, one
+    /// neutral color for every context.
+    static let activityBlock = Color.secondary
     /// Sleep from Apple Health in the Calendar's Activity column (dark blue).
     static let sleepLine = Color(red: 0.11, green: 0.22, blue: 0.56)
     /// Workouts from Apple Health there (dark green).

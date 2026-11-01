@@ -33,7 +33,7 @@ An "All" chip, then one chip per context ranked by time: the first eight, the re
 
 A raw context or group key never shows. A group key (Calendar cards and popovers) reads like its context ("paper (tmux)", "Safari", "VS Code"), a site or folder key as written ("github.com/owner", "~/Papers/2026_Noise"); the library's `ActivityContext.label()` and `ActivityContext.groupKeyName(_:)` give these names.
 
-Context colors are automatic and separate from area colors. A context seen for the first time (here or in the Calendar's activity column) gets the index used by the fewest contexts so far, lowest on ties, stored in the synced, append-only `activity.contextColors`; it never changes and the user cannot pick one. Contexts marked `(private)` are gray (secondary label color) and take no index.
+Context colors are automatic and separate from area colors. They belong to this section; the Calendar's activity column draws every block in one neutral color ([spec_calendar.md](spec_calendar.md) §3.1). A context seen here for the first time gets the index used by the fewest contexts so far, lowest on ties, stored in the synced, append-only `activity.contextColors`; it never changes and the user cannot pick one. Contexts marked `(private)` are gray (secondary label color) and take no index.
 
 | Index | Light | Dark | Index | Light | Dark |
 |---|---|---|---|---|---|

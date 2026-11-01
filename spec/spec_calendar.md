@@ -83,7 +83,7 @@ Trim (default) shortens the changed entry to abut the neighbor; Overlap forces t
 
 ### 3.1 Blocks
 
-The column shows the day's blocks from `ActivityReading`, plus on the Mac today's open block, which grows with the now-line. A card is a light tint of the dominant item's context color with a 3 point left border in that color ([spec_activity.md](spec_activity.md) §1.3). Line 1 is the group key as the Activity section names it ("paper (tmux)", "github.com/owner"; [spec_activity.md](spec_activity.md) §1.3), never the raw key; line 2 is the dominant item's subject and detail. Secondaries add a "+1" badge; `src` `knowledge` blocks are hatched; `src` `device` blocks carry a phone or tablet glyph by the platform of the `Device` named by `dev`; `dev` `remote` blocks carry a cloud glyph. Parts covered by entries are dimmed to 50% opacity. On the Mac, a gap over 15 minutes between blocks of any device shows its duration as a faint label ("22m", "1h 10m"), centered in the gap, with a thin vertical line above and below it to the gap's ends.
+The column shows the day's blocks from `ActivityReading`, plus on the Mac today's open block, which grows with the now-line. A card is a light neutral tint (`Color.activityBlock`, the secondary label color) with a 3 point left border in that color, the same for every context: the context colors of [spec_activity.md](spec_activity.md) §1.3 would mostly repeat the terminal's or the browser's color while line 1 names the project, and they would compete with the entries' area colors beside them. Line 1 is the group key as the Activity section names it ("paper (tmux)", "github.com/owner"; [spec_activity.md](spec_activity.md) §1.3), never the raw key; line 2 is the dominant item's subject and detail. Secondaries add a "+1" badge; `src` `knowledge` blocks are hatched; `src` `device` blocks carry a phone or tablet glyph by the platform of the `Device` named by `dev`; `dev` `remote` blocks carry a cloud glyph. Parts covered by entries are dimmed to 50% opacity. On the Mac, a gap over 15 minutes between blocks of any device shows its duration as a faint label ("22m", "1h 10m"), centered in the gap, with a thin vertical line above and below it to the gap's ends.
 
 With Sleep or Workouts on (section 6), the health periods of the day ([spec_data_and_sync.md](spec_data_and_sync.md) §1.9) are 4 point lines centered in the column over their time, rounded at the ends: sleep dark blue, workouts dark green, on the Mac and the iPad. A night that crosses midnight shows on both days. A line lies under the blocks and over a gap's thin lines, and the gap's label stays readable on a background of its own over it. Its tooltip reads "Sleep 7h 10m" or "Workout 45m".
 
@@ -202,7 +202,7 @@ Per device: `pointsPerHour` (72), `visibleDays` (5), column toggles (on), the re
 9. A 12 minute overlap shows Trim / Overlap / Cancel with the 2.6 results; 1 minute or less is trimmed silently; overlapping entries are drawn at half width with "⚠ 2 overlaps".
 10. Delete then ⌘Z restores the entry with the same id and fields; the running entry asks first and comes back stopped.
 11. Split Here at 10:00 on 09:00 to 11:00 gives two abutting entries; at 10:59:30 it is refused. Duplicate to Next Day is refused when the copy would not be entirely past.
-12. A block half covered by entries is dimmed on that half; device and remote blocks show their glyphs; a block's border equals its context's Activity color.
+12. A block half covered by entries is dimmed on that half; device and remote blocks show their glyphs.
 13. The "+" on a 09:10 to 09:44 block with its first 20 minutes covered opens the popover for 09:30 to 09:44.
 14. A confirmed "Delete This Activity…" sends one `delete-block <dev> <s>`; Cancel sends nothing; the open block and the iPad do not offer it.
 15. With no time-block calendar the app creates "Time Blocks" in the iCloud source and writes `calendar.timeBlockCalendarID`; a second device whose identifier lookup fails finds it by title.
@@ -239,7 +239,7 @@ From [spec_timer.md](spec_timer.md): the edit popover, opened on a prefilled dra
 
 From [spec_ios.md](spec_ios.md): the iPad's Settings, which shows the Calendar screen.
 
-From [spec_activity.md](spec_activity.md): the context color sequence and `BlockHighlight`.
+From [spec_activity.md](spec_activity.md): `BlockHighlight`.
 
 From [spec_architecture.md](spec_architecture.md): the calendar usage text and entitlement.
 

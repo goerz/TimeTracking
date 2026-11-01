@@ -4,7 +4,8 @@
 import SwiftUI
 import TimeTrackingCore
 
-/// A pale card with the dominant context's color as left border (§3.1).
+/// A pale neutral card with a neutral left border, the same for every
+/// context (§3.1).
 struct BlockCard: View {
     var model: CalendarModel
     var block: ActivityBlock
@@ -12,12 +13,10 @@ struct BlockCard: View {
     @State private var hovering = false
     @State private var showsPopover = false
     @State private var hoverTask: Task<Void, Never>?
-    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         let selected = model.selection.contains(.block(block.id))
-        let tint = ContextColorLookup(colors: model.contextColors, dark: colorScheme == .dark)
-            .color(block.items.first?.context ?? block.groupKey)
+        let tint = Color.activityBlock
         let style = CalendarZoom.cardStyle(height: Double(size.height))
         ZStack(alignment: .topLeading) {
             if block.source == .knowledge {

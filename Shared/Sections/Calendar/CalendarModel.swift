@@ -218,7 +218,6 @@ final class CalendarModel {
                 loadGapLabels()
             }
             healthPeriods = try await loadHealthPeriods(in: interval)
-            await assignContextColors()
         } catch {
             report(error)
         }
@@ -312,15 +311,6 @@ final class CalendarModel {
     func color(of event: CalendarEvent) -> String {
         calendars.first { $0.id == event.calendarID }?.color ?? "#8E8E93"
     }
-
-    /// Context colors for contexts seen for the first time (§1.3 of the Activity spec).
-    func assignContextColors() async {
-        if let assigned = try? await store.assignContextColors(blocks.flatMap(\.contexts)) {
-            contextColors = assigned
-        }
-    }
-
-    private(set) var contextColors: [String: Int] = [:]
 
     /// Gaps over 15 minutes between blocks of any device, labeled with
     /// their duration (§3.1).
