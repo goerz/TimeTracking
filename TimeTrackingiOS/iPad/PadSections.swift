@@ -27,8 +27,7 @@ final class PadSections {
         device: DeviceSettings,
         activity: any ActivityReading,
         events: any CalendarEventStore,
-        blockLog: FileActivityStore? = nil,
-        suggestionsCache: URL? = nil
+        blockLog: FileActivityStore? = nil
     ) {
         self.store = store
         self.events = events
@@ -38,8 +37,7 @@ final class PadSections {
             clock: clock,
             device: device,
             activity: activity,
-            events: events,
-            suggestionsCache: suggestionsCache
+            events: events
         )
         wire()
     }
@@ -98,17 +96,13 @@ extension PadSections {
             nil
         }
         let blockLog = folders.map { FileActivityStore(folders: $0) }
-        let cache = identity.flatMap { identity in
-            identity.groupContainerURL.map { identity.supportDirectory(in: $0).appending(path: "suggestions-index.json") }
-        }
         let sections = PadSections(
             store: store,
             clock: clock,
             device: device,
             activity: blockLog ?? InMemoryActivityStore(),
             events: EventKitCalendarStore(),
-            blockLog: blockLog,
-            suggestionsCache: cache
+            blockLog: blockLog
         )
         if let folders, !folders.isFallback {
             let calendar = TrackingCalendar(timeZone: .current)

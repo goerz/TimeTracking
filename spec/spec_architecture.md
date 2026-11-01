@@ -39,7 +39,6 @@ One Swift target with these folders:
 | `Interchange/` | JSON export and import, the CSV writers |
 | `Activity/` | `FileActivityStore`, folder resolution, the `settings.toml` model, the block log writer, `DeviceEventSink`, `DeviceEventSource` |
 | `TimeBlocks/` | The time-block calendar in EventKit and the project link (`spec_calendar.md`) |
-| `Suggestions/` | The project suggestion engine (`spec_calendar.md`) |
 | `Intents/` | App Intents, entities, `AppIntentsPackage`, the shared App Shortcut phrase table |
 | `Support/` | `Clock` and `ManualClock`, `LaunchArguments`, `AppIdentity` (App Group, CloudKit container, URL scheme from the Info.plist), logging |
 
@@ -208,7 +207,7 @@ The simulators are "TimeTracking iPhone" (`iPhone-17-Pro`) and "TimeTracking iPa
 
 | Kind | Framework | Target | Covers |
 |---|---|---|---|
-| Library | Swift Testing | `TimeTrackingCoreTests` | Model, store, midnight split, outbox, queries, reports, import and export, CSV, activity reader, suggestions, the APNs request (test key generated in the test), multi-store sync against `InMemoryTransport` |
+| Library | Swift Testing | `TimeTrackingCoreTests` | Model, store, midnight split, outbox, queries, reports, import and export, CSV, activity reader, the APNs request (test key generated in the test), multi-store sync against `InMemoryTransport` |
 | Sync integration | Swift Testing, `.tags(.sync)` | same | `CloudKitTransport` and the `LiveState` fetch in a test-created zone; `make test-sync` only |
 | View models | Swift Testing | `TimeTrackingTests`, `TimeTrackingiOSTests` | Timer modes, Pomodoro, idle prompt, picker, section state, status item title |
 | Agent | Swift Testing | `TimeTrackingAgentTests` | Resolvers against fixtures, presence, Blocker, exclusions, log writing, settings reload, socket |

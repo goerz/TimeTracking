@@ -28,11 +28,6 @@ public enum CloudKitRecords {
         ],
         .setting: ["value", "modifiedAt", "deletedAt"],
         .device: ["name", "platform", "lastSeenAt", "widgetPushToken", "createdAt", "modifiedAt"],
-        .suggestionFeedback: [
-            "recordedAt", "queryStart", "queryEnd", "queryItems", "source", "blockStart", "blockDevice", "proposedProjectID",
-            "proposedTask", "confidence", "outcome", "chosenProjectID", "chosenTask", "entryID", "createdAt", "modifiedAt",
-            "deletedAt",
-        ],
         .liveState: ["running", "changedAt", "activity"],
     ]
 

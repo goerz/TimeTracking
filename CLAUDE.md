@@ -8,7 +8,7 @@ One Xcode project (`TimeTracking.xcodeproj`, hand-authored, file-system-synchron
 
 | Folder | Holds |
 |---|---|
-| `Packages/TimeTrackingCore` | All logic: `Model/`, `Store/`, `Sync/`, `Push/`, `Queries/`, `Interchange/`, `Activity/`, `TimeBlocks/`, `Suggestions/`, `Intents/`, `Support/`. Never imports SwiftUI, AppKit, UIKit, or WidgetKit. |
+| `Packages/TimeTrackingCore` | All logic: `Model/`, `Store/`, `Sync/`, `Push/`, `Queries/`, `Interchange/`, `Activity/`, `TimeBlocks/`, `Intents/`, `Support/`. Never imports SwiftUI, AppKit, UIKit, or WidgetKit. |
 | `TimeTracking/` | Mac app: scenes (main window, Mini Timer), Timer, `MainWindow/`, status item, settings, agent registration, global shortcuts, AppKit glue in `Platform/`, URL handler, `LiveStatePublisher` and `WidgetPushSender` |
 | `TimeTrackingiOS/` | iOS app: scenes, Timer tab, iPad tabs, background refresh and silent pushes, widget push token upload, URL handler |
 | `Shared/` | Views compiled into both apps; platform differences are `#if os(macOS)` around a modifier |

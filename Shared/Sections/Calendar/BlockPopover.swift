@@ -1,15 +1,13 @@
-// BlockPopover: an activity block's range, items, secondaries, suggestion,
-// and actions (spec_calendar.md §3.2).
+// BlockPopover: an activity block's range, items, secondaries, and
+// Create Entry… (spec_calendar.md §3.2).
 
 import SwiftUI
 import TimeTrackingCore
 
-/// The block popover: range, items, secondaries, suggestion, actions (§3.2).
+/// The block popover: range, items, secondaries, Create Entry… (§3.2).
 struct BlockPopover: View {
     var model: CalendarModel
     var block: ActivityBlock
-    @State private var candidates: [SuggestionCandidate] = []
-    @State private var showsOthers = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: Design.Spacing.small) {
@@ -29,17 +27,10 @@ struct BlockPopover: View {
                     .foregroundStyle(.secondary)
             }
             Divider()
-            suggestion
-            HStack {
-                Button("Create Entry…") { Task { await model.createEntry(from: block) } }
-                if block.isOpen {
-                    Button("Start Timer Now") { Task { await model.startNow(block) } }
-                }
-            }
+            Button("Create Entry…") { model.createEntry(from: block) }
         }
         .padding()
         .frame(width: 340)
-        .task { candidates = await model.suggestions(for: block) }
     }
 
     /// Range, duration, device; the group key's share; active time; the source.
@@ -55,31 +46,6 @@ struct BlockPopover: View {
         }
         if block.source == .knowledge {
             Text("Reconstructed from macOS app usage history").font(.caption).foregroundStyle(.secondary)
-        }
-    }
-
-    @ViewBuilder private var suggestion: some View {
-        Text("Suggested").font(.caption).foregroundStyle(.secondary)
-        if let top = candidates.first, top.isConfident {
-            HStack {
-                Text(CandidateText.title(top, model: model))
-                Spacer()
-                ConfidenceMeter(candidate: top)
-                Button("Add Entry") { Task { await model.log(block) } }
-                    .accessibilityIdentifier("calendar.block.log")
-            }
-            DisclosureGroup("Other suggestions", isExpanded: $showsOthers) {
-                ForEach(Array(candidates.dropFirst().prefix(2).enumerated()), id: \.offset) { _, candidate in
-                    HStack {
-                        Text(CandidateText.title(candidate, model: model))
-                        Spacer()
-                        ConfidenceMeter(candidate: candidate)
-                    }
-                }
-            }
-            .font(.caption)
-        } else {
-            Text("No suggestion").foregroundStyle(.secondary)
         }
     }
 

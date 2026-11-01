@@ -1,5 +1,5 @@
 // EntryCard: an entry card with its gestures, menu, and popovers
-// (spec_calendar.md §2.1, §2.4, §2.5, §2.6, §6).
+// (spec_calendar.md §2.1, §2.4, §2.5, §2.6, §5).
 
 import SwiftUI
 import TimeTrackingCore

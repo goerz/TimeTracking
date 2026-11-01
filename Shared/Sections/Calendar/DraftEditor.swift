@@ -4,8 +4,7 @@
 import SwiftUI
 import TimeTrackingCore
 
-/// The edit popover on a provisional entry: times, project, task, and the
-/// other candidates under the task field.
+/// The edit popover on a provisional entry: times, project, and task.
 struct DraftEditor: View {
     var model: CalendarModel
     @State private var showsPicker = false
@@ -21,7 +20,6 @@ struct DraftEditor: View {
                     .focused($taskFocused)
                     .onSubmit { Task { await model.commitDraft() } }
                     .accessibilityIdentifier("calendar.draft.task")
-                candidates(draft)
                 HStack {
                     Button("Cancel", role: .cancel) { model.draft = nil }
                         .keyboardShortcut(.cancelAction)
@@ -55,28 +53,5 @@ struct DraftEditor: View {
                 }
             }
             .accessibilityIdentifier("calendar.draft.project")
-    }
-
-    @ViewBuilder
-    private func candidates(_ draft: CalendarDraft) -> some View {
-        let others = draft.candidates.filter { $0.projectID != draft.projectID || ($0.task ?? "") != draft.task }
-        if !others.isEmpty {
-            VStack(alignment: .leading, spacing: Design.Spacing.tight) {
-                ForEach(Array(others.prefix(4).enumerated()), id: \.offset) { _, candidate in
-                    Button {
-                        model.draft?.projectID = candidate.projectID
-                        model.draft?.task = candidate.task ?? model.draft?.task ?? ""
-                    } label: {
-                        HStack {
-                            Text(CandidateText.title(candidate, model: model))
-                            Spacer()
-                            ConfidenceMeter(candidate: candidate)
-                        }
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .font(.caption)
-        }
     }
 }

@@ -91,13 +91,6 @@ enum Schema {
           running TEXT, changed_at INTEGER, activity TEXT NOT NULL DEFAULT '{}', ck_system_fields BLOB)
         """,
         """
-        CREATE TABLE suggestion_feedback (id TEXT PRIMARY KEY, recorded_at INTEGER NOT NULL,
-          query_start INTEGER NOT NULL, query_end INTEGER NOT NULL, query_items INTEGER NOT NULL,
-          source TEXT NOT NULL, block_start INTEGER, block_device TEXT,
-          proposed_project_id TEXT, proposed_task TEXT NOT NULL DEFAULT '', confidence REAL NOT NULL,
-          outcome TEXT NOT NULL, chosen_project_id TEXT, chosen_task TEXT, entry_id TEXT, \(bookkeeping))
-        """,
-        """
         CREATE TABLE outbox (seq INTEGER PRIMARY KEY AUTOINCREMENT, record_type TEXT NOT NULL,
           record_id TEXT NOT NULL, queued_at INTEGER NOT NULL)
         """,

@@ -110,11 +110,11 @@ private struct TrackedColumn: View {
             }
         }
         .frame(width: width, height: axis.height, alignment: .topLeading)
-        .dropDestination(for: String.self) { items, location in
+        .dropDestination(for: String.self) { items, _ in
             guard let item = items.first else {
                 return false
             }
-            Task { await drop(item, at: axis.date(atY: Double(location.y))) }
+            drop(item)
             return true
         }
         // The cards inside keep their own identifiers.
@@ -152,15 +152,14 @@ private struct TrackedColumn: View {
             }
     }
 
-    /// A block, time block, or event dragged in (vertical position ignored
-    /// for blocks).
-    private func drop(_ item: String, at _: Date) async {
+    /// A block, time block, or event dragged in; the drop position is ignored.
+    private func drop(_ item: String) {
         if let id = item.dropPrefix("block:"), let block = model.blocks.first(where: { $0.id == id }) {
-            await model.createEntry(from: block)
+            model.createEntry(from: block)
         } else if let id = item.dropPrefix("timeBlock:"), let block = model.timeBlocks.first(where: { $0.id == id }) {
-            await model.createEntry(fromEvent: block.event, timeBlock: block)
+            model.createEntry(fromEvent: block.event, timeBlock: block)
         } else if let id = item.dropPrefix("event:"), let event = model.externalEvents.first(where: { $0.id == id }) {
-            await model.createEntry(fromEvent: event, timeBlock: nil)
+            model.createEntry(fromEvent: event, timeBlock: nil)
         }
     }
 }

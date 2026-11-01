@@ -1,7 +1,6 @@
 // CalendarModel: the Calendar section's view state, loading, and navigation
-// (spec_calendar.md §1, §7). Geometry, overlaps, suggestions, and
-// Fill Day come from the library; this model holds selection, drafts, and
-// presentation state.
+// (spec_calendar.md §1, §6). Geometry and overlaps come from the library;
+// this model holds selection, drafts, and presentation state.
 
 import Foundation
 import Observation
@@ -16,30 +15,12 @@ enum CalendarItemID: Hashable {
     case event(CalendarEvent.ID)
 }
 
-/// Where a provisional entry came from.
-enum CalendarDraftSource: Equatable {
-    case drawn
-    case block(ActivityBlock)
-    case timeBlock(TimeBlock)
-    case event(CalendarEvent)
-}
-
 /// A provisional entry with a dashed border and the edit popover open.
 struct CalendarDraft: Equatable {
     var day: TrackingDay
     var interval: DateInterval
     var projectID: ProjectID?
     var task: String
-    /// The engine's candidates (the popover lists the others under the task field).
-    var candidates: [SuggestionCandidate] = []
-    /// The query that produced them; `nil` when the engine supplied nothing.
-    var query: SuggestionQuery?
-    var source: CalendarDraftSource
-
-    /// The engine's top candidate, when it supplied the suggestion.
-    var suggested: SuggestionCandidate? {
-        query == nil ? nil : candidates.first
-    }
 }
 
 /// A pending overlap question (§2.6).
@@ -62,7 +43,6 @@ final class CalendarModel {
     @ObservationIgnored let device: DeviceSettings
     @ObservationIgnored let activity: any ActivityReading
     @ObservationIgnored let events: any CalendarEventStore
-    @ObservationIgnored let engine: SuggestionEngine
     @ObservationIgnored weak var router: SectionRouter?
     @ObservationIgnored weak var undoManager: UndoManager?
     /// `delete-block` to the tracker agent; `nil` where the log cannot be changed (iPad).
@@ -94,10 +74,6 @@ final class CalendarModel {
         didSet { device[.calendarShowsCalendar] = showsCalendar }
     }
 
-    var shownCalendars: [CalendarChoice] {
-        didSet { device[.calendarShownCalendars] = shownCalendars }
-    }
-
     // Loaded data.
     private(set) var entries: [EntryListing] = []
     private(set) var blocks: [ActivityBlock] = []
@@ -112,11 +88,9 @@ final class CalendarModel {
     /// Gap causes per day ("idle 22m"), Mac only.
     private(set) var gapLabels: [TrackingDay: [(Date, String)]] = [:]
 
-    // Synced settings.
-    private(set) var snapMinutes = 5
-    private(set) var fillMinMinutes = 5
-    private(set) var trainDays = 180
-    var rules: [SuggestionRule] = []
+    // Synced settings, written through the settings methods (§6).
+    var snapMinutes = 5
+    var shownCalendars: [CalendarChoice] = []
 
     /// Presentation state.
     var selection: Set<CalendarItemID> = []
@@ -132,9 +106,6 @@ final class CalendarModel {
     /// "Delete this activity?"
     var blockToDelete: ActivityBlock?
     var trackerError: String?
-    var fillDay: FillDayModel?
-    var showsOptions = false
-    var showsSuggestions = false
     var showsMonthPicker = false
     /// Pulsed cards after `showCalendar` (until `pulseEnds`).
     var highlight: (day: TrackingDay, highlight: BlockHighlight)?
@@ -144,29 +115,24 @@ final class CalendarModel {
     private(set) var lastError: String?
 
     @ObservationIgnored var pendingUndo: Task<Void, Never>?
-    /// The suggestions index was loaded (from the cache or rebuilt) once.
-    @ObservationIgnored var engineLoaded = false
 
     init(
         store: TimeStore,
         clock: any Clock,
         device: DeviceSettings,
         activity: any ActivityReading,
-        events: any CalendarEventStore,
-        engine: SuggestionEngine
+        events: any CalendarEventStore
     ) {
         self.store = store
         self.clock = clock
         self.device = device
         self.activity = activity
         self.events = events
-        self.engine = engine
         let visible = min(7, max(1, device[.calendarVisibleDays]))
         self.visibleDays = visible
         self.pointsPerHour = CalendarZoom.clamped(device[.calendarPointsPerHour])
         self.showsActivity = device[.calendarShowsActivity]
         self.showsCalendar = device[.calendarShowsCalendar]
-        self.shownCalendars = device[.calendarShownCalendars]
         let today = TrackingCalendar(timeZone: .current).day(containing: clock.now)
         self.firstDay = CalendarStrip.firstDay(centering: today, visibleDays: visible)
     }
@@ -219,10 +185,7 @@ final class CalendarModel {
     /// Re-reads entries, blocks, events, settings, and the summary.
     func reload() async {
         do {
-            snapMinutes = try await store.value(.calendarSnapMinutes)
-            fillMinMinutes = try await store.value(.fillMinMinutes)
-            trainDays = try await store.value(.trainDays)
-            rules = try await store.value(.suggestionRules)
+            try await readSyncedSettings()
             let interval = visibleInterval
             let found = try await store.entries(in: interval, includeDeleted: false)
             entries = try await store.listings(for: found)
@@ -232,10 +195,6 @@ final class CalendarModel {
             let loaded = try await activity.blocks(in: interval, devices: nil)
             blocks = isRecordingMac ? loaded : loaded.filter { !$0.isOpen }
             await loadEvents(around: interval)
-            if !engineLoaded {
-                engineLoaded = true
-                await engine.load(titles: trainingTitles())
-            }
             summary = CalendarSummary(
                 days: days,
                 calendar: calendar,
@@ -253,6 +212,24 @@ final class CalendarModel {
         }
     }
 
+    /// The Calendar settings (the settings window's Calendar pane, the
+    /// iPad's Settings): the synced values, the calendars, and the
+    /// time-block calendar, without asking for calendar access.
+    func loadSettings() async {
+        do {
+            try await readSyncedSettings()
+        } catch {
+            report(error)
+        }
+        await resolveTimeBlockCalendar()
+        calendars = events.access() == .fullAccess ? events.calendars() : []
+    }
+
+    private func readSyncedSettings() async throws {
+        snapMinutes = try await store.value(.calendarSnapMinutes)
+        shownCalendars = try await store.value(.calendarShownCalendars)
+    }
+
     /// The time-block calendar and the checked calendars over the visible
     /// range plus one day on each side.
     func loadEvents(around interval: DateInterval) async {
@@ -262,6 +239,28 @@ final class CalendarModel {
         if events.access() == .notDetermined {
             _ = await events.requestAccess()
         }
+        await resolveTimeBlockCalendar()
+        guard events.access() == .fullAccess else {
+            timeBlocks = []
+            externalEvents = []
+            return
+        }
+        calendars = events.calendars()
+        let wide = DateInterval(start: interval.start - 86_400, end: interval.end + 86_400)
+        if case let .ready(blockCalendar) = timeBlockState {
+            let found = (try? events.events(in: wide, calendarIDs: [blockCalendar.id])) ?? []
+            timeBlocks = found.map { TimeBlock(event: $0, projects: projects) }
+        } else {
+            timeBlocks = []
+        }
+        let blockCalendarID = timeBlockCalendar?.id
+        let shown = Set(calendars.filter { shownCalendars.contains($0.choice) && $0.id != blockCalendarID }.map(\.id))
+        externalEvents = (try? events.events(in: wide, calendarIDs: shown)) ?? []
+    }
+
+    /// Resolves the time-block calendar (§4.1): by identifier, else by
+    /// title in the iCloud source, creating it only when both fail.
+    func resolveTimeBlockCalendar() async {
         let setting = await (try? store.value(.timeBlockCalendarID))
         let deviceID = device[.calendarTimeBlockCalendar]
         let resolution = TimeBlockCalendar.resolve(store: events, settingID: setting, deviceID: deviceID.isEmpty ? nil : deviceID)
@@ -272,22 +271,11 @@ final class CalendarModel {
         if let id = resolution.settingToWrite {
             try? await store.set(.timeBlockCalendarID, id)
         }
-        guard events.access() == .fullAccess else {
-            timeBlocks = []
-            externalEvents = []
-            return
-        }
-        calendars = events.calendars()
-        let wide = DateInterval(start: interval.start - 86_400, end: interval.end + 86_400)
-        if case let .ready(blockCalendar) = resolution.state {
-            let found = (try? events.events(in: wide, calendarIDs: [blockCalendar.id])) ?? []
-            timeBlocks = found.map { TimeBlock(event: $0, projects: projects) }
-        } else {
-            timeBlocks = []
-        }
-        let blockCalendarID = timeBlockCalendar?.id
-        let shown = Set(calendars.filter { shownCalendars.contains($0.choice) && $0.id != blockCalendarID }.map(\.id))
-        externalEvents = (try? events.events(in: wide, calendarIDs: shown)) ?? []
+    }
+
+    /// Whether calendar access was granted, as of the last resolution.
+    var hasCalendarAccess: Bool {
+        timeBlockState != nil && timeBlockState != .noAccess
     }
 
     var timeBlockCalendar: CalendarInfo? {

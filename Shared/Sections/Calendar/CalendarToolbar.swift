@@ -1,12 +1,12 @@
 // CalendarToolbar: the Calendar's toolbar, the period items leading and
-// days, columns, zoom, options, and Fill Day trailing
+// days, columns, and zoom trailing
 // (spec_calendar.md §1.1; spec_design.md §4).
 
 import SwiftUI
 import TimeTrackingCore
 
-/// The toolbar of §1.1: the period items leading; days, columns, zoom,
-/// options, and Fill Day trailing (spec_design.md §4).
+/// The toolbar of §1.1: the period items leading; days, columns, and zoom
+/// trailing (spec_design.md §4).
 struct CalendarToolbar: ToolbarContent {
     @Bindable var model: CalendarModel
     @Binding var pickedDate: Date
@@ -51,20 +51,6 @@ struct CalendarToolbar: ToolbarContent {
                 .help("Zoom In")
         }
         .visibilityPriority(.low)
-        ToolbarItem(placement: .primaryAction) {
-            Button { model.showsOptions = true } label: { Label("Calendar Options", systemImage: SymbolName.settings) }
-                .help("Calendar Options")
-                .accessibilityIdentifier("calendar.options")
-                .popover(isPresented: $model.showsOptions) { CalendarOptionsPopover(model: model) }
-        }
-        .visibilityPriority(.low)
-        ToolbarItem(placement: .primaryAction) {
-            Button { Task { await model.openFillDay() } } label: { Label("Fill Day…", systemImage: SymbolName.suggestions) }
-                .help("Fill Day…")
-                .disabled(!model.canFillDay)
-                .accessibilityIdentifier("calendar.fillDay")
-        }
-        .visibilityPriority(.high)
     }
 
     /// The date menu, titled by what is shown ("Today", "Oct 19 – 23"), with

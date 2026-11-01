@@ -50,6 +50,11 @@ extension SyncedSettingKey<Int> {
         Self("pomodoro.breakMinutes", default: 5)
     }
 
+    /// The Calendar's snapping: 1, 5, 10, or 15 (spec_calendar.md §6).
+    public static var calendarSnapMinutes: Self {
+        Self("calendar.snapMinutes", default: 5)
+    }
+
     /// The values the setting allows (spec_timer.md §5.2): 1 to 180
     /// focus minutes, 1 to 60 break minutes; any value for other keys.
     public var range: ClosedRange<Int> {
@@ -76,6 +81,14 @@ extension SyncedSettingKey<[String: Int]> {
     /// Context to hue index; merges as a union, the smaller index winning.
     public static var activityContextColors: Self {
         Self("activity.contextColors", default: [:])
+    }
+}
+
+extension SyncedSettingKey<[CalendarChoice]> {
+    /// The external calendars the Calendar shows, as (account, calendar)
+    /// titles, which name the same calendar on every device (spec_calendar.md §4.3, §6).
+    public static var calendarShownCalendars: Self {
+        Self("calendar.shownCalendars", default: [])
     }
 }
 

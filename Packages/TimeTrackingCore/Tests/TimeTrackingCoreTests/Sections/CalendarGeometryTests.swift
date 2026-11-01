@@ -1,5 +1,5 @@
 // Tests of the Calendar's geometry, gestures, and overlaps
-// (spec_calendar.md §8).
+// (spec_calendar.md §7).
 
 import Foundation
 import Testing

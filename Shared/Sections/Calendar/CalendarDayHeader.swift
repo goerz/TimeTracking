@@ -1,17 +1,16 @@
-// CalendarDayHeader: a day's weekday and date, overlaps, Fill Day, the
-// column totals, and the all-day events (spec_calendar.md §1.2,
+// CalendarDayHeader: a day's weekday and date, overlaps, the column
+// totals, and the all-day events (spec_calendar.md §1.2,
 // §1.4, §2.6, §4.3).
 
 import SwiftUI
 import TimeTrackingCore
 
-/// The weekday and date, overlaps, Fill Day, and above each visible column
+/// The weekday and date, overlaps, and above each visible column
 /// its total with the column's glyph.
 struct CalendarDayHeader: View {
     var model: CalendarModel
     var day: TrackingDay
     var width: CGFloat
-    @State private var hovering = false
 
     var body: some View {
         let isToday = day == model.today
@@ -25,7 +24,6 @@ struct CalendarDayHeader: View {
         .frame(width: width, alignment: .leading)
         .background(isToday ? Color.accentColor.opacity(0.06) : .clear)
         .contentShape(Rectangle())
-        .onHover { hovering = $0 }
         .accessibilityAddTraits(.isButton)
         .onTapGesture { Task { await model.showDay(day, alone: ModifierState.optionDown()) } }
         .accessibilityElement(children: .contain)
@@ -52,12 +50,6 @@ struct CalendarDayHeader: View {
                 .foregroundStyle(.orange)
                 .help("Select the overlapping entries")
             }
-            Button { Task { await model.openFillDay(day) } } label: { Label("Fill Day…", systemImage: SymbolName.suggestions) }
-                .buttonStyle(.borderless)
-                .labelStyle(.iconOnly)
-                .foregroundStyle(.secondary)
-                .help("Fill Day…")
-                .opacity(hovering || EntryCard.touch ? 1 : 0)
         }
         .font(.headline)
         .padding(.horizontal, Design.Spacing.small)

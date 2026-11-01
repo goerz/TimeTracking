@@ -1,4 +1,4 @@
-// Reports, CSV, and suggestion data (spec_data_and_sync.md §7.3; §9 items 47, 48; spec_automation.md §8.2).
+// Reports and CSV (spec_data_and_sync.md §7.3; §9 items 47, 48; spec_automation.md §8.2).
 
 import Foundation
 import Testing
@@ -88,33 +88,5 @@ struct ReportTests {
         let breakdown = ReportCSVWriter.breakdownCSV(report, levels: [.project, .task])
         #expect(breakdown == "project,task,seconds,duration,share,entries\n\"Noise, paper\",\"Say \"\"hi\"\"\",2700,0:45:00,100.0,1\n")
         #expect(ReportCSVWriter.clientsCSV([made.client]).hasPrefix("id,name\n"))
-    }
-
-    @Test func suggestionDataOverlaps() async throws {
-        let test = try await TestStore()
-        let entry = try await test.store.create(EntryDraft(
-            projectID: nil,
-            task: "",
-            start: test.date("2024-03-14T08:00"),
-            end: test.date("2024-03-14T09:00")
-        ))[0]
-        let block = try ActivityBlock(
-            start: test.date("2024-03-14T08:30"),
-            end: test.date("2024-03-14T09:30"),
-            activeSeconds: 3600,
-            device: "mac",
-            groupKey: "mail",
-            groupShare: 1,
-            items: [],
-            utcOffset: 3600
-        )
-        let folder = try TemporaryFolder()
-        defer { folder.remove() }
-        let reader = FileActivityStore(folders: ActivityFolders(shared: folder.url, local: folder.url, isFallback: true))
-        let data = StoreSuggestionData(store: test.store, activity: reader)
-        let result = try await data.entriesOverlapping([block], minOverlap: 600)
-        #expect(result.first?.1.map(\.0.id) == [entry.id])
-        #expect(result.first?.1.first?.overlapSeconds == 1800)
-        #expect(try await data.feedback(in: DateInterval(start: test.clock.now - 86_400, end: test.clock.now)).isEmpty)
     }
 }

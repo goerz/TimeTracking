@@ -10,6 +10,7 @@ enum SettingsPane: String, CaseIterable, Identifiable, Sendable {
     case pomodoro
     case idle
     case reminders
+    case calendar
     case shortcuts
     case tracker
 
@@ -26,6 +27,7 @@ enum SettingsPane: String, CaseIterable, Identifiable, Sendable {
         case .pomodoro: "Pomodoro"
         case .idle: "Idle"
         case .reminders: "Reminders"
+        case .calendar: "Calendar"
         case .shortcuts: "Shortcuts"
         case .tracker: "Tracker"
         }
@@ -37,6 +39,7 @@ enum SettingsPane: String, CaseIterable, Identifiable, Sendable {
         case .pomodoro: SymbolName.pomodoro
         case .idle: SymbolName.idle
         case .reminders: SymbolName.reminders
+        case .calendar: SymbolName.calendar
         case .shortcuts: SymbolName.shortcuts
         case .tracker: SymbolName.activity
         }

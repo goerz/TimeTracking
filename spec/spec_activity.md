@@ -31,7 +31,7 @@ An "All" chip, then one chip per context ranked by time: the first eight, the re
 | `safari`, `arc`, `chrome`, `brave`, `edge`, `vivaldi`, `firefox` | browser | the browser's name | the browser's icon |
 | any other | app | the app's name for the bundle identifier of the month header's `contexts` map, else the name of a table of known apps ("VS Code", "PowerPoint"), else a lowercase string with each word capitalized | the app's icon, else a generic app glyph |
 
-A raw context or group key never shows. A group key (Calendar cards, Fill Day, the Suggestions sheet) reads like its context ("paper (tmux)", "Safari", "VS Code"), a site or folder key as written ("github.com/owner", "~/Papers/2026_Noise"); the library's `ActivityContext.label()` and `ActivityContext.groupKeyName(_:)` give these names.
+A raw context or group key never shows. A group key (Calendar cards and popovers) reads like its context ("paper (tmux)", "Safari", "VS Code"), a site or folder key as written ("github.com/owner", "~/Papers/2026_Noise"); the library's `ActivityContext.label()` and `ActivityContext.groupKeyName(_:)` give these names.
 
 Context colors are automatic and separate from area colors. A context seen for the first time (here or in the Calendar's activity column) gets the index used by the fewest contexts so far, lowest on ties, stored in the synced, append-only `activity.contextColors`; it never changes and the user cannot pick one. Contexts marked `(private)` are gray (secondary label color) and take no index.
 

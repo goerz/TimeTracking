@@ -1,6 +1,6 @@
 // SettingsScreen: the iOS Settings (spec_ios.md §2.9): short sections on the
 // first screen; pinned projects, activity collection, and privacy on screens
-// of their own. Calendars belong to the iPad tabs.
+// of their own; the Calendar settings on the iPad.
 
 import AppIntents
 import SwiftUI
@@ -22,6 +22,15 @@ struct SettingsScreen: View {
                 widgetSection
                 if let collection = model.collection as? CollectionModel {
                     activitySection(collection)
+                }
+                if let calendar = model.pad?.router.calendar {
+                    NavigationLink {
+                        Form { CalendarSettingsSections(model: calendar) }
+                            .navigationTitle("Calendar")
+                    } label: {
+                        Text("Calendar")
+                    }
+                    .accessibilityIdentifier("settings.calendar")
                 }
                 aboutSection
             }

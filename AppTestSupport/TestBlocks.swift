@@ -7,8 +7,9 @@ import TimeTrackingCore
 /// Builds activity blocks for an in-memory activity log.
 enum TestBlocks {
     /// A block today (2024-03-14) from `start` to `end`, local time, 90 %
-    /// active, all of it in `context`.
-    static func block(_ start: String, _ end: String, context: String = "tmux:paper", open: Bool = false) throws -> ActivityBlock {
+    /// active, all of it in `tmux:paper`.
+    static func block(_ start: String, _ end: String, open: Bool = false) throws -> ActivityBlock {
+        let context = "tmux:paper"
         let begin = try TestDates.date("2024-03-14T\(start)")
         let finish = try TestDates.date("2024-03-14T\(end)")
         let seconds = Int(finish.timeIntervalSince(begin) * 0.9)

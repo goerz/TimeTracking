@@ -206,7 +206,7 @@ Display forms, derived from the stored value by `AreaColor`, the same in light a
 
 ## 5. The project picker
 
-Every place that assigns a project to an entry or a time block uses this picker (Timer, Calendar editors and Fill Day rows, iOS Timer); the owner decides where it opens and what the choice does. On the Mac it is a popover 340 pt wide and at most 440 pt tall, scrolling; on iOS a sheet (iPhone) or popover (iPad).
+Every place that assigns a project to an entry or a time block uses this picker (Timer, Calendar editors, iOS Timer); the owner decides where it opens and what the choice does. On the Mac it is a popover 340 pt wide and at most 440 pt tall, scrolling; on iOS a sheet (iPhone) or popover (iPad).
 
 Contents, top to bottom:
 

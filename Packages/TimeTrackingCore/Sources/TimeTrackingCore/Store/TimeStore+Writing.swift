@@ -117,10 +117,6 @@ extension TimeStore: TimeStoreWriting {
         try write { try $0.setWidgetPushToken(token) }
     }
 
-    public func recordSuggestionFeedback(_ feedback: SuggestionFeedback) throws {
-        try write { try $0.recordSuggestionFeedback(feedback) }
-    }
-
     /// Daily maintenance: hard-deletes tombstones older than 180 days.
     @discardableResult
     public func purgeExpiredTombstones() throws -> Int {

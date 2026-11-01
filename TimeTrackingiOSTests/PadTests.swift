@@ -187,7 +187,7 @@ struct PadTests {
         #expect(calendar.notice?.text == CalendarEditing.futureNotice)
     }
 
-    @Test("PC-15 the iPad does not offer Delete This Activity and hides the open block")
+    @Test("PC-14 the iPad does not offer Delete This Activity and hides the open block")
     func noDeleteFromLog() async throws {
         let closed = try TestBlocks.block("08:00", "08:30")
         let open = try TestBlocks.block("09:30", "10:00", open: true)

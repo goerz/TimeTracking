@@ -1,5 +1,5 @@
 // CalendarKeyHandlers: the Calendar's navigation keys, which are not menu
-// items (spec_calendar.md §6).
+// items (spec_calendar.md §5).
 
 import SwiftUI
 import TimeTrackingCore

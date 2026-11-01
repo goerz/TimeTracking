@@ -125,7 +125,7 @@ public struct CalendarLane: Sendable, Hashable {
     }
 }
 
-/// Coverage of an interval by others (§3.1, §3.3, §3.5).
+/// Coverage of an interval by others (§3.1, §3.3).
 public enum CalendarCoverage {
     /// The parts of `interval` covered by none of `others`, in order.
     public static func uncovered(_ interval: DateInterval, by others: [DateInterval]) -> [DateInterval] {

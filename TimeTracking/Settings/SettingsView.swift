@@ -1,4 +1,4 @@
-// SettingsView: the settings window with six panes (spec_timer.md §8,
+// SettingsView: the settings window with seven panes (spec_timer.md §8,
 // spec_design.md §7, §8).
 
 import KeyboardShortcuts
@@ -37,6 +37,7 @@ struct SettingsView: View {
         case .pomodoro: PomodoroPane()
         case .idle: IdlePane()
         case .reminders: RemindersPane()
+        case .calendar: CalendarPane()
         case .shortcuts: ShortcutsPane()
         case .tracker: TrackerPane()
         }
@@ -260,6 +261,18 @@ struct RemindersPane: View {
             minutes.wrappedValue = (parts.hour ?? 0) * 60 + (parts.minute ?? 0)
         }
         return DatePicker("", selection: date, displayedComponents: .hourAndMinute).labelsHidden()
+    }
+}
+
+/// Calendar (spec_calendar.md §6): the settings shared with the iPad.
+struct CalendarPane: View {
+    @Environment(AppModel.self) private var app
+
+    var body: some View {
+        Form {
+            CalendarSettingsSections(model: app.sections.calendar)
+        }
+        .settingsForm()
     }
 }
 

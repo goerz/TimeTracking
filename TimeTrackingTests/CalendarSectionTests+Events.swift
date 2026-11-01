@@ -1,5 +1,5 @@
 // The Calendar section: time blocks, events, calendar access, the router
-// request, and the key commands (spec_calendar.md §8).
+// request, and the key commands (spec_calendar.md §7).
 
 import Foundation
 import SwiftUI
@@ -8,7 +8,7 @@ import TimeTrackingCore
 @testable import TimeTracking
 
 extension CalendarSectionTests {
-    @Test("PC-18 a drawn time block is saved as an event; ⌘Z after Delete recreates it with the same fields")
+    @Test("PC-16 a drawn time block is saved as an event; ⌘Z after Delete recreates it with the same fields")
     func timeBlocks() async throws {
         let world = try await World()
         let model = world.model
@@ -30,7 +30,7 @@ extension CalendarSectionTests {
     }
 
     @Test(
-        "PC-20 a 09:00 to 11:00 time block dropped at 10:00 gives 09:00 to 10:00 with project and title; events give their title"
+        "PC-18 a 09:00 to 11:00 time block dropped at 10:00 gives 09:00 to 10:00 with project and title; events give their title"
     )
     func entriesFromEvents() async throws {
         let world = try await World()
@@ -49,16 +49,16 @@ extension CalendarSectionTests {
         ))
         let external = CalendarInfo(id: "work", title: "Work", sourceID: "icloud", sourceTitle: "iCloud", color: "#3B5BDB")
         world.events.addCalendar(external)
-        model.shownCalendars = [external.choice]
+        await model.setShown(external, true)
         let seminar = world.events.add(CalendarEventDraft(calendarID: "work", title: "Seminar", start: start - 3600, end: start - 1800))
         await model.reload()
         let timeBlock = try #require(model.timeBlocks.first { $0.id == block.id })
-        await model.createEntry(fromEvent: timeBlock.event, timeBlock: timeBlock)
+        model.createEntry(fromEvent: timeBlock.event, timeBlock: timeBlock)
         #expect(try model.draft?.interval == DateInterval(start: start, end: TestApp.date("2024-03-14T10:00")))
         #expect(model.draft?.projectID == project.id)
         #expect(model.draft?.task == "Write noise section")
         model.escape()
-        await model.createEntry(fromEvent: seminar, timeBlock: nil)
+        model.createEntry(fromEvent: seminar, timeBlock: nil)
         #expect(model.draft?.task == "Seminar")
         model.escape()
         // External events cannot be moved or deleted.
@@ -68,7 +68,27 @@ extension CalendarSectionTests {
         #expect(world.events.allEvents.first { $0.id == seminar.id }?.start == seminar.start)
     }
 
-    @Test("PC-21 without calendar access or an iCloud account the column shows its notice and the rest works")
+    @Test("PC-22 snapping and Calendars to show are synced; a checked calendar this device lacks stays checked")
+    func syncedSettings() async throws {
+        let world = try await World()
+        let model = world.model
+        let work = CalendarInfo(id: "work", title: "Work", sourceID: "icloud", sourceTitle: "iCloud", color: "#3B5BDB")
+        world.events.addCalendar(work)
+        let elsewhere = CalendarChoice(account: "Google", calendar: "Team")
+        try await world.test.store.set(.calendarShownCalendars, [elsewhere])
+        await model.loadSettings()
+        #expect(model.calendarChoices.flatMap(\.calendars).contains(work))
+        #expect(model.shownCalendars == [elsewhere])
+        await model.setShown(work, true)
+        #expect(try await world.test.store.value(.calendarShownCalendars) == [elsewhere, work.choice])
+        await model.setShown(work, false)
+        #expect(try await world.test.store.value(.calendarShownCalendars) == [elsewhere])
+        await model.setSnapMinutes(15)
+        #expect(model.snapMinutes == 15)
+        #expect(try await world.test.store.value(.calendarSnapMinutes) == 15)
+    }
+
+    @Test("PC-19 without calendar access or an iCloud account the column shows its notice and the rest works")
     func calendarAccess() async throws {
         let denied = try await World(events: InMemoryCalendarEventStore(access: .denied))
         _ = try await denied.test.entry("Paper", from: "08:00", to: "09:00")
@@ -87,7 +107,7 @@ extension CalendarSectionTests {
     }
 
     @Test(
-        "PC-23 showCalendar(day:hour:highlight:) puts the day leftmost, the hour on top, Activity on, the hour's blocks pulsed"
+        "PC-20 showCalendar(day:hour:highlight:) puts the day leftmost, the hour on top, Activity on, the hour's blocks pulsed"
     )
     func showCalendarRequest() async throws {
         let morning = try TestBlocks.block("09:10", "09:40")
@@ -111,7 +131,7 @@ extension CalendarSectionTests {
     }
 
     @Test(
-        "PC-24 every key of section 6 has its effect; arrows, Tab, and Escape are the view's, the rest Calendar menu or View menu items"
+        "PC-21 every key of section 5 has its effect; arrows, Tab, and Escape are the view's, the rest Entry menu or View menu items"
     )
     func keyCommands() async throws {
         let world = try await World()
@@ -218,9 +238,6 @@ extension CalendarSectionTests {
         #expect(try await world.test.store.entries(on: Self.day("2024-03-15")).isEmpty)
         await model.perform(.delete)
         #expect(try await world.test.store.entry(early.id) == nil)
-        await model.perform(.fillDay)
-        #expect(model.fillDay != nil)
-        model.cancelFillDay()
         await model.perform(.createEntry)
         #expect(model.draft == nil)
     }

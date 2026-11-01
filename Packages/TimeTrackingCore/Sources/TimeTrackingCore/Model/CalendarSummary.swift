@@ -83,7 +83,7 @@ public struct CalendarSummary: Sendable, Hashable {
         for day in days {
             let interval = calendar.interval(of: day)
             totals[day]?.calendar = timeBlocks.reduce(0) { sum, block in
-                sum + max(0, Int(interval.overlapDuration(start: block.start, end: block.end)))
+                sum + max(0, Int(interval.overlapDuration(with: block)))
             }
         }
         self.days = totals

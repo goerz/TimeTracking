@@ -192,7 +192,7 @@ struct PomodoroIdleTests {
         router.openSettings(pane: nil)
         #expect(defaults.string(forKey: SettingsPane.storageKey) == "reminders")
         let symbols = SettingsPane.allCases.map(\.symbol)
-        #expect(symbols == ["gearshape", SymbolName.pomodoro, "moon.zzz", "bell", "keyboard", "waveform.path.ecg"])
+        #expect(symbols == ["gearshape", SymbolName.pomodoro, "moon.zzz", "bell", "calendar", "keyboard", "waveform.path.ecg"])
     }
 
     @Test(

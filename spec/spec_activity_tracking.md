@@ -2,7 +2,7 @@
 
 ## 1. Scope
 
-The tracker agent (see `components.md`) records where the user's attention goes on the Mac, and with less detail on iPhone and iPad, as a permanent log of activity blocks ("blocks"). It never assigns a project, area, or client to a block (the suggestion engine of `spec_calendar.md` does), never reads the time store, and never shows UI; its settings pane belongs to the Mac app (7.4). The iOS collectors are implemented in `spec_ios.md`; the `DeviceEvent` record is defined in `spec_data_and_sync.md`.
+The tracker agent (see `components.md`) records where the user's attention goes on the Mac, and with less detail on iPhone and iPad, as a permanent log of activity blocks ("blocks"). It never assigns a project, area, or client to a block (the user does, making entries in the Calendar of `spec_calendar.md`), never reads the time store, and never shows UI; its settings pane belongs to the Mac app (7.4). The iOS collectors are implemented in `spec_ios.md`; the `DeviceEvent` record is defined in `spec_data_and_sync.md`.
 
 ## 2. Design
 
@@ -436,7 +436,7 @@ The pane has no editors for exclusions or options and no maintenance controls: t
 - Only the block log and settings sync; live activity reaches other devices through `LiveState`.
 - The agent is the only writer of the logs; rewrites go through its socket.
 - Blocks split at midnight like entries, so per-day activity and tracked time cover the same interval.
-- The multiplexer session drives splits; mapping to projects belongs to the suggestion engine.
+- The multiplexer session drives splits; mapping to projects is the user's, in the Calendar.
 - Every source with a permission, configuration, or undocumented format has a fallback; configuration is offered as snippets, never installed.
 - Synced Safari history is off by default: weak attribution, overlap with the iOS extension.
 

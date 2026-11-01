@@ -83,14 +83,14 @@ final class SectionsUITests: XCTestCase {
     }
 
     @MainActor
-    func testPC24_calendarMenuItemsAndToday() {
+    func testPC21_calendarMenuItemsAndToday() {
         let app = launch()
         app.typeKey("2", modifierFlags: .command)
         XCTAssertTrue(app.descendants(matching: .any)["calendar.view"].waitForExistence(timeout: 5))
         app.typeKey("t", modifierFlags: .command)
         let header = { (day: String) in app.descendants(matching: .any)["calendar.header.\(day)"] }
         XCTAssertTrue(header("2024-03-12").waitForExistence(timeout: 5))
-        XCTAssertTrue(app.menuBars.menuItems["Fill Day…"].exists)
+        XCTAssertTrue(app.menuBars.menuItems["Duplicate to Next Day"].exists)
         // The navigation keys are the view's, not menu items: → one day,
         // ⇧→ the visible span; View › Previous Period (⌥⌘←) goes back a span.
         XCTAssertFalse(app.menuBars.menuItems["Next Day"].exists)

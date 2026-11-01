@@ -99,7 +99,7 @@ A sheet from the toolbar: an inset-grouped `Form` with the inline title "Setting
 | Widgets | "Task for pinned buttons": "The project's last task" or "No task" | The project's last task | Device |
 | Activity | "Activity collection" pushes the master switch; Screen Time authorization status and request; the "App Groups" section (9.2); setup steps for the Focus filter, automations, and the Safari extension with their check marks and a `ShortcutsLink`; an "iCloud" section with "Last sent", "Waiting to send", and "Send Now" | Off | Device |
 | Activity | "Privacy" pushes a read-only view of the exclusions from `Activity/settings.toml` in three sections (websites, apps, files and terminals), with the note that they are edited in the Mac's Tracker pane | | Shared file |
-| Calendars (iPad) | Which external calendars the Calendar tab shows, grouped by account | None | Device |
+| Calendar (iPad) | "Calendar" pushes a screen with the Calendar's settings, those of the Mac's Calendar pane ([spec_calendar.md](spec_calendar.md) §6): Snap to, the time-block calendar, and the calendars to show | 5 min, no calendars | Synced |
 | About | Version and build ("1.0 (12)"), the app's Shortcuts link | | |
 
 On screen an app set is an "app group" (`spec_design.md` §12). "Add App Group" offers the suggested names and "Custom…", which adds "New Group" and opens its screen. A group's screen has its label as the trailing text field "Name", the footer "Activity shows only this name, never the apps.", and the chosen apps, categories, and sites with "Choose Apps…", which presents the system's `familyActivityPicker`.

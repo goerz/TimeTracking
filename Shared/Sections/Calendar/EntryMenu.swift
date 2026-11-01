@@ -1,5 +1,5 @@
 // EntryMenu: the calendar cards' context menu, a popover on the iPad
-// (spec_calendar.md §6; spec_ios.md §10.2).
+// (spec_calendar.md §5; spec_ios.md §10.2).
 
 import SwiftUI
 

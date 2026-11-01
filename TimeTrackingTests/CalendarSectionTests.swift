@@ -1,6 +1,6 @@
 // The Calendar section's view model: Today, scrolling, deleting, splitting,
-// Add Entry, Delete This Activity, Fill Day, time blocks, calendar access, the
-// router request, and the key commands (spec_calendar.md §8).
+// Delete This Activity, time blocks, calendar access, the settings, the
+// router request, and the key commands (spec_calendar.md §7).
 
 import Foundation
 import Testing
@@ -146,35 +146,8 @@ struct CalendarSectionTests {
         #expect(try await world.test.store.entries(on: Self.day("2024-03-14")).count == 1)
     }
 
-    @Test("PC-14 Add Entry above 0.8 with project and task creates the entry, records accepted; else the popover; below 0.35 nothing")
-    func log() async throws {
-        let block = try TestBlocks.block("08:00", "08:30")
-        let world = try await World(blocks: [block])
-        let model = world.model
-        // Thresholds: Log skips the popover only above 0.8; below 0.35 nothing is prefilled.
-        let project = try await world.test.projects(["Noise Model"])[0]
-        #expect(SuggestionCandidate(projectID: project.id, task: "Draft", confidence: 0.85, reasons: []).logsDirectly)
-        #expect(!SuggestionCandidate(projectID: project.id, task: "Draft", confidence: 0.8, reasons: []).logsDirectly)
-        #expect(!SuggestionCandidate(projectID: project.id, task: "Draft", confidence: 0.34, reasons: []).isConfident)
-        // Without examples nothing is prefilled and Log opens the popover.
-        await model.log(block)
-        #expect(model.draft?.projectID == nil)
-        #expect(model.draft?.task.isEmpty == true)
-        model.escape()
-        // A rule gives confidence 1 with project and task: Log creates the entry directly.
-        await model.setRules([SuggestionRule(kind: .groupKey, pattern: "tmux:paper", projectID: project.id, task: "Draft")])
-        await model.log(block)
-        #expect(model.draft == nil)
-        let entries = try await world.test.store.entries(on: Self.day("2024-03-14"))
-        #expect(entries.map(\.task) == ["Draft"])
-        let feedback = try await world.test.store.feedback(in: DateInterval(start: .distantPast, end: .distantFuture))
-        #expect(feedback.map(\.outcome) == [.accepted])
-        #expect(feedback.first?.source == .block)
-        #expect(feedback.first?.blockDevice == "macbook")
-    }
-
     @Test(
-        "PC-15 a confirmed Delete This Activity sends one delete-block; Cancel sends nothing; the open block and the iPad do not offer it"
+        "PC-14 a confirmed Delete This Activity sends one delete-block; Cancel sends nothing; the open block and the iPad do not offer it"
     )
     func deleteBlockFromLog() async throws {
         let closed = try TestBlocks.block("08:00", "08:30")
@@ -191,39 +164,6 @@ struct CalendarSectionTests {
         #expect(!model.canDeleteFromLog(open))
         model.isRecordingMac = false
         #expect(!model.canDeleteFromLog(closed))
-    }
-
-    @Test(
-        "PC-16 untracked 12, 3, and 40 minutes give two rows; Log is one transaction and one undo step; Cancel writes nothing"
-    )
-    func fillDay() async throws {
-        let blocks = try [
-            TestBlocks.block("07:00", "07:12"),
-            TestBlocks.block("07:30", "07:33", context: "mail"),
-            TestBlocks.block("08:00", "08:40", context: "safari"),
-        ]
-        let world = try await World(blocks: blocks)
-        let model = world.model
-        #expect(model.canFillDay)
-        await model.openFillDay(Self.day("2024-03-14"))
-        let sheet = try #require(model.fillDay)
-        #expect(sheet.rows.count == 2)
-        #expect(sheet.rows.allSatisfy { !$0.checked })
-        model.cancelFillDay()
-        #expect(try await world.test.store.entries(on: Self.day("2024-03-14")).isEmpty)
-        #expect(try await world.test.store.feedback(in: DateInterval(start: .distantPast, end: .distantFuture)).isEmpty)
-        await model.openFillDay(Self.day("2024-03-14"))
-        let again = try #require(model.fillDay)
-        again.setTask("Mail", row: again.rows[0].id)
-        #expect(again.logTitle == "Log 1 entry (12m)")
-        await model.logFillDay()
-        #expect(try await world.test.store.entries(on: Self.day("2024-03-14")).map(\.task) == ["Mail"])
-        let feedback = try await world.test.store.feedback(in: DateInterval(start: .distantPast, end: .distantFuture))
-        #expect(Set(feedback.map(\.outcome)) == [.edited, .skipped])
-        #expect(world.test.undo.undoActionName == "Fill Day")
-        world.test.undo.undo()
-        await model.waitForUndo()
-        #expect(try await world.test.store.entries(on: Self.day("2024-03-14")).isEmpty)
     }
 
     @Test("PC-9 an overlapping card's ⚠ tooltip names the others and the whole minutes; touching entries are left out")

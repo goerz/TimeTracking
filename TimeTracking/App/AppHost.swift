@@ -76,10 +76,7 @@ final class AppHost {
                 trackerCommands: trackerCommands,
                 trackerSettingsURL: trackerSettingsURL,
                 activity: activity,
-                calendarEvents: calendarEvents,
-                suggestionsCache: identity.flatMap { identity in
-                    identity.groupContainerURL.map { identity.supportDirectory(in: $0).appending(path: "suggestions-index.json") }
-                }
+                calendarEvents: calendarEvents
             )
             self.model = model
             return model

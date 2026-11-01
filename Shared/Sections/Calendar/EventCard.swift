@@ -55,7 +55,7 @@ struct EventCard: View {
         .draggable("timeBlock:\(block.id)")
         .help(timeBlockHelp(block))
         .modifier(EntryMenu(showsMenu: $showsMenu) {
-            Button("Create Entry…") { Task { await model.createEntry(fromEvent: block.event, timeBlock: block) } }
+            Button("Create Entry…") { model.createEntry(fromEvent: block.event, timeBlock: block) }
             Button("Edit…") { model.editTimeBlock(block) }
             Button("Delete", role: .destructive) { Task { await model.deleteTimeBlocks([block.id]) } }
         })
@@ -92,7 +92,7 @@ struct EventCard: View {
         .draggable("event:\(event.id)")
         .help("\(event.notes ?? "")\(event.attendeeCount > 0 ? "\n\(event.attendeeCount) attendees" : "")")
         .contextMenu {
-            Button("Create Entry…") { Task { await model.createEntry(fromEvent: event, timeBlock: nil) } }
+            Button("Create Entry…") { model.createEntry(fromEvent: event, timeBlock: nil) }
             Button("Open in Calendar") { model.openEvent(event) }
             Button("Hide This Calendar") { Task { await model.hideCalendar(of: event) } }
         }

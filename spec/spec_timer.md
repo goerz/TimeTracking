@@ -220,7 +220,7 @@ While on, idle, inside the hours on a selected day, and unlocked, the app sends 
 
 ## 8. Settings window
 
-Settings… (⌘,) opens a SwiftUI `Settings` scene with six toolbar panes: General (`gearshape`), Pomodoro (`pomodoro`), Idle (`moon.zzz`), Reminders (`bell`), Shortcuts (`keyboard`), Tracker (`waveform.path.ecg`). It reopens on the last pane shown. Changes apply immediately.
+Settings… (⌘,) opens a SwiftUI `Settings` scene with seven toolbar panes: General (`gearshape`), Pomodoro (`pomodoro`), Idle (`moon.zzz`), Reminders (`bell`), Calendar (`calendar`), Shortcuts (`keyboard`), Tracker (`waveform.path.ecg`). It reopens on the last pane shown. Changes apply immediately.
 
 Every pane is a grouped `Form` 520 pt wide (`spec_design.md` §8). The window takes each pane's height (the form's scrolling is off and its height fixed to its content), except the Tracker pane, which is 620 pt tall and scrolls. Related settings share a section; explanations are section footers, never rows. A number with a stepper is a row with the label leading and the value, then the stepper, trailing ("Focus duration   25 min ⇅"). A dependent setting is disabled, not indented, while the setting it depends on is off.
 
@@ -234,13 +234,13 @@ Every pane is a grouped `Form` 520 pt wide (`spec_design.md` §8). The window ta
 | Menu bar and Dock | Show Dock icon | on | `spec_menubar.md` §4 |
 | iCloud | "Sync" ("Up to date", "Not signed in to iCloud. Entries stay on this Mac.", "Couldn't sync with iCloud. The app will try again.") and "Widget updates" ("Instant", "Last sent at 10:42", "Off (no push key)" without a push key, "Not working" with the detail in the log), followed by an info button (as in the Tracker pane, `spec_activity_tracking.md` §7.4) whose popover says that the Mac pushes each timer change to the widgets within seconds, that without the APNs key widgets change only when iOS reloads them, and how to create the key, with `make apns-key P8=…` as the snippet | | `spec_data_and_sync.md` §3.1, §4.3 |
 
-Without notification authorization, a last section shows "Notifications are off for this app." with the warning symbol and a button to the app's Notifications settings. The Pomodoro, Idle, and Reminders panes hold the settings of 5.2, 6.2, and 7, with footers that say what the durations and thresholds do.
+Without notification authorization, a last section shows "Notifications are off for this app." with the warning symbol and a button to the app's Notifications settings. The Pomodoro, Idle, and Reminders panes hold the settings of 5.2, 6.2, and 7, with footers that say what the durations and thresholds do. The Calendar pane holds the Calendar's settings ([spec_calendar.md](spec_calendar.md) §6), the same as the iPad's Calendar screen.
 
 ### 8.2 Tracker
 
 The pane's contents are specified in `spec_activity_tracking.md` §7.4. The tracker is registered only from the pane's "Enable Tracker" button.
 
-At the first launch on a Mac, a sheet on the main window asks "Set up activity tracking?" with the text "The tracker records which apps, sites, and terminal sessions you work in, so the Calendar can suggest entries. It needs a few permissions.", the buttons "Open Tracker Settings" (opens this pane) and "Later", and the checkbox "Open `<APP_NAME>` at login", on by default. Either button sets the device setting `trackerOnboardingPrompted`, so the sheet appears once per Mac, and, with the checkbox on, turns on "Open at login" (8.1). Under `-UITesting` the app never registers its real login item.
+At the first launch on a Mac, a sheet on the main window asks "Set up activity tracking?" with the text "The tracker records which apps, sites, and terminal sessions you work in, for Activity and the Calendar. It needs a few permissions.", the buttons "Open Tracker Settings" (opens this pane) and "Later", and the checkbox "Open `<APP_NAME>` at login", on by default. Either button sets the device setting `trackerOnboardingPrompted`, so the sheet appears once per Mac, and, with the checkbox on, turns on "Open at login" (8.1). Under `-UITesting` the app never registers its real login item.
 
 ### 8.3 Shortcuts
 
@@ -268,7 +268,7 @@ Every menu and item is always listed, and an item that applies to one view is di
 | Edit | Undo, Redo, the pasteboard commands (standard), Find |
 | View | The sidebar's items, the sidebar toggle, the shown range's navigation, then each view's display options under its own header (Timer, Calendar, Report, Activity), then the Mini Timer's |
 | Timer | The running entry and the Pomodoro, from any window (the menu bar item's menu has the same commands) |
-| Entry | The selected entry in the view shown: the Timer's running entry or row, the Calendar's selection ([spec_calendar.md](spec_calendar.md) §6), or the Reports entry list's row |
+| Entry | The selected entry in the view shown: the Timer's running entry or row, the Calendar's selection ([spec_calendar.md](spec_calendar.md) §5), or the Reports entry list's row |
 | Project | The selected project, area, or client in Projects ([spec_projects.md](spec_projects.md) §2.5) |
 | Window | Mini Timer, then the standard items and the main window |
 
@@ -292,7 +292,7 @@ Every menu and item is always listed, and an item that applies to one view is di
 | Timer | The next step, titled by its action: End Focus Now, Start Break, End Break Now, or Start Focus (End Focus Now, disabled, while the Pomodoro is off) | ⌃⌘P | App |
 | Entry | Edit Entry… | ⌘E; ↩ in the Calendar | Timer view (running entry from the bar, selected row from the list), the Calendar's selection, the Reports list's row |
 | Entry | Set Project… | ⌘J | Timer view |
-| Entry | The Calendar's entry commands | [spec_calendar.md](spec_calendar.md) §6 | Calendar |
+| Entry | The Calendar's entry commands | [spec_calendar.md](spec_calendar.md) §5 | Calendar |
 | Entry | Delete Entry… | ⌘⌫; Delete in the Calendar | Timer view with a selected row in the focused list; the Calendar's selection |
 | Window | Mini Timer | ⌥⌘R (displayed, 8.3) | App |
 | Window | Close, Minimize | ⌘W, ⌘M | Standard |
@@ -348,7 +348,7 @@ Clicking a notification shows the Mini Timer (with the idle prompt for `idle`). 
 - TM-32. Each notification category offers exactly its listed actions; the settings window reopens on the last pane shown.
 - TM-33. The first-launch alert of §8.2 appears once per Mac; "Open Tracker Settings" opens the Tracker pane, and the agent stays unregistered until "Enable Tracker".
 - TM-34. The first-launch alert's "Open `<APP_NAME>` at login" checkbox is on by default; checked, either button turns on "Open at login", unchecked neither does; under `-UITesting` the real login item is never registered.
-- TM-35. Every window has the menus File, Edit, View, Timer, Entry, Project, and Window; Window lists the main window and "Mini Timer" once each. With the Timer shown Entry › Set Project… is enabled and View › Go to Today and the Project menu's items are not. In the Calendar Entry › Fill Day… and View › Go to Today and Previous Period are enabled, Set Project… is not, and there is no Next Day, Next Entry, or Deselect item. In Projects Project › Edit Project… is enabled for a selected project and File › New Project… always; there is no Start Timer item outside the Timer menu. View › Compact Mode is enabled only while the Mini Timer is key.
+- TM-35. Every window has the menus File, Edit, View, Timer, Entry, Project, and Window; Window lists the main window and "Mini Timer" once each. With the Timer shown Entry › Set Project… is enabled and View › Go to Today and the Project menu's items are not. In the Calendar Entry › Duplicate to Next Day and View › Go to Today and Previous Period are enabled, Set Project… is not, and there is no Next Day, Next Entry, or Deselect item. In Projects Project › Edit Project… is enabled for a selected project and File › New Project… always; there is no Start Timer item outside the Timer menu. View › Compact Mode is enabled only while the Mini Timer is key.
 - TM-36. The Mini Timer and the main window's Timer are independent: the project picker, an edit popover, the selection, the filter, and a task-field focus request in one leave the other unchanged; a project chosen in one is the project of both; New from the main menu focuses the key window's Timer; a store change reloads both lists. An alert of the Timer shows in the key window, also while the main window shows another item, and with no key window the Mini Timer comes forward with it.
 
 ## 12. Decisions

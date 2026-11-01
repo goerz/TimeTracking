@@ -1,5 +1,5 @@
 // CalendarKeyCommand: every key of the Calendar section with its menu item
-// (spec_calendar.md §6).
+// (spec_calendar.md §5).
 
 import SwiftUI
 import TimeTrackingCore
@@ -18,7 +18,6 @@ enum CalendarKeyCommand: String, CaseIterable, Identifiable {
     case nextSpan
     case toggleActivity
     case toggleCalendar
-    case fillDay
     case nextEntry
     case previousEntry
     case edit
@@ -49,7 +48,6 @@ enum CalendarKeyCommand: String, CaseIterable, Identifiable {
         case .nextSpan: "Next Days"
         case .toggleActivity: "Show Activity Column"
         case .toggleCalendar: "Show Calendar Column"
-        case .fillDay: "Fill Day…"
         case .nextEntry: "Next Entry"
         case .previousEntry: "Previous Entry"
         case .edit: "Edit Selection…"
@@ -79,7 +77,6 @@ enum CalendarKeyCommand: String, CaseIterable, Identifiable {
         case .nextSpan: KeyboardShortcut(.rightArrow, modifiers: .shift)
         case .toggleActivity: KeyboardShortcut("a", modifiers: [.command, .option])
         case .toggleCalendar: KeyboardShortcut("k", modifiers: [.command, .option])
-        case .fillDay: KeyboardShortcut("f", modifiers: [.command, .shift])
         case .nextEntry: KeyboardShortcut(.tab, modifiers: [])
         case .previousEntry: KeyboardShortcut(.tab, modifiers: .shift)
         case .edit: KeyboardShortcut(.return, modifiers: [])
@@ -123,7 +120,6 @@ extension CalendarModel {
         case .nextSpan: await shift(days: visibleDays)
         case .toggleActivity: await toggle(.activity)
         case .toggleCalendar: await toggle(.calendar)
-        case .fillDay: await openFillDay()
         default: await performSelectionCommand(command)
         }
     }
@@ -133,7 +129,7 @@ extension CalendarModel {
         case .nextEntry: stepSelection(by: 1)
         case .previousEntry: stepSelection(by: -1)
         case .edit: editSelection()
-        case .createEntry: await createEntryFromSelection()
+        case .createEntry: createEntryFromSelection()
         case .moveEarlier: await nudgeSelection(steps: -1, lengthen: false)
         case .moveLater: await nudgeSelection(steps: 1, lengthen: false)
         case .lengthen: await nudgeSelection(steps: 1, lengthen: true)
@@ -145,11 +141,9 @@ extension CalendarModel {
         }
     }
 
-    /// A popover, editor, or sheet takes the plain keys.
+    /// A popover or editor takes the plain keys.
     var takesTextInput: Bool {
-        draft != nil || blockDraft != nil || editingEntry != nil || fillDay != nil || pendingOverlap != nil || showsOptions ||
-            showsSuggestions
-            || showsMonthPicker
+        draft != nil || blockDraft != nil || editingEntry != nil || pendingOverlap != nil || showsMonthPicker
     }
 
     /// Return: the editor of the selected entry or time block.

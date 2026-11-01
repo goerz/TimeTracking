@@ -56,12 +56,6 @@ struct CalendarView: View {
                     scrollPosition.scrollTo(y: hour * model.pointsPerHour)
                 }
             }
-            .sheet(item: fillDayBinding) { fillDay in
-                FillDaySheet(model: fillDay, calendar: model)
-            }
-            .sheet(isPresented: $model.showsSuggestions) {
-                SuggestionsSheet(model: model)
-            }
             .alert("Discard the running entry?", isPresented: $model.confirmsRunningDelete) {
                 Button("Discard", role: .destructive) { Task { await model.deleteSelection(confirmed: true) } }
                 Button("Cancel", role: .cancel) {}
@@ -151,25 +145,11 @@ struct CalendarView: View {
         }
     }
 
-    private var fillDayBinding: Binding<FillDayModel?> {
-        Binding { model.fillDay } set: { value in
-            if value == nil {
-                model.cancelFillDay()
-            }
-        }
-    }
-
     private var blockDeleteBinding: Binding<Bool> {
         Binding { model.blockToDelete != nil } set: { shown in
             if !shown, model.blockToDelete != nil {
                 Task { await model.deleteBlockFromLog(confirmed: false) }
             }
         }
-    }
-}
-
-extension FillDayModel: Identifiable {
-    var id: TrackingDay {
-        day
     }
 }

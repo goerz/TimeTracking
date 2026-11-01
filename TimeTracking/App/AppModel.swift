@@ -75,8 +75,7 @@ final class AppModel {
         trackerCommands: TrackerCommandSending = RecordingTrackerCommands(),
         trackerSettingsURL: URL? = nil,
         activity: any ActivityReading = InMemoryActivityStore(),
-        calendarEvents: any CalendarEventStore = InMemoryCalendarEventStore(access: .denied),
-        suggestionsCache: URL? = nil
+        calendarEvents: any CalendarEventStore = InMemoryCalendarEventStore(access: .denied)
     ) {
         self.store = store
         self.clock = clock
@@ -101,8 +100,7 @@ final class AppModel {
             clock: clock,
             device: settings.device,
             activity: activity,
-            events: calendarEvents,
-            suggestionsCache: suggestionsCache
+            events: calendarEvents
         )
         timer.onChange = { [weak self] in await self?.afterChange() }
         timer.onAlert = { [weak self] in self?.alertRaised() }

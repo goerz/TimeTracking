@@ -87,11 +87,13 @@ Synced settings are records; device settings live in the App Group's `UserDefaul
 | `pinnedProjectIDs` | synced | [UUID] | [] | iOS widgets |
 | `activity.contextColors` | synced | [String: Int] (context to hue index) | {} | Activity |
 | `calendar.timeBlockCalendarID` | synced | String? | nil | Calendar |
+| `calendar.snapMinutes` | synced | Int | 5 | Calendar |
+| `calendar.shownCalendars` | synced | [(account, calendar)] titles | [] | Calendar |
 | `deviceID` | device | UUID | created on first launch | this spec |
 | `pomodoro.sounds` | device | Bool | true | Timer |
 | `idle.thresholdMinutes` | device | Int | 10 | Timer |
 
-Shortcuts, menu bar display, window frames, shown external calendars, and Pomodoro state are device settings of their owner specs. Synced settings merge per key by last writer, except `activity.contextColors`, which merges as the union, the smaller index winning for a context assigned differently. A new context takes the hue index used by the fewest contexts, lowest on ties.
+Shortcuts, menu bar display, window frames, and Pomodoro state are device settings of their owner specs. Synced settings merge per key by last writer, except `activity.contextColors`, which merges as the union, the smaller index winning for a context assigned differently. A new context takes the hue index used by the fewest contexts, lowest on ties.
 
 ### 1.7 Bookkeeping
 
@@ -147,15 +149,6 @@ CREATE TABLE device (id TEXT PRIMARY KEY, name TEXT NOT NULL, platform TEXT NOT 
 CREATE TABLE live_state (id INTEGER PRIMARY KEY CHECK (id = 1),   -- section 4
   running TEXT, changed_at INTEGER, activity TEXT NOT NULL DEFAULT '{}', ck_system_fields BLOB);
 
-CREATE TABLE suggestion_feedback (id TEXT PRIMARY KEY, recorded_at INTEGER NOT NULL,
-  query_start INTEGER NOT NULL, query_end INTEGER NOT NULL, query_items INTEGER NOT NULL,
-  source TEXT NOT NULL,                      -- 'block', 'event', 'fill'
-  block_start INTEGER, block_device TEXT,
-  proposed_project_id TEXT, proposed_task TEXT NOT NULL DEFAULT '', confidence REAL NOT NULL,
-  outcome TEXT NOT NULL,                     -- 'accepted', 'edited', 'skipped'
-  chosen_project_id TEXT, chosen_task TEXT, entry_id TEXT,
-  created_at INTEGER NOT NULL, modified_at INTEGER NOT NULL, deleted_at INTEGER, ck_system_fields BLOB);
-
 CREATE TABLE outbox (seq INTEGER PRIMARY KEY AUTOINCREMENT, record_type TEXT NOT NULL,
   record_id TEXT NOT NULL, queued_at INTEGER NOT NULL);
 CREATE TABLE sync_state (key TEXT PRIMARY KEY, value BLOB NOT NULL);  -- CKSyncEngine state
@@ -181,7 +174,7 @@ Writers are the app (Mac and iOS) and, on the Mac, the command-line tool; iOS wi
 
 ### 3.1 CloudKit layout and engine
 
-The private database of `iCloud.<APP_ID>` (development environment, spec_architecture.md) holds the zone `TimeTracking` with the record types `Client`, `Area`, `Project`, `TimeEntry`, `Setting`, `Device`, `SuggestionFeedback`, and `LiveState`, and the zone `ActivityEvents` with `DeviceEvent` (section 6). Record names are the UUIDs (for `Setting` the key, for `LiveState` the fixed name `LiveState`); fields use the camelCase names of section 1; references are `String` UUIDs, so nothing cascades. Record types and fields are only ever added.
+The private database of `iCloud.<APP_ID>` (development environment, spec_architecture.md) holds the zone `TimeTracking` with the record types `Client`, `Area`, `Project`, `TimeEntry`, `Setting`, `Device`, and `LiveState`, and the zone `ActivityEvents` with `DeviceEvent` (section 6). Record names are the UUIDs (for `Setting` the key, for `LiveState` the fixed name `LiveState`); fields use the camelCase names of section 1; references are `String` UUIDs, so nothing cascades. Record types and fields are only ever added.
 
 The `CKSyncEngine` runs in the app process with automatic sync and a database subscription for silent pushes; the library's `SyncCoordinator` is its delegate:
 
@@ -358,7 +351,6 @@ public protocol TimeStoreWriting: Sendable {
     func deleteProject(_: ProjectID) async throws
     func set<T: Codable>(_: SyncedSettingKey<T>, _: T) async throws
     func setWidgetPushToken(_: String?) async throws
-    func recordSuggestionFeedback(_: SuggestionFeedback) async throws
     func importDocument(_: Data, options: ImportOptions) async throws -> ImportReport
     func transaction<R>(_: (TimeStoreWriting) async throws -> R) async throws -> R   // one transaction, one pass
 }
@@ -399,7 +391,7 @@ public protocol StructureReading: Sendable {
 
 A `DayGroup` holds a day's entries, `totalSeconds` (the running entry counted to the query time), and `includesRunning`. The query `distinctTasks` matches the folded prefix against `task_key`, skips archived projects, returns each task once by most recent use (recent tasks for an empty prefix), and with `projectID == nil` searches entries without a project.
 
-### 7.3 Reports and suggestions
+### 7.3 Reports
 
 ```swift
 public enum Granularity { case day, week, month, year, total }
@@ -411,11 +403,6 @@ public protocol Reporting: Sendable {
     func report(_: ReportQuery) async throws -> ReportNode                                  // root = grand total
     func series(_: ReportQuery) async throws -> [(TrackingPeriod, [GroupKeyValue: Int])]   // stacked bars
     func entries(matching: ReportQuery) async throws -> [TimeEntry]
-}
-public protocol SuggestionData: Sendable {                                                 // Calendar's suggestion engine
-    func entriesOverlapping(_: [ActivityBlock], minOverlap: TimeInterval) async throws -> [(ActivityBlock, [(TimeEntry, overlapSeconds: Int)])]
-    func activityDuring(_: TimeEntry) async throws -> [ActivityBlock]
-    func feedback(in: DateInterval) async throws -> [SuggestionFeedback]                  // newest first
 }
 ```
 
@@ -534,7 +521,7 @@ The generators `SyntheticDataset.small`, `.medium`, and `.large(seed:)` produce 
 Provided:
 
 - Entity types, `AreaColor`, typed ids, `StoreError` (1, 7.1).
-- `TimeStoreWriting`, `TimeStoreReading` with `chainStart(of:)`, `StructureReading`, `Reporting`, `ReportCSVWriter`, `SuggestionData`, `StoreObserving` (7).
+- `TimeStoreWriting`, `TimeStoreReading` with `chainStart(of:)`, `StructureReading`, `Reporting`, `ReportCSVWriter`, `StoreObserving` (7).
 - `SyncStatus`, `EntryAdjustment` (3).
 - `LiveState`, `LiveStatePublisher`, `WidgetPushSender`, `WidgetPushStatus`, `LiveStateReader` (4).
 - JSON export and `importDocument` (5), used by the CLI.
@@ -550,5 +537,5 @@ Assumed:
 - Timer and Calendar: refuse future entries and decide on overlaps before writing; the settings window shows `WidgetPushStatus`.
 - Projects and Reports: tint and lightness-step parameters for `AreaColor`; Projects offers "Merge into" and reassignment for duplicates and orphans.
 - Automation: the CSV columns of `ReportCSVWriter`.
-- Calendar: time blocks live in the EventKit calendar `calendar.timeBlockCalendarID`; the suggestion engine uses `suggestion_feedback`.
+- Calendar: time blocks live in the EventKit calendar `calendar.timeBlockCalendarID`.
 - Activity: the hue sequence that `activity.contextColors` indexes.

@@ -172,7 +172,7 @@ extension TimeStore {
     public func resetForAccountSwitch() throws {
         _ = try perform { transaction in
             for table in [
-                "client", "area", "project", "time_entry", "setting", "device", "live_state", "suggestion_feedback",
+                "client", "area", "project", "time_entry", "setting", "device", "live_state",
                 "outbox", "sync_state", "purged_record",
             ] {
                 try transaction.database.execute(sql: "DELETE FROM \(table)")

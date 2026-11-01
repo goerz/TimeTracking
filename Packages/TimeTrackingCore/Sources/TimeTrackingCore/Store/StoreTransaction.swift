@@ -56,8 +56,6 @@ public final class StoreTransaction {
             structureChanged = true
         case .liveState:
             liveStateChanged = true
-        case .suggestionFeedback:
-            break
         }
         if queue, queuedSet.insert(ref).inserted {
             queued.append(ref)

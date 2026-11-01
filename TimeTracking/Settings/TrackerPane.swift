@@ -56,7 +56,7 @@ struct TrackerPane: View {
         } footer: {
             Text(
                 "The tracker is a login item that records which apps, sites, and terminal sessions you work in, "
-                    + "for Activity and the Calendar's suggestions."
+                    + "for Activity and the Calendar."
             )
         }
     }

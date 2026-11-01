@@ -31,7 +31,7 @@ struct BlockCard: View {
                 label(style)
             }
             if hovering {
-                Button { Task { await model.createEntry(from: block) } } label: { Image(systemName: SymbolName.addCircle) }
+                Button { model.createEntry(from: block) } label: { Image(systemName: SymbolName.addCircle) }
                     .buttonStyle(.plain)
                     .foregroundStyle(tint)
                     .padding(Design.Spacing.tight)
@@ -112,17 +112,7 @@ struct BlockCard: View {
     }
 
     @ViewBuilder private var menu: some View {
-        let name = ActivityContext.groupKeyName(block.groupKey)
-        Button("Create Entry…") { Task { await model.createEntry(from: block) } }
-        if block.isOpen {
-            Button("Start Timer Now") { Task { await model.startNow(block) } }
-        }
-        Menu("Always Suggest for “\(name)”") {
-            ForEach(model.projects.filter { !$0.isArchived && !$0.isDeleted }) { project in
-                Button(project.name) { Task { await model.alwaysUseProject(project.id, for: block) } }
-            }
-        }
-        Button("Don't Suggest for “\(name)”") { Task { await model.ignoreGroupKey(of: block) } }
+        Button("Create Entry…") { model.createEntry(from: block) }
         if model.canDeleteFromLog(block) {
             Divider()
             Button("Delete This Activity…", role: .destructive) { model.confirmDeleteFromLog(block) }

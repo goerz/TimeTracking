@@ -38,7 +38,7 @@ final class MenuUITests: XCTestCase {
         XCTAssertTrue(app.descendants(matching: .any)["calendar.view"].waitForExistence(timeout: 5))
         assertMenus(app)
         let entry = items(app, menu: "Entry")
-        XCTAssertTrue(entry.contains { $0.title == "Fill Day…" && $0.enabled })
+        XCTAssertTrue(entry.contains { $0.title == "Duplicate to Next Day" && $0.enabled })
         XCTAssertFalse(entry.contains { $0.title == "Next Day" || $0.title == "Deselect" || $0.title == "Next Entry" })
         assertItem(app, menu: "Entry", item: "Set Project…", enabled: false)
         assertItem(app, menu: "View", item: "Go to Today", enabled: true)

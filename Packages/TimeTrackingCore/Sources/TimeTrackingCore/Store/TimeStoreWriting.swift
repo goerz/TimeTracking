@@ -34,7 +34,6 @@ public protocol TimeStoreWriting: Sendable {
     func deleteProject(_ id: ProjectID) async throws
     func set<T>(_ key: SyncedSettingKey<T>, _ value: T) async throws
     func setWidgetPushToken(_ token: String?) async throws
-    func recordSuggestionFeedback(_ feedback: SuggestionFeedback) async throws
     func importDocument(_ data: Data, options: ImportOptions) async throws -> ImportReport
     /// Runs `body` as one transaction with one invariant pass.
     func transaction<R: Sendable>(_ body: @Sendable (StoreTransaction) throws -> R) async throws -> R

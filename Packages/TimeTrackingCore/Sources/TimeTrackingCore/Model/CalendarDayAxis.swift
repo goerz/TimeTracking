@@ -176,7 +176,7 @@ public struct CalendarSnap: Sendable, Hashable {
         self.minutes = max(1, minutes)
     }
 
-    /// The allowed steps of the options popover.
+    /// The steps the Snap to setting allows.
     public static let choices = [1, 5, 10, 15]
 
     /// `date` rounded to the nearest step after `dayStart`.

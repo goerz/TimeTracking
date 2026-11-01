@@ -12,7 +12,7 @@ extension CalendarModel {
         switch editing(day, option: option).draw(from: from, to: to) {
         case let .interval(interval):
             selection = []
-            draft = CalendarDraft(day: day, interval: interval, projectID: nil, task: "", source: .drawn)
+            draft = CalendarDraft(day: day, interval: interval, projectID: nil, task: "")
         case .tooShort:
             selection = []
         case .future:
@@ -55,18 +55,6 @@ extension CalendarModel {
                 start: interval.start,
                 end: interval.end
             ))
-            if let query = draft.query {
-                try await store.recordSuggestionFeedback(.decision(
-                    query: query,
-                    source: draft.source.feedbackSource,
-                    block: draft.source.block,
-                    top: draft.suggested,
-                    chosenProject: draft.projectID,
-                    chosenTask: draft.task,
-                    entryID: pieces.first?.id,
-                    now: clock.now
-                ))
-            }
             let ids = pieces.map(\.id)
             registerUndo("Undo New Entry") { store in try await store.delete(ids) }
             self.draft = nil
@@ -428,27 +416,9 @@ extension CalendarModel {
         undoManager.setActionName(String(name.dropFirst("Undo ".count)))
     }
 
-    /// Reloads after a write, tells the Timer, and lets the suggestions
-    /// index follow (at most every five minutes).
+    /// Reloads after a write and tells the Timer.
     func changed() async {
         await reload()
         await entriesChanged()
-        await engine.entriesChanged(titles: trainingTitles())
-    }
-}
-
-extension CalendarDraftSource {
-    var feedbackSource: SuggestionFeedback.Source {
-        switch self {
-        case .block, .drawn: .block
-        case .timeBlock, .event: .event
-        }
-    }
-
-    var block: ActivityBlock? {
-        if case let .block(block) = self {
-            return block
-        }
-        return nil
     }
 }

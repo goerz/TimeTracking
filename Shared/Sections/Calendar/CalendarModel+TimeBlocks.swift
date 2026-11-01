@@ -1,5 +1,5 @@
 // Time blocks: drawing, editing, moving, deleting with undo, and the
-// calendar options (spec_calendar.md §4.1, §4.2, §7).
+// Calendar settings (spec_calendar.md §4.1, §4.2, §6).
 
 import Foundation
 import TimeTrackingCore
@@ -142,21 +142,16 @@ extension CalendarModel {
         undoManager.setActionName(String(name.dropFirst("Undo ".count)))
     }
 
-    // MARK: Options (§7)
+    // MARK: Settings (§6)
 
     func setSnapMinutes(_ minutes: Int) async {
-        try? await store.set(.calendarSnapMinutes, CalendarSnap.choices.contains(minutes) ? minutes : 5)
-        await reload()
-    }
-
-    func setFillMinMinutes(_ minutes: Int) async {
-        try? await store.set(.fillMinMinutes, min(30, max(1, minutes)))
-        await reload()
-    }
-
-    func setTrainDays(_ days: Int) async {
-        try? await store.set(.trainDays, min(730, max(30, days)))
-        await reload()
+        let value = CalendarSnap.choices.contains(minutes) ? minutes : 5
+        do {
+            try await store.set(.calendarSnapMinutes, value)
+            snapMinutes = value
+        } catch {
+            report(error)
+        }
     }
 
     /// The checklist: every event calendar except the time-block calendar, by account.
@@ -167,10 +162,18 @@ extension CalendarModel {
             .map { ($0.key, $0.value.sorted { $0.title < $1.title }) }
     }
 
+    /// Checks or unchecks one calendar; checked calendars this device does
+    /// not have stay in the synced list.
     func setShown(_ calendar: CalendarInfo, _ shown: Bool) async {
-        shownCalendars.removeAll { $0 == calendar.choice }
+        var choices = shownCalendars.filter { $0 != calendar.choice }
         if shown {
-            shownCalendars.append(calendar.choice)
+            choices.append(calendar.choice)
+        }
+        do {
+            try await store.set(.calendarShownCalendars, choices)
+            shownCalendars = choices
+        } catch {
+            report(error)
         }
         await reload()
     }
@@ -186,26 +189,14 @@ extension CalendarModel {
     func recreateTimeBlockCalendar() async {
         let resolution = TimeBlockCalendar.recreate(store: events)
         if let id = resolution.settingToWrite {
-            try? await store.set(.timeBlockCalendarID, id)
-            device[.calendarTimeBlockCalendar] = id
+            do {
+                try await store.set(.timeBlockCalendarID, id)
+                device[.calendarTimeBlockCalendar] = id
+            } catch {
+                report(error)
+            }
         }
+        await resolveTimeBlockCalendar()
         await reload()
-    }
-
-    /// The titles of events and time blocks over the training window.
-    func trainingTitles() -> [SuggestionCalendarTitle] {
-        guard events.access() == .fullAccess else {
-            return []
-        }
-        let now = clock.now
-        let window = DateInterval(start: now - Double(trainDays) * 86_400, end: now)
-        let ids = Set([timeBlockCalendar?.id].compactMap(\.self) + calendars.filter { shownCalendars.contains($0.choice) }.map(\.id))
-        let found = (try? events.events(in: window, calendarIDs: ids)) ?? []
-        return found.map { SuggestionCalendarTitle(title: $0.title, interval: $0.interval) }
-    }
-
-    /// "Relearn Suggestions": rebuilds the index.
-    func rebuildIndex() async {
-        await engine.rebuild(titles: trainingTitles())
     }
 }

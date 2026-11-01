@@ -1,18 +1,14 @@
 // The Calendar's subscriptions while it is visible: the block log and
-// EventKit (spec_calendar.md §3.4, §4.1, §5.5).
+// EventKit (spec_calendar.md §3.4, §4.1).
 
 import Foundation
 import TimeTrackingCore
 
 extension CalendarModel {
-    /// Follows the block log; a changed month file also updates the
-    /// suggestions index (throttled like entry changes).
+    /// Follows the block log.
     func followActivity() async {
-        for await change in activity.changes {
+        for await _ in activity.changes {
             await reload()
-            if case .blocks = change {
-                await engine.entriesChanged(titles: trainingTitles())
-            }
         }
     }
 

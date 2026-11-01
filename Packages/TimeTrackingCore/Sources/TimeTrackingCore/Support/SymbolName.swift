@@ -59,7 +59,6 @@ public enum SymbolName {
     public static let idle = "moon.zzz"
     public static let reminders = "bell"
     public static let shortcuts = "keyboard"
-    public static let suggestions = "sparkles"
 
     // MARK: Navigation, lists, and toolbars
 

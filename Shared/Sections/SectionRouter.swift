@@ -87,14 +87,13 @@ final class SectionRouter {
     @ObservationIgnored var copyText: (String) -> Void = { _ in }
 
     /// `activity` reads the block log; `events` is EventKit (Mac, iPad) or
-    /// an in-memory store; `suggestionsCache` spares the launch rebuild.
+    /// an in-memory store.
     init(
         store: TimeStore,
         clock: any Clock,
         device: DeviceSettings,
         activity: any ActivityReading = InMemoryActivityStore(),
-        events: any CalendarEventStore = InMemoryCalendarEventStore(access: .denied),
-        suggestionsCache: URL? = nil
+        events: any CalendarEventStore = InMemoryCalendarEventStore(access: .denied)
     ) {
         self.device = device
         self.section = device[.selectedSection]
@@ -102,8 +101,7 @@ final class SectionRouter {
         self.range = range
         self.projects = ProjectsModel(store: store, clock: clock, device: device)
         self.reports = ReportsModel(store: store, clock: clock, device: device, range: range)
-        let engine = SuggestionEngine(store: store, activity: activity, cacheURL: suggestionsCache)
-        self.calendar = CalendarModel(store: store, clock: clock, device: device, activity: activity, events: events, engine: engine)
+        self.calendar = CalendarModel(store: store, clock: clock, device: device, activity: activity, events: events)
         self.activity = ActivityModel(store: store, clock: clock, device: device, activity: activity, range: range)
         projects.router = self
         reports.router = self

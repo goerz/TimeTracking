@@ -1,4 +1,4 @@
-// Settings, devices, suggestion feedback, and tombstone retention
+// Settings, devices, and tombstone retention
 // (spec_data_and_sync.md §1.6 to §1.8, §3.2).
 
 import Foundation
@@ -72,20 +72,13 @@ extension StoreTransaction {
         markChanged(SyncRecordRef(.device, device.id.rawValue))
     }
 
-    public func recordSuggestionFeedback(_ feedback: SuggestionFeedback) throws {
-        var feedback = feedback
-        feedback.modifiedAt = modifiedAt
-        try feedback.save(database)
-        markChanged(SyncRecordRef(.suggestionFeedback, feedback.id.rawValue))
-    }
-
     /// Daily maintenance: hard-deletes tombstones older than 180 days and
     /// queues their deletion. Returns the number of records removed.
     @discardableResult
     public func purgeExpiredTombstones() throws -> Int {
         let cutoff = Time.seconds(now) - Int64(Self.retention)
         var count = 0
-        let types: [SyncRecordType] = [.client, .area, .project, .timeEntry, .setting, .suggestionFeedback]
+        let types: [SyncRecordType] = [.client, .area, .project, .timeEntry, .setting]
         for type in types {
             guard let (table, key) = Self.table(of: type) else {
                 continue
@@ -124,7 +117,6 @@ extension StoreTransaction {
         case .timeEntry: ("time_entry", "id")
         case .setting: ("setting", "key")
         case .device: ("device", "id")
-        case .suggestionFeedback: ("suggestion_feedback", "id")
         case .liveState: nil
         }
     }

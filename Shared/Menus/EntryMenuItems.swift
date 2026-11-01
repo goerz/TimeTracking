@@ -39,8 +39,6 @@ struct EntryMenuItems: View {
         Divider()
         calendarItems([.moveEarlier, .moveLater, .lengthen, .shorten])
         Divider()
-        calendarItems([.fillDay])
-        Divider()
         deleteButton
     }
 

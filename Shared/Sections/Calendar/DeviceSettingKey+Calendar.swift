@@ -1,5 +1,5 @@
 // The Calendar's and Activity's per-device view state
-// (spec_calendar.md §7, spec_activity.md §1.9).
+// (spec_calendar.md §6, spec_activity.md §1.9).
 
 import Foundation
 import TimeTrackingCore
@@ -28,13 +28,6 @@ extension DeviceSettingKey where Value == Bool {
     /// A block existed once; the Activity setup card never returns.
     static var activitySawBlock: Self {
         Self("planner.activity.sawBlock", default: false)
-    }
-}
-
-extension DeviceSettingKey where Value == [CalendarChoice] {
-    /// External calendars to show, as (account, calendar) titles.
-    static var calendarShownCalendars: Self {
-        Self("planner.calendar.shownCalendars", default: [])
     }
 }
 
