@@ -205,6 +205,9 @@ final class PhoneModel {
             if isActive, !keys.isDisjoint(with: Self.healthSettingNames) {
                 await importHealth(interactive: true)
             }
+            if keys.contains(where: { $0.hasPrefix("calendar.") }) {
+                await pad?.storeChanged()
+            }
         case .health:
             await pad?.storeChanged()
         case let .sync(status):

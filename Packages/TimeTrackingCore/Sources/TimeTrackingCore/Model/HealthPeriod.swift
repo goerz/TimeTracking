@@ -46,6 +46,25 @@ public struct HealthPeriod: Identifiable, Hashable, Sendable {
     }
 }
 
+extension HealthPeriod.Kind {
+    /// The project a report counts this kind as, inside the area the
+    /// settings choose; no project record has this id.
+    public var reportProjectID: ProjectID {
+        switch self {
+        case .sleep: ProjectID(UUID(uuid: (0x5E, 0xE9, 0, 0, 0, 0, 0x40, 0, 0x80, 0, 0, 0, 0, 0, 0, 1)))
+        case .workout: ProjectID(UUID(uuid: (0x5E, 0xE9, 0, 0, 0, 0, 0x40, 0, 0x80, 0, 0, 0, 0, 0, 0, 2)))
+        }
+    }
+
+    /// That project's name: "Sleep", "Workouts".
+    public var reportName: String {
+        switch self {
+        case .sleep: "Sleep"
+        case .workout: "Workouts"
+        }
+    }
+}
+
 extension HealthPeriod {
     /// Sleep samples less than this apart belong to one period.
     public static let sleepJoin: TimeInterval = 30 * 60

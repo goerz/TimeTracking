@@ -23,4 +23,35 @@ extension CalendarModel {
         let span = calendar.interval(of: day)
         return healthPeriods.filter { $0.interval.intersects(span) }
     }
+
+    /// Every live area as "Client" (a general area) or "Client · Area",
+    /// by client and area order.
+    func loadHealthAreaChoices() async {
+        do {
+            let clients = try await store.clients(includeRetired: true)
+            let names = Dictionary(clients.map { ($0.id, $0.name) }, uniquingKeysWith: { first, _ in first })
+            let areas = try await store.areas(of: nil, includeRetired: true)
+            healthAreaChoices = clients.flatMap { client in
+                areas.filter { $0.clientID == client.id }.map { area in
+                    let clientName = names[area.clientID] ?? ""
+                    return (area.id, area.isGeneral ? clientName : "\(clientName) · \(area.name)")
+                }
+            }
+        } catch {
+            report(error)
+        }
+    }
+
+    /// Counts `kind` in the reports of `area`, or nowhere.
+    func setHealthArea(_ kind: HealthPeriod.Kind, _ area: AreaID?) async {
+        do {
+            switch kind {
+            case .sleep: try await store.set(.calendarSleepAreaID, area)
+            case .workout: try await store.set(.calendarWorkoutAreaID, area)
+            }
+            healthAreas[kind] = area
+        } catch {
+            report(error)
+        }
+    }
 }

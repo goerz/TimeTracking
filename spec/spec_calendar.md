@@ -171,7 +171,7 @@ The Calendar's settings are the Calendar pane of the Mac's settings window ([spe
 
 - Snap to (1, 5, 10, 15 minutes), footer "Entries and time blocks you draw, move, or resize start and end on this step.";
 - Time blocks: a Calendar menu of the iCloud account's writable calendars by title, then a divider and "New Calendar…" (a new calendar "Time Blocks" in the iCloud account, "Time Blocks 2" and so on when the title is taken there). Choosing a calendar writes both settings of 4.1, so every device moves its time blocks to it; events already in the chosen calendar become time blocks. Without an iCloud account or access the row is text instead: "Time blocks need an iCloud calendar account" or "No calendar access". Footer "Time blocks are events in this iCloud calendar, so they appear on all your devices and in every calendar app.";
-- Apple Health: toggles "Sleep" and "Workouts", footer "Sleep and workouts appear as lines in the Activity column. Your iPhone reads them from the Health app; open the app on your iPhone to allow it." The iPhone has the same toggles in its Settings and imports while either is on ([spec_ios.md](spec_ios.md) §7 item 6);
+- Apple Health: toggles "Sleep" and "Workouts", each followed by an "In Reports" menu ("Not counted", a divider, then every area as "Client" for a general area and "Client · Area" otherwise, retired ones included), disabled while its toggle is off, which makes Reports count that kind as a project of the area ([spec_reports.md](spec_reports.md) §1.1); footer "Sleep and workouts appear as lines in the Activity column, and in Reports as a project of the area you choose. Your iPhone reads them from the Health app; open the app on your iPhone to allow it." The iPhone has the same toggles in its Settings and imports while either is on ([spec_ios.md](spec_ios.md) §7 item 6);
 - Calendars to show (4.3), footer "Events of these calendars appear in the Calendar column." (without access: "The Calendar asks for calendar access the first time it shows its Calendar column."). On the Mac a 150 point list that scrolls, with one checkbox per calendar under a caption with its account, so the pane stays short however many calendars there are; on the iPad one toggle per calendar with its account below the title.
 
 The settings read the calendars without asking for access; like the Calendar column, they resolve the time-block calendar (4.1), creating it when no device has.
@@ -184,6 +184,7 @@ The settings read the calendars without asking for access; like the Calendar col
 | `calendar.timeBlockCalendarTitle` | unset ("Time Blocks") | written with the identifier (4.1) |
 | `calendar.showSleep` | off | on, off |
 | `calendar.showWorkouts` | off | on, off |
+| `calendar.sleepAreaID`, `calendar.workoutAreaID` | none (not counted) | an area |
 
 Per device: `pointsPerHour` (72), `visibleDays` (5), column toggles (on), the resolved time-block calendar. Each launch starts with today centered.
 

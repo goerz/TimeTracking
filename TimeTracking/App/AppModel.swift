@@ -147,15 +147,13 @@ final class AppModel {
         case let .settings(keys):
             await pomodoro.loadSettings()
             revision += 1
-            if mainWindowIsOpen, sections.section == .calendar, keys.contains(where: { $0.hasPrefix("calendar.") }) {
-                await sections.calendar.reload()
+            if keys.contains(where: { $0.hasPrefix("calendar.") }) {
+                await reloadHealthViews()
             }
         case .sync, .liveState, .adjusted:
             return
         case .health:
-            if mainWindowIsOpen, sections.section == .calendar {
-                await sections.calendar.reload()
-            }
+            await reloadHealthViews()
         case .entries, .runningEntry, .structure:
             await afterChange()
             if mainWindowIsOpen {

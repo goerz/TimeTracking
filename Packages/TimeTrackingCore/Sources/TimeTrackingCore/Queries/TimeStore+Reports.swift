@@ -143,7 +143,7 @@ extension TimeStore: Reporting {
         }
     }
 
-    /// The groups of entries matching `query`.
+    /// The groups of entries matching `query`, and the mapped health time.
     func reportRows(_ query: ReportQuery) throws -> [ReportRow] {
         let projects = try reportProjects()
         let filter = query.filter
@@ -163,7 +163,7 @@ extension TimeStore: Reporting {
             )
         }
         var periods: [String: (TrackingDay, TrackingPeriod)] = [:]
-        return groups.compactMap { row -> ReportRow? in
+        let entryRows = groups.compactMap { row -> ReportRow? in
             let projectKey: String? = row["project_id"]
             let project = projectKey.flatMap { projects[$0] }
             guard Self.passes(project, projectID: project?.id ?? projectKey.flatMap(ProjectID.init), filter: filter),
@@ -188,6 +188,7 @@ extension TimeStore: Reporting {
                 running: row["running"]
             )
         }
+        return try entryRows + healthReportRows(query)
     }
 
     /// Every project by its id text, with its area and client.

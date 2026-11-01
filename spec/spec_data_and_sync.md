@@ -90,6 +90,7 @@ Synced settings are records; device settings live in the App Group's `UserDefaul
 | `calendar.timeBlockCalendarTitle` | synced | String? | nil ("Time Blocks") | Calendar |
 | `calendar.showSleep` | synced | Bool | false | Calendar; the iPhone imports sleep while on (1.9) |
 | `calendar.showWorkouts` | synced | Bool | false | Calendar; the iPhone imports workouts while on (1.9) |
+| `calendar.sleepAreaID`, `calendar.workoutAreaID` | synced | AreaID? | nil | Calendar settings; Reports count the kind in that area (7.3) |
 | `calendar.snapMinutes` | synced | Int | 5 | Calendar |
 | `calendar.shownCalendars` | synced | [(account, calendar)] titles | [] | Calendar |
 | `deviceID` | device | UUID | created on first launch | this spec |
@@ -429,7 +430,7 @@ public protocol Reporting: Sendable {
 }
 ```
 
-A report counts each entry whose `day` lies in the range whole in its day, the running one up to the query time, so the Timer list and Reports agree. Client and area grouping use the project's current area. The `ReportCSVWriter` writes the Breakdown and Entries CSV whose columns spec_automation.md defines.
+A report counts each entry whose `day` lies in the range whole in its day, the running one up to the query time, so the Timer list and Reports agree. Client and area grouping use the project's current area. A health kind that is shown and mapped to a live area by its setting adds one row per day it touches, its part of that day, under the fixed project id `kind.reportProjectID` named "Sleep" or "Workouts" in that area, with an empty task; the filters treat it as a project of that area with no record ([spec_reports.md](spec_reports.md) §1.1). `entries(matching:)` returns entries only. The `ReportCSVWriter` writes the Breakdown and Entries CSV whose columns spec_automation.md defines.
 
 ### 7.4 Observation
 

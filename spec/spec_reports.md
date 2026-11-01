@@ -8,6 +8,10 @@ From top to bottom: the filter bar while filters are active (3), four tiles, the
 
 The window title is "Reports" and its subtitle the range label ("This week · W44"). Toolbar ([spec_design.md](spec_design.md) §4): leading the previous- and next-period arrows and the range menu (2.2); trailing Filters and the search field (3.1). The chart card's header holds "Logged time" and "Stack by"; the lower card's header the segmented control (Breakdown | Entries), the level chain, Expand All / Collapse All, and Export (`square.and.arrow.up`, 7).
 
+### 1.1 Sleep and workouts
+
+With Sleep or Workouts on and an area chosen for it under "In Reports" in the Calendar settings ([spec_calendar.md](spec_calendar.md) §6), Reports count that kind's health periods ([spec_data_and_sync.md](spec_data_and_sync.md) §1.9) as a project "Sleep" or "Workouts" of that area, without a task: in the tiles, the chart, the breakdown, and the Breakdown CSV, and so in the tool's `report`. A period counts on each day it touches with its part of that day, as one entry per day ("Entries" and "Days with entries" count it). The project has no record, so the Projects section and the filter tree do not list it: a checked area or client covers it, while a checked project, "No project", and a task filter leave it out; the search finds it by "Sleep" or "Workouts" and by its area and client names. Its stack segment and dot take the area's color. The entry list and the Entries CSV hold only entries, and double-clicking its breakdown row shows an empty list.
+
 ## 2. Date range
 
 ### 2.1 Days
@@ -219,12 +223,13 @@ The router's `showReports(range:filter:)` sets the range, replaces the filters (
 - PR-14. Stack by Area colors each segment with its area and orders the legend by area order; with Project the second project of an area uses lightness +0.12; with None there is one accent segment per bar and no legend.
 - PR-15. The level chain allows at most four levels of unused kinds; changing a level resets expansion.
 - PR-16. Double-clicking a node shows the entry list filtered to its key path with a chip; Escape removes the chip.
-- PR-17. The list's footer total equals the Logged time tile to the second; the running entry's Duration increases each second.
+- PR-17. Without sleep or workouts counted (1.1), the list's footer total equals the Logged time tile to the second; the running entry's Duration increases each second.
 - PR-18. Double-clicking a list row opens the edit popover; a saved edit updates tiles, chart, and table. The context menu has Edit…, Continue, and Show in Calendar.
 - PR-19. Both CSV exports are byte-identical to the CLI's output for the same range, filters, and levels.
 - PR-20. The commands of section 8 are enabled only while Reports is shown in the key main window, under the View menu's "Report" header; ⌃⌘1 and ⌃⌘2 switch the card without changing the section.
 - PR-21. With a running entry in the range the Logged time tile changes within 60 seconds; with none, no periodic timer runs.
 - PR-22. Calling `showReports` with a project and "All time" sets exactly that filter, turns "Include archived projects" on, clears the search, and shows the Breakdown.
+- PR-23. With Sleep on and mapped to the area Health, a night from 23:00 to 06:30 adds 6h 30m to the second day as the project Sleep under Health; unmapped, with Sleep off, or with a task filter it counts nothing; the search "sleep" finds it; `entries(matching:)` does not list it.
 
 ## 11. Decisions
 

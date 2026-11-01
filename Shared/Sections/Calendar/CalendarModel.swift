@@ -96,6 +96,10 @@ final class CalendarModel {
     var shownCalendars: [CalendarChoice] = []
     var showSleep = false
     var showWorkouts = false
+    /// The areas whose reports count sleep and workouts (§6).
+    var healthAreas: [HealthPeriod.Kind: AreaID] = [:]
+    /// The settings' area menus: every live area, "Client" or "Client · Area".
+    var healthAreaChoices: [(id: AreaID, title: String)] = []
 
     /// Presentation state.
     var selection: Set<CalendarItemID> = []
@@ -229,6 +233,7 @@ final class CalendarModel {
         }
         await resolveTimeBlockCalendar()
         calendars = events.access() == .fullAccess ? events.calendars() : []
+        await loadHealthAreaChoices()
     }
 
     private func readSyncedSettings() async throws {
@@ -236,6 +241,8 @@ final class CalendarModel {
         shownCalendars = try await store.value(.calendarShownCalendars)
         showSleep = try await store.value(.calendarShowSleep)
         showWorkouts = try await store.value(.calendarShowWorkouts)
+        healthAreas[.sleep] = try await store.value(.calendarSleepAreaID)
+        healthAreas[.workout] = try await store.value(.calendarWorkoutAreaID)
     }
 
     /// The time-block calendar and the checked calendars over the visible
@@ -296,18 +303,6 @@ final class CalendarModel {
         } catch {
             report(error)
         }
-    }
-
-    /// Whether calendar access was granted, as of the last resolution.
-    var hasCalendarAccess: Bool {
-        timeBlockState != nil && timeBlockState != .noAccess
-    }
-
-    var timeBlockCalendar: CalendarInfo? {
-        if case let .ready(calendar) = timeBlockState {
-            return calendar
-        }
-        return nil
     }
 
     /// The color of an external event's calendar.

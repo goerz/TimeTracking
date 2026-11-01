@@ -105,6 +105,19 @@ extension SyncedSettingKey<Bool> {
     }
 }
 
+extension SyncedSettingKey<AreaID?> {
+    /// The area whose reports count sleep, as the project "Sleep"
+    /// (spec_reports.md §1.1); nil counts it nowhere.
+    public static var calendarSleepAreaID: Self {
+        Self("calendar.sleepAreaID", default: nil)
+    }
+
+    /// The area whose reports count workouts, as the project "Workouts".
+    public static var calendarWorkoutAreaID: Self {
+        Self("calendar.workoutAreaID", default: nil)
+    }
+}
+
 extension SyncedSettingKey<String?> {
     public static var timeBlockCalendarID: Self {
         Self("calendar.timeBlockCalendarID", default: nil)

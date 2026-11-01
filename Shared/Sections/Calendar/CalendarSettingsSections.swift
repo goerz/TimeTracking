@@ -34,14 +34,16 @@ struct CalendarSettingsSections: View {
         Section {
             Toggle("Sleep", isOn: health(.sleep))
                 .accessibilityIdentifier("settings.calendar.showSleep")
+            reportArea(.sleep)
             Toggle("Workouts", isOn: health(.workout))
                 .accessibilityIdentifier("settings.calendar.showWorkouts")
+            reportArea(.workout)
         } header: {
             Text("Apple Health")
         } footer: {
             Text(
-                "Sleep and workouts appear as lines in the Activity column. Your iPhone reads them from the Health app; "
-                    + "open the app on your iPhone to allow it."
+                "Sleep and workouts appear as lines in the Activity column, and in Reports as a project of the area you choose. "
+                    + "Your iPhone reads them from the Health app; open the app on your iPhone to allow it."
             )
         }
         Section {
@@ -132,6 +134,23 @@ struct CalendarSettingsSections: View {
         case .noICloudAccount: "Time blocks need an iCloud calendar account"
         case .noAccess, nil: "No calendar access"
         }
+    }
+
+    /// "In Reports": not counted, or a client or area; off while the kind is.
+    private func reportArea(_ kind: HealthPeriod.Kind) -> some View {
+        Picker("In Reports", selection: Binding {
+            model.healthAreas[kind]
+        } set: { area in
+            Task { await model.setHealthArea(kind, area) }
+        }) {
+            Text("Not counted").tag(AreaID?.none)
+            Divider()
+            ForEach(model.healthAreaChoices, id: \.id) { choice in
+                Text(choice.title).tag(AreaID?.some(choice.id))
+            }
+        }
+        .disabled(kind == .sleep ? !model.showSleep : !model.showWorkouts)
+        .accessibilityIdentifier("settings.calendar.\(kind.rawValue)Area")
     }
 
     private func health(_ kind: HealthPeriod.Kind) -> Binding<Bool> {

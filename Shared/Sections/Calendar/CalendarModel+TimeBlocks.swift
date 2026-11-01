@@ -203,6 +203,18 @@ extension CalendarModel {
         }
     }
 
+    /// Whether calendar access was granted, as of the last resolution.
+    var hasCalendarAccess: Bool {
+        timeBlockState != nil && timeBlockState != .noAccess
+    }
+
+    var timeBlockCalendar: CalendarInfo? {
+        if case let .ready(calendar) = timeBlockState {
+            return calendar
+        }
+        return nil
+    }
+
     /// The time-block calendar's menu: the writable calendars of the iCloud account.
     var timeBlockCalendarChoices: [CalendarInfo] {
         TimeBlockCalendar.choices(store: events)
