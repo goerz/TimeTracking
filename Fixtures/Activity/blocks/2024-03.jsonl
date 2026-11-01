@@ -1,4 +1,4 @@
-{"type":"header","format":1,"tz":"-05:00","dev":"macbook","contexts":{"tmux:paper":"com.example.terminal"}}
+{"type":"header","format":1,"tz":"-05:00","dev":"macbook","contexts":{"tmux:paper":"com.example.terminal"},"keys":{"s":"start (local time)","e":"end (local time)","a":"active seconds","dev":"device","g":"dominant group","gs":"share of the dominant group","items":"items [context, subject, detail, seconds]","bg":"background items [context, subject, detail, seconds]","src":"source (live, knowledge, or device)"}}
 {"s":"2024-03-01T09:19:00","e":"2024-03-01T10:56:15","a":5835,"dev":"macbook","g":"tmux:paper","gs":1,"items":[["tmux:paper","Draft appendix 2","",5835]],"bg":[],"src":"live"}
 {"s":"2024-03-01T10:56:15","e":"2024-03-01T11:55:21","a":3546,"dev":"macbook","g":"tmux:paper","gs":1,"items":[["tmux:paper","Plan tests 5","",3546]],"bg":[],"src":"live"}
 {"type":"header","format":1,"tz":"-05:00","dev":"macbook","contexts":{"safari":"com.apple.Safari","tmux:paper":"com.example.terminal"}}

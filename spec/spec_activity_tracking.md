@@ -150,15 +150,15 @@ Phase 1 verifies that the agent can write the container. If it cannot, the agent
 ### 4.2 Block log format
 
 ```json
-{"type":"header","format":1,"tz":"-04:00","dev":"macbook","contexts":{"tmux:paper":"com.github.wez.wezterm","safari":"com.apple.Safari","mail":"com.apple.mail","claude":"claude"}}
+{"type":"header","format":1,"tz":"-04:00","dev":"macbook","contexts":{"tmux:paper":"com.github.wez.wezterm","safari":"com.apple.Safari","mail":"com.apple.mail","claude":"claude"},"keys":{"s":"start (local time)","e":"end (local time)","a":"active seconds","dev":"device","g":"dominant group","gs":"share of the dominant group","items":"items [context, subject, detail, seconds]","bg":"background items [context, subject, detail, seconds]","src":"source (live, knowledge, or device)"}}
 {"s":"2026-10-28T09:10:00","e":"2026-10-28T09:44:30","a":1860,"dev":"macbook","g":"tmux:paper","gs":0.71,"items":[["tmux:paper","draft","nvim (3 files)",1080],["safari","github.com/owner/repo","pull/123",540],["mail","Inbox","",240]],"bg":[["claude","refactor-parser","",720]],"src":"live"}
 ```
 
-Each month file starts with a header object; another header follows a time zone change and precedes the first block using a context not yet in `contexts`, which maps context keys to bundle identifiers (or process names). Readers skip objects with a `type` and ignore unknown keys. In a block, `s` and `e` are local times on one date; `a` is the active seconds, the sum of item seconds before the summary cut (less than `e` minus `s` when idle gaps were absorbed); `g` and `gs` are the dominant group key and its share; `items` and `bg` (secondaries) hold `[context, subject, detail, seconds]` with `""` for no detail; `dev` is the device name, or `remote` for unattributed synced Safari history (6.1); `src` is `live`, `knowledge`, or `device`. Idle is the absence of a block.
+Each month file starts with a header object; another header follows a time zone change and precedes the first block using a context not yet in `contexts`, which maps context keys to bundle identifiers (or process names). The block keys are short to keep lines short, so the first header of each month file also carries `keys`, a legend mapping each block key to a human-readable label (the labels of the example); later headers leave it out, and readers ignore it. Readers skip objects with a `type` and ignore unknown keys. In a block, `s` and `e` are local times on one date; `a` is the active seconds, the sum of item seconds before the summary cut (less than `e` minus `s` when idle gaps were absorbed); `g` and `gs` are the dominant group key and its share; `items` and `bg` (secondaries) hold `[context, subject, detail, seconds]` with `""` for no detail; `dev` is the device name, or `remote` for unattributed synced Safari history (6.1); `src` is `live`, `knowledge`, or `device`. Idle is the absence of a block.
 
 ### 4.3 Detail log format
 
-A block line with `items` uncut, plus `urls` as `[time, browser, url, title]`, `files` as `[time, path]`, and `presence` as the state transitions in and around the block, so every gap between blocks is covered. The library reads it on the recording Mac only (`detail(for:)`, `spec_data_and_sync.md`).
+A block line with `items` uncut, plus `urls` as `[time, browser, url, title]`, `files` as `[time, path]`, and `presence` as the state transitions in and around the block, so every gap between blocks is covered, and `dwell` as Safari dwell times `[time, url, seconds]` from the Knowledge store (3.2) when there are any. The legend `keys` of the first header also labels these: `urls` "URL visits [time, browser, URL, title]", `files` "modified files [time, path]", `presence` "presence transitions [time, state]", `dwell` "Safari dwell times [time, URL, seconds]". The library reads it on the recording Mac only (`detail(for:)`, `spec_data_and_sync.md`).
 
 ### 4.4 Current state
 
@@ -429,6 +429,7 @@ The pane has no editors for exclusions or options and no maintenance controls: t
 - TRK-35. The "Open `<APP_NAME>` at login" row is ✓ when the app's login item is enabled; otherwise its action registers it, or opens Login Items when approval is required.
 - TRK-36. The tmux snippet sets `focus-events` and has one hook line per hook of 3.1, each calling `tracker-event tmux <hook>` with its own hook name, which the agent accepts; the Claude Code snippet does the same for its three hooks; every call discards its output and exit status.
 - TRK-37. "Ask for Access" on the Automation row asks for exactly the browsers and terminals the agent reads through Apple Events, skipping those that are not open, and the row then lists each open app's answer; before the first ask the row shows no such line.
+- TRK-38. The first header of each block-log and detail-log month file carries `keys`, naming exactly the keys of that log's block lines with the labels of 4.2 and 4.3; later headers carry none.
 
 ## 10. Decisions
 

@@ -9,6 +9,7 @@ public import Foundation
 /// A header goes at the start of a file, after a time zone change, and
 /// before the first block using a context the current header's `contexts`
 /// lacks; the new header carries the earlier contexts plus the new ones.
+/// The header at the start of a file also carries the legend `keys`.
 /// The writer keeps no global state: it caches each file's last header
 /// with the file size it saw and rescans the file when the size differs.
 public struct BlockLogWriter: Sendable {
@@ -48,7 +49,10 @@ public struct BlockLogWriter: Sendable {
             for context in missing {
                 merged[context] = contexts[context] ?? ""
             }
-            let header = BlockLogHeader(utcOffset: block.utcOffset, device: device, contexts: merged)
+            var header = BlockLogHeader(utcOffset: block.utcOffset, device: device, contexts: merged)
+            if state.header == nil {
+                header.keys = detail == nil ? BlockLogHeader.blockLogKeys : BlockLogHeader.detailLogKeys
+            }
             text += BlockLogLine.header(header).jsonText + "\n"
             state.header = header
         }

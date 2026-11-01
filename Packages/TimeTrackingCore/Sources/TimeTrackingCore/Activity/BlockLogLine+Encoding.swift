@@ -25,6 +25,13 @@ extension BlockLogLine {
         writer.add("tz", LocalTimestamp.offsetText(header.utcOffset))
         writer.add("dev", header.device)
         writer.add("contexts", header.contexts)
+        if !header.keys.isEmpty {
+            var legend = JSONObjectWriter()
+            for key in BlockLogHeader.keyOrder(header.keys) {
+                legend.add(key, header.keys[key] ?? "")
+            }
+            writer.addRaw("keys", legend.text)
+        }
         return writer.text
     }
 

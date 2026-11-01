@@ -1,4 +1,4 @@
-{"type":"header","format":1,"tz":"-04:00","dev":"macbook","contexts":{"claude":"claude","tmux:paper":"com.github.wez.wezterm"}}
+{"type":"header","format":1,"tz":"-04:00","dev":"macbook","contexts":{"claude":"claude","tmux:paper":"com.github.wez.wezterm"},"keys":{"s":"start (local time)","e":"end (local time)","a":"active seconds","dev":"device","g":"dominant group","gs":"share of the dominant group","items":"items [context, subject, detail, seconds]","bg":"background items [context, subject, detail, seconds]","src":"source (live, knowledge, or device)"}}
 {"s":"2024-03-14T08:58:00","e":"2024-03-14T09:40:00","a":2520,"dev":"macbook","g":"tmux:paper","gs":1,"items":[["tmux:paper","draft","nvim (5 files)",2520]],"bg":[["claude","refactor-parser","",1200]],"src":"live"}
 {"type":"header","format":1,"tz":"-04:00","dev":"macbook","contexts":{"claude":"claude","safari":"com.apple.Safari","tmux:paper":"com.github.wez.wezterm"}}
 {"s":"2024-03-14T09:40:00","e":"2024-03-14T10:08:00","a":1470,"dev":"macbook","g":"github.com/owner","gs":1,"items":[["safari","github.com/owner/repo","pull/123",900],["safari","github.com/owner/repo","issues/7",570]],"bg":[],"src":"live"}

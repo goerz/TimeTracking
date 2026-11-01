@@ -139,6 +139,51 @@ struct ActivityBlockLogTests {
         #expect(november.blocks.count == 1)
     }
 
+    @Test("TRK-38 the first header of a month file names every line key in its legend; later headers carry none")
+    func theFirstHeaderCarriesTheLegend() throws {
+        let folder = try TemporaryFolder()
+        defer { folder.remove() }
+        let safari = ActivityItem(context: "safari", subject: "example.org", detail: "", seconds: 600)
+        let mail = ActivityItem(context: "mail", subject: "Inbox", detail: "", seconds: 300)
+        let first = try ActivityFixture.block(start: "2026-10-01T13:00:00Z", end: "2026-10-01T13:10:00Z", items: [safari])
+        let second = try ActivityFixture.block(start: "2026-10-01T14:00:00Z", end: "2026-10-01T14:10:00Z", items: [mail])
+        var blocks = BlockLogWriter(folder: folder.url.appending(path: "blocks"), device: "macbook")
+        try blocks.append(first, contexts: [:])
+        try blocks.append(second, contexts: [:])
+        let detail = ActivityBlockDetail(
+            blockID: first.id,
+            items: first.items,
+            urls: [ActivityURLVisit(time: first.start, browser: "safari", url: "https://example.org/a", title: "A")],
+            files: [],
+            presence: [ActivityPresenceTransition(time: first.start, state: .active)],
+            dwell: [ActivityDwell(time: first.start, url: "https://example.org/a", seconds: 30)]
+        )
+        var details = BlockLogWriter(folder: folder.url.appending(path: "detail"), device: "macbook")
+        try details.append(first, contexts: [:], detail: detail)
+
+        func objects(_ url: URL) throws -> [[String: Any]] {
+            try String(contentsOf: url, encoding: .utf8).split(separator: "\n").map { line in
+                try #require(try JSONSerialization.jsonObject(with: Data(line.utf8)) as? [String: Any])
+            }
+        }
+        let blockLines = try objects(blocks.fileURL(forMonth: "2026-10"))
+        #expect(blockLines.count == 4)
+        let legend = try #require(blockLines[0]["keys"] as? [String: String])
+        #expect(Set(legend.keys) == Set(blockLines[1].keys))
+        #expect(legend["s"] == "start (local time)" && legend["a"] == "active seconds")
+        #expect(blockLines[2]["type"] as? String == "header" && blockLines[2]["keys"] == nil)
+        let detailLines = try objects(details.fileURL(forMonth: "2026-10"))
+        let detailLegend = try #require(detailLines[0]["keys"] as? [String: String])
+        #expect(Set(detailLegend.keys) == Set(detailLines[1].keys))
+
+        let headerText = try String(contentsOf: blocks.fileURL(forMonth: "2026-10"), encoding: .utf8).split(separator: "\n")[0]
+        #expect(headerText.contains(#""keys":{"s":"start (local time)","e":"end (local time)","a":"active seconds""#))
+        let parsed = try BlockLogLine.parse(Data(headerText.utf8), header: nil)
+        let expected = BlockLogHeader(utcOffset: -4 * 3600, device: "macbook", contexts: ["safari": ""], keys: BlockLogHeader.blockLogKeys)
+        #expect(parsed == .header(expected))
+        #expect(parsed.jsonText == String(headerText))
+    }
+
     @Test func aNewWriterContinuesAnExistingFileWithoutARepeatedHeader() throws {
         let folder = try TemporaryFolder()
         defer { folder.remove() }

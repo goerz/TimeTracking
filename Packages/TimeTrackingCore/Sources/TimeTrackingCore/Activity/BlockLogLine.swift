@@ -3,20 +3,31 @@
 
 public import Foundation
 
-/// A header of a month file: the time zone, the device, and the map from
-/// context keys to bundle identifiers (or process names).
+/// A header of a month file: the time zone, the device, the map from
+/// context keys to bundle identifiers (or process names), and, in a file's
+/// first header, the legend of the line keys.
 public struct BlockLogHeader: Sendable, Hashable {
     public var format: Int
     /// Seconds east of UTC of the following lines' local times (`tz`).
     public var utcOffset: Int
     public var device: String
     public var contexts: [String: String]
+    /// The legend (`keys`), each line key with a human-readable label;
+    /// empty for a header without one.
+    public var keys: [String: String]
 
-    public init(utcOffset: Int, device: String, contexts: [String: String], format: Int = 1) {
+    public init(
+        utcOffset: Int,
+        device: String,
+        contexts: [String: String],
+        keys: [String: String] = [:],
+        format: Int = 1
+    ) {
         self.format = format
         self.utcOffset = utcOffset
         self.device = device
         self.contexts = contexts
+        self.keys = keys
     }
 }
 
@@ -63,7 +74,13 @@ public enum BlockLogLine: Sendable, Hashable {
         guard let zone = record.zone, let offset = LocalTimestamp.parseOffset(zone) else {
             throw .malformedLine("a header without a valid tz")
         }
-        return BlockLogHeader(utcOffset: offset, device: record.dev ?? "", contexts: record.contexts, format: record.format ?? 1)
+        return BlockLogHeader(
+            utcOffset: offset,
+            device: record.dev ?? "",
+            contexts: record.contexts,
+            keys: record.keys,
+            format: record.format ?? 1
+        )
     }
 
     private static func block(_ record: LineRecord, header: BlockLogHeader) throws(ActivityError) -> Self {
@@ -140,7 +157,7 @@ public enum BlockLogLine: Sendable, Hashable {
 /// Every key a line may carry; unknown keys are ignored.
 private struct LineRecord: Decodable {
     enum CodingKeys: String, CodingKey {
-        case type, format, dev, contexts
+        case type, format, dev, contexts, keys
         case zone = "tz"
         case start = "s"
         case end = "e"
@@ -157,6 +174,7 @@ private struct LineRecord: Decodable {
     var zone: String?
     var dev: String?
     var contexts: [String: String]
+    var keys: [String: String]
     var start: String?
     var end: String?
     var active: Int?
@@ -180,6 +198,8 @@ private struct LineRecord: Decodable {
         self.zone = try container.decodeIfPresent(String.self, forKey: .zone)
         self.dev = try container.decodeIfPresent(String.self, forKey: .dev)
         self.contexts = try container.decodeIfPresent([String: String].self, forKey: .contexts) ?? [:]
+        // The legend is documentation; a malformed one doesn't spoil the line.
+        self.keys = (try? container.decodeIfPresent([String: String].self, forKey: .keys)) ?? [:]
         self.start = try container.decodeIfPresent(String.self, forKey: .start)
         self.end = try container.decodeIfPresent(String.self, forKey: .end)
         self.active = try container.decodeIfPresent(Int.self, forKey: .active)
