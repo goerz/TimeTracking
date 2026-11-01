@@ -176,3 +176,31 @@ extension Device {
         )
     }
 }
+
+extension HealthPeriod {
+    var syncRecord: SyncRecord {
+        .make(.healthPeriod, id.rawValue, [
+            "kind": value(kind.rawValue), "start": value(start), "end": value(end), "createdAt": value(createdAt),
+            "modifiedAt": value(modifiedAt), "deletedAt": value(deletedAt),
+        ])
+    }
+
+    init?(record: SyncRecord) {
+        guard let id: HealthPeriodID = Identifier(record.ref.name),
+              let kind = Kind(rawValue: record.text("kind") ?? ""),
+              let start = record.instant("start"),
+              let end = record.instant("end")
+        else {
+            return nil
+        }
+        self.init(
+            id: id,
+            kind: kind,
+            start: start,
+            end: end,
+            createdAt: record.instant("createdAt") ?? start,
+            modifiedAt: record.modifiedAt,
+            deletedAt: record.instant("deletedAt")
+        )
+    }
+}

@@ -9,6 +9,7 @@ struct TransactionOutcome: Sendable {
     var changedSettings: Set<String>
     var structureChanged: Bool
     var liveStateChanged: Bool
+    var healthChanged: Bool
     var adjustments: [EntryAdjustment]
     var queuedCount: Int
     var splitPieces: Int
@@ -18,13 +19,15 @@ struct TransactionOutcome: Sendable {
         self.changedSettings = transaction.changedSettings
         self.structureChanged = transaction.structureChanged
         self.liveStateChanged = transaction.liveStateChanged
+        self.healthChanged = transaction.healthChanged
         self.adjustments = transaction.adjustments
         self.queuedCount = transaction.queued.count
         self.splitPieces = transaction.splitPieceCount
     }
 
     var hasChanges: Bool {
-        queuedCount > 0 || !changedEntryIDs.isEmpty || structureChanged || liveStateChanged || !changedSettings.isEmpty
+        queuedCount > 0 || !changedEntryIDs.isEmpty || structureChanged || liveStateChanged || healthChanged
+            || !changedSettings.isEmpty
     }
 }
 

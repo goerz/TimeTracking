@@ -5,6 +5,9 @@ import SwiftUI
 
 /// The shared layout values; views use these instead of literals.
 enum Design {
+    /// The width of the Calendar's sleep and workout lines.
+    static let healthLineWidth: CGFloat = 4
+
     enum Spacing {
         /// Icon to label, dot to text.
         static let tight: CGFloat = 4
@@ -58,6 +61,10 @@ extension Color {
     static let stopTint = Color.red
     /// Error messages under a control or in a dialog.
     static let errorText = Color.red
+    /// Sleep from Apple Health in the Calendar's Activity column (dark blue).
+    static let sleepLine = Color(red: 0.11, green: 0.22, blue: 0.56)
+    /// Workouts from Apple Health there (dark green).
+    static let workoutLine = Color(red: 0.07, green: 0.42, blue: 0.20)
 }
 
 extension View {

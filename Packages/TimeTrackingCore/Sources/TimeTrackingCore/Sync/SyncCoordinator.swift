@@ -113,7 +113,7 @@ public actor SyncCoordinator {
         switch change {
         case .sync, .adjusted:
             return
-        case .entries, .structure, .settings:
+        case .entries, .structure, .settings, .health:
             unsent += await drain()
         case .runningEntry, .liveState:
             unsent += await drain()

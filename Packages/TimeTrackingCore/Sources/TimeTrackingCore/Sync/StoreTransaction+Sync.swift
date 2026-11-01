@@ -21,6 +21,7 @@ extension StoreTransaction {
         case .project: Project(row: row).syncRecord
         case .timeEntry: TimeEntry(row: row).syncRecord
         case .device: Device(row: row).syncRecord
+        case .healthPeriod: HealthPeriod(row: row).syncRecord
         case .setting, .liveState: Self.settingRecord(ref, row) // LiveState returned above
         }
         record.systemFields = row["ck_system_fields"]
@@ -118,6 +119,8 @@ extension StoreTransaction {
             recordRemoteAdjustment(entry, local: local)
         case .device:
             try Device(record: remote)?.save(database)
+        case .healthPeriod:
+            try HealthPeriod(record: remote)?.save(database)
         case .setting:
             try database.execute(
                 sql: """

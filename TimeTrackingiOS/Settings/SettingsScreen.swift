@@ -1,6 +1,6 @@
 // SettingsScreen: the iOS Settings (spec_ios.md §2.9): short sections on the
 // first screen; pinned projects, activity collection, and privacy on screens
-// of their own; the Calendar settings on the iPad.
+// of their own; Apple Health on the iPhone, the Calendar settings on the iPad.
 
 import AppIntents
 import SwiftUI
@@ -11,6 +11,8 @@ struct SettingsScreen: View {
 
     @State private var pinned: PinnedProjectsModel?
     @State private var notificationsDenied = false
+    @State private var showSleep = false
+    @State private var showWorkouts = false
     @Environment(\.openURL) private var openURL
 
     var body: some View {
@@ -22,6 +24,9 @@ struct SettingsScreen: View {
                 widgetSection
                 if let collection = model.collection as? CollectionModel {
                     activitySection(collection)
+                }
+                if model.pad == nil {
+                    healthSection
                 }
                 if let calendar = model.pad?.router.calendar {
                     NavigationLink {
@@ -51,6 +56,9 @@ struct SettingsScreen: View {
         await pinned.load()
         self.pinned = pinned
         notificationsDenied = await model.notifications.isDenied()
+        let kinds = await model.healthKinds()
+        showSleep = kinds.contains(.sleep)
+        showWorkouts = kinds.contains(.workout)
         await model.refreshOutbox()
         if let collection = model.collection as? CollectionModel {
             collection.refresh()
@@ -81,6 +89,30 @@ struct SettingsScreen: View {
             Text("iCloud")
         } footer: {
             Text("Entries show the name of the device that created them.")
+        }
+    }
+
+    /// The iPhone's Apple Health import (§7 item 6), the same synced
+    /// settings as the Calendar's on the Mac and iPad.
+    private var healthSection: some View {
+        Section {
+            Toggle("Sleep", isOn: health(.sleep, $showSleep))
+                .accessibilityIdentifier("settings.health.sleep")
+            Toggle("Workouts", isOn: health(.workout, $showWorkouts))
+                .accessibilityIdentifier("settings.health.workouts")
+        } header: {
+            Text("Apple Health")
+        } footer: {
+            Text("This iPhone reads your sleep and workouts from the Health app, so the Calendar on your Mac and iPad shows them.")
+        }
+    }
+
+    private func health(_ kind: HealthPeriod.Kind, _ value: Binding<Bool>) -> Binding<Bool> {
+        Binding {
+            value.wrappedValue
+        } set: { isOn in
+            value.wrappedValue = isOn
+            Task { await model.setHealth(kind, isOn) }
         }
     }
 

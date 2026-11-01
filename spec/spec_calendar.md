@@ -85,6 +85,8 @@ Trim (default) shortens the changed entry to abut the neighbor; Overlap forces t
 
 The column shows the day's blocks from `ActivityReading`, plus on the Mac today's open block, which grows with the now-line. A card is a light tint of the dominant item's context color with a 3 point left border in that color ([spec_activity.md](spec_activity.md) §1.3). Line 1 is the group key as the Activity section names it ("paper (tmux)", "github.com/owner"; [spec_activity.md](spec_activity.md) §1.3), never the raw key; line 2 is the dominant item's subject and detail. Secondaries add a "+1" badge; `src` `knowledge` blocks are hatched; `src` `device` blocks carry a phone or tablet glyph by the platform of the `Device` named by `dev`; `dev` `remote` blocks carry a cloud glyph. Parts covered by entries are dimmed to 50% opacity. On the Mac, a gap over 15 minutes between blocks of any device shows its duration as a faint label ("22m", "1h 10m"), centered in the gap, with a thin vertical line above and below it to the gap's ends.
 
+With Sleep or Workouts on (section 6), the health periods of the day ([spec_data_and_sync.md](spec_data_and_sync.md) §1.9) are 4 point lines centered in the column over their time, rounded at the ends: sleep dark blue, workouts dark green, on the Mac and the iPad. A night that crosses midnight shows on both days. A line lies under the blocks and over a gap's thin lines, and the gap's label stays readable on a background of its own over it. Its tooltip reads "Sleep 7h 10m" or "Workout 45m".
+
 ### 3.2 Hover popover
 
 After 400 ms of hover a popover opens beside the block (left of it in the rightmost day):
@@ -165,10 +167,11 @@ The navigation keys (← → ⇧← ⇧→, Tab and ⇧Tab, Escape) are the view
 
 ## 6. Settings and view state
 
-The Calendar's settings are the Calendar pane of the Mac's settings window ([spec_timer.md](spec_timer.md) §8) and the Calendar screen of the iPad's Settings ([spec_ios.md](spec_ios.md) §2.9), with the same three sections:
+The Calendar's settings are the Calendar pane of the Mac's settings window ([spec_timer.md](spec_timer.md) §8) and the Calendar screen of the iPad's Settings ([spec_ios.md](spec_ios.md) §2.9), with the same four sections:
 
 - Snap to (1, 5, 10, 15 minutes), footer "Entries and time blocks you draw, move, or resize start and end on this step.";
 - Time blocks: a Calendar menu of the iCloud account's writable calendars by title, then a divider and "New Calendar…" (a new calendar "Time Blocks" in the iCloud account, "Time Blocks 2" and so on when the title is taken there). Choosing a calendar writes both settings of 4.1, so every device moves its time blocks to it; events already in the chosen calendar become time blocks. Without an iCloud account or access the row is text instead: "Time blocks need an iCloud calendar account" or "No calendar access". Footer "Time blocks are events in this iCloud calendar, so they appear on all your devices and in every calendar app.";
+- Apple Health: toggles "Sleep" and "Workouts", footer "Sleep and workouts appear as lines in the Activity column. Your iPhone reads them from the Health app; open the app on your iPhone to allow it." The iPhone has the same toggles in its Settings and imports while either is on ([spec_ios.md](spec_ios.md) §7 item 6);
 - Calendars to show (4.3), footer "Events of these calendars appear in the Calendar column." (without access: "The Calendar asks for calendar access the first time it shows its Calendar column."). On the Mac a 150 point list that scrolls, with one checkbox per calendar under a caption with its account, so the pane stays short however many calendars there are; on the iPad one toggle per calendar with its account below the title.
 
 The settings read the calendars without asking for access; like the Calendar column, they resolve the time-block calendar (4.1), creating it when no device has.
@@ -179,6 +182,8 @@ The settings read the calendars without asking for access; like the Calendar col
 | `calendar.shownCalendars` | none | (account title, calendar title) pairs |
 | `calendar.timeBlockCalendarID` | unset | written by the app (4.1) |
 | `calendar.timeBlockCalendarTitle` | unset ("Time Blocks") | written with the identifier (4.1) |
+| `calendar.showSleep` | off | on, off |
+| `calendar.showWorkouts` | off | on, off |
 
 Per device: `pointsPerHour` (72), `visibleDays` (5), column toggles (on), the resolved time-block calendar. Each launch starts with today centered.
 
@@ -207,6 +212,7 @@ Per device: `pointsPerHour` (72), `visibleDays` (5), column toggles (on), the re
 21. Every key of section 5 has its effect; the arrows, Tab, and Escape are the view's keys, ⌘T and the period keys View menu items acting on the Calendar (⌥⌘→ by the visible span, ⇧⌘D opening the month picker), the rest items of the Entry menu and of View's Calendar header; ⌘O continues the one selected entry.
 22. Snap to and Calendars to show are synced settings: with "Team" (Google) checked on another device, checking "Work" (iCloud) here stores both and unchecking it leaves "Team".
 23. The Calendar menu lists the iCloud account's writable calendars and not a read-only one or another account's; choosing "Work" writes its identifier and title, and a device on which that identifier differs resolves "Work" by title; "New Calendar…" with "Time Blocks" taken creates "Time Blocks 2".
+24. With Sleep on and Workouts off, a night from 23:00 to 06:30 is drawn on both of its days and a workout is not; turning Workouts on adds it, turning Sleep off removes the night.
 
 ## 8. Decisions
 

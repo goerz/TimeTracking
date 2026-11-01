@@ -174,21 +174,35 @@ private struct ActivityColumn: View {
 
     var body: some View {
         let axis = model.axis(day)
+        let gaps = model.isRecordingMac ? model.gapLabels[day] ?? [] : []
         ZStack(alignment: .topLeading) {
             Color.clear
+            // Gap lines under the health lines, the gap texts over them.
+            ForEach(Array(gaps.enumerated()), id: \.offset) { _, label in
+                if let frame = axis.frame(of: label.0) {
+                    GapLabel(text: label.1, part: .lines)
+                        .frame(width: width, height: frame.height)
+                        .offset(y: frame.y)
+                }
+            }
+            ForEach(model.healthPeriods(on: day)) { period in
+                if let frame = axis.frame(of: period.interval) {
+                    HealthLine(period: period)
+                        .frame(width: width, height: max(Design.healthLineWidth, frame.height))
+                        .offset(y: frame.y)
+                }
+            }
+            ForEach(Array(gaps.enumerated()), id: \.offset) { _, label in
+                if let frame = axis.frame(of: label.0) {
+                    GapLabel(text: label.1, part: .text)
+                        .frame(width: width, height: frame.height)
+                        .offset(y: frame.y)
+                }
+            }
             ForEach(model.blocks.filter { $0.localDay == day.description }) { block in
                 if let frame = axis.frame(of: DateInterval(start: block.start, end: max(block.start, block.end))) {
                     BlockCard(model: model, block: block, size: CGSize(width: width - 4, height: max(4, frame.height)))
                         .offset(x: 2, y: frame.y)
-                }
-            }
-            if model.isRecordingMac {
-                ForEach(Array((model.gapLabels[day] ?? []).enumerated()), id: \.offset) { _, label in
-                    if let frame = axis.frame(of: label.0) {
-                        GapLabel(text: label.1)
-                            .frame(width: width, height: frame.height)
-                            .offset(y: frame.y)
-                    }
                 }
             }
         }
@@ -200,20 +214,59 @@ private struct ActivityColumn: View {
 }
 
 /// A gap's duration, centered in the gap, with a thin line above and below
-/// it to the gap's ends (§3.1).
+/// it to the gap's ends (§3.1), drawn in two parts so a health line can lie
+/// between the lines and the text.
 private struct GapLabel: View {
+    enum Part {
+        case lines
+        case text
+    }
+
     var text: String
+    var part: Part
 
     var body: some View {
-        VStack(spacing: 2) {
-            Rectangle().frame(width: 1)
-            Text(text).font(.caption).fixedSize()
-            Rectangle().frame(width: 1)
+        switch part {
+        case .lines:
+            VStack(spacing: 2) {
+                Rectangle().frame(width: 1)
+                Text(text).font(.caption).fixedSize().hidden()
+                Rectangle().frame(width: 1)
+            }
+            .padding(.vertical, 2)
+            .foregroundStyle(.tertiary)
+            .accessibilityHidden(true)
+        case .text:
+            Text(text)
+                .font(.caption)
+                .fixedSize()
+                .foregroundStyle(.tertiary)
+                .padding(.horizontal, 2)
+                .background(.background, in: .capsule)
+                .accessibilityLabel(text)
         }
-        .padding(.vertical, 2)
-        .foregroundStyle(.tertiary)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(text)
+    }
+}
+
+/// Sleep (dark blue) or a workout (dark green) from Apple Health: a line
+/// centered in the Activity column over the period (§3.1).
+private struct HealthLine: View {
+    var period: HealthPeriod
+
+    var body: some View {
+        Capsule()
+            .fill(period.kind == .sleep ? Color.sleepLine : Color.workoutLine)
+            .frame(width: Design.healthLineWidth)
+            .help(text)
+            .accessibilityElement()
+            .accessibilityLabel(text)
+            .accessibilityIdentifier("calendar.health.\(period.kind.rawValue)")
+    }
+
+    /// "Sleep 7h 10m", "Workout 45m".
+    private var text: String {
+        let name = period.kind == .sleep ? "Sleep" : "Workout"
+        return "\(name) \(ActivityText.duration(Int(period.interval.duration)))"
     }
 }
 

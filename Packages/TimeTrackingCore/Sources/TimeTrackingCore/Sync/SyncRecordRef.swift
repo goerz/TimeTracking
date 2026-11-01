@@ -10,6 +10,7 @@ public enum SyncRecordType: String, Codable, Sendable, CaseIterable {
     case timeEntry = "TimeEntry"
     case setting = "Setting"
     case device = "Device"
+    case healthPeriod = "HealthPeriod"
     case liveState = "LiveState"
 }
 

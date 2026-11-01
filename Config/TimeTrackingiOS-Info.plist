@@ -21,6 +21,8 @@
 	</array>
 	<key>NSCalendarsFullAccessUsageDescription</key>
 	<string>The Calendar tab shows your time blocks and the calendar events you choose next to your tracked time.</string>
+	<key>NSHealthShareUsageDescription</key>
+	<string>Your sleep and workouts appear in the Calendar on your Mac and iPad, next to your tracked time.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

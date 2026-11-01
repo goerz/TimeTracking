@@ -92,6 +92,19 @@ extension SyncedSettingKey<[CalendarChoice]> {
     }
 }
 
+extension SyncedSettingKey<Bool> {
+    /// Sleep from Apple Health as lines in the Calendar's Activity column
+    /// (spec_calendar.md §3.1, §6); the iPhone imports while it is on.
+    public static var calendarShowSleep: Self {
+        Self("calendar.showSleep", default: false)
+    }
+
+    /// Workouts from Apple Health, likewise.
+    public static var calendarShowWorkouts: Self {
+        Self("calendar.showWorkouts", default: false)
+    }
+}
+
 extension SyncedSettingKey<String?> {
     public static var timeBlockCalendarID: Self {
         Self("calendar.timeBlockCalendarID", default: nil)

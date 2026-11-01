@@ -85,12 +85,17 @@ final class CalendarModel {
     private(set) var projectRows: [ProjectID: ProjectRow] = [:]
     private(set) var summary: CalendarSummary?
     private(set) var timeBlockState: TimeBlockCalendarState?
+    /// Sleep and workouts from Apple Health in the visible range, of the
+    /// kinds the settings show.
+    private(set) var healthPeriods: [HealthPeriod] = []
     /// Gaps per day with their duration ("22m"), Mac only.
     private(set) var gapLabels: [TrackingDay: [(DateInterval, String)]] = [:]
 
     // Synced settings, written through the settings methods (§6).
     var snapMinutes = 5
     var shownCalendars: [CalendarChoice] = []
+    var showSleep = false
+    var showWorkouts = false
 
     /// Presentation state.
     var selection: Set<CalendarItemID> = []
@@ -206,6 +211,7 @@ final class CalendarModel {
             if isRecordingMac {
                 loadGapLabels()
             }
+            healthPeriods = try await loadHealthPeriods(in: interval)
             await assignContextColors()
         } catch {
             report(error)
@@ -228,6 +234,8 @@ final class CalendarModel {
     private func readSyncedSettings() async throws {
         snapMinutes = try await store.value(.calendarSnapMinutes)
         shownCalendars = try await store.value(.calendarShownCalendars)
+        showSleep = try await store.value(.calendarShowSleep)
+        showWorkouts = try await store.value(.calendarShowWorkouts)
     }
 
     /// The time-block calendar and the checked calendars over the visible

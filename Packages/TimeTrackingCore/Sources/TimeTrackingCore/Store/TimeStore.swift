@@ -242,6 +242,9 @@ public actor TimeStore {
         if outcome.structureChanged {
             broadcaster.yield(.structure)
         }
+        if outcome.healthChanged {
+            broadcaster.yield(.health)
+        }
         if !outcome.changedSettings.isEmpty {
             broadcaster.yield(.settings(outcome.changedSettings))
         }
@@ -284,5 +287,6 @@ public actor TimeStore {
         lastRunning = running
         broadcaster.yield(.runningEntry(running))
         broadcaster.yield(.structure)
+        broadcaster.yield(.health)
     }
 }

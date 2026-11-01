@@ -42,6 +42,8 @@ final class PhoneModel {
     /// The iPad's section tabs; `nil` on the iPhone.
     @ObservationIgnored let pad: PadSections?
     @ObservationIgnored var sync: SyncDriving?
+    /// Apple Health on the iPhone; `nil` on the iPad, without HealthKit, and in tests.
+    @ObservationIgnored var health: (any HealthAccess)?
     /// Bounds a wrapper intent's fetch (spec_ios.md §4 item 3); tests replace it.
     @ObservationIgnored var boundedFetch: @Sendable (@escaping @Sendable () async -> Void) async -> Void = { fetch in
         await Bounded.run(seconds: WidgetIntentActions.fetchTimeout, fetch)
@@ -167,7 +169,7 @@ final class PhoneModel {
     /// `foreground` line and flush (spec_ios.md §9.6, §9.7), then as a wake.
     func foreground() async {
         await collection.appMoved(toForeground: true)
-        await wake()
+        await wake(interactive: true)
     }
 
     /// The scene went to the background: the app's `background` line.
@@ -177,16 +179,18 @@ final class PhoneModel {
 
     /// The `BGAppRefreshTask`: a wake and a flush, without UI.
     func refreshTask() async {
-        await wake()
+        await wake(interactive: false)
         await collection.flush()
     }
 
-    /// Register the device, upload the push token, sync, and run the fan-out.
-    private func wake() async {
+    /// Register the device, upload the push token, sync, import from Apple
+    /// Health, and run the fan-out.
+    private func wake(interactive: Bool) async {
         await registerDevice()
         await uploadPushToken()
         await sync?.fetchNow()
         _ = try? await store.checkInvariants()
+        await importHealth(interactive: interactive)
         await fanOut(structureChanged: false)
     }
 
@@ -195,9 +199,14 @@ final class PhoneModel {
     /// A change from the store (this process, an extension, or sync).
     func storeChanged(_ change: StoreChange) async {
         switch change {
-        case .settings:
+        case let .settings(keys):
             await pomodoro.loadSettings()
             widgets.reloadTimelines()
+            if isActive, !keys.isDisjoint(with: Self.healthSettingNames) {
+                await importHealth(interactive: true)
+            }
+        case .health:
+            await pad?.storeChanged()
         case let .sync(status):
             await syncStatusChanged(status)
         case .liveState:

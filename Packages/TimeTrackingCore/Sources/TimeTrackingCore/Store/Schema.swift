@@ -7,12 +7,17 @@ import GRDB
 /// newer `meta.schema_version` than `version` is refused.
 enum Schema {
     /// The schema version this library writes.
-    static let version = 1
+    static let version = 2
 
     static var migrator: DatabaseMigrator {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("v1") { database in
             for statement in version1 {
+                try database.execute(sql: statement)
+            }
+        }
+        migrator.registerMigration("v2") { database in
+            for statement in version2 {
                 try database.execute(sql: statement)
             }
         }
@@ -42,7 +47,10 @@ enum Schema {
         try migrator.migrate(writer)
         try writer.write { database in
             try database.execute(
-                sql: "INSERT OR IGNORE INTO meta (key, value) VALUES ('schema_version', ?), ('store_id', ?)",
+                sql: """
+                INSERT INTO meta (key, value) VALUES ('schema_version', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value;
+                INSERT OR IGNORE INTO meta (key, value) VALUES ('store_id', ?)
+                """,
                 arguments: [String(version), storeID.uuidString.lowercased()]
             )
         }
@@ -59,6 +67,15 @@ enum Schema {
     }
 
     private static let bookkeeping = "created_at INTEGER NOT NULL, modified_at INTEGER NOT NULL, deleted_at INTEGER, ck_system_fields BLOB"
+
+    /// Version 2: sleep and workouts from Apple Health (§1.9).
+    private static let version2: [String] = [
+        """
+        CREATE TABLE health_period (id TEXT PRIMARY KEY, kind TEXT NOT NULL, start INTEGER NOT NULL,
+          "end" INTEGER NOT NULL, \(bookkeeping))
+        """,
+        "CREATE INDEX health_period_start ON health_period (start) WHERE deleted_at IS NULL",
+    ]
 
     private static let version1: [String] = [
         "CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)",

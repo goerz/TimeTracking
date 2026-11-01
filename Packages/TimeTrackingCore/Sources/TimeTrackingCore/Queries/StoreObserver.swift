@@ -62,7 +62,7 @@ public final class StoreObserver {
             structureRevision += 1
         case .settings:
             settingsRevision += 1
-        case .liveState:
+        case .liveState, .health:
             break
         case let .sync(status):
             syncStatus = status

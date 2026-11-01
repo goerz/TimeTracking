@@ -78,7 +78,7 @@ extension StoreTransaction {
     public func purgeExpiredTombstones() throws -> Int {
         let cutoff = Time.seconds(now) - Int64(Self.retention)
         var count = 0
-        let types: [SyncRecordType] = [.client, .area, .project, .timeEntry, .setting]
+        let types: [SyncRecordType] = [.client, .area, .project, .timeEntry, .setting, .healthPeriod]
         for type in types {
             guard let (table, key) = Self.table(of: type) else {
                 continue
@@ -117,6 +117,7 @@ extension StoreTransaction {
         case .timeEntry: ("time_entry", "id")
         case .setting: ("setting", "key")
         case .device: ("device", "id")
+        case .healthPeriod: ("health_period", "id")
         case .liveState: nil
         }
     }

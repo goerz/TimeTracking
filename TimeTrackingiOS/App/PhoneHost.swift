@@ -123,6 +123,8 @@ final class PhoneHost {
             collection: collection ?? NoCollection(),
             pad: pad
         )
+        // Only the iPhone imports from Apple Health (spec_ios.md §7 item 6).
+        model.health = settings.isPad ? nil : HealthKitAccess.available()
         if let container = identity?.cloudKitContainer {
             model.sync = CoordinatorSync(store: store, containerIdentifier: container) {
                 await widgets.reloadTimelines()

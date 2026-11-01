@@ -68,6 +68,27 @@ extension CalendarSectionTests {
         #expect(world.events.allEvents.first { $0.id == seminar.id }?.start == seminar.start)
     }
 
+    @Test("PC-24 with Sleep on and Workouts off, a night reaching into the day is drawn there and a workout is not")
+    func healthLines() async throws {
+        let world = try await World()
+        let model = world.model
+        let store = world.test.store
+        let night = try DateInterval(start: world.test.date("2024-03-13T23:00"), end: world.test.date("2024-03-14T06:30"))
+        let run = try DateInterval(start: world.test.date("2024-03-14T07:00"), end: world.test.date("2024-03-14T07:40"))
+        try await store.replaceHealthPeriods(.sleep, from: world.test.date("2024-03-01T00:00"), with: [night])
+        try await store.replaceHealthPeriods(.workout, from: world.test.date("2024-03-01T00:00"), with: [run])
+        await model.reload()
+        #expect(model.healthPeriods(on: Self.day("2024-03-14")).isEmpty)
+        await model.setShowHealth(.sleep, true)
+        #expect(try await store.value(.calendarShowSleep))
+        #expect(model.healthPeriods(on: Self.day("2024-03-14")).map(\.interval) == [night])
+        #expect(model.healthPeriods(on: Self.day("2024-03-13")).map(\.interval) == [night])
+        await model.setShowHealth(.workout, true)
+        #expect(model.healthPeriods(on: Self.day("2024-03-14")).map(\.kind) == [.sleep, .workout])
+        await model.setShowHealth(.sleep, false)
+        #expect(model.healthPeriods(on: Self.day("2024-03-14")).map(\.interval) == [run])
+    }
+
     @Test("PC-22 snapping and Calendars to show are synced; a checked calendar this device lacks stays checked")
     func syncedSettings() async throws {
         let world = try await World()

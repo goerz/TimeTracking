@@ -30,6 +30,7 @@ public final class StoreTransaction {
     private(set) var changedSettings: Set<String> = []
     var structureChanged = false
     var liveStateChanged = false
+    var healthChanged = false
     var adjustments: [EntryAdjustment] = []
     /// Number of midnight-split pieces created in this transaction.
     var splitPieceCount = 0
@@ -56,6 +57,8 @@ public final class StoreTransaction {
             structureChanged = true
         case .liveState:
             liveStateChanged = true
+        case .healthPeriod:
+            healthChanged = true
         }
         if queue, queuedSet.insert(ref).inserted {
             queued.append(ref)

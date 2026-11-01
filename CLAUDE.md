@@ -10,7 +10,7 @@ One Xcode project (`TimeTracking.xcodeproj`, hand-authored, file-system-synchron
 |---|---|
 | `Packages/TimeTrackingCore` | All logic: `Model/`, `Store/`, `Sync/`, `Push/`, `Queries/`, `Interchange/`, `Activity/`, `TimeBlocks/`, `Intents/`, `Support/`. Never imports SwiftUI, AppKit, UIKit, or WidgetKit. |
 | `TimeTracking/` | Mac app: scenes (main window, Mini Timer), Timer, `MainWindow/`, status item, settings, agent registration, global shortcuts, AppKit glue in `Platform/`, URL handler, `LiveStatePublisher` and `WidgetPushSender` |
-| `TimeTrackingiOS/` | iOS app: scenes, Timer tab, iPad tabs, background refresh and silent pushes, widget push token upload, URL handler |
+| `TimeTrackingiOS/` | iOS app: scenes, Timer tab, iPad tabs, background refresh and silent pushes, widget push token upload, URL handler, the iPhone's Apple Health import (`Health/`) |
 | `Shared/` | Views compiled into both apps; platform differences are `#if os(macOS)` around a modifier |
 | `WidgetShared/`, `CollectionShared/` | Code compiled into the iOS app and the widget extension, and into the iOS app and the monitor extension |
 | `AppResources/` | The app icon (`AppIcon.icon`) and the `AccentColor` asset, in the Mac app, the agent, and the iOS app (`spec_design.md` §9) |

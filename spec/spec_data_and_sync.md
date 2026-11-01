@@ -88,6 +88,8 @@ Synced settings are records; device settings live in the App Group's `UserDefaul
 | `activity.contextColors` | synced | [String: Int] (context to hue index) | {} | Activity |
 | `calendar.timeBlockCalendarID` | synced | String? | nil | Calendar |
 | `calendar.timeBlockCalendarTitle` | synced | String? | nil ("Time Blocks") | Calendar |
+| `calendar.showSleep` | synced | Bool | false | Calendar; the iPhone imports sleep while on (1.9) |
+| `calendar.showWorkouts` | synced | Bool | false | Calendar; the iPhone imports workouts while on (1.9) |
 | `calendar.snapMinutes` | synced | Int | 5 | Calendar |
 | `calendar.shownCalendars` | synced | [(account, calendar)] titles | [] | Calendar |
 | `deviceID` | device | UUID | created on first launch | this spec |
@@ -112,6 +114,18 @@ Every record has `createdAt` (a split piece's: its midnight), `modifiedAt` (the 
 
 Entries show "created on iPhone" through this record. Devices are never deleted automatically.
 
+### 1.9 Health period
+
+| Field | Type | Meaning |
+|---|---|---|
+| id | UUID | |
+| kind | String | `sleep` or `workout`. |
+| start, end | Instant | Whole seconds. |
+
+Sleep and workouts from Apple Health, for the Calendar ([spec_calendar.md](spec_calendar.md) §3.1). HealthKit exists only on the iPhone and iPad, so the iPhone imports and the store syncs the periods to the Mac and iPad; only the iPhone writes them ([spec_ios.md](spec_ios.md) §7 item 6). A sleep period is the asleep samples of any stage (unspecified, core, deep, REM) merged where they overlap or lie at most 30 minutes apart, plus each in-bed period that holds no asleep sample (a night recorded by the iPhone's sleep schedule alone); a workout period is a workout from start to end, overlapping workouts (one workout recorded by two apps) merged.
+
+An import of one kind covers the 60 days before now the first time, afterwards from 3 days before the previous import (samples a watch syncs late), and reads samples from a day earlier still, so a period that began before the range is whole. `replaceHealthPeriods(kind, from:, with:)` then makes the live periods of that kind starting at or after the range's start equal the imported ones: a period with the same start and end keeps its record, the others become tombstones, and new ones are created. Periods starting earlier are left alone. Health periods are not part of the JSON export.
+
 ## 2. Persistence
 
 ### 2.1 Store and schema
@@ -119,7 +133,7 @@ Entries show "created on iPhone" through this record. Devices are never deleted 
 One SQLite database in WAL mode, through GRDB.swift, at `<App Group container>/Library/Application Support/TimeTracking/store.sqlite` (identifiers in spec_architecture.md §1.5; Debug builds have their own). The tracker agent does not open it. Timestamps are Unix seconds except `modified_at` (milliseconds); booleans 0/1.
 
 ```sql
-CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);  -- schema_version '1', store_id
+CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);  -- schema_version '2', store_id
 
 CREATE TABLE client (id TEXT PRIMARY KEY, name TEXT NOT NULL,
   created_at INTEGER NOT NULL, modified_at INTEGER NOT NULL, deleted_at INTEGER, ck_system_fields BLOB);
@@ -150,6 +164,10 @@ CREATE TABLE device (id TEXT PRIMARY KEY, name TEXT NOT NULL, platform TEXT NOT 
 CREATE TABLE live_state (id INTEGER PRIMARY KEY CHECK (id = 1),   -- section 4
   running TEXT, changed_at INTEGER, activity TEXT NOT NULL DEFAULT '{}', ck_system_fields BLOB);
 
+CREATE TABLE health_period (id TEXT PRIMARY KEY, kind TEXT NOT NULL,   -- 1.9; schema version 2
+  start INTEGER NOT NULL, "end" INTEGER NOT NULL,
+  created_at INTEGER NOT NULL, modified_at INTEGER NOT NULL, deleted_at INTEGER, ck_system_fields BLOB);
+
 CREATE TABLE outbox (seq INTEGER PRIMARY KEY AUTOINCREMENT, record_type TEXT NOT NULL,
   record_id TEXT NOT NULL, queued_at INTEGER NOT NULL);
 CREATE TABLE sync_state (key TEXT PRIMARY KEY, value BLOB NOT NULL);  -- CKSyncEngine state
@@ -163,7 +181,7 @@ CREATE VIEW entries AS
   WHERE e.deleted_at IS NULL;
 ```
 
-Partial indexes cover live entries by `start`, by `day`, the running entry, (`project_id`, `task_key`, `start`), and `split_root_id`. The library computes `day` and `task_key` on every write. No foreign keys are declared, since records sync in any order. Migrations run forward on open and only add columns; a newer schema than the library knows is refused.
+Partial indexes cover live entries by `start`, by `day`, the running entry, (`project_id`, `task_key`, `start`), and `split_root_id`. The library computes `day` and `task_key` on every write. No foreign keys are declared, since records sync in any order. Migrations run forward on open and only add columns and tables (version 2 adds `health_period` and its index on live starts); a newer schema than the library knows is refused.
 
 Scripts open the file read-only (`?mode=ro`) and may rely on the `entries` view and the `client`, `area`, `project`, and `setting` tables, whose columns are stable within a major schema version (columns may be added). Everything else is private; scripts write through the command-line tool.
 
@@ -175,7 +193,7 @@ Writers are the app (Mac and iOS) and, on the Mac, the command-line tool; iOS wi
 
 ### 3.1 CloudKit layout and engine
 
-The private database of `iCloud.<APP_ID>` (development environment, spec_architecture.md) holds the zone `TimeTracking` with the record types `Client`, `Area`, `Project`, `TimeEntry`, `Setting`, `Device`, and `LiveState`, and the zone `ActivityEvents` with `DeviceEvent` (section 6). Record names are the UUIDs (for `Setting` the key, for `LiveState` the fixed name `LiveState`); fields use the camelCase names of section 1; references are `String` UUIDs, so nothing cascades. Record types and fields are only ever added.
+The private database of `iCloud.<APP_ID>` (development environment, spec_architecture.md) holds the zone `TimeTracking` with the record types `Client`, `Area`, `Project`, `TimeEntry`, `Setting`, `Device`, `HealthPeriod`, and `LiveState`, and the zone `ActivityEvents` with `DeviceEvent` (section 6). Record names are the UUIDs (for `Setting` the key, for `LiveState` the fixed name `LiveState`); fields use the camelCase names of section 1; references are `String` UUIDs, so nothing cascades. Record types and fields are only ever added.
 
 The `CKSyncEngine` runs in the app process with automatic sync and a database subscription for silent pushes; the library's `SyncCoordinator` is its delegate:
 
@@ -354,6 +372,7 @@ public protocol TimeStoreWriting: Sendable {
     func deleteProject(_: ProjectID) async throws
     func set<T: Codable>(_: SyncedSettingKey<T>, _: T) async throws
     func setWidgetPushToken(_: String?) async throws
+    func replaceHealthPeriods(_: HealthPeriod.Kind, from: Date, with: [DateInterval]) async throws -> Int   // 1.9
     func importDocument(_: Data, options: ImportOptions) async throws -> ImportReport
     func transaction<R>(_: (TimeStoreWriting) async throws -> R) async throws -> R   // one transaction, one pass
 }
@@ -373,6 +392,7 @@ public protocol TimeStoreReading: Sendable {
     func days(ending: TrackingDay, count: Int) async throws -> [DayGroup]               // newest first
     func recentEntries(before: Date?, limit: Int) async throws -> [TimeEntry]
     func lastStoppedEntry(excluding: EntryID?) async throws -> TimeEntry?
+    func healthPeriods(in: DateInterval) async throws -> [HealthPeriod]                 // live, intersecting, by start
     func recentProjects(limit: Int) async throws -> [ProjectID]                         // by latest entry start
     func overlaps(for: EntryDraft, excluding: EntryID?) async throws -> [TimeEntry]
     func overlappingEntries(in: DateInterval) async throws -> [(TimeEntry, TimeEntry)]
@@ -414,11 +434,11 @@ A report counts each entry whose `day` lies in the range whole in its day, the r
 ### 7.4 Observation
 
 ```swift
-public enum StoreChange { case entries(Set<EntryID>), runningEntry(TimeEntry?), structure, settings(Set<String>), liveState, sync(SyncStatus), adjusted([EntryAdjustment]) }
+public enum StoreChange { case entries(Set<EntryID>), runningEntry(TimeEntry?), structure, settings(Set<String>), liveState, health, sync(SyncStatus), adjusted([EntryAdjustment]) }
 public protocol StoreObserving { var changes: AsyncStream<StoreChange> { get }; func recentAdjustments(limit: Int) async -> [EntryAdjustment] }
 ```
 
-Same-process changes arrive after commit; other processes' changes arrive through the Darwin notification as `.entries([])`, `.runningEntry`, and `.structure`, and observers re-read.
+Same-process changes arrive after commit; other processes' changes arrive through the Darwin notification as `.entries([])`, `.runningEntry`, `.structure`, and `.health`, and observers re-read.
 
 ### 7.5 Performance
 
@@ -505,6 +525,8 @@ Views use `TrackingCalendar(timeZone: .current)`, rebuilt on a time zone change.
 47. A daily report over split entries gives each day its own pieces, day buckets sum to the total, and each `DayGroup.totalSeconds` equals the report's value; the running entry counts to the query time and sets `includesRunning`.
 48. A report by area puts a moved project's entries under its new area.
 49. On the Mac, with a started sync engine and a `ManualClock`, a tick 29 seconds after the start fetches nothing and one at 30 seconds fetches once; activating the app fetches at once and restarts the 30-second period; a second request while a fetch is in flight starts none.
+50. Replacing the sleep periods from March 10 with the same night and a new nap keeps the night's record and creates one; a night starting March 9 is ignored; a shifted night tombstones the old record; after a sync the other device holds the same live periods and an empty outbox.
+51. Asleep samples 23:00 to 01:00, 00:30 to 02:00, and 02:20 to 04:00 make one period 23:00 to 04:00, one at 06:00 another; an in-bed night without asleep samples is a period; two overlapping workouts are one; the first import starts 60 days before now, a later one 3 days before the previous; importing the same samples again changes nothing.
 
 ### 9.1 Fixtures
 

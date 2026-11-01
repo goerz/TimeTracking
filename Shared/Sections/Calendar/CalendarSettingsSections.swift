@@ -4,8 +4,8 @@
 import SwiftUI
 import TimeTrackingCore
 
-/// Snapping, the time-block calendar, and the calendars to show, as
-/// sections of a grouped form. All three are the same on every device;
+/// Snapping, the time-block calendar, Apple Health, and the calendars to
+/// show, as sections of a grouped form. All are the same on every device;
 /// they load when the sections appear.
 struct CalendarSettingsSections: View {
     var model: CalendarModel
@@ -30,6 +30,19 @@ struct CalendarSettingsSections: View {
             Text("Time blocks")
         } footer: {
             Text("Time blocks are events in this iCloud calendar, so they appear on all your devices and in every calendar app.")
+        }
+        Section {
+            Toggle("Sleep", isOn: health(.sleep))
+                .accessibilityIdentifier("settings.calendar.showSleep")
+            Toggle("Workouts", isOn: health(.workout))
+                .accessibilityIdentifier("settings.calendar.showWorkouts")
+        } header: {
+            Text("Apple Health")
+        } footer: {
+            Text(
+                "Sleep and workouts appear as lines in the Activity column. Your iPhone reads them from the Health app; "
+                    + "open the app on your iPhone to allow it."
+            )
         }
         Section {
             calendarsToShow
@@ -118,6 +131,14 @@ struct CalendarSettingsSections: View {
         case let .ready(calendar): calendar.title
         case .noICloudAccount: "Time blocks need an iCloud calendar account"
         case .noAccess, nil: "No calendar access"
+        }
+    }
+
+    private func health(_ kind: HealthPeriod.Kind) -> Binding<Bool> {
+        Binding {
+            kind == .sleep ? model.showSleep : model.showWorkouts
+        } set: { isOn in
+            Task { await model.setShowHealth(kind, isOn) }
         }
     }
 

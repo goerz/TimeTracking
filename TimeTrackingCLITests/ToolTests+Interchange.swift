@@ -153,13 +153,13 @@ extension ToolTests {
         let fixture = try ToolFixture()
         var database: OpaquePointer?
         #expect(sqlite3_open_v2(fixture.store.path, &database, SQLITE_OPEN_READWRITE, nil) == SQLITE_OK)
-        #expect(sqlite3_exec(database, "UPDATE meta SET value = '2' WHERE key = 'schema_version'", nil, nil, nil) == SQLITE_OK)
+        #expect(sqlite3_exec(database, "UPDATE meta SET value = '3' WHERE key = 'schema_version'", nil, nil, nil) == SQLITE_OK)
         sqlite3_close(database)
         for arguments in [["status"], ["start", "X"]] {
             let result = try fixture.run(arguments)
             #expect(result.status == 5)
+            #expect(result.standardError.contains("version 3"))
             #expect(result.standardError.contains("version 2"))
-            #expect(result.standardError.contains("version 1"))
         }
     }
 

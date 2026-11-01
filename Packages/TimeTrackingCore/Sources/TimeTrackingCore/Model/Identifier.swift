@@ -60,3 +60,4 @@ public typealias AreaID = Identifier<Area>
 public typealias ProjectID = Identifier<Project>
 public typealias EntryID = Identifier<TimeEntry>
 public typealias DeviceID = Identifier<Device>
+public typealias HealthPeriodID = Identifier<HealthPeriod>

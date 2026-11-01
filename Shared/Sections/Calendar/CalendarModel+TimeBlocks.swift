@@ -144,6 +144,24 @@ extension CalendarModel {
 
     // MARK: Settings (§6)
 
+    /// Shows or hides sleep or workouts on every device; the iPhone imports
+    /// while either is on.
+    func setShowHealth(_ kind: HealthPeriod.Kind, _ isOn: Bool) async {
+        do {
+            switch kind {
+            case .sleep:
+                try await store.set(.calendarShowSleep, isOn)
+                showSleep = isOn
+            case .workout:
+                try await store.set(.calendarShowWorkouts, isOn)
+                showWorkouts = isOn
+            }
+        } catch {
+            report(error)
+        }
+        await reload()
+    }
+
     func setSnapMinutes(_ minutes: Int) async {
         let value = CalendarSnap.choices.contains(minutes) ? minutes : 5
         do {

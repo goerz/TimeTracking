@@ -11,6 +11,8 @@ public enum StoreChange: Hashable, Sendable {
     case structure
     case settings(Set<String>)
     case liveState
+    /// Sleep or workout periods changed (§1.9).
+    case health
     case sync(SyncStatus)
     /// The pass or conflict resolution changed entries created on this device.
     case adjusted([EntryAdjustment])

@@ -144,11 +144,18 @@ final class AppModel {
     /// A change from the store (this process, the tool, or sync).
     func storeChanged(_ change: StoreChange) async {
         switch change {
-        case .settings:
+        case let .settings(keys):
             await pomodoro.loadSettings()
             revision += 1
+            if mainWindowIsOpen, sections.section == .calendar, keys.contains(where: { $0.hasPrefix("calendar.") }) {
+                await sections.calendar.reload()
+            }
         case .sync, .liveState, .adjusted:
             return
+        case .health:
+            if mainWindowIsOpen, sections.section == .calendar {
+                await sections.calendar.reload()
+            }
         case .entries, .runningEntry, .structure:
             await afterChange()
             if mainWindowIsOpen {
