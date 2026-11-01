@@ -91,6 +91,7 @@ Synced settings are records; device settings live in the App Group's `UserDefaul
 | `calendar.showSleep` | synced | Bool | false | Calendar; the iPhone imports sleep while on (1.9) |
 | `calendar.showWorkouts` | synced | Bool | false | Calendar; the iPhone imports workouts while on (1.9) |
 | `calendar.sleepAreaID`, `calendar.workoutAreaID` | synced | AreaID? | nil | Calendar settings; Reports count the kind in that area (7.3) |
+| `calendar.healthImport` | synced | HealthImportStatus? | nil | Written by the iPhone's import: device name, time, kinds read (1.9); the Calendar settings show it |
 | `calendar.snapMinutes` | synced | Int | 5 | Calendar |
 | `calendar.shownCalendars` | synced | [(account, calendar)] titles | [] | Calendar |
 | `deviceID` | device | UUID | created on first launch | this spec |
@@ -126,6 +127,8 @@ Entries show "created on iPhone" through this record. Devices are never deleted 
 Sleep and workouts from Apple Health, for the Calendar ([spec_calendar.md](spec_calendar.md) §3.1). HealthKit exists only on the iPhone and iPad, so the iPhone imports and the store syncs the periods to the Mac and iPad; only the iPhone writes them ([spec_ios.md](spec_ios.md) §7 item 6). A sleep period is the asleep samples of any stage (unspecified, core, deep, REM) merged where they overlap or lie at most 30 minutes apart, plus each in-bed period that holds no asleep sample (a night recorded by the iPhone's sleep schedule alone); a workout period is a workout from start to end, overlapping workouts (one workout recorded by two apps) merged.
 
 An import of one kind covers the 60 days before now the first time, afterwards from 3 days before the previous import (samples a watch syncs late), and reads samples from a day earlier still, so a period that began before the range is whole. `replaceHealthPeriods(kind, from:, with:)` then makes the live periods of that kind starting at or after the range's start equal the imported ones: a period with the same start and end keeps its record, the others become tombstones, and new ones are created. Periods starting earlier are left alone. Health periods are not part of the JSON export.
+
+After an import in which at least one kind succeeded, the iPhone writes the synced setting `calendar.healthImport`: its device name, the time in whole seconds, and the kinds read, in the order sleep, workout. It skips the write when the stored status has the same device and kinds and is less than an hour old, so frequent wakes don't each sync a record. `HealthImportStatus.summary(_:shown:found:)` turns it, the kinds shown, and the kinds with live periods (`healthKinds()`) into the Calendar settings' status line ([spec_calendar.md](spec_calendar.md) §6).
 
 ## 2. Persistence
 

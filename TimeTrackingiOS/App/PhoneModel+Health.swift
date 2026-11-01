@@ -25,7 +25,7 @@ extension PhoneModel {
     }
 
     /// Imports each kind the settings turn on, asking for access first when
-    /// `interactive`, then sends. A failed kind (a locked device's
+    /// `interactive`, records the import status, then sends. A failed kind (a locked device's
     /// protected data) keeps its periods and its last import time.
     func importHealth(interactive: Bool) async {
         guard let health else {
@@ -39,6 +39,7 @@ extension PhoneModel {
             await health.authorize(kinds)
         }
         var changed = 0
+        var imported: [HealthPeriod.Kind] = []
         for kind in HealthPeriod.Kind.allCases where kinds.contains(kind) {
             let key = HealthImport.importedThrough(kind)
             let stamp = settings.device[key]
@@ -52,13 +53,34 @@ extension PhoneModel {
                     now: now
                 )
                 settings.device[key] = now.timeIntervalSince1970
+                imported.append(kind)
             } catch {
                 let reason = String(describing: error)
                 Logging.logger(category: "Health").error("Import of \(kind.rawValue, privacy: .public): \(reason, privacy: .public)")
             }
         }
-        if changed > 0 {
+        let recorded = await recordHealthImport(imported)
+        if changed > 0 || recorded {
             await sync?.sendNow()
+        }
+    }
+
+    /// Writes the synced import status the Calendar settings show, at most
+    /// hourly unless the device or kinds change; returns whether it wrote.
+    private func recordHealthImport(_ kinds: [HealthPeriod.Kind]) async -> Bool {
+        guard !kinds.isEmpty else {
+            return false
+        }
+        let status = HealthImportStatus(device: deviceDisplayName, date: clock.now, kinds: kinds)
+        do {
+            guard try await status.replaces(store.value(.calendarHealthImport)) else {
+                return false
+            }
+            try await store.set(.calendarHealthImport, status)
+            return true
+        } catch {
+            Logging.logger(category: "Health").error("Status: \(String(describing: error), privacy: .public)")
+            return false
         }
     }
 

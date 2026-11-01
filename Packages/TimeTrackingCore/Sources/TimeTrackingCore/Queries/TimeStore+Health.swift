@@ -18,6 +18,14 @@ extension TimeStore {
         }
     }
 
+    /// The kinds with at least one live period.
+    public func healthKinds() throws -> Set<HealthPeriod.Kind> {
+        try read { database in
+            let names = try String.fetchAll(database, sql: "SELECT DISTINCT kind FROM health_period WHERE deleted_at IS NULL")
+            return Set(names.compactMap(HealthPeriod.Kind.init(rawValue:)))
+        }
+    }
+
     /// See `StoreTransaction.replaceHealthPeriods(_:from:with:)`.
     @discardableResult
     public func replaceHealthPeriods(_ kind: HealthPeriod.Kind, from start: Date, with intervals: [DateInterval]) throws -> Int {

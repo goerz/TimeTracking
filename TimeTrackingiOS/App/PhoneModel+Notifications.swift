@@ -7,9 +7,14 @@ import TimeTrackingCore
 extension PhoneModel {
     // MARK: Device record and push token
 
+    /// The name on this device's `Device` record: the one set in Settings,
+    /// else the system's.
+    var deviceDisplayName: String {
+        settings.deviceName.isEmpty ? DeviceInfo.systemName : settings.deviceName
+    }
+
     func registerDevice() async {
-        let name = settings.deviceName.isEmpty ? DeviceInfo.systemName : settings.deviceName
-        _ = try? await store.registerDevice(name: name, platform: settings.isPad ? .ipad : .iphone)
+        _ = try? await store.registerDevice(name: deviceDisplayName, platform: settings.isPad ? .ipad : .iphone)
     }
 
     /// Records the stored widget push token on this device's `Device` record

@@ -67,4 +67,29 @@ struct HealthImportTests {
         await phone.model.refreshTask()
         #expect(health.asked.count == 2)
     }
+
+    @Test("IOS-41 an import records the synced status with the device name and kinds read, hourly unless the kinds change")
+    func recordsStatus() async throws {
+        let phone = try await TestPhone()
+        let health = try FakeHealth(
+            night: DateInterval(start: phone.date("2024-03-13T23:00"), end: phone.date("2024-03-14T06:30")),
+            run: DateInterval(start: phone.date("2024-03-13T18:00"), end: phone.date("2024-03-13T18:40"))
+        )
+        phone.model.health = health
+        phone.settings.deviceName = "Test Phone"
+        #expect(try await phone.store.value(.calendarHealthImport) == nil)
+        await phone.model.setHealth(.sleep, true)
+        let first = try await phone.store.value(.calendarHealthImport)
+        #expect(first == HealthImportStatus(device: "Test Phone", date: phone.clock.now, kinds: [.sleep]))
+        // Within the hour, the same kinds: not rewritten.
+        phone.clock.advance(by: 600)
+        await phone.model.refreshTask()
+        #expect(try await phone.store.value(.calendarHealthImport) == first)
+        // A new kind rewrites at once; an hour later, the time moves.
+        await phone.model.setHealth(.workout, true)
+        #expect(try await phone.store.value(.calendarHealthImport)?.kinds == [.sleep, .workout])
+        phone.clock.advance(by: 3600)
+        await phone.model.refreshTask()
+        #expect(try await phone.store.value(.calendarHealthImport)?.date == phone.clock.now)
+    }
 }

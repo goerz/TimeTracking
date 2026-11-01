@@ -4,9 +4,10 @@
 import Foundation
 
 extension AppModel {
-    /// After health periods or the Calendar's settings change: Reports and
-    /// a visible Calendar re-read.
+    /// After health periods or the Calendar's settings change: the Calendar
+    /// settings' import status, Reports, and a visible Calendar re-read.
     func reloadHealthViews() async {
+        await sections.calendar.loadHealthImport()
         guard mainWindowIsOpen else {
             return
         }

@@ -100,6 +100,8 @@ final class CalendarModel {
     var healthAreas: [HealthPeriod.Kind: AreaID] = [:]
     /// The settings' area menus: every live area, "Client" or "Client · Area".
     var healthAreaChoices: [(id: AreaID, title: String)] = []
+    /// The settings' line on the iPhone's last import; nil while both are off.
+    var healthImport: HealthImportStatus.Summary?
 
     /// Presentation state.
     var selection: Set<CalendarItemID> = []
@@ -243,6 +245,7 @@ final class CalendarModel {
         showWorkouts = try await store.value(.calendarShowWorkouts)
         healthAreas[.sleep] = try await store.value(.calendarSleepAreaID)
         healthAreas[.workout] = try await store.value(.calendarWorkoutAreaID)
+        try await readHealthImport()
     }
 
     /// The time-block calendar and the checked calendars over the visible

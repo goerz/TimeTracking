@@ -38,6 +38,11 @@ struct CalendarSettingsSections: View {
             Toggle("Workouts", isOn: health(.workout))
                 .accessibilityIdentifier("settings.calendar.showWorkouts")
             reportArea(.workout)
+            if let status = model.healthImportText {
+                Text(status)
+                    .foregroundStyle(.secondary)
+                    .accessibilityIdentifier("settings.calendar.healthImport")
+            }
         } header: {
             Text("Apple Health")
         } footer: {
