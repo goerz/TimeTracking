@@ -188,7 +188,7 @@ struct StatusItemTests {
         #expect(test.router.calls == [.showTimer(focusTask: true)])
     }
 
-    @Test("MB-8 TW-4 Show Mini Timer displays the recorded show/hide shortcut and none when cleared")
+    @Test("MB-8 TM-4 Show Mini Timer displays the recorded show/hide shortcut and none when cleared")
     func showHideKey() async throws {
         let test = try await TestApp()
         test.app.shortcutSource = { .command("r", .option) }

@@ -1,5 +1,5 @@
 // Autocompletion, the `@` trigger, the picker, and quick creation
-// (spec_timer_window.md §2.2, §2.3; spec_projects.md §3, §5).
+// (spec_timer.md §2.2, §2.3; spec_projects.md §3, §5).
 
 import Foundation
 import Testing
@@ -8,7 +8,7 @@ import TimeTrackingCore
 
 @MainActor
 struct TaskFieldTests {
-    @Test("TW-8 three characters show at most 8 suggestions, the chip's project first; accepting sets task and project")
+    @Test("TM-8 three characters show at most 8 suggestions, the chip's project first; accepting sets task and project")
     func suggestions() async throws {
         let test = try await TestApp()
         let projects = try await test.projects(["Noise Model", "Other"])
@@ -33,7 +33,7 @@ struct TaskFieldTests {
         #expect(!field.isShowingSuggestions)
     }
 
-    @Test("TW-9 @noi opens the picker searching noi; Return assigns and removes @noi; Escape leaves it; a@b opens nothing")
+    @Test("TM-9 @noi opens the picker searching noi; Return assigns and removes @noi; Escape leaves it; a@b opens nothing")
     func atTrigger() async throws {
         let test = try await TestApp()
         let projects = try await test.projects(["Noise Model", "Website"])
@@ -74,7 +74,7 @@ struct TaskFieldTests {
         #expect(field.picker != nil)
     }
 
-    @Test("TW-10 the picker search noise lists the project of Clarify noise model tracked within 90 days")
+    @Test("TM-10 the picker search noise lists the project of Clarify noise model tracked within 90 days")
     func taskMatching() async throws {
         let test = try await TestApp()
         let projects = try await test.projects(["Paper", "Website"])
@@ -87,7 +87,7 @@ struct TaskFieldTests {
         #expect(picker.placeholder == "Search projects and tasks")
     }
 
-    @Test("TW-11 PP-17 Create Project from the picker opens the dialog named after the search; Create assigns the running entry or draft")
+    @Test("TM-11 PP-17 Create Project from the picker opens the dialog named after the search; Create assigns the running entry or draft")
     func quickCreation() async throws {
         let test = try await TestApp()
         _ = try await test.projects(["Website"])

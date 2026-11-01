@@ -112,7 +112,7 @@ extension TimeStore: TimeStoreReading {
     }
 
     /// The entries `draft` overlaps, other than the pieces of the chain of
-    /// `id` (the entry being edited), by start (spec_timer_window.md §4.3).
+    /// `id` (the entry being edited), by start (spec_timer.md §4.3).
     public func overlaps(for draft: EntryDraft, outsideChainOf id: EntryID) throws -> [TimeEntry] {
         let chain = try Set(chain(of: id).map(\.id))
         return try overlaps(for: draft, excluding: id).filter { !chain.contains($0.id) }

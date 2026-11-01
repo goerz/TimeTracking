@@ -310,9 +310,9 @@ write_spec() {
     shift
     {
         printf '# Spec: Timer\n\n## 9. Testable behaviors\n\n'
-        for n in "$@"; do printf -- '- TW-%s. Behavior %s.\n' "$n" "$n"; done
+        for n in "$@"; do printf -- '- TM-%s. Behavior %s.\n' "$n" "$n"; done
         printf '\n## 10. Decisions\n\n1. Not a behavior.\n'
-    } > "$sb/spec/spec_timer_window.md"
+    } > "$sb/spec/spec_timer.md"
 }
 
 write_tests() {
@@ -321,7 +321,7 @@ write_tests() {
     mkdir -p "$sb/FakeTests"
     {
         printf 'import Testing\n\nstruct FakeTests {\n'
-        for n in "$@"; do printf '    @Test("TW-%s behavior %s") func t%s() {}\n' "$n" "$n" "$n"; done
+        for n in "$@"; do printf '    @Test("TM-%s behavior %s") func t%s() {}\n' "$n" "$n" "$n"; done
         printf '}\n'
     } > "$sb/FakeTests/FakeTests.swift"
 }
@@ -334,10 +334,10 @@ test_check_behaviors() {
     check "complete lists pass" make -C "$sb" --no-print-directory check-behaviors
     write_spec "$sb" 1 2 3 999
     if output=$(make -C "$sb" --no-print-directory check-behaviors 2>&1); then
-        echo "passed with TW-999 untested"
+        echo "passed with TM-999 untested"
         return 1
     fi
-    check "TW-999 is listed" grep -q 'TW-999' <<< "$output"
+    check "TM-999 is listed" grep -q 'TM-999' <<< "$output"
     check "the gap is reported" grep -q 'not continuous' <<< "$output"
     write_spec "$sb" 1 2 3
     write_tests "$sb" 1 2 3 7
@@ -345,17 +345,17 @@ test_check_behaviors() {
         echo "passed with an unknown test identifier"
         return 1
     fi
-    check "TW-7 is reported as defined by no spec" grep -q 'TW-7 is defined by no spec' <<< "$output"
+    check "TM-7 is reported as defined by no spec" grep -q 'TM-7 is defined by no spec' <<< "$output"
     write_spec "$sb" 1 3 4
     write_tests "$sb" 1 3 4
     if output=$(make -C "$sb" --no-print-directory check-behaviors 2>&1); then
         echo "passed with a non-continuous list"
         return 1
     fi
-    check "the non-continuous list is reported" grep -q 'expected TW-2, found TW-3' <<< "$output"
+    check "the non-continuous list is reported" grep -q 'expected TM-2, found TM-3' <<< "$output"
     # XCTest method names and shell tests count too.
     write_spec "$sb" 1 2
-    printf 'final class X: XCTestCase {\n    func testTW1_TW2_both() {}\n}\n' > "$sb/FakeTests/FakeTests.swift"
+    printf 'final class X: XCTestCase {\n    func testTM1_TM2_both() {}\n}\n' > "$sb/FakeTests/FakeTests.swift"
     check "XCTest names count" make -C "$sb" --no-print-directory check-behaviors
 }
 

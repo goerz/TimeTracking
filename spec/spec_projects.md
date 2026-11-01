@@ -6,7 +6,7 @@ This spec covers the four sections of the main window after the Timer (Calendar,
 
 ### 1.1 Layout
 
-The sections are the main window's sidebar items after the Timer ([spec_timer_window.md](spec_timer_window.md) §1): Calendar (`calendar`), Reports (`chart.bar`), Projects (`folder`), and Activity (`waveform.path.ecg`). The sidebar has no headings and no other items: the Timer and the views used daily first, then the rarely edited projects, clients, and areas, then the tracker's log. The window title is the shown item's name. Each section owns its toolbar items, placed by the one scheme of [spec_design.md](spec_design.md) §4, so the period arrows of Calendar, Reports, and Activity keep their place when the section changes; the shell adds only the sidebar toggle. The sections have no running-timer controls.
+The sections are the main window's sidebar items after the Timer ([spec_timer.md](spec_timer.md) §1): Calendar (`calendar`), Reports (`chart.bar`), Projects (`folder`), and Activity (`waveform.path.ecg`). The sidebar has no headings and no other items: the Timer and the views used daily first, then the rarely edited projects, clients, and areas, then the tracker's log. The window title is the shown item's name. Each section owns its toolbar items, placed by the one scheme of [spec_design.md](spec_design.md) §4, so the period arrows of Calendar, Reports, and Activity keep their place when the section changes; the shell adds only the sidebar toggle. The sections have no running-timer controls.
 
 | Property | Value |
 |---|---|
@@ -26,10 +26,10 @@ At launch the main window shows the Timer; View › Calendar to Activity (⌘2 t
 | View | Date Range… (in the Calendar: Go to Date…) | ⇧⌘D | Calendar (its month picker), Reports, Activity |
 | View | A section's display options, under its header (Calendar, Report, Activity) | | That section shown |
 | Edit | Find | ⌘F | Projects and Reports; focuses the section's search field |
-| Entry | The selected entry's commands | | Calendar and the Reports entry list ([spec_timer_window.md](spec_timer_window.md) §9) |
+| Entry | The selected entry's commands | | Calendar and the Reports entry list ([spec_timer.md](spec_timer.md) §9) |
 | Project | The selected project, area, or client's commands (2.5) | | Projects shown |
 
-The menus are the same in every window and view ([spec_timer_window.md](spec_timer_window.md) §9): a section's command is listed while another view is shown, disabled and without its key equivalent, so the Timer's commands on the same keys (⌘E, ⌘⌫, ⌘F) reach the Timer, and the reverse.
+The menus are the same in every window and view ([spec_timer.md](spec_timer.md) §9): a section's command is listed while another view is shown, disabled and without its key equivalent, so the Timer's commands on the same keys (⌘E, ⌘⌫, ⌘F) reach the Timer, and the reverse.
 
 ### 1.3 Router
 
@@ -216,7 +216,7 @@ Contents, top to bottom:
 4. One group per client with an active project, alphabetically, header in small uppercase secondary text; projects by area order, then name. Rows: dot, name, trailing area name (omitted for the general area). Recent projects appear here too.
 5. When the search is non-empty and equals no active project's name (case- and diacritic-insensitively, trimmed), a row below a separator: "+ Create Project “<search text>”", opening the dialog (3) with the name prefilled.
 
-Archived projects and retired areas never appear. The entry's current project has a check mark; with an empty search its Recent row (else its client row) is highlighted on open, otherwise the first Recent row. Searching uses the word match of 2.4 over project, area, and client names, hides Recent, drops empty client groups, and highlights the first match. An owner may add task matching (tasks tracked under a project in the last 90 days) and its own placeholder; the Mac Timer and the iOS Timer do ([spec_timer_window.md](spec_timer_window.md) §2.3). ↑ ↓ move the highlight, ↩ chooses, Escape closes, ⌘↩ creates from the search text.
+Archived projects and retired areas never appear. The entry's current project has a check mark; with an empty search its Recent row (else its client row) is highlighted on open, otherwise the first Recent row. Searching uses the word match of 2.4 over project, area, and client names, hides Recent, drops empty client groups, and highlights the first match. An owner may add task matching (tasks tracked under a project in the last 90 days) and its own placeholder; the Mac Timer and the iOS Timer do ([spec_timer.md](spec_timer.md) §2.3). ↑ ↓ move the highlight, ↩ chooses, Escape closes, ⌘↩ creates from the search text.
 
 ## 6. Testable behaviors
 

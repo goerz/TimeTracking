@@ -1,4 +1,4 @@
-// ViewCommands: the View menu (spec_timer_window.md §9).
+// ViewCommands: the View menu (spec_timer.md §9).
 
 import SwiftUI
 import TimeTrackingCore
@@ -9,7 +9,7 @@ import TimeTrackingCore
 struct ViewCommands: Commands {
     var host: AppHost
     @FocusedValue(\.mainWindowActive) private var windowActive
-    @FocusedValue(\.timerWindowActive) private var timerActive
+    @FocusedValue(\.timerViewActive) private var timerActive
 
     private var app: AppModel? {
         host.model

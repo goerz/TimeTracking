@@ -1,5 +1,5 @@
 // WindowRouter: showing the Mini Timer, the main window, and Settings
-// (spec_timer_window.md §1.3, §8.3; spec_menubar.md §2.2, §4).
+// (spec_timer.md §1.3, §8.3; spec_menubar.md §2.2, §4).
 
 import AppKit
 import SwiftUI
@@ -7,24 +7,24 @@ import SwiftUI
 /// The live `AppRouting`: AppKit for the Mini Timer, the SwiftUI actions
 /// captured from a view for the main window and Settings.
 final class WindowRouter: AppRouting {
-    let timerWindow: TimerWindowController
+    let miniTimerWindow: MiniTimerController
     weak var app: AppModel?
     /// Captured from a scene's environment (`RouterActions`).
     var openSettingsAction: OpenSettingsAction?
     var openWindowAction: OpenWindowAction?
 
-    init(timerWindow: TimerWindowController) {
-        self.timerWindow = timerWindow
+    init(miniTimerWindow: MiniTimerController) {
+        self.miniTimerWindow = miniTimerWindow
     }
 
     /// The Mini Timer: brought forward, or
     /// opened the first time.
     func showTimer(focusTask: Bool) {
-        if timerWindow.window == nil {
+        if miniTimerWindow.window == nil {
             NSApp.activate()
             openWindowAction?(id: "timer")
         } else {
-            timerWindow.show()
+            miniTimerWindow.show()
         }
         if focusTask {
             app?.miniTimer.focusTaskField()
@@ -34,8 +34,8 @@ final class WindowRouter: AppRouting {
     /// ⌥⌘R: hides the app while the Mini
     /// Timer is key, else shows it.
     func toggleTimer() {
-        if NSApp.isActive, timerWindow.isKey {
-            timerWindow.hide()
+        if NSApp.isActive, miniTimerWindow.isKey {
+            miniTimerWindow.hide()
         } else {
             showTimer(focusTask: true)
         }

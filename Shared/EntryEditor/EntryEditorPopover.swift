@@ -1,5 +1,5 @@
 // EntryEditorPopover: the edit popover of one entry, opened by an
-// `editing` id (spec_timer_window.md §4; spec_calendar.md §2.5;
+// `editing` id (spec_timer.md §4; spec_calendar.md §2.5;
 // spec_reports.md §6).
 
 import SwiftUI

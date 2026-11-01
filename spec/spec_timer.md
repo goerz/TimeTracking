@@ -314,42 +314,42 @@ Clicking a notification shows the Mini Timer (with the idle prompt for `idle`). 
 
 ## 11. Testable behaviors
 
-- TW-1. Mini Timer height drags snap per §1.1: release at 199 pt gives 106 pt, at 200 pt gives 300 pt, 106 to 250 pt gives 300 pt, with width as dragged (at least 400 pt) and top-left fixed.
-- TW-2. ⇧⌘M toggles between the remembered compact and full frames at the current top-left corner; without remembered frames, between 480 × 106 and 480 × 600 pt.
-- TW-3. Opened after a relaunch, the Mini Timer has its mode, frame, and pin state from quit; with the pin on it stays above another app's key window.
-- TW-4. ⌥⌘R shows the Mini Timer with the task field focused, or hides the app when the Mini Timer is key; Window › Mini Timer displays the recorded shortcut and none when cleared.
-- TW-5. Launched as a login item with "Show the main window at login" off, the app shows no window; quitting leaves a running entry running.
-- TW-6. Each action of §2.1 has its effect; ⌘N and Continue stop a running entry at the instant the new one starts; ⌘O without selection continues the most recent other entry.
-- TW-7. A task edit of the running entry is stored within 500 ms of the last keystroke; Escape reverts it.
-- TW-8. Typing three characters shows at most 8 suggestions, the current project's first; accepting sets task and project.
-- TW-9. Typing `@noi` opens the picker searching "noi" with focus in the task field; Return assigns the highlighted project and removes "@noi"; Escape leaves "@noi"; `a@b` opens nothing.
-- TW-10. The picker search "noise" lists the project under which "Clarify noise model" was tracked within 90 days.
-- TW-11. A project created from the picker is assigned to the running entry, or to the draft.
-- TW-12. Discard deletes the running entry after the alert and ⌘Z restores it; continuing an archived project's entry starts nothing unless "Restore Project and Continue" is chosen.
-- TW-13. With an entry running since 23:10, at 00:05 the timer label reads `0:55:00`, and the list later shows its two pieces under their own days.
-- TW-14. Today's total includes the running entry's elapsed time and rises one second per second; the running entry is Today's first row with its project, and a filter it does not match removes both.
-- TW-15. Two identical consecutive entries appear as two rows; the list shows 14 days with entries and "Load Earlier Entries" appends 14.
-- TW-16. The list inputs of §3 act as listed.
-- TW-17. ⌘F with "noise" leaves only matching entries, and day totals sum them.
-- TW-18. The popover recomputes and moves entries per §4.2.
-- TW-19. A commit that would put the entry after now is refused with "Entries cannot be in the future"; for the running entry Stop, Duration, and Date are disabled.
-- TW-20. Stop 00:35 on an entry starting 23:10 stores two pieces split at midnight and shows "Continues on <next day> until 00:35".
-- TW-21. A task change on one piece of a chain changes every piece; a Start change changes only that piece.
-- TW-22. An overlapping change shows the inline notice; "Keep" stores it, "Revert" restores the field.
-- TW-23. A Pomodoro shows the countdown and a filling ring on the Pomodoro button, then `+0:00` counting up at `focusEnd` with "Focus done" sent and "Start Break" shown on the button; the timer label keeps the elapsed time throughout.
-- TW-24. Through a focus, break, and focus cycle the store holds one running entry and no stopped entry.
-- TW-25. Every transition of §5.3 holds, including that pending notifications are removed when the state turns off.
-- TW-26. A focus duration change during focus does not move `focusEnd`; waking after `focusEnd` lands in `focusOver` and notifies at wake.
-- TW-27. With a 10 min threshold, 10 min 5 s without input while an entry runs prompts at the next input with "Idle since" the time input stopped; no prompt while `passive`, when nothing runs, or below the threshold.
-- TW-28. The prompt's options act as in §6.3.
-- TW-29. Lock, sleep, and shutdown follow the settings of §6.2, using the lock or shutdown time.
-- TW-30. With reminders every 10 min, 09:00 to 17:00, weekdays, a reminder arrives 10 min after a stop at 10:00 on a Tuesday, none at 17:05 or on a Saturday; Snooze suppresses them for its duration.
-- TW-31. The continue/stop shortcut stops or continues; with "Show the Mini Timer when an entry starts" on, the Mini Timer then appears with the task field focused.
-- TW-32. Each notification category offers exactly its listed actions; the settings window reopens on the last pane shown.
-- TW-33. The first-launch alert of §8.2 appears once per Mac; "Open Tracker Settings" opens the Tracker pane, and the agent stays unregistered until "Enable Tracker".
-- TW-34. The first-launch alert's "Open `<APP_NAME>` at login" checkbox is on by default; checked, either button turns on "Open at login", unchecked neither does; under `-UITesting` the real login item is never registered.
-- TW-35. Every window has the menus File, Edit, View, Timer, Entry, Project, and Window; Window lists the main window and "Mini Timer" once each. With the Timer shown Entry › Set Project… is enabled and View › Go to Today and the Project menu's items are not. In the Calendar Entry › Fill Day… and View › Go to Today and Previous Period are enabled, Set Project… is not, and there is no Next Day, Next Entry, or Deselect item. In Projects Project › Edit Project… is enabled for a selected project and File › New Project… always; there is no Start Timer item outside the Timer menu. View › Compact Mode is enabled only while the Mini Timer is key.
-- TW-36. The Mini Timer and the main window's Timer are independent: the project picker, an edit popover, the selection, the filter, and a task-field focus request in one leave the other unchanged; a project chosen in one is the project of both; New from the main menu focuses the key window's Timer; a store change reloads both lists. An alert of the Timer shows in the key window, also while the main window shows another item, and with no key window the Mini Timer comes forward with it.
+- TM-1. Mini Timer height drags snap per §1.1: release at 199 pt gives 106 pt, at 200 pt gives 300 pt, 106 to 250 pt gives 300 pt, with width as dragged (at least 400 pt) and top-left fixed.
+- TM-2. ⇧⌘M toggles between the remembered compact and full frames at the current top-left corner; without remembered frames, between 480 × 106 and 480 × 600 pt.
+- TM-3. Opened after a relaunch, the Mini Timer has its mode, frame, and pin state from quit; with the pin on it stays above another app's key window.
+- TM-4. ⌥⌘R shows the Mini Timer with the task field focused, or hides the app when the Mini Timer is key; Window › Mini Timer displays the recorded shortcut and none when cleared.
+- TM-5. Launched as a login item with "Show the main window at login" off, the app shows no window; quitting leaves a running entry running.
+- TM-6. Each action of §2.1 has its effect; ⌘N and Continue stop a running entry at the instant the new one starts; ⌘O without selection continues the most recent other entry.
+- TM-7. A task edit of the running entry is stored within 500 ms of the last keystroke; Escape reverts it.
+- TM-8. Typing three characters shows at most 8 suggestions, the current project's first; accepting sets task and project.
+- TM-9. Typing `@noi` opens the picker searching "noi" with focus in the task field; Return assigns the highlighted project and removes "@noi"; Escape leaves "@noi"; `a@b` opens nothing.
+- TM-10. The picker search "noise" lists the project under which "Clarify noise model" was tracked within 90 days.
+- TM-11. A project created from the picker is assigned to the running entry, or to the draft.
+- TM-12. Discard deletes the running entry after the alert and ⌘Z restores it; continuing an archived project's entry starts nothing unless "Restore Project and Continue" is chosen.
+- TM-13. With an entry running since 23:10, at 00:05 the timer label reads `0:55:00`, and the list later shows its two pieces under their own days.
+- TM-14. Today's total includes the running entry's elapsed time and rises one second per second; the running entry is Today's first row with its project, and a filter it does not match removes both.
+- TM-15. Two identical consecutive entries appear as two rows; the list shows 14 days with entries and "Load Earlier Entries" appends 14.
+- TM-16. The list inputs of §3 act as listed.
+- TM-17. ⌘F with "noise" leaves only matching entries, and day totals sum them.
+- TM-18. The popover recomputes and moves entries per §4.2.
+- TM-19. A commit that would put the entry after now is refused with "Entries cannot be in the future"; for the running entry Stop, Duration, and Date are disabled.
+- TM-20. Stop 00:35 on an entry starting 23:10 stores two pieces split at midnight and shows "Continues on <next day> until 00:35".
+- TM-21. A task change on one piece of a chain changes every piece; a Start change changes only that piece.
+- TM-22. An overlapping change shows the inline notice; "Keep" stores it, "Revert" restores the field.
+- TM-23. A Pomodoro shows the countdown and a filling ring on the Pomodoro button, then `+0:00` counting up at `focusEnd` with "Focus done" sent and "Start Break" shown on the button; the timer label keeps the elapsed time throughout.
+- TM-24. Through a focus, break, and focus cycle the store holds one running entry and no stopped entry.
+- TM-25. Every transition of §5.3 holds, including that pending notifications are removed when the state turns off.
+- TM-26. A focus duration change during focus does not move `focusEnd`; waking after `focusEnd` lands in `focusOver` and notifies at wake.
+- TM-27. With a 10 min threshold, 10 min 5 s without input while an entry runs prompts at the next input with "Idle since" the time input stopped; no prompt while `passive`, when nothing runs, or below the threshold.
+- TM-28. The prompt's options act as in §6.3.
+- TM-29. Lock, sleep, and shutdown follow the settings of §6.2, using the lock or shutdown time.
+- TM-30. With reminders every 10 min, 09:00 to 17:00, weekdays, a reminder arrives 10 min after a stop at 10:00 on a Tuesday, none at 17:05 or on a Saturday; Snooze suppresses them for its duration.
+- TM-31. The continue/stop shortcut stops or continues; with "Show the Mini Timer when an entry starts" on, the Mini Timer then appears with the task field focused.
+- TM-32. Each notification category offers exactly its listed actions; the settings window reopens on the last pane shown.
+- TM-33. The first-launch alert of §8.2 appears once per Mac; "Open Tracker Settings" opens the Tracker pane, and the agent stays unregistered until "Enable Tracker".
+- TM-34. The first-launch alert's "Open `<APP_NAME>` at login" checkbox is on by default; checked, either button turns on "Open at login", unchecked neither does; under `-UITesting` the real login item is never registered.
+- TM-35. Every window has the menus File, Edit, View, Timer, Entry, Project, and Window; Window lists the main window and "Mini Timer" once each. With the Timer shown Entry › Set Project… is enabled and View › Go to Today and the Project menu's items are not. In the Calendar Entry › Fill Day… and View › Go to Today and Previous Period are enabled, Set Project… is not, and there is no Next Day, Next Entry, or Deselect item. In Projects Project › Edit Project… is enabled for a selected project and File › New Project… always; there is no Start Timer item outside the Timer menu. View › Compact Mode is enabled only while the Mini Timer is key.
+- TM-36. The Mini Timer and the main window's Timer are independent: the project picker, an edit popover, the selection, the filter, and a task-field focus request in one leave the other unchanged; a project chosen in one is the project of both; New from the main menu focuses the key window's Timer; a store change reloads both lists. An alert of the Timer shows in the key window, also while the main window shows another item, and with no key window the Mini Timer comes forward with it.
 
 ## 12. Decisions
 

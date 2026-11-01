@@ -1,6 +1,6 @@
 // The main menu in the real app: one fixed set of object menus in every
 // window, each item enabled by what it acts on, the Mini Timer listed once
-// in Window (spec_timer_window.md §9).
+// in Window (spec_timer.md §9).
 
 import XCTest
 
@@ -18,7 +18,7 @@ final class MenuUITests: XCTestCase {
     private static let formerSectionMenus = ["Calendar", "Report", "Activity"]
 
     @MainActor
-    func testTW35_sameMenusEnabledByTheViewShown() {
+    func testTM35_sameMenusEnabledByTheViewShown() {
         let app = XCUIApplication.timeTracking(reset: true)
         app.launchPastOnboarding()
         XCTAssertTrue(app.descendants(matching: .any)["timer.list"].waitForExistence(timeout: 5))

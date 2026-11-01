@@ -50,7 +50,7 @@ extension SyncedSettingKey<Int> {
         Self("pomodoro.breakMinutes", default: 5)
     }
 
-    /// The values the setting allows (spec_timer_window.md §5.2): 1 to 180
+    /// The values the setting allows (spec_timer.md §5.2): 1 to 180
     /// focus minutes, 1 to 60 break minutes; any value for other keys.
     public var range: ClosedRange<Int> {
         switch self {

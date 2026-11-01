@@ -1,5 +1,5 @@
 // ProjectPickerContent: the rows of the shared project picker
-// (spec_projects.md §5, spec_timer_window.md §2.3).
+// (spec_projects.md §5, spec_timer.md §2.3).
 
 import Foundation
 

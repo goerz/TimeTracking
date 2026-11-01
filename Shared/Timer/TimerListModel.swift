@@ -1,4 +1,4 @@
-// TimerListModel: the list of recent entries by day (spec_timer_window.md §3).
+// TimerListModel: the list of recent entries by day (spec_timer.md §3).
 
 import Foundation
 import Observation

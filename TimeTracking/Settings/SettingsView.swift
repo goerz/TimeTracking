@@ -1,4 +1,4 @@
-// SettingsView: the settings window with six panes (spec_timer_window.md §8,
+// SettingsView: the settings window with six panes (spec_timer.md §8,
 // spec_design.md §7, §8).
 
 import KeyboardShortcuts

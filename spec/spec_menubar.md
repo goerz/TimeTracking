@@ -1,6 +1,6 @@
 # Spec: Menu Bar Item
 
-The Mac app's status item shows the running entry's elapsed time and, during a Pomodoro, the countdown next to an icon, and its menu starts, continues, and stops entries, drives the Pomodoro, and opens the app's windows. This spec also owns the Dock icon setting and the Dock menu, and the warning when the activity tracker has stopped. State and commands come from the Timer (`spec_timer_window.md` §13).
+The Mac app's status item shows the running entry's elapsed time and, during a Pomodoro, the countdown next to an icon, and its menu starts, continues, and stops entries, drives the Pomodoro, and opens the app's windows. This spec also owns the Dock icon setting and the Dock menu, and the warning when the activity tracker has stopped. State and commands come from the Timer (`spec_timer.md` §13).
 
 ## 1. The status item
 
@@ -78,7 +78,7 @@ Command items carry the symbols of `spec_design.md` §5 (New `plus`, Continue `p
 | New | ⌘N | Always | The Timer's New: starts an empty entry and shows the Mini Timer with the task field focused. |
 | Continue | ⌘O | An entry other than the running one exists | Continues the most recent entry other than the running one, without showing a window; an archived project shows the restore alert. |
 | Stop | ⌘S | An entry runs | Stops the running entry. |
-| Show Mini Timer | the show/hide shortcut | Always | Shows the Mini Timer and activates the app (`spec_timer_window.md` 8.3). |
+| Show Mini Timer | the show/hide shortcut | Always | Shows the Mini Timer and activates the app (`spec_timer.md` 8.3). |
 | Open `<APP_NAME>` | | Always | Shows the main window on its current item and activates the app. |
 | Settings… | ⌘, | Always | Opens the settings window on its last pane. |
 | Quit TimeTracking | ⌘Q | Always | Quits; the running entry keeps running. |
@@ -87,7 +87,7 @@ Each item has a main-menu counterpart with the same key equivalent and calls the
 
 ### 2.3 Pomodoro items
 
-The group offers what the state machine (`spec_timer_window.md` 5.3) allows and performs it directly.
+The group offers what the state machine (`spec_timer.md` 5.3) allows and performs it directly.
 
 | Pomodoro state | Items |
 |---|---|
@@ -128,7 +128,7 @@ A tick re-reads the clock; nothing is accumulated. Ticks run in the common run l
 
 ## 6. Settings
 
-Device settings, edited in Settings > General (`spec_timer_window.md` 8.1).
+Device settings, edited in Settings > General (`spec_timer.md` 8.1).
 
 | Setting | Key | Default | Effect |
 |---|---|---|---|
@@ -173,9 +173,9 @@ Device settings, edited in Settings > General (`spec_timer_window.md` 8.1).
 
 ## 9. Interfaces
 
-Assumed from `spec_timer_window.md`: the timer display state (running entry, chain start, most recent other entry, today's last stopped entry, Pomodoro state and phase end), the commands, the restore alert, and the recorded show/hide shortcut.
+Assumed from `spec_timer.md`: the timer display state (running entry, chain start, most recent other entry, today's last stopped entry, Pomodoro state and phase end), the commands, the restore alert, and the recorded show/hide shortcut.
 
-Assumed from `spec_timer_window.md` §1: showing the main window on its current item and showing the Mini Timer.
+Assumed from `spec_timer.md` §1: showing the main window on its current item and showing the Mini Timer.
 
 Assumed from `spec_activity_tracking.md`: `current.json` with `health.last_tick` (via `ActivityReading.currentState()`) and the login item's status.
 

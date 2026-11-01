@@ -1,4 +1,4 @@
-// IdleDetector: the Timer's idle detection (spec_timer_window.md §6).
+// IdleDetector: the Timer's idle detection (spec_timer.md §6).
 
 public import Foundation
 

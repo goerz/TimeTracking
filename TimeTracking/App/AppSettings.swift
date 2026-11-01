@@ -1,5 +1,5 @@
 // AppSettings: the Mac app's device settings as observable state
-// (spec_timer_window.md §6.2, §7, §8; spec_menubar.md §6).
+// (spec_timer.md §6.2, §7, §8; spec_menubar.md §6).
 
 import Foundation
 import Observation

@@ -1,5 +1,5 @@
 // LocalDateText: times and days in the system's format and zone, for the
-// editors, the status item, and notifications (spec_timer_window.md §4;
+// editors, the status item, and notifications (spec_timer.md §4;
 // spec_menubar.md §2.1).
 
 import Foundation

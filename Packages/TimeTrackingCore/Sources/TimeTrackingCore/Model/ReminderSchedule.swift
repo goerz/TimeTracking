@@ -1,5 +1,5 @@
 // ReminderSchedule: when "Nothing is being tracked" reminders fire
-// (spec_timer_window.md §7).
+// (spec_timer.md §7).
 
 public import Foundation
 

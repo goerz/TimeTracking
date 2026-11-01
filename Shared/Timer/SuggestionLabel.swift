@@ -1,5 +1,5 @@
 // SuggestionLabel: one task suggestion under the task field on the Mac and
-// iOS (spec_timer_window.md §2.2; spec_ios.md §2.2).
+// iOS (spec_timer.md §2.2; spec_ios.md §2.2).
 
 import SwiftUI
 import TimeTrackingCore

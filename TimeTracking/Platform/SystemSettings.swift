@@ -1,5 +1,5 @@
 // SystemSettings: opening System Settings panes, Finder, and a text editor
-// for the settings panes (spec_activity_tracking.md §7.4, spec_timer_window.md §8.1).
+// for the settings panes (spec_activity_tracking.md §7.4, spec_timer.md §8.1).
 
 import AppKit
 

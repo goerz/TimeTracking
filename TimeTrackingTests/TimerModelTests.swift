@@ -1,4 +1,4 @@
-// The running-entry bar and its commands (spec_timer_window.md §2).
+// The running-entry bar and its commands (spec_timer.md §2).
 
 import Foundation
 import Testing
@@ -7,7 +7,7 @@ import TimeTrackingCore
 
 @MainActor
 struct TimerModelTests {
-    @Test("TW-6 start, New, stop, continue, and discard; New and Continue stop the running entry at the same instant")
+    @Test("TM-6 start, New, stop, continue, and discard; New and Continue stop the running entry at the same instant")
     func actions() async throws {
         let test = try await TestApp()
         let projects = try await test.projects(["Noise Model"])
@@ -52,7 +52,7 @@ struct TimerModelTests {
         #expect(timer.running == nil)
     }
 
-    @Test("TW-7 a task edit of the running entry is stored after the 500 ms debounce; Escape reverts it")
+    @Test("TM-7 a task edit of the running entry is stored after the 500 ms debounce; Escape reverts it")
     func taskDebounce() async throws {
         let test = try await TestApp()
         let timer = test.app.timer
@@ -75,7 +75,7 @@ struct TimerModelTests {
         #expect(try await test.store.runningEntry()?.task == "Draft intro")
     }
 
-    @Test("TW-12 discard asks first and ⌘Z restores; an archived project's entry continues only after Restore Project and Continue")
+    @Test("TM-12 discard asks first and ⌘Z restores; an archived project's entry continues only after Restore Project and Continue")
     func discardAndArchived() async throws {
         let test = try await TestApp()
         let projects = try await test.projects(["Old"])
@@ -107,7 +107,7 @@ struct TimerModelTests {
         #expect(try await test.store.project(projects[0].id)?.isArchived == false)
     }
 
-    @Test("TW-13 TW-14 the label counts the chain from 23:10 and reads 0:55:00 at 00:05; today's total rises per second")
+    @Test("TM-13 TM-14 the label counts the chain from 23:10 and reads 0:55:00 at 00:05; today's total rises per second")
     func chainLabelAndTotal() async throws {
         let test = try await TestApp(now: "2024-03-13T23:30")
         let timer = test.app.timer
@@ -127,10 +127,10 @@ struct TimerModelTests {
         #expect(timer.timerText(at: test.clock.now) == "0:55:01")
     }
 
-    @Test("TW-5 a login-item launch hides the window unless Show at login; quitting leaves the entry running")
+    @Test("TM-5 a login-item launch hides the window unless Show at login; quitting leaves the entry running")
     func loginItemAndQuit() async throws {
         let test = try await TestApp()
-        let controller = TimerWindowController(settings: test.app.settings)
+        let controller = MiniTimerController(settings: test.app.settings)
         #expect(!controller.hideOnAttach)
         #expect(AppDelegate.hidesMainWindow(launchedAsLoginItem: true, showAtLogin: false))
         #expect(!AppDelegate.hidesMainWindow(launchedAsLoginItem: true, showAtLogin: true))
@@ -144,7 +144,7 @@ struct TimerModelTests {
         #expect(try await test.store.runningEntry() != nil)
     }
 
-    @Test("TW-31 the continue/stop shortcut stops or continues; Show the Mini Timer when an entry starts shows it")
+    @Test("TM-31 the continue/stop shortcut stops or continues; Show the Mini Timer when an entry starts shows it")
     func continueStopShortcut() async throws {
         let test = try await TestApp()
         try await test.entry("Review", from: "08:00", to: "08:30")

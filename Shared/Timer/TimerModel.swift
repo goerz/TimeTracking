@@ -1,5 +1,5 @@
 // TimerModel: the running-entry bar's state and the timer commands
-// (spec_timer_window.md §2, §2.1, §2.2, §13).
+// (spec_timer.md §2, §2.1, §2.2, §13).
 
 import Foundation
 import Observation

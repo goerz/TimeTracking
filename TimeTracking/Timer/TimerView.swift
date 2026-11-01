@@ -1,11 +1,11 @@
-// TimerWindowView: the Timer's content, in the main window and in the Mini
-// Timer (spec_timer_window.md §1 to §3, §6.3).
+// TimerView: the Timer's content, in the main window and in the Mini
+// Timer (spec_timer.md §1 to §3, §6.3).
 
 import SwiftUI
 import TimeTrackingCore
 
 /// The bar, and the list at or above the threshold height.
-struct TimerWindowView: View {
+struct TimerView: View {
     /// The main window's Timer item, laid out as the iPad's Timer tab (the
     /// bar beside the list above 900 pt, above it below), without the pin
     /// or compact mode; otherwise the Mini Timer.
@@ -36,12 +36,12 @@ struct TimerWindowView: View {
                 windowLayout(height: geometry.size.height)
             }
         }
-        .frame(minWidth: TimerWindowGeometry.minimumWidth, minHeight: TimerWindowGeometry.barHeight - titleBarInset)
+        .frame(minWidth: MiniTimerGeometry.minimumWidth, minHeight: MiniTimerGeometry.barHeight - titleBarInset)
         .background(WindowAccessor { window in
             titleBarInset = window.frame.height - window.contentLayoutRect.height
         })
         .ignoresSafeArea(embedded ? [] : .all)
-        .focusedSceneValue(\.timerWindowActive, true)
+        .focusedSceneValue(\.timerViewActive, true)
         .environment(view)
         .onAppear {
             view.list.undoManager = undoManager
@@ -76,7 +76,7 @@ struct TimerWindowView: View {
         if width > Self.twoColumnWidth {
             HStack(alignment: .top, spacing: 0) {
                 embeddedBar
-                    .frame(width: min(480, max(TimerWindowGeometry.minimumWidth, width * 0.4)))
+                    .frame(width: min(480, max(MiniTimerGeometry.minimumWidth, width * 0.4)))
                     .frame(maxHeight: .infinity, alignment: .top)
                 Divider()
                 TimerListView()
@@ -131,7 +131,7 @@ struct TimerWindowView: View {
                     arrowEdge: .bottom
                 ) { await app.afterChange() })
                 .zIndex(1)
-            if !TimerWindowGeometry.isCompact(height: height) {
+            if !MiniTimerGeometry.isCompact(height: height) {
                 Divider()
                 TimerListView()
             }
@@ -161,7 +161,7 @@ struct IdlePromptItem: Identifiable {
     }
 }
 
-/// "You have been away" (spec_timer_window.md §6.3).
+/// "You have been away" (spec_timer.md §6.3).
 struct IdlePromptView: View {
     @Environment(AppModel.self) private var app
 
@@ -213,5 +213,5 @@ extension FocusedValues {
     // Set while a Timer view (the Mini Timer or the main window's Timer item)
     // is in the key window; the "Timer key" commands need it.
     // swiftlint:disable:next discouraged_optional_boolean
-    @Entry var timerWindowActive: Bool?
+    @Entry var timerViewActive: Bool?
 }

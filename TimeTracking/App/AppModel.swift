@@ -1,6 +1,6 @@
 // AppModel: the Mac app's state and commands, shared by the main window,
 // the menu bar item, the Dock menu, notifications, and global shortcuts
-// (spec_timer_window.md §13, spec_menubar.md §9).
+// (spec_timer.md §13, spec_menubar.md §9).
 
 import Foundation
 import Observation
@@ -13,7 +13,7 @@ final class AppModel {
     @ObservationIgnored let clock: any Clock
     @ObservationIgnored let notifier: NotificationPosting
     @ObservationIgnored weak var router: AppRouting?
-    @ObservationIgnored weak var window: TimerWindowControlling?
+    @ObservationIgnored weak var window: MiniTimerControlling?
     /// The Mini Timer's own list, popovers, picker, dialog, and focus.
     let miniTimer: TimerUIState
     /// The main window's Timer's own list, popovers, picker, dialog, and focus.
@@ -43,7 +43,7 @@ final class AppModel {
 
     /// Sync and live updates; `nil` under `-UITesting` and in tests.
     var live: LiveUpdates?
-    /// The first-launch tracker alert (spec_timer_window.md §8.2).
+    /// The first-launch tracker alert (spec_timer.md §8.2).
     var showsTrackerOnboarding = false
     /// The alert's "Open <APP_NAME> at login" checkbox, on by default.
     var onboardingOpensAtLogin = true
@@ -224,7 +224,7 @@ final class AppModel {
         revision += 1
     }
 
-    /// A notification action (spec_timer_window.md §10).
+    /// A notification action (spec_timer.md §10).
     func handle(_ action: NotificationAction) async {
         if let pomodoroAction = Self.pomodoroActions[action] {
             perform(pomodoroAction)

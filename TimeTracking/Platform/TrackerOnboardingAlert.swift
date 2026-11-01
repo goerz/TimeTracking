@@ -1,5 +1,5 @@
 // TrackerOnboardingAlert: the first-launch alert with its "Open <APP_NAME> at
-// login" checkbox (spec_timer_window.md §8.2). SwiftUI's dialog suppression
+// login" checkbox (spec_timer.md §8.2). SwiftUI's dialog suppression
 // toggle never wrote its binding back on the Mac, so this is an NSAlert whose
 // suppression button is the checkbox.
 

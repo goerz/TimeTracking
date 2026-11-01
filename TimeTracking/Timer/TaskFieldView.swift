@@ -1,5 +1,5 @@
 // TaskFieldView: the task field with autocompletion and the `@` trigger
-// (spec_timer_window.md §2.2).
+// (spec_timer.md §2.2).
 
 import SwiftUI
 import TimeTrackingCore

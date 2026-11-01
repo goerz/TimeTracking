@@ -23,7 +23,7 @@ enum PadCommand: Hashable, CaseIterable {
     case settings
 
     /// The commands that act only in some tabs; their menu items hold their
-    /// keys only while enabled (spec_timer_window.md §9).
+    /// keys only while enabled (spec_timer.md §9).
     var isTimerTabOnly: Bool {
         switch self {
         case .setProject, .edit, .delete, .find, .scrollToToday: true

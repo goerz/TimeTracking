@@ -13,7 +13,7 @@ One Xcode project, `TimeTracking.xcodeproj`, plus one local Swift package, `Pack
 | Target | Kind | Product | Bundle identifier | Spec |
 |---|---|---|---|---|
 | `TimeTrackingCore` | Swift package library (macOS, iOS) | `TimeTrackingCore` module | (none) | `spec_data_and_sync.md` |
-| `TimeTracking` | Mac app | `<APP_NAME>.app` (Debug: `<APP_NAME> Debug.app`), module `TimeTracking` | `<APP_ID>` | `spec_timer_window.md`, `spec_menubar.md`, `spec_calendar.md`, `spec_reports.md`, `spec_projects.md`, `spec_activity.md` |
+| `TimeTracking` | Mac app | `<APP_NAME>.app` (Debug: `<APP_NAME> Debug.app`), module `TimeTracking` | `<APP_ID>` | `spec_timer.md`, `spec_menubar.md`, `spec_calendar.md`, `spec_reports.md`, `spec_projects.md`, `spec_activity.md` |
 | `TimeTrackingAgent` | Mac login item (helper app) | `TimeTrackingAgent.app` (Debug: `TimeTrackingAgent Debug.app`) at `Contents/Library/LoginItems/` | `<APP_ID>.agent` | `spec_activity_tracking.md` |
 | `TimeTrackingCLI` | Mac command-line tool | `timetracking` at `Contents/Helpers/` | (none) | `spec_automation.md` |
 | `TrackerEvent` | Mac command-line tool | `tracker-event` at `Contents/Helpers/` | (none) | `spec_activity_tracking.md` |
@@ -66,7 +66,7 @@ The agent is embedded at `Contents/Library/LoginItems/TimeTrackingAgent.app` and
 
 The agent is unsandboxed with the hardened runtime and always signed with the team's development certificate, because TCC keys Accessibility and Full Disk Access grants to the signing identity. Through `AssociatedBundleIdentifiers` the app is the agent's responsible process: macOS checks the agent's Full Disk Access against the app's grant, while Accessibility is checked for the agent itself (`spec_activity_tracking.md` §5, §7.4).
 
-The Mac app registers the agent only when the user clicks "Enable Tracker" in the settings window's Tracker pane; the first-launch alert offers to open that pane (`spec_timer_window.md` §8.2). The Debug app registers the Debug agent (`<BUNDLE_ID>.debug.agent`), so a development build never replaces the recording agent.
+The Mac app registers the agent only when the user clicks "Enable Tracker" in the settings window's Tracker pane; the first-launch alert offers to open that pane (`spec_timer.md` §8.2). The Debug app registers the Debug agent (`<BUNDLE_ID>.debug.agent`), so a development build never replaces the recording agent.
 
 ### 1.5 Identifiers and containers
 
@@ -220,9 +220,9 @@ UI tests find controls by accessibility identifier (`timer.startButton`), never 
 
 ### 3.2 Behavior identifiers
 
-Each spec has one "Testable behaviors" list numbered continuously from 1, with the prefix `ARCH`, `DATA` (data and sync), `TW` (the Timer and the main window, spec_timer_window.md), `MB` (menu bar), `PP`, `PC`, `PR`, `PA` (the Projects, Calendar, Reports, and Activity sections), `TRK` (tracker), `IOS`, or `AUTO`. Each item names an observable input and result with concrete values.
+Each spec has one "Testable behaviors" list numbered continuously from 1, with the prefix `ARCH`, `DATA` (data and sync), `TM` (the Timer and the main window, spec_timer.md), `MB` (menu bar), `PP`, `PC`, `PR`, `PA` (the Projects, Calendar, Reports, and Activity sections), `TRK` (tracker), `IOS`, or `AUTO`. Each item names an observable input and result with concrete values.
 
-A test carries the identifier in its display name, `@Test("TW-1 releasing below 200 pt collapses to the bar")`, or for XCUITest in the method name, `testTW1_collapseBelowThreshold()`. One test may cover several numbers. The script `scripts/check_behaviors.sh` reads every `spec/spec_*.md`, checks that the numbers are continuous, and fails on a number without a test or a test identifier no spec defines.
+A test carries the identifier in its display name, `@Test("TM-1 releasing below 200 pt collapses to the bar")`, or for XCUITest in the method name, `testTM1_collapseBelowThreshold()`. One test may cover several numbers. The script `scripts/check_behaviors.sh` reads every `spec/spec_*.md`, checks that the numbers are continuous, and fails on a number without a test or a test identifier no spec defines.
 
 ### 3.3 What runs where
 
@@ -335,7 +335,7 @@ Each step ends with its behaviors green and with `make install` producing a usab
 9. Running `make apns-key P8=<dir>/AuthKey_ABC123DEFG.p8` with a valid key creates one generic-password item with service `<BUNDLE_ID>.apns`, account `ABC123DEFG`, and a secret whose `keyID` is `ABC123DEFG`, `teamID` equals `TEAM`, and `p8` equals the file content; a second run leaves exactly one item.
 10. Running `make apns-key` with a missing file or a key that is not P-256 exits non-zero and leaves the keychain unchanged.
 11. For key id `ABC123DEFG`, team `T`, app id `X`, and token `abcd`, the push client sends `POST https://api.sandbox.push.apple.com/3/device/abcd` with `apns-push-type: widgets`, `apns-topic: X.push-type.widgets`, body `{"aps":{"content-changed":true}}`, and a JWT with `alg` `ES256`, `kid` `ABC123DEFG`, `iss` `T`, and a signature that verifies with the public key; a request 49 minutes later reuses the JWT and one 51 minutes later carries a new one.
-12. Running `make check-behaviors` exits non-zero and lists `TW-999` when the Timer spec defines item 999 without a test; it also reports a test identifier that no spec defines and a non-continuous list.
+12. Running `make check-behaviors` exits non-zero and lists `TM-999` when the Timer spec defines item 999 without a test; it also reports a test identifier that no spec defines and a non-continuous list.
 13. Running `make help` lists every target of 2.5 under its group heading.
 14. Running `make clean` keeps `build.noindex/Build/Products`; `make distclean` removes `build.noindex/`, keeps `local.mk`, and refuses while `launchctl print gui/<uid>/<BUNDLE_ID>.debug.agent` succeeds.
 15. Running `make lint` exits non-zero on a SwiftLint violation, a formatting difference, or an `#available` check, without building; a build with a compiler warning fails.

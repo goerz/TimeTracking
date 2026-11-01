@@ -1,5 +1,5 @@
 // NotificationCategory: the Mac app's notification categories, actions,
-// sounds, and requests (spec_timer_window.md §10).
+// sounds, and requests (spec_timer.md §10).
 
 import Foundation
 

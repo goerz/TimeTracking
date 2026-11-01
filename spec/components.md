@@ -6,7 +6,7 @@ TimeTracking is a personal time tracker for the Mac, iPhone, and iPad. It record
 |---|---|
 | [spec_architecture.md](spec_architecture.md) | Project layout, targets, build system, testing, conventions, implementation order |
 | [spec_data_and_sync.md](spec_data_and_sync.md) | Shared library: entities, store, sync, live updates, query layer |
-| [spec_timer_window.md](spec_timer_window.md) | Mac main window and main menu, Timer and Mini Timer, Pomodoro, idle detection, reminders, settings window, global shortcuts |
+| [spec_timer.md](spec_timer.md) | Mac main window and main menu, Timer and Mini Timer, Pomodoro, idle detection, reminders, settings window, global shortcuts |
 | [spec_menubar.md](spec_menubar.md) | Mac menu bar item and Dock menu |
 | [spec_projects.md](spec_projects.md) | The sections of the main window and their router; Projects section; clients and areas; project picker and dialog |
 | [spec_calendar.md](spec_calendar.md) | Calendar section; time blocks; calendar events; suggestion engine |
@@ -36,7 +36,7 @@ TimeTracking is a personal time tracker for the Mac, iPhone, and iPad. It record
 ```
 ┌────────────────────────────── Mac ───────────────────────────────┐
 │  TimeTracking.app (not sandboxed)                                │
-│   ├─ Main window, Mini Timer, settings (spec_timer_window.md)    │
+│   ├─ Main window, Mini Timer, settings (spec_timer.md)    │
 │   ├─ Sections: Calendar, Reports, Projects, Activity             │
 │   │       (spec_calendar.md, spec_reports.md, spec_projects.md,  │
 │   │        spec_activity.md)                                     │
@@ -81,7 +81,7 @@ Owns the entities (client, area, project, time entry, settings, device), their i
 
 ### Mac app: main window and Mini Timer
 
-Spec: [spec_timer_window.md](spec_timer_window.md)
+Spec: [spec_timer.md](spec_timer.md)
 
 One main window, as on the iPad: a sidebar with Timer, Calendar, Reports, Projects, and Activity (⌘1 to ⌘5), opened at launch on the Timer, and one set of object menus (File, Edit, View, Timer, Entry, Project, Window) in every window. The Timer is the everyday view: the running-entry bar (task field with autocompletion and the `@` project trigger, project chip, timer, start/stop, Pomodoro button) beside or above the list of recent entries grouped by day, with a live Today total. The Mini Timer (Window › Mini Timer) is the same bar and list in a small window of their own: resizing it below a threshold height leaves only the bar (compact mode), and its pin floats it above other windows. The Pomodoro is display only: the entry runs through focus and break phases, and a long absence is handled by idle detection. Idle detection (default 10 minutes) offers Keep, Discard, Discard and continue, and Split. The window also owns reminders, the settings window (General, Pomodoro, Idle, Reminders, Shortcuts, Tracker), and the global shortcuts (⌥⌘R shows or hides the Mini Timer; continue/stop is unassigned by default; both recordable). The Timer creates entries only by starting them; past intervals are drawn in the Calendar.
 
@@ -130,7 +130,7 @@ Every way a program other than the app's own interface reads or changes tracked 
 
 - Current platforms only: macOS 27, iOS and iPadOS 27, Xcode 27, Swift 6 with complete strict concurrency, SwiftUI with Observation, AppKit or UIKit only where SwiftUI has no equivalent. No availability checks for older systems.
 - A paid Apple Developer Program membership is assumed. The apps are built and installed from source with the Makefile and are development-signed (APNs sandbox, CloudKit development environment); there is no App Store or TestFlight distribution. Family Controls uses the development entitlement.
-- Every explicitly specified behavior is backed by a test. Each spec numbers its testable behaviors continuously; tests carry the identifier `<prefix>-<n>` (ARCH, DATA, TW, MB, PP, PC, PR, PA, TRK, IOS, AUTO), and `make check-behaviors` enforces the mapping.
+- Every explicitly specified behavior is backed by a test. Each spec numbers its testable behaviors continuously; tests carry the identifier `<prefix>-<n>` (ARCH, DATA, TM, MB, PP, PC, PR, PA, TRK, IOS, AUTO), and `make check-behaviors` enforces the mapping.
 - The Mac app, the agent, and the command-line tools are not sandboxed and share one App Group container; the iOS app and its extensions are sandboxed.
 - Privacy: raw activity detail stays on the Mac; only block summaries sync; exclusions apply before anything is written; the suggestion engine runs on device.
 - Days start at midnight, local time, everywhere: the Timer list, Calendar, Reports, Activity, and the tracker. There is no setting for it. Weeks run Monday to Sunday.

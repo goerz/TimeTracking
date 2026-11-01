@@ -1,5 +1,5 @@
 // IdleModel: idle detection and the "You have been away" prompt
-// (spec_timer_window.md §6).
+// (spec_timer.md §6).
 
 import Foundation
 import Observation

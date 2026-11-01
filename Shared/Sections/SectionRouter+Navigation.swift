@@ -1,6 +1,6 @@
 // SectionRouter+Navigation: the View menu's commands shared by sections,
 // and Timer › Continue on a section's selection, acting on the section shown
-// (spec_projects.md §1.2, spec_timer_window.md §9).
+// (spec_projects.md §1.2, spec_timer.md §9).
 
 import Foundation
 import TimeTrackingCore

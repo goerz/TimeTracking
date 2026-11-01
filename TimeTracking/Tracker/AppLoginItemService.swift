@@ -1,5 +1,5 @@
 // AppLoginItemService: "Open at login" for the app itself
-// (spec_timer_window.md §8.1, §8.2; spec_activity_tracking.md §7.4).
+// (spec_timer.md §8.1, §8.2; spec_activity_tracking.md §7.4).
 
 import Foundation
 import TimeTrackingCore

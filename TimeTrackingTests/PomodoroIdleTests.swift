@@ -1,5 +1,5 @@
 // The Pomodoro, idle prompt, reminders, notifications, and the tracker
-// onboarding (spec_timer_window.md §5 to §8, §10).
+// onboarding (spec_timer.md §5 to §8, §10).
 
 import Foundation
 import Testing
@@ -9,7 +9,7 @@ import UserNotifications
 
 @MainActor
 struct PomodoroIdleTests {
-    @Test("TW-23 the Pomodoro button counts down, then +0:00 at focusEnd with Focus done and Start Break; the label keeps the elapsed time")
+    @Test("TM-23 the Pomodoro button counts down, then +0:00 at focusEnd with Focus done and Start Break; the label keeps the elapsed time")
     func focusDone() async throws {
         let test = try await TestApp()
         test.app.pomodoro.sleepUntil = { _ in try await Task.sleep(for: .seconds(3600)) }
@@ -31,7 +31,7 @@ struct PomodoroIdleTests {
         #expect(test.app.timer.timerText(at: test.clock.now) == "0:25:00")
     }
 
-    @Test("TW-24 through focus, break, and focus the store holds one running entry and no stopped entry")
+    @Test("TM-24 through focus, break, and focus the store holds one running entry and no stopped entry")
     func entriesUntouched() async throws {
         let test = try await TestApp()
         test.app.pomodoro.sleepUntil = { _ in try await Task.sleep(for: .seconds(3600)) }
@@ -50,7 +50,7 @@ struct PomodoroIdleTests {
         #expect(test.app.pomodoro.state == .focus(end: test.clock.now + 25 * 60))
     }
 
-    @Test("TW-25 stopping the entry ends the Pomodoro and removes its notifications; a new entry keeps it")
+    @Test("TM-25 stopping the entry ends the Pomodoro and removes its notifications; a new entry keeps it")
     func endsWithEntry() async throws {
         let test = try await TestApp()
         test.app.pomodoro.sleepUntil = { _ in try await Task.sleep(for: .seconds(3600)) }
@@ -63,7 +63,7 @@ struct PomodoroIdleTests {
         #expect(test.notifier.removed.suffix(2) == [.pomodoroFocusDone, .pomodoroBreakDone])
     }
 
-    @Test("TW-26 a focus duration change during focus keeps focusEnd and applies from the next phase")
+    @Test("TM-26 a focus duration change during focus keeps focusEnd and applies from the next phase")
     func durationChange() async throws {
         let test = try await TestApp()
         test.app.pomodoro.sleepUntil = { _ in try await Task.sleep(for: .seconds(3600)) }
@@ -82,7 +82,7 @@ struct PomodoroIdleTests {
         #expect(test.app.pomodoro.state == .focus(end: test.clock.now + 50 * 60))
     }
 
-    @Test("TW-27 TW-28 the prompt opens at the next input with Idle since; Keep, Discard, Discard and Continue, Split act per §6.3")
+    @Test("TM-27 TM-28 the prompt opens at the next input with Idle since; Keep, Discard, Discard and Continue, Split act per §6.3")
     func idlePrompt() async throws {
         for option in IdleOption.allCases {
             let test = try await TestApp(now: "2024-03-14T14:00")
@@ -130,7 +130,7 @@ struct PomodoroIdleTests {
         }
     }
 
-    @Test("TW-29 Stop the entry at that moment stops at the lock time; shutdown stops at the shutdown time")
+    @Test("TM-29 Stop the entry at that moment stops at the lock time; shutdown stops at the shutdown time")
     func lockAndShutdown() async throws {
         let test = try await TestApp()
         await test.app.timer.start()
@@ -146,7 +146,7 @@ struct PomodoroIdleTests {
         #expect(try await test.store.runningEntry() == nil)
     }
 
-    @Test("TW-30 a reminder arrives 10 min after a stop at 10:00 on a weekday; Snooze suppresses it")
+    @Test("TM-30 a reminder arrives 10 min after a stop at 10:00 on a weekday; Snooze suppresses it")
     func reminders() async throws {
         // 2024-03-12 is a Tuesday.
         let test = try await TestApp(now: "2024-03-12T09:50")
@@ -172,7 +172,7 @@ struct PomodoroIdleTests {
         #expect(await !(test.app.reminders.check()))
     }
 
-    @Test("TW-32 each notification category offers exactly its actions; Settings reopens on the last pane shown")
+    @Test("TM-32 each notification category offers exactly its actions; Settings reopens on the last pane shown")
     func categoriesAndPane() throws {
         #expect(NotificationCategory.pomodoroFocusDone.actions.map(\.title) == ["Start Break", "Skip Break"])
         #expect(NotificationCategory.pomodoroBreakDone.actions.map(\.title) == ["Start Focus", "End Pomodoro"])
@@ -181,7 +181,7 @@ struct PomodoroIdleTests {
         let category = UserNotifications.category(.idle)
         #expect(category.actions.map(\.identifier) == ["keep", "discard", "discardAndContinue", "split"])
         // The pane selection is stored under one key that the Settings view reads.
-        let router = WindowRouter(timerWindow: TimerWindowController(settings: AppSettings.ephemeral()))
+        let router = WindowRouter(miniTimerWindow: MiniTimerController(settings: AppSettings.ephemeral()))
         #expect(router.paneDefaults == .standard)
         let suite = "PomodoroIdleTests." + UUID().uuidString
         let defaults = try #require(UserDefaults(suiteName: suite))
@@ -196,7 +196,7 @@ struct PomodoroIdleTests {
     }
 
     @Test(
-        "TW-34 the alert's Open at login checkbox is on by default; checked, either button registers the app; never under -UITesting"
+        "TM-34 the alert's Open at login checkbox is on by default; checked, either button registers the app; never under -UITesting"
     )
     func onboardingOpenAtLogin() async throws {
         for openSettings in [true, false] {
@@ -232,7 +232,7 @@ struct PomodoroIdleTests {
         #expect(AppDelegate.appLoginItem(uiTesting: false) is MainAppLoginItem)
     }
 
-    @Test("TW-34 under -UITesting the agent registration is in memory, so the first-launch alert registers nothing real")
+    @Test("TM-34 under -UITesting the agent registration is in memory, so the first-launch alert registers nothing real")
     func uiTestingAgent() throws {
         let identity = try AppIdentity(infoDictionary: Bundle.main.infoDictionary ?? [:])
         #expect(AppDelegate.agentService(identity: identity, uiTesting: true, realAgent: false) is FakeAgentService)
@@ -241,7 +241,7 @@ struct PomodoroIdleTests {
         #expect(AppDelegate.agentService(identity: nil, uiTesting: false, realAgent: false) is FakeAgentService)
     }
 
-    @Test("TW-33 the first-launch alert appears once; Open Tracker Settings opens the Tracker pane; nothing registers until Enable Tracker")
+    @Test("TM-33 the first-launch alert appears once; Open Tracker Settings opens the Tracker pane; nothing registers until Enable Tracker")
     func onboarding() async throws {
         let test = try await TestApp()
         test.app.showTrackerOnboardingIfNeeded()

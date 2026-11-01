@@ -1,6 +1,6 @@
 // PhonePomodoroModel: the iOS Pomodoro, persisted in the device settings
 // with its notifications scheduled ahead (spec_ios.md §2.8, §8;
-// spec_timer_window.md §5).
+// spec_timer.md §5).
 
 import Foundation
 import TimeTrackingCore

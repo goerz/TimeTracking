@@ -60,7 +60,7 @@ No part of an entry can lie after now. Gestures clamp at the now-line; a drop th
 
 ### 2.3 Drawing
 
-Dragging vertically in empty space draws a provisional entry. Both ends snap to `snapMinutes` (default 5), or 1 minute with ⌥, and stop at the now-line and midnight. Under 1 minute creates nothing (and deselects). Otherwise the entry stays with a dashed border and the Timer's edit popover ([spec_timer_window.md](spec_timer_window.md) §4) opens on it with the times filled in. Return commits (empty task and no project allowed); Escape removes it; a click elsewhere commits if a project or task was given and cancels otherwise. The minimum entry length everywhere is 1 minute.
+Dragging vertically in empty space draws a provisional entry. Both ends snap to `snapMinutes` (default 5), or 1 minute with ⌥, and stop at the now-line and midnight. Under 1 minute creates nothing (and deselects). Otherwise the entry stays with a dashed border and the Timer's edit popover ([spec_timer.md](spec_timer.md) §4) opens on it with the times filled in. Return commits (empty task and no project allowed); Escape removes it; a click elsewhere commits if a project or task was given and cancels otherwise. The minimum entry length everywhere is 1 minute.
 
 ### 2.4 Moving and resizing
 
@@ -208,7 +208,7 @@ Fixtures (a synthetic week of blocks in block-log format, entries, calendar titl
 | Time block | Create Entry…, Edit…, Delete |
 | External event | Create Entry…, Open in Calendar, Hide This Calendar |
 
-The navigation keys (← → ⇧← ⇧→, Tab and ⇧Tab, Escape) are the view's own, as on every Mac, and are no menu items; they are off while a popover, editor, or sheet takes text input. ⌘T is View › Go to Today, and View › Previous Period and Next Period (⌥⌘← ⌥⌘→) and Go to Date… (⇧⌘D, the month picker) act on the Calendar too. Every other key is a menu item ([spec_timer_window.md](spec_timer_window.md) §9), enabled while the Calendar is shown: in the Entry menu Edit Selection…, Create Entry from Selection, Duplicate to Next Day, and Delete; Move Earlier, Move Later, Lengthen, and Shorten; and Fill Day…; under View's Calendar header the zoom and day-count items and the two column toggles. Timer › Continue (⌘O) continues the one selected entry.
+The navigation keys (← → ⇧← ⇧→, Tab and ⇧Tab, Escape) are the view's own, as on every Mac, and are no menu items; they are off while a popover, editor, or sheet takes text input. ⌘T is View › Go to Today, and View › Previous Period and Next Period (⌥⌘← ⌥⌘→) and Go to Date… (⇧⌘D, the month picker) act on the Calendar too. Every other key is a menu item ([spec_timer.md](spec_timer.md) §9), enabled while the Calendar is shown: in the Entry menu Edit Selection…, Create Entry from Selection, Duplicate to Next Day, and Delete; Move Earlier, Move Later, Lengthen, and Shorten; and Fill Day…; under View's Calendar header the zoom and day-count items and the two column toggles. Timer › Continue (⌘O) continues the one selected entry.
 
 | Key | Effect |
 |---|---|
@@ -289,7 +289,7 @@ From [spec_activity_tracking.md](spec_activity_tracking.md): the log formats and
 
 From [spec_projects.md](spec_projects.md): `SectionRouter`, the project picker, the area color derivations.
 
-From [spec_timer_window.md](spec_timer_window.md): the edit popover, opened on a prefilled draft with a candidate list.
+From [spec_timer.md](spec_timer.md): the edit popover, opened on a prefilled draft with a candidate list.
 
 From [spec_activity.md](spec_activity.md): the context color sequence and `BlockHighlight`.
 

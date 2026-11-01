@@ -1,10 +1,10 @@
 // AppRouting: the window commands other parts of the app call
-// (spec_timer_window.md §13, spec_menubar.md §2.2).
+// (spec_timer.md §13, spec_menubar.md §2.2).
 
 import Foundation
 import TimeTrackingCore
 
-/// The settings window's panes, in toolbar order (spec_timer_window.md §8).
+/// The settings window's panes, in toolbar order (spec_timer.md §8).
 enum SettingsPane: String, CaseIterable, Identifiable, Sendable {
     case general
     case pomodoro

@@ -1,4 +1,4 @@
-// RunningEntryBar: the running-entry bar of the Timer (spec_timer_window.md §2, §5.1;
+// RunningEntryBar: the running-entry bar of the Timer (spec_timer.md §2, §5.1;
 // spec_design.md §7, §8).
 
 import SwiftUI
@@ -50,7 +50,7 @@ struct RunningEntryBar: View {
             .padding(.horizontal, Design.Spacing.window)
             Spacer(minLength: 0)
         }
-        .frame(height: TimerWindowGeometry.barHeight - (showsTitleRow ? 0 : Self.titleRowHeight))
+        .frame(height: MiniTimerGeometry.barHeight - (showsTitleRow ? 0 : Self.titleRowHeight))
     }
 
     /// The traffic lights' row: empty (it drags the window) up to the pin.

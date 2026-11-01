@@ -1,5 +1,5 @@
 // TimeTrackingApp: the Mac app's entry point and scenes
-// (spec_timer_window.md §1, §8, §9; spec_menubar.md; spec_projects.md §1;
+// (spec_timer.md §1, §8, §9; spec_menubar.md; spec_projects.md §1;
 // `--unregister`: spec_activity_tracking.md §5).
 
 import SwiftUI
@@ -46,20 +46,20 @@ struct TimeTrackingApp: App {
         // ⌥⌘R). It opens from Window › Mini Timer, not at launch.
         Window("Mini Timer", id: "timer") {
             HostedContent(host: delegate.host) { app in
-                TimerWindowView()
+                TimerView()
                     .environment(app)
                     .background(WindowAccessor { window in
-                        delegate.timerWindow?.attach(window)
+                        delegate.miniTimerWindow?.attach(window)
                     })
                     .modifier(RouterActions(router: delegate.router))
             }
         }
         .windowStyle(.hiddenTitleBar)
         .windowResizability(.contentMinSize)
-        .defaultSize(TimerWindowGeometry.defaultFullSize)
+        .defaultSize(MiniTimerGeometry.defaultFullSize)
         .defaultLaunchBehavior(.suppressed)
         // Never reopened at launch, also not by state restoration; its
-        // frame and mode come from TimerWindowController.
+        // frame and mode come from MiniTimerController.
         .restorationBehavior(.disabled)
         // Window › Mini Timer (in MainMenuCommands) replaces the scene's item.
         .commandsRemoved()

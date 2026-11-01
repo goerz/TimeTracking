@@ -2,7 +2,7 @@
 
 One iOS target runs on iPhone and iPad. On the iPhone it is the Timer in pocket form (start, stop, continue, pick a project and task, the recent list, a Pomodoro), plus Home Screen and Lock Screen widgets, a Control Center control, App Shortcuts, and Siri. On the iPad the same Timer is the first tab, followed by Projects, Calendar, Reports, and Activity tabs that present the Mac's sections. The target also hosts the device-side activity collection of [spec_activity_tracking.md](spec_activity_tracking.md) §6.2. Everything syncs through the shared library ([spec_data_and_sync.md](spec_data_and_sync.md)).
 
-This spec states only what differs on a touch device. The Timer behavior is that of [spec_timer_window.md](spec_timer_window.md), the picker and project dialog are those of [spec_projects.md](spec_projects.md), and the intents, entities, and URL scheme are those of [spec_automation.md](spec_automation.md).
+This spec states only what differs on a touch device. The Timer behavior is that of [spec_timer.md](spec_timer.md), the picker and project dialog are those of [spec_projects.md](spec_projects.md), and the intents, entities, and URL scheme are those of [spec_automation.md](spec_automation.md).
 
 Not included: an Apple Watch app, Live Activities, idle detection, and the Mac's "remind me to track time" reminders.
 
@@ -26,11 +26,11 @@ Entry writes go through the app process. Interactive widget and control buttons 
 
 ### 2.1 Layout
 
-A navigation bar with the large title "Timer" and a settings button (`gearshape`). Below it, one inset-grouped list: the running-entry card as the first section, the Mac activity line (2.3) and the sync pill as its footer, the Siri tip until dismissed, and the day-grouped recent list (2.6). The list is `searchable` with the search field in the navigation bar's drawer (revealed by pulling down; ⌘F on a hardware keyboard focuses it): its filter matches and sums as the Mac Timer's ⌘F filter ([spec_timer_window.md](spec_timer_window.md) §3). Stop and Discard are on the card, Continue on every row. The iPhone has no tab bar, no calendar view, and no manual mode.
+A navigation bar with the large title "Timer" and a settings button (`gearshape`). Below it, one inset-grouped list: the running-entry card as the first section, the Mac activity line (2.3) and the sync pill as its footer, the Siri tip until dismissed, and the day-grouped recent list (2.6). The list is `searchable` with the search field in the navigation bar's drawer (revealed by pulling down; ⌘F on a hardware keyboard focuses it): its filter matches and sums as the Mac Timer's ⌘F filter ([spec_timer.md](spec_timer.md) §3). Stop and Discard are on the card, Continue on every row. The iPhone has no tab bar, no calendar view, and no manual mode.
 
 ### 2.2 The running-entry card
 
-The card is the Mac Timer's running-entry bar ([spec_timer_window.md](spec_timer_window.md) §2) in pocket form, with the 44 pt circle buttons of `spec_design.md` §7, in three rows:
+The card is the Mac Timer's running-entry bar ([spec_timer.md](spec_timer.md) §2) in pocket form, with the 44 pt circle buttons of `spec_design.md` §7, in three rows:
 
 1. The borderless task field, full width (`.title2`, placeholder "What are you working on?").
 2. The project chip, at the card's leading edge.
@@ -44,7 +44,7 @@ The Pomodoro countdown thus sits next to the elapsed time.
 | Running | Elapsed time `h:mm:ss` since the midnight chain's start, as the Mac Timer's label; red Stop button | Stop, and Discard with the Mac Timer's confirmation text; Stop blanks the task field and project chip, as at startup; Discard is undoable (shake or three-finger undo) until the next change |
 | Running with a Pomodoro | The elapsed time as above; the countdown is on the Pomodoro button (2.8) | As above |
 
-Starting while another entry runs, from any surface, stops the running entry at the new start (`start(projectID:task:at:)`). The task field's commit timing, autocompletion, and `@` trigger are those of [spec_timer_window.md](spec_timer_window.md) §2.2; the suggestions appear as a list above the keyboard.
+Starting while another entry runs, from any surface, stops the running entry at the new start (`start(projectID:task:at:)`). The task field's commit timing, autocompletion, and `@` trigger are those of [spec_timer.md](spec_timer.md) §2.2; the suggestions appear as a list above the keyboard.
 
 ### 2.3 The Mac's current activity
 
@@ -60,7 +60,7 @@ Continuing an entry whose project is archived shows the Mac Timer's alert ("Rest
 
 ### 2.6 The recent list
 
-Grouping, headers, day totals (today's live with the running entry), the 14-day paging, and the row content are those of [spec_timer_window.md](spec_timer_window.md) §3. Section headers use `.headline` in the primary color, without uppercasing. The running entry is the first row of Today, its live duration in the accent color, without a continue button or swipes; a tap opens its edit sheet. Each other row has a 32 pt continue button at the trailing edge.
+Grouping, headers, day totals (today's live with the running entry), the 14-day paging, and the row content are those of [spec_timer.md](spec_timer.md) §3. Section headers use `.headline` in the primary color, without uppercasing. The running entry is the first row of Today, its live duration in the accent color, without a continue button or swipes; a tap opens its edit sheet. Each other row has a 32 pt continue button at the trailing edge.
 
 | Gesture | Action |
 |---|---|
@@ -73,11 +73,11 @@ Grouping, headers, day totals (today's live with the running entry), the 14-day 
 
 A sheet with the task field (autocompletion, no `@` trigger), the project chip, Start and End as date-and-time pickers, the resulting duration, "Created on <device name>" from the `Device` record in the secondary color, and Continue and Delete buttons. Done saves, Cancel discards. For the running entry End reads "Running" and only Start, task, and project change.
 
-The future, overlap, and midnight-chain rules and their messages are those of [spec_timer_window.md](spec_timer_window.md) §4.2 and §4.3, checked on Done. An interval that crosses midnight shows "Will be saved as 2 entries, split at midnight" under the duration before saving.
+The future, overlap, and midnight-chain rules and their messages are those of [spec_timer.md](spec_timer.md) §4.2 and §4.3, checked on Done. An interval that crosses midnight shows "Will be saved as 2 entries, split at midnight" under the duration before saving.
 
 ### 2.8 Pomodoro
 
-States, transitions, and the Pomodoro button (its look, countdown, ring, menu, and confirmation) are those of [spec_timer_window.md](spec_timer_window.md) §5, with the synced `pomodoro.focusMinutes` and `pomodoro.breakMinutes` and the device setting `pomodoro.sounds`; a tap acts as the Mac's click and a long press opens the menu where the Mac presses and holds. The card's time keeps the elapsed time. The Pomodoro is device-local: one started on the Mac is invisible on the phone, and the reverse. As on the Mac, Start Pomodoro is disabled while nothing runs. A pending confirmation turns the Pomodoro button into "Start Break" or "Start Focus".
+States, transitions, and the Pomodoro button (its look, countdown, ring, menu, and confirmation) are those of [spec_timer.md](spec_timer.md) §5, with the synced `pomodoro.focusMinutes` and `pomodoro.breakMinutes` and the device setting `pomodoro.sounds`; a tap acts as the Mac's click and a long press opens the menu where the Mac presses and holds. The card's time keeps the elapsed time. The Pomodoro is device-local: one started on the Mac is invisible on the phone, and the reverse. As on the Mac, Start Pomodoro is disabled while nothing runs. A pending confirmation turns the Pomodoro button into "Start Break" or "Start Focus".
 
 What iOS adds:
 
@@ -204,7 +204,7 @@ The library owns synchronization; this section states what the iOS app does arou
 
 ## 8. Notifications
 
-Local notifications only. Authorization is requested at the first start of an entry on this device; if denied, the Pomodoro confirmation button still works and Settings shows a hint with a button to the system settings. The Pomodoro titles, bodies, and actions are those of [spec_timer_window.md](spec_timer_window.md) §10.
+Local notifications only. Authorization is requested at the first start of an entry on this device; if denied, the Pomodoro confirmation button still works and Settings shows a hint with a button to the system settings. The Pomodoro titles, bodies, and actions are those of [spec_timer.md](spec_timer.md) §10.
 
 | Category | Trigger | Text | Actions | Level |
 |---|---|---|---|---|
@@ -287,7 +287,7 @@ The Calendar tab requests calendar access per [spec_calendar.md](spec_calendar.m
 
 ### 10.3 Hardware keyboard
 
-The iPadOS menu bar, also shown in the ⌘-hold overlay, has the Mac's menus, items, titles, and keys ([spec_timer_window.md](spec_timer_window.md) §9), built from the same shared menu items: File, Edit, View, Timer, Entry, Project, and Window. The tabs are the Mac's sidebar items: an item of the Timer is enabled only in the Timer tab, an item of a section only in its tab, and, as on the Mac, a disabled item holds no key equivalent. In the section tabs every key is that tab's spec's; the Calendar's navigation keys are the view's, as on the Mac.
+The iPadOS menu bar, also shown in the ⌘-hold overlay, has the Mac's menus, items, titles, and keys ([spec_timer.md](spec_timer.md) §9), built from the same shared menu items: File, Edit, View, Timer, Entry, Project, and Window. The tabs are the Mac's sidebar items: an item of the Timer is enabled only in the Timer tab, an item of a section only in its tab, and, as on the Mac, a disabled item holds no key equivalent. In the section tabs every key is that tab's spec's; the Calendar's navigation keys are the view's, as on the Mac.
 
 The iPad differs from the Mac only where it has no counterpart:
 
@@ -370,7 +370,7 @@ The iPad reads the block log through `ActivityReading` and the Mac's activity fr
 - Mac app (via the data spec's `WidgetPushSender`): a WidgetKit push to every iOS token whenever the running entry or a Mac's activity changes.
 - [spec_architecture.md](spec_architecture.md): the five targets, entitlements, Info.plist keys, and development signing (sandbox APNs tokens).
 - [spec_automation.md](spec_automation.md): entities, intents with their dialogs and errors, the Siri inference rule, and the URL scheme. This spec owns the phrase table and the wrapper intents, which call the library operations, not the intents' `perform()`.
-- [spec_timer_window.md](spec_timer_window.md): the running-entry bar, task field, list, edit rules, Pomodoro state machine, notification texts, and keys.
+- [spec_timer.md](spec_timer.md): the running-entry bar, task field, list, edit rules, Pomodoro state machine, notification texts, and keys.
 - [spec_projects.md](spec_projects.md): the picker, project dialog, and area and client forms as shared views.
 - Section specs (Calendar, Reports, Projects, Activity): the tab contents that section 10 adapts.
 - [spec_activity_tracking.md](spec_activity_tracking.md): the merge of device events, the exclusion semantics, and Focus events as presence hints.

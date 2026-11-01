@@ -160,7 +160,7 @@ One row per matching entry, with a footer "Total 18h 50m 14s · 22 entries".
 | Project | Name with its area's dot; "–" without a project |
 | Task | Truncated, full text in the tooltip |
 
-Default sort: start descending; every column sorts. ↩ or double-click opens the Timer's edit popover anchored to the row ([spec_timer_window.md](spec_timer_window.md) §4). The context menu offers "Edit…", "Continue" (the Timer's continue command), and "Show in Calendar" (`showCalendar` at the entry's day). There is no delete or bulk action.
+Default sort: start descending; every column sorts. ↩ or double-click opens the Timer's edit popover anchored to the row ([spec_timer.md](spec_timer.md) §4). The context menu offers "Edit…", "Continue" (the Timer's continue command), and "Show in Calendar" (`showCalendar` at the entry's day). There is no delete or bulk action.
 
 ## 7. Export
 
@@ -175,7 +175,7 @@ The lower card's Export button and File › Export… (⇧⌘E) open a save pane
 
 ## 8. Commands and keyboard
 
-The commands live under the View menu's Report header ([spec_timer_window.md](spec_timer_window.md) §9), enabled while Reports is shown; Go to Today, Previous and Next Period, and Date Range… are the View menu's own items, shared with the Calendar and Activity, Edit Entry… for the one selected row of the entry list is in the Entry menu, and Export is in File, enabled only while Reports is shown in the key main window. Timer › Continue (⌘O) continues the one selected row of the entry list.
+The commands live under the View menu's Report header ([spec_timer.md](spec_timer.md) §9), enabled while Reports is shown; Go to Today, Previous and Next Period, and Date Range… are the View menu's own items, shared with the Calendar and Activity, Edit Entry… for the one selected row of the entry list is in the Entry menu, and Export is in File, enabled only while Reports is shown in the key main window. Timer › Continue (⌘O) continues the one selected row of the entry list.
 
 | Command | Shortcut |
 |---|---|

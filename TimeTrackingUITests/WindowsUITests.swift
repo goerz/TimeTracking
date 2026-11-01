@@ -1,10 +1,10 @@
 // What only real windows show: the main window's Timer, the Mini Timer, the
-// menu bar item, the settings window (spec_timer_window.md, spec_menubar.md,
+// menu bar item, the settings window (spec_timer.md, spec_menubar.md,
 // spec_architecture.md §8).
 
 import XCTest
 
-final class TimerWindowUITests: XCTestCase {
+final class WindowsUITests: XCTestCase {
     override func setUp() {
         continueAfterFailure = false
     }
@@ -38,7 +38,7 @@ final class TimerWindowUITests: XCTestCase {
     }
 
     @MainActor
-    func testTW1_collapseBelowThreshold() {
+    func testTM1_collapseBelowThreshold() {
         let app = launch()
         let window = app.openMiniTimer()
         // Just inside the bottom edge: the resize area, not the desktop below.
@@ -57,7 +57,7 @@ final class TimerWindowUITests: XCTestCase {
     }
 
     @MainActor
-    func testTW2_compactModeShortcut() {
+    func testTM2_compactModeShortcut() {
         let app = launch()
         let window = app.openMiniTimer()
         let full = window.frame
@@ -70,7 +70,7 @@ final class TimerWindowUITests: XCTestCase {
     }
 
     @MainActor
-    func testTW3_restoresFrameAndPin() {
+    func testTM3_restoresFrameAndPin() {
         var app = launch()
         _ = app.openMiniTimer()
         let pin = app.buttons["timer.pinButton"]
@@ -92,7 +92,7 @@ final class TimerWindowUITests: XCTestCase {
     }
 
     @MainActor
-    func testTW4_showHideShortcut() {
+    func testTM4_showHideShortcut() {
         // A recorded ⌃⌥⌘R: another app on the test Mac may hold ⌥⌘R and take
         // the activation. StatusItemTests checks the ⌥⌘R default.
         let recorded = #""{\"carbonKeyCode\":15,\"carbonModifiers\":6400}""#
@@ -108,7 +108,7 @@ final class TimerWindowUITests: XCTestCase {
         XCUIApplication(bundleIdentifier: "com.apple.finder").typeKey("r", modifierFlags: shortcut)
         XCTAssertTrue(app.wait(for: .runningForeground, timeout: 5))
         // The Mini Timer's task field has keyboard focus. (Synthesized typing
-        // right after the shortcut loses keys under XCUITest; TW-6 and TW-9
+        // right after the shortcut loses keys under XCUITest; TM-6 and TM-9
         // cover typing.)
         let field = app.windows["timer"].textFields["timer.taskField"]
         wait(for: [expectation(for: NSPredicate(format: "hasKeyboardFocus == true"), evaluatedWith: field)], timeout: 5)
@@ -116,7 +116,7 @@ final class TimerWindowUITests: XCTestCase {
     }
 
     @MainActor
-    func testTW6_startAndStopFromTheBar() {
+    func testTM6_startAndStopFromTheBar() {
         let app = launch(fixture: "empty")
         let field = app.mainWindow.textFields["timer.taskField"]
         field.click()
@@ -129,7 +129,7 @@ final class TimerWindowUITests: XCTestCase {
     }
 
     @MainActor
-    func testTW9_atTriggerOpensPicker() {
+    func testTM9_atTriggerOpensPicker() {
         let app = launch()
         let field = app.mainWindow.textFields["timer.taskField"]
         field.click()

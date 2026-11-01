@@ -1,5 +1,5 @@
 // TimerUIState: one Timer view's own state, the Mini Timer's or the main
-// window's (spec_timer_window.md §1, §9).
+// window's (spec_timer.md §1, §9).
 
 import Foundation
 import Observation
@@ -57,7 +57,7 @@ final class TimerUIState {
 
 /// The Mini Timer's AppKit side, as the models see it.
 @MainActor
-protocol TimerWindowControlling: AnyObject {
+protocol MiniTimerControlling: AnyObject {
     var isCompact: Bool { get }
     var isKey: Bool { get }
     /// The Mini Timer is on screen.

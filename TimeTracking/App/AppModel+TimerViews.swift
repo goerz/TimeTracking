@@ -1,6 +1,6 @@
 // AppModel+TimerViews: the commands of the two Timer views, the Mini
 // Timer's and the main window's, each acting on its own state
-// (spec_timer_window.md §1, §2.3, §3).
+// (spec_timer.md §1, §2.3, §3).
 
 import Foundation
 import TimeTrackingCore
@@ -25,7 +25,7 @@ extension AppModel {
         }
     }
 
-    /// The chip's picker in `view`, with task matching (spec_timer_window.md §2.3).
+    /// The chip's picker in `view`, with task matching (spec_timer.md §2.3).
     func openChipPicker(in view: TimerUIState) {
         view.pickerModel = ProjectPickerModel(store: store, currentProject: timer.chipProjectID, taskMatching: true)
     }

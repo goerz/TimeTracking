@@ -1,5 +1,5 @@
 // Midnight chains: task and project changes along a chain
-// (spec_timer_window.md §4.3, spec_data_and_sync.md §1.5).
+// (spec_timer.md §4.3, spec_data_and_sync.md §1.5).
 
 import Foundation
 import GRDB

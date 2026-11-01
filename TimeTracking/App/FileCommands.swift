@@ -1,4 +1,4 @@
-// FileCommands: the File menu (spec_timer_window.md §9).
+// FileCommands: the File menu (spec_timer.md §9).
 
 import SwiftUI
 import TimeTrackingCore
@@ -8,7 +8,7 @@ import TimeTrackingCore
 struct FileCommands: Commands {
     var host: AppHost
     @FocusedValue(\.mainWindowActive) private var windowActive
-    @FocusedValue(\.timerWindowActive) private var timerActive
+    @FocusedValue(\.timerViewActive) private var timerActive
 
     private var app: AppModel? {
         host.model

@@ -1,4 +1,4 @@
-// Idle detection and reminders (spec_timer_window.md §6, §7), and the tracker
+// Idle detection and reminders (spec_timer.md §6, §7), and the tracker
 // warning rule (spec_menubar.md §3).
 
 import Foundation
@@ -13,7 +13,7 @@ struct IdleAndReminderTests {
     }
 
     @Test(
-        "TW-27 10 min 5 s without input prompts with the time input stopped; not passive, idle, or short"
+        "TM-27 10 min 5 s without input prompts with the time input stopped; not passive, idle, or short"
     )
     func idlePrompt() throws {
         var detector = IdleDetector()
@@ -46,7 +46,7 @@ struct IdleAndReminderTests {
         #expect(twenty.sample(idleSeconds: 1, at: stopped + 710, isRunning: true) == nil)
     }
 
-    @Test("TW-29 lock, sleep, and shutdown follow the settings, using the lock or shutdown time")
+    @Test("TM-29 lock, sleep, and shutdown follow the settings, using the lock or shutdown time")
     func lockSleepShutdown() throws {
         let lock = try date("2024-03-14T12:00")
         // Ask when I return: prompt at the lock time.
@@ -82,7 +82,7 @@ struct IdleAndReminderTests {
     }
 
     @Test(
-        "TW-30 reminders every 10 min, 09:00 to 17:00, weekdays: fire after a Tuesday stop, not at 17:05 or Saturday; Snooze"
+        "TM-30 reminders every 10 min, 09:00 to 17:00, weekdays: fire after a Tuesday stop, not at 17:05 or Saturday; Snooze"
     )
     func reminders() throws {
         var calendar = Calendar(identifier: .gregorian)

@@ -1,12 +1,12 @@
 // Queries and writes behind the Timer, the entry editor, and the
-// project picker (spec_timer_window.md §2 to §4, spec_projects.md §3, §5).
+// project picker (spec_timer.md §2 to §4, spec_projects.md §3, §5).
 
 import Foundation
 import Testing
 import TimeTrackingCore
 
 struct TimerQueryTests {
-    @Test("TW-8 three characters give at most 8 (task, project) suggestions, the current project's first")
+    @Test("TM-8 three characters give at most 8 (task, project) suggestions, the current project's first")
     func completions() async throws {
         let test = try await TestStore()
         let structure = try await test.structure(projects: ["Noise", "Other"])
@@ -32,7 +32,7 @@ struct TimerQueryTests {
         #expect(inner.map(\.task) == ["clarify NOISE model"])
     }
 
-    @Test("TW-10 PP-24 the picker search finds the project of a task tracked within 90 days, not one tracked 100 days ago")
+    @Test("TM-10 PP-24 the picker search finds the project of a task tracked within 90 days, not one tracked 100 days ago")
     func pickerTaskMatching() async throws {
         let test = try await TestStore()
         let structure = try await test.structure(projects: ["Model", "Paper"])
@@ -135,7 +135,7 @@ struct TimerQueryTests {
         #expect(try await test.store.projectNameIsTaken("RESUME", client: first.client.id))
     }
 
-    @Test("TW-21 a task change on one piece of a chain changes every piece; a Start change only that piece")
+    @Test("TM-21 a task change on one piece of a chain changes every piece; a Start change only that piece")
     func chainEdits() async throws {
         let test = try await TestStore(now: "2024-03-14T10:00")
         let pieces = try await test.store.create(EntryDraft(
@@ -154,7 +154,7 @@ struct TimerQueryTests {
         #expect(try after.map(\.start) == [test.date("2024-03-13T23:10"), test.date("2024-03-14T00:10")])
     }
 
-    @Test("TW-18 TW-19 TW-20 the editor recomputes, moves by days, refuses the future, disables running fields, and splits at midnight")
+    @Test("TM-18 TM-19 TM-20 the editor recomputes, moves by days, refuses the future, disables running fields, and splits at midnight")
     func editRules() async throws {
         let test = try await TestStore(now: "2024-03-14T10:00")
         let now = test.clock.now
@@ -183,11 +183,11 @@ struct TimerQueryTests {
             start: test.date("2024-03-11T09:10"),
             end: test.date("2024-03-11T09:35")
         )))
-        // TW-19: the future is refused.
+        // TM-19: the future is refused.
         #expect(result(.date(TrackingDay(year: 2024, month: 3, day: 15))) == .failure(.inFuture))
         #expect(try result(.stop(11 * 3600 + 13 * 60)) == .success(EntryEditResult(start: entry.start, end: test.date("2024-03-13T11:13"))))
         #expect(result(.duration(26 * 3600)) == .failure(.inFuture))
-        // TW-19: Stop, Duration, and Date are disabled for the running entry.
+        // TM-19: Stop, Duration, and Date are disabled for the running entry.
         let running = try await test.store.start(projectID: nil, task: "", at: test.date("2024-03-14T09:00"))
         #expect(result(.stop(9 * 3600 + 30 * 60), running) == .failure(.runningEntry))
         #expect(result(.duration(60), running) == .failure(.runningEntry))
@@ -195,7 +195,7 @@ struct TimerQueryTests {
         #expect(try result(.start(8 * 3600), running) == .success(EntryEditResult(start: test.date("2024-03-14T08:00"), end: nil)))
         _ = try await test.store.stop(at: now)
 
-        // TW-20: Stop 00:35 on an entry starting 23:10 stores two pieces.
+        // TM-20: Stop 00:35 on an entry starting 23:10 stores two pieces.
         let late = try await test.store.create(EntryDraft(
             projectID: nil,
             task: "",
@@ -209,7 +209,7 @@ struct TimerQueryTests {
         #expect(try stored[1].end == (test.date("2024-03-13T00:35")))
     }
 
-    @Test("TW-13 TW-14 an entry running since 23:10 counts 0:55:00 at 00:05 by its chain start; today's total grows with the clock")
+    @Test("TM-13 TM-14 an entry running since 23:10 counts 0:55:00 at 00:05 by its chain start; today's total grows with the clock")
     func chainStartAndTotals() async throws {
         let test = try await TestStore(now: "2024-03-13T23:30")
         let running = try await test.store.start(projectID: nil, task: "Night", at: test.date("2024-03-13T23:10"))
@@ -228,7 +228,7 @@ struct TimerQueryTests {
         #expect(days[0].totalSeconds == 301)
     }
 
-    @Test("TW-14 the running entry is Today's first row with its project; today's total includes it")
+    @Test("TM-14 the running entry is Today's first row with its project; today's total includes it")
     func runningRow() async throws {
         let test = try await TestStore(now: "2024-03-14T10:00")
         try await test.store.start(projectID: nil, task: "Earlier", at: test.date("2024-03-14T09:00"))

@@ -1,5 +1,5 @@
 // TrackerPane: the Tracker settings pane (spec_activity_tracking.md §7.4,
-// spec_timer_window.md §8.2, spec_design.md §7).
+// spec_timer.md §8.2, spec_design.md §7).
 
 import SwiftUI
 import TimeTrackingCore

@@ -1,5 +1,5 @@
 // AppDelegate: launch, the status item, the Dock tile and menu, activation
-// policy, global shortcuts, and notifications (spec_timer_window.md §1.3,
+// policy, global shortcuts, and notifications (spec_timer.md §1.3,
 // §8; spec_menubar.md §1, §4).
 
 import AppKit
@@ -12,7 +12,7 @@ import TimeTrackingCore
 /// AppKit side to the `AppModel`.
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let host = AppHost()
-    private(set) var timerWindow: TimerWindowController?
+    private(set) var miniTimerWindow: MiniTimerController?
     private(set) var router: WindowRouter?
     private var statusItem: StatusItemController?
     private var systemEvents: SystemEvents?
@@ -135,7 +135,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func wire(_ app: AppModel) {
-        let window = TimerWindowController(settings: app.settings)
+        let window = MiniTimerController(settings: app.settings)
         // Set before the main window's view appears: host.load published the
         // model in this same main-actor turn.
         app.hidesMainWindowOnAttach = Self.hidesMainWindow(
@@ -143,7 +143,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             showAtLogin: app.settings.showTimerAtLogin
         )
         window.onKeyChange = { [weak app] in app?.timerKeyChanged() }
-        let router = WindowRouter(timerWindow: window)
+        let router = WindowRouter(miniTimerWindow: window)
         router.app = app
         app.router = router
         app.window = window
@@ -152,7 +152,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             let main = NSApp.windows.first { $0.identifier?.rawValue == MainWindowSetup.sceneID }
             TrackerOnboardingAlert.present(on: main, appName: appName, opensAtLogin: opensAtLogin, answer: answer)
         }
-        timerWindow = window
+        miniTimerWindow = window
         self.router = router
         let status = StatusItemController(app: app)
         statusItem = status
@@ -185,7 +185,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         withObservationTracking {
             // The window that is key now (Settings, when the toggle changes
             // there) stays key, rather than the Mini Timer coming forward.
-            ActivationPolicy.apply(showDockIcon: app.settings.showDockIcon, keyWindow: NSApp.keyWindow ?? timerWindow?.window)
+            ActivationPolicy.apply(showDockIcon: app.settings.showDockIcon, keyWindow: NSApp.keyWindow ?? miniTimerWindow?.window)
         } onChange: { [weak self, weak app] in
             Task { @MainActor in
                 if let app {

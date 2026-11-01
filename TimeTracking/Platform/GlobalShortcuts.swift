@@ -1,5 +1,5 @@
 // GlobalShortcuts: the recordable system-wide shortcuts
-// (spec_timer_window.md §8.3, spec_architecture.md §5).
+// (spec_timer.md §8.3, spec_architecture.md §5).
 
 import AppKit
 import KeyboardShortcuts

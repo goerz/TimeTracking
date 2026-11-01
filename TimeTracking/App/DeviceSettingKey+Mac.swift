@@ -1,4 +1,4 @@
-// The Mac app's device settings (spec_timer_window.md §1, §6.2, §7, §8;
+// The Mac app's device settings (spec_timer.md §1, §6.2, §7, §8;
 // spec_menubar.md §6).
 
 import Foundation

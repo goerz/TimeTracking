@@ -1,5 +1,5 @@
 // DayHeaderLabel: a Timer list day's header on the Mac and iOS
-// (spec_timer_window.md §3; spec_ios.md §2.6).
+// (spec_timer.md §3; spec_ios.md §2.6).
 
 import SwiftUI
 import TimeTrackingCore

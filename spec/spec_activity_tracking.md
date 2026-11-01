@@ -172,7 +172,7 @@ The `block` is the open block summarized as of now, without `e` (or `null`); `pr
 
 Every reader derives the tracker's liveness from `health.last_tick` by one rule: the tracker is running while the last tick is younger than 2 minutes, and not running when it is 2 minutes old or older or `current.json` is missing. While running, a last tick of 90 seconds or older counts as delayed. The Tracker pane (7.4), the Activity footer, the menu bar warning, the Timer's idle detection, and `agentRunning` in `LiveState` all use this rule.
 
-The agent pushes nothing. The Timer reads `presence` for its own idle detection (`spec_timer_window.md`). The Mac app's `LiveStatePublisher` copies the tracker fields of this Mac into `LiveState` (fields and rules in `spec_data_and_sync.md`); they are already filtered by the exclusions.
+The agent pushes nothing. The Timer reads `presence` for its own idle detection (`spec_timer.md`). The Mac app's `LiveStatePublisher` copies the tracker fields of this Mac into `LiveState` (fields and rules in `spec_data_and_sync.md`); they are already filtered by the exclusions.
 
 ## 5. Agent
 
@@ -346,7 +346,7 @@ Settings changes never touch past logs. Three socket commands rewrite the month 
 
 ### 7.4 The Tracker settings pane
 
-The last pane of the Mac app's settings window (`spec_timer_window.md` §8, which also owns the first-launch alert that opens it, §8.2). While visible it re-reads `current.json` on every change and the login item status every 5 seconds. From top to bottom:
+The last pane of the Mac app's settings window (`spec_timer.md` §8, which also owns the first-launch alert that opens it, §8.2). While visible it re-reads `current.json` on every change and the login item status every 5 seconds. From top to bottom:
 
 Status. A dot and one line by the liveness rule of 4.4: green "Tracker running · checked 12 s ago", yellow "Tracker delayed · last checked 1 min ago" while delayed, red "Tracker not running", gray "Tracker off" when the agent is not registered; then "Tracker version". One button by `SMAppService` status: "Enable Tracker" (`notRegistered`; registers the agent), "Open Login Items" (`requiresApproval`), "Disable Tracker" (`enabled`; unregisters after confirmation). Nothing is recorded until the user clicks "Enable Tracker".
 
@@ -451,5 +451,5 @@ Assumed:
 - From `spec_data_and_sync.md`: folder resolution, `ActivityReading` with `detail(for:)`, the block-log writer, `DeviceEventSource` and `DeviceEventSink`, the `DeviceEvent` record, `LiveState` and `LiveStatePublisher`.
 - From `spec_architecture.md`: the agent bundle, registration with `KeepAlive`, entitlements, signing, the `tracker-event` target, container identifiers.
 - From `spec_ios.md`: the collectors of 6.2 and exclusions read from `settings.toml`.
-- From `spec_timer_window.md`: the settings window, the first-launch alert, idle detection reading `presence`.
+- From `spec_timer.md`: the settings window, the first-launch alert, idle detection reading `presence`.
 - From `spec_calendar.md`: "Delete This Activity…" with confirmation.

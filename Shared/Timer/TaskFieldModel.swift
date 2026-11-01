@@ -1,5 +1,5 @@
 // TaskFieldModel: autocompletion and the `@` trigger of the task field
-// (spec_timer_window.md §2.2, §2.3).
+// (spec_timer.md §2.2, §2.3).
 
 import Foundation
 import Observation

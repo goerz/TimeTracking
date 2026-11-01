@@ -1,4 +1,4 @@
-// The edit popover (spec_timer_window.md §4).
+// The edit popover (spec_timer.md §4).
 
 import Foundation
 import Testing
@@ -14,7 +14,7 @@ struct EntryEditorTests {
         return model
     }
 
-    @Test("TW-18 Start keeps Stop, Stop and Duration keep Start, a Stop before Start is the next day, Date moves by days")
+    @Test("TM-18 Start keeps Stop, Stop and Duration keep Start, a Stop before Start is the next day, Date moves by days")
     func recompute() async throws {
         let test = try await TestApp()
         let entry = try await test.entry("Notes", from: "2024-03-12T09:10", to: "2024-03-12T09:35")
@@ -36,7 +36,7 @@ struct EntryEditorTests {
         #expect(try model.entry.end == (test.time("2024-03-11T10:00")))
     }
 
-    @Test("TW-19 a commit after now is refused with Entries cannot be in the future; the running entry's Stop, Duration, Date are disabled")
+    @Test("TM-19 a commit after now is refused with Entries cannot be in the future; the running entry's Stop, Duration, Date are disabled")
     func futureAndRunning() async throws {
         let test = try await TestApp()
         let entry = try await test.entry("Notes", from: "09:10", to: "09:35")
@@ -57,7 +57,7 @@ struct EntryEditorTests {
         #expect(EntryFieldEdit.date(running.day).isDisabledWhileRunning)
     }
 
-    @Test("TW-20 Stop 00:35 on an entry from 23:10 stores two pieces and shows Continues on the next day until 00:35")
+    @Test("TM-20 Stop 00:35 on an entry from 23:10 stores two pieces and shows Continues on the next day until 00:35")
     func midnight() async throws {
         let test = try await TestApp()
         let entry = try await test.entry("Night", from: "2024-03-12T23:10", to: "2024-03-12T23:50")
@@ -74,7 +74,7 @@ struct EntryEditorTests {
         #expect(second.chainLines == ["Continued from \(LocalDateText.day(entry.start)), \(LocalDateText.time(entry.start))"])
     }
 
-    @Test("TW-21 a task change on one piece changes every piece; a Start change only that piece")
+    @Test("TM-21 a task change on one piece changes every piece; a Start change only that piece")
     func chainEdits() async throws {
         let test = try await TestApp()
         let pieces = try await test.store.create(EntryDraft(
@@ -93,7 +93,7 @@ struct EntryEditorTests {
         #expect(try chain.map(\.start) == [test.time("2024-03-12T23:10"), test.time("2024-03-13T00:10")])
     }
 
-    @Test("TW-22 an overlapping change shows the notice; Keep stores it, Revert restores the field")
+    @Test("TM-22 an overlapping change shows the notice; Keep stores it, Revert restores the field")
     func overlap() async throws {
         let test = try await TestApp()
         try await test.entry("Morning Review", from: "09:00", to: "09:25")

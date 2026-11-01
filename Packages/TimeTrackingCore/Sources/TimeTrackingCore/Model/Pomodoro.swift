@@ -1,5 +1,5 @@
 // Pomodoro: the focus and break state machine laid over the running entry
-// (spec_timer_window.md §5.3). It never starts, stops, or splits entries.
+// (spec_timer.md §5.3). It never starts, stops, or splits entries.
 
 public import Foundation
 

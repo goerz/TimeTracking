@@ -1,11 +1,11 @@
-// The Timer list's query (spec_timer_window.md §3).
+// The Timer list's query (spec_timer.md §3).
 
 import Foundation
 import Testing
 import TimeTrackingCore
 
 struct TimerListTests {
-    @Test("TW-15 identical consecutive entries are two rows; 14 days with entries load, then 14 more")
+    @Test("TM-15 identical consecutive entries are two rows; 14 days with entries load, then 14 more")
     func daysAndRows() async throws {
         let test = try await TestStore(now: "2024-03-14T10:00")
         // One entry on each of 30 days, every other day, newest first.
@@ -28,7 +28,7 @@ struct TimerListTests {
         #expect(Array(more.prefix(14)) == list)
     }
 
-    @Test("TW-17 a filter keeps entries matching task, project, client, or area, and totals sum them")
+    @Test("TM-17 a filter keeps entries matching task, project, client, or area, and totals sum them")
     func filter() async throws {
         let test = try await TestStore(now: "2024-03-14T10:00")
         let structure = try await test.structure(projects: ["Noise Model", "Website"])

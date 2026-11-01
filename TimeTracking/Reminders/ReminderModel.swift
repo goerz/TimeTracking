@@ -1,4 +1,4 @@
-// ReminderModel: "Nothing is being tracked" reminders (spec_timer_window.md §7, §10).
+// ReminderModel: "Nothing is being tracked" reminders (spec_timer.md §7, §10).
 
 import Foundation
 import Observation

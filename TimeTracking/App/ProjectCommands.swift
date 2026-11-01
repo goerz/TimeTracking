@@ -1,4 +1,4 @@
-// ProjectCommands: the Project menu (spec_timer_window.md §9).
+// ProjectCommands: the Project menu (spec_timer.md §9).
 
 import SwiftUI
 import TimeTrackingCore
@@ -7,7 +7,7 @@ import TimeTrackingCore
 struct ProjectCommands: Commands {
     var host: AppHost
     @FocusedValue(\.mainWindowActive) private var windowActive
-    @FocusedValue(\.timerWindowActive) private var timerActive
+    @FocusedValue(\.timerViewActive) private var timerActive
 
     private var state: MenuState {
         MenuState(app: host.model, mainKey: windowActive == true, timerViewKey: timerActive == true)

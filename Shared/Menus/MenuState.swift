@@ -1,5 +1,5 @@
 // MenuState: which window, tab, and section the main menu's commands act on
-// (spec_timer_window.md §9, spec_projects.md §1.2, spec_ios.md §10.3).
+// (spec_timer.md §9, spec_projects.md §1.2, spec_ios.md §10.3).
 
 import SwiftUI
 import TimeTrackingCore

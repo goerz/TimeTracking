@@ -1,12 +1,12 @@
-// TimerWindowGeometry: full and compact mode by window height
-// (spec_timer_window.md §1.1, §1.3).
+// MiniTimerGeometry: full and compact mode by window height
+// (spec_timer.md §1.1, §1.3).
 
 import CoreGraphics
 
 /// The quantities of §1.1 and the frame rules. Frames are in AppKit screen
 /// coordinates (origin bottom-left), so "keeping the top-left corner" keeps
 /// `maxY`.
-enum TimerWindowGeometry {
+enum MiniTimerGeometry {
     static let barHeight: CGFloat = 106
     static let threshold: CGFloat = 200
     static let minimumFullHeight: CGFloat = 300

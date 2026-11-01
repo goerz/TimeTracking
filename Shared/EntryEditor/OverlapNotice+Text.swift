@@ -1,5 +1,5 @@
 // OverlapNotice+Text: the inline overlap notice's text, shared by the
-// edit popover and the iPhone's edit sheet (spec_timer_window.md §4.3;
+// edit popover and the iPhone's edit sheet (spec_timer.md §4.3;
 // spec_ios.md §2.7).
 
 import TimeTrackingCore

@@ -1,5 +1,5 @@
 // MainAppLoginItem: "Open at login" through SMAppService.mainApp
-// (spec_timer_window.md §8.1, §8.2).
+// (spec_timer.md §8.1, §8.2).
 
 import ServiceManagement
 import TimeTrackingCore

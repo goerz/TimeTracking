@@ -1,4 +1,4 @@
-// The Pomodoro state machine (spec_timer_window.md §5.3).
+// The Pomodoro state machine (spec_timer.md §5.3).
 
 import Foundation
 import Testing
@@ -9,7 +9,7 @@ struct PomodoroTests {
     let focus: TimeInterval = 25 * 60
     let pause: TimeInterval = 5 * 60
 
-    @Test("TW-23 a Pomodoro counts down, then shows +0:00 counting up at focusEnd with Focus done and Start Break")
+    @Test("TM-23 a Pomodoro counts down, then shows +0:00 counting up at focusEnd with Focus done and Start Break")
     func countdownAndOvertime() {
         var pomodoro = Pomodoro()
         #expect(pomodoro.buttonTitle(at: start) == "Pomodoro")
@@ -29,7 +29,7 @@ struct PomodoroTests {
         #expect(long.countdownText(at: start) == "1:30:00")
     }
 
-    @Test("TW-23 the Pomodoro button's ring fills with the phase and stays full in overtime")
+    @Test("TM-23 the Pomodoro button's ring fills with the phase and stays full in overtime")
     func progressRing() {
         var pomodoro = Pomodoro()
         #expect(pomodoro.progress(at: start, focus: focus, break: pause) == nil)
@@ -44,7 +44,7 @@ struct PomodoroTests {
         #expect(abs((pomodoro.progress(at: start + focus + 30 + 60, focus: focus, break: pause) ?? 0) - 0.2) < 1e-9)
     }
 
-    @Test("TW-25 every transition of the state machine holds; turning off removes pending notifications")
+    @Test("TM-25 every transition of the state machine holds; turning off removes pending notifications")
     func transitions() {
         var pomodoro = Pomodoro()
         // Start needs a running entry.
@@ -99,7 +99,7 @@ struct PomodoroTests {
         #expect(off.runningEntryEnded().isEmpty)
     }
 
-    @Test("TW-26 a focus duration change during focus keeps focusEnd; waking after focusEnd lands in focusOver and notifies")
+    @Test("TM-26 a focus duration change during focus keeps focusEnd; waking after focusEnd lands in focusOver and notifies")
     func durationChangeAndWake() {
         var pomodoro = Pomodoro()
         pomodoro.perform(.start, at: start, focus: focus, break: pause, isRunning: true)

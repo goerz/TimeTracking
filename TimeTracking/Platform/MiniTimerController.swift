@@ -1,13 +1,13 @@
-// TimerWindowController: the Mini Timer's AppKit side: frames, compact
+// MiniTimerController: the Mini Timer's AppKit side: frames, compact
 // snapping, the pin's window level, hiding on close, restoration
-// (spec_timer_window.md §1, spec_architecture.md §4.2).
+// (spec_timer.md §1, spec_architecture.md §4.2).
 
 import AppKit
 import SwiftUI
 import TimeTrackingCore
 
 /// Owns the Mini Timer's `NSWindow` once SwiftUI created it.
-final class TimerWindowController: NSObject, TimerWindowControlling {
+final class MiniTimerController: NSObject, MiniTimerControlling {
     private(set) weak var window: NSWindow?
     private let settings: AppSettings
     private var observers: [NSObjectProtocol] = []
@@ -22,7 +22,7 @@ final class TimerWindowController: NSObject, TimerWindowControlling {
     }
 
     var isCompact: Bool {
-        TimerWindowGeometry.isCompact(height: window?.frame.height ?? TimerWindowGeometry.defaultFullSize.height)
+        MiniTimerGeometry.isCompact(height: window?.frame.height ?? MiniTimerGeometry.defaultFullSize.height)
     }
 
     var isKey: Bool {
@@ -41,7 +41,7 @@ final class TimerWindowController: NSObject, TimerWindowControlling {
         self.window = window
         window.identifier = NSUserInterfaceItemIdentifier("timer")
         applyTestingAppearance()
-        window.minSize = CGSize(width: TimerWindowGeometry.minimumWidth, height: TimerWindowGeometry.barHeight)
+        window.minSize = CGSize(width: MiniTimerGeometry.minimumWidth, height: MiniTimerGeometry.barHeight)
         window.titlebarAppearsTransparent = true
         window.titleVisibility = .hidden
         window.isMovableByWindowBackground = true
@@ -49,7 +49,7 @@ final class TimerWindowController: NSObject, TimerWindowControlling {
         let screens = NSScreen.screens.map(\.visibleFrame)
         let main = NSScreen.main?.visibleFrame ?? screens.first ?? .zero
         let stored = settings.device[.timerFrame]?.rect
-        window.setFrame(TimerWindowGeometry.restored(stored, screens: screens, mainScreen: main), display: false)
+        window.setFrame(MiniTimerGeometry.restored(stored, screens: screens, mainScreen: main), display: false)
         applyPin(settings.timerPinned)
         let interceptor = WindowCloseInterceptor(original: window.delegate)
         closeInterceptor = interceptor
@@ -94,7 +94,7 @@ final class TimerWindowController: NSObject, TimerWindowControlling {
         guard let window else {
             return
         }
-        let target = TimerWindowGeometry.snapped(window.frame)
+        let target = MiniTimerGeometry.snapped(window.frame)
         if target != window.frame {
             window.setFrame(target, display: true, animate: true)
         }
@@ -120,7 +120,7 @@ final class TimerWindowController: NSObject, TimerWindowControlling {
             return
         }
         saveFrame()
-        let target = TimerWindowGeometry.toggled(
+        let target = MiniTimerGeometry.toggled(
             window.frame,
             fullFrame: settings.device[.timerFullFrame]?.rect,
             compactFrame: settings.device[.timerCompactFrame]?.rect

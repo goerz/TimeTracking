@@ -1,4 +1,4 @@
-// EntryEditorView: the edit popover (spec_timer_window.md §4).
+// EntryEditorView: the edit popover (spec_timer.md §4).
 
 import SwiftUI
 import TimeTrackingCore

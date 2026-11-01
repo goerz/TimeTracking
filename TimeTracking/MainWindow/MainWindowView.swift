@@ -22,9 +22,9 @@ struct MainWindowView: View {
     var body: some View {
         TabView(selection: selection) {
             Tab("Timer", systemImage: SymbolName.timer, value: MainSidebarItem.timer) {
-                TimerWindowView(embedded: true)
+                TimerView(embedded: true)
                     .navigationTitle("Timer")
-                    .frame(minWidth: TimerWindowGeometry.minimumWidth, minHeight: 300)
+                    .frame(minWidth: MiniTimerGeometry.minimumWidth, minHeight: 300)
             }
             .accessibilityIdentifier("main.sidebar.timer")
             ForEach(MainSection.allCases) { section in
@@ -54,7 +54,7 @@ struct MainWindowView: View {
             app.windowActivated(.mainWindow, isKey: active, undoManager: undoManager)
         }
         // The Timer's alerts raised while this window is key, over any item
-        // (spec_timer_window.md §1).
+        // (spec_timer.md §1).
         .timerAlert(timer: app.timer, list: app.mainTimer.list, active: app.alertWindow == .mainWindow)
     }
 

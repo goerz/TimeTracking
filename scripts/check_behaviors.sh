@@ -5,9 +5,9 @@
 #   scripts/check_behaviors.sh [--root DIR] [--only PREFIX[,PREFIX...]]
 #
 # Specs: every spec/spec_*.md has one "Testable behaviors" section, numbered
-# continuously from 1, either "1. ..." or "- TW-1. ...". Tests carry the
-# identifier in a Swift Testing display name (@Test("TW-1 ...")), an XCTest
-# method name (func testTW1_...), or a shell test (behavior "ARCH-2 ...").
+# continuously from 1, either "1. ..." or "- TM-1. ...". Tests carry the
+# identifier in a Swift Testing display name (@Test("TM-1 ...")), an XCTest
+# method name (func testTM1_...), or a shell test (behavior "ARCH-2 ...").
 # One test may name several identifiers. With --only, missing tests of other
 # prefixes are reported but do not fail; malformed lists and unknown
 # identifiers always fail.
@@ -21,7 +21,7 @@ use File::Find;
 my %PREFIX = (
     'spec_architecture.md'       => 'ARCH',
     'spec_data_and_sync.md'      => 'DATA',
-    'spec_timer_window.md'       => 'TW',
+    'spec_timer.md'       => 'TM',
     'spec_menubar.md'            => 'MB',
     'spec_projects.md'   => 'PP',
     'spec_calendar.md'   => 'PC',

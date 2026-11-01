@@ -1,7 +1,7 @@
 // TrackerStatusModel: the tracker's registration and liveness for the Tracker
 // pane and the menu bar warning, and the app's "Open at login"
 // (spec_activity_tracking.md §4.4, §7.4; spec_menubar.md §3;
-// spec_timer_window.md §8.1, §8.2).
+// spec_timer.md §8.1, §8.2).
 
 import Foundation
 import Observation

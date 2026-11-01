@@ -1,5 +1,5 @@
 // PomodoroDurationRows: the focus and break steppers of the Pomodoro
-// settings (spec_timer_window.md §5.2, spec_ios.md §2.9).
+// settings (spec_timer.md §5.2, spec_ios.md §2.9).
 
 import SwiftUI
 import TimeTrackingCore
