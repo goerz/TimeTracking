@@ -1,6 +1,6 @@
 // TrackerSettingsModel: the Tracker pane's settings file and activity logs,
 // and the exclusion draft from the Activity section (spec_activity_tracking.md
-// §7, §7.4; spec_planner_activity.md §4).
+// §7, §7.4; spec_activity.md §4).
 
 import Foundation
 import Observation

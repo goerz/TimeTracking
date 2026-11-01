@@ -1,5 +1,5 @@
 // CalendarDayAxis: the Calendar section's time axis, with its zoom, visible
-// days, columns, and snapping (spec_planner_calendar.md §1).
+// days, columns, and snapping (spec_calendar.md §1).
 
 public import Foundation
 

@@ -1,5 +1,5 @@
 // SuggestionIndex: the weighted nearest-neighbor model with the rules in
-// front (spec_planner_calendar.md §5.3, §5.4).
+// front (spec_calendar.md §5.3, §5.4).
 
 import Foundation
 

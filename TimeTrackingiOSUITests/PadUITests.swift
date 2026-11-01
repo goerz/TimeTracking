@@ -1,5 +1,5 @@
 // What only the iPad's real screens show: the tabs, the hardware keyboard,
-// drawing in the Calendar by touch, and Planner URLs (spec_ios.md §6.4,
+// drawing in the Calendar by touch, and section URLs (spec_ios.md §6.4,
 // §10). Skipped on the iPhone.
 
 import XCTest
@@ -31,19 +31,19 @@ final class PadUITests: XCTestCase {
     func testIOS34_keyboardSelectsTabs() throws {
         let app = try launch()
         app.typeKey("2", modifierFlags: .command)
-        XCTAssertTrue(element(app, "planner.calendar").waitForExistence(timeout: 5), "planner.calendar")
+        XCTAssertTrue(element(app, "calendar.view").waitForExistence(timeout: 5), "calendar.view")
         app.typeKey("5", modifierFlags: .command)
-        XCTAssertTrue(element(app, "planner.activity").waitForExistence(timeout: 5), "planner.activity")
+        XCTAssertTrue(element(app, "activity.view").waitForExistence(timeout: 5), "activity.view")
         app.typeKey("3", modifierFlags: .command)
         XCTAssertTrue(element(app, "reports.card").waitForExistence(timeout: 5), "reports.card")
         app.typeKey("4", modifierFlags: .command)
         XCTAssertTrue(element(app, "projects.status").waitForExistence(timeout: 5), "projects.status")
         app.typeKey("1", modifierFlags: .command)
         XCTAssertTrue(app.buttons["timer.startButton"].waitForExistence(timeout: 5))
-        // ⌘T in the Timer tab does nothing: still the Timer, no Planner tab.
+        // ⌘T in the Timer tab does nothing: still the Timer, no section tab.
         app.typeKey("t", modifierFlags: .command)
         XCTAssertTrue(app.buttons["timer.startButton"].exists)
-        XCTAssertFalse(element(app, "planner.calendar").isHittable)
+        XCTAssertFalse(element(app, "calendar.view").isHittable)
     }
 
     @MainActor

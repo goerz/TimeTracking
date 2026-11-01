@@ -1,6 +1,6 @@
 // PadCommands: the iPad's menu bar, also shown in the ⌘-hold overlay
-// (spec_ios.md §10.3; experiment: the Mac's object menus, built from the
-// same shared items). The tabs are the Mac's sidebar items.
+// (spec_ios.md §10.3): the Mac's object menus, built from the same shared
+// items (spec_timer_window.md §9). The tabs are the Mac's sidebar items.
 
 import SwiftUI
 import TimeTrackingCore
@@ -9,8 +9,7 @@ extension PadCommand {
     var title: String {
         switch self {
         case .timerTab: "Timer"
-        case .calendar, .reports, .projects, .activity: plannerSection.title
-        case .planner: "Planner"
+        case .calendar, .reports, .projects, .activity: mainSection.title
         case .new: "New Entry"
         case .continueLatest: "Continue"
         case .stop: "Stop"
@@ -29,8 +28,7 @@ extension PadCommand {
     var shortcut: KeyboardShortcut {
         switch self {
         case .timerTab: KeyboardShortcut("1")
-        case .calendar, .reports, .projects, .activity: KeyboardShortcut(plannerSection.mainWindowKey)
-        case .planner: KeyboardShortcut("p", modifiers: [.command, .option])
+        case .calendar, .reports, .projects, .activity: KeyboardShortcut(mainSection.mainWindowKey)
         case .new: KeyboardShortcut("n")
         case .continueLatest: KeyboardShortcut("o")
         case .stop: KeyboardShortcut("s")
@@ -55,7 +53,7 @@ struct PadCommands: Commands {
         host.model.flatMap { $0.pad == nil ? nil : $0 }
     }
 
-    private var router: PlannerRouter? {
+    private var router: SectionRouter? {
         model?.pad?.router
     }
 
@@ -134,7 +132,7 @@ struct PadCommands: Commands {
 
     /// "Start Timer" on a selected project, as on the Mac.
     private var continueTitle: String {
-        state.plannerKey && router?.continueTarget == .project ? "Start Timer" : PadCommand.continueLatest.title
+        state.sectionKey && router?.continueTarget == .project ? "Start Timer" : PadCommand.continueLatest.title
     }
 
     /// Start/Cancel Pomodoro, and the next step titled by what it does, as

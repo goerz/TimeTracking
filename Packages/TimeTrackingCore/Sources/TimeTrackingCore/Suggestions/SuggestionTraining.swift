@@ -1,5 +1,5 @@
 // SuggestionTraining: examples from past entries and the activity during
-// them (spec_planner_calendar.md §5.1).
+// them (spec_calendar.md §5.1).
 
 public import Foundation
 

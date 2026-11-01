@@ -1,5 +1,5 @@
 // The names of apps, sessions, sites, folders, and devices on screen
-// (spec_planner_activity.md §1.3; spec_design.md §12).
+// (spec_activity.md §1.3; spec_design.md §12).
 
 import Foundation
 import Testing

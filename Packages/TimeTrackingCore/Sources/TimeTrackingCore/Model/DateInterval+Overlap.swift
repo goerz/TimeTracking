@@ -1,5 +1,5 @@
 // DateInterval+Overlap: the seconds two spans share, behind overlap
-// resolution, calendar totals, and suggestions (spec_planner_calendar.md
+// resolution, calendar totals, and suggestions (spec_calendar.md
 // §1.4, §2.6, §3.5, §5.1).
 
 import Foundation

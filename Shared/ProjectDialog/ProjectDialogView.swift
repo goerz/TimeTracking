@@ -1,5 +1,5 @@
 // ProjectDialogView: the shared new- and edit-project dialog
-// (spec_planner_projects.md §3).
+// (spec_projects.md §3).
 
 import SwiftUI
 import TimeTrackingCore

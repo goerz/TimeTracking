@@ -1,6 +1,6 @@
 // ProjectScope: the clients, areas, and projects checked in a filter's
 // tree, and the tree with its tri-state check boxes and search
-// (spec_planner_projects.md §2.4, spec_planner_reports.md §3).
+// (spec_projects.md §2.4, spec_reports.md §3).
 
 import Foundation
 

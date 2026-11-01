@@ -60,7 +60,7 @@ extension TimeStore: StructureReading {
 
     /// The seconds tracked per project in the inclusive `days` (each entry
     /// counts whole in its day, the running one to now); projects without
-    /// an entry in the range are absent (spec_planner_projects.md §2.4).
+    /// an entry in the range are absent (spec_projects.md §2.4).
     public func projectSeconds(days: ClosedRange<TrackingDay>) throws -> [ProjectID: Int] {
         let now = Time.seconds(clock.now)
         let rows = try read { database in

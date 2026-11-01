@@ -94,7 +94,7 @@ final class PhoneHost {
             shared: shared,
             collection: CollectionModel.local(folder: folder, defaults: defaults, shared: shared, clock: clock),
             // The iPad's tabs over in-memory activity and calendars; never EventKit.
-            pad: settings.isPad ? PadPlanner.testing(store: store, clock: clock, device: settings.device) : nil
+            pad: settings.isPad ? PadSections.testing(store: store, clock: clock, device: settings.device) : nil
         )
     }
 
@@ -108,7 +108,7 @@ final class PhoneHost {
         identity: AppIdentity?
     ) async -> PhoneModel {
         // Only the iPad creates a calendar store (spec_ios.md §10.2).
-        let pad = settings.isPad ? await PadPlanner.live(store: store, clock: clock, device: settings.device, identity: identity) : nil
+        let pad = settings.isPad ? await PadSections.live(store: store, clock: clock, device: settings.device, identity: identity) : nil
         let notifications = UserNotifications()
         let widgets = WidgetCenterReloader()
         let collection = identity.flatMap { CollectionModel.live(identity: $0, device: settings.device, shared: shared, clock: clock) }

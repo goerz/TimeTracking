@@ -1,5 +1,5 @@
 // ActivityAway: gaps between one device's blocks of a day and their causes
-// (spec_planner_activity.md §1.8).
+// (spec_activity.md §1.8).
 
 public import Foundation
 

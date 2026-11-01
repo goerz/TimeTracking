@@ -1,6 +1,6 @@
 // The lookups and rules the Timer, the entry editors, and the Calendar share
 // (spec_timer_window.md §2, §4.2, §4.3; spec_ios.md §2.7;
-// spec_planner_calendar.md §2.6; spec_planner_activity.md §1.3).
+// spec_calendar.md §2.6; spec_activity.md §1.3).
 
 import Foundation
 import Testing

@@ -1,5 +1,5 @@
 // AreaColor: `#RRGGBB` area colors, the default-color rule, and display
-// derivations (spec_data_and_sync.md §1.2, spec_planner_projects.md §4.4).
+// derivations (spec_data_and_sync.md §1.2, spec_projects.md §4.4).
 
 import Foundation
 

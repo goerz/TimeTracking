@@ -1,5 +1,5 @@
 // ActivityText: the duration and clock texts of the Activity section
-// (spec_planner_activity.md §1.2).
+// (spec_activity.md §1.2).
 
 /// Duration texts of the Activity section (§1.2).
 public enum ActivityText {

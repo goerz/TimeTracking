@@ -1,4 +1,4 @@
-// Report aggregation (spec_data_and_sync.md §7.3, §7.5; spec_planner_reports.md §5).
+// Report aggregation (spec_data_and_sync.md §7.3, §7.5; spec_reports.md §5).
 // Each entry whose day lies in the range counts whole in its day, the
 // running one up to the query time; grouping uses the project's current area.
 // SQLite sums entries per project, task, and day; Swift builds the tree from

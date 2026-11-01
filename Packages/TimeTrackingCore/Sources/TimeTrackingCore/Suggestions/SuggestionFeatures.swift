@@ -1,5 +1,5 @@
 // SuggestionFeatures: what an example or a query looks like to the model
-// (spec_planner_calendar.md §5.1, §5.3).
+// (spec_calendar.md §5.1, §5.3).
 
 public import Foundation
 

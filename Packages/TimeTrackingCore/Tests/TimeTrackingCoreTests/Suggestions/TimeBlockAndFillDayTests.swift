@@ -1,4 +1,4 @@
-// Tests of time blocks, calendar access, and Fill Day (spec_planner_calendar.md §8).
+// Tests of time blocks, calendar access, and Fill Day (spec_calendar.md §8).
 
 import Foundation
 import Testing

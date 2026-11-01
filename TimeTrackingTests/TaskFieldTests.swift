@@ -1,5 +1,5 @@
 // Autocompletion, the `@` trigger, the picker, and quick creation
-// (spec_timer_window.md §2.2, §2.3; spec_planner_projects.md §3, §5).
+// (spec_timer_window.md §2.2, §2.3; spec_projects.md §3, §5).
 
 import Foundation
 import Testing

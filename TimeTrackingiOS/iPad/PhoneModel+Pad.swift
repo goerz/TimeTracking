@@ -1,18 +1,16 @@
 // PhoneModel+Pad: the iPad's tab selection, its hardware-keyboard commands,
-// and the Planner's links to the Timer (spec_ios.md §2.3, §6.4, §10.1, §10.3).
+// and the sections' links to the Timer (spec_ios.md §2.3, §6.4, §10.1, §10.3).
 
 import Foundation
 import TimeTrackingCore
 
-/// A hardware-keyboard command of the iPad outside the Planner tabs' own
+/// A hardware-keyboard command of the iPad outside the section tabs' own
 /// keys (spec_ios.md §10.3).
 enum PadCommand: Hashable, CaseIterable {
     /// ⌘1: the Timer tab with the task field focused.
     case timerTab
     /// ⌘2 to ⌘5, after the Timer's ⌘1.
     case calendar, reports, projects, activity
-    /// ⌥⌘P: the most recently selected Planner tab.
-    case planner
     /// ⌘N, ⌘O, ⌘S, ⌥⌘⌫.
     case new, continueLatest, stop, discard
     /// ⌘P, ⌘E, ⌘⌫, ⌘↑ (Timer tab only).
@@ -35,7 +33,7 @@ enum PadCommand: Hashable, CaseIterable {
 }
 
 extension PhoneModel {
-    /// The Planner's sections select tabs; its writes reach the Timer and
+    /// The router's sections select tabs; their writes reach the Timer and
     /// the fan-out as the Timer's own.
     func wirePad() {
         guard let router = pad?.router else {
@@ -53,11 +51,6 @@ extension PhoneModel {
         if let identity = AppIdentity.main {
             router.calendar.urlScheme = identity.urlScheme
         }
-    }
-
-    /// The tab ⌥⌘P selects: the most recent Planner tab, Projects at first.
-    var lastPlannerTab: PadTab {
-        PadTab(pad?.router.section ?? .projects)
     }
 
     /// The Mac activity line: on the iPad it opens the Activity tab.
@@ -101,14 +94,12 @@ extension PhoneModel {
             padTab = .timer
             timer.requestTaskFieldFocus()
         case .calendar, .reports, .projects, .activity:
-            padTab = PadTab(command.plannerSection)
-        case .planner:
-            padTab = lastPlannerTab
+            padTab = PadTab(command.mainSection)
         case .new:
             padTab = .timer
             await timer.new()
         case .continueLatest:
-            // A Planner tab's selected project or entry, else the latest entry.
+            // A section tab's selected project or entry, else the latest entry.
             let started = padTab != .timer ? await pad.router.continueSelection() : false
             if !started {
                 await timer.continueEntry()
@@ -154,14 +145,14 @@ extension PhoneModel {
         }
     }
 
-    /// The main menu's context: the Timer tab stands in for the Mac's Timer
-    /// window, a Planner tab for its Planner window.
+    /// The main menu's context: the Timer tab stands in for the Mac's Mini
+    /// Timer, a section tab for a section of its main window.
     var padMenuState: MenuState {
-        MenuState(router: pad?.router, timerKey: padTab == .timer, plannerKey: padTab != .timer)
+        MenuState(router: pad?.router, timerKey: padTab == .timer, sectionKey: padTab != .timer)
     }
 
     /// ⌘F: the Timer list's filter, or the Projects or Reports search.
-    private func find(in router: PlannerRouter) {
+    private func find(in router: SectionRouter) {
         switch padTab {
         case .timer: list.showFilter()
         case .projects: router.projects.focusSearch()
@@ -173,7 +164,7 @@ extension PhoneModel {
 
 extension PadCommand {
     /// The section of ⌘2 to ⌘5 (Projects for the other commands).
-    var plannerSection: PlannerSection {
+    var mainSection: MainSection {
         switch self {
         case .calendar: .calendar
         case .reports: .reports

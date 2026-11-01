@@ -1,5 +1,5 @@
 // AreaFormModel: the area sheet's model: name rules, default color, and
-// undoable rename and recolor (spec_planner_projects.md §4.3, §4.4).
+// undoable rename and recolor (spec_projects.md §4.3, §4.4).
 
 import Foundation
 import Observation
@@ -161,7 +161,7 @@ final class AreaFormModel {
                 return try await store.areas(of: area.clientID, includeRetired: true).first { $0.id == area.id }
             }
         } catch {
-            lastError = UserMessage.logged(error, category: "Planner")
+            lastError = UserMessage.logged(error, category: "Sections")
             return nil
         }
     }

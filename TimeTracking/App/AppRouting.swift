@@ -51,12 +51,11 @@ protocol AppRouting: AnyObject {
     /// The show/hide shortcut: shows the window with the task field focused
     /// unless it is the key window of the active app, which hides the app.
     func toggleTimer()
-    /// Shows the main window on its Timer item and activates the app.
-    func showMainTimer()
+    /// Shows the main window and activates the app, on `item` or, with
+    /// `nil`, on the item it shows.
+    func showMainWindow(item: MainSidebarItem?)
     /// Opens Settings, on `pane` or the last pane shown.
     func openSettings(pane: SettingsPane?)
-    /// Opens the Planner on its last section.
-    func openPlanner()
 }
 
 /// Records routing calls (tests).
@@ -65,9 +64,8 @@ final class RecordingRouter: AppRouting {
     enum Call: Equatable {
         case showTimer(focusTask: Bool)
         case toggleTimer
-        case showMainTimer
+        case showMainWindow(MainSidebarItem?)
         case openSettings(SettingsPane?)
-        case openPlanner
     }
 
     private(set) var calls: [Call] = []
@@ -80,15 +78,11 @@ final class RecordingRouter: AppRouting {
         calls.append(.toggleTimer)
     }
 
-    func showMainTimer() {
-        calls.append(.showMainTimer)
+    func showMainWindow(item: MainSidebarItem?) {
+        calls.append(.showMainWindow(item))
     }
 
     func openSettings(pane: SettingsPane?) {
         calls.append(.openSettings(pane))
-    }
-
-    func openPlanner() {
-        calls.append(.openPlanner)
     }
 }

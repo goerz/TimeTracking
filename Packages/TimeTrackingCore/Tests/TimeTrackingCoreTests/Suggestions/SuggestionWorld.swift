@@ -1,5 +1,5 @@
 // SuggestionWorld: the suggestion engine's synthetic fixture
-// (spec_planner_calendar.md §5.6): eight weeks of entries in
+// (spec_calendar.md §5.6): eight weeks of entries in
 // America/New_York from 2024-01-29, the blocks recorded during them in
 // block-log format, and calendar titles. Committed under
 // Fixtures/Activity/suggestions/; `TIMETRACKING_WRITE_FIXTURES=1 swift test

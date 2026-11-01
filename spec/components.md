@@ -8,10 +8,10 @@ TimeTracking is a personal time tracker for the Mac, iPhone, and iPad. It record
 | [spec_data_and_sync.md](spec_data_and_sync.md) | Shared library: entities, store, sync, live updates, query layer |
 | [spec_timer_window.md](spec_timer_window.md) | Mac main window and main menu, Timer and Mini Timer, Pomodoro, idle detection, reminders, settings window, global shortcuts |
 | [spec_menubar.md](spec_menubar.md) | Mac menu bar item and Dock menu |
-| [spec_planner_projects.md](spec_planner_projects.md) | Planner sections of the main window; Projects section; clients and areas; project picker and dialog |
-| [spec_planner_calendar.md](spec_planner_calendar.md) | Planner Calendar section; time blocks; calendar events; suggestion engine |
-| [spec_planner_reports.md](spec_planner_reports.md) | Planner Reports section; date ranges; aggregation; CSV export |
-| [spec_planner_activity.md](spec_planner_activity.md) | Planner Activity section: the view of the tracker's logs |
+| [spec_projects.md](spec_projects.md) | The sections of the main window and their router; Projects section; clients and areas; project picker and dialog |
+| [spec_calendar.md](spec_calendar.md) | Calendar section; time blocks; calendar events; suggestion engine |
+| [spec_reports.md](spec_reports.md) | Reports section; date ranges; aggregation; CSV export |
+| [spec_activity.md](spec_activity.md) | Activity section: the view of the tracker's logs |
 | [spec_activity_tracking.md](spec_activity_tracking.md) | Tracker agent: presence, sources, blocks, logs, exclusions, device collection |
 | [spec_ios.md](spec_ios.md) | iPhone and iPad app, widgets, control, intents, device collection |
 | [spec_automation.md](spec_automation.md) | Command-line tool, App Intents, URL scheme, import and export, consistency check |
@@ -37,8 +37,9 @@ TimeTracking is a personal time tracker for the Mac, iPhone, and iPad. It record
 ┌────────────────────────────── Mac ───────────────────────────────┐
 │  TimeTracking.app (not sandboxed)                                │
 │   ├─ Main window, Mini Timer, settings (spec_timer_window.md)    │
-│   ├─ Planner: Calendar, Reports, Projects, Activity              │
-│   │                                   (spec_planner_*.md)        │
+│   ├─ Sections: Calendar, Reports, Projects, Activity             │
+│   │       (spec_calendar.md, spec_reports.md, spec_projects.md,  │
+│   │        spec_activity.md)                                     │
 │   ├─ Menu bar item, Dock menu         (spec_menubar.md)          │
 │   ├─ Widget push sender (APNs, key in the Keychain)              │
 │   ├─ Contents/Helpers/timetracking    command-line tool          │
@@ -84,14 +85,14 @@ Spec: [spec_timer_window.md](spec_timer_window.md)
 
 One main window, as on the iPad: a sidebar with Timer, Calendar, Reports, Projects, and Activity (⌘1 to ⌘5), opened at launch on the Timer, and one set of object menus (File, Edit, View, Timer, Entry, Project, Window) in every window. The Timer is the everyday view: the running-entry bar (task field with autocompletion and the `@` project trigger, project chip, timer, start/stop, Pomodoro button) beside or above the list of recent entries grouped by day, with a live Today total. The Mini Timer (Window › Mini Timer) is the same bar and list in a small window of their own: resizing it below a threshold height leaves only the bar (compact mode), and its pin floats it above other windows. The Pomodoro is display only: the entry runs through focus and break phases, and a long absence is handled by idle detection. Idle detection (default 10 minutes) offers Keep, Discard, Discard and continue, and Split. The window also owns reminders, the settings window (General, Pomodoro, Idle, Reminders, Shortcuts, Tracker), and the global shortcuts (⌥⌘R shows or hides the Mini Timer; continue/stop is unassigned by default; both recordable). The Timer creates entries only by starting them; past intervals are drawn in the Calendar.
 
-### Mac app: Planner sections
+### Mac app: sections
 
 The main window's sidebar items after the Timer (⌘2 to ⌘5). The shell, its restoration, and the hand-offs between sections are specified in the Projects spec. Reports and Activity share one date range.
 
-- Projects: [spec_planner_projects.md](spec_planner_projects.md). A table of projects with area color, client, area, state, created, last tracked, and total tracked; grouping, sorting, and filters (archived projects included on request); creating, editing, archiving, restoring, and deleting projects without entries; clients and areas as rows above their projects, with the system color picker for area colors. Defines the project dialog and the project picker reused by the Timer, Calendar, and iOS.
-- Calendar: [spec_planner_calendar.md](spec_planner_calendar.md). One to seven days side by side with vertical and horizontal zoom and Today (⌘T). Each day has up to three columns: activity (blocks from the tracker, including iPhone and iPad), tracked (always shown), and calendar (time blocks plus events from selected calendars). Entries are drawn, moved, resized, split, and edited in place, never in the future; overlaps are resolved by a trim/allow/cancel choice. Entries can be made from an activity block, a time block, or a calendar event, and Fill Day proposes entries for all untracked blocks of a day. The suggestion engine (rules plus a weighted nearest-neighbor model, on device) proposes projects and tasks from the tracker's items, calendar titles, time of day, and the previous project, and learns from accept, edit, and skip feedback.
-- Reports: [spec_planner_reports.md](spec_planner_reports.md). Date range with presets and period arrows, filters, summary tiles, a stacked bar chart in area colors, a breakdown table of up to four levels (client, area, project, task, day), an entry list that opens the shared editor, a search over tasks and names, and CSV export.
-- Activity: [spec_planner_activity.md](spec_planner_activity.md). The tracker's record rendered for a date range: active time per device, context chips, a heatmap by hour, stacked bars by day and context, ranked contexts with their subjects and (on the recording Mac) details, background work, away periods, and the tracker's health. Context colors are assigned automatically and synced. The view never edits the logs.
+- Projects: [spec_projects.md](spec_projects.md). A table of projects with area color, client, area, state, created, last tracked, and total tracked; grouping, sorting, and filters (archived projects included on request); creating, editing, archiving, restoring, and deleting projects without entries; clients and areas as rows above their projects, with the system color picker for area colors. Defines the project dialog and the project picker reused by the Timer, Calendar, and iOS.
+- Calendar: [spec_calendar.md](spec_calendar.md). One to seven days side by side with vertical and horizontal zoom and Today (⌘T). Each day has up to three columns: activity (blocks from the tracker, including iPhone and iPad), tracked (always shown), and calendar (time blocks plus events from selected calendars). Entries are drawn, moved, resized, split, and edited in place, never in the future; overlaps are resolved by a trim/allow/cancel choice. Entries can be made from an activity block, a time block, or a calendar event, and Fill Day proposes entries for all untracked blocks of a day. The suggestion engine (rules plus a weighted nearest-neighbor model, on device) proposes projects and tasks from the tracker's items, calendar titles, time of day, and the previous project, and learns from accept, edit, and skip feedback.
+- Reports: [spec_reports.md](spec_reports.md). Date range with presets and period arrows, filters, summary tiles, a stacked bar chart in area colors, a breakdown table of up to four levels (client, area, project, task, day), an entry list that opens the shared editor, a search over tasks and names, and CSV export.
+- Activity: [spec_activity.md](spec_activity.md). The tracker's record rendered for a date range: active time per device, context chips, a heatmap by hour, stacked bars by day and context, ranked contexts with their subjects and (on the recording Mac) details, background work, away periods, and the tracker's health. Context colors are assigned automatically and synced. The view never edits the logs.
 
 ### Mac app: Menu bar item
 
@@ -109,7 +110,7 @@ A background login item (`TimeTrackingAgent.app`, not sandboxed) that records wh
 
 Spec: [spec_ios.md](spec_ios.md)
 
-One iOS target. On the iPhone: the Timer (start, stop, continue, the shared picker and project dialog as sheets, the recent list, the entry editor, the Pomodoro), widgets for the running entry (Stop), recent entries (Continue), and pinned projects (Start), including Lock Screen families, a Control Center control and Action button action, App Shortcuts over the library's intents, the URL scheme, and the device-side activity collection (DeviceActivity threshold ladder, Focus filter, a log-event intent for Shortcuts automations, a Safari web extension). Widgets update within seconds through the Mac's widget pushes. On the iPad: the Timer as the first tab, then Projects, Calendar, Reports, and Activity tabs equivalent to the Planner sections, with touch, Pencil, and hardware-keyboard equivalents of the Mac interactions. An iCloud account is required.
+One iOS target. On the iPhone: the Timer (start, stop, continue, the shared picker and project dialog as sheets, the recent list, the entry editor, the Pomodoro), widgets for the running entry (Stop), recent entries (Continue), and pinned projects (Start), including Lock Screen families, a Control Center control and Action button action, App Shortcuts over the library's intents, the URL scheme, and the device-side activity collection (DeviceActivity threshold ladder, Focus filter, a log-event intent for Shortcuts automations, a Safari web extension). Widgets update within seconds through the Mac's widget pushes. On the iPad: the Timer as the first tab, then Projects, Calendar, Reports, and Activity tabs equivalent to the sections, with touch, Pencil, and hardware-keyboard equivalents of the Mac interactions. An iCloud account is required.
 
 ### Scripting surface
 
@@ -147,5 +148,5 @@ Every way a program other than the app's own interface reads or changes tracked 
 - Time blocks are events in an iCloud calendar of the system calendar store: they sync to every device without extra code, appear in every calendar app, and can be created by any calendar tool. The app reads them but does not manage them.
 - Live updates go through CloudKit plus WidgetKit pushes sent by the Mac itself (no server, no LAN connection), so the phone's widgets follow the Mac within seconds while the app is suspended.
 - Pomodoro state is device-local on every platform.
-- The iPad shares the iOS target and gets the Planner sections as tabs; the Mac keeps two windows. No Mac widget, no Apple Watch app, no Live Activity.
+- The iPad shares the iOS target and gets the sections as tabs; the Mac has one main window and the Mini Timer. No Mac widget, no Apple Watch app, no Live Activity.
 - Settings are either synced (Pomodoro durations, pinned projects, context colors, the time-block calendar, the Calendar's snapping and suggestion options) or per device (idle threshold, shortcuts, menu bar display, window frames, shown calendars).

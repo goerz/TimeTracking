@@ -1,5 +1,5 @@
 // ClientFormModel: the client sheet's model: name rule, default color, and
-// undoable rename (spec_planner_projects.md §4.2, §4.4).
+// undoable rename (spec_projects.md §4.2, §4.4).
 
 import Foundation
 import Observation
@@ -90,7 +90,7 @@ final class ClientFormModel {
                 return (renamed, nil)
             }
         } catch {
-            lastError = UserMessage.logged(error, category: "Planner")
+            lastError = UserMessage.logged(error, category: "Sections")
             return nil
         }
     }

@@ -1,4 +1,4 @@
-// ViewCommands: the View menu (experiment: one window, object menus).
+// ViewCommands: the View menu (spec_timer_window.md §9).
 
 import SwiftUI
 import TimeTrackingCore
@@ -8,15 +8,15 @@ import TimeTrackingCore
 /// enabled while that view shows.
 struct ViewCommands: Commands {
     var host: AppHost
-    @FocusedValue(\.plannerWindowActive) private var windowActive
+    @FocusedValue(\.mainWindowActive) private var windowActive
     @FocusedValue(\.timerWindowActive) private var timerActive
 
     private var app: AppModel? {
         host.model
     }
 
-    private var router: PlannerRouter? {
-        host.model?.planner
+    private var router: SectionRouter? {
+        host.model?.sections
     }
 
     private var state: MenuState {
@@ -62,14 +62,11 @@ struct ViewCommands: Commands {
 
     /// Timer ⌘1 (the main window's tab), then Calendar ⌘2 to Activity ⌘5.
     @ViewBuilder private var sidebarItems: some View {
-        Button("Timer") { (app?.router as? WindowRouter)?.showMainTimer() }
+        Button("Timer") { app?.router?.showMainWindow(item: .timer) }
             .keyboardShortcut("1")
-        ForEach(PlannerSection.allCases) { section in
-            Button(section.title) {
-                router?.select(section)
-                app?.router?.openPlanner()
-            }
-            .keyboardShortcut(section.mainWindowKey)
+        ForEach(MainSection.allCases) { section in
+            Button(section.title) { app?.router?.showMainWindow(item: .section(section)) }
+                .keyboardShortcut(section.mainWindowKey)
         }
     }
 }

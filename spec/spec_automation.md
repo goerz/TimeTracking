@@ -2,7 +2,7 @@
 
 This spec covers every way a program other than the app's user interface reads or changes tracked time: the command-line tool `timetracking`, which links the shared library and works on the local store; App Intents defined once in the library and exposed by the Mac and iOS apps to Shortcuts, Siri, and Spotlight; and the `timetracking` URL scheme. It also owns the CSV formats, the description file, and `check`. Everything runs on the device against the local store; there is no web API.
 
-Not included: an AppleScript dictionary, `x-callback-url`, time-block commands (blocks are calendar events, `spec_planner_calendar.md`), an automatic export file, and a status file for prompts.
+Not included: an AppleScript dictionary, `x-callback-url`, time-block commands (blocks are calendar events, `spec_calendar.md`), an automatic export file, and a status file for prompts.
 
 ## 1. Principles
 
@@ -364,8 +364,8 @@ Assumed of `spec_data_and_sync.md`: the store and its path, WAL, busy timeout, i
 
 Assumed of `spec_architecture.md`: the `TimeTrackingCLI` target and its entitlement, the `.debug` identity and scheme, `make install`, `TimeTrackingCLITests`.
 
-Provided to `spec_planner_reports.md`: the CSV writers and columns of 8.2; Reports' breakdown levels are a subset of `--group-by`.
+Provided to `spec_reports.md`: the CSV writers and columns of 8.2; Reports' breakdown levels are a subset of `--group-by`.
 
 Provided to `spec_ios.md`: the intents and entities of section 5, including the `inferProject` rule, and the URL scheme; assumed from it: the phrase table and the wrapper intents.
 
-Provided to `spec_planner_calendar.md`: `timetracking://project/<uuid>` as a block's project link.
+Provided to `spec_calendar.md`: `timetracking://project/<uuid>` as a block's project link.

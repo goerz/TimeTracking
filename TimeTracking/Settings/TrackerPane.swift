@@ -292,7 +292,7 @@ private struct FilesSection: View {
 }
 
 /// The exclusion drafted in the Activity section, focused, until it is
-/// added to the settings file or cancelled (spec_planner_activity.md §4).
+/// added to the settings file or cancelled (spec_activity.md §4).
 private struct PendingExclusionSection: View {
     @Environment(AppModel.self) private var app
     @FocusState private var focused: Bool

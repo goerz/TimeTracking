@@ -39,7 +39,7 @@ final class AppHost {
         if arguments.resetState {
             defaults.removePersistentDomain(forName: name)
             UserDefaults.standard.removeObject(forKey: SettingsPane.storageKey)
-            // AppKit's autosaved frame; a test that moves the Planner would
+            // AppKit's autosaved frame; a test that moves the main window would
             // otherwise shift it for every later run.
             UserDefaults.standard.removeObject(forKey: "NSWindow Frame Planner")
         }

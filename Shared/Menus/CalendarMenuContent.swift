@@ -1,5 +1,5 @@
 // CalendarMenuContent: the Calendar menu's items, on the Mac and the iPad
-// (spec_planner_calendar.md §6).
+// (spec_calendar.md §6).
 
 import SwiftUI
 import TimeTrackingCore

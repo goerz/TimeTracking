@@ -39,8 +39,8 @@ final class PhoneModel {
     @ObservationIgnored let shortcuts: ShortcutsUpdating
     @ObservationIgnored let shared: WidgetSharedState
     @ObservationIgnored let collection: CollectionFlushing
-    /// The iPad's Planner tabs; `nil` on the iPhone.
-    @ObservationIgnored let pad: PadPlanner?
+    /// The iPad's section tabs; `nil` on the iPhone.
+    @ObservationIgnored let pad: PadSections?
     @ObservationIgnored var sync: SyncDriving?
     /// Bounds a wrapper intent's fetch (spec_ios.md §4 item 3); tests replace it.
     @ObservationIgnored var boundedFetch: @Sendable (@escaping @Sendable () async -> Void) async -> Void = { fetch in
@@ -69,7 +69,7 @@ final class PhoneModel {
     var isActive = true
     /// An alert after a URL that did nothing.
     var urlAlert: String?
-    /// The iPad's selected tab; a Planner tab opens its section.
+    /// The iPad's selected tab; a section tab opens its section.
     var padTab: PadTab = .timer {
         didSet {
             if let section = padTab.section {
@@ -92,7 +92,7 @@ final class PhoneModel {
         shortcuts: ShortcutsUpdating,
         shared: WidgetSharedState,
         collection: CollectionFlushing = NoCollection(),
-        pad: PadPlanner? = nil
+        pad: PadSections? = nil
     ) {
         self.store = store
         self.clock = clock

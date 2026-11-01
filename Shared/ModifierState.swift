@@ -1,6 +1,6 @@
 // ModifierState: whether ⌥ is held during a click, for the Calendar, Reports,
 // and Projects, and whether ⇧ is held with a Calendar navigation key
-// (spec_planner_calendar.md §1.2, §2.3, §6; spec_planner_projects.md §2.3).
+// (spec_calendar.md §1.2, §2.3, §6; spec_projects.md §2.3).
 
 /// Whether ⌥ or ⇧ is held; the Mac sets them from AppKit.
 enum ModifierState {

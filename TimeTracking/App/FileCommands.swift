@@ -1,4 +1,4 @@
-// FileCommands: the File menu (experiment: one window, object menus).
+// FileCommands: the File menu (spec_timer_window.md §9).
 
 import SwiftUI
 import TimeTrackingCore
@@ -7,15 +7,15 @@ import TimeTrackingCore
 /// Reports' Export…; there is no Print….
 struct FileCommands: Commands {
     var host: AppHost
-    @FocusedValue(\.plannerWindowActive) private var windowActive
+    @FocusedValue(\.mainWindowActive) private var windowActive
     @FocusedValue(\.timerWindowActive) private var timerActive
 
     private var app: AppModel? {
         host.model
     }
 
-    private var router: PlannerRouter? {
-        host.model?.planner
+    private var router: SectionRouter? {
+        host.model?.sections
     }
 
     private var state: MenuState {
@@ -52,8 +52,7 @@ struct FileCommands: Commands {
     }
 
     /// The window on Projects.
-    private func show(_ section: PlannerSection) {
-        router?.select(section)
-        app?.router?.openPlanner()
+    private func show(_ section: MainSection) {
+        app?.router?.showMainWindow(item: .section(section))
     }
 }

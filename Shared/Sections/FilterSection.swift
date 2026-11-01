@@ -1,0 +1,23 @@
+// FilterSection: a section of the Projects and Reports Filters popovers
+// (spec_projects.md §2.4, spec_reports.md §3).
+
+import SwiftUI
+
+/// A Filters popover's section: a headline above its control, which spans
+/// the popover's width.
+struct FilterSection<Content: View>: View {
+    var title: String
+    @ViewBuilder var content: Content
+
+    init(_ title: String, @ViewBuilder content: () -> Content) {
+        self.title = title
+        self.content = content()
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Design.Spacing.compact) {
+            Text(title).font(.headline)
+            content.frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+}

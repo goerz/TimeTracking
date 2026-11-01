@@ -1,4 +1,4 @@
-// Candidates and confidence from the neighbors' votes (spec_planner_calendar.md §5.4).
+// Candidates and confidence from the neighbors' votes (spec_calendar.md §5.4).
 
 import Foundation
 

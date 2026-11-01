@@ -1,5 +1,5 @@
 // OverlapAmount: how much other entries overlap one entry, for the
-// Calendar card's warning (spec_planner_calendar.md §2.6).
+// Calendar card's warning (spec_calendar.md §2.6).
 
 public import Foundation
 

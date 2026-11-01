@@ -1,5 +1,5 @@
 // Tests of the Activity section's lists, Away, health, and logs
-// (spec_planner_activity.md §6).
+// (spec_activity.md §6).
 
 import Foundation
 import Testing

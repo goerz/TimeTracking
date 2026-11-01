@@ -1,5 +1,5 @@
 // PadTabs: the iPad's tab bar (spec_ios.md §10.1): the Timer, then the
-// Planner's Calendar, Reports, Projects, and Activity sections, as in the
+// Calendar, Reports, Projects, and Activity sections, as in the
 // Mac's sidebar.
 
 import SwiftUI
@@ -13,8 +13,8 @@ enum PadTab: String, Hashable, CaseIterable {
     case projects
     case activity
 
-    /// The tab of a Planner section.
-    init(_ section: PlannerSection) {
+    /// The tab of a section.
+    init(_ section: MainSection) {
         switch section {
         case .calendar: self = .calendar
         case .reports: self = .reports
@@ -23,7 +23,7 @@ enum PadTab: String, Hashable, CaseIterable {
         }
     }
 
-    /// The tab a Planner URL selects (spec_ios.md §6.4).
+    /// The tab a section URL selects (spec_ios.md §6.4).
     init(url: TimeTrackingURL) {
         switch url {
         case .calendar: self = .calendar
@@ -34,8 +34,8 @@ enum PadTab: String, Hashable, CaseIterable {
         }
     }
 
-    /// The Planner section of the tab; `nil` for the Timer.
-    var section: PlannerSection? {
+    /// The section of the tab; `nil` for the Timer.
+    var section: MainSection? {
         switch self {
         case .timer: nil
         case .calendar: .calendar
@@ -69,7 +69,7 @@ struct PadTabsView: View {
         .tabViewStyle(.sidebarAdaptable)
     }
 
-    /// A Planner tab's view exists only once the tab has opened, so the
+    /// A section tab's view exists only once the tab has opened, so the
     /// Calendar asks for calendar access when it first shows (spec_ios.md §11).
     @ViewBuilder
     private func content(_ tab: PadTab) -> some View {
@@ -78,7 +78,7 @@ struct PadTabsView: View {
         } else if let pad = model.pad, let section = tab.section, pad.opened.contains(section) {
             // Toolbars on the navigation bar.
             NavigationStack {
-                PlannerSectionContent(router: pad.router, section: section, clock: model.clock)
+                SectionContent(router: pad.router, section: section, clock: model.clock)
                     .navigationBarTitleDisplayMode(.inline)
             }
             .accessibilityIdentifier("pad.section.\(section.rawValue)")

@@ -1,5 +1,5 @@
 // Tests of the suggestion engine on the synthetic world
-// (spec_planner_calendar.md §5.6, PC-22).
+// (spec_calendar.md §5.6, PC-22).
 
 import Foundation
 import Testing

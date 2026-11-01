@@ -25,7 +25,8 @@ extension XCUIApplication {
         XCTAssertTrue(textFields["timer.taskField"].waitForExistence(timeout: 10))
     }
 
-    /// The main window (`planner`).
+    /// The main window, by its identifier (`MainWindowSetup.sceneID` in the
+    /// app, kept as "planner" so saved window state carries over).
     var mainWindow: XCUIElement {
         windows["planner"]
     }

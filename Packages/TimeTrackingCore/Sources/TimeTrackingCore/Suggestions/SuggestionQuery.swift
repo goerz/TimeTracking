@@ -1,5 +1,5 @@
 // SuggestionQuery and SuggestionCandidate: what the engine is asked and
-// what it answers (spec_planner_calendar.md §5, §5.4).
+// what it answers (spec_calendar.md §5, §5.4).
 
 public import Foundation
 

@@ -1,5 +1,5 @@
 // InMemoryCalendarEventStore: calendars and events in memory, for tests and
-// `-UITesting`; never touches EventKit (spec_planner_calendar.md §4).
+// `-UITesting`; never touches EventKit (spec_calendar.md §4).
 
 public import Foundation
 import Synchronization

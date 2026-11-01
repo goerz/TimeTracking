@@ -1,4 +1,4 @@
-// EntryCommands: the Entry menu (experiment: one window, object menus).
+// EntryCommands: the Entry menu (spec_timer_window.md §9).
 
 import SwiftUI
 import TimeTrackingCore
@@ -7,7 +7,7 @@ import TimeTrackingCore
 /// actions act on the running entry or the Timer list's row.
 struct EntryCommands: Commands {
     var host: AppHost
-    @FocusedValue(\.plannerWindowActive) private var windowActive
+    @FocusedValue(\.mainWindowActive) private var windowActive
     @FocusedValue(\.timerWindowActive) private var timerActive
 
     private var app: AppModel? {
@@ -23,7 +23,7 @@ struct EntryCommands: Commands {
             if let app {
                 // The Timer view in the key window.
                 let view = app.activeTimer
-                EntryMenuItems(router: app.planner, state: state, timer: TimerEntryActions(
+                EntryMenuItems(router: app.sections, state: state, timer: TimerEntryActions(
                     setProject: { app.openChipPicker(in: view) },
                     edit: { app.editEntry(in: view) },
                     delete: { app.timer.alert = view.list.deleteAlert() },

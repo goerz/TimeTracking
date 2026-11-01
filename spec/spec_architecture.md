@@ -13,7 +13,7 @@ One Xcode project, `TimeTracking.xcodeproj`, plus one local Swift package, `Pack
 | Target | Kind | Product | Bundle identifier | Spec |
 |---|---|---|---|---|
 | `TimeTrackingCore` | Swift package library (macOS, iOS) | `TimeTrackingCore` module | (none) | `spec_data_and_sync.md` |
-| `TimeTracking` | Mac app | `<APP_NAME>.app` (Debug: `<APP_NAME> Debug.app`), module `TimeTracking` | `<APP_ID>` | `spec_timer_window.md`, `spec_menubar.md`, `spec_planner_*.md` |
+| `TimeTracking` | Mac app | `<APP_NAME>.app` (Debug: `<APP_NAME> Debug.app`), module `TimeTracking` | `<APP_ID>` | `spec_timer_window.md`, `spec_menubar.md`, `spec_calendar.md`, `spec_reports.md`, `spec_projects.md`, `spec_activity.md` |
 | `TimeTrackingAgent` | Mac login item (helper app) | `TimeTrackingAgent.app` (Debug: `TimeTrackingAgent Debug.app`) at `Contents/Library/LoginItems/` | `<APP_ID>.agent` | `spec_activity_tracking.md` |
 | `TimeTrackingCLI` | Mac command-line tool | `timetracking` at `Contents/Helpers/` | (none) | `spec_automation.md` |
 | `TrackerEvent` | Mac command-line tool | `tracker-event` at `Contents/Helpers/` | (none) | `spec_activity_tracking.md` |
@@ -38,8 +38,8 @@ One Swift target with these folders:
 | `Queries/` | Entries by day, reports, structure queries, autocompletion, the running entry, `StoreObserver` |
 | `Interchange/` | JSON export and import, the CSV writers |
 | `Activity/` | `FileActivityStore`, folder resolution, the `settings.toml` model, the block log writer, `DeviceEventSink`, `DeviceEventSource` |
-| `TimeBlocks/` | The time-block calendar in EventKit and the project link (`spec_planner_calendar.md`) |
-| `Suggestions/` | The project suggestion engine (`spec_planner_calendar.md`) |
+| `TimeBlocks/` | The time-block calendar in EventKit and the project link (`spec_calendar.md`) |
+| `Suggestions/` | The project suggestion engine (`spec_calendar.md`) |
 | `Intents/` | App Intents, entities, `AppIntentsPackage`, the shared App Shortcut phrase table |
 | `Support/` | `Clock` and `ManualClock`, `LaunchArguments`, `AppIdentity` (App Group, CloudKit container, URL scheme from the Info.plist), logging |
 
@@ -51,7 +51,7 @@ User interface targets hold views, view state, and platform glue only. A view mo
 
 | Target | Holds |
 |---|---|
-| `TimeTracking/` | Scenes (the main window and the Mini Timer), Timer, Planner, status item, settings window (with the Tracker pane), agent registration (1.4), global shortcuts, AppKit glue (4.2), URL handler, and the live-update side: it runs `LiveStatePublisher` and `WidgetPushSender` |
+| `TimeTracking/` | Scenes (the main window and the Mini Timer), Timer, the sections, status item, settings window (with the Tracker pane), agent registration (1.4), global shortcuts, AppKit glue (4.2), URL handler, and the live-update side: it runs `LiveStatePublisher` and `WidgetPushSender` |
 | `TimeTrackingiOS/` | Scenes, Timer tab, iPad tabs, background refresh and silent-push handlers, widget push token upload, URL handler |
 | `Shared/` | Views compiled into both apps (picker, project dialog, entry row and editor, task field, color swatch, Pomodoro ring, report chart and tree, calendar columns); platform differences are `#if os(macOS)` around a modifier |
 | `AppResources/` | The app icon (`AppIcon.icon`) and the `AccentColor` asset, in the Mac app, the agent, and the iOS app (`spec_design.md` §9) |
@@ -210,7 +210,7 @@ The simulators are "TimeTracking iPhone" (`iPhone-17-Pro`) and "TimeTracking iPa
 |---|---|---|---|
 | Library | Swift Testing | `TimeTrackingCoreTests` | Model, store, midnight split, outbox, queries, reports, import and export, CSV, activity reader, suggestions, the APNs request (test key generated in the test), multi-store sync against `InMemoryTransport` |
 | Sync integration | Swift Testing, `.tags(.sync)` | same | `CloudKitTransport` and the `LiveState` fetch in a test-created zone; `make test-sync` only |
-| View models | Swift Testing | `TimeTrackingTests`, `TimeTrackingiOSTests` | Timer modes, Pomodoro, idle prompt, picker, Planner state, status item title |
+| View models | Swift Testing | `TimeTrackingTests`, `TimeTrackingiOSTests` | Timer modes, Pomodoro, idle prompt, picker, section state, status item title |
 | Agent | Swift Testing | `TimeTrackingAgentTests` | Resolvers against fixtures, presence, Blocker, exclusions, log writing, settings reload, socket |
 | Tool | Swift Testing | `TimeTrackingCLITests` | The tool as a subprocess: stdout, stderr, exit codes |
 | UI | XCTest (XCUITest) | `TimeTrackingUITests`, `TimeTrackingiOSUITests` | What only real windows show |
@@ -220,7 +220,7 @@ UI tests find controls by accessibility identifier (`timer.startButton`), never 
 
 ### 3.2 Behavior identifiers
 
-Each spec has one "Testable behaviors" list numbered continuously from 1, with the prefix `ARCH`, `DATA` (data and sync), `TW` (timer window), `MB` (menu bar), `PP`, `PC`, `PR`, `PA` (Planner projects, calendar, reports, activity), `TRK` (tracker), `IOS`, or `AUTO`. Each item names an observable input and result with concrete values.
+Each spec has one "Testable behaviors" list numbered continuously from 1, with the prefix `ARCH`, `DATA` (data and sync), `TW` (timer window), `MB` (menu bar), `PP`, `PC`, `PR`, `PA` (the Projects, Calendar, Reports, and Activity sections), `TRK` (tracker), `IOS`, or `AUTO`. Each item names an observable input and result with concrete values.
 
 A test carries the identifier in its display name, `@Test("TW-1 releasing below 200 pt collapses to the bar")`, or for XCUITest in the method name, `testTW1_collapseBelowThreshold()`. One test may cover several numbers. The script `scripts/check_behaviors.sh` reads every `spec/spec_*.md`, checks that the numbers are continuous, and fails on a number without a test or a test identifier no spec defines.
 
@@ -287,8 +287,8 @@ TimeTracking/
 ├── Config/               Project.xcconfig  Local.xcconfig  <target>.entitlements  *-Info.plist
 ├── TimeTracking.xcodeproj/
 ├── Packages/TimeTrackingCore/   Package.swift  Sources/TimeTrackingCore/<folders of 1.2>  Tests/
-├── TimeTracking/         App/ Timer/ Planner/ MenuBar/ Settings/ Live/ Platform/ Resources/
-├── TimeTrackingiOS/      App/ Timer/ Planner/ Background/ Resources/
+├── TimeTracking/         App/ Timer/ MainWindow/ MenuBar/ Settings/ Live/ Platform/ Resources/ …
+├── TimeTrackingiOS/      App/ Timer/ iPad/ Background/ Resources/ …
 ├── Shared/
 ├── TimeTrackingAgent/  TrackerEvent/  TimeTrackingCLI/
 ├── TimeTrackingWidgets/  TimeTrackingIntents/  TimeTrackingMonitor/  TimeTrackingWebExtension/
@@ -317,7 +317,7 @@ A skeleton that builds, installs, and passes `make test` before any feature exis
 | 4 | Tracker agent phases 1 to 5, `tracker-event` (parallel to 3) | 1, `Activity/` |
 | 5 | Sync (`CloudKitTransport`, coordinator, `LiveState`) | 2, 3 |
 | 6 | Automation (tool with `import`, App Intents) | 2 |
-| 7 | Planner: Projects, Reports, Calendar, Activity | 2, 3; Calendar and Activity also 4 |
+| 7 | Sections: Projects, Reports, Calendar, Activity | 2, 3; Calendar and Activity also 4 |
 | 8 | iOS: Timer, widgets, controls, intents, widget pushes (`Push/`, `make apns-key`); then iPad tabs; then activity collection (tracker phases 7 to 9) | 5, 6; iPad 7; collection 4 |
 
 Each step ends with its behaviors green and with `make install` producing a usable app.

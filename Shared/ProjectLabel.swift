@@ -1,5 +1,5 @@
 // ProjectLabel: a project as chips and rows show it (spec_timer_window.md §2,
-// §3; spec_planner_projects.md §4.4).
+// §3; spec_projects.md §4.4).
 
 import TimeTrackingCore
 

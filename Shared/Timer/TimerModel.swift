@@ -171,7 +171,7 @@ final class TimerModel {
         requestTaskFieldFocus()
     }
 
-    /// The Planner's Start Timer: an entry on `project` with an empty task,
+    /// Projects' Start Timer: an entry on `project` with an empty task,
     /// stopping a running one.
     func startEmpty(on project: ProjectID) async {
         do {

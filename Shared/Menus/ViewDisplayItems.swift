@@ -1,5 +1,5 @@
 // ViewDisplayItems: the View menu's navigation and each view's display
-// options, on the Mac and the iPad (experiment: object menus).
+// options, on the Mac and the iPad (spec_timer_window.md §9).
 
 import SwiftUI
 import TimeTrackingCore
@@ -7,12 +7,12 @@ import TimeTrackingCore
 /// Go to Today, Previous and Next Period, and Date Range…, then each view's
 /// display options under its own header, enabled while that view shows.
 struct ViewDisplayItems: View {
-    var router: PlannerRouter
+    var router: SectionRouter
     var state: MenuState
     var scrollToToday: () -> Void
 
     var body: some View {
-        PlannerNavigationItems(router: router, state: state)
+        SectionNavigationItems(router: router, state: state)
         Divider()
         Section("Timer") {
             Button("Scroll to Today", action: scrollToToday)

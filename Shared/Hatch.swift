@@ -1,6 +1,6 @@
 // Hatch: the diagonal hatch of Reports' repeated project colors, the
 // Calendar's knowledge blocks, and the time after now
-// (spec_planner_reports.md §4, spec_planner_calendar.md §1.2, §3.1).
+// (spec_reports.md §4, spec_calendar.md §1.2, §3.1).
 
 import SwiftUI
 

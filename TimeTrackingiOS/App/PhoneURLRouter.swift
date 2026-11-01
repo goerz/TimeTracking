@@ -11,7 +11,7 @@ struct PhoneURLRouter {
     enum Outcome: Equatable {
         /// A start, stop, or continue; the banner text.
         case tracked(String)
-        /// The Timer (or, on the iPad, a Planner tab) was shown.
+        /// The Timer (or, on the iPad, a section tab) was shown.
         case shown
         /// Nothing happened; the alert text.
         case failed(String)

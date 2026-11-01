@@ -1,11 +1,11 @@
-// WindowRouter: showing the Timer window, Settings, and the Planner
+// WindowRouter: showing the Mini Timer, the main window, and Settings
 // (spec_timer_window.md §1.3, §8.3; spec_menubar.md §2.2, §4).
 
 import AppKit
 import SwiftUI
 
-/// The live `AppRouting`: AppKit for the Timer window, the SwiftUI actions
-/// captured from a view for Settings and the Planner.
+/// The live `AppRouting`: AppKit for the Mini Timer, the SwiftUI actions
+/// captured from a view for the main window and Settings.
 final class WindowRouter: AppRouting {
     let timerWindow: TimerWindowController
     weak var app: AppModel?
@@ -41,16 +41,14 @@ final class WindowRouter: AppRouting {
         }
     }
 
-    /// The main window with the Timer tab selected.
-    func showMainTimer() {
-        app?.showsTimer = true
-        showMainWindow()
-    }
-
-    /// The main window on its current tab (the Dock tile).
-    func showMainWindow() {
+    /// The main window on `item`, or on its current item (the Dock tile,
+    /// the menu bar).
+    func showMainWindow(item: MainSidebarItem?) {
+        if let item {
+            app?.mainItem = item
+        }
         NSApp.activate()
-        openWindowAction?(id: "planner")
+        openWindowAction?(id: MainWindowSetup.sceneID)
     }
 
     /// Where the Settings window's `@AppStorage` reads its last pane.
@@ -62,13 +60,6 @@ final class WindowRouter: AppRouting {
         }
         NSApp.activate()
         openSettingsAction?()
-    }
-
-    /// The main window on the last Planner section.
-    func openPlanner() {
-        app?.showsTimer = false
-        NSApp.activate()
-        openWindowAction?(id: "planner")
     }
 }
 

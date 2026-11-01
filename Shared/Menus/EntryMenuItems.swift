@@ -1,5 +1,5 @@
-// EntryMenuItems: the Entry menu, on the Mac and the iPad (experiment:
-// object menus).
+// EntryMenuItems: the Entry menu, on the Mac and the iPad
+// (spec_timer_window.md §9).
 
 import SwiftUI
 import TimeTrackingCore
@@ -18,7 +18,7 @@ struct TimerEntryActions {
 /// entry list's row, like Music's Song menu. Edit and Delete are one item
 /// each, keyed for the view (⌘E and ⌘⌫; Return and Delete in the Calendar).
 struct EntryMenuItems: View {
-    var router: PlannerRouter
+    var router: SectionRouter
     var state: MenuState
     var timer: TimerEntryActions
 

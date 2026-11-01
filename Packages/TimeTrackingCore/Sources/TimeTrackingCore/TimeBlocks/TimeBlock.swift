@@ -1,5 +1,5 @@
 // TimeBlock: a time block (an event of the time-block calendar), its
-// project link, and the calendar's resolution (spec_planner_calendar.md §4.1, §4.2).
+// project link, and the calendar's resolution (spec_calendar.md §4.1, §4.2).
 
 public import Foundation
 

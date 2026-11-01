@@ -1,5 +1,5 @@
 // TimeTrackingApp: the Mac app's entry point and scenes
-// (spec_timer_window.md §1, §8, §9; spec_menubar.md; spec_planner_projects.md §1;
+// (spec_timer_window.md §1, §8, §9; spec_menubar.md; spec_projects.md §1;
 // `--unregister`: spec_activity_tracking.md §5).
 
 import SwiftUI
@@ -26,10 +26,10 @@ struct TimeTrackingApp: App {
     }
 
     var body: some Scene {
-        // Experiment: one window, the Timer its sidebar's first item.
-        Window(AppHost.appName, id: "planner") {
+        // The main window, the Timer its sidebar's first item.
+        Window(AppHost.appName, id: MainWindowSetup.sceneID) {
             HostedContent(host: delegate.host) { app in
-                PlannerWindowView()
+                MainWindowView()
                     .environment(app)
                     .modifier(RouterActions(router: delegate.router))
             }

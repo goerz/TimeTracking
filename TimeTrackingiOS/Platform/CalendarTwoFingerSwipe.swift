@@ -1,5 +1,5 @@
 // CalendarTwoFingerSwipe: the iPad Calendar's two-finger sideways swipe,
-// which SwiftUI does not provide (spec_planner_calendar.md §1.2;
+// which SwiftUI does not provide (spec_calendar.md §1.2;
 // spec_ios.md §10.2).
 
 import SwiftUI

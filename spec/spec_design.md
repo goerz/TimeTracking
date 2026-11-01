@@ -1,6 +1,6 @@
 # Spec: Design Language
 
-The visual rules every surface follows: the Mac main window with the Timer and the Planner sections, the Mini Timer, the menu bar item, and settings; the iPhone and iPad app; widgets and controls. A component spec describes what a surface contains and how it behaves; this spec decides how it looks. Where a component spec gives a size, symbol, or style that conflicts with this one, this one wins and the component spec is corrected.
+The visual rules every surface follows: the Mac main window with the Timer and the sections, the Mini Timer, the menu bar item, and settings; the iPhone and iPad app; widgets and controls. A component spec describes what a surface contains and how it behaves; this spec decides how it looks. Where a component spec gives a size, symbol, or style that conflicts with this one, this one wins and the component spec is corrected.
 
 The app looks like it was made by Apple for the current OS: system text styles, SF Symbols, standard controls, system materials, and the platform's toolbar. Custom drawing is reserved for data (calendar cards, charts, heatmaps) and for the start and stop buttons.
 
@@ -30,7 +30,7 @@ Every duration that changes while visible, and every column of durations, uses m
 | Running timer, Timer list rows and day totals | `h:mm:ss` | `0:25:00` |
 | Pomodoro countdown | `m:ss`, `+m:ss` in overtime | `24:59` |
 | Calendar cards and day headers, Activity, Reports summaries and charts | `XhYYm` (`25m` below one hour) | `4h 07m` |
-| Reports breakdown, entry list, and bar tooltips | `XhYYmZZs` (to the second, [spec_planner_reports.md](spec_planner_reports.md) §5.2, §6) | `6h 24m 23s` |
+| Reports breakdown, entry list, and bar tooltips | `XhYYmZZs` (to the second, [spec_reports.md](spec_reports.md) §5.2, §6) | `6h 24m 23s` |
 | Projects table totals | `XhYYm`, unbounded hours | `432h 21m` |
 
 ## 3. Layout and spacing
@@ -45,7 +45,7 @@ A 4 pt grid. The `Design` tokens in `Shared/Design/Design.swift` hold the values
 | `Design.Spacing.medium` | 12 pt | Between groups in a bar or card |
 | `Design.Spacing.large` | 16 pt | Content insets on iOS, card padding |
 | `Design.Spacing.window` | 20 pt | Content insets in Mac windows |
-| `Design.Spacing.content` | `window` on the Mac, `large` on iOS | Content insets of views shared by both apps (the Planner sections) |
+| `Design.Spacing.content` | `window` on the Mac, `large` on iOS | Content insets of views shared by both apps (the sections) |
 | `Design.Radius.card` | 12 pt | Cards (Reports, Activity, iOS Timer card) |
 | `Design.Radius.small` | 6 pt | Calendar cards and their outlines, swatches, tags, list row highlights |
 | `Design.CircleDiameter.bar` | 32 pt Mac, 44 pt iOS | Start, stop, discard, and Pomodoro buttons of the Timer bar and card |
@@ -146,7 +146,7 @@ Nothing moves or resizes on its own once it is on screen; only the viewer's acti
 ## 8. Mac windows
 
 - Mini Timer: hidden title bar; the title-bar row holds only the traffic lights and, at the far right, the pin button. The running-entry bar starts below it (`spec_timer_window.md` §2). The main window's Timer item has no such row.
-- Planner: `NavigationSplitView` with a sidebar of fixed sections; the toolbar of §4.
+- Main window: the iPad's adaptable `TabView` (`.sidebarAdaptable`), shown on the Mac as a sidebar of the Timer and the four sections; each section owns the toolbar of §4.
 - Settings: `TabView` panes with a symbol per tab, each pane a grouped `Form` with a fixed width of 520 pt whose window takes the pane's height (scrolling off, height fixed to the content); only a pane longer than the screen allows (Tracker) has a fixed height and scrolls. Numbers are a trailing value with a stepper after it; a dependent setting is disabled, not indented.
 - Menu bar item: the dial icon (the app icon's ring and knob as one template color, `spec_menubar.md` §1.1), the elapsed time as text, and during a Pomodoro a trailing segment with the phase glyph and the countdown (the rule of §11). The menu is the system menu style; a running entry shows as a header view (task in `.headline`; area dot, project, " · client" in `.secondary`; `clock`, "Started 09:35 · 0:25 elapsed" in `.secondary`), never as grayed-out disabled items (`spec_menubar.md` §2.1).
 - Menus: items set the symbols of §5 as images and leave `preferredImageVisibility` automatic; macOS 27 hides menu item images by default, so no menu relies on them.

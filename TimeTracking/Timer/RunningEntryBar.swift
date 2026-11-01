@@ -9,7 +9,7 @@ import TimeTrackingCore
 /// project chip at the content inset.
 struct RunningEntryBar: View {
     /// The Mini Timer's title-bar row with the pin; the main window's Timer
-    /// tab has neither (experiment).
+    /// tab has neither.
     var showsTitleRow = true
     @Environment(AppModel.self) private var app
     @Environment(TimerUIState.self) private var view

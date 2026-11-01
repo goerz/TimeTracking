@@ -1,5 +1,5 @@
 // ReportRange: the date range shared by Reports and Activity, with its
-// presets, period arrows, and "Go to Today" (spec_planner_reports.md §2).
+// presets, period arrows, and "Go to Today" (spec_reports.md §2).
 
 import Foundation
 

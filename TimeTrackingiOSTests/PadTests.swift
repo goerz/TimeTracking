@@ -1,6 +1,6 @@
 // The iPad's tabs, keyboard commands, calendar access, drawing, and the
-// Planner's iPad wiring on the view models (spec_ios.md §2.3, §6.4, §10;
-// spec_planner_calendar.md §3.3; spec_planner_activity.md §5). The idiom is
+// The sections' iPad wiring on the view models (spec_ios.md §2.3, §6.4, §10;
+// spec_calendar.md §3.3; spec_activity.md §5). The idiom is
 // injected, so these run on the iPhone simulator.
 
 import Foundation
@@ -16,12 +16,12 @@ struct PadTests {
         blocks: [ActivityBlock] = []
     ) async throws -> TestPhone {
         try await TestPhone(settings: .ephemeral(isPad: true), pad: { store, clock, device in
-            PadPlanner(store: store, clock: clock, device: device, activity: InMemoryActivityStore(blocks: blocks), events: events)
+            PadSections(store: store, clock: clock, device: device, activity: InMemoryActivityStore(blocks: blocks), events: events)
         })
     }
 
     @Test(
-        "IOS-33 the iPhone has no Planner and no calendar store; the iPad asks for calendar access only when the Calendar tab first opens"
+        "IOS-33 the iPhone has no sections and no calendar store; the iPad asks for calendar access only when the Calendar tab first opens"
     )
     func calendarAccess() async throws {
         let phone = try await TestPhone()
@@ -52,7 +52,7 @@ struct PadTests {
         #expect(events.access() == .fullAccess)
     }
 
-    @Test("IOS-34 ⌘1 selects the Timer with the task field focused, ⌘2 to ⌘5 the Planner tabs; ⌘T does nothing in Timer and Projects")
+    @Test("IOS-34 ⌘1 selects the Timer with the task field focused, ⌘2 to ⌘5 the section tabs; ⌘T does nothing in Timer and Projects")
     func keyboard() async throws {
         let test = try await Self.pad()
         let model = test.model
@@ -71,8 +71,6 @@ struct PadTests {
         await model.perform(.timerTab)
         #expect(model.padTab == .timer)
         #expect(model.timer.focusTaskFieldRequest == focus + 1)
-        await model.perform(.planner)
-        #expect(model.padTab == .activity)
 
         // Away from today in Calendar and Reports.
         await router.calendar.shift(days: -10)
@@ -106,7 +104,7 @@ struct PadTests {
         }
     }
 
-    @Test("IOS-39 the iPad's menu context follows the Mac's: the Timer tab as the Timer window, a Planner tab as the Planner")
+    @Test("IOS-39 the iPad's menu context follows the Mac's: the Timer tab as the Mini Timer, a section tab as the main window's section")
     func menuContext() async throws {
         let test = try await Self.pad()
         let model = test.model
@@ -115,7 +113,7 @@ struct PadTests {
         // The Timer tab: Timer's entry commands; the section menu's disabled.
         model.padTab = .timer
         #expect(model.padMenuState.timerKey)
-        #expect(!model.padMenuState.plannerKey)
+        #expect(!model.padMenuState.sectionKey)
         #expect(model.isEnabled(.setProject))
         #expect(model.isEnabled(.find))
         #expect(!model.isEnabled(.delete))

@@ -35,7 +35,7 @@ final class MenuUITests: XCTestCase {
 
         // Calendar: its entry commands, without the navigation keys.
         app.typeKey("2", modifierFlags: .command)
-        XCTAssertTrue(app.descendants(matching: .any)["planner.calendar"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.descendants(matching: .any)["calendar.view"].waitForExistence(timeout: 5))
         assertMenus(app)
         let entry = items(app, menu: "Entry")
         XCTAssertTrue(entry.contains { $0.title == "Fill Day…" && $0.enabled })

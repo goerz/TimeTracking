@@ -1,5 +1,5 @@
 // Color+Hex: area colors from their `#RRGGBB` text (spec_design.md §6,
-// spec_planner_projects.md §4.4).
+// spec_projects.md §4.4).
 
 import SwiftUI
 import TimeTrackingCore

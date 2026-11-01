@@ -1,5 +1,5 @@
 // ReportSnapshot: everything the Reports section shows for one range and
-// filter, computed in one pass (spec_planner_reports.md §4 to §6).
+// filter, computed in one pass (spec_reports.md §4 to §6).
 
 public import Foundation
 

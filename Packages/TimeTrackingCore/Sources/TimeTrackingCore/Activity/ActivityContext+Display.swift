@@ -1,5 +1,5 @@
 // ActivityContext+Display: the names of apps, sessions, sites, folders, and
-// devices on screen, never the log's keys (spec_planner_activity.md §1.3;
+// devices on screen, never the log's keys (spec_activity.md §1.3;
 // spec_design.md §12).
 
 extension ActivityContext {

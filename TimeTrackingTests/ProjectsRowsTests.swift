@@ -1,4 +1,4 @@
-// The client and area rows of the projects table (spec_planner_projects.md
+// The client and area rows of the projects table (spec_projects.md
 // §2.5, §4).
 
 import Foundation
@@ -12,7 +12,7 @@ struct ProjectsRowsTests {
     func clientAndAreaRows() async throws {
         let test = try await TestApp()
         let paper = try #require(try await test.projects(["Paper"]).first)
-        let model = test.app.planner.projects
+        let model = test.app.sections.projects
         await model.reload()
         let area = try #require(model.areas.first { $0.id == paper.areaID })
         let areaRow = "area:\(area.id.rawValue)"
@@ -26,8 +26,8 @@ struct ProjectsRowsTests {
         #expect(model.archiveSelectionTitle == "Retire Area")
         #expect(model.dialogDefaultArea == area.id)
         await model.showSelectionInReports()
-        #expect(test.app.planner.section == .reports)
-        #expect(test.app.planner.reports.state.filters.areas == [area.id])
+        #expect(test.app.sections.section == .reports)
+        #expect(test.app.sections.reports.state.filters.areas == [area.id])
 
         model.selectRows([clientRow])
         #expect(model.editSelectionTitle == "Rename Client…")
@@ -56,7 +56,7 @@ struct ProjectsRowsTests {
         let (consulting, _) = try await test.store.createClient(name: "Consulting")
         let (university, _) = try await test.store.createClient(name: "University")
         _ = try await test.store.createArea(AreaDraft(clientID: university.id, name: "Research"))
-        let model = test.app.planner.projects
+        let model = test.app.sections.projects
         await model.reload()
 
         await model.clientsAndAreas.newArea(in: model.clientForNewArea)

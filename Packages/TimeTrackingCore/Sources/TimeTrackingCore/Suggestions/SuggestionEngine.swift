@@ -1,5 +1,5 @@
 // SuggestionEngine: builds and keeps the index, throttles rebuilds, and
-// spares the launch rebuild with a cache file (spec_planner_calendar.md §5.5).
+// spares the launch rebuild with a cache file (spec_calendar.md §5.5).
 
 public import Foundation
 import GRDB

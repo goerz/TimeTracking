@@ -1,4 +1,4 @@
-// ActivityHeatmap: active time by hour (spec_planner_activity.md §1.4).
+// ActivityHeatmap: active time by hour (spec_activity.md §1.4).
 
 import Foundation
 

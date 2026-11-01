@@ -12,7 +12,7 @@ final class URLRouter {
     enum Outcome: Equatable {
         /// A start, stop, or continue; the banner text.
         case tracked(String)
-        /// The Timer or Planner was shown.
+        /// The Timer or a section was shown.
         case shown
         /// Nothing happened; the alert text.
         case failed(String)
@@ -58,7 +58,7 @@ final class URLRouter {
             app.router?.showTimer(focusTask: false)
             return .shown
         case .calendar, .reports, .projects, .activity, .project:
-            await app.planner.open(parsed, now: app.clock.now)
+            await app.sections.open(parsed, now: app.clock.now)
             return .shown
         }
     }

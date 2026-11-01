@@ -1,32 +1,33 @@
 // MenuState: which window, tab, and section the main menu's commands act on
-// (spec_timer_window.md §9, spec_planner_projects.md §1.2, spec_ios.md §10.3).
+// (spec_timer_window.md §9, spec_projects.md §1.2, spec_ios.md §10.3).
 
 import SwiftUI
 import TimeTrackingCore
 
-/// The context of the main menu, on the Mac and the iPad. The Timer window
-/// (iPad: Timer tab) and the Planner (iPad: a Planner tab) share File, Edit,
-/// View, Timer, and Window; the section menu (Project, Calendar, Report, or
-/// Activity) exists only while the Planner is in front. An item of one
+/// The context of the main menu, on the Mac and the iPad. A Timer view
+/// (iPad: the Timer tab) and a section (iPad: a section tab) share File,
+/// Edit, View, Timer, and Window; the section menu (Project, Calendar,
+/// Report, or Activity) exists only while a section is in front. An item of one
 /// window or section is enabled only there and holds its key equivalent
 /// only while enabled, because AppKit sends a key equivalent to the first
 /// item that has it even when that item is disabled.
 struct MenuState: Equatable {
-    /// The Mac's Timer window is key, or the iPad shows the Timer tab.
+    /// A Timer view is in the Mac's key window, or the iPad shows the Timer tab.
     var timerKey = false
-    /// The Mac's Planner window is key, or the iPad shows a Planner tab.
-    var plannerKey = false
-    var section: PlannerSection = .projects
+    /// A section is shown in the Mac's key main window, or the iPad shows a
+    /// section tab.
+    var sectionKey = false
+    var section: MainSection = .projects
     /// A popover, editor, or sheet of the Calendar takes the plain keys.
     var calendarEditing = false
 
-    /// The section menu's title while the Planner is in front.
+    /// The section menu's title while a section is in front.
     var sectionMenuTitle: String {
         section.menuTitle
     }
 
     var calendarCommands: Bool {
-        plannerKey && section == .calendar
+        sectionKey && section == .calendar
     }
 
     /// Whether a Calendar command's menu item is enabled (plain keys only
@@ -36,15 +37,15 @@ struct MenuState: Equatable {
     }
 
     var reportCommands: Bool {
-        plannerKey && section == .reports
+        sectionKey && section == .reports
     }
 
     var activityCommands: Bool {
-        plannerKey && section == .activity
+        sectionKey && section == .activity
     }
 
     var projectCommands: Bool {
-        plannerKey && section == .projects
+        sectionKey && section == .projects
     }
 
     /// View › Go to Today, Previous Period, Next Period, and Date Range…:
@@ -60,10 +61,10 @@ struct MenuState: Equatable {
 }
 
 extension MenuState {
-    init(router: PlannerRouter?, timerKey: Bool, plannerKey: Bool) {
+    init(router: SectionRouter?, timerKey: Bool, sectionKey: Bool) {
         self.init(
             timerKey: timerKey,
-            plannerKey: plannerKey,
+            sectionKey: sectionKey,
             section: router?.section ?? .projects,
             calendarEditing: router?.calendar.takesTextInput ?? false
         )

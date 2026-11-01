@@ -1,5 +1,5 @@
 // CalendarLink: "Open in Calendar" on the iPad, through the Calendar app's
-// `calshow:` URL, which SwiftUI does not provide (spec_planner_calendar.md §4.3).
+// `calshow:` URL, which SwiftUI does not provide (spec_calendar.md §4.3).
 
 import UIKit
 

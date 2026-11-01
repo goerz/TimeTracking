@@ -1,5 +1,5 @@
 // FillDay: proposals for a day's untracked activity, and logging them in
-// one transaction (spec_planner_calendar.md §3.5).
+// one transaction (spec_calendar.md §3.5).
 
 public import Foundation
 

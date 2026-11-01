@@ -1,6 +1,6 @@
 // EntryEditorPopover: the edit popover of one entry, opened by an
-// `editing` id (spec_timer_window.md §4; spec_planner_calendar.md §2.5;
-// spec_planner_reports.md §6).
+// `editing` id (spec_timer_window.md §4; spec_calendar.md §2.5;
+// spec_reports.md §6).
 
 import SwiftUI
 import TimeTrackingCore
@@ -19,7 +19,7 @@ struct EntryEditorPopover: ViewModifier {
     var taskMatching = false
     var arrowEdge: Edge
     /// Whether a view that appears while `editing` already names its entry
-    /// opens the editor (the Planner's cards and rows, which reloads rebuild).
+    /// opens the editor (the sections' cards and rows, which reloads rebuild).
     var opensOnAppear = false
     /// Called after the editor stored a change.
     var onChange: () async -> Void

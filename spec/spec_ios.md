@@ -1,8 +1,8 @@
 # Spec: iPhone and iPad App
 
-One iOS target runs on iPhone and iPad. On the iPhone it is the Timer in pocket form (start, stop, continue, pick a project and task, the recent list, a Pomodoro), plus Home Screen and Lock Screen widgets, a Control Center control, App Shortcuts, and Siri. On the iPad the same Timer is the first tab, followed by Projects, Calendar, Reports, and Activity tabs that present the Mac's Planner sections. The target also hosts the device-side activity collection of [spec_activity_tracking.md](spec_activity_tracking.md) §6.2. Everything syncs through the shared library ([spec_data_and_sync.md](spec_data_and_sync.md)).
+One iOS target runs on iPhone and iPad. On the iPhone it is the Timer in pocket form (start, stop, continue, pick a project and task, the recent list, a Pomodoro), plus Home Screen and Lock Screen widgets, a Control Center control, App Shortcuts, and Siri. On the iPad the same Timer is the first tab, followed by Projects, Calendar, Reports, and Activity tabs that present the Mac's sections. The target also hosts the device-side activity collection of [spec_activity_tracking.md](spec_activity_tracking.md) §6.2. Everything syncs through the shared library ([spec_data_and_sync.md](spec_data_and_sync.md)).
 
-This spec states only what differs on a touch device. The Timer behavior is that of [spec_timer_window.md](spec_timer_window.md), the picker and project dialog are those of [spec_planner_projects.md](spec_planner_projects.md), and the intents, entities, and URL scheme are those of [spec_automation.md](spec_automation.md).
+This spec states only what differs on a touch device. The Timer behavior is that of [spec_timer_window.md](spec_timer_window.md), the picker and project dialog are those of [spec_projects.md](spec_projects.md), and the intents, entities, and URL scheme are those of [spec_automation.md](spec_automation.md).
 
 Not included: an Apple Watch app, Live Activities, idle detection, and the Mac's "remind me to track time" reminders.
 
@@ -52,7 +52,7 @@ When the `LiveState` record carries an activity part with `agentRunning` true fo
 
 ### 2.4 Project picker and quick creation
 
-The picker of [spec_planner_projects.md](spec_planner_projects.md) appears as a sheet (medium detent, resizable to large) from the chip or the `@` trigger, with the search field focused and the first match highlighted (Return chooses it). Choosing a project assigns it to the running entry or the draft and closes the sheet. "Create Project" pushes the project dialog, and its "New Area…" the area form with a `ColorPicker`, inside the same sheet; on Create the project is assigned and the sheet closes.
+The picker of [spec_projects.md](spec_projects.md) appears as a sheet (medium detent, resizable to large) from the chip or the `@` trigger, with the search field focused and the first match highlighted (Return chooses it). Choosing a project assigns it to the running entry or the draft and closes the sheet. "Create Project" pushes the project dialog, and its "New Area…" the area form with a `ColorPicker`, inside the same sheet; on Create the project is assigned and the sheet closes.
 
 ### 2.5 Archived projects
 
@@ -265,11 +265,11 @@ The app appends `app` lines for its own foreground and background transitions.
 
 ## 10. The iPad
 
-The iPad presents the Planner sections with their behavior unchanged; this section states only the touch, Apple Pencil, and keyboard differences.
+The iPad presents the sections with their behavior unchanged; this section states only the touch, Apple Pencil, and keyboard differences.
 
 ### 10.1 Tabs
 
-A `TabView` with the iPadOS tab bar (collapsible to a sidebar): Timer, Calendar, Reports, Projects, Activity, the Mac's sidebar items in the same order. Timer is the iPhone screen at iPad width, with the picker as a popover from the chip and the list in two columns above 900 points. The other tabs are [spec_planner_projects.md](spec_planner_projects.md) (§1.4 lists its iPad adaptations), [spec_planner_calendar.md](spec_planner_calendar.md), [spec_planner_reports.md](spec_planner_reports.md), and [spec_planner_activity.md](spec_planner_activity.md) (§5). Toolbars map onto the navigation bar with the items and order of the Mac ([spec_design.md](spec_design.md) §4): the period arrows and date controls leading, the section's view options and actions trailing, the title inline, and items that do not fit in the system overflow menu. Inspectors map onto a trailing column and dialogs onto sheets.
+A `TabView` with the iPadOS tab bar (collapsible to a sidebar): Timer, Calendar, Reports, Projects, Activity, the Mac's sidebar items in the same order. Timer is the iPhone screen at iPad width, with the picker as a popover from the chip and the list in two columns above 900 points. The other tabs are [spec_projects.md](spec_projects.md) (§1.4 lists its iPad adaptations), [spec_calendar.md](spec_calendar.md), [spec_reports.md](spec_reports.md), and [spec_activity.md](spec_activity.md) (§5). Toolbars map onto the navigation bar with the items and order of the Mac ([spec_design.md](spec_design.md) §4): the period arrows and date controls leading, the section's view options and actions trailing, the title inline, and items that do not fit in the system overflow menu. Inspectors map onto a trailing column and dialogs onto sheets.
 
 ### 10.2 Touch and Pencil
 
@@ -283,20 +283,20 @@ A `TabView` with the iPadOS tab bar (collapsible to a sidebar): Timer, Calendar,
 | Vertical and horizontal zoom | Pinch vertically and horizontally; two-finger swipe scrolls days |
 | Menu bar item, global shortcuts, login item, idle detection, reminders, CLI | Absent |
 
-The Calendar tab requests calendar access per [spec_planner_calendar.md](spec_planner_calendar.md); the iPhone never uses EventKit.
+The Calendar tab requests calendar access per [spec_calendar.md](spec_calendar.md); the iPhone never uses EventKit.
 
 ### 10.3 Hardware keyboard
 
-The iPadOS menu bar, also shown in the ⌘-hold overlay, has the Mac's menus, items, titles, and keys ([spec_timer_window.md](spec_timer_window.md) §9), built from the same shared menu items: File, Edit, View, Timer, Entry, Project, and Window. The tabs are the Mac's sidebar items: an item of the Timer is enabled only in the Timer tab, an item of a Planner section only in its tab, and, as on the Mac, a disabled item holds no key equivalent. In the Planner tabs every key is that tab's spec's; the Calendar's navigation keys are the view's, as on the Mac.
+The iPadOS menu bar, also shown in the ⌘-hold overlay, has the Mac's menus, items, titles, and keys ([spec_timer_window.md](spec_timer_window.md) §9), built from the same shared menu items: File, Edit, View, Timer, Entry, Project, and Window. The tabs are the Mac's sidebar items: an item of the Timer is enabled only in the Timer tab, an item of a section only in its tab, and, as on the Mac, a disabled item holds no key equivalent. In the section tabs every key is that tab's spec's; the Calendar's navigation keys are the view's, as on the Mac.
 
 The iPad differs from the Mac only where it has no counterpart:
 
 | Mac | iPad |
 |---|---|
 | Window › Mini Timer (⌥⌘R) | None (no second window); View › Timer (⌘1) selects the Timer tab with the task field focused |
-| Continue (⌘O) in the Timer continues its selected row | Continue in the Timer tab continues the most recent other entry; in a Planner tab it acts on the selection as on the Mac |
+| Continue (⌘O) in the Timer continues its selected row | Continue in the Timer tab continues the most recent other entry; in a section tab it acts on the selection as on the Mac |
 | Delete Entry… (⌘⌫) needs the list's focus | Delete Entry… needs a selected row |
-| View › Mini Timer's Compact Mode and Float on Top; View › Activity's Exclude from Tracking… and Back | None (no window modes, and no exclusion or drill-down in Activity, [spec_planner_activity.md](spec_planner_activity.md) §5) |
+| View › Mini Timer's Compact Mode and Float on Top; View › Activity's Exclude from Tracking… and Back | None (no window modes, and no exclusion or drill-down in Activity, [spec_activity.md](spec_activity.md) §5) |
 | Edit › Copy (⌘C) copies the selected project names | Project › Copy Name only |
 
 Esc closes a sheet or popover and clears a search.
@@ -346,7 +346,7 @@ The iPad reads the block log through `ActivityReading` and the Mac's activity fr
 - IOS-31. A wrapper intent flushes only when the last flush is more than 5 minutes old.
 - IOS-32. With Screen Time authorization denied, every other collector works.
 - IOS-33. The iPhone never shows a calendar permission prompt; the iPad requests access when the Calendar tab first opens.
-- IOS-34. On the iPad, ⌘1 selects the Timer tab with the task field focused, ⌘2 to ⌘5 select the four Planner tabs, and ⌘T does nothing in the Timer and Projects tabs.
+- IOS-34. On the iPad, ⌘1 selects the Timer tab with the task field focused, ⌘2 to ⌘5 select the four section tabs, and ⌘T does nothing in the Timer and Projects tabs.
 - IOS-35. Drawing in the iPad's Tracked column creates an entry and opens the editor; a drawing past now is refused.
 - IOS-36. The iPad never writes to `Activity/blocks/`.
 - IOS-37. First launch without an iCloud account shows the blocking screen and nothing else.
@@ -355,7 +355,7 @@ The iPad reads the block log through `ActivityReading` and the Mac's activity fr
 
 ## 13. Decisions
 
-- One target for iPhone and iPad; the iPhone gets only the Timer because the Planner views need the width.
+- One target for iPhone and iPad; the iPhone gets only the Timer because the section views need the width.
 - Widget and control buttons run in the app process, so the sync engine sends at once.
 - Live updates use WidgetKit pushes from the Mac plus a direct fetch of `LiveState`, because CloudKit cannot send widget pushes and silent pushes are throttled.
 - Control providers share the widgets' resolver, so the control follows a push without its own token.
@@ -371,6 +371,6 @@ The iPad reads the block log through `ActivityReading` and the Mac's activity fr
 - [spec_architecture.md](spec_architecture.md): the five targets, entitlements, Info.plist keys, and development signing (sandbox APNs tokens).
 - [spec_automation.md](spec_automation.md): entities, intents with their dialogs and errors, the Siri inference rule, and the URL scheme. This spec owns the phrase table and the wrapper intents, which call the library operations, not the intents' `perform()`.
 - [spec_timer_window.md](spec_timer_window.md): the running-entry bar, task field, list, edit rules, Pomodoro state machine, notification texts, and keys.
-- [spec_planner_projects.md](spec_planner_projects.md): the picker, project dialog, and area and client forms as shared views.
-- Planner specs: the tab contents that section 10 adapts.
+- [spec_projects.md](spec_projects.md): the picker, project dialog, and area and client forms as shared views.
+- Section specs (Calendar, Reports, Projects, Activity): the tab contents that section 10 adapts.
 - [spec_activity_tracking.md](spec_activity_tracking.md): the merge of device events, the exclusion semantics, and Focus events as presence hints.

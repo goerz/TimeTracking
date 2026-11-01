@@ -1,5 +1,5 @@
 // SuggestionTokens: the tokens of contexts, subjects, details, group keys,
-// and calendar titles (spec_planner_calendar.md §5.2).
+// and calendar titles (spec_calendar.md §5.2).
 
 /// Tokenization of §5.2.
 public enum SuggestionTokens {

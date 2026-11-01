@@ -73,8 +73,8 @@ extension TrackerSettings {
     synced_safari_history = false
 
     [privacy]
-    # Exclusions apply to what is recorded from now on, and the Planner applies
-    # them to past activity when it shows it. The log files keep what they hold
+    # Exclusions apply to what is recorded from now on, and Calendar and
+    # Activity apply them to past activity when they show it. The log files keep what they hold
     # until `tracker-event reapply-exclusions <from> <to>` rewrites them.
     # Terminal command lines are never recorded; this switch has no effect.
     record_commands = false

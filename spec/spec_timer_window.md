@@ -4,7 +4,7 @@ The Timer is the Mac app's everyday surface: the running entry on top, recent en
 
 ## 1. Windows
 
-The main window is one SwiftUI `Window` scene titled `<APP_NAME>`, opened at launch. Its sidebar is the iPad's adaptable tab view ([spec_ios.md](spec_ios.md) §10.1), shown on the Mac as a sidebar: Timer, Calendar, Reports, Projects, Activity, selected with View › Timer to Activity (⌘1 to ⌘5). The four Planner sections are specified in [spec_planner_projects.md](spec_planner_projects.md) §1 and the section specs. Default size 1100 × 760 pt; the window is no smaller than the shown item's minimum. At launch it shows the Timer; clicking the Dock tile shows the window on its current item. Closing it keeps the app running.
+The main window is one SwiftUI `Window` scene titled `<APP_NAME>`, opened at launch. Its sidebar is the iPad's adaptable tab view ([spec_ios.md](spec_ios.md) §10.1), shown on the Mac as a sidebar: Timer, Calendar, Reports, Projects, Activity, selected with View › Timer to Activity (⌘1 to ⌘5). The four sections are specified in [spec_projects.md](spec_projects.md) §1 and the section specs. Default size 1100 × 760 pt; the window is no smaller than the shown item's minimum. At launch it shows the Timer; clicking the Dock tile shows the window on its current item. Closing it keeps the app running.
 
 The Timer item is laid out as the iPad's Timer tab: above 900 pt of width the running-entry bar (§2) is a column 40% of the width (400 to 480 pt) beside the list (§3), below it the bar sits above the list. It has no title-bar row and no pin; its minimum is 400 × 300 pt.
 
@@ -67,9 +67,9 @@ The `@` trigger: an `@` at the start of the field or after a space opens the pic
 
 ### 2.3 Project chip, picker, and quick creation
 
-Clicking the chip, Entry › Set Project… (⌘J), Space on the chip (Tab reaches it from the task field), or `@` opens the shared project picker (`spec_planner_projects.md` §5) on the chip, with task matching on. Its search field takes focus except when opened by `@`. A choice sets the running entry's project at once, or the draft's.
+Clicking the chip, Entry › Set Project… (⌘J), Space on the chip (Tab reaches it from the task field), or `@` opens the shared project picker (`spec_projects.md` §5) on the chip, with task matching on. Its search field takes focus except when opened by `@`. A choice sets the running entry's project at once, or the draft's.
 
-The picker's "Create Project" row opens the project dialog (`spec_planner_projects.md` §3) as a sheet; Create assigns the new project the same way.
+The picker's "Create Project" row opens the project dialog (`spec_projects.md` §3) as a sheet; Create assigns the new project the same way.
 
 ## 3. The list
 
@@ -93,7 +93,7 @@ Filter: Edit › Find (⌘F) shows a field above the list; only entries whose ta
 
 ## 4. The edit popover
 
-Clicking a row, Return on a selection, ⌘E, or clicking the timer label opens the edit popover; the Planner's Calendar reuses it. Fields, top to bottom, as rows with trailing-aligned labels: Task, Project (the chip), Start, Stop, Duration, Date; then the chain lines of 4.3 and the notices; then "Delete Entry…".
+Clicking a row, Return on a selection, ⌘E, or clicking the timer label opens the edit popover; the Calendar reuses it. Fields, top to bottom, as rows with trailing-aligned labels: Task, Project (the chip), Start, Stop, Duration, Date; then the chain lines of 4.3 and the notices; then "Delete Entry…".
 
 ### 4.1 Fields
 
@@ -257,19 +257,19 @@ Window › Mini Timer and the menu bar's "Show Mini Timer" display the show/hide
 
 ## 9. Menus and keyboard
 
-This section owns the main menu as a whole, on the Mac and, with the differences of [spec_ios.md](spec_ios.md) §10.3, on the iPad; the Planner specs list their sections' commands. The menus are object menus, as in Music or Mail: every window has the same menus, File, Edit, View, Timer, Entry, Project, and Window, and Entry and Project act on what is selected in the view shown.
+This section owns the main menu as a whole, on the Mac and, with the differences of [spec_ios.md](spec_ios.md) §10.3, on the iPad; the section specs list their sections' commands. The menus are object menus, as in Music or Mail: every window has the same menus, File, Edit, View, Timer, Entry, Project, and Window, and Entry and Project act on what is selected in the view shown.
 
 Every menu and item is always listed, and an item that applies to one view is disabled elsewhere rather than hidden. Such an item holds its key equivalent only while it is enabled, because AppKit sends a key equivalent to the first item that has it, even a disabled one; this lets one key serve several views (⌘⌫ deletes a Timer row and a project, Delete a Calendar selection) and keeps a disabled item from taking a key from a text field. A command that several views share is one item acting on the view shown: Find, Continue, Edit Entry…, Delete, Go to Today, Previous and Next Period, and Date Range…. Navigation keys that a view handles itself (arrows, Tab, Escape) are not menu items, as elsewhere on the Mac.
 
 | Menu | Holds |
 |---|---|
 | App | Settings…, Hide, Quit (standard) |
-| File | New Project…, New Area…, New Client… ([spec_planner_projects.md](spec_planner_projects.md) §2.5); Close (standard); Export… of Reports |
+| File | New Project…, New Area…, New Client… ([spec_projects.md](spec_projects.md) §2.5); Close (standard); Export… of Reports |
 | Edit | Undo, Redo, the pasteboard commands (standard), Find |
 | View | The sidebar's items, the sidebar toggle, the shown range's navigation, then each view's display options under its own header (Timer, Calendar, Report, Activity), then the Mini Timer's |
 | Timer | The running entry and the Pomodoro, from any window (the menu bar item's menu has the same commands) |
-| Entry | The selected entry in the view shown: the Timer's running entry or row, the Calendar's selection ([spec_planner_calendar.md](spec_planner_calendar.md) §6), or the Reports entry list's row |
-| Project | The selected project, area, or client in Projects ([spec_planner_projects.md](spec_planner_projects.md) §2.5) |
+| Entry | The selected entry in the view shown: the Timer's running entry or row, the Calendar's selection ([spec_calendar.md](spec_calendar.md) §6), or the Reports entry list's row |
+| Project | The selected project, area, or client in Projects ([spec_projects.md](spec_projects.md) §2.5) |
 | Window | Mini Timer, then the standard items and the main window |
 
 "Timer view" is the scope of an item enabled while the Timer is shown, in the main window or the Mini Timer; "Mini Timer key" while the Mini Timer is the key window.
@@ -279,7 +279,7 @@ Every menu and item is always listed, and an item that applies to one view is di
 | App | Settings… | ⌘, | App |
 | App | Hide, Quit | ⌘H, ⌘Q | App |
 | Edit | Undo, Redo | ⌘Z, ⇧⌘Z | Delete, discard, and popover edits |
-| Edit | Find | ⌘F | Timer view; Projects and Reports ([spec_planner_projects.md](spec_planner_projects.md) §1.2) |
+| Edit | Find | ⌘F | Timer view; Projects and Reports ([spec_projects.md](spec_projects.md) §1.2) |
 | View | Timer, Calendar, Reports, Projects, Activity | ⌘1 to ⌘5 | App; shows the main window on that item |
 | View | Scroll to Today | ⌘↑ | Timer view |
 | View | Compact Mode | ⇧⌘M | Mini Timer key |
@@ -292,7 +292,7 @@ Every menu and item is always listed, and an item that applies to one view is di
 | Timer | The next step, titled by its action: End Focus Now, Start Break, End Break Now, or Start Focus (End Focus Now, disabled, while the Pomodoro is off) | ⌃⌘P | App |
 | Entry | Edit Entry… | ⌘E; ↩ in the Calendar | Timer view (running entry from the bar, selected row from the list), the Calendar's selection, the Reports list's row |
 | Entry | Set Project… | ⌘J | Timer view |
-| Entry | The Calendar's entry commands | [spec_planner_calendar.md](spec_planner_calendar.md) §6 | Calendar |
+| Entry | The Calendar's entry commands | [spec_calendar.md](spec_calendar.md) §6 | Calendar |
 | Entry | Delete Entry… | ⌘⌫; Delete in the Calendar | Timer view with a selected row in the focused list; the Calendar's selection |
 | Window | Mini Timer | ⌥⌘R (displayed, 8.3) | App |
 | Window | Close, Minimize | ⌘W, ⌘M | Standard |
@@ -373,11 +373,11 @@ Assumed from `spec_data_and_sync.md`:
 - Settings keys `pomodoro.focusMinutes`, `pomodoro.breakMinutes`, `idle.thresholdMinutes`, and device keys for the rest.
 - `ActivityReading.currentState()` for presence and `lastTick`.
 
-Assumed from `spec_planner_projects.md`: the project picker and project dialog. From `spec_activity_tracking.md`: the Tracker pane and the tracker's liveness rule.
+Assumed from `spec_projects.md`: the project picker and project dialog. From `spec_activity_tracking.md`: the Tracker pane and the tracker's liveness rule.
 
 Provided:
 
-- The entry editor (§4) for the Planner Calendar.
+- The entry editor (§4) for the Calendar.
 - An observable timer display state for the menu bar: running entry summary, chain start, most recent other entry, today's last stopped entry, Pomodoro state and phase end.
 - Commands New, Continue, Stop, the Pomodoro actions, show the Mini Timer (optionally focusing the task field), show the main window, and open Settings on a pane.
 - The Pomodoro state machine (§5.3), which iOS implements with persisted state.

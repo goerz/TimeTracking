@@ -8,7 +8,7 @@ import TimeTrackingCore
 /// item's menu), like Music's Controls menu.
 struct TimerCommands: Commands {
     var host: AppHost
-    @FocusedValue(\.plannerWindowActive) private var windowActive
+    @FocusedValue(\.mainWindowActive) private var windowActive
     @FocusedValue(\.timerWindowActive) private var timerActive
 
     private var app: AppModel? {
@@ -19,9 +19,9 @@ struct TimerCommands: Commands {
         MenuState(app: app, mainKey: windowActive == true, timerViewKey: timerActive == true)
     }
 
-    /// What ⌘O starts from a Planner view's selection.
-    private var plannerTarget: PlannerContinueTarget? {
-        state.plannerKey ? app?.planner.continueTarget : nil
+    /// What ⌘O starts from a section's selection.
+    private var sectionTarget: SectionContinueTarget? {
+        state.sectionKey ? app?.sections.continueTarget : nil
     }
 
     var body: some Commands {
@@ -33,11 +33,11 @@ struct TimerCommands: Commands {
             }
             .keyboardShortcut("n")
             // The selection in the view shown: "Start Timer" on a project.
-            Button(plannerTarget == .project ? "Start Timer" : "Continue") {
-                run { [state] in await $0.continueCommand(timerKey: state.timerKey, plannerKey: state.plannerKey) }
+            Button(sectionTarget == .project ? "Start Timer" : "Continue") {
+                run { [state] in await $0.continueCommand(timerKey: state.timerKey, sectionKey: state.sectionKey) }
             }
             .keyboardShortcut("o")
-            .disabled(app?.timer.mostRecentOther == nil && app?.activeTimer.list.selection == nil && plannerTarget == nil)
+            .disabled(app?.timer.mostRecentOther == nil && app?.activeTimer.list.selection == nil && sectionTarget == nil)
             Button("Stop") { run { await $0.stopEntry() } }
                 .keyboardShortcut("s")
                 .disabled(app?.timer.isRunning != true)

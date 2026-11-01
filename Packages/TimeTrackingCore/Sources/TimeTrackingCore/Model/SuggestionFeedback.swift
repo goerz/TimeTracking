@@ -1,5 +1,5 @@
 // SuggestionFeedback: a stored outcome of a project suggestion
-// (spec_data_and_sync.md §2.1, spec_planner_calendar.md).
+// (spec_data_and_sync.md §2.1, spec_calendar.md).
 
 public import Foundation
 

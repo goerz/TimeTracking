@@ -147,10 +147,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         router.app = app
         app.router = router
         app.window = window
-        // Experiment: the alert is a sheet on the one window (there is no
-        // Timer window).
+        // The alert is a sheet on the main window.
         app.onboardingPresenter = { appName, opensAtLogin, answer in
-            let main = NSApp.windows.first { $0.identifier?.rawValue == "planner" }
+            let main = NSApp.windows.first { $0.identifier?.rawValue == MainWindowSetup.sceneID }
             TrackerOnboardingAlert.present(on: main, appName: appName, opensAtLogin: opensAtLogin, answer: answer)
         }
         timerWindow = window
@@ -219,9 +218,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     // MARK: Dock
 
-    /// Experiment: the Dock tile brings back the main window.
+    /// The Dock tile brings back the main window.
     func applicationShouldHandleReopen(_: NSApplication, hasVisibleWindows _: Bool) -> Bool {
-        router?.showMainWindow()
+        router?.showMainWindow(item: nil)
         return false
     }
 

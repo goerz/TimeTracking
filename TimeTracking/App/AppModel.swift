@@ -29,13 +29,14 @@ final class AppModel {
     let reminders: ReminderModel
     let tracker: TrackerStatusModel
     let trackerSettings: TrackerSettingsModel
-    /// The Planner's sections and router.
-    let planner: PlannerRouter
-    /// Whether the Planner window is open (its sections follow store changes).
-    var plannerIsOpen = false
-    /// Experiment: the one window shows the Timer (the sidebar's first item)
-    /// instead of a Planner section.
+    /// The main window's sections and their router.
+    let sections: SectionRouter
+    /// Whether the main window is open (its sections follow store changes).
+    var mainWindowIsOpen = false
+    /// The main window shows the Timer (the sidebar's first item) instead
+    /// of a section.
     var showsTimer = true
+
     /// Launched as a login item with "Show the main window at login" off:
     /// the main window closes as it appears.
     @ObservationIgnored var hidesMainWindowOnAttach = false
@@ -95,7 +96,7 @@ final class AppModel {
             readState: readTrackerState
         )
         self.trackerSettings = TrackerSettingsModel(settingsURL: trackerSettingsURL)
-        self.planner = PlannerRouter(
+        self.sections = SectionRouter(
             store: store,
             clock: clock,
             device: settings.device,
@@ -111,10 +112,10 @@ final class AppModel {
         idle.onChange = { [weak self] in await self?.afterChange() }
         idle.showTimer = { [weak self] focus in self?.router?.showTimer(focusTask: focus) }
         pomodoro.currentTask = { [weak self] in self?.timer.running?.task ?? "" }
-        planner.wireTimer(timer) { [weak self] in await self?.afterChange() }
-        planner.openWindow = { [weak self] in self?.router?.openPlanner() }
-        wirePlannerSections(trackerCommands: trackerCommands)
-        planner.copyText = { Pasteboard.copy($0) }
+        sections.wireTimer(timer) { [weak self] in await self?.afterChange() }
+        sections.showMainWindow = { [weak self] section in self?.router?.showMainWindow(item: .section(section)) }
+        wireSections(trackerCommands: trackerCommands)
+        sections.copyText = { Pasteboard.copy($0) }
         ModifierState.optionDown = { ModifierKeys.optionIsDown }
         ModifierState.shiftDown = { ModifierKeys.shiftIsDown }
     }
@@ -152,11 +153,11 @@ final class AppModel {
             return
         case .entries, .runningEntry, .structure:
             await afterChange()
-            if plannerIsOpen {
-                await planner.projects.reload()
-                await planner.reports.reload()
-                if planner.section == .calendar {
-                    await planner.calendar.reload()
+            if mainWindowIsOpen {
+                await sections.projects.reload()
+                await sections.reports.reload()
+                if sections.section == .calendar {
+                    await sections.calendar.reload()
                 }
             }
         }
@@ -196,7 +197,7 @@ final class AppModel {
     func newEntry(in view: TimerUIState? = nil) async {
         await timer.new()
         if view?.place == .mainWindow {
-            router?.showMainTimer()
+            router?.showMainWindow(item: .timer)
             mainTimer.focusTaskField()
         } else {
             router?.showTimer(focusTask: true)
@@ -271,10 +272,10 @@ final class AppModel {
         }
     }
 
-    /// ⌘O: the selection of the key window (a Timer row; a Planner project
+    /// ⌘O: the selection of the key window (a Timer row; a section's project
     /// or entry), else the most recent entry.
-    func continueCommand(timerKey: Bool, plannerKey: Bool = false) async {
-        if plannerKey, await planner.continueSelection() {
+    func continueCommand(timerKey: Bool, sectionKey: Bool = false) async {
+        if sectionKey, await sections.continueSelection() {
             return
         }
         if timerKey, let selection = activeTimer.list.selection {

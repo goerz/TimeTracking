@@ -2,7 +2,7 @@
 
 ## 1. Scope
 
-The tracker agent (see `components.md`) records where the user's attention goes on the Mac, and with less detail on iPhone and iPad, as a permanent log of activity blocks ("blocks"). It never assigns a project, area, or client to a block (the suggestion engine of `spec_planner_calendar.md` does), never reads the time store, and never shows UI; its settings pane belongs to the Mac app (7.4). The iOS collectors are implemented in `spec_ios.md`; the `DeviceEvent` record is defined in `spec_data_and_sync.md`.
+The tracker agent (see `components.md`) records where the user's attention goes on the Mac, and with less detail on iPhone and iPad, as a permanent log of activity blocks ("blocks"). It never assigns a project, area, or client to a block (the suggestion engine of `spec_calendar.md` does), never reads the time store, and never shows UI; its settings pane belongs to the Mac app (7.4). The iOS collectors are implemented in `spec_ios.md`; the `DeviceEvent` record is defined in `spec_data_and_sync.md`.
 
 ## 2. Design
 
@@ -283,8 +283,8 @@ job_commands = ["make", "gmake", "latexmk", "pytest", "cargo", "swift", "npm"]
 synced_safari_history = false
 
 [privacy]
-# Exclusions apply to what is recorded from now on, and the Planner applies
-# them to past activity when it shows it. The log files keep what they hold
+# Exclusions apply to what is recorded from now on, and Calendar and
+# Activity apply them to past activity when they show it. The log files keep what they hold
 # until `tracker-event reapply-exclusions <from> <to>` rewrites them.
 # Terminal command lines are never recorded; this switch has no effect.
 record_commands = false
@@ -342,7 +342,7 @@ Exclusions apply wherever data enters (sampler, histories, file stream, Knowledg
 
 ### 7.3 Rewrite commands
 
-Settings changes never touch past logs. Three socket commands rewrite the month files and samples they touch: `delete-block <dev> <s>`, `forget-day <date>`, and `reapply-exclusions <from> <to>`. The agent rewrites, replacing each file atomically and keeping unaffected lines byte-identical; the answer is `ok` or `error <reason>`. The UI for `delete-block` is "Delete Block from Log…" in the Calendar's activity column (`spec_planner_calendar.md`); the other two are run with `tracker-event`, which the Tracker pane's "Activity logs" info shows. The reasons are protocol text; the Mac app logs them and shows its own sentence: "The tracker could not be reached." (no socket, or the link to it fails), "The tracker is not running." (nothing listens), "This activity is no longer in the logs." (a reason starting with `no block of`), "The tracker is restarting. Try again in a moment." (`the tracker is stopping`), and "The tracker could not change the logs." for any other.
+Settings changes never touch past logs. Three socket commands rewrite the month files and samples they touch: `delete-block <dev> <s>`, `forget-day <date>`, and `reapply-exclusions <from> <to>`. The agent rewrites, replacing each file atomically and keeping unaffected lines byte-identical; the answer is `ok` or `error <reason>`. The UI for `delete-block` is "Delete Block from Log…" in the Calendar's activity column (`spec_calendar.md`); the other two are run with `tracker-event`, which the Tracker pane's "Activity logs" info shows. The reasons are protocol text; the Mac app logs them and shows its own sentence: "The tracker could not be reached." (no socket, or the link to it fails), "The tracker is not running." (nothing listens), "This activity is no longer in the logs." (a reason starting with `no block of`), "The tracker is restarting. Try again in a moment." (`the tracker is stopping`), and "The tracker could not change the logs." for any other.
 
 ### 7.4 The Tracker settings pane
 
@@ -452,4 +452,4 @@ Assumed:
 - From `spec_architecture.md`: the agent bundle, registration with `KeepAlive`, entitlements, signing, the `tracker-event` target, container identifiers.
 - From `spec_ios.md`: the collectors of 6.2 and exclusions read from `settings.toml`.
 - From `spec_timer_window.md`: the settings window, the first-launch alert, idle detection reading `presence`.
-- From `spec_planner_calendar.md`: "Delete This Activity…" with confirmation.
+- From `spec_calendar.md`: "Delete This Activity…" with confirmation.

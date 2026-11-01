@@ -46,7 +46,7 @@ struct URLRouterTests {
         #expect(test.router.calls.isEmpty)
         #expect(try await router.open(#require(URL(string: "timetracking-debug://show"))) == .shown)
         #expect(try await router.open(#require(URL(string: "timetracking-debug://planner/calendar?date=2024-03-14"))) == .shown)
-        #expect(test.router.calls == [.showTimer(focusTask: false), .openPlanner])
+        #expect(test.router.calls == [.showTimer(focusTask: false), .showMainWindow(.section(.calendar))])
     }
 
     @Test("ARCH-19 the Debug app's store is in the Debug group container, never the Release one")

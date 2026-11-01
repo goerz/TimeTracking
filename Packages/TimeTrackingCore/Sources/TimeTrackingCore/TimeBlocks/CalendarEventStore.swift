@@ -1,6 +1,6 @@
 // CalendarEventStore: the EventKit seam of the Calendar column; the live
 // store wraps EventKit, tests use the in-memory store
-// (spec_planner_calendar.md §4).
+// (spec_calendar.md §4).
 
 public import Foundation
 

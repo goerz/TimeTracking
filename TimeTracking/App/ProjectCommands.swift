@@ -1,4 +1,4 @@
-// ProjectCommands: the Project menu (experiment: one window, object menus).
+// ProjectCommands: the Project menu (spec_timer_window.md §9).
 
 import SwiftUI
 import TimeTrackingCore
@@ -6,7 +6,7 @@ import TimeTrackingCore
 /// The Project menu, shared with the iPad (`ProjectMenuContent`).
 struct ProjectCommands: Commands {
     var host: AppHost
-    @FocusedValue(\.plannerWindowActive) private var windowActive
+    @FocusedValue(\.mainWindowActive) private var windowActive
     @FocusedValue(\.timerWindowActive) private var timerActive
 
     private var state: MenuState {
@@ -15,7 +15,7 @@ struct ProjectCommands: Commands {
 
     var body: some Commands {
         CommandMenu("Project") {
-            if let model = host.model?.planner.projects {
+            if let model = host.model?.sections.projects {
                 ProjectMenuContent(model: model, state: state)
             }
         }

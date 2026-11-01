@@ -25,7 +25,7 @@ struct TestPhone {
         scheduler: RecordingScheduler = RecordingScheduler(),
         sync: (TimeStore) -> SyncDriving? = { _ in nil },
         collection: (ManualClock, WidgetSharedState) -> CollectionFlushing = { _, _ in NoCollection() },
-        pad: (TimeStore, ManualClock, DeviceSettings) -> PadPlanner? = { _, _, _ in nil }
+        pad: (TimeStore, ManualClock, DeviceSettings) -> PadSections? = { _, _, _ in nil }
     ) async throws {
         let clock = try ManualClock(Self.date(now))
         self.clock = clock

@@ -1,5 +1,5 @@
 // ClientAreaOutline: the Clients & Areas view's rows, counts, and the rules
-// for which actions apply (spec_planner_projects.md §4).
+// for which actions apply (spec_projects.md §4).
 
 import Foundation
 

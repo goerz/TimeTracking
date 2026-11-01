@@ -1,5 +1,5 @@
 // ProjectPickerContent: the rows of the shared project picker
-// (spec_planner_projects.md §5, spec_timer_window.md §2.3).
+// (spec_projects.md §5, spec_timer_window.md §2.3).
 
 import Foundation
 
@@ -106,7 +106,7 @@ public struct ProjectPickerContent: Hashable, Sendable {
     }
 
     /// Whether every word of `query` occurs, case- and diacritic-insensitively,
-    /// in the project, area, or client name (`spec_planner_projects.md` §2.4).
+    /// in the project, area, or client name (`spec_projects.md` §2.4).
     public static func matches(_ query: String, project: String, area: String, client: String) -> Bool {
         let names = [project, area, client].map(\.folded)
         return query.folded.split(whereSeparator: \.isWhitespace).allSatisfy { word in

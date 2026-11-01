@@ -1,5 +1,5 @@
 // SuggestionRule: explicit mappings in front of the model, and the
-// Calendar's synced settings (spec_planner_calendar.md §5.3, §7).
+// Calendar's synced settings (spec_calendar.md §5.3, §7).
 
 public import Foundation
 

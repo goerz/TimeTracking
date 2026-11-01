@@ -1,5 +1,5 @@
 // CalendarSummary: the summary strip and the day headers' totals
-// (spec_planner_calendar.md §1.1, §1.4).
+// (spec_calendar.md §1.1, §1.4).
 
 public import Foundation
 

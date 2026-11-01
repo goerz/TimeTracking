@@ -1,5 +1,5 @@
-// MainMenuCommands: the Mac app's main menu (experiment: one window, object
-// menus). File, Edit, View, Timer, Entry, Project, Window: a fixed set, as
+// MainMenuCommands: the Mac app's main menu (spec_timer_window.md §9).
+// File, Edit, View, Timer, Entry, Project, Window: a fixed set, as
 // in Music or Mail; Entry and Project act on what is selected in the view
 // shown, and are enabled by that selection.
 
@@ -9,7 +9,7 @@ import TimeTrackingCore
 /// Every command of the main menu.
 struct MainMenuCommands: Commands {
     var host: AppHost
-    @FocusedValue(\.plannerWindowActive) private var windowActive
+    @FocusedValue(\.mainWindowActive) private var windowActive
     @FocusedValue(\.timerWindowActive) private var timerActive
 
     private var app: AppModel? {
@@ -55,9 +55,9 @@ struct MainMenuCommands: Commands {
         if state.timerKey {
             app.activeTimer.list.showFilter()
         } else if state.reportCommands {
-            app.planner.reports.focusSearch()
+            app.sections.reports.focusSearch()
         } else if state.projectCommands {
-            app.planner.projects.focusSearch()
+            app.sections.projects.focusSearch()
         }
     }
 }

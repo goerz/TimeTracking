@@ -1,5 +1,5 @@
 // Queries and writes behind the Timer window, the entry editor, and the
-// project picker (spec_timer_window.md §2 to §4, spec_planner_projects.md §3, §5).
+// project picker (spec_timer_window.md §2 to §4, spec_projects.md §3, §5).
 
 import Foundation
 import Testing

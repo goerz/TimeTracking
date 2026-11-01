@@ -1,5 +1,5 @@
 // ActivityHealth: the Activity section's health footer, the empty states,
-// and the exclusion drafts (spec_planner_activity.md §1.9, §1.10, §4, §5).
+// and the exclusion drafts (spec_activity.md §1.9, §1.10, §4, §5).
 
 public import Foundation
 

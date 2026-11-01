@@ -1,4 +1,4 @@
-// AreaDot: an area color as a dot or swatch (spec_planner_projects.md §4.4,
+// AreaDot: an area color as a dot or swatch (spec_projects.md §4.4,
 // spec_design.md §7).
 
 import SwiftUI

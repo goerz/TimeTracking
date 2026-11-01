@@ -1,4 +1,4 @@
-// The project picker's query (spec_planner_projects.md §5).
+// The project picker's query (spec_projects.md §5).
 
 public import Foundation
 
@@ -67,7 +67,7 @@ extension TimeStore {
 
     /// Whether `name` (trimmed, folded) is taken by a live project of
     /// `client` in any state other than `excluding` (the project dialog's
-    /// inline check, `spec_planner_projects.md` §3.1).
+    /// inline check, `spec_projects.md` §3.1).
     public func projectNameIsTaken(_ name: String, client: ClientID, excluding: ProjectID? = nil) throws -> Bool {
         let folded = name.folded
         let areas = try Set(areas(of: client, includeRetired: true).map(\.id))

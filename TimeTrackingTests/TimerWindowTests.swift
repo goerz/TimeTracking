@@ -214,7 +214,7 @@ struct TimerWindowTests {
         #expect(test.app.activeTimer === main)
         await test.app.newEntry(in: test.app.activeTimer)
         #expect(main.wantsTaskFieldFocus && !mini.wantsTaskFieldFocus)
-        #expect(test.router.calls == [.showMainTimer])
+        #expect(test.router.calls == [.showMainWindow(.timer)])
         test.app.windowActivated(.miniTimer, isKey: true, undoManager: test.undo)
         test.app.windowActivated(.mainWindow, isKey: false, undoManager: nil)
         #expect(test.app.activeTimer === mini)

@@ -1,5 +1,5 @@
 // The date range's labels: the subtitle and the range menu's title
-// (spec_planner_reports.md §2.2, §2.3).
+// (spec_reports.md §2.2, §2.3).
 
 import Foundation
 

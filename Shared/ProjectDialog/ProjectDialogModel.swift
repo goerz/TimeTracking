@@ -1,5 +1,5 @@
 // ProjectDialogModel: the shared project dialog for creating and editing
-// projects (spec_planner_projects.md §3).
+// projects (spec_projects.md §3).
 
 import Foundation
 import Observation
@@ -81,7 +81,7 @@ final class ProjectDialogModel {
                 await select(client: client.id, area: nil)
             }
         } catch {
-            lastError = UserMessage.logged(error, category: "Planner")
+            lastError = UserMessage.logged(error, category: "Sections")
         }
     }
 
@@ -152,7 +152,7 @@ final class ProjectDialogModel {
                 return try await store.project(project.id)
             }
         } catch {
-            lastError = UserMessage.logged(error, category: "Planner")
+            lastError = UserMessage.logged(error, category: "Sections")
             return nil
         }
     }
