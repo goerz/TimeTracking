@@ -113,6 +113,21 @@ public enum CalendarStrip {
         Int(dayWidths.rounded())
     }
 
+    /// The date menu's title (§1.1): "Today" while today is visible, else
+    /// the visible days, "Oct 19 – 23", "Oct 30 – Nov 3", or "Oct 19".
+    public static func menuTitle(first: TrackingDay, count: Int, today: TrackingDay) -> String {
+        let last = first.adding(days: max(count, 1) - 1)
+        if (first ... last).contains(today) {
+            return "Today"
+        }
+        let start = "\(DayText.shortMonth(first)) \(first.day)"
+        guard count > 1 else {
+            return start
+        }
+        let sameMonth = first.month == last.month && first.year == last.year
+        return "\(start) – \(sameMonth ? "" : "\(DayText.shortMonth(last)) ")\(last.day)"
+    }
+
     /// "Mon, Oct 26 – Fri, Oct 30 · W44".
     public static func label(first: TrackingDay, count: Int) -> String {
         let last = first.adding(days: max(count, 1) - 1)

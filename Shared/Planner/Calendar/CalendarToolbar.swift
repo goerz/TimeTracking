@@ -18,8 +18,7 @@ struct CalendarToolbar: ToolbarContent {
             identifier: "calendar",
             previous: { shift(-1) },
             next: { shift(1) },
-            goToToday: GoToToday(action: { Task { await model.goToToday() } }, currentDay: { model.today }),
-            dateControl: { goToDate }
+            dateControl: { dateMenu }
         )
         ToolbarItem(placement: .primaryAction) {
             Picker("Days", selection: Binding { model.visibleDays } set: { count in Task { await model.setVisibleDays(count) } }) {
@@ -68,12 +67,17 @@ struct CalendarToolbar: ToolbarContent {
         .visibilityPriority(.high)
     }
 
-    /// Go to Date…: a month picker whose chosen day becomes the first visible day.
-    private var goToDate: some View {
-        Button { model.showsMonthPicker = true } label: {
-            Label("Go to Date…", systemImage: SymbolName.goToDate)
+    /// The date menu, titled by what is shown ("Today", "Oct 19 – 23"), with
+    /// Go to Today and Go to Date… (a month picker whose chosen day becomes
+    /// the first visible day); the counterpart of the range menu.
+    private var dateMenu: some View {
+        Menu {
+            Button("Go to Today") { Task { await model.goToToday() } }
+            Button("Go to Date…") { model.showsMonthPicker = true }
+        } label: {
+            Text(CalendarStrip.menuTitle(first: model.firstDay, count: model.visibleDays, today: model.today))
         }
-        .help("Go to Date…")
+        .help("Date")
         .accessibilityIdentifier("calendar.range")
         .popover(isPresented: $model.showsMonthPicker, arrowEdge: .bottom) {
             DatePicker("First day", selection: $pickedDate, displayedComponents: .date)

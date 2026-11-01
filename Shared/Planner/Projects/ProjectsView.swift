@@ -111,18 +111,48 @@ private struct ProjectsTableView: View {
         }
     }
 
+    /// The bar below the table: "+" (New Project…, New Area…, New
+    /// Client…), the status, the selection count, and Group by.
     private var statusRow: some View {
-        HStack {
+        HStack(spacing: Design.Spacing.medium) {
+            newMenu
             Text(model.table.statusText).accessibilityIdentifier("projects.status")
             Spacer()
             if let selected = model.selectionText {
                 Text(selected)
             }
+            Picker("Group by", selection: $model.options.grouping) {
+                ForEach(ProjectGrouping.allCases, id: \.self) { grouping in
+                    Text(grouping.title).tag(grouping)
+                }
+            }
+            .pickerStyle(.menu)
+            .fixedSize()
+            .accessibilityIdentifier("projects.groupBy")
         }
         .font(.subheadline)
         .foregroundStyle(.secondary)
         .padding(.horizontal, Design.Spacing.content)
         .padding(.vertical, Design.Spacing.small)
+    }
+
+    /// A click is New Project…; the menu adds New Area… and New Client….
+    private var newMenu: some View {
+        Menu {
+            Button("New Project…") { model.newProject() }
+            Button("New Area…") { Task { await model.clientsAndAreas.newArea(in: model.clientForNewArea) } }
+            Button("New Client…") { Task { await model.clientsAndAreas.newClient() } }
+        } label: {
+            Label("New Project", systemImage: SymbolName.add)
+        } primaryAction: {
+            model.newProject()
+        }
+        .labelStyle(.iconOnly)
+        .menuStyle(.button)
+        .buttonStyle(.borderless)
+        .fixedSize()
+        .help("New Project")
+        .accessibilityIdentifier("projects.new")
     }
 
     private func emptyState(_ text: String) -> some View {
@@ -143,8 +173,9 @@ private struct ProjectsTableView: View {
     }
 }
 
-/// Leading the period items; trailing, in order: Filters, Sort and Group,
-/// then New (spec_design.md §4). The search field follows at the far end.
+/// Leading the period items; trailing Filters (on iOS also Sort, for want
+/// of column headers), then the search field, as in Reports
+/// (spec_design.md §4). New and Group by are in the bar below the table.
 private struct ProjectsToolbar: ToolbarContent {
     @Bindable var model: ProjectsModel
     @State private var showsFilters = false
@@ -159,59 +190,41 @@ private struct ProjectsToolbar: ToolbarContent {
             }
         }
         .visibilityPriority(.high)
-        ToolbarItem(placement: .primaryAction) {
-            Menu {
-                Picker("Group By", selection: $model.options.grouping) {
-                    ForEach(ProjectGrouping.allCases, id: \.self) { grouping in
-                        Text(grouping.title).tag(grouping)
+        #if os(iOS)
+            // Without column headers, a menu sorts (spec_ios.md §10).
+            ToolbarItem(placement: .primaryAction) {
+                Menu {
+                    Picker("Sort By", selection: sortKey) {
+                        ForEach(ProjectSortKey.allCases, id: \.self) { key in
+                            Text(key.title).tag(key)
+                        }
                     }
-                }
-                .pickerStyle(.inline)
-                .accessibilityIdentifier("projects.groupBy")
-                Picker("Sort By", selection: sortKey) {
-                    ForEach(ProjectSortKey.allCases, id: \.self) { key in
-                        Text(key.title).tag(key)
+                    .pickerStyle(.inline)
+                    Picker("Order", selection: $model.options.ascending) {
+                        Text("Ascending").tag(true)
+                        Text("Descending").tag(false)
                     }
+                    .pickerStyle(.inline)
+                } label: {
+                    Label("Sort", systemImage: SymbolName.sort)
                 }
-                .pickerStyle(.inline)
-                Picker("Order", selection: $model.options.ascending) {
-                    Text("Ascending").tag(true)
-                    Text("Descending").tag(false)
-                }
-                .pickerStyle(.inline)
-            } label: {
-                Label("Sort and Group", systemImage: SymbolName.sort)
+                .accessibilityIdentifier("projects.sortBy")
             }
-            .help("Sort and Group")
-            .accessibilityIdentifier("projects.sortBy")
-        }
-        ToolbarItem(placement: .primaryAction) {
-            // A click is New Project; the menu adds New Area and New Client.
-            Menu {
-                Button("New Project…") { model.newProject() }
-                Button("New Area…") { Task { await model.clientsAndAreas.newArea(in: model.clientForNewArea) } }
-                Button("New Client…") { Task { await model.clientsAndAreas.newClient() } }
-            } label: {
-                Label("New Project", systemImage: SymbolName.add)
-            } primaryAction: {
-                model.newProject()
-            }
-            .help("New Project")
-            .accessibilityIdentifier("projects.new")
-        }
-        .visibilityPriority(.high)
+        #endif
     }
 
-    /// Choosing another key sorts ascending by it, like a header click.
-    private var sortKey: Binding<ProjectSortKey> {
-        Binding {
-            model.options.sort
-        } set: { key in
-            if key != model.options.sort {
-                model.options.sort(by: key)
+    #if os(iOS)
+        /// Choosing another key sorts ascending by it, like a header click.
+        private var sortKey: Binding<ProjectSortKey> {
+            Binding {
+                model.options.sort
+            } set: { key in
+                if key != model.options.sort {
+                    model.options.sort(by: key)
+                }
             }
         }
-    }
+    #endif
 }
 
 /// The Project menu's commands for the selection (context menu, ⋯).

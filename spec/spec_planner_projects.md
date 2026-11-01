@@ -46,11 +46,11 @@ The `PlannerRouter` shows the main window if needed, selects a section, and pass
 
 ### 1.4 iPad
 
-The sections are tabs ([spec_ios.md](spec_ios.md) §10). In Projects, the Sort and Group menu replaces header clicks, long press opens context menus (also on client and area rows), and rows swipe to Archive or Restore. The router maps onto tab selection.
+The sections are tabs ([spec_ios.md](spec_ios.md) §10). In Projects, a Sort menu after Filters (Sort By and Ascending or Descending, each with a check mark) replaces header clicks, long press opens context menus (also on client and area rows), and rows swipe to Archive or Restore. The router maps onto tab selection.
 
 ## 2. The projects table
 
-The window title is "Projects" and its subtitle the range label ("All time · since Mar 4, 2019"). Leading are the period arrows and the range menu of Reports ([spec_planner_reports.md](spec_planner_reports.md) §2.2, §2.3) on the section's own range (2.4). The trailing items are, in order: Filters (the symbol fills and the title reads "Filters (2)" while filters are active), the Sort and Group menu (Group By, Sort By, and Ascending or Descending, each with a check mark), New (`plus`: a click is New Project…, its menu lists New Project…, New Area…, and New Client…), and the search field. Below is a `Table` with client, area, or group rows above their projects, a ⋯ button on the hovered project row at the trailing edge of the Project cell, and a status row.
+The window title is "Projects" and its subtitle the range label ("All time · since Mar 4, 2019"). Leading are the period arrows and the range menu of Reports ([spec_planner_reports.md](spec_planner_reports.md) §2.2, §2.3) on the section's own range (2.4). The trailing items are Filters (the symbol fills and the title reads "Filters (2)" while filters are active) and the search field, so the toolbar is the one of Reports. Below is a `Table` with client, area, or group rows above their projects, sortable by its column headers, a ⋯ button on the hovered project row at the trailing edge of the Project cell, and the bar below the table: at the leading edge New (`plus`; a click is New Project…, its menu lists New Project…, New Area…, and New Client…), then the status text, the selection count, and at the trailing edge the "Group by" pop-up.
 
 ### 2.1 Columns
 
@@ -68,7 +68,7 @@ Dates read "Today", "Yesterday", the weekday within the last 7 days, "Oct 27" wi
 
 ### 2.2 Sorting
 
-Clicking a header sorts by it, a second click reverses (State is not sortable); the Sort by menu is the same setting. Default: Name ascending. With grouping, the sort applies within groups.
+Clicking a header sorts by it, a second click reverses (State is not sortable); the header shows the sort column and direction, and on iOS the Sort menu is the same setting. Default: Name ascending. With grouping, the sort applies within groups.
 
 | Key | Order |
 |---|---|
@@ -82,7 +82,7 @@ The project name breaks every remaining tie.
 
 ### 2.3 Grouping
 
-Group by: Client and Area (default), Client, None.
+Group by (the pop-up in the bar below the table): Client and Area (default), Client, None.
 
 | Grouping | Rows | Order |
 |---|---|---|
@@ -105,7 +105,7 @@ Clients and Areas is the filter tree that Reports shows with projects added: a s
 
 Search (⌘F): every word of the query must occur, case- and diacritic-insensitively, as a substring of the project, area, or client name. Escape clears; a second Escape returns focus to the table.
 
-Empty states: "No projects match" with "Clear Filters"; with no projects at all, "No projects yet" with "New Project". The status row reads "N projects shown (A active, B archived)" (N after filtering, A and B over all projects), plus "N selected" with several rows selected.
+Empty states: "No projects match" with "Clear Filters"; with no projects at all, "No projects yet" with "New Project". The bar below the table reads "N projects shown (A active, B archived)" (N after filtering, A and B over all projects), plus "N selected" with several rows selected.
 
 ### 2.5 Actions
 

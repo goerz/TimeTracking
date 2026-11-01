@@ -11,8 +11,7 @@ The window title is "Calendar" and its subtitle the visible range, "Mon, Oct 26 
 | Control | Behavior |
 |---|---|
 | ‹ › | Scroll by one day (with ⌥: by the number of visible days) |
-| Go to Today | `31.calendar` with today's day of the month; centers today (1.2) |
-| Go to Date… | `ellipsis.calendar`; opens a month picker whose chosen day becomes the first visible day |
+| Date menu | Titled by what is shown: "Today" while today is visible, else the visible days ("Oct 19 – 23", "Oct 30 – Nov 3", "Oct 19"), like the range menu of Reports; holds Go to Today, which centers today (1.2), and Go to Date…, which opens a month picker whose chosen day becomes the first visible day |
 | Days | Segmented control 1, 3, 5, 7; a count of 2, 4, or 6 (from ⌥⌘[ and ⌥⌘] or a pinch) shows as an extra segment |
 | Columns | Menu (`rectangle.split.3x1`) with check-marked Activity Column and Calendar Column; Tracked has none |
 | Zoom − + | Vertical zoom (1.3) |
@@ -247,7 +246,7 @@ Per device: `pointsPerHour` (72), `visibleDays` (5), column toggles (on), calend
 ## 8. Testable behaviors
 
 1. At 72 points per hour a 09:00 to 10:30 entry is 108 points high; after ⌘+ it is 135 with the center time unchanged; zoom clamps to [24, 480].
-2. With today Thursday, ⌘T makes the first day Tuesday for 5 visible days, Monday for 7, Thursday for 1 and 2.
+2. With today Thursday, ⌘T makes the first day Tuesday for 5 visible days, Monday for 7, Thursday for 1 and 2. The date menu reads "Today" while Thursday is visible, else "Oct 19 – 23", "Oct 30 – Nov 3", or for one day "Oct 19".
 3. A sideways scroll of 1.4 day widths snaps one day over; `timetracking://planner/calendar?date=2026-10-29` makes October 29 the first day.
 4. The column of the day daylight-saving time ends is 25 hours tall; a 23:00 to 01:00 event is drawn in two pieces that move together.
 5. The now-line's offset is (now − midnight) · `pointsPerHour` / 3600 within 1 point, on today only.

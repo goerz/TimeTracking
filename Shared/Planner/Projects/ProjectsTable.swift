@@ -44,7 +44,12 @@ struct ProjectsTable: View {
     }
 
     private var table: some View {
-        Table(of: ProjectTableItem.self, selection: selection, columnCustomization: columns) {
+        Table(
+            of: ProjectTableItem.self,
+            selection: selection,
+            sortOrder: ProjectTableItem.sortOrder($model.options),
+            columnCustomization: columns
+        ) {
             nameColumns
             dateColumns
         } rows: {
@@ -115,19 +120,21 @@ struct ProjectsTable: View {
 
     // MARK: Columns
 
-    @TableColumnBuilder<ProjectTableItem, Never> private var nameColumns: some TableColumnContent<ProjectTableItem, Never> {
-        TableColumn("Project") { item in
+    private typealias Sort = KeyPathComparator<ProjectTableItem>
+
+    @TableColumnBuilder<ProjectTableItem, Sort> private var nameColumns: some TableColumnContent<ProjectTableItem, Sort> {
+        TableColumn("Project", value: \.sortName) { item in
             ProjectNameCell(model: model, item: item)
         }
         .width(min: 160, ideal: 280)
         .customizationID("project")
         .disabledCustomizationBehavior(.visibility)
-        TableColumn("Client") { item in
+        TableColumn("Client", value: \.sortClient) { item in
             Text(item.row?.clientText ?? "")
         }
         .width(ideal: 140)
         .customizationID("client")
-        TableColumn("Area") { item in
+        TableColumn("Area", value: \.sortArea) { item in
             if let row = item.row {
                 Text(row.areaIsGeneral ? row.row.client?.name ?? "" : row.areaText)
                     .foregroundStyle(row.areaIsGeneral || row.isOrphan ? .secondary : .primary)
@@ -143,22 +150,22 @@ struct ProjectsTable: View {
         .defaultVisibility(model.showsStateColumn ? .visible : .hidden)
     }
 
-    @TableColumnBuilder<ProjectTableItem, Never> private var dateColumns: some TableColumnContent<ProjectTableItem, Never> {
-        TableColumn("Created") { item in
+    @TableColumnBuilder<ProjectTableItem, Sort> private var dateColumns: some TableColumnContent<ProjectTableItem, Sort> {
+        TableColumn("Created", value: \.sortCreated) { item in
             if let row = item.row {
                 dateText(row.row.project.createdAt)
             }
         }
         .width(ideal: 100)
         .customizationID("created")
-        TableColumn("Last tracked") { item in
+        TableColumn("Last tracked", value: \.sortLastTracked) { item in
             if let row = item.row {
                 dateText(row.row.lastUsed)
             }
         }
         .width(ideal: 120)
         .customizationID("lastTracked")
-        TableColumn("Total tracked") { item in
+        TableColumn("Total tracked", value: \.sortTotalTracked) { item in
             totalCell(item)
         }
         .width(ideal: 120)

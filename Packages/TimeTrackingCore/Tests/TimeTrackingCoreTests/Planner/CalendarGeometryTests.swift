@@ -45,13 +45,18 @@ struct CalendarGeometryTests {
         #expect(CalendarZoom.cardStyle(height: 40) == .full)
     }
 
-    @Test("PC-2 with today Thursday, ⌘T makes the first day Tuesday for 5 days, Monday for 7, Thursday for 1 and 2")
+    @Test("PC-2 with today Thursday, ⌘T makes the first day Tuesday for 5 days, Monday for 7, Thursday for 1 and 2; the date menu's title")
     func today() {
         #expect(CalendarStrip.firstDay(centering: Self.thursday, visibleDays: 5) == TrackingDay(year: 2026, month: 10, day: 27))
         #expect(CalendarStrip.firstDay(centering: Self.thursday, visibleDays: 7) == TrackingDay(year: 2026, month: 10, day: 26))
         #expect(CalendarStrip.firstDay(centering: Self.thursday, visibleDays: 1) == Self.thursday)
         #expect(CalendarStrip.firstDay(centering: Self.thursday, visibleDays: 2) == Self.thursday)
         #expect(CalendarStrip.label(first: TrackingDay(year: 2026, month: 10, day: 26), count: 5) == "Mon, Oct 26 – Fri, Oct 30 · W44")
+        let monday = TrackingDay(year: 2026, month: 10, day: 26)
+        #expect(CalendarStrip.menuTitle(first: monday, count: 5, today: Self.thursday) == "Today")
+        #expect(CalendarStrip.menuTitle(first: monday.adding(days: -7), count: 5, today: Self.thursday) == "Oct 19 – 23")
+        #expect(CalendarStrip.menuTitle(first: monday.adding(days: 4), count: 5, today: Self.thursday) == "Oct 30 – Nov 3")
+        #expect(CalendarStrip.menuTitle(first: monday.adding(days: -7), count: 1, today: Self.thursday) == "Oct 19")
     }
 
     @Test("PC-3 a sideways scroll of 1.4 day widths snaps one day over")

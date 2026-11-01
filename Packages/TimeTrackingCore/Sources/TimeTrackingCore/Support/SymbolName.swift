@@ -65,15 +65,6 @@ public enum SymbolName {
 
     public static let previous = "chevron.left"
     public static let next = "chevron.right"
-    /// The Calendar's Go to Today: a calendar page
-    /// showing today's day of the month (`1.calendar` to `31.calendar`).
-    public static func today(_ day: TrackingDay) -> String {
-        "\(day.day).calendar"
-    }
-
-    /// The Calendar's Go to Date… (its date picker): the page of `today`
-    /// with an ellipsis.
-    public static let goToDate = "ellipsis.calendar"
     /// A collapsed row (`next`) opens to `expanded`.
     public static let expanded = "chevron.down"
     public static let ascending = "chevron.up"
