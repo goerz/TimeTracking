@@ -113,6 +113,9 @@ install)
     done
     ditto "$built" "$destination"
     "$lsregister" -f "$destination"
+    # KeepAlive may have restarted the agent from the old bundle before the
+    # copy; restart it on the new one.
+    launchctl kickstart -k "gui/$(id -u)/$bundle_id.agent" >/dev/null 2>&1 || true
     echo "Installed $destination"
     tool="$destination/Contents/Helpers/timetracking"
     link "$tool" "$prefix/bin/timetracking"
