@@ -3,7 +3,10 @@
 // (spec_activity_tracking.md §3.1, §7.4).
 
 /// The snippets of the setup steps. Each event names its hook, and errors
-/// stay silent: the row's mark shows whether events arrive.
+/// stay silent: the row's mark shows whether events arrive. Every call runs
+/// in the background: `tracker-event` waits for the agent's tick (over a
+/// second), and Claude Code waits for its hooks (cancelling `SessionEnd`
+/// hooks after 1.5 s), as tmux does without `run-shell -b`.
 enum TrackerSnippets {
     static let editor = "set title titlestring=nvim\\ %F"
 
@@ -17,9 +20,9 @@ enum TrackerSnippets {
     static let agentHooks = """
     {
       "hooks": {
-        "UserPromptSubmit": [{"hooks": [{"type": "command", "command": "tracker-event agent UserPromptSubmit >/dev/null 2>&1 || true"}]}],
-        "Stop": [{"hooks": [{"type": "command", "command": "tracker-event agent Stop >/dev/null 2>&1 || true"}]}],
-        "SessionEnd": [{"hooks": [{"type": "command", "command": "tracker-event agent SessionEnd >/dev/null 2>&1 || true"}]}]
+        "UserPromptSubmit": [{"hooks": [{"type": "command", "command": "tracker-event agent UserPromptSubmit >/dev/null 2>&1 &"}]}],
+        "Stop": [{"hooks": [{"type": "command", "command": "tracker-event agent Stop >/dev/null 2>&1 &"}]}],
+        "SessionEnd": [{"hooks": [{"type": "command", "command": "tracker-event agent SessionEnd >/dev/null 2>&1 &"}]}]
       }
     }
     """

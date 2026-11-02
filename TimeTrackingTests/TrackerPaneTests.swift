@@ -125,7 +125,7 @@ struct TrackerPaneTests {
         #expect(!FileManager.default.fileExists(atPath: folder.appending(path: "settings.toml").path))
     }
 
-    @Test("TRK-36 each tmux hook of the snippet names its event, so the tracker accepts it, and stays silent on errors")
+    @Test("TRK-36 each hook of the snippets names its event, so the tracker accepts it, runs in the background, and stays silent on errors")
     func snippets() throws {
         let lines = TrackerSnippets.tmux.split(separator: "\n").map(String.init)
         #expect(lines.first == "set -g focus-events on")
@@ -133,6 +133,7 @@ struct TrackerPaneTests {
         #expect(!TrackerSnippets.tmux.contains("pane-focus-in"))
         for hook in TrackerSnippets.tmuxHooks {
             let line = try #require(lines.first { $0.hasPrefix("set-hook -g \(hook) ") })
+            #expect(line.contains("'run-shell -b \""))
             let command = try #require(line.split(separator: "\"").dropFirst().first)
             #expect(command.hasSuffix(" >/dev/null 2>&1 || true"))
             let event = command.replacingOccurrences(of: "tracker-event ", with: "").replacingOccurrences(
@@ -147,9 +148,9 @@ struct TrackerPaneTests {
         for (name, entries) in hooks {
             let inner = try #require(entries.first?["hooks"] as? [[String: String]])
             let command = try #require(inner.first?["command"])
-            #expect(command.hasSuffix(" >/dev/null 2>&1 || true"))
+            #expect(command.hasSuffix(" >/dev/null 2>&1 &"))
             let event = command.replacingOccurrences(of: "tracker-event ", with: "").replacingOccurrences(
-                of: " >/dev/null 2>&1 || true",
+                of: " >/dev/null 2>&1 &",
                 with: ""
             )
             #expect(try TrackerCommand.parse(event + "\n") == .agentEvent(hook: name, arguments: []))

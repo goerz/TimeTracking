@@ -234,8 +234,9 @@ extension TrackerStatusModel {
                 "With these hooks, Claude Code tells the tracker when you submit a prompt, when it stops working, "
                     + "and when a session ends.",
                 "Add them to ~/.claude/settings.json. If the file already has a \"hooks\" key, add the three "
-                    + "entries to it. The tracker-event command must be on Claude Code's PATH. Errors stay silent; "
-                    + "this row shows ✓ once events arrive.",
+                    + "entries to it. The tracker-event command must be on Claude Code's PATH. Each call runs in the "
+                    + "background, so Claude Code never waits for the tracker; errors stay silent, and this row "
+                    + "shows ✓ once events arrive.",
             ],
             snippet: TrackerSnippets.agentHooks
         )
