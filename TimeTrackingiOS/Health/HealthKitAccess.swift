@@ -20,7 +20,10 @@ final nonisolated class HealthKitAccess: HealthAccess, HealthSampleReading {
     }
 
     func authorize(_ kinds: Set<HealthPeriod.Kind>) async {
-        let types = Set(kinds.map(Self.type(of:)))
+        var types = Set(kinds.map(Self.type(of:)))
+        if kinds.contains(.workout) {
+            types.formUnion(Self.distanceTypes.map { $0 as HKObjectType })
+        }
         do {
             try await store.requestAuthorization(toShare: [], read: types)
         } catch {
@@ -54,12 +57,32 @@ final nonisolated class HealthKitAccess: HealthAccess, HealthSampleReading {
         return (asleep, inBed)
     }
 
-    func workouts(in interval: DateInterval) async throws -> [DateInterval] {
+    /// The distances a workout can carry; a workout's distance is the sum
+    /// of those it has (a swim-bike-run has three).
+    private static let distanceTypes: [HKQuantityType] = [
+        HKQuantityType(.distanceWalkingRunning), HKQuantityType(.distanceCycling), HKQuantityType(.distanceSwimming),
+        HKQuantityType(.distanceWheelchair), HKQuantityType(.distanceDownhillSnowSports), HKQuantityType(.distanceRowing),
+        HKQuantityType(.distanceCrossCountrySkiing), HKQuantityType(.distancePaddleSports), HKQuantityType(.distanceSkatingSports),
+    ]
+
+    func workouts(in interval: DateInterval) async throws -> [HealthPeriodDraft] {
         let query = HKSampleQueryDescriptor(
             predicates: [.workout(Self.predicate(interval))],
             sortDescriptors: [SortDescriptor(\.startDate)]
         )
-        return try await query.result(for: store).map { DateInterval(start: $0.startDate, end: max($0.startDate, $0.endDate)) }
+        return try await query.result(for: store).map { workout in
+            HealthPeriodDraft(
+                DateInterval(start: workout.startDate, end: max(workout.startDate, workout.endDate)),
+                activity: workout.workoutActivityType.storedName,
+                distance: Self.distance(of: workout)
+            )
+        }
+    }
+
+    /// Whole meters, or nil when the workout records no distance.
+    private static func distance(of workout: HKWorkout) -> Int? {
+        let meters = distanceTypes.compactMap { workout.statistics(for: $0)?.sumQuantity()?.doubleValue(for: .meter()) }
+        return meters.isEmpty ? nil : Int(meters.reduce(0, +).rounded())
     }
 
     private static func predicate(_ interval: DateInterval) -> NSPredicate {

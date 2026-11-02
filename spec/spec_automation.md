@@ -66,6 +66,7 @@ A write command prints one line describing the change (`Started "Clarify noise m
 | `entry show\|create\|edit\|delete` | create, edit, delete | One entry |
 | `report` | | Totals by group and period |
 | `projects`, `clients`, `areas` | | The structure |
+| `health` | | Sleep and workouts from Apple Health |
 | `project create\|archive\|unarchive\|rename\|move` | yes | 3.9 |
 | `area create\|rename\|set-color` | yes | 3.9 |
 | `client create\|rename` | yes | 3.9 |
@@ -130,6 +131,8 @@ Rows with zero duration are omitted; `periods` lists every period including empt
 The command `projects [--active|--archived|--all] [--client NAME] [--area NAME] [--sort name|client|area|last-entry]` lists projects (default active, sorted by client, area, name). Columns: Project, Client, Area, Color, State, Last entry. JSON: `{"projects": [{"id", "name", "state", "area": {"id", "name", "color"}, "client": {"id", "name"}, "createdAt", "archivedAt", "lastEntryAt"}]}` with `state` `"active"` or `"archived"`.
 
 The command `clients` lists clients alphabetically: `{"clients": [{"id", "name", "areaCount", "activeProjectCount"}]}`. The command `areas [--client NAME] [--retired]` prints `{"areas": [{"id", "name", "color", "retired", "general", "client": {"id", "name"}, "activeProjectCount"}]}`; retired areas only with `--retired`.
+
+The command `health [range] [--kind workout|sleep]` lists the health periods (`spec_data_and_sync.md` §1.9) whose start lies in the range (the rules of 3.2, default today), ascending, both kinds unless `--kind` is given, whatever the Calendar settings show. Columns: Date, Start, End, Duration, Kind, Activity, Distance (km, two decimals), then a line with the last import. JSON: `{"from", "to", "lastImport": {"device", "at", "kinds"} | null, "periods": [{"id", "kind", "activity", "start", "end", "duration", "distance"}]}`, where `lastImport` is the synced `calendar.healthImport` (the iPhone's device name, the time of its last import that read at least one kind, rewritten at most hourly, and the kinds it read), `activity` and `distance` (whole meters) are null when unknown, and `duration` is in seconds. With `--csv`: `id,kind,activity,start,end,seconds,distance`. A script tells "no workout yesterday" from "not imported since" by comparing `lastImport.at` with the end of the day. Ids change when Health changes a period's start or end, so scripts don't keep them across imports.
 
 ### 3.9 Managing projects, areas, clients
 
@@ -352,6 +355,7 @@ The tool tests build the Debug tool, create a fixture store from a JSON export, 
 43. With sleep shown and mapped to an area, `report --day 2026-10-28 --json` leaves the night out and `--health` adds its part of that day as the project "Sleep"; over instant bounds the library's report cuts it at the bounds.
 44. Running `check --strict` on a file that omits an active project of a listed area prints `unlisted project: University / Teaching / Grading` (JSON kind `unlisted-project`, rule 7) and exits 6, while a plain `check` prints nothing; `check --strict --fix` keeps the project active.
 45. Running `entries --from today --to tomorrow --json` covers exactly today.
+46. With a run (activity and distance), a walk without distance, a night, and an import status in the store, `health --from 2026-10-28 --to 2026-10-29 --json` lists the two workouts with their activity, local start and end, duration, and distance (null for the walk) and `lastImport` with device, time, and kinds; `--kind sleep` lists only the night, an instant `--from` only the walk, `--csv` writes `id,kind,activity,start,end,seconds,distance`; `--kind nap` exits 2; a store without an import status prints `"lastImport": null`.
 
 ## 10. Decisions
 

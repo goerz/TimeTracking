@@ -186,6 +186,8 @@ extension HealthPeriod {
             kind: Kind(rawValue: row["kind"]) ?? .sleep,
             start: Time.date(row["start"] as Int64),
             end: Time.date(row["end"] as Int64),
+            activity: row["activity"],
+            distance: row["distance"],
             createdAt: Time.date(row["created_at"] as Int64),
             modifiedAt: Time.date(millis: row["modified_at"]),
             deletedAt: Time.date(optional: row["deleted_at"] as Int64?)
@@ -195,13 +197,15 @@ extension HealthPeriod {
     func save(_ database: Database) throws {
         try database.execute(
             sql: """
-            INSERT INTO health_period (id, kind, start, "end", created_at, modified_at, deleted_at) VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO health_period (id, kind, start, "end", activity, distance, created_at, modified_at, deleted_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(id) DO UPDATE SET kind = excluded.kind, start = excluded.start, "end" = excluded."end",
+              activity = excluded.activity, distance = excluded.distance,
               created_at = excluded.created_at, modified_at = excluded.modified_at, deleted_at = excluded.deleted_at
             """,
             arguments: [
-                id.rawValue, kind.rawValue, Time.seconds(start), Time.seconds(end), Time.seconds(createdAt),
-                Time.millis(modifiedAt), Time.seconds(optional: deletedAt),
+                id.rawValue, kind.rawValue, Time.seconds(start), Time.seconds(end), activity, distance,
+                Time.seconds(createdAt), Time.millis(modifiedAt), Time.seconds(optional: deletedAt),
             ]
         )
     }

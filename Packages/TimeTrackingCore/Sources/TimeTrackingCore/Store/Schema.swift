@@ -7,7 +7,7 @@ import GRDB
 /// newer `meta.schema_version` than `version` is refused.
 enum Schema {
     /// The schema version this library writes.
-    static let version = 2
+    static let version = 3
 
     static var migrator: DatabaseMigrator {
         var migrator = DatabaseMigrator()
@@ -18,6 +18,11 @@ enum Schema {
         }
         migrator.registerMigration("v2") { database in
             for statement in version2 {
+                try database.execute(sql: statement)
+            }
+        }
+        migrator.registerMigration("v3") { database in
+            for statement in version3 {
                 try database.execute(sql: statement)
             }
         }
@@ -67,6 +72,12 @@ enum Schema {
     }
 
     private static let bookkeeping = "created_at INTEGER NOT NULL, modified_at INTEGER NOT NULL, deleted_at INTEGER, ck_system_fields BLOB"
+
+    /// Version 3: a workout's activity type and distance (§1.9).
+    private static let version3: [String] = [
+        "ALTER TABLE health_period ADD COLUMN activity TEXT",
+        "ALTER TABLE health_period ADD COLUMN distance INTEGER",
+    ]
 
     /// Version 2: sleep and workouts from Apple Health (§1.9).
     private static let version2: [String] = [

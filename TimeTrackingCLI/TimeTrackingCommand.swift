@@ -14,7 +14,7 @@ struct TimeTrackingCommand: AsyncParsableCommand {
         version: versionString,
         subcommands: [
             StatusCommand.self, StartCommand.self, StopCommand.self, ContinueCommand.self,
-            EntriesCommand.self, EntryCommand.self, ReportCommand.self,
+            EntriesCommand.self, EntryCommand.self, ReportCommand.self, HealthCommand.self,
             ProjectsCommand.self, ClientsCommand.self, AreasCommand.self,
             ProjectCommand.self, AreaCommand.self, ClientCommand.self,
             CheckCommand.self, ImportCommand.self, ExportCommand.self,

@@ -6,11 +6,19 @@ import GRDB
 
 extension StoreTransaction {
     /// Makes the live `kind` periods starting at or after `start` equal
-    /// `intervals` (those starting earlier are ignored): a period with the
-    /// same start and end keeps its record, the others become tombstones,
-    /// and the new ones are created. Returns the number of records changed.
+    /// `intervals`, without activity or distance; see the draft form.
     @discardableResult
     public func replaceHealthPeriods(_ kind: HealthPeriod.Kind, from start: Date, with intervals: [DateInterval]) throws -> Int {
+        try replaceHealthPeriods(kind, from: start, with: intervals.map { HealthPeriodDraft($0) })
+    }
+
+    /// Makes the live `kind` periods starting at or after `start` equal
+    /// `drafts` (those starting earlier are ignored): a period with the
+    /// same start and end keeps its record, updated when its activity or
+    /// distance differs; the others become tombstones, and the new ones
+    /// are created. Returns the number of records changed.
+    @discardableResult
+    public func replaceHealthPeriods(_ kind: HealthPeriod.Kind, from start: Date, with drafts: [HealthPeriodDraft]) throws -> Int {
         struct Key: Hashable {
             var start: Int64
             var end: Int64
@@ -20,22 +28,34 @@ extension StoreTransaction {
             sql: "SELECT * FROM health_period WHERE kind = ? AND start >= ? AND deleted_at IS NULL",
             arguments: [kind.rawValue, Time.seconds(start)]
         ).map(HealthPeriod.init(row:))
-        let wanted = Set(intervals.filter { $0.start >= start }.map { interval in
-            Key(start: Time.seconds(interval.start), end: Time.seconds(interval.end))
-        })
-        let kept = Set(existing.map { Key(start: Time.seconds($0.start), end: Time.seconds($0.end)) })
-        var changed = 0
-        for period in existing where !wanted.contains(Key(start: Time.seconds(period.start), end: Time.seconds(period.end))) {
-            var tombstone = period
-            tombstone.deletedAt = now
-            try write(tombstone)
-            changed += 1
+        var wanted: [Key: HealthPeriodDraft] = [:]
+        for draft in drafts where draft.interval.start >= start {
+            wanted[Key(start: Time.seconds(draft.interval.start), end: Time.seconds(draft.interval.end))] = draft
         }
-        for key in wanted.subtracting(kept).sorted(by: { $0.start < $1.start }) {
+        var kept: Set<Key> = []
+        var changed = 0
+        for period in existing {
+            let key = Key(start: Time.seconds(period.start), end: Time.seconds(period.end))
+            var updated = period
+            if let draft = wanted[key], !kept.contains(key) {
+                kept.insert(key)
+                updated.activity = draft.activity
+                updated.distance = draft.distance
+            } else {
+                updated.deletedAt = now
+            }
+            if updated != period {
+                try write(updated)
+                changed += 1
+            }
+        }
+        for (key, draft) in wanted.sorted(by: { $0.key.start < $1.key.start }) where !kept.contains(key) {
             try write(HealthPeriod(
                 kind: kind,
                 start: Time.date(key.start),
                 end: Time.date(key.end),
+                activity: draft.activity,
+                distance: draft.distance,
                 createdAt: now,
                 modifiedAt: modifiedAt
             ))

@@ -10,13 +10,14 @@ private struct FixedSamples: HealthSampleReading {
     var asleep: [DateInterval] = []
     var inBed: [DateInterval] = []
     var workoutIntervals: [DateInterval] = []
+    var workoutDrafts: [HealthPeriodDraft] = []
 
     func sleepSamples(in interval: DateInterval) -> (asleep: [DateInterval], inBed: [DateInterval]) {
         (asleep.filter { $0.intersects(interval) }, inBed.filter { $0.intersects(interval) })
     }
 
-    func workouts(in interval: DateInterval) -> [DateInterval] {
-        workoutIntervals.filter { $0.intersects(interval) }
+    func workouts(in interval: DateInterval) -> [HealthPeriodDraft] {
+        (workoutIntervals.map { HealthPeriodDraft($0) } + workoutDrafts).filter { $0.interval.intersects(interval) }
     }
 }
 
@@ -92,5 +93,42 @@ struct HealthPeriodTests {
         #expect(periods.count(where: { $0.kind == .sleep }) == 3)
         // Running again changes nothing.
         #expect(try await HealthImport.run(.sleep, source: source, store: test.store, importedThrough: now, now: now) == 0)
+    }
+
+    @Test(
+        "DATA-52 only overlapping workouts merge, taking the longest one's activity and distance; a re-import fills them in place and syncs"
+    )
+    func workoutDetails() async throws {
+        let net = try await Network()
+        let (phone, mac) = (net.peers[0], net.peers[1])
+        let test = phone.test
+        let watch = try HealthPeriodDraft(Self.span(test, "2024-03-13T18:00", "2024-03-13T18:45"), activity: "running", distance: 7012)
+        let copy = try HealthPeriodDraft(Self.span(test, "2024-03-13T18:01", "2024-03-13T18:40"), activity: "other-3000", distance: 6990)
+        let walk = try HealthPeriodDraft(Self.span(test, "2024-03-13T18:45", "2024-03-13T19:00"), activity: "walking")
+        let merged = HealthPeriod.workouts([copy, walk, watch])
+        #expect(try merged == [
+            HealthPeriodDraft(Self.span(test, "2024-03-13T18:00", "2024-03-13T18:45"), activity: "running", distance: 7012),
+            walk,
+        ])
+        // Periods imported before schema version 3 have no details; the
+        // re-import keeps their records and fills them in.
+        let from = try test.date("2024-03-10T00:00")
+        try await phone.store.replaceHealthPeriods(.workout, from: from, with: merged.map(\.interval))
+        let before = try await phone.store.healthPeriods(starting: nil, kind: .workout)
+        #expect(before.map(\.activity) == [nil, nil])
+        let source = FixedSamples(workoutDrafts: [watch, copy, walk])
+        #expect(try await HealthImport.run(.workout, source: source, store: phone.store, importedThrough: nil, now: test.clock.now) == 2)
+        let after = try await phone.store.healthPeriods(starting: nil, kind: .workout)
+        #expect(after.map(\.id) == before.map(\.id))
+        #expect(after.map(\.activity) == ["running", "walking"])
+        #expect(after.map(\.distance) == [7012, nil])
+        #expect(try await phone.store.healthPeriods(starting: nil, kind: .sleep).isEmpty)
+        try await net.converge()
+        let synced = try await mac.store.healthPeriods(starting: nil, kind: .workout)
+        #expect(synced.map(\.activity) == ["running", "walking"])
+        #expect(synced.map(\.distance) == [7012, nil])
+        // The first import after the upgrade reaches 60 days back: the
+        // workout key is new.
+        #expect(HealthImport.importedThrough(.workout).name == "health.importedThrough.workout.3")
     }
 }

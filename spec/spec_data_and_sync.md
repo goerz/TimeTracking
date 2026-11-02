@@ -123,10 +123,12 @@ Entries show "created on iPhone" through this record. Devices are never deleted 
 | id | UUID | |
 | kind | String | `sleep` or `workout`. |
 | start, end | Instant | Whole seconds. |
+| activity | String? | A workout's activity type: the name of its `HKWorkoutActivityType` case (`running`, `walking`, `traditionalStrengthTraining`), or `other-` and the raw value for a type the iPhone's table doesn't name. Nil for sleep and for workouts imported before schema version 3. |
+| distance | Int? | A workout's distance in whole meters, the sum of the distances it records (a swim-bike-run has three); nil when it records none, and for sleep. |
 
-Sleep and workouts from Apple Health, for the Calendar ([spec_calendar.md](spec_calendar.md) §3.1). HealthKit exists only on the iPhone and iPad, so the iPhone imports and the store syncs the periods to the Mac and iPad; only the iPhone writes them ([spec_ios.md](spec_ios.md) §7 item 6). A sleep period is the asleep samples of any stage (unspecified, core, deep, REM) merged where they overlap or lie at most 30 minutes apart, plus each in-bed period that holds no asleep sample (a night recorded by the iPhone's sleep schedule alone); a workout period is a workout from start to end, overlapping workouts (one workout recorded by two apps) merged.
+Sleep and workouts from Apple Health, for the Calendar ([spec_calendar.md](spec_calendar.md) §3.1). HealthKit exists only on the iPhone and iPad, so the iPhone imports and the store syncs the periods to the Mac and iPad; only the iPhone writes them ([spec_ios.md](spec_ios.md) §7 item 6). A sleep period is the asleep samples of any stage (unspecified, core, deep, REM) merged where they overlap or lie at most 30 minutes apart, plus each in-bed period that holds no asleep sample (a night recorded by the iPhone's sleep schedule alone); a workout period is a workout from start to end, overlapping workouts (one workout recorded by two apps) merged, while workouts that only touch (a walk ending as a run starts) stay apart. A merged period takes the activity and distance of its longest workout, since its members mostly record the same exercise twice and a sum would count the distance twice.
 
-An import of one kind covers the 60 days before now the first time, afterwards from 3 days before the previous import (samples a watch syncs late), and reads samples from a day earlier still, so a period that began before the range is whole. `replaceHealthPeriods(kind, from:, with:)` then makes the live periods of that kind starting at or after the range's start equal the imported ones: a period with the same start and end keeps its record, the others become tombstones, and new ones are created. Periods starting earlier are left alone. Health periods are not part of the JSON export.
+An import of one kind covers the 60 days before now the first time, afterwards from 3 days before the previous import (samples a watch syncs late), and reads samples from a day earlier still, so a period that began before the range is whole. `replaceHealthPeriods(kind, from:, with:)` then makes the live periods of that kind starting at or after the range's start equal the imported ones: a period with the same start and end keeps its record (updated when its activity or distance differs), the others become tombstones, and new ones are created. The iPhone keeps the time of the last workout import under a key that changed with schema version 3, so its first workout import after the upgrade covers 60 days again and fills in the activity and distance of those workouts; older ones keep none. Periods starting earlier are left alone. Health periods are not part of the JSON export.
 
 After an import in which at least one kind succeeded, the iPhone writes the synced setting `calendar.healthImport`: its device name, the time in whole seconds, and the kinds read, in the order sleep, workout. It skips the write when the stored status has the same device and kinds and is less than an hour old, so frequent wakes don't each sync a record. `HealthImportStatus.summary(_:shown:found:)` turns it, the kinds shown, and the kinds with live periods (`healthKinds()`) into the Calendar settings' status line ([spec_calendar.md](spec_calendar.md) §6).
 
@@ -137,7 +139,7 @@ After an import in which at least one kind succeeded, the iPhone writes the sync
 One SQLite database in WAL mode, through GRDB.swift, at `<App Group container>/Library/Application Support/TimeTracking/store.sqlite` (identifiers in spec_architecture.md §1.5; Debug builds have their own). The tracker agent does not open it. Timestamps are Unix seconds except `modified_at` (milliseconds); booleans 0/1.
 
 ```sql
-CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);  -- schema_version '2', store_id
+CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);  -- schema_version '3', store_id
 
 CREATE TABLE client (id TEXT PRIMARY KEY, name TEXT NOT NULL,
   created_at INTEGER NOT NULL, modified_at INTEGER NOT NULL, deleted_at INTEGER, ck_system_fields BLOB);
@@ -170,6 +172,7 @@ CREATE TABLE live_state (id INTEGER PRIMARY KEY CHECK (id = 1),   -- section 4
 
 CREATE TABLE health_period (id TEXT PRIMARY KEY, kind TEXT NOT NULL,   -- 1.9; schema version 2
   start INTEGER NOT NULL, "end" INTEGER NOT NULL,
+  activity TEXT, distance INTEGER,                                       -- schema version 3
   created_at INTEGER NOT NULL, modified_at INTEGER NOT NULL, deleted_at INTEGER, ck_system_fields BLOB);
 
 CREATE TABLE outbox (seq INTEGER PRIMARY KEY AUTOINCREMENT, record_type TEXT NOT NULL,
@@ -185,9 +188,9 @@ CREATE VIEW entries AS
   WHERE e.deleted_at IS NULL;
 ```
 
-Partial indexes cover live entries by `start`, by `day`, the running entry, (`project_id`, `task_key`, `start`), and `split_root_id`. The library computes `day` and `task_key` on every write. No foreign keys are declared, since records sync in any order. Migrations run forward on open and only add columns and tables (version 2 adds `health_period` and its index on live starts); a newer schema than the library knows is refused.
+Partial indexes cover live entries by `start`, by `day`, the running entry, (`project_id`, `task_key`, `start`), and `split_root_id`. The library computes `day` and `task_key` on every write. No foreign keys are declared, since records sync in any order. Migrations run forward on open and only add columns and tables (version 2 adds `health_period` and its index on live starts, version 3 its `activity` and `distance`); a newer schema than the library knows is refused.
 
-Scripts open the file read-only (`?mode=ro`) and may rely on the `entries` view and the `client`, `area`, `project`, and `setting` tables, whose columns are stable within a major schema version (columns may be added). Everything else is private; scripts write through the command-line tool.
+Scripts open the file read-only (`?mode=ro`) and may rely on the `entries` view and the `client`, `area`, `project`, and `setting` tables, whose columns are stable within a major schema version (columns may be added). Everything else is private, `health_period` included (scripts list it with the tool's `health`); scripts write through the command-line tool.
 
 ### 2.2 Processes and change notification
 
@@ -534,6 +537,7 @@ Views use `TrackingCalendar(timeZone: .current)`, rebuilt on a time zone change.
 49. On the Mac, with a started sync engine and a `ManualClock`, a tick 29 seconds after the start fetches nothing and one at 30 seconds fetches once; activating the app fetches at once and restarts the 30-second period; a second request while a fetch is in flight starts none.
 50. Replacing the sleep periods from March 10 with the same night and a new nap keeps the night's record and creates one; a night starting March 9 is ignored; a shifted night tombstones the old record; after a sync the other device holds the same live periods and an empty outbox.
 51. Asleep samples 23:00 to 01:00, 00:30 to 02:00, and 02:20 to 04:00 make one period 23:00 to 04:00, one at 06:00 another; an in-bed night without asleep samples is a period; two overlapping workouts are one; the first import starts 60 days before now, a later one 3 days before the previous; importing the same samples again changes nothing.
+52. A run 18:00 to 18:45 (running, 7012 m), a copy 18:01 to 18:40 (6990 m), and a walk 18:45 to 19:00 make two workout periods: 18:00 to 18:45 running with 7012 m, and the walk; importing them over the same periods stored without details keeps the records, fills in activity and distance, and the other device receives them; the workout import key is `health.importedThrough.workout.3`.
 
 ### 9.1 Fixtures
 

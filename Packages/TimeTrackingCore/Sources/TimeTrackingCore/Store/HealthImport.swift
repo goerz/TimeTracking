@@ -8,8 +8,9 @@ public import Foundation
 public protocol HealthSampleReading: Sendable {
     /// Sleep samples overlapping `interval`: asleep (any stage) and in bed.
     func sleepSamples(in interval: DateInterval) async throws -> (asleep: [DateInterval], inBed: [DateInterval])
-    /// Workouts overlapping `interval`, start to end.
-    func workouts(in interval: DateInterval) async throws -> [DateInterval]
+    /// Workouts overlapping `interval`, start to end, with their activity
+    /// type and distance.
+    func workouts(in interval: DateInterval) async throws -> [HealthPeriodDraft]
 }
 
 /// One import run per kind.
@@ -20,9 +21,14 @@ public enum HealthImport {
     public static let redoDays = 3
 
     /// The device setting holding when `kind` was last imported (seconds
-    /// since 1970; 0 for never).
+    /// since 1970; 0 for never). The workout key changed with schema version
+    /// 3, so the first import after the upgrade reaches `firstDays` back
+    /// and fills in the activity and distance of recent workouts.
     public static func importedThrough(_ kind: HealthPeriod.Kind) -> DeviceSettingKey<Double> {
-        DeviceSettingKey("health.importedThrough.\(kind.rawValue)", default: 0)
+        switch kind {
+        case .sleep: DeviceSettingKey("health.importedThrough.sleep", default: 0)
+        case .workout: DeviceSettingKey("health.importedThrough.workout.3", default: 0)
+        }
     }
 
     /// Imports `kind` from `from(importedThrough:now:)` to `now` and
@@ -39,15 +45,15 @@ public enum HealthImport {
         // A day earlier, so a period that began before `start` is whole
         // and is left alone rather than imported again cut short.
         let query = DateInterval(start: start - 86_400, end: max(start, now))
-        let intervals: [DateInterval]
+        let drafts: [HealthPeriodDraft]
         switch kind {
         case .sleep:
             let samples = try await source.sleepSamples(in: query)
-            intervals = HealthPeriod.sleep(asleep: samples.asleep, inBed: samples.inBed)
+            drafts = HealthPeriod.sleep(asleep: samples.asleep, inBed: samples.inBed).map { HealthPeriodDraft($0) }
         case .workout:
-            intervals = try await HealthPeriod.merge(source.workouts(in: query))
+            drafts = try await HealthPeriod.workouts(source.workouts(in: query))
         }
-        return try await store.replaceHealthPeriods(kind, from: start, with: intervals)
+        return try await store.replaceHealthPeriods(kind, from: start, with: drafts)
     }
 
     /// The start of the replaced range: `redoDays` before the last import,

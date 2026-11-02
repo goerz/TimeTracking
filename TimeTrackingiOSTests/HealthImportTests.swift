@@ -33,8 +33,8 @@ private final class FakeHealth: HealthAccess, HealthSampleReading {
         ([night].filter { $0.intersects(interval) }, [])
     }
 
-    func workouts(in interval: DateInterval) -> [DateInterval] {
-        [run].filter { $0.intersects(interval) }
+    func workouts(in interval: DateInterval) -> [HealthPeriodDraft] {
+        [run].filter { $0.intersects(interval) }.map { HealthPeriodDraft($0, activity: "running", distance: 7000) }
     }
 }
 

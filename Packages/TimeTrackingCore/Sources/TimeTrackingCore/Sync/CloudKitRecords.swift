@@ -28,7 +28,7 @@ public enum CloudKitRecords {
         ],
         .setting: ["value", "modifiedAt", "deletedAt"],
         .device: ["name", "platform", "lastSeenAt", "widgetPushToken", "createdAt", "modifiedAt"],
-        .healthPeriod: ["kind", "start", "end", "createdAt", "modifiedAt", "deletedAt"],
+        .healthPeriod: ["kind", "start", "end", "activity", "distance", "createdAt", "modifiedAt", "deletedAt"],
         .liveState: ["running", "changedAt", "activity"],
     ]
 

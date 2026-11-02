@@ -15,6 +15,11 @@ public struct HealthPeriod: Identifiable, Hashable, Sendable {
     /// Whole seconds.
     public var start: Date
     public var end: Date
+    /// A workout's activity type ("running", "other-3001"); `nil` for sleep
+    /// and for workouts imported before schema version 3.
+    public var activity: String?
+    /// A workout's distance in whole meters; `nil` when Health has none.
+    public var distance: Int?
     public var createdAt: Date
     public var modifiedAt: Date
     public var deletedAt: Date?
@@ -24,6 +29,8 @@ public struct HealthPeriod: Identifiable, Hashable, Sendable {
         kind: Kind,
         start: Date,
         end: Date,
+        activity: String? = nil,
+        distance: Int? = nil,
         createdAt: Date,
         modifiedAt: Date,
         deletedAt: Date? = nil
@@ -32,6 +39,8 @@ public struct HealthPeriod: Identifiable, Hashable, Sendable {
         self.kind = kind
         self.start = start
         self.end = end
+        self.activity = activity
+        self.distance = distance
         self.createdAt = createdAt
         self.modifiedAt = modifiedAt
         self.deletedAt = deletedAt
@@ -80,6 +89,30 @@ extension HealthPeriod {
             }
         }
         return merged
+    }
+
+    /// The workout periods: workouts that overlap (one workout recorded by
+    /// two apps) merged, touching ones kept apart; a merged period takes the
+    /// activity and distance of its longest workout, since its members
+    /// mostly record the same exercise twice.
+    public static func workouts(_ workouts: [HealthPeriodDraft]) -> [HealthPeriodDraft] {
+        var merged: [(period: HealthPeriodDraft, longest: TimeInterval)] = []
+        for workout in workouts.sorted(by: { $0.interval.start < $1.interval.start }) {
+            if let last = merged.last, workout.interval.start < last.period.interval.end {
+                var period = last.period
+                period.interval = DateInterval(start: period.interval.start, end: max(period.interval.end, workout.interval.end))
+                var longest = last.longest
+                if workout.interval.duration > longest {
+                    longest = workout.interval.duration
+                    period.activity = workout.activity
+                    period.distance = workout.distance
+                }
+                merged[merged.count - 1] = (period, longest)
+            } else {
+                merged.append((workout, workout.interval.duration))
+            }
+        }
+        return merged.map(\.period)
     }
 
     /// The sleep periods: the asleep samples (any stage) joined across

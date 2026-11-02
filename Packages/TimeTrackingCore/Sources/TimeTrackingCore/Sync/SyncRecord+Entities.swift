@@ -180,7 +180,8 @@ extension Device {
 extension HealthPeriod {
     var syncRecord: SyncRecord {
         .make(.healthPeriod, id.rawValue, [
-            "kind": value(kind.rawValue), "start": value(start), "end": value(end), "createdAt": value(createdAt),
+            "kind": value(kind.rawValue), "start": value(start), "end": value(end), "activity": value(activity),
+            "distance": distance.map { .int(Int64($0)) }, "createdAt": value(createdAt),
             "modifiedAt": value(modifiedAt), "deletedAt": value(deletedAt),
         ])
     }
@@ -198,6 +199,8 @@ extension HealthPeriod {
             kind: kind,
             start: start,
             end: end,
+            activity: record.text("activity"),
+            distance: record.fields["distance"]?.int.map { Int($0) },
             createdAt: record.instant("createdAt") ?? start,
             modifiedAt: record.modifiedAt,
             deletedAt: record.instant("deletedAt")
