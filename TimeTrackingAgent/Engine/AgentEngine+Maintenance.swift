@@ -108,8 +108,12 @@ extension AgentEngine {
                 closed += knowledgeBlocker.add(sample)
             }
             closed += knowledgeBlocker.flush()
-            for block in ClosedBlock.resolved(closed) {
+            let written = ClosedBlock.resolved(closed)
+            for block in written {
                 appendSummary(block, kind: "knowledge")
+            }
+            for day in Set(written.map(\.block.localDay)).sorted() {
+                settleTimeline(day: day)
             }
         }
         try? store.setDate(until, for: Self.knowledgeWatermarkKey)
@@ -142,7 +146,8 @@ extension AgentEngine {
 
     static let syncedSafariWatermarkKey = "synced_safari.watermark"
 
-    /// Forms `remote` blocks from Safari visits synced from other devices (§6.1).
+    /// Forms `remote` blocks from Safari visits synced from other devices
+    /// (§6.1), in the time no Mac or device block claims (§2.8).
     func collectSyncedSafari(now: Date) {
         guard settings.devices.syncedSafariHistory, environment.history.canReadSafari else {
             return
@@ -155,7 +160,8 @@ extension AgentEngine {
             return
         }
         let context = resolveContext()
-        for closed in syncedSafari.blocks(visits: visits, context: context, timeZone: environment.timeZone) {
+        let claims = claimed(from: watermark, to: until, above: Timeline.remote)
+        for closed in syncedSafari.blocks(visits: visits, context: context, timeZone: environment.timeZone, claimed: claims) {
             appendSummary(closed, kind: "synced Safari")
         }
         try? store.setDate(until, for: Self.syncedSafariWatermarkKey)

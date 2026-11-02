@@ -47,13 +47,16 @@ extension AgentEngine {
     }
 
     /// Replaces the `device` blocks of `day` in both logs by the merge of
-    /// its stored events; leaves the files untouched when nothing changed.
+    /// its stored events around the Mac's blocks (§2.8), then cuts them out
+    /// of synced Safari blocks; leaves the files untouched when nothing changed.
     func mergeDeviceDay(_ day: DeviceDay) throws {
         let events = try store.deviceEvents(device: day.device, day: day.day)
         let zone = TimeZone(secondsFromGMT: day.utcOffset) ?? environment.timeZone
         let context = resolveContext()
         let merger = DeviceEventMerger(settings: settings, exclusions: context.exclusions)
-        let merged = merger.blocks(events, device: day.device, timeZone: zone)
+        let range = dayInterval(day.day, timeZone: zone)
+        let claims = range.map { claimed(from: $0.start, to: $0.end, above: Timeline.device) } ?? []
+        let merged = merger.blocks(events, device: day.device, timeZone: zone, claimed: claims)
         let isDeviceDay: (ActivityBlock) -> Bool = { block in
             block.source == .device && block.device == day.device && block.localDay == day.day
         }
@@ -68,5 +71,6 @@ extension AgentEngine {
         for closed in merged {
             try logs.appendSummary(closed)
         }
+        try clipRemoteBlocks(day: day.day)
     }
 }

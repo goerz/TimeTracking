@@ -167,6 +167,7 @@ final class AgentEngine {
         } catch {
             logger.error("block log: \(error.localizedDescription, privacy: .public)")
         }
+        settleTimeline(day: closed.block.localDay)
         lastDetailEnd = closed.block.end
         // The state in effect at the end stays: it opens the next gap.
         let current = transitions.last { $0.time < closed.block.end }

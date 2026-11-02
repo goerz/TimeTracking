@@ -18,7 +18,9 @@ import TimeTrackingCore
 /// - the app's `foreground` covers the time to its `background`.
 /// Where stretches overlap the most specific wins: the app, then
 /// automations, web tabs, named sets, and "Everything" last. A Focus that
-/// suspends collection closes the block at its `on`. The stretches become
+/// suspends collection closes the block at its `on`. Time `claimed` by a
+/// higher-ranked block (the Mac's, §2.8) is cut out of every stretch and
+/// closes the block at its start. The stretches become
 /// samples every 30 seconds for the Blocker, so gaps over `idle_close`,
 /// the split test, midnight, and the summary rules apply as on the Mac.
 nonisolated struct DeviceEventMerger {
@@ -39,7 +41,7 @@ nonisolated struct DeviceEventMerger {
         var rank: Int
     }
 
-    func blocks(_ events: [DeviceEvent], device: String, timeZone: TimeZone) -> [ClosedBlock] {
+    func blocks(_ events: [DeviceEvent], device: String, timeZone: TimeZone, claimed: [DateInterval] = []) -> [ClosedBlock] {
         let sorted = events.sorted { ($0.time, $0.sequence) < ($1.time, $1.sequence) }
         guard let first = sorted.first else {
             return []
@@ -51,8 +53,13 @@ nonisolated struct DeviceEventMerger {
             clipped.start = max(stretch.start, dayStart)
             clipped.end = min(stretch.end, dayEnd)
             return clipped.end > clipped.start ? clipped : nil
+        }.flatMap { stretch in
+            Timeline.free(DateInterval(start: stretch.start, end: stretch.end), outside: claimed).map { part in
+                Stretch(start: part.start, end: part.end, item: stretch.item, rank: stretch.rank)
+            }
         }
-        let closers = sorted.filter { $0.source == .focus && $0.kind == "on" && !$0.payloadBool("collect", default: true) }.map(\.time)
+        let focusClosers = sorted.filter { $0.source == .focus && $0.kind == "on" && !$0.payloadBool("collect", default: true) }.map(\.time)
+        let closers = focusClosers + claimed.map(\.start).filter { $0 > dayStart && $0 < dayEnd }
         var blocker = Blocker(settings: settings.blocks, timeZone: timeZone, device: device, source: .device)
         var closed: [ClosedBlock] = []
         for step in steps(segments(stretches, cuts: closers), closers: closers) {

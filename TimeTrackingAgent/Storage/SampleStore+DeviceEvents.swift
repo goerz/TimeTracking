@@ -52,6 +52,17 @@ extension SampleStore {
         return touched
     }
 
+    /// The device-days with stored events on `day`.
+    func deviceDays(on day: String) throws -> [DeviceDay] {
+        try database.read { database in
+            try GRDB.Row.fetchAll(
+                database,
+                sql: "SELECT DISTINCT device, utc_offset FROM device_event WHERE day = ? ORDER BY device, utc_offset",
+                arguments: [day]
+            )
+        }.map { row in DeviceDay(device: row["device"], day: day, utcOffset: row["utc_offset"]) }
+    }
+
     /// The stored events of `device` on `day`, oldest first.
     func deviceEvents(device: String, day: String) throws -> [DeviceEvent] {
         let decoder = JSONDecoder()

@@ -101,6 +101,16 @@ When a block closes:
 09:10-09:44  tmux:paper (71%)  tmux:paper nvim draft (3 files) 18m · safari github.com/owner/repo pull/123 9m · mail Inbox 4m  + claude refactor-parser (busy 12m)
 ```
 
+### 2.8 One timeline
+
+The block log describes the user, not each device: no two blocks share time. The other devices count for the time away from the Mac, so each source covers only the time no higher-ranked block claims:
+
+1. The Mac's own blocks (`live` and `knowledge`), including the open block up to its last active sample and a short block held back under 2.6.
+2. `device` blocks from the iOS app (6.2).
+3. Synced Safari history (6.1).
+
+The Devices module cuts the claimed time out of a device-day's stretches before forming blocks, and a claim closes the open device block at its start, so no device block merges across a Mac block. It merges the device-days of a date again whenever a Mac block of that date is written; a device block formed while the Mac block was still open thus loses the part the closed block covers. Synced Safari visits within claimed time form no sample, and a claim closes the open block at its start. A synced Safari block already written that a Mac or device block later overlaps is replaced by its free parts, each with `a` and the items' seconds scaled by its share of the block's length; parts shorter than `min_block` are dropped. Blocks of different iPhones and iPads are not ranked against each other.
+
 ## 3. Sources
 
 ### 3.1 Terminal
@@ -198,7 +208,7 @@ Permissions: Accessibility (required), granted to `TimeTrackingAgent.app`; Autom
 
 ### 6.1 Synced Safari history
 
-With `synced_safari_history` on, the History module forms blocks from Safari's `History.db` visits with `origin = 1` (synced from other devices) by the same algorithm, a visit being a sample and a gap over 5 minutes closing the block. They carry `src` `live` and `dev` `remote`, unless `CloudTabs.db` (polled every 5 minutes) shows that within the block exactly one device's tab set changed to include a visited URL; then `dev` is that device's name. They are not deduplicated against iOS Safari extension blocks.
+With `synced_safari_history` on, the History module forms blocks from Safari's `History.db` visits with `origin = 1` (synced from other devices) by the same algorithm, a visit being a sample and a gap over 5 minutes closing the block. They carry `src` `live` and `dev` `remote`, unless `CloudTabs.db` (polled every 5 minutes) shows that within the block exactly one device's tab set changed to include a visited URL; then `dev` is that device's name. They only cover time that no Mac or `device` block claims (2.8).
 
 ### 6.2 Collected by the iOS app
 
@@ -443,6 +453,7 @@ The pane has no editors for exclusions or options and no maintenance controls: t
 - TRK-37. "Ask for Access" on the Automation row asks for exactly the browsers and terminals the agent reads through Apple Events, skipping those that are not open, and the row then lists each open app's answer; before the first ask the row shows no such line.
 - TRK-38. The first header of each block-log and detail-log month file carries `keys`, naming exactly the keys of that log's block lines with the labels of 4.2 and 4.3; later headers carry none.
 - TRK-39. With `min_block` 10 minutes and `idle_close` 5 minutes: 4 minutes active, 6 idle, then 8 active give one block over all 18 minutes; 20 active, 7 idle, then 4 active and nothing more give one block of 31 minutes in place of the first; 4 minutes active alone gives no block; a short block is never merged across midnight; and in the logs the merged block's line replaces the previous one.
+- TRK-40. With `min_block` 10 minutes: iPhone use from 20 minutes before to 15 minutes after a 20 minute Mac block gives device blocks only before and after it; iPhone time left shorter than `min_block` beside a Mac block is dropped, not merged across it; a device block merged while the Mac block was open loses the part the closed Mac block covers; synced Safari visits during a Mac block form no block, and a synced Safari block written before a Mac block overlapped it keeps only its free part, with its seconds scaled.
 
 ## 10. Decisions
 
@@ -452,7 +463,8 @@ The pane has no editors for exclusions or options and no maintenance controls: t
 - Blocks split at midnight like entries, so per-day activity and tracked time cover the same interval.
 - The multiplexer session drives splits; mapping to projects is the user's, in the Calendar.
 - Every source with a permission, configuration, or undocumented format has a fallback; configuration is offered as snippets, never installed.
-- Synced Safari history is off by default: weak attribution, overlap with the iOS extension.
+- Synced Safari history is off by default: weak attribution, and it duplicates the iOS extension, which outranks it (2.8).
+- The block log is one timeline of the user: the iPhone and iPad fill the time away from the Mac rather than adding a parallel track.
 
 Not included: Screen Time data from other devices; terminal adapters beyond WezTerm, iTerm2, and Terminal.app.
 
