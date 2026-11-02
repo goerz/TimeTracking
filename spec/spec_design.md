@@ -117,7 +117,7 @@ A sidebar shows its symbols in the accent color (the system sidebar style); no m
 - Today and now (the Calendar's highlighted date, today's tint, the now-line and its time bubble) use the accent color.
 - Errors: `Color.errorText` (system red), for the message under a control or in a dialog. `ErrorLine` (`Shared/Design/ErrorLine.swift`) shows it with the warning symbol, in `.caption` on the Mac and `.footnote` on iOS; a dialog's inline field error is plain text in the same color.
 - Area colors (user-chosen RGB) are data: they fill calendar cards, chart segments, and the 8 pt area dot. `Color(hex:)` (`Shared/Design/Color+Hex.swift`) reads them through the library's `AreaColor`, gray for a malformed value. Text on an area color picks black or white by contrast.
-- The tracker's block cards in the Calendar use `Color.activityBlock` (the secondary label color) for every context; context colors appear only in the Activity section (`spec_activity.md` §1.3).
+- The tracker's block cards in the Calendar use `Color.activityBlock` (the secondary label color) for every context, the left border only on hover; context colors appear only in the Activity section (`spec_activity.md` §1.3).
 - Everything else uses semantic colors (`.primary`, `.secondary`, `.tertiary`, `.background`, `.separator`) and works in light and dark appearance and with Increase Contrast.
 
 ## 7. Components

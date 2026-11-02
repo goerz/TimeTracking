@@ -4,8 +4,8 @@
 import SwiftUI
 import TimeTrackingCore
 
-/// A pale neutral card with a neutral left border, the same for every
-/// context (§3.1).
+/// A pale neutral card, the same for every context, with a neutral left
+/// border while the pointer is over it (§3.1).
 struct BlockCard: View {
     var model: CalendarModel
     var block: ActivityBlock
@@ -25,7 +25,9 @@ struct BlockCard: View {
                 RoundedRectangle(cornerRadius: Design.Radius.small).fill(tint.opacity(0.18))
             }
             coveredDimming
-            Rectangle().fill(tint).frame(width: 3)
+            if hovering {
+                Rectangle().fill(tint).frame(width: 3)
+            }
             if style != .bar, !CalendarColumn.drawsBars(width: Double(size.width + 4)) {
                 label(style)
             }
