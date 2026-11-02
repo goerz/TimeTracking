@@ -50,14 +50,6 @@ nonisolated enum Timeline {
         case sample(Sample, SampleOrigin, background: [DeviceItem])
         /// Closes the open block (a Focus that suspends collection).
         case close
-
-        /// The sample's time.
-        var time: Date? {
-            if case let .sample(sample, _, _) = self {
-                return sample.time
-            }
-            return nil
-        }
     }
 
     /// The blocks the Blocker closed, and the block still open at the end
@@ -67,29 +59,52 @@ nonisolated enum Timeline {
         var open: TrackerOpenBlock?
     }
 
+    /// The Blocker after every step before `time`, which later samples of
+    /// the Mac cannot change; a later run of the same inputs plus new Mac
+    /// samples continues from it.
+    struct Checkpoint: Sendable {
+        var time: Date
+        var blocker: Blocker
+        var closed: [ClosedBlock]
+    }
+
+    /// How far before the newest Mac sample a checkpoint is taken: a new
+    /// sample changes only the credit of the one before it.
+    static let checkpointLag: TimeInterval = 2 * Blocker.defaultCreditCap
+
     /// The blocks of `inputs` on the Mac `mac`; `flush` closes the block
     /// open at the end (a past day, agent shutdown, a replay). Without it,
     /// a stream that ends before `until` (now) ends with an idle sample
-    /// there, so a block without attention for `idle_close` closes.
+    /// there, so a block without attention for `idle_close` closes. With
+    /// `checkpoint` (taken from the same inputs before new Mac samples were
+    /// appended) only the steps from its time on run; the result carries the
+    /// next checkpoint.
     static func run(
         _ inputs: TimelineInputs,
         settings: TrackerBlockSettings,
         timeZone: TimeZone,
         mac: String,
         flush: Bool,
-        until: Date? = nil
-    ) -> Result {
-        var blocker = Blocker(settings: settings, timeZone: timeZone, device: mac)
-        var closed: [ClosedBlock] = []
-        var stream = steps(inputs, mac: mac)
+        until: Date? = nil,
+        checkpoint: Checkpoint? = nil
+    ) -> (result: Result, checkpoint: Checkpoint?) {
+        var stream = timedSteps(inputs, mac: mac)
         if !flush, let until {
             let marker = Sample(time: until, state: .idle)
-            if let last = stream.last(where: { $0.time != nil })?.time, last < marker.time {
-                stream.append(.sample(marker, SampleOrigin(device: mac), background: []))
+            if let last = stream.last?.time, last < marker.time {
+                stream.append(Timed(time: marker.time, order: 3, step: .sample(marker, SampleOrigin(device: mac), background: [])))
             }
         }
-        for step in stream {
-            switch step {
+        var blocker = checkpoint?.blocker ?? Blocker(settings: settings, timeZone: timeZone, device: mac)
+        var closed = checkpoint?.closed ?? []
+        let resume = checkpoint?.time ?? .distantPast
+        let next = inputs.mac.last.map { $0.time.addingTimeInterval(-checkpointLag) }
+        var taken: Checkpoint?
+        for timed in stream where timed.time >= resume {
+            if taken == nil, let next, next > resume, timed.time >= next {
+                taken = Checkpoint(time: next, blocker: blocker, closed: closed)
+            }
+            switch timed.step {
             case let .sample(sample, origin, background):
                 closed += blocker.add(sample, origin: origin, background: background)
             case .close:
@@ -99,7 +114,8 @@ nonisolated enum Timeline {
         if flush {
             closed += blocker.flush()
         }
-        return Result(closed: ClosedBlock.resolved(closed), open: flush ? nil : blocker.openSummary)
+        let result = Result(closed: ClosedBlock.resolved(closed), open: flush ? nil : blocker.openSummary)
+        return (result, taken ?? checkpoint)
     }
 
     /// Synced Safari visits (each a sample with its device) as stretches:
@@ -119,6 +135,11 @@ nonisolated enum Timeline {
     // MARK: Merging
 
     static func steps(_ inputs: TimelineInputs, mac: String) -> [Step] {
+        timedSteps(inputs, mac: mac).map(\.step)
+    }
+
+    /// The merged stream with each step's time, in order.
+    static func timedSteps(_ inputs: TimelineInputs, mac: String) -> [Timed] {
         let suppressed = inputs.suppressed
         let macSamples = (inputs.mac.map { ($0, SampleOrigin(device: mac)) }
             + inputs.reconstructed.map { ($0, SampleOrigin(device: mac, isReconstructed: true)) })
@@ -149,12 +170,12 @@ nonisolated enum Timeline {
         }
         return ordered.enumerated()
             .sorted { ($0.element.time, $0.element.order, $0.offset) < ($1.element.time, $1.element.order, $1.offset) }
-            .map(\.element.step)
+            .map(\.element)
     }
 
     /// A step with its time and its order among steps of the same time:
     /// the end of a run (0), a closer (1), another device's sample (2), the Mac's (3).
-    struct Timed {
+    struct Timed: Sendable {
         var time: Date
         var order: Int
         var step: Step

@@ -11,6 +11,8 @@ import TimeTrackingCore
 struct TimelineCache {
     var day: String
     var inputs: TimelineInputs
+    /// The Blocker part way through the day, so a tick runs only the newest steps.
+    var checkpoint: Timeline.Checkpoint?
 
     mutating func append(_ sample: Sample) {
         inputs.mac.append(sample)
@@ -61,14 +63,19 @@ extension AgentEngine {
         let isToday = day == self.day(of: now)
         let end = isToday ? now.addingTimeInterval(1) : range.end.addingTimeInterval(settings.blocks.idleClose)
         let inputs = timelineInputs(day: day, from: range.start, to: end)
-        let result = Timeline.run(
+        let cached = timelineCache?.day == day
+        let (result, checkpoint) = Timeline.run(
             inputs,
             settings: settings.blocks,
             timeZone: environment.timeZone,
             mac: configuration.device,
             flush: !isToday || final,
-            until: now
+            until: now,
+            checkpoint: cached ? timelineCache?.checkpoint : nil
         )
+        if cached {
+            timelineCache?.checkpoint = checkpoint
+        }
         if isToday {
             openBlock = result.open.flatMap { range.contains($0.start) ? $0 : nil }
         }

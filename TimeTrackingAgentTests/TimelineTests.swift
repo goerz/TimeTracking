@@ -135,4 +135,42 @@ struct TimelineTests {
         #expect(harness.blocks.isEmpty)
         #expect(Self.isOneTimeline(harness.blocks))
     }
+
+    @Test("TRK-40 a tick that continues from the checkpoint forms the same blocks as a run over the whole day")
+    func checkpointsMatchAFullRun() {
+        let start = ManualClock.fixtureNow(in: AgentHarness.zone)
+        let parts: [(String?, TimeInterval)] = [("a", 1500), (nil, 420), ("b", 240), (nil, 900), ("a", 2400), ("c", 1500), (nil, 600)]
+        let samples = BlockerTests.stream(parts, from: start)
+        let phone = TimelineStretch(
+            start: start.addingTimeInterval(1600),
+            end: start.addingTimeInterval(2500),
+            item: SampleItem(context: "Everything", subject: "Everything", groupKey: "Everything", app: "ladder"),
+            device: "iPhone",
+            rank: 1
+        )
+        var settings = TrackerBlockSettings()
+        settings.minBlock = 600
+        var inputs = TimelineInputs(others: [phone])
+        var checkpoint: Timeline.Checkpoint?
+        var incremental = Timeline.Result(closed: [], open: nil)
+        for sample in samples {
+            inputs.mac.append(sample)
+            (incremental, checkpoint) = Timeline.run(
+                inputs,
+                settings: settings,
+                timeZone: AgentHarness.zone,
+                mac: Self.mac,
+                flush: false,
+                until: sample.time,
+                checkpoint: checkpoint
+            )
+        }
+        let zone = AgentHarness.zone
+        let (full, _) = Timeline.run(inputs, settings: settings, timeZone: zone, mac: Self.mac, flush: false, until: samples.last?.time)
+        #expect(checkpoint != nil)
+        #expect(incremental.closed == full.closed)
+        #expect(incremental.open == full.open)
+        #expect(full.closed.count >= 2)
+        #expect(full.closed.contains { $0.block.deviceNames.contains("iPhone") })
+    }
 }

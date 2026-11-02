@@ -46,7 +46,7 @@ nonisolated enum Replay {
         let offset = text.split(separator: "\n").lazy.compactMap { SampleCodec.header($0)?.utcOffset }.first ?? 0
         let timeZone = TimeZone(secondsFromGMT: offset) ?? .gmt
         let device = parsed.device.isEmpty ? "mac" : parsed.device
-        let result = Timeline.run(
+        let (result, _) = Timeline.run(
             TimelineInputs(mac: parsed.samples),
             settings: settings.blocks,
             timeZone: timeZone,
