@@ -206,4 +206,28 @@ struct TimerScreenTests {
         #expect(stored.start == test.clock.now - 600)
         #expect(stored.task == "Renamed")
     }
+
+    @Test("IOS-42 the running entry's sheet keeps a task stored after it loaded; a Start or project change writes only that field")
+    func editRunningKeepsTask() async throws {
+        let test = try await TestPhone()
+        let projects = try await test.projects(["Household"])
+        test.model.timer.taskText = "Prepare methods"
+        await test.model.timer.start()
+        let running = try #require(test.model.timer.running)
+        let editor = EntryEditSheetModel(store: test.store, clock: test.clock)
+        await editor.load(running.id)
+        // The card's field commits a new task while the sheet is open.
+        test.model.timer.taskText = "Outline results"
+        await test.model.timer.commitTask()
+        editor.start = test.clock.now - 1200
+        await editor.setProject(projects[0].id)
+        #expect(await editor.save())
+        let stored = try #require(try await test.store.entry(running.id))
+        #expect(stored.task == "Outline results")
+        #expect(stored.projectID == projects[0].id)
+        #expect(stored.start == test.clock.now - 1200)
+        await test.model.localWrite()
+        #expect(test.model.timer.taskText == "Outline results")
+        #expect(test.model.timer.elapsedSeconds(at: test.clock.now) == 1200)
+    }
 }

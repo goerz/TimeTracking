@@ -17,7 +17,7 @@ final class TimerUITests: XCTestCase {
         let app = XCUIApplication.timeTracking(fixture: "running")
         app.launch()
         XCTAssertTrue(app.buttons["timer.stopButton"].waitForExistence(timeout: 10))
-        XCTAssertEqual(app.staticTexts["timer.time"].label, "0:25:00")
+        XCTAssertEqual(app.buttons["timer.time"].label, "0:25:00")
         XCTAssertTrue(app.descendants(matching: .any).matching(NSPredicate(format: "identifier BEGINSWITH 'timer.row.continue.'"))
             .firstMatch
             .exists)

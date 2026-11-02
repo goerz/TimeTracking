@@ -120,8 +120,12 @@ final class EntryEditSheetModel {
             return true
         }
         do {
-            if task.trimmed != entry.task || projectID != entry.projectID {
-                _ = try await store.updateChain(of: entry.id, task: task, projectID: .some(projectID))
+            // Only what the sheet changed: a task stored meanwhile (the
+            // card's field) stays when only the project or times change.
+            let newTask = task.trimmed != entry.task ? task : nil
+            let newProject = projectID != entry.projectID ? Optional(projectID) : nil
+            if newTask != nil || newProject != nil {
+                _ = try await store.updateChain(of: entry.id, task: newTask, projectID: newProject)
             }
             if start != entry.start || (!isRunning && end != entry.end) {
                 _ = try await store.update(entry.id, EntryChange(start: start, end: isRunning ? nil : end))

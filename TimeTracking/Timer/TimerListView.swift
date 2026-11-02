@@ -152,7 +152,7 @@ private struct RunningRowView: View {
         .contentShape(Rectangle())
         .onHover { hovering = $0 }
         .help("Running since \(listing.entry.start.formatted(date: .omitted, time: .shortened))")
-        .onTapGesture { view.editing = listing.id }
+        .onTapGesture { app.editRunningEntry(in: view) }
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(.isButton)
         .accessibilityValue("running")

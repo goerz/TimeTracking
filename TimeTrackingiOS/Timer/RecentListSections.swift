@@ -36,7 +36,8 @@ struct RecentListSections: View {
 }
 
 /// The running entry as Today's first row: its live duration in the accent
-/// color, no play button; a tap opens the edit sheet.
+/// color, no play button; a tap opens the edit sheet, a long press offers
+/// Edit, Copy Task, and Discard.
 struct RunningRow: View {
     @Bindable var model: PhoneModel
     var listing: EntryListing
@@ -55,6 +56,16 @@ struct RunningRow: View {
         .accessibilityAddTraits(.isButton)
         .accessibilityValue("running")
         .accessibilityIdentifier("timer.runningRow")
+        .contextMenu {
+            Button("Edit", systemImage: SymbolName.edit) { model.openEditor(listing.id) }
+                .accessibilityIdentifier("timer.runningRow.edit")
+            Button("Copy Task", systemImage: SymbolName.copy) { Clipboard.copy(listing.entry.task) }
+                .accessibilityIdentifier("timer.runningRow.copyTask")
+            Button("Discard", systemImage: SymbolName.discard, role: .destructive) {
+                Task { await model.timer.requestDiscard(skipAlert: false) }
+            }
+            .accessibilityIdentifier("timer.runningRow.discard")
+        }
     }
 }
 

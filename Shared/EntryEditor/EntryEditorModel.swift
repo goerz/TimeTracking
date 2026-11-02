@@ -38,23 +38,30 @@ final class EntryEditorModel {
 
     static let futureMessage = "Entries cannot be in the future"
 
+    /// The fields show `entry` at once: a field that loses focus before
+    /// `load()` returns commits what it shows, never an empty task.
     init(store: TimeStore, clock: any Clock, entry: TimeEntry) {
         self.store = store
         self.clock = clock
         self.entry = entry
+        self.task = entry.task
+        resetTimeFields()
     }
 
     var isRunning: Bool {
         entry.isRunning
     }
 
-    /// Reloads the entry and resets every field to the stored values.
+    /// Reloads the entry and resets the time fields to the stored values;
+    /// the task follows the store unless it was edited meanwhile.
     func load() async {
         guard let current = try? await store.entry(entry.id) else {
             return
         }
+        if task == entry.task {
+            task = current.task
+        }
         entry = current
-        task = current.task
         if let listing = try? await store.listings(for: [current]).first {
             label = ProjectLabel(listing)
         }

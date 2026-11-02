@@ -113,4 +113,61 @@ struct EntryEditorTests {
         await model.keepOverlap()
         #expect(try await test.store.entry(entry.id)?.start == (test.time("09:20")))
     }
+
+    @Test("TM-37 the running entry's editor shows its task before loading; a commit before the load or a Start edit keeps the task")
+    func runningTaskBeforeLoad() async throws {
+        let test = try await TestApp()
+        let running = try await test.store.start(projectID: nil, task: "Prepare methods", at: test.time("09:35"))
+        await test.app.afterChange()
+        let model = EntryEditorModel(store: test.store, clock: test.clock, entry: running)
+        model.onChange = { await test.app.afterChange() }
+        // The popover's task field loses focus before `load()` returned.
+        #expect(model.task == "Prepare methods")
+        #expect(try model.startText == LocalDateText.time(test.time("09:35")))
+        await model.commitTask()
+        await model.commitStart()
+        #expect(try await test.store.entry(running.id)?.task == "Prepare methods")
+        // A task typed before the load survives it.
+        model.task = "Prepare methods and results"
+        await model.load()
+        #expect(model.task == "Prepare methods and results")
+        // A Start edit keeps the task in the store, the editor, and the bar.
+        model.task = "Prepare methods"
+        model.startText = "9:20"
+        await model.commitStart()
+        let stored = try #require(try await test.store.entry(running.id))
+        #expect(try stored.start == test.time("09:20"))
+        #expect(stored.task == "Prepare methods")
+        #expect(model.task == "Prepare methods")
+        #expect(test.app.timer.taskText == "Prepare methods")
+        #expect(test.app.timer.elapsedSeconds(at: test.clock.now) == 40 * 60)
+    }
+
+    @Test("TM-37 opening the running entry's editor stores the task typed in the bar first; a task edited in the editor shows in the bar")
+    func runningTaskFromBar() async throws {
+        let test = try await TestApp()
+        let running = try await test.store.start(projectID: nil, task: "Prepare methods", at: test.time("09:35"))
+        await test.app.afterChange()
+        // The debounce never fires on its own: the task is still pending.
+        test.app.timer.debounce = { _ in try await Task.sleep(for: .seconds(3600)) }
+        test.app.timer.taskText = "Outline results"
+        test.app.timer.taskTextChanged()
+        #expect(try await test.store.entry(running.id)?.task == "Prepare methods")
+        let view = test.app.mainTimer
+        await test.app.editRunningEntry(in: view).value
+        #expect(view.editing == running.id)
+        #expect(try await test.store.entry(running.id)?.task == "Outline results")
+        let entry = try #require(test.app.timer.running)
+        let model = EntryEditorModel(store: test.store, clock: test.clock, entry: entry)
+        model.onChange = { await test.app.afterChange() }
+        await model.load()
+        #expect(model.task == "Outline results")
+        model.startText = "9:20"
+        await model.commitStart()
+        #expect(test.app.timer.taskText == "Outline results")
+        model.task = "Draft results"
+        await model.commitTask()
+        #expect(test.app.timer.taskText == "Draft results")
+        #expect(test.app.timer.running?.task == "Draft results")
+    }
 }

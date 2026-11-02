@@ -53,10 +53,22 @@ extension AppModel {
     func editEntry(in view: TimerUIState) {
         if view.listFocused, let selection = view.list.selection {
             view.editing = selection
-        } else if let running = timer.running {
-            view.editing = running.id
+        } else if timer.running != nil {
+            editRunningEntry(in: view)
         } else {
             view.editing = view.list.selection
+        }
+    }
+
+    /// The timer label, ⌘E, or the running row: stores the task typed in the
+    /// bar first, so the popover opens on it (spec_timer.md §4).
+    @discardableResult
+    func editRunningEntry(in view: TimerUIState) -> Task<Void, Never> {
+        Task {
+            await timer.commitTask()
+            if let running = timer.running {
+                view.editing = running.id
+            }
         }
     }
 }

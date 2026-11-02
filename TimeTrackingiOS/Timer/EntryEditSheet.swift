@@ -41,6 +41,8 @@ struct EntryEditSheet: View {
             }
         }
         .task {
+            // The task typed on the card is stored first, so the sheet shows it.
+            await model.timer.commitTask()
             let editor = EntryEditSheetModel(store: model.store, clock: model.clock)
             editor.onChange = { await model.localWrite() }
             await editor.load(entryID)

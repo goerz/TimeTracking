@@ -140,13 +140,25 @@ struct RunningEntryCard: View {
     }
 
     /// The chain's elapsed time; a Pomodoro shows on its button instead.
+    /// While running, a tap edits the running entry, as the Mac's timer label.
+    /// Only the text ticks, not the button around it.
     private var timeLabel: some View {
-        TimelineView(.periodic(from: .now, by: 1)) { _ in
-            Text(timer.timerText(at: model.clock.now))
-                .font(.title2.weight(.medium).monospacedDigit())
-                .foregroundStyle(timer.isRunning ? AnyShapeStyle(.primary) : AnyShapeStyle(.secondary))
-                .lineLimit(1)
-                .accessibilityIdentifier("timer.time")
+        Button {
+            if let running = timer.running {
+                taskFocused = false
+                model.openEditor(running.id)
+            }
+        } label: {
+            TimelineView(.periodic(from: .now, by: 1)) { _ in
+                Text(timer.timerText(at: model.clock.now))
+                    .font(.title2.weight(.medium).monospacedDigit())
+                    .foregroundStyle(timer.isRunning ? AnyShapeStyle(.primary) : AnyShapeStyle(.secondary))
+                    .lineLimit(1)
+            }
         }
+        .buttonStyle(.plain)
+        .disabled(!timer.isRunning)
+        .accessibilityHint(timer.isRunning ? Text("Edit Running Entry") : Text(""))
+        .accessibilityIdentifier("timer.time")
     }
 }

@@ -93,7 +93,7 @@ Filter: Edit › Find (⌘F) shows a field above the list; only entries whose ta
 
 ## 4. The edit popover
 
-Clicking a row, Return on a selection, ⌘E, or clicking the timer label opens the edit popover; the Calendar reuses it. Fields, top to bottom, as rows with trailing-aligned labels: Task, Project (the chip), Start, Stop, Duration, Date; then the chain lines of 4.3 and the notices; then "Delete Entry…".
+Clicking a row, Return on a selection, ⌘E, or clicking the timer label opens the edit popover; the Calendar reuses it. On the running entry (the timer label, ⌘E from the bar, or its row), the bar's task field commits first, so the popover shows the task just typed. The fields show the entry from the moment the popover opens, before its stored values are reloaded: a field that loses focus at once commits what it shows, and a task typed before the reload is kept. Fields, top to bottom, as rows with trailing-aligned labels: Task, Project (the chip), Start, Stop, Duration, Date; then the chain lines of 4.3 and the notices; then "Delete Entry…".
 
 ### 4.1 Fields
 
@@ -350,6 +350,7 @@ Clicking a notification shows the Mini Timer (with the idle prompt for `idle`). 
 - TM-34. The first-launch alert's "Open `<APP_NAME>` at login" checkbox is on by default; checked, either button turns on "Open at login", unchecked neither does; under `-UITesting` the real login item is never registered.
 - TM-35. Every window has the menus File, Edit, View, Timer, Entry, Project, and Window; Window lists the main window and "Mini Timer" once each. With the Timer shown Entry › Set Project… is enabled and View › Go to Today and the Project menu's items are not. In the Calendar Entry › Duplicate to Next Day and View › Go to Today and Previous Period are enabled, Set Project… is not, and there is no Next Day, Next Entry, or Deselect item. In Projects Project › Edit Project… is enabled for a selected project and File › New Project… always; there is no Start Timer item outside the Timer menu. View › Compact Mode is enabled only while the Mini Timer is key.
 - TM-36. The Mini Timer and the main window's Timer are independent: the project picker, an edit popover, the selection, the filter, and a task-field focus request in one leave the other unchanged; a project chosen in one is the project of both; New from the main menu focuses the key window's Timer; a store change reloads both lists. An alert of the Timer shows in the key window, also while the main window shows another item, and with no key window the Mini Timer comes forward with it.
+- TM-37. Editing the running entry's Start in the popover, opened from the timer label or the running row, moves the timer label and keeps the task in the popover, the bar, and the row; a task committed before the popover loaded is the stored task, never an empty one; a task typed in the bar just before opening is the popover's task and survives a Start edit; a task changed in the popover shows in the bar.
 
 ## 12. Decisions
 

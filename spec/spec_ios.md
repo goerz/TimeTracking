@@ -41,7 +41,7 @@ The Pomodoro countdown thus sits next to the elapsed time.
 | State | Time shown | Actions |
 |---|---|---|
 | Nothing running | `0:00:00`, green Start button | Start (button, or Return in the task field) starts an entry with the field's task and the chip's project |
-| Running | Elapsed time `h:mm:ss` since the midnight chain's start, as the Mac Timer's label; red Stop button | Stop, and Discard with the Mac Timer's confirmation text; Stop blanks the task field and project chip, as at startup; Discard is undoable (shake or three-finger undo) until the next change |
+| Running | Elapsed time `h:mm:ss` since the midnight chain's start, as the Mac Timer's label; red Stop button | Stop, and Discard with the Mac Timer's confirmation text; Stop blanks the task field and project chip, as at startup; Discard is undoable (shake or three-finger undo) until the next change; a tap on the elapsed time opens the running entry's edit sheet (2.7), as a click on the Mac Timer's label opens its popover |
 | Running with a Pomodoro | The elapsed time as above; the countdown is on the Pomodoro button (2.8) | As above |
 
 Starting while another entry runs, from any surface, stops the running entry at the new start (`start(projectID:task:at:)`). The task field's commit timing, autocompletion, and `@` trigger are those of [spec_timer.md](spec_timer.md) §2.2; the suggestions appear as a list above the keyboard.
@@ -60,7 +60,7 @@ Continuing an entry whose project is archived shows the Mac Timer's alert ("Rest
 
 ### 2.6 The recent list
 
-Grouping, headers, day totals (today's live with the running entry), the 14-day paging, and the row content are those of [spec_timer.md](spec_timer.md) §3. Section headers use `.headline` in the primary color, without uppercasing. The running entry is the first row of Today, its live duration in the accent color, without a continue button or swipes; a tap opens its edit sheet. Each other row has a 32 pt continue button at the trailing edge.
+Grouping, headers, day totals (today's live with the running entry), the 14-day paging, and the row content are those of [spec_timer.md](spec_timer.md) §3. Section headers use `.headline` in the primary color, without uppercasing. The running entry is the first row of Today, its live duration in the accent color, without a continue button or swipes; a tap opens its edit sheet, and a long press its context menu: Edit, Copy Task, Discard (with the card's confirmation). Each other row has a 32 pt continue button at the trailing edge.
 
 | Gesture | Action |
 |---|---|
@@ -71,7 +71,7 @@ Grouping, headers, day totals (today's live with the running entry), the 14-day 
 
 ### 2.7 Entry editing
 
-A sheet with the task field (autocompletion, no `@` trigger), the project chip, Start and End as date-and-time pickers, the resulting duration, "Created on <device name>" from the `Device` record in the secondary color, and Continue and Delete buttons. Done saves, Cancel discards. For the running entry End reads "Running" and only Start, task, and project change.
+A sheet with the task field (autocompletion, no `@` trigger), the project chip, Start and End as date-and-time pickers, the resulting duration, "Created on <device name>" from the `Device` record in the secondary color, and Continue and Delete buttons. Done saves, Cancel discards. For the running entry End reads "Running" and only Start, task, and project change. Opening the sheet first stores a task still being typed on the card, so the sheet shows it; Done writes only the fields the sheet changed, so a task stored meanwhile is kept when only Start or the project changed.
 
 The future, overlap, and midnight-chain rules and their messages are those of [spec_timer.md](spec_timer.md) §4.2 and §4.3, checked on Done. An interval that crosses midnight shows "Will be saved as 2 entries, split at midnight" under the duration before saving.
 
@@ -356,6 +356,7 @@ The iPad reads the block log through `ActivityReading` and the Mac's activity fr
 - IOS-39. The iPad's menu context follows the Mac's: in the Timer tab Set Project… and Find are enabled and the Project menu's items are not; in Projects the Project menu's commands are enabled, Find focuses the search field, Set Project… is disabled, ⌘O on a selected project starts a timer on it, and with an area row selected the Project menu acts on the area and ⌘O has no project; in Calendar the Calendar's Entry and View commands, Go to Today, and the period commands are enabled but Find is not; Reports and Activity enable the period commands, and Date Range… opens their date popover.
 - IOS-40. With Sleep on in the synced settings, the iPhone asks for sleep access at the next foreground and imports the night; turning Workouts on asks for both kinds and imports the workout; a refresh task imports without asking; with both off nothing is asked.
 - IOS-41. An import records the synced import status with the device name and the kinds read; a refresh 10 minutes later leaves it unchanged, turning Workouts on rewrites it with both kinds at once, and a refresh an hour later moves its time.
+- IOS-42. Tapping the card's elapsed time, tapping the running row, and the running row's Edit open the running entry's sheet with its task and End "Running"; the running row's context menu also has Copy Task and Discard. Moving Start 15 minutes earlier and Done moves the card's elapsed time by 15 minutes and keeps the task on the card and in the row; a task typed on the card just before is the sheet's task and is kept; a task stored after the sheet loaded is kept when Done changes only Start and the project.
 
 ## 13. Decisions
 
