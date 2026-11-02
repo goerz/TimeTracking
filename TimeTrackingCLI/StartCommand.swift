@@ -22,7 +22,7 @@ struct StartCommand: AsyncParsableCommand {
     @Option(help: ArgumentHelp("The project's client, when its name is ambiguous.", valueName: "name"))
     var client: String?
 
-    @Option(help: ArgumentHelp("Start time, at most 24 hours back.", valueName: "time"))
+    @Option(parsing: .unconditional, help: ArgumentHelp("Start time, at most 24 hours back.", valueName: "time"))
     var at: String?
 
     @Flag(help: "Allow overlapping a stopped entry.")

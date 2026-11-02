@@ -46,9 +46,9 @@ Global options may come before or after the subcommand. The options `--json` and
 
 ### 3.2 Dates and ranges
 
-Date arguments (`--from`, `--to`, `--day`, `--week`, `--month`, `--at`, `--start`, `--end`) accept `2026-10-29`, `2026-10-29T09:15` (offset optional), `2026-W44`, `2026-10`, the words `today`, `yesterday`, `week`, `last-week`, `month`, `last-month`, `year`, and `-3d`, `-2w`, `-1m`.
+Date arguments (`--from`, `--to`, `--day`, `--week`, `--month`, `--at`, `--start`, `--end`) accept `2026-10-29`, `2026-10-29T09:15` (offset optional), `2026-W44`, `2026-10`, the words `today`, `yesterday`, `tomorrow`, `week`, `last-week`, `month`, `last-month`, `year`, and `-3d`, `-2w`, `-1m`. A date option takes the next argument as its value even when it starts with a dash, so `--from -3d` works as well as `--from=-3d`.
 
-Days run midnight to midnight, local time; weeks run Monday to Sunday. The range `--from A --to B` is half-open (`--to` names the first day excluded). The options `--day`, `--week`, and `--month` are shorthands. Defaults: `entries` today, `report` the current week. A range over 366 days is a usage error unless `--all-time` is given. Ranges may include future days.
+Days run midnight to midnight, local time; weeks run Monday to Sunday. The range `--from A --to B` is half-open (`--to` names the first day excluded). A `--from` or `--to` with a time of day is an instant bound instead of a day: `--from 2026-11-01T04:00 --to 2026-11-02T04:00` selects the entries whose start lies in that half-open interval of instants, and either bound may be a day while the other is an instant. In JSON, `from` and `to` echo an instant bound as ISO 8601 with offset (`2026-11-01T04:00:00+01:00`) and a day bound as its date. The options `--day`, `--week`, and `--month` are shorthands and always mean whole days. Defaults: `entries` today, `report` the current week. A range over 366 days is a usage error unless `--all-time` is given. Ranges may include future days.
 
 ### 3.3 Names and identifiers
 
@@ -110,9 +110,9 @@ Create and edit refuse with exit 4 an overlap (unless `--force`), an end in the 
 
 ### 3.7 Report
 
-Synopsis: `timetracking report [range] [--group-by KEYS] [--granularity total|day|week|month] [--hours] [--project NAME] [--client NAME] [--area NAME] [--task TEXT] [--no-project]`
+Synopsis: `timetracking report [range] [--group-by KEYS] [--granularity total|day|week|month] [--hours] [--health] [--project NAME] [--client NAME] [--area NAME] [--task TEXT] [--no-project]`
 
-The option `--group-by` is an ordered list of up to four of `client`, `area`, `project`, `task`, `day` (default `client,area,project`); `--granularity` defaults to `total`. The tool calls the library's report query, the one Reports uses. The table has one row per group, one column per period, a Total column, and a totals row; durations print as `h:mm:ss`, or decimal hours with two decimals under `--hours`. JSON:
+The option `--group-by` is an ordered list of up to four of `client`, `area`, `project`, `task`, `day` (default `client,area,project`); `--granularity` defaults to `total`. The tool calls the library's report query, the one Reports uses. The table has one row per group, one column per period, a Total column, and a totals row; durations print as `h:mm:ss`, or decimal hours with two decimals under `--hours`. The sleep and workouts that Reports count (`spec_reports.md` §1.1) count in the tool's report only with `--health`, so a script's totals are tracked time unless it asks for more. With an instant bound (3.2), the entries starting inside the interval count, each whole in its day as in Reports, and health time is cut at the bounds; the periods are those of the days the interval touches. JSON:
 
 ```json
 {
@@ -173,7 +173,7 @@ Errors go to stderr as one line starting with `error:`, or with `--json` as `{"e
 
 ## 4. The description file and `check`
 
-The description file states which clients exist, their areas and colors, and the standing projects that must be active in each area. The command `check FILE [--client NAME] [--fix]` compares the store with it and prints one line per difference; a matching store prints nothing and exits 0.
+The description file states which clients exist, their areas and colors, and the standing projects that must be active in each area. The command `check FILE [--client NAME] [--fix] [--strict]` compares the store with it and prints one line per difference; a matching store prints nothing and exits 0.
 
 ### 4.1 Format
 
@@ -213,8 +213,9 @@ Violations print in rule order, then alphabetically. With `--client`, only that 
 | 4 | Every standing project exists and is active in its listed area | `missing project: University / Research / Grant renewal`, `archived project: University / Teaching / Grading`, `wrong area: University / Noise paper is in Teaching, expected Research` |
 | 5 | Every active project belongs to a listed area | `unlisted area: Personal / Garden (active projects: Fence, Pond)` |
 | 6 | Every client with an active project is listed | `unlisted client: Side business (active projects: 3)` |
+| 7 | With `--strict`: every active project in a listed area is listed | `unlisted project: University / Teaching / Grading` |
 
-Unlisted active projects in a listed area, and unlisted areas without active projects, are not reported. With `--json`: `{"inconsistencies": [{"rule", "kind", "client", "area", "project", "actual", "expected", "message"}]}`, where `kind` is one of `missing-client`, `missing-area`, `retired-area`, `color-mismatch`, `missing-project`, `archived-project`, `wrong-area`, `unlisted-area`, `unlisted-client`.
+Without `--strict`, unlisted active projects in a listed area are not reported; with it, rule 7 reports each active project in a listed area whose name no area of its client lists (a project listed under another area is rule 4's `wrong area`). The file then states every active project, so a generator can list each area's standing projects together with the projects another system keeps open, and one strict check finds both sides' differences. Unlisted areas without active projects are never reported. With `--json`: `{"inconsistencies": [{"rule", "kind", "client", "area", "project", "actual", "expected", "message"}]}`, where `kind` is one of `missing-client`, `missing-area`, `retired-area`, `color-mismatch`, `missing-project`, `archived-project`, `wrong-area`, `unlisted-area`, `unlisted-client`, `unlisted-project`.
 
 ### 4.3 `check --fix`
 
@@ -229,7 +230,7 @@ unarchived project: University / Teaching / Grading
 created project: University / Research / Grant renewal
 ```
 
-It never archives, moves, renames, or deletes. Remaining violations print afterwards as in a plain check; exit 6 if any remain, else 0. With `--json`: `{"actions": [{"kind", "client", "area", "project", "message"}], "inconsistencies": [...]}`, with kinds `created-client`, `created-area`, `recolored-area`, `unretired-area`, `unarchived-project`, `created-project`.
+It never archives, moves, renames, or deletes, so it leaves rule 7's projects alone. Remaining violations print afterwards as in a plain check; exit 6 if any remain, else 0. With `--json`: `{"actions": [{"kind", "client", "area", "project", "message"}], "inconsistencies": [...]}`, with kinds `created-client`, `created-area`, `recolored-area`, `unretired-area`, `unarchived-project`, `created-project`.
 
 ## 5. App Intents
 
@@ -336,7 +337,7 @@ The tool tests build the Debug tool, create a fixture store from a JSON export, 
 28. Running `import --dry-run` prints the same summary as the real import and leaves the store's modification time unchanged.
 29. Running `export --from 2026-10-01` or `export --what entries` without `--format csv` exits 2.
 30. Running `export --format csv --what entries` writes the Entries CSV of 8.2 with LF endings, RFC 4180 quoting of a task with a comma and a quote, and the running entry's empty `stop`.
-31. Running `report --csv --granularity total --group-by client,area,project` writes the header `client,area,project,seconds,duration,share,entries` and is byte-identical to the Reports Breakdown export for the same range, levels, and filters.
+31. Running `report --csv --granularity total --group-by client,area,project` writes the header `client,area,project,seconds,duration,share,entries` and is byte-identical to the Reports Breakdown export for the same range, levels, and filters (with `--health` when Reports count health time).
 32. A write command waiting on another process's 2-second write transaction succeeds; with a 10-second lock it exits 5.
 33. A successful write command posts `<APP_ID>.changed` once and appends one outbox row per changed record; a failed one does neither.
 34. Every read command succeeds on a store in a read-only directory and leaves its modification time unchanged.
@@ -346,6 +347,11 @@ The tool tests build the Debug tool, create a fixture store from a JSON export, 
 38. (App) Opening `timetracking://start?project=Noise%20paper&task=Hello` while the Mac app runs starts that entry without activating the app; `?project=Nonexistent` starts nothing and shows an alert; `timetracking://delete` shows "This link isn't one the app understands."
 39. (App) `StopTimerIntent` with nothing running returns nil and "Nothing is running." without throwing; `StartTimerIntent` with an archived project throws the tool's exit-4 message; without `inferProject` it never infers a project.
 40. (App) After the tool starts an entry while the Mac app runs, the menu bar shows it within 1 second.
+41. Running `entries --from 2026-10-28T09:30 --to 2026-10-29T09:00 --json` lists exactly the entries starting in that interval of instants, with `from` `2026-10-28T09:30:00+01:00` and `to` `2026-10-29T09:00:00+01:00`; `report` over the same bounds totals those entries; a `--to` before the `--from` exits 2.
+42. Running `entries --from -3d --json` exits 0 with `from` `2026-10-26`; `--day -1d` and `report --week -1w` resolve likewise.
+43. With sleep shown and mapped to an area, `report --day 2026-10-28 --json` leaves the night out and `--health` adds its part of that day as the project "Sleep"; over instant bounds the library's report cuts it at the bounds.
+44. Running `check --strict` on a file that omits an active project of a listed area prints `unlisted project: University / Teaching / Grading` (JSON kind `unlisted-project`, rule 7) and exits 6, while a plain `check` prints nothing; `check --strict --fix` keeps the project active.
+45. Running `entries --from today --to tomorrow --json` covers exactly today.
 
 ## 10. Decisions
 

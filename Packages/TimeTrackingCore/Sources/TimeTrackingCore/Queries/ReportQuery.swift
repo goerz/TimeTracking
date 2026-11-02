@@ -79,6 +79,13 @@ public struct ReportQuery: Hashable, Sendable {
     public var groupBy: [GroupKey]
     public var granularity: Granularity
     public var filter: EntryFilter
+    /// Instant bounds inside `days` (the tool's `--from` or `--to` with a
+    /// time of day): only entries starting inside count, and health time
+    /// is cut at them; `nil` for whole days.
+    public var bounds: DateInterval?
+    /// Whether mapped health periods count (spec_reports.md §1.1); the
+    /// tool's `report` sets it only with `--health`.
+    public var includeHealth = true
 
     public init(
         days: ClosedRange<TrackingDay>,

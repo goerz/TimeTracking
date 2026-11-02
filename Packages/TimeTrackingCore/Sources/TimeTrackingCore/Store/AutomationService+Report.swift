@@ -30,12 +30,14 @@ extension AutomationService {
         return filter
     }
 
-    /// The report the tool prints: the library's report query over `range`.
+    /// The report the tool prints: the library's report query over `range`
+    /// (cut at its instant bounds), with health time only when `includeHealth`.
     public func report(
         range: DayRange,
         groupBy: [GroupKey],
         granularity: Granularity,
-        filter: EntryFilter = EntryFilter()
+        filter: EntryFilter = EntryFilter(),
+        includeHealth: Bool = false
     ) async throws(AutomationError) -> ReportResult {
         guard (1 ... 4).contains(groupBy.count), Set(groupBy).count == groupBy.count else {
             throw .usage("--group-by takes one to four distinct keys of client, area, project, task, day.")
@@ -43,10 +45,18 @@ extension AutomationService {
         guard let days = range.days else {
             throw .usage("The range is empty.")
         }
-        let query = ReportQuery(days: days, groupBy: groupBy, granularity: granularity, filter: filter)
+        var query = ReportQuery(days: days, groupBy: groupBy, granularity: granularity, filter: filter)
+        query.bounds = range.bounds(in: calendar)
+        query.includeHealth = includeHealth
         let store = store
         let root = try await run { try await store.report(query) }
-        return ReportResult(range: range, query: query, root: root, periods: calendar.periods(granularity, covering: days))
+        return ReportResult(
+            range: range,
+            query: query,
+            root: root,
+            periods: calendar.periods(granularity, covering: days),
+            timeZone: calendar.timeZone
+        )
     }
 }
 
@@ -57,6 +67,8 @@ public struct ReportResult: Hashable, Sendable {
     public var root: ReportNode
     /// Every period of the range, empty and future ones included.
     public var periods: [TrackingPeriod]
+    /// The zone of the instants `from` and `to` echo.
+    public var timeZone: TimeZone
 
     /// One row per leaf group and period with a non-zero duration, period
     /// by period.
@@ -90,8 +102,8 @@ public struct ReportResult: Hashable, Sendable {
     public var json: JSONValue {
         let groupBy = query.groupBy
         return .object([
-            "from": .string(range.from.description),
-            "to": .string(range.to.description),
+            "from": .string(range.fromText(in: timeZone)),
+            "to": .string(range.toText(in: timeZone)),
             "granularity": .string(query.granularity.rawValue),
             "groupBy": .array(groupBy.map { .string($0.rawValue) }),
             "rows": .array(rows.map { row in

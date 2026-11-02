@@ -35,8 +35,8 @@ public enum AutomationRecords {
     /// `{"from", "to", "entries", "total"}`.
     public static func entries(_ result: EntriesResult, timeZone: TimeZone) -> JSONValue {
         .object([
-            "from": .optional(result.range?.from.description),
-            "to": .optional(result.range?.to.description),
+            "from": .optional(result.range?.fromText(in: timeZone)),
+            "to": .optional(result.range?.toText(in: timeZone)),
             "entries": .array(result.listings.map { entry($0, now: result.now, timeZone: timeZone) }),
             "total": .int(result.totalSeconds),
         ])

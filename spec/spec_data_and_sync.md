@@ -436,7 +436,7 @@ public protocol Reporting: Sendable {
 }
 ```
 
-A report counts each entry whose `day` lies in the range whole in its day, the running one up to the query time, so the Timer list and Reports agree. Client and area grouping use the project's current area. A health kind that is shown and mapped to a live area by its setting adds one row per day it touches, its part of that day, under the fixed project id `kind.reportProjectID` named "Sleep" or "Workouts" in that area, with an empty task; the filters treat it as a project of that area with no record ([spec_reports.md](spec_reports.md) §1.1). `entries(matching:)` returns entries only. The `ReportCSVWriter` writes the Breakdown and Entries CSV whose columns spec_automation.md defines.
+A report counts each entry whose `day` lies in the range whole in its day, the running one up to the query time, so the Timer list and Reports agree. Client and area grouping use the project's current area. A health kind that is shown and mapped to a live area by its setting adds one row per day it touches, its part of that day, under the fixed project id `kind.reportProjectID` named "Sleep" or "Workouts" in that area, with an empty task; the filters treat it as a project of that area with no record ([spec_reports.md](spec_reports.md) §1.1). `entries(matching:)` returns entries only. A query's `includeHealth` (default on; the tool's `report` turns it on only with `--health`) leaves the health rows out when off, and its optional `bounds`, instants inside the days, keep only the entries starting inside them and cut health time at them (the tool's instant ranges, spec_automation.md §3.2). The `ReportCSVWriter` writes the Breakdown and Entries CSV whose columns spec_automation.md defines.
 
 ### 7.4 Observation
 

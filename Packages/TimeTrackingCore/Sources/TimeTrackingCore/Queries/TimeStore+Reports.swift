@@ -137,6 +137,9 @@ extension TimeStore: Reporting {
         }
         .map(TimeEntry.init(row:))
         .filter { entry in
+            if let bounds = query.bounds, entry.start < bounds.start || entry.start >= bounds.end {
+                return false
+            }
             let project = entry.projectID.flatMap { projects[$0.rawValue] }
             return Self.passes(project, projectID: entry.projectID, filter: filter)
                 && Self.matches(filter.search, task: entry.task, project: project)
@@ -149,6 +152,8 @@ extension TimeStore: Reporting {
         let filter = query.filter
         let needle = filter.taskContains?.folded ?? ""
         let now = Int64(clock.now.timeIntervalSince1970.rounded(.down))
+        let lower = query.bounds.map { Int64($0.start.timeIntervalSince1970.rounded(.up)) } ?? Int64.min
+        let upper = query.bounds.map { Int64($0.end.timeIntervalSince1970.rounded(.up)) } ?? Int64.max
         let groups = try read { database in
             try Row.fetchAll(
                 database,
@@ -157,9 +162,10 @@ extension TimeStore: Reporting {
                   SUM(MAX(0, COALESCE(e."end", ?) - e.start)) AS seconds, MAX(e."end" IS NULL) AS running
                 FROM time_entry e
                 WHERE e.deleted_at IS NULL AND e.day >= ? AND e.day <= ? AND (? = '' OR instr(e.task_key, ?) > 0)
+                  AND e.start >= ? AND e.start < ?
                 GROUP BY e.project_id, e.task, e.day
                 """,
-                arguments: [now, query.days.lowerBound.description, query.days.upperBound.description, needle, needle]
+                arguments: [now, query.days.lowerBound.description, query.days.upperBound.description, needle, needle, lower, upper]
             )
         }
         var periods: [String: (TrackingDay, TrackingPeriod)] = [:]
@@ -188,7 +194,7 @@ extension TimeStore: Reporting {
                 running: row["running"]
             )
         }
-        return try entryRows + healthReportRows(query)
+        return try entryRows + (query.includeHealth ? healthReportRows(query) : [])
     }
 
     /// Every project by its id text, with its area and client.

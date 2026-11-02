@@ -5,8 +5,8 @@ public import Foundation
 
 /// A parsed date argument: an instant (`2026-10-29T09:15`, offset optional)
 /// or a period of whole days (`2026-10-29`, `2026-W44`, `2026-10`, `today`,
-/// `yesterday`, `week`, `last-week`, `month`, `last-month`, `year`, `-3d`,
-/// `-2w`, `-1m`).
+/// `yesterday`, `tomorrow`, `week`, `last-week`, `month`, `last-month`,
+/// `year`, `-3d`, `-2w`, `-1m`).
 public enum DateArgument: Equatable, Sendable {
     case instant(Date)
     /// The days from `from` up to, not including, `to`.
@@ -43,6 +43,14 @@ public enum DateArgument: Equatable, Sendable {
         return DayRange(TrackingPeriod(granularity, containing: first))
     }
 
+    /// The instant of an argument with a time of day; `nil` for a period.
+    var instantBound: Date? {
+        if case let .instant(date) = self {
+            return date
+        }
+        return nil
+    }
+
     /// The instant meant by `--at`, `--start`, or `--end`: a period means
     /// the start of its first day.
     public func instant(in calendar: TrackingCalendar) -> Date {
@@ -56,6 +64,7 @@ public enum DateArgument: Equatable, Sendable {
         switch word {
         case "today": DayRange(TrackingPeriod(.day, containing: today))
         case "yesterday": DayRange(TrackingPeriod(.day, containing: today.adding(days: -1)))
+        case "tomorrow": DayRange(TrackingPeriod(.day, containing: today.adding(days: 1)))
         case "week": DayRange(TrackingPeriod(.week, containing: today))
         case "last-week": DayRange(TrackingPeriod(.week, containing: today.adding(days: -7)))
         case "month": DayRange(TrackingPeriod(.month, containing: today))
@@ -100,14 +109,43 @@ public enum DateArgument: Equatable, Sendable {
     }
 }
 
-/// A half-open range of days, `from` included, `to` excluded.
+/// A half-open range of days, `from` included, `to` excluded, optionally
+/// narrowed to instant bounds inside those days (`--from` or `--to` with a
+/// time of day).
 public struct DayRange: Hashable, Sendable {
     public var from: TrackingDay
     public var to: TrackingDay
+    /// The first instant included; `nil` for the start of `from`.
+    public var start: Date?
+    /// The first instant excluded; `nil` for the start of `to`.
+    public var end: Date?
 
     public init(from: TrackingDay, to: TrackingDay) {
         self.from = from
         self.to = to
+    }
+
+    /// The days covering `start ..< end`, with both kept as bounds; a `nil`
+    /// bound is the start of `from` or `to`.
+    init(from: TrackingDay, to: TrackingDay, start: Date?, end: Date?, calendar: TrackingCalendar) {
+        let last = end.map { end in
+            let day = calendar.day(containing: end)
+            return calendar.startOfDay(day) < end ? day.adding(days: 1) : day
+        }
+        self.init(from: start.map { calendar.day(containing: $0) } ?? from, to: last ?? to)
+        self.start = start
+        self.end = end
+    }
+
+    /// `from` as the JSON echoes it: the instant (ISO 8601 with offset)
+    /// when one bounds the range, else the day.
+    public func fromText(in timeZone: TimeZone) -> String {
+        start.map { ReportCSVWriter.timestamp($0, in: timeZone) } ?? from.description
+    }
+
+    /// `to` likewise.
+    public func toText(in timeZone: TimeZone) -> String {
+        end.map { ReportCSVWriter.timestamp($0, in: timeZone) } ?? to.description
     }
 
     /// The days of a day, week, month, or year period.
@@ -124,9 +162,16 @@ public struct DayRange: Hashable, Sendable {
         to > from ? from ... to.adding(days: -1) : nil
     }
 
-    /// The instants from the start of `from` to the start of `to`.
+    /// The instants from `start` (the start of `from`) to `end` (the start
+    /// of `to`).
     public func interval(in calendar: TrackingCalendar) -> DateInterval {
-        DateInterval(start: calendar.startOfDay(from), end: max(calendar.startOfDay(from), calendar.startOfDay(to)))
+        let lower = start ?? calendar.startOfDay(from)
+        return DateInterval(start: lower, end: max(lower, end ?? calendar.startOfDay(to)))
+    }
+
+    /// The instant bounds, when either is set.
+    public func bounds(in calendar: TrackingCalendar) -> DateInterval? {
+        start == nil && end == nil ? nil : interval(in: calendar)
     }
 
     /// The longest range allowed without `--all-time`.
@@ -134,7 +179,8 @@ public struct DayRange: Hashable, Sendable {
 
     /// The range of the options `--from`/`--to` or `--day`/`--week`/`--month`;
     /// `defaultRange` when none is given, `nil` for all time. A `--from`
-    /// without `--to` runs through today.
+    /// without `--to` runs through today. A `--from` or `--to` with a time
+    /// of day is an instant bound; the shorthands always mean whole days.
     public static func resolve( // swiftlint:disable:this function_parameter_count
         from: DateArgument?,
         to: DateArgument?,
@@ -158,15 +204,16 @@ public struct DayRange: Hashable, Sendable {
         } else if let from {
             let start = from.firstDay(in: calendar)
             let end = to?.firstDay(in: calendar) ?? max(start, calendar.day(containing: now)).adding(days: 1)
-            range = Self(from: start, to: end)
+            range = Self(from: start, to: end, start: from.instantBound, end: to?.instantBound, calendar: calendar)
         } else if to != nil {
             throw .usage("--to needs --from.")
         }
         guard let range else {
             return allTime ? nil : defaultRange
         }
-        guard range.to > range.from else {
-            throw .usage("The range \(range.from) to \(range.to) is empty.")
+        let interval = range.interval(in: calendar)
+        guard range.to > range.from, interval.duration > 0 else {
+            throw .usage("The range \(range.fromText(in: calendar.timeZone)) to \(range.toText(in: calendar.timeZone)) is empty.")
         }
         if range.dayCount > maximumDays, !allTime {
             throw .usage("The range spans \(range.dayCount) days, more than \(maximumDays); add --all-time.")

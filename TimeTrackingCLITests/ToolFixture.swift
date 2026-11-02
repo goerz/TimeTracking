@@ -72,6 +72,20 @@ struct ToolFixture {
         return Int(sqlite3_column_int64(statement, 0))
     }
 
+    /// Runs `sql` on the store with SQLite directly (data the JSON import
+    /// cannot carry, such as health periods).
+    func execute(_ sql: String) throws {
+        var database: OpaquePointer?
+        guard sqlite3_open_v2(store.path, &database, SQLITE_OPEN_READWRITE, nil) == SQLITE_OK else {
+            sqlite3_close(database)
+            throw FixtureError.sqlite
+        }
+        defer { sqlite3_close(database) }
+        guard sqlite3_exec(database, sql, nil, nil, nil) == SQLITE_OK else {
+            throw FixtureError.sqlite
+        }
+    }
+
     /// The store file's modification time.
     var modificationDate: Date? {
         (try? FileManager.default.attributesOfItem(atPath: store.path))?[.modificationDate] as? Date

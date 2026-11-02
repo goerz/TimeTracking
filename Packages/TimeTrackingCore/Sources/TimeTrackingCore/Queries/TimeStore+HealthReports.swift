@@ -20,13 +20,16 @@ extension TimeStore {
             return []
         }
         let calendar = TrackingCalendar(timeZone: timeZone())
-        let range = calendar.interval(of: query.days)
+        let days = calendar.interval(of: query.days)
+        let range = query.bounds.flatMap { $0.intersection(with: days) } ?? days
         let periods = try healthPeriods(in: range).filter { projects[$0.kind] != nil }
         var sums: [HealthDayKey: (seconds: Int, count: Int)] = [:]
         for period in periods {
             var day = calendar.day(containing: max(period.start, range.start))
             while day <= query.days.upperBound {
-                guard let piece = period.interval.intersection(with: calendar.interval(of: day)), piece.start < range.end else {
+                guard let piece = period.interval.intersection(with: calendar.interval(of: day))?.intersection(with: range),
+                      piece.start < range.end
+                else {
                     break
                 }
                 if piece.duration > 0 {

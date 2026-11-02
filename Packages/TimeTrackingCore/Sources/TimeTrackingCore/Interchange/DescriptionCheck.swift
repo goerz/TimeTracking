@@ -16,6 +16,8 @@ public struct Inconsistency: Hashable, Sendable {
         case wrongArea = "wrong-area"
         case unlistedArea = "unlisted-area"
         case unlistedClient = "unlisted-client"
+        /// Only with `--strict`.
+        case unlistedProject = "unlisted-project"
 
         /// The rule number of the table in §4.2.
         public var rule: Int {
@@ -26,6 +28,7 @@ public struct Inconsistency: Hashable, Sendable {
             case .missingProject, .archivedProject, .wrongArea: 4
             case .unlistedArea: 5
             case .unlistedClient: 6
+            case .unlistedProject: 7
             }
         }
     }
@@ -128,8 +131,14 @@ struct StructureSnapshot {
 }
 
 enum DescriptionCheck {
-    /// The violations of §4.2 in rule order, then alphabetically.
-    static func inconsistencies(_ file: DescriptionFile, _ store: StructureSnapshot, client filter: String?) -> [Inconsistency] {
+    /// The violations of §4.2 in rule order, then alphabetically; rule 7
+    /// only when `strict`.
+    static func inconsistencies(
+        _ file: DescriptionFile,
+        _ store: StructureSnapshot,
+        client filter: String?,
+        strict: Bool = false
+    ) -> [Inconsistency] {
         var found: [Inconsistency] = []
         for description in described(file, filter) {
             guard let client = store.client(named: description.name) else {
@@ -140,6 +149,9 @@ enum DescriptionCheck {
                 found += check(areaDescription, of: client, in: store)
             }
             found += unlistedAreas(description, of: client, in: store)
+            if strict {
+                found += unlistedProjects(description, of: client, in: store)
+            }
         }
         if filter == nil {
             found += unlistedClients(file, in: store)
@@ -191,6 +203,22 @@ enum DescriptionCheck {
         return store.areas(of: client.id).filter { !listed.contains($0.id) }.compactMap { area in
             let active = projects.filter { $0.areaID == area.id && $0.isActive }.map(\.name).sorted { $0.folded < $1.folded }
             return active.isEmpty ? nil : .unlistedArea(Place(client: client.name, area: area.name), projects: active)
+        }
+    }
+
+    /// Rule 7: active projects in a listed area whose name no area of the
+    /// client lists (a project listed under another area is rule 4's).
+    private static func unlistedProjects(
+        _ description: DescriptionFile.ClientDescription,
+        of client: Client,
+        in store: StructureSnapshot
+    ) -> [Inconsistency] {
+        let listedNames = Set(description.areas.flatMap(\.projects).map(\.folded))
+        let projects = store.projects(of: client.id).filter { $0.isActive && !listedNames.contains($0.name.folded) }
+        return description.areas.compactMap { store.area(named: $0.name, in: client) }.flatMap { area in
+            projects.filter { $0.areaID == area.id }.map { project in
+                Inconsistency.unlistedProject(Place(client: client.name, area: area.name, project: project.name))
+            }
         }
     }
 
@@ -386,6 +414,10 @@ extension Inconsistency {
         Self(.unlistedArea, place, message: "unlisted area: \(place.path) (active projects: \(projects.joined(separator: ", ")))")
     }
 
+    static func unlistedProject(_ place: Place) -> Self {
+        Self(.unlistedProject, place, message: "unlisted project: \(place.path)")
+    }
+
     static func unlistedClient(_ name: String, activeProjects: Int) -> Self {
         Self(.unlistedClient, Place(client: name), message: "unlisted client: \(name) (active projects: \(activeProjects))")
     }
@@ -432,8 +464,9 @@ extension StoreTransaction {
 }
 
 extension AutomationService {
-    /// Compares the store with `file`; only `client` when given.
-    public func check(_ file: DescriptionFile, client: String? = nil) async throws(AutomationError) -> CheckResult {
+    /// Compares the store with `file`; only `client` when given; rule 7 too
+    /// when `strict`.
+    public func check(_ file: DescriptionFile, client: String? = nil, strict: Bool = false) async throws(AutomationError) -> CheckResult {
         let store = store
         let snapshot = try await run {
             try await StructureSnapshot(
@@ -442,14 +475,15 @@ extension AutomationService {
                 projects: store.projects(filter: ProjectFilter(state: .all)).map(\.project)
             )
         }
-        return CheckResult(actions: [], inconsistencies: DescriptionCheck.inconsistencies(file, snapshot, client: client))
+        return CheckResult(actions: [], inconsistencies: DescriptionCheck.inconsistencies(file, snapshot, client: client, strict: strict))
     }
 
-    /// Repairs what loses no information in one transaction, then checks again.
-    public func fix(_ file: DescriptionFile, client: String? = nil) async throws(AutomationError) -> CheckResult {
+    /// Repairs what loses no information in one transaction, then checks
+    /// again; `strict` adds rule 7 to that check and repairs nothing more.
+    public func fix(_ file: DescriptionFile, client: String? = nil, strict: Bool = false) async throws(AutomationError) -> CheckResult {
         let store = store
         let actions = try await run { try await store.transaction { try DescriptionCheck.fix(file, client: client, in: $0) } }
-        var result = try await check(file, client: client)
+        var result = try await check(file, client: client, strict: strict)
         result.actions = actions
         return result
     }

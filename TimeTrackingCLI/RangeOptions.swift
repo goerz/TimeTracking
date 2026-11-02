@@ -5,21 +5,26 @@ import ArgumentParser
 import Foundation
 import TimeTrackingCore
 
-/// `--from`, `--to`, `--day`, `--week`, `--month`, `--all-time`.
+/// `--from`, `--to`, `--day`, `--week`, `--month`, `--all-time`. The date
+/// options take the next argument as their value even when it starts with
+/// a dash (`--from -3d`).
 struct RangeOptions: ParsableArguments {
-    @Option(help: ArgumentHelp("First day (2026-10-29, 2026-W44, 2026-10, today, -3d, ...).", valueName: "date"))
+    @Option(
+        parsing: .unconditional,
+        help: ArgumentHelp("First day or instant (2026-10-29, 2026-10-29T04:00, 2026-W44, 2026-10, today, -3d, ...).", valueName: "date")
+    )
     var from: String?
 
-    @Option(help: ArgumentHelp("First day excluded.", valueName: "date"))
+    @Option(parsing: .unconditional, help: ArgumentHelp("First day or instant excluded.", valueName: "date"))
     var to: String?
 
-    @Option(help: ArgumentHelp("One day.", valueName: "date"))
+    @Option(parsing: .unconditional, help: ArgumentHelp("One day.", valueName: "date"))
     var day: String?
 
-    @Option(help: ArgumentHelp("One week, Monday to Sunday.", valueName: "date"))
+    @Option(parsing: .unconditional, help: ArgumentHelp("One week, Monday to Sunday.", valueName: "date"))
     var week: String?
 
-    @Option(help: ArgumentHelp("One month.", valueName: "date"))
+    @Option(parsing: .unconditional, help: ArgumentHelp("One month.", valueName: "date"))
     var month: String?
 
     @Flag(name: .customLong("all-time"), help: "Allow a range over 366 days; without a range, all time.")

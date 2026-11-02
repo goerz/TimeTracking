@@ -19,6 +19,9 @@ struct CheckCommand: AsyncParsableCommand {
     @Flag(help: "Create, recolor, un-retire, and unarchive what the file lists.")
     var fix = false
 
+    @Flag(help: "Also report active projects in a listed area that the file doesn't list.")
+    var strict = false
+
     @OptionGroup var global: GlobalOptions
 
     private static let noCSV = "check has no CSV form."
@@ -26,7 +29,8 @@ struct CheckCommand: AsyncParsableCommand {
     func run() async throws {
         let description = try DescriptionFile(contentsOf: URL(filePath: file))
         let (context, service) = try await ToolContext.open(global, writing: fix, csvMessage: Self.noCSV)
-        let result = try await fix ? service.fix(description, client: client) : service.check(description, client: client)
+        let result = try await fix ? service.fix(description, client: client, strict: strict)
+            : service.check(description, client: client, strict: strict)
         if global.csv {
             throw AutomationError.usage(Self.noCSV)
         }

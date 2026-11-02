@@ -22,6 +22,9 @@ struct ReportCommand: AsyncParsableCommand {
     @Flag(help: "Decimal hours instead of h:mm:ss.")
     var hours = false
 
+    @Flag(help: "Count the sleep and workouts the Calendar settings map to an area.")
+    var health = false
+
     @OptionGroup var global: GlobalOptions
 
     func run() async throws {
@@ -39,7 +42,13 @@ struct ReportCommand: AsyncParsableCommand {
         guard let range = try range.resolve(service, default: week) else {
             throw AutomationError.usage("A report needs a range; --all-time alone is not one.")
         }
-        let result = try await service.report(range: range, groupBy: keys, granularity: granularity, filter: filter.filter(service))
+        let result = try await service.report(
+            range: range,
+            groupBy: keys,
+            granularity: granularity,
+            filter: filter.filter(service),
+            includeHealth: health
+        )
         try context.emit(json: { result.json }, csv: { result.csv }, text: { table(result, colors: context.colors) })
     }
 

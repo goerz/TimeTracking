@@ -42,10 +42,10 @@ struct EntryCommand: AsyncParsableCommand {
         @Argument(help: "The task.")
         var task: String?
 
-        @Option(help: ArgumentHelp("Start time.", valueName: "time"))
+        @Option(parsing: .unconditional, help: ArgumentHelp("Start time.", valueName: "time"))
         var start: String
 
-        @Option(help: ArgumentHelp("End time.", valueName: "time"))
+        @Option(parsing: .unconditional, help: ArgumentHelp("End time.", valueName: "time"))
         var end: String
 
         @Option(help: ArgumentHelp("The project.", valueName: "name"))
@@ -82,10 +82,10 @@ struct EntryCommand: AsyncParsableCommand {
         @Argument(help: "The entry's id.")
         var id: String
 
-        @Option(help: ArgumentHelp("New start time.", valueName: "time"))
+        @Option(parsing: .unconditional, help: ArgumentHelp("New start time.", valueName: "time"))
         var start: String?
 
-        @Option(help: ArgumentHelp("New end time.", valueName: "time"))
+        @Option(parsing: .unconditional, help: ArgumentHelp("New end time.", valueName: "time"))
         var end: String?
 
         @Option(help: ArgumentHelp("New project.", valueName: "name"))

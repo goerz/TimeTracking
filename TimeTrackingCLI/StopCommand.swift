@@ -7,7 +7,7 @@ import TimeTrackingCore
 struct StopCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(commandName: "stop", abstract: "Stop the running entry.")
 
-    @Option(help: ArgumentHelp("Stop time.", valueName: "time"))
+    @Option(parsing: .unconditional, help: ArgumentHelp("Stop time.", valueName: "time"))
     var at: String?
 
     @OptionGroup var global: GlobalOptions
