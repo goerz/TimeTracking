@@ -12,6 +12,13 @@ import TimeTrackingCore
 /// `idle_close` without attention, on lock, sleep, display sleep, or a
 /// user switch (at the event time), at local midnight, by the split test,
 /// and on reaching `max_block` (`max_passive_block` when mostly passive).
+///
+/// A block that closes shorter than `min_block` is held back. Attention
+/// within its merge window (`idle_close` plus its own length) after its end
+/// reopens it, so it continues into the next block; otherwise it merges into
+/// the previous block of the same stream when that ended within the window
+/// before it (a `ClosedBlock` that replaces the previous one), or is dropped.
+/// Neither crosses midnight, a `flush`, or `max_block`.
 nonisolated struct Blocker: Sendable {
     /// The most one sample is credited with, so a missed tick cannot inflate `a`.
     static let defaultCreditCap: TimeInterval = 60
@@ -24,6 +31,10 @@ nonisolated struct Blocker: Sendable {
     let device: String
     let source: ActivitySource
     private(set) var open: OpenBlock?
+    /// A closed block shorter than `min_block`, waiting for a neighbor.
+    var held: RawBlock?
+    /// The last block handed out, for a backward merge.
+    var previous: RawBlock?
 
     init(settings: TrackerBlockSettings, timeZone: TimeZone, device: String, source: ActivitySource = .live) {
         self.settings = settings
@@ -77,6 +88,10 @@ nonisolated struct Blocker: Sendable {
                 closed += close(end: block.lastAttentive)
             }
         }
+        // After the midnight close, so a block held at midnight settles here.
+        if let short = held, !canContinue(short, at: time) {
+            closed += resolveHeld()
+        }
         if let event = sample.event, event.closesBlock {
             if open != nil {
                 credit(until: time)
@@ -92,7 +107,19 @@ nonisolated struct Blocker: Sendable {
             open?.pending = nil
             return closed
         }
-        if open == nil {
+        if open == nil, let short = held, canContinue(short, at: time) {
+            // Attention within the merge window: the short block continues,
+            // and the gap is absorbed without counting.
+            held = nil
+            open = OpenBlock(
+                start: short.start,
+                segments: short.segments,
+                background: short.background,
+                lastAttentive: time,
+                contexts: short.contexts
+            )
+        } else if open == nil {
+            closed += resolveHeld()
             open = OpenBlock(start: time, lastAttentive: time)
         } else {
             credit(until: time)
@@ -106,13 +133,17 @@ nonisolated struct Blocker: Sendable {
         return closed
     }
 
-    /// Closes the open block at its last attentive sample (end of a replay,
-    /// agent shutdown).
+    /// Closes the open block at its last attentive sample and settles a
+    /// held short block (end of a replay or a batch, agent shutdown); no
+    /// later block merges across it.
     mutating func flush() -> [ClosedBlock] {
-        guard let block = open else {
-            return []
+        var closed: [ClosedBlock] = []
+        if let block = open {
+            closed += close(end: block.lastAttentive)
         }
-        return close(end: block.lastAttentive)
+        closed += resolveHeld()
+        previous = nil
+        return closed
     }
 
     /// The open block as `current.json` shows it, or `nil`.
@@ -131,9 +162,12 @@ nonisolated struct Blocker: Sendable {
         )
     }
 
-    /// Drops the open block without writing it (`forget-day`, `delete-block`).
+    /// Drops the open block and a held short block without writing them
+    /// (`forget-day`, `delete-block`), and forgets the previous block.
     mutating func discardOpenBlock() {
         open = nil
+        held = nil
+        previous = nil
     }
 
     // MARK: Crediting and closing
@@ -154,23 +188,32 @@ nonisolated struct Blocker: Sendable {
         }
     }
 
-    /// Closes the whole open block at `end`.
+    /// Closes the whole open block at `end`; a block shorter than
+    /// `min_block` is held back.
     private mutating func close(end: Date) -> [ClosedBlock] {
         guard let block = open else {
             return []
         }
         open = nil
-        return finish(
+        let raw = RawBlock(
             start: block.start,
             end: max(block.start, end),
             segments: block.segments,
             background: block.background,
             contexts: block.contexts
         )
+        guard raw.length < settings.minBlock else {
+            return emit(raw)
+        }
+        if raw.segments.contains(where: { $0.seconds > 0 }) {
+            held = raw
+        }
+        return []
     }
 
-    private func finish(start: Date, end: Date, segments: [Segment], background: [Segment], contexts: [String: String]) -> [ClosedBlock] {
-        let summary = BlockSummary(segments: segments, background: background, settings: settings)
+    func finish(_ raw: RawBlock, replacesPrevious: Bool = false) -> [ClosedBlock] {
+        let (start, end, contexts) = (raw.start, raw.end, raw.contexts)
+        let summary = BlockSummary(segments: raw.segments, background: raw.background, settings: settings)
         guard summary.activeSeconds > 0 else {
             return []
         }
@@ -187,7 +230,13 @@ nonisolated struct Blocker: Sendable {
             source: source,
             background: summary.background
         )
-        return [ClosedBlock(block: block, detailItems: summary.detailItems, contexts: contexts.filter { used.contains($0.key) })]
+        let closed = ClosedBlock(
+            block: block,
+            detailItems: summary.detailItems,
+            contexts: contexts.filter { used.contains($0.key) },
+            replacesPrevious: replacesPrevious
+        )
+        return [closed]
     }
 
     // MARK: Split test and max_block
@@ -204,17 +253,20 @@ nonisolated struct Blocker: Sendable {
                 closed += split(at: best.index)
                 continue
             }
-            let passive = block.segments.filter(\.passive).reduce(0) { $0 + $1.seconds }
-            let total = block.segments.reduce(0) { $0 + $1.seconds }
-            let limit = total > 0 && Double(passive) / Double(total) > 0.5 ? settings.maxPassiveBlock : settings.maxBlock
-            guard length >= limit else {
+            guard length >= lengthLimit(block.segments) else {
                 break
             }
             if let best = SplitTest.best(in: block.segments, minHalf: 0, after: now.addingTimeInterval(-Self.maxBlockLookback)) {
                 closed += split(at: best.index)
                 continue
             }
-            closed += finish(start: block.start, end: now, segments: block.segments, background: block.background, contexts: block.contexts)
+            closed += emit(RawBlock(
+                start: block.start,
+                end: now,
+                segments: block.segments,
+                background: block.background,
+                contexts: block.contexts
+            ))
             open = OpenBlock(start: now, pending: block.pending, lastAttentive: block.lastAttentive, contexts: block.contexts)
             break
         }
@@ -228,13 +280,13 @@ nonisolated struct Blocker: Sendable {
             return []
         }
         let point = block.segments[index].start
-        let closed = finish(
+        let closed = emit(RawBlock(
             start: block.start,
             end: point,
             segments: Array(block.segments[..<index]),
             background: block.background.filter { $0.start < point },
             contexts: block.contexts
-        )
+        ))
         var rest = block
         rest.start = point
         rest.segments = Array(block.segments[index...])

@@ -55,7 +55,7 @@ struct SyncedSafariCollector {
             closed += blocker.add(Sample(time: visit.time, state: .active, primary: item, bundleID: BrowserApp.safariBundleID))
         }
         closed += blocker.flush()
-        return closed.map { attribute($0, urls: urlsByTime) }
+        return ClosedBlock.resolved(closed).map { attribute($0, urls: urlsByTime) }
     }
 
     /// Sets `dev` to the one device whose tab set gained a visited URL within the block.

@@ -75,7 +75,7 @@ struct BlockerTests {
         let midnight = try #require(ActivityTimestamp.date("2024-03-15T00:00:00", timeZone: zone))
         for source in [ActivitySource.live, .knowledge, .device] {
             var blocker = Blocker(settings: TrackerBlockSettings(), timeZone: zone, device: "macbook", source: source)
-            let samples = Self.stream([("a", 1200)], from: evening)
+            let samples = Self.stream([("a", 1260)], from: evening)
             let closed = samples.flatMap { blocker.add($0) } + blocker.flush()
             #expect(closed.count == 2)
             #expect(closed.first?.block.end == midnight)
@@ -120,6 +120,66 @@ struct BlockerTests {
         let passive = run(Self.stream([("a", 3 * 3600 + 60)], from: start, state: .passive), flush: false)
         #expect(passive.count == 1)
         #expect(passive.first?.block.end == start.addingTimeInterval(3 * 3600))
+    }
+
+    @Test("TRK-39 a short block continues into attention within its merge window")
+    func shortBlockContinues() {
+        let closed = run(Self.stream([("a", 240), (nil, 360), ("b", 480)], from: start))
+        #expect(closed.count == 1)
+        #expect(closed.first?.block.start == start)
+        #expect(closed.first?.block.end == start.addingTimeInterval(1050))
+        #expect(closed.first?.block.activeSeconds == 660)
+        #expect(closed.first?.replacesPrevious == false)
+    }
+
+    @Test("TRK-39 a short block after the window merges into the previous block, which it replaces")
+    func shortBlockMergesBack() {
+        let parts: [(String?, TimeInterval)] = [("a", 1200), (nil, 420), ("b", 240), (nil, 900)]
+        for flush in [false, true] {
+            let closed = run(Self.stream(parts, from: start), flush: flush)
+            #expect(closed.count == 2)
+            #expect(closed.first?.block.end == start.addingTimeInterval(1170))
+            let merged = closed.last
+            #expect(merged?.replacesPrevious == true)
+            #expect(merged?.block.id == closed.first?.block.id)
+            #expect(merged?.block.end == start.addingTimeInterval(1830))
+            #expect(merged?.block.activeSeconds == 1380)
+            #expect(Set(merged?.detailItems.map(\.context) ?? []) == ["a", "b"])
+            let resolved = ClosedBlock.resolved(closed)
+            #expect(resolved.count == 1)
+            #expect(resolved.first?.block == merged?.block)
+            #expect(resolved.first?.replacesPrevious == false)
+        }
+    }
+
+    @Test("TRK-39 a short block without a neighbor in its window is dropped")
+    func shortBlockDropped() {
+        #expect(run(Self.stream([("a", 240)], from: start)).isEmpty)
+        #expect(run(Self.stream([("a", 240), (nil, 900)], from: start), flush: false).isEmpty)
+        // 20 minutes, 10 away, 4 minutes: the gap exceeds idle_close plus the short block.
+        let closed = run(Self.stream([("a", 1200), (nil, 600), ("b", 240), (nil, 900)], from: start))
+        #expect(closed.count == 1)
+        #expect(closed.first?.block.end == start.addingTimeInterval(1170))
+        // Merging must not exceed max_block.
+        let long = run(Self.stream([("a", 5300), (nil, 420), ("b", 240), (nil, 900)], from: start))
+        #expect(long.map(\.replacesPrevious) == [false])
+    }
+
+    @Test("TRK-39 a short block is never merged across midnight")
+    func shortBlockMidnight() throws {
+        let evening = try #require(ActivityTimestamp.date("2024-03-14T23:30:00", timeZone: zone))
+        let midnight = try #require(ActivityTimestamp.date("2024-03-15T00:00:00", timeZone: zone))
+        // 20 minutes, 6 away, 3 before midnight, then activity right after it.
+        let closed = run(Self.stream([("a", 1200), (nil, 360), ("b", 180), (nil, 60), ("c", 900)], from: evening))
+        #expect(closed.map(\.block.start) == [evening, evening, midnight])
+        #expect(closed.map(\.replacesPrevious) == [false, true, false])
+        for block in closed.map(\.block) {
+            #expect(block.end <= midnight || block.start >= midnight)
+        }
+        // A short block right after midnight does not reach back.
+        let late = run(Self.stream([("a", 1500), (nil, 180), ("b", 240)], from: evening))
+        #expect(late.count == 1)
+        #expect(late.first?.block.end ?? .distantFuture <= midnight)
     }
 
     @Test("TRK-14 summaries merge, drop, keep, order, cap, and append background per 2.7; a never exceeds e minus s")

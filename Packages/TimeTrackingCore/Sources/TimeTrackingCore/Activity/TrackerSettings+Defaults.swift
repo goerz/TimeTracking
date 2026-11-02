@@ -31,10 +31,14 @@ extension TrackerSettings {
     # How the timeline is cut into blocks: a block closes after idle_close away,
     # is split in two once it is longer than split_after and its two halves (each
     # at least min_half) differ by split_threshold (0 to 1), and lasts at most
-    # max_block (max_passive_block when mostly passive). Its summary lists up to
-    # summary_lines items with at least summary_min_share of its time.
+    # max_block (max_passive_block when mostly passive). A block shorter than
+    # min_block continues when you come back within idle_close plus its length,
+    # else joins the block before it when that ended within the same time, else
+    # is not recorded. Its summary lists up to summary_lines items with at least
+    # summary_min_share of its time.
     split_after = "20m"
     min_half = "10m"
+    min_block = "10m"
     split_threshold = 0.7
     idle_close = "5m"
     max_block = "90m"

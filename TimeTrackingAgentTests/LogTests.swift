@@ -53,6 +53,35 @@ struct LogTests {
         }
     }
 
+    @Test("TRK-39 a short block merged into the previous block replaces its line in the block log and the detail log")
+    func shortBlockReplacesTheLine() async throws {
+        let harness = try AgentHarness(minBlock: nil)
+        harness.frontmost("com.apple.TextEdit", name: "TextEdit", title: "Notes")
+        await harness.run(for: 1200)
+        harness.engine.handle(.lock, at: harness.clock.now)
+        #expect(harness.blocks.count == 1)
+        let first = try #require(harness.blocks.first)
+        harness.advance(120)
+        harness.engine.handle(.unlock, at: harness.clock.now)
+        harness.schedule = TickSchedule(start: harness.clock.now)
+        harness.frontmost("com.apple.mail", name: "Mail", title: "Inbox")
+        await harness.run(for: 240)
+        let secondEnd = harness.clock.now
+        harness.engine.handle(.lock, at: secondEnd)
+        #expect(harness.blocks == [first])
+        await harness.run(for: 900)
+
+        let blocks = harness.blocks
+        #expect(blocks.count == 1)
+        #expect(blocks.first?.id == first.id)
+        #expect(blocks.first?.end == secondEnd)
+        #expect(Set(blocks.first?.items.map(\.context) ?? []) == ["textedit", "mail"])
+        let detailLines = harness.detailLogText.split(separator: "\n").filter { !$0.hasPrefix("{\"type\"") }
+        #expect(detailLines.count == 1)
+        #expect(harness.details.first?.blockID == first.id)
+        #expect(harness.details.first?.presence.contains { $0.state == .locked } == true)
+    }
+
     @Test("TRK-16 the shared folder holds only blocks/ and settings.toml, without urls, files, or presence keys")
     func sharedFolderContents() async throws {
         let harness = try AgentHarness(settings: "[presence]\nidle_after = \"2m\"\n")

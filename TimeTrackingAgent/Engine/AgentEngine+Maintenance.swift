@@ -101,15 +101,15 @@ extension AgentEngine {
             source: .knowledge
         )
         for gap in gaps {
+            var closed: [ClosedBlock] = []
             for sample in KnowledgeBackfill
                 .samples(apps: apps, displayOff: displayOff, in: gap, rules: rules, interval: Self.tickInterval)
             {
-                for closed in knowledgeBlocker.add(sample) {
-                    appendSummary(closed, kind: "knowledge")
-                }
+                closed += knowledgeBlocker.add(sample)
             }
-            for closed in knowledgeBlocker.flush() {
-                appendSummary(closed, kind: "knowledge")
+            closed += knowledgeBlocker.flush()
+            for block in ClosedBlock.resolved(closed) {
+                appendSummary(block, kind: "knowledge")
             }
         }
         try? store.setDate(until, for: Self.knowledgeWatermarkKey)

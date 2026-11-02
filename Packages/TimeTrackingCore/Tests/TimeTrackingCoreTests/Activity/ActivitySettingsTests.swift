@@ -12,6 +12,7 @@ struct ActivitySettingsTests {
         #expect(settings.presence.idleAfter == 120)
         #expect(settings.presence.passiveLimit == TimeInterval(3 * 3600))
         #expect(settings.blocks.maxBlock == 90 * 60)
+        #expect(settings.blocks.minBlock == 10 * 60)
         #expect(settings.blocks.summaryLines == 6)
         #expect(settings.terminal.titlePatterns == ["nvim": "^nvim (/.+)$"])
         #expect(settings.privacy.privateAgentPaths == ["~"])

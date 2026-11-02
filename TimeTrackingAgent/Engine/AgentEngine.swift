@@ -144,10 +144,25 @@ final class AgentEngine {
         writeCurrentState()
     }
 
-    /// Appends a closed block and its detail to the logs.
+    /// Appends a closed block and its detail to the logs; a block that
+    /// replaces the previous one (a short block merged into it) first
+    /// removes that block's lines and keeps its detail.
     func write(_ closed: ClosedBlock) {
-        let detail = detail(for: closed)
+        var detail = detail(for: closed)
         do {
+            if closed.replacesPrevious {
+                var earlier: ActivityBlockDetail?
+                try logs.rewrite(fromDay: closed.block.localDay, toDay: closed.block.localDay) { block, lineDetail, _ in
+                    guard block.id == closed.block.id, block.source == closed.block.source else {
+                        return .keep
+                    }
+                    earlier = lineDetail ?? earlier
+                    return .drop
+                }
+                if let earlier {
+                    detail = detail.including(earlier)
+                }
+            }
             try logs.append(closed, detail: detail)
         } catch {
             logger.error("block log: \(error.localizedDescription, privacy: .public)")

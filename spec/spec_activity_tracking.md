@@ -78,6 +78,14 @@ Each active tick appends its sample to the open block, opening one if none is op
 
 The split test runs on every tick once the open block exceeds `split_after`. For each candidate split point with at least `min_half` on each side, it compares the two sides as time-weighted distributions over group keys by weighted Jaccard distance: 1 minus the sum over keys of the smaller share divided by the sum of the larger share. If the best candidate reaches `split_threshold`, the first part closes as a block.
 
+No block is shorter than `min_block` (from `s` to `e`). A block that closes shorter is held back, unwritten, and merged or dropped. Its merge window is `idle_close` plus its own length:
+
+1. An active sample within the window after its end reopens it: it continues as the open block, and the gap is absorbed like a short idle gap (across a lock or sleep too).
+2. Otherwise, when the window has passed: if the previous block of the same stream (same device and `src`) ended within the window before its start, on the same date, and the two together stay within `max_block` (`max_passive_block` when mostly passive), the two merge into one block with the previous block's start. Its line replaces the previous block's line in both logs (the merged line is appended, the old one removed; the detail keeps the old line's URLs, files, presence, and dwell times).
+3. Otherwise it is dropped.
+
+Nothing merges across midnight or the end of a batch (a Knowledge reconstruction gap, a poll of synced history, a Focus that suspends collection, agent shutdown). The rule holds for every source, so the `knowledge`, `device`, and `remote` blocks of 3.2, 6.1, and 6.2 follow it too.
+
 ### 2.7 The block summary
 
 When a block closes:
@@ -241,10 +249,14 @@ passive_limit = "3h"
 # How the timeline is cut into blocks: a block closes after idle_close away,
 # is split in two once it is longer than split_after and its two halves (each
 # at least min_half) differ by split_threshold (0 to 1), and lasts at most
-# max_block (max_passive_block when mostly passive). Its summary lists up to
-# summary_lines items with at least summary_min_share of its time.
+# max_block (max_passive_block when mostly passive). A block shorter than
+# min_block continues when you come back within idle_close plus its length,
+# else joins the block before it when that ended within the same time, else
+# is not recorded. Its summary lists up to summary_lines items with at least
+# summary_min_share of its time.
 split_after = "20m"
 min_half = "10m"
+min_block = "10m"
 split_threshold = 0.7
 idle_close = "5m"
 max_block = "90m"
@@ -430,6 +442,7 @@ The pane has no editors for exclusions or options and no maintenance controls: t
 - TRK-36. The tmux snippet sets `focus-events` and has one hook line per hook of 3.1, each calling `tracker-event tmux <hook>` with its own hook name, which the agent accepts; the Claude Code snippet does the same for its three hooks; every call discards its output and exit status.
 - TRK-37. "Ask for Access" on the Automation row asks for exactly the browsers and terminals the agent reads through Apple Events, skipping those that are not open, and the row then lists each open app's answer; before the first ask the row shows no such line.
 - TRK-38. The first header of each block-log and detail-log month file carries `keys`, naming exactly the keys of that log's block lines with the labels of 4.2 and 4.3; later headers carry none.
+- TRK-39. With `min_block` 10 minutes and `idle_close` 5 minutes: 4 minutes active, 6 idle, then 8 active give one block over all 18 minutes; 20 active, 7 idle, then 4 active and nothing more give one block of 31 minutes in place of the first; 4 minutes active alone gives no block; a short block is never merged across midnight; and in the logs the merged block's line replaces the previous one.
 
 ## 10. Decisions
 

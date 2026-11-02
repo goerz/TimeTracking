@@ -8,6 +8,7 @@ public struct TrackerBlockSettings: Sendable, Hashable, Codable {
     enum CodingKeys: String, CodingKey {
         case splitAfter = "split_after"
         case minHalf = "min_half"
+        case minBlock = "min_block"
         case splitThreshold = "split_threshold"
         case idleClose = "idle_close"
         case maxBlock = "max_block"
@@ -18,6 +19,8 @@ public struct TrackerBlockSettings: Sendable, Hashable, Codable {
 
     public var splitAfter: TimeInterval = 1200
     public var minHalf: TimeInterval = 600
+    /// Shorter blocks merge into a neighbor or are dropped (§2.6).
+    public var minBlock: TimeInterval = 600
     public var splitThreshold = 0.7
     public var idleClose: TimeInterval = 300
     public var maxBlock: TimeInterval = 5400
@@ -32,6 +35,7 @@ public struct TrackerBlockSettings: Sendable, Hashable, Codable {
         let fallback = Self()
         self.splitAfter = try container.duration(.splitAfter, default: fallback.splitAfter)
         self.minHalf = try container.duration(.minHalf, default: fallback.minHalf)
+        self.minBlock = try container.duration(.minBlock, default: fallback.minBlock)
         self.splitThreshold = try container.number(.splitThreshold, default: fallback.splitThreshold)
         self.idleClose = try container.duration(.idleClose, default: fallback.idleClose)
         self.maxBlock = try container.duration(.maxBlock, default: fallback.maxBlock)
@@ -44,6 +48,7 @@ public struct TrackerBlockSettings: Sendable, Hashable, Codable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(TrackerDuration.format(splitAfter), forKey: .splitAfter)
         try container.encode(TrackerDuration.format(minHalf), forKey: .minHalf)
+        try container.encode(TrackerDuration.format(minBlock), forKey: .minBlock)
         try container.encode(splitThreshold, forKey: .splitThreshold)
         try container.encode(TrackerDuration.format(idleClose), forKey: .idleClose)
         try container.encode(TrackerDuration.format(maxBlock), forKey: .maxBlock)

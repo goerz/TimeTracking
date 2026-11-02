@@ -63,7 +63,7 @@ nonisolated struct DeviceEventMerger {
                 closed += blocker.flush()
             }
         }
-        return closed + blocker.flush()
+        return ClosedBlock.resolved(closed + blocker.flush())
     }
 
     // MARK: Stretches

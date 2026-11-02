@@ -32,8 +32,18 @@ final class AgentHarness {
     private(set) var engine: AgentEngine!
     var schedule: TickSchedule
 
-    /// A harness whose `settings.toml` holds `settings` (the defaults when `nil`).
-    init(settings: String? = nil, canWriteShared: Bool = true, recordFolder: URL? = nil, editorRPC: (any EditorRPC)? = nil) throws {
+    /// A harness whose `settings.toml` holds `settings` (the defaults when
+    /// `nil`) with `min_block` set to `minBlock`: `"0s"` unless a test
+    /// covers short blocks, so tests of other rules keep their short blocks;
+    /// `nil` keeps the file's value or the default.
+    init(
+        settings: String? = nil,
+        minBlock: String? = "0s",
+        canWriteShared: Bool = true,
+        recordFolder: URL? = nil,
+        editorRPC: (any EditorRPC)? = nil
+    ) throws {
+        let settings = Self.settings(settings, minBlock: minBlock)
         self.root = try TemporaryFolder.make("agent-tests")
         let shared = root.appending(path: "iCloud/Activity", directoryHint: .isDirectory)
         let local = root.appending(path: "Group/Activity", directoryHint: .isDirectory)
@@ -86,6 +96,19 @@ final class AgentHarness {
 
     deinit {
         try? FileManager.default.removeItem(at: root)
+    }
+
+    /// `settings` with `min_block = minBlock` in its `[blocks]` table.
+    static func settings(_ settings: String?, minBlock: String?) -> String? {
+        guard let minBlock else {
+            return settings
+        }
+        let line = "min_block = \"\(minBlock)\""
+        let text = settings ?? ""
+        guard let range = text.range(of: "[blocks]\n") else {
+            return text + "\n[blocks]\n\(line)\n"
+        }
+        return text.replacingCharacters(in: range, with: "[blocks]\n\(line)\n")
     }
 
     // MARK: Driving
