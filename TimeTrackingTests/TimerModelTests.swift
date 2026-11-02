@@ -132,9 +132,9 @@ struct TimerModelTests {
         let test = try await TestApp()
         let controller = MiniTimerController(settings: test.app.settings)
         #expect(!controller.hideOnAttach)
-        #expect(AppDelegate.hidesMainWindow(launchedAsLoginItem: true, showAtLogin: false))
-        #expect(!AppDelegate.hidesMainWindow(launchedAsLoginItem: true, showAtLogin: true))
-        #expect(!AppDelegate.hidesMainWindow(launchedAsLoginItem: false, showAtLogin: false))
+        #expect(LaunchWindow.shown(setting: .mainWindow, launchedAsLoginItem: true, showAtLogin: false) == nil)
+        #expect(LaunchWindow.shown(setting: .mainWindow, launchedAsLoginItem: true, showAtLogin: true) == .mainWindow)
+        #expect(LaunchWindow.shown(setting: .mainWindow, launchedAsLoginItem: false, showAtLogin: false) == .mainWindow)
         await test.app.timer.start()
         test.app.perform(.start)
         // Quit: the Pomodoro ends, the entry keeps running.
@@ -142,6 +142,17 @@ struct TimerModelTests {
         test.app.stop()
         #expect(test.app.pomodoro.state == .off)
         #expect(try await test.store.runningEntry() != nil)
+    }
+
+    @Test("TM-38 At launch, show: the Mini Timer instead of the main window, at login only with Also show it at login")
+    func launchWindowSetting() {
+        let settings = AppSettings.ephemeral()
+        #expect(settings.launchWindow == .mainWindow)
+        settings.launchWindow = .miniTimer
+        #expect(AppSettings(device: settings.device).launchWindow == .miniTimer)
+        #expect(LaunchWindow.shown(setting: .miniTimer, launchedAsLoginItem: false, showAtLogin: false) == .miniTimer)
+        #expect(LaunchWindow.shown(setting: .miniTimer, launchedAsLoginItem: true, showAtLogin: false) == nil)
+        #expect(LaunchWindow.shown(setting: .miniTimer, launchedAsLoginItem: true, showAtLogin: true) == .miniTimer)
     }
 
     @Test("TM-31 the continue/stop shortcut stops or continues; Show the Mini Timer when an entry starts shows it")

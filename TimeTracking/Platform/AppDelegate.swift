@@ -138,10 +138,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let window = MiniTimerController(settings: app.settings)
         // Set before the main window's view appears: host.load published the
         // model in this same main-actor turn.
-        app.hidesMainWindowOnAttach = Self.hidesMainWindow(
+        let shown = LaunchWindow.shown(
+            setting: app.settings.launchWindow,
             launchedAsLoginItem: launchedAsLoginItem,
             showAtLogin: app.settings.showTimerAtLogin
         )
+        // The main window opens at every launch (it hands the router its
+        // actions) and closes again unless it is the window to show.
+        app.hidesMainWindowOnAttach = shown != .mainWindow
         window.onKeyChange = { [weak app] in app?.timerKeyChanged() }
         let router = WindowRouter(miniTimerWindow: window)
         router.app = app
@@ -154,6 +158,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         miniTimerWindow = window
         self.router = router
+        if shown == .miniTimer {
+            // Waits in the router until the main window's view hands over
+            // `openWindow`.
+            router.showTimer(focusTask: false)
+        }
         let status = StatusItemController(app: app)
         statusItem = status
         let events = SystemEvents(app: app, statusItem: status)
@@ -208,12 +217,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// "Open at login": never the real login item under `-UITesting`.
     static func appLoginItem(uiTesting: Bool) -> AppLoginItemService {
         uiTesting ? FakeAppLoginItem() : MainAppLoginItem()
-    }
-
-    /// Launched as a login item, the app shows only the menu bar item unless
-    /// "Show the main window at login" is on.
-    static func hidesMainWindow(launchedAsLoginItem: Bool, showAtLogin: Bool) -> Bool {
-        launchedAsLoginItem && !showAtLogin
     }
 
     /// Activation fetches from CloudKit, whose silent pushes can lag

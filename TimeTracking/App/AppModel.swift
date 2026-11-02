@@ -37,8 +37,8 @@ final class AppModel {
     /// of a section.
     var showsTimer = true
 
-    /// Launched as a login item with "Show the main window at login" off:
-    /// the main window closes as it appears.
+    /// The launch shows no window or the Mini Timer (`LaunchWindow`): the
+    /// main window closes as it appears.
     @ObservationIgnored var hidesMainWindowOnAttach = false
 
     /// Sync and live updates; `nil` under `-UITesting` and in tests.

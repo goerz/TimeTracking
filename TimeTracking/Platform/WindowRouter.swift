@@ -13,7 +13,12 @@ final class WindowRouter: AppRouting {
     weak var app: AppModel?
     /// Captured from a scene's environment (`RouterActions`).
     var openSettingsAction: OpenSettingsAction?
-    var openWindowAction: OpenWindowAction?
+    var openWindowAction: OpenWindowAction? {
+        didSet { openPending() }
+    }
+
+    /// Scenes asked for before any view handed over `openWindowAction`.
+    private var pendingWindowIDs: [String] = []
 
     init(miniTimerWindow: MiniTimerController) {
         self.miniTimerWindow = miniTimerWindow
@@ -26,7 +31,7 @@ final class WindowRouter: AppRouting {
     func showTimer(focusTask: Bool) {
         if miniTimerWindow.window == nil {
             NSApp.activate()
-            openWindowAction?(id: "timer")
+            open(id: "timer")
         } else {
             miniTimerWindow.show()
         }
@@ -55,14 +60,35 @@ final class WindowRouter: AppRouting {
         open(id: MainWindowSetup.sceneID)
     }
 
-    /// No scene has handed over its actions when no window appeared since
-    /// launch.
+    /// Before the main window's view has handed over its actions (early in
+    /// a launch), the request waits for them.
     private func open(id: String) {
         guard let openWindowAction else {
-            Self.logger.fault("No openWindow action for \(id, privacy: .public)")
+            if !pendingWindowIDs.contains(id) {
+                pendingWindowIDs.append(id)
+            }
             return
         }
         openWindowAction(id: id)
+    }
+
+    /// The actions arrive in a view's `onAppear`, inside a SwiftUI update
+    /// that would drop a window opened there; the next turn opens it.
+    private func openPending() {
+        guard openWindowAction != nil, !pendingWindowIDs.isEmpty else {
+            return
+        }
+        Task { @MainActor [weak self] in
+            guard let self, let openWindowAction else {
+                return
+            }
+            let ids = pendingWindowIDs
+            pendingWindowIDs = []
+            for id in ids {
+                Self.logger.notice("Opening \(id, privacy: .public) at launch")
+                openWindowAction(id: id)
+            }
+        }
     }
 
     /// Where the Settings window's `@AppStorage` reads its last pane.

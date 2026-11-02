@@ -95,7 +95,12 @@ struct GeneralPane: View {
                     set: { app.tracker.setOpensAtLogin($0) }
                 ))
                 .accessibilityIdentifier("settings.openAtLogin")
-                Toggle("Show the main window at login", isOn: $settings.showTimerAtLogin)
+                Picker("At launch, show", selection: $settings.launchWindow) {
+                    Text("Main window").tag(LaunchWindow.mainWindow)
+                    Text("Mini Timer").tag(LaunchWindow.miniTimer)
+                }
+                .accessibilityIdentifier("settings.launchWindow")
+                Toggle("Also show it at login", isOn: $settings.showTimerAtLogin)
                     .disabled(!app.tracker.opensAtLogin)
             }
             menuBarSection
