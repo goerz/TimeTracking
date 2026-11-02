@@ -87,15 +87,15 @@ The column shows the day's blocks from `ActivityReading`, plus on the Mac today'
 
 With Sleep or Workouts on (section 6), the health periods of the day ([spec_data_and_sync.md](spec_data_and_sync.md) §1.9) are 4 point lines centered in the column over their time, rounded at the ends: sleep dark blue, workouts dark green, on the Mac and the iPad. A night that crosses midnight shows on both days. A line lies under the blocks and over a gap's thin lines, and the gap's label stays readable on a background of its own over it. Its tooltip reads "Sleep 7h 10m" or "Workout 45m".
 
-### 3.2 Hover popover
+### 3.2 Block popover
 
-After 400 ms of hover a popover opens beside the block (left of it in the rightmost day):
+A click selects the block and opens a popover beside it (left of it in the rightmost day); hovering shows only the border and the "+" button:
 
 - Time range, duration, device ("09:10 – 09:44 · 34m · MacBook"; with several devices each with its time, "MacBook 30m, iPhone 4m"; `remote` reads "Other devices (Safari)"), the group key's name and share ("paper (tmux), 71% of this time"), "34m, 31m active" when `a` is less than the span, and with reconstructed time "Reconstructed from macOS app usage history" (all of it) or "12m reconstructed from macOS app usage history";
 - Items in log order (app by name, a session as "paper (tmux)"; subject and detail; the device when the block has several; minutes), then secondaries ("In the background: Claude refactor-parser, 12m");
 - "Create Entry…" (3.3).
 
-It closes on Escape or when the pointer leaves block and popover. A click selects the block and keeps the popover open; Space on a selected block equals "Create Entry…".
+It closes on Escape or a click elsewhere; Space on a selected block equals "Create Entry…".
 
 ### 3.3 Entries from a block
 

@@ -9,6 +9,8 @@ import TimeTrackingCore
 /// - a counted ladder step k (not `early`) covers the minutes since the
 ///   set's previous counted step, ending at its time (one minute for the
 ///   day's first), with the set's label as context, subject, and group key;
+///   "Everything" says only that the device was used, so its item is the
+///   device's name as context and group key, without a subject;
 /// - a web extension tab covers up to a minute, until the next tab, as a
 ///   `safari` item under the browser rules of §3.3 and the exclusions;
 /// - an `appOpened` automation covers the time to the matching
@@ -43,18 +45,19 @@ nonisolated struct DeviceEventMerger {
         }
         let dayStart = ActivityTimestamp.startOfDay(first.time, timeZone: timeZone)
         let dayEnd = ActivityTimestamp.nextMidnight(after: first.time, timeZone: timeZone)
-        let stretches = (ladder(sorted, dayStart: dayStart) + web(sorted) + intents(sorted) + app(sorted)).compactMap { stretch in
-            let start = max(stretch.start, dayStart)
-            let end = min(stretch.end, dayEnd)
-            return end > start ? TimelineStretch(start: start, end: end, item: stretch.item, device: device, rank: stretch.rank) : nil
-        }
+        let stretches = (ladder(sorted, dayStart: dayStart, device: device) + web(sorted) + intents(sorted) + app(sorted))
+            .compactMap { stretch in
+                let start = max(stretch.start, dayStart)
+                let end = min(stretch.end, dayEnd)
+                return end > start ? TimelineStretch(start: start, end: end, item: stretch.item, device: device, rank: stretch.rank) : nil
+            }
         let closers = sorted.filter { $0.source == .focus && $0.kind == "on" && !$0.payloadBool("collect", default: true) }.map(\.time)
         return (stretches, closers)
     }
 
     // MARK: Stretches
 
-    private func ladder(_ events: [DeviceEvent], dayStart: Date) -> [Stretch] {
+    private func ladder(_ events: [DeviceEvent], dayStart: Date, device: String) -> [Stretch] {
         var previous: [String: (step: Int, time: Date)] = [:]
         var result: [Stretch] = []
         for event in events where event.source == .ladder && event.kind == "minute" && !event.payloadBool("early", default: false) {
@@ -69,7 +72,9 @@ nonisolated struct DeviceEventMerger {
             let start = max(last?.time ?? dayStart, event.time.addingTimeInterval(-TimeInterval(minutes) * 60))
             previous[event.label] = (step, event.time)
             let everything = event.label == LadderSet.everythingLabel
-            let item = SampleItem(context: event.label, subject: event.label, groupKey: event.label, app: "ladder")
+            let item = everything
+                ? SampleItem(context: device, subject: "", groupKey: device, app: "ladder")
+                : SampleItem(context: event.label, subject: event.label, groupKey: event.label, app: "ladder")
             result.append(Stretch(start: start, end: event.time, item: item, rank: everything ? 1 : 3))
         }
         return result

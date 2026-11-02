@@ -99,7 +99,7 @@ struct DeviceTests {
         #expect(harness.blocks.count == 1)
         #expect(block.activeSeconds == 600)
         let seconds = Dictionary(uniqueKeysWithValues: block.items.map { ($0.context, $0.seconds) })
-        #expect(seconds == ["Everything": 420, "Mail": 180])
+        #expect(seconds == ["iPhone": 420, "Mail": 180])
     }
 
     @Test func tabsAutomationsAndTheAppBecomeItems() async throws {

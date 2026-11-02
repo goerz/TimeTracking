@@ -66,8 +66,9 @@ struct TimelineTests {
         #expect(block.end == harness.time(2100))
         #expect(Self.shares(block) == [Self.mac: 1800, "iPhone": 300])
         #expect(block.deviceNames.first == Self.mac)
-        #expect(block.items.contains { $0.context == "Everything" && $0.device == "iPhone" && $0.seconds == 300 })
-        #expect(harness.blockLogText.contains(#"["Everything","Everything","",300,"iPhone"]"#))
+        #expect(block.items.contains { $0.context == "iPhone" && $0.subject.isEmpty && $0.device == "iPhone" && $0.seconds == 300 })
+        #expect(harness.blockLogText.contains(#"["iPhone","","",300,"iPhone"]"#))
+        #expect(!harness.blockLogText.contains("Everything"))
     }
 
     @Test("TRK-40 iPhone use while the Mac has attention is a background item and adds no active time")
@@ -83,7 +84,7 @@ struct TimelineTests {
         #expect(harness.blocks.count == 1)
         #expect(Self.shares(block) == [Self.mac: 1200])
         #expect(block.activeSeconds == 1200)
-        #expect(block.background.map { "\($0.context) \($0.device) \($0.seconds)" } == ["Everything iPhone 600"])
+        #expect(block.background.map { "\($0.context) \($0.device) \($0.seconds)" } == ["iPhone iPhone 600"])
     }
 
     @Test("TRK-40 overlapping iPhone and iPad use forms one block in which the more specific iPad app wins its minutes")

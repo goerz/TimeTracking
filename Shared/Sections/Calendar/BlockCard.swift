@@ -12,7 +12,6 @@ struct BlockCard: View {
     var size: CGSize
     @State private var hovering = false
     @State private var showsPopover = false
-    @State private var hoverTask: Task<Void, Never>?
 
     var body: some View {
         let selected = model.selection.contains(.block(block.id))
@@ -47,7 +46,7 @@ struct BlockCard: View {
         .phaseAnimator([false, true], trigger: model.isHighlighted(block)) { view, phase in
             view.scaleEffect(model.isHighlighted(block) && phase ? 1.04 : 1)
         }
-        .onHover(perform: hover)
+        .onHover { hovering = $0 }
         .accessibilityAddTraits(.isButton)
         .onTapGesture {
             model.select(.block(block.id))
@@ -96,19 +95,6 @@ struct BlockCard: View {
         }
         if block.deviceNames.contains(ActivityDeviceTime.remote) {
             Image(systemName: SymbolName.otherDevices).imageScale(.small).accessibilityHidden(true)
-        }
-    }
-
-    private func hover(_ inside: Bool) {
-        hovering = inside
-        hoverTask?.cancel()
-        if inside {
-            hoverTask = Task {
-                try? await Task.sleep(for: .milliseconds(400))
-                if !Task.isCancelled {
-                    showsPopover = true
-                }
-            }
         }
     }
 

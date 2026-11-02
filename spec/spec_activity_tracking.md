@@ -228,7 +228,7 @@ The iOS app writes raw, labeled `DeviceEvent` records per device, exclusions app
 
 The cap on monitored events is undocumented; phase 7 measures it and sets the ladder steps.
 
-The Devices module turns each device-day's events into stretches of the timeline (2.8) on the device's name: a counted ladder minute covers the minutes since the set's previous counted step, with the set's label as context, subject, and group key; a web extension tab covers up to a minute, until the next tab, as a browser item under the rules of 3.3; an automation covers a minute, or from `appOpened` to `appClosed`, with its label; the app covers the time from its foreground to its background. Gaps over `idle_close` separate blocks, and a Focus that suspends collection closes the open block. The agent deletes stored events older than 90 days.
+The Devices module turns each device-day's events into stretches of the timeline (2.8) on the device's name: a counted ladder minute covers the minutes since the set's previous counted step, with the set's label as context, subject, and group key, except that "Everything" (any app) is recorded as the device's name as context and group key, without a subject; a web extension tab covers up to a minute, until the next tab, as a browser item under the rules of 3.3; an automation covers a minute, or from `appOpened` to `appClosed`, with its label; the app covers the time from its foreground to its background. Gaps over `idle_close` separate blocks, and a Focus that suspends collection closes the open block. The agent deletes stored events older than 90 days.
 
 ## 7. Settings and exclusions
 
