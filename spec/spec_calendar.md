@@ -83,7 +83,7 @@ Trim (default) shortens the changed entry to abut the neighbor; Overlap forces t
 
 ### 3.1 Blocks
 
-The column shows the day's blocks from `ActivityReading`, plus on the Mac today's open block, which grows with the now-line. A card is a light neutral tint (`Color.activityBlock`, the secondary label color), the same for every context, with a 3 point left border in that color only while the pointer is over it: the context colors of [spec_activity.md](spec_activity.md) §1.3 would mostly repeat the terminal's or the browser's color while line 1 names the project, and they would compete with the entries' area colors beside them. Line 1 is the group key as the Activity section names it ("paper (tmux)", "github.com/owner"; [spec_activity.md](spec_activity.md) §1.3), never the raw key; line 2 is the dominant item's subject and detail. Secondaries add a "+1" badge; `src` `knowledge` blocks are hatched; `src` `device` blocks carry a phone or tablet glyph by the platform of the `Device` named by `dev`; `dev` `remote` blocks carry a cloud glyph. Parts covered by entries are dimmed to 50% opacity. On the Mac, a gap over 15 minutes between blocks of any device shows its duration as a faint label ("22m", "1h 10m"), centered in the gap, with a thin vertical line above and below it to the gap's ends.
+The column shows the day's blocks from `ActivityReading`, plus on the Mac today's open block, which grows with the now-line. A card is a light neutral tint (`Color.activityBlock`, the secondary label color), the same for every context, with a 3 point left border in that color only while the pointer is over it: the context colors of [spec_activity.md](spec_activity.md) §1.3 would mostly repeat the terminal's or the browser's color while line 1 names the project, and they would compete with the entries' area colors beside them. Line 1 is the group key as the Activity section names it ("paper (tmux)", "github.com/owner"; [spec_activity.md](spec_activity.md) §1.3), never the raw key; line 2 is the dominant item's subject and detail. Secondaries add a "+1" badge; a block mostly reconstructed from macOS app usage history (`rec` over half of `a`) is hatched; a block with time on an iPhone or iPad carries a phone or tablet glyph by the platform of that `Device`; a block with `remote` time carries a cloud glyph. Parts covered by entries are dimmed to 50% opacity. On the Mac, a gap over 15 minutes between blocks of any device shows its duration as a faint label ("22m", "1h 10m"), centered in the gap, with a thin vertical line above and below it to the gap's ends.
 
 With Sleep or Workouts on (section 6), the health periods of the day ([spec_data_and_sync.md](spec_data_and_sync.md) §1.9) are 4 point lines centered in the column over their time, rounded at the ends: sleep dark blue, workouts dark green, on the Mac and the iPad. A night that crosses midnight shows on both days. A line lies under the blocks and over a gap's thin lines, and the gap's label stays readable on a background of its own over it. Its tooltip reads "Sleep 7h 10m" or "Workout 45m".
 
@@ -91,8 +91,8 @@ With Sleep or Workouts on (section 6), the health periods of the day ([spec_data
 
 After 400 ms of hover a popover opens beside the block (left of it in the rightmost day):
 
-- Time range, duration, device ("09:10 – 09:44 · 34m · MacBook"; `remote` reads "Other devices (Safari)"), the group key's name and share ("paper (tmux), 71% of this time"), "34m, 31m active" when `a` is less than the span, and for `src` `knowledge` "Reconstructed from macOS app usage history";
-- Items in log order (app by name, a session as "paper (tmux)"; subject and detail; minutes), then secondaries ("In the background: Claude refactor-parser, 12m");
+- Time range, duration, device ("09:10 – 09:44 · 34m · MacBook"; with several devices each with its time, "MacBook 30m, iPhone 4m"; `remote` reads "Other devices (Safari)"), the group key's name and share ("paper (tmux), 71% of this time"), "34m, 31m active" when `a` is less than the span, and with reconstructed time "Reconstructed from macOS app usage history" (all of it) or "12m reconstructed from macOS app usage history";
+- Items in log order (app by name, a session as "paper (tmux)"; subject and detail; the device when the block has several; minutes), then secondaries ("In the background: Claude refactor-parser, 12m");
 - "Create Entry…" (3.3).
 
 It closes on Escape or when the pointer leaves block and popover. A click selects the block and keeps the popover open; Space on a selected block equals "Create Entry…".
@@ -103,7 +103,7 @@ The hover "+" button, a drag into the Tracked column (vertical position ignored)
 
 ### 3.4 Delete This Activity
 
-On the Mac, a closed block's context menu has "Delete This Activity…". It asks "Delete this activity?" with the block's range and group key name ("09:10 – 09:44 · paper (tmux)") and "This removes it on every device and cannot be undone.", buttons Delete (destructive) and Cancel (default). Delete sends `delete-block <dev> <s>` to the tracker agent ([spec_activity_tracking.md](spec_activity_tracking.md) §7.3); the card disappears when the rewritten month file arrives, and an `error` answer shows in an alert titled "Couldn't Delete This Activity" with the app's sentence for the reply, never the reply itself. Entries are untouched.
+On the Mac, a closed block's context menu has "Delete This Activity…". It asks "Delete this activity?" with the block's range and group key name ("09:10 – 09:44 · paper (tmux)") and "This removes it on every device and cannot be undone.", buttons Delete (destructive) and Cancel (default). Delete sends `delete-block <s>` to the tracker agent ([spec_activity_tracking.md](spec_activity_tracking.md) §7.3); the card disappears when the rewritten month file arrives, and an `error` answer shows in an alert titled "Couldn't Delete This Activity" with the app's sentence for the reply, never the reply itself. Entries are untouched.
 
 ## 4. Calendar column
 
@@ -202,9 +202,9 @@ Per device: `pointsPerHour` (72), `visibleDays` (5), column toggles (on), the re
 9. A 12 minute overlap shows Trim / Overlap / Cancel with the 2.6 results; 1 minute or less is trimmed silently; overlapping entries are drawn at half width with "⚠ 2 overlaps".
 10. Delete then ⌘Z restores the entry with the same id and fields; the running entry asks first and comes back stopped.
 11. Split Here at 10:00 on 09:00 to 11:00 gives two abutting entries; at 10:59:30 it is refused. Duplicate to Next Day is refused when the copy would not be entirely past.
-12. A block half covered by entries is dimmed on that half; device and remote blocks show their glyphs.
+12. A block half covered by entries is dimmed on that half; blocks with iPhone, iPad, or remote time show their glyphs.
 13. The "+" on a 09:10 to 09:44 block with its first 20 minutes covered opens the popover for 09:30 to 09:44.
-14. A confirmed "Delete This Activity…" sends one `delete-block <dev> <s>`; Cancel sends nothing; the open block and the iPad do not offer it.
+14. A confirmed "Delete This Activity…" sends one `delete-block <s>`; Cancel sends nothing; the open block and the iPad do not offer it.
 15. With no time-block calendar the app creates "Time Blocks" in the iCloud source and writes `calendar.timeBlockCalendarID`; a second device whose identifier lookup fails finds it by title.
 16. A drawn time block is saved as an event with title, project URL, start, and end, and no store record; ⌘Z after Delete recreates it with the same fields.
 17. Notes "Project: noise model" link the one active "Noise Model"; with two matches the block is unlinked and says "Several projects are named “noise model”"; a URL wins over the notes.

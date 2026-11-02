@@ -46,16 +46,17 @@ nonisolated enum Replay {
         let offset = text.split(separator: "\n").lazy.compactMap { SampleCodec.header($0)?.utcOffset }.first ?? 0
         let timeZone = TimeZone(secondsFromGMT: offset) ?? .gmt
         let device = parsed.device.isEmpty ? "mac" : parsed.device
-        var blocker = Blocker(settings: settings.blocks, timeZone: timeZone, device: device)
-        var closed: [ClosedBlock] = []
-        for sample in parsed.samples {
-            closed += blocker.add(sample)
-        }
-        closed += blocker.flush()
+        let result = Timeline.run(
+            TimelineInputs(mac: parsed.samples),
+            settings: settings.blocks,
+            timeZone: timeZone,
+            mac: device,
+            flush: true
+        )
         let folder = FileManager.default.temporaryDirectory.appending(path: "replay-\(UUID().uuidString)", directoryHint: .isDirectory)
         defer { try? FileManager.default.removeItem(at: folder) }
         var writer = BlockLogWriter(folder: folder, device: device)
-        for block in ClosedBlock.resolved(closed) {
+        for block in result.closed {
             try writer.append(block.block, contexts: block.contexts)
         }
         return try monthFilesText(in: folder)

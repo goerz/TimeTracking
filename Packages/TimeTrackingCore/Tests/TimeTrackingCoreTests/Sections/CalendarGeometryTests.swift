@@ -225,7 +225,7 @@ struct CalendarGeometryTests {
             start: Self.time("2026-10-29T09:00"),
             end: Self.time("2026-10-29T09:30"),
             activeSeconds: 1500,
-            device: "macbook",
+            devices: [ActivityDeviceTime(name: "macbook", seconds: 1500)],
             groupKey: "safari",
             groupShare: 1,
             items: [],

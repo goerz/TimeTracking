@@ -69,23 +69,20 @@ struct BlockerTests {
         #expect(closedAt == start.addingTimeInterval(1350))
     }
 
-    @Test("TRK-11 a block open at midnight ends at 00:00:00 and no block of any src spans two dates")
+    @Test("TRK-11 a block open at midnight ends at 00:00:00 and no block spans two dates")
     func midnight() throws {
         let evening = try #require(ActivityTimestamp.date("2024-03-14T23:50:00", timeZone: zone))
         let midnight = try #require(ActivityTimestamp.date("2024-03-15T00:00:00", timeZone: zone))
-        for source in [ActivitySource.live, .knowledge, .device] {
-            var blocker = Blocker(settings: TrackerBlockSettings(), timeZone: zone, device: "macbook", source: source)
-            let samples = Self.stream([("a", 1260)], from: evening)
-            let closed = samples.flatMap { blocker.add($0) } + blocker.flush()
-            #expect(closed.count == 2)
-            #expect(closed.first?.block.end == midnight)
-            #expect(closed.first?.block.activeSeconds == 600)
-            #expect(closed.last?.block.start == midnight.addingTimeInterval(0))
-            for block in closed.map(\.block) {
-                let last = block.end.addingTimeInterval(block.end > block.start ? -1 : 0)
-                #expect(ActivityTimestamp.day(block.start, timeZone: zone) == ActivityTimestamp.day(last, timeZone: zone))
-                #expect(block.source == source)
-            }
+        var blocker = Blocker(settings: TrackerBlockSettings(), timeZone: zone, device: "macbook")
+        let samples = Self.stream([("a", 1260)], from: evening)
+        let closed = samples.flatMap { blocker.add($0) } + blocker.flush()
+        #expect(closed.count == 2)
+        #expect(closed.first?.block.end == midnight)
+        #expect(closed.first?.block.activeSeconds == 600)
+        #expect(closed.last?.block.start == midnight.addingTimeInterval(0))
+        for block in closed.map(\.block) {
+            let last = block.end.addingTimeInterval(block.end > block.start ? -1 : 0)
+            #expect(ActivityTimestamp.day(block.start, timeZone: zone) == ActivityTimestamp.day(last, timeZone: zone))
         }
     }
 
@@ -189,7 +186,8 @@ struct BlockerTests {
                 start: start.addingTimeInterval(TimeInterval(minute * 60)),
                 seconds: seconds,
                 item: SampleItem(context: key, subject: subject, detail: detail, groupKey: key, app: key),
-                passive: false
+                passive: false,
+                device: "macbook"
             )
         }
         let segments = [
@@ -207,18 +205,20 @@ struct BlockerTests {
                 start: start,
                 seconds: 400,
                 item: SampleItem(context: "claude", subject: "refactor", groupKey: "claude", app: "claude"),
-                passive: false
+                passive: false,
+                device: "macbook"
             ),
             Blocker.Segment(
                 start: start,
                 seconds: 200,
                 item: SampleItem(context: "tmux:tools", subject: "x", groupKey: "tmux:tools", app: "tmux"),
-                passive: false
+                passive: false,
+                device: "macbook"
             ),
         ]
         var settings = TrackerBlockSettings()
         settings.summaryMinShare = 0.1
-        let summary = BlockSummary(segments: segments, background: background, settings: settings)
+        let summary = BlockSummary(segments: segments, background: background, settings: settings, mac: "macbook")
         #expect(summary.activeSeconds == 1710)
         #expect(summary.detailItems.count == 8)
         #expect(summary.items.map(\.context) == ["tmux:paper", "safari", "notes"])
@@ -228,7 +228,7 @@ struct BlockerTests {
         #expect(summary.groupKey == "tmux:paper")
         #expect(summary.groupShare == 0.7)
         settings.summaryLines = 2
-        #expect(BlockSummary(segments: segments, background: [], settings: settings).items.count == 2)
+        #expect(BlockSummary(segments: segments, background: [], settings: settings, mac: "macbook").items.count == 2)
 
         let fixture = AgentHarness.fixtureURL("samples/2024-03-14.jsonl")
         let produced = try Replay.blockLog(samplesText: String(contentsOf: fixture, encoding: .utf8), settings: .defaults)

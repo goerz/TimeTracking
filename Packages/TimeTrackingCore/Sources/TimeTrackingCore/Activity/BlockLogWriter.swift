@@ -1,10 +1,11 @@
 // BlockLogWriter: appending blocks to the month files of the block log or
-// the detail log (spec_activity_tracking.md §4.2, §4.3).
+// the day files of the detail log (spec_activity_tracking.md §4.2, §4.3).
 
 public import Foundation
 
-/// Appends blocks to `<folder>/YYYY-MM.jsonl`, writing a header where the
-/// format requires one.
+/// Appends blocks to `<folder>/YYYY-MM.jsonl` (the block log) or
+/// `<folder>/YYYY-MM-DD.jsonl` (the detail log), writing a header where
+/// the format requires one.
 ///
 /// A header goes at the start of a file, after a time zone change, and
 /// before the first block using a context the current header's `contexts`
@@ -15,21 +16,35 @@ public import Foundation
 public struct BlockLogWriter: Sendable {
     /// The folder of the month files, e.g. `Activity/blocks/`.
     public let folder: URL
-    /// The device name for headers.
+    /// The recording Mac's name for headers.
     public let device: String
+    /// Whether a file holds a month or a day.
+    public let period: Period
     private var known: [String: KnownFile] = [:]
 
-    public init(folder: URL, device: String) {
+    /// The span of one file.
+    public enum Period: Sendable {
+        case month
+        case day
+
+        /// The file name of `block`'s file without the extension.
+        func key(of block: ActivityBlock) -> String {
+            self == .month ? block.month : block.localDay
+        }
+    }
+
+    public init(folder: URL, device: String, period: Period = .month) {
         self.folder = folder
         self.device = device
+        self.period = period
     }
 
-    /// The month file `YYYY-MM.jsonl`.
-    public func fileURL(forMonth month: String) -> URL {
-        folder.appending(path: "\(month).jsonl", directoryHint: .notDirectory)
+    /// The file `<key>.jsonl`, e.g. `2026-10.jsonl` or `2026-10-28.jsonl`.
+    public func fileURL(for key: String) -> URL {
+        folder.appending(path: "\(key).jsonl", directoryHint: .notDirectory)
     }
 
-    /// Appends `block` to the file of its local month. `contexts` maps the
+    /// Appends `block` to the file of its local month or day. `contexts` maps the
     /// block's contexts to bundle identifiers or process names (a context
     /// missing from it is recorded with `""`). With `detail`, the line is a
     /// detail-log line: the uncut items plus URLs, files, and presence.
@@ -38,9 +53,9 @@ public struct BlockLogWriter: Sendable {
         contexts: [String: String],
         detail: ActivityBlockDetail? = nil
     ) throws(ActivityError) {
-        let month = block.month
-        let url = fileURL(forMonth: month)
-        var state = try knownFile(month: month, url: url)
+        let key = period.key(of: block)
+        let url = fileURL(for: key)
+        var state = try knownFile(key: key, url: url)
         var text = ""
         let blockContexts = block.contexts + (detail?.items.map(\.context) ?? [])
         let missing = blockContexts.filter { state.header?.contexts[$0] == nil }
@@ -58,12 +73,12 @@ public struct BlockLogWriter: Sendable {
         }
         text += BlockLogLine.block(block, detail: detail).jsonText + "\n"
         state.size = try Self.append(Data(text.utf8), to: url)
-        known[month] = state
+        known[key] = state
     }
 
-    private func knownFile(month: String, url: URL) throws(ActivityError) -> KnownFile {
+    private func knownFile(key: String, url: URL) throws(ActivityError) -> KnownFile {
         let size = Self.size(of: url)
-        if let state = known[month], state.size == size {
+        if let state = known[key], state.size == size {
             return state
         }
         guard let size, size > 0 else {
@@ -95,7 +110,7 @@ public struct BlockLogWriter: Sendable {
     }
 }
 
-/// What the writer knows about a month file.
+/// What the writer knows about a file.
 private struct KnownFile {
     var size: Int?
     var header: BlockLogHeader?

@@ -26,9 +26,11 @@ nonisolated struct SampleItem: Hashable, Sendable {
     }
 }
 
-/// The identity of an item in a summary.
+/// The identity of an item in a summary; `device` is set where a summary
+/// keeps the devices apart.
 nonisolated struct ItemKey: Hashable, Sendable {
     var context: String
     var subject: String
     var detail: String
+    var device = ""
 }

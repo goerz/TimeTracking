@@ -3,13 +3,14 @@
 
 public import Foundation
 
-/// A header of a month file: the time zone, the device, the map from
+/// A header of a log file: the time zone, the recording Mac, the map from
 /// context keys to bundle identifiers (or process names), and, in a file's
 /// first header, the legend of the line keys.
 public struct BlockLogHeader: Sendable, Hashable {
     public var format: Int
     /// Seconds east of UTC of the following lines' local times (`tz`).
     public var utcOffset: Int
+    /// The Mac that wrote the file (`dev`).
     public var device: String
     public var contexts: [String: String]
     /// The legend (`keys`), each line key with a human-readable label;
@@ -89,15 +90,8 @@ public enum BlockLogLine: Sendable, Hashable {
         else {
             throw .malformedLine("a block without valid s and e")
         }
-        guard let active = record.active, record.hasItems else {
-            throw .malformedLine("a block without a or items")
-        }
-        var source = ActivitySource.live
-        if let text = record.src {
-            guard let value = ActivitySource(rawValue: text) else {
-                throw .malformedLine("unknown src \(text)")
-            }
-            source = value
+        guard let active = record.active, record.hasItems, record.hasDevices else {
+            throw .malformedLine("a block without a, dev, or items")
         }
         let startDate = start.date(utcOffset: header.utcOffset)
         let endDate = end.date(utcOffset: header.utcOffset)
@@ -108,13 +102,15 @@ public enum BlockLogLine: Sendable, Hashable {
             start: startDate,
             end: endDate,
             activeSeconds: active,
-            device: record.dev ?? header.device,
+            devices: record.devices.map { device in
+                ActivityDeviceTime(name: device.name, seconds: device.seconds, isRecordingMac: device.name == header.device)
+            },
             groupKey: record.group ?? "",
             groupShare: record.share ?? 0,
             items: record.items,
             utcOffset: header.utcOffset,
-            source: source,
-            background: record.background
+            background: record.background,
+            reconstructedSeconds: record.reconstructed ?? 0
         )
         guard record.hasDetail else {
             return .block(block, detail: nil)
@@ -166,13 +162,18 @@ private struct LineRecord: Decodable {
         case share = "gs"
         case items
         case background = "bg"
-        case src, urls, files, presence, dwell
+        case reconstructed = "rec"
+        case urls, files, presence, dwell
     }
 
     var type: String?
     var format: Int?
     var zone: String?
+    /// The header's recording Mac.
     var dev: String?
+    /// A block's time per device, and whether the line has it.
+    var devices: [ActivityDeviceTime]
+    var hasDevices: Bool
     var contexts: [String: String]
     var keys: [String: String]
     var start: String?
@@ -183,7 +184,7 @@ private struct LineRecord: Decodable {
     var items: [ActivityItem]
     var hasItems: Bool
     var background: [ActivityItem]
-    var src: String?
+    var reconstructed: Int?
     var urls: [[String]]
     var files: [[String]]
     var presence: [[String]]
@@ -196,7 +197,16 @@ private struct LineRecord: Decodable {
         self.type = try container.decodeIfPresent(String.self, forKey: .type)
         self.format = try container.decodeIfPresent(Int.self, forKey: .format)
         self.zone = try container.decodeIfPresent(String.self, forKey: .zone)
-        self.dev = try container.decodeIfPresent(String.self, forKey: .dev)
+        // `dev` names the recording Mac in a header and the devices in a block.
+        if type == nil {
+            self.dev = nil
+            self.hasDevices = container.contains(.dev)
+            self.devices = try container.decodeIfPresent([ActivityDeviceTime].self, forKey: .dev) ?? []
+        } else {
+            self.dev = try container.decodeIfPresent(String.self, forKey: .dev)
+            self.hasDevices = false
+            self.devices = []
+        }
         self.contexts = try container.decodeIfPresent([String: String].self, forKey: .contexts) ?? [:]
         // The legend is documentation; a malformed one doesn't spoil the line.
         self.keys = (try? container.decodeIfPresent([String: String].self, forKey: .keys)) ?? [:]
@@ -208,7 +218,7 @@ private struct LineRecord: Decodable {
         self.hasItems = container.contains(.items)
         self.items = try container.decodeIfPresent([ActivityItem].self, forKey: .items) ?? []
         self.background = try container.decodeIfPresent([ActivityItem].self, forKey: .background) ?? []
-        self.src = try container.decodeIfPresent(String.self, forKey: .src)
+        self.reconstructed = try container.decodeIfPresent(Int.self, forKey: .reconstructed)
         self.hasDetail = container.contains(.urls) || container.contains(.files) || container.contains(.presence)
         self.urls = try container.decodeIfPresent([[String]].self, forKey: .urls) ?? []
         self.files = try container.decodeIfPresent([[String]].self, forKey: .files) ?? []

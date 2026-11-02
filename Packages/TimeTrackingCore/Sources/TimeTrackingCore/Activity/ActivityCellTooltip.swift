@@ -33,7 +33,7 @@ extension ActivitySummary {
         let hourText = "\(ActivityText.clock(hour: hour))–\(ActivityText.clock(hour: (hour + 1) % 24))"
         let rowDays = Set(row.days.map(\.description))
         let cellBlocks = blocks.filter { rowDays.contains($0.localDay) && (ActivityAggregation.hourFractions(of: $0)[hour] ?? 0) > 0 }
-        let severalDevices = Set(blocks.map(\.device)).count > 1
+        let severalDevices = Set(blocks.flatMap(\.deviceNames)).count > 1
         var seconds: [ActivityCellTooltip.Line: Double] = [:]
         for block in cellBlocks {
             let fraction = ActivityAggregation.hourFractions(of: block)[hour] ?? 0
@@ -44,7 +44,7 @@ extension ActivitySummary {
                     context: item.context,
                     text: isDay ? detail : "",
                     seconds: 0,
-                    device: isDay && severalDevices ? ActivityContext.deviceName(block.device) : nil
+                    device: isDay && severalDevices ? ActivityContext.deviceName(item.device) : nil
                 )
                 seconds[key, default: 0] += Double(item.seconds) * fraction
             }
@@ -60,7 +60,7 @@ extension ActivitySummary {
         let cellSeconds = Int((row.minutes[hour] * 60).rounded())
         let summary: String
         if row.days.count == 1, let day = row.days.first {
-            let devices = Set(cellBlocks.map { ActivityContext.deviceName($0.device) }).sorted().joined(separator: ", ")
+            let devices = Set(cellBlocks.flatMap(\.deviceNames).map(ActivityContext.deviceName)).sorted().joined(separator: ", ")
             let about = cellBlocks.count > 1 ? "about " : ""
             summary = "\(about)\(ActivityText.duration(cellSeconds)) active" + (devices.isEmpty ? "" : " (\(devices))")
             return ActivityCellTooltip(

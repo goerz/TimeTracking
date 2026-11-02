@@ -78,8 +78,12 @@ struct SocketTests {
         return harness
     }
 
+    /// The lines of the March block log, or of the March detail files.
     private func lines(_: AgentHarness, _ folder: URL) throws -> [String] {
-        try String(contentsOf: folder.appending(path: "2024-03.jsonl"), encoding: .utf8).split(separator: "\n").map(String.init)
+        let names = try FileManager.default.contentsOfDirectory(atPath: folder.path).filter { $0.hasPrefix("2024-03") }.sorted()
+        return try names.flatMap { name in
+            try String(contentsOf: folder.appending(path: name), encoding: .utf8).split(separator: "\n").map(String.init)
+        }
     }
 
     @Test("TRK-22 reapply-exclusions removes a newly excluded domain from both logs and the samples, other lines byte-identical")
@@ -115,7 +119,7 @@ struct SocketTests {
     func reapplyExclusionsKeepsBlockSettings() async throws {
         let harness = try AgentHarness(settings: "[blocks]\nidle_close = \"5m\"\n")
         await harness.engine.tick()
-        #expect(harness.engine.blocker.settings.idleClose == 300)
+        #expect(harness.engine.settings.blocks.idleClose == 300)
         let url = harness.folders.shared.appending(path: "settings.toml", directoryHint: .notDirectory)
         try "[blocks]\nidle_close = \"2m\"\nsplit_after = \"10m\"\n".write(to: url, atomically: true, encoding: .utf8)
         let line = TrackerCommand.reapplyExclusions(from: "2024-03-14", to: "2024-03-14").line
@@ -123,8 +127,8 @@ struct SocketTests {
         harness.advance(30)
         await harness.engine.tick()
         #expect(harness.engine.settings.blocks.idleClose == 120)
-        #expect(harness.engine.blocker.settings.idleClose == 120)
-        #expect(harness.engine.blocker.settings.splitAfter == 600)
+        #expect(harness.engine.settings.blocks.idleClose == 120)
+        #expect(harness.engine.settings.blocks.splitAfter == 600)
     }
 
     @Test("TRK-22 delete-block and forget-day remove their block or day from both logs and the samples")
@@ -133,13 +137,13 @@ struct SocketTests {
         let blocksBefore = try lines(harness, harness.engine.logs.blocksFolder)
         let target = try #require(harness.blocks.first { $0.localDay == "2024-03-14" })
         let start = ActivityTimestamp.text(target.start, utcOffset: target.utcOffset)
-        #expect(harness.engine.rewrite(.deleteBlock(device: AgentHarness.device, start: start)) == .success)
+        #expect(harness.engine.rewrite(.deleteBlock(start: start)) == .success)
         let afterDelete = try lines(harness, harness.engine.logs.blocksFolder)
         #expect(afterDelete.count == blocksBefore.count - 1)
         #expect(afterDelete.allSatisfy { blocksBefore.contains($0) })
         #expect(!harness.detailLogText.contains("\"s\":\"\(start)\""))
         #expect(try harness.engine.store.rows(from: target.start, to: target.end).isEmpty)
-        #expect(harness.engine.rewrite(.deleteBlock(device: AgentHarness.device, start: start)) != .success)
+        #expect(harness.engine.rewrite(.deleteBlock(start: start)) != .success)
 
         #expect(harness.engine.rewrite(.forgetDay("2024-03-13")) == .success)
         #expect(!harness.blocks.contains { $0.localDay == "2024-03-13" })

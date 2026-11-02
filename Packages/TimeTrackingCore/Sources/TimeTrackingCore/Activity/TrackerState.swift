@@ -7,7 +7,7 @@ public import Foundation
 /// and health, rewritten by the agent on every tick.
 public struct TrackerState: Sendable, Hashable {
     public var format: Int
-    /// The device name.
+    /// The recording Mac's name.
     public var device: String
     /// The open block summarized as of the last tick, or `nil`.
     public var openBlock: TrackerOpenBlock?
@@ -57,13 +57,15 @@ public struct TrackerState: Sendable, Hashable {
             start: openBlock.start,
             end: max(openBlock.start, health.lastTick),
             activeSeconds: openBlock.activeSeconds,
-            device: device,
+            devices: openBlock.devices.map { device in
+                ActivityDeviceTime(name: device.name, seconds: device.seconds, isRecordingMac: device.name == self.device)
+            },
             groupKey: openBlock.groupKey,
             groupShare: openBlock.groupShare,
             items: openBlock.items,
             utcOffset: timeZone.secondsFromGMT(for: openBlock.start),
-            source: .live,
             background: openBlock.background,
+            reconstructedSeconds: openBlock.reconstructedSeconds,
             isOpen: true
         )
     }
@@ -73,25 +75,32 @@ public struct TrackerState: Sendable, Hashable {
 public struct TrackerOpenBlock: Sendable, Hashable {
     public var start: Date
     public var activeSeconds: Int
+    /// The active seconds per device, most first.
+    public var devices: [ActivityDeviceTime]
     public var groupKey: String
     public var groupShare: Double
     public var items: [ActivityItem]
     public var background: [ActivityItem]
+    public var reconstructedSeconds: Int
 
     public init(
         start: Date,
         activeSeconds: Int,
+        devices: [ActivityDeviceTime],
         groupKey: String,
         groupShare: Double,
         items: [ActivityItem],
-        background: [ActivityItem] = []
+        background: [ActivityItem] = [],
+        reconstructedSeconds: Int = 0
     ) {
         self.start = start
         self.activeSeconds = activeSeconds
+        self.devices = devices
         self.groupKey = groupKey
         self.groupShare = groupShare
         self.items = items
         self.background = background
+        self.reconstructedSeconds = reconstructedSeconds
     }
 }
 

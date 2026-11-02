@@ -73,12 +73,12 @@ public struct ActivityAway: Sendable, Hashable {
 
 extension ActivitySummary {
     /// The Away panel: gaps over `idleClose` between consecutive blocks of
-    /// one device on one day; the context filter does not apply.
+    /// one day; the context filter does not apply.
     public var away: ActivityAway {
         var seconds: [ActivityAway.Cause: Int] = [:]
         var counts: [ActivityAway.Cause: Int] = [:]
         var unclassified = false
-        let groups = Dictionary(grouping: blocks.filter { !$0.isOpen }) { "\($0.device) \($0.localDay)" }
+        let groups = Dictionary(grouping: blocks.filter { !$0.isOpen }) { $0.localDay }
         for group in groups.values {
             let sorted = group.sorted { $0.start < $1.start }
             for (previous, next) in zip(sorted, sorted.dropFirst()) {

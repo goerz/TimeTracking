@@ -17,6 +17,9 @@ struct BlockPopover: View {
                     Text(ActivityContext(item.context).label()).fontWeight(.semibold)
                     Text([item.subject, item.detail].filter { !$0.isEmpty }.joined(separator: " ")).lineLimit(1)
                     Spacer()
+                    if block.devices.count > 1 {
+                        Text(ActivityContext.deviceName(item.device)).foregroundStyle(.secondary)
+                    }
                     Text(ActivityText.duration(item.seconds)).monospacedDigit()
                 }
                 .font(.caption)
@@ -33,7 +36,7 @@ struct BlockPopover: View {
         .frame(width: 340)
     }
 
-    /// Range, duration, device; the group key's share; active time; the source.
+    /// Range, duration, devices; the group key's share; active time; reconstructed time.
     @ViewBuilder private var header: some View {
         let zone = model.calendar.timeZone
         let span = Int(block.end.timeIntervalSince(block.start))
@@ -44,13 +47,21 @@ struct BlockPopover: View {
         if block.activeSeconds < span {
             Text("\(ActivityText.duration(span)), \(ActivityText.duration(block.activeSeconds)) active").foregroundStyle(.secondary)
         }
-        if block.source == .knowledge {
-            Text("Reconstructed from macOS app usage history").font(.caption).foregroundStyle(.secondary)
+        if block.reconstructedSeconds > 0 {
+            let text = block.reconstructedSeconds >= block.activeSeconds
+                ? "Reconstructed from macOS app usage history"
+                : "\(ActivityText.duration(block.reconstructedSeconds)) reconstructed from macOS app usage history"
+            Text(text).font(.caption).foregroundStyle(.secondary)
         }
     }
 
-    /// The recording device; `remote` reads "Other devices (Safari)".
+    /// The devices, with their active time when there are several; `remote`
+    /// reads "Other devices (Safari)".
     private var device: String {
-        ActivityContext.deviceName(block.device)
+        guard block.devices.count > 1 else {
+            return block.deviceNames.first.map(ActivityContext.deviceName) ?? ""
+        }
+        return block.devices.map { "\(ActivityContext.deviceName($0.name)) \(ActivityText.duration($0.seconds))" }
+            .joined(separator: ", ")
     }
 }

@@ -23,8 +23,9 @@ private struct PublisherRig {
         knowledge: String = "off"
     ) async throws -> Bool {
         let text = """
-        {"format":1,"dev":"macbook","block":{"s":"2024-03-14T09:50:00","a":600,"g":"tmux:\(primary)","gs":0.8,\
-        "items":[["tmux:\(primary)","draft","nvim",600]],"bg":[]},"primary":["tmux:\(primary)","draft","nvim"],\
+        {"format":1,"dev":"macbook","block":{"s":"2024-03-14T09:50:00","a":600,"dev":[["macbook",600]],"rec":0,\
+        "g":"tmux:\(primary)","gs":0.8,\
+        "items":[["tmux:\(primary)","draft","nvim",600,"macbook"]],"bg":[]},"primary":["tmux:\(primary)","draft","nvim"],\
         "presence":{"state":"\(presence)","since":"\(since)"},"health":{"last_tick":"\(lastTick)","version":"1.0","sources":[\
         {"id":"terminal","name":"Terminal","status":"active","reason":""},\
         {"id":"knowledge","name":"Knowledge store","status":"\(knowledge)","reason":""}]}}

@@ -7,9 +7,12 @@ import TimeTrackingCore
 extension AgentEngine {
     /// The detail of `closed`: browser visits in its range (Safari's
     /// `History.db` with `origin = 0` and every Chromium profile, else the
-    /// sampled URLs), modified files, presence transitions since the
-    /// previous detail line, and Safari dwell times from the Knowledge store.
-    func detail(for closed: ClosedBlock) -> ActivityBlockDetail {
+    /// sampled URLs), modified files, presence transitions since `since`
+    /// (the end of the previous block) with the state in effect before
+    /// when it began that day,
+    /// and Safari dwell times from the Knowledge store; with the entries of
+    /// `pool` (the day's old detail lines) that fall in the same ranges.
+    func detail(for closed: ClosedBlock, since: Date, pool: DetailPool) -> ActivityBlockDetail {
         let block = closed.block
         var urls: [ActivityURLVisit] = []
         let safari = environment.history.safariVisits(from: block.start, to: block.end, origin: 0) ?? []
@@ -29,10 +32,14 @@ extension AgentEngine {
                 urls.append(ActivityURLVisit(time: sample.time, browser: browser, url: sample.url, title: sample.title))
             }
         }
-        urls.sort { ($0.time, $0.url) < ($1.time, $1.url) }
-        let windowStart = lastDetailEnd.map { min($0, block.start) } ?? block.start
-        var presence = transitions.filter { $0.time >= windowStart && $0.time <= block.end }
-        if let before = transitions.last(where: { $0.time < windowStart }) {
+        let inBlock = { (time: Date) in time >= block.start && time <= block.end }
+        urls = Self.union(urls, pool.urls.filter { inBlock($0.time) }) { ($0.time, $0.url) < ($1.time, $1.url) }
+        let windowStart = min(since, block.start)
+        let allTransitions = Self.union(transitions, pool.presence) { $0.time < $1.time }
+        var presence = allTransitions.filter { $0.time >= windowStart && $0.time <= block.end }
+        // The state in effect before, unless it began on an earlier date.
+        let dayStart = ActivityTimestamp.startOfDay(block.start, timeZone: environment.timeZone)
+        if let before = allTransitions.last(where: { $0.time < windowStart }), before.time >= dayStart {
             presence.insert(before, at: 0)
         }
         var dwell: [ActivityDwell] = []
@@ -45,14 +52,23 @@ extension AgentEngine {
                 }
             }
         }
+        let recorded = fileChanges.changes(from: block.start, to: block.end)
+        let files = Self.union(recorded, pool.files.filter { inBlock($0.time) }) { ($0.time, $0.path) < ($1.time, $1.path) }
+        dwell = Self.union(dwell, pool.dwell.filter { inBlock($0.time) }) { ($0.time, $0.url) < ($1.time, $1.url) }
         let raw = ActivityBlockDetail(
             blockID: block.id,
             items: closed.detailItems,
             urls: urls,
-            files: fileChanges.changes(from: block.start, to: block.end),
+            files: files,
             presence: presence,
             dwell: dwell
         )
         return resolveContext().exclusions.reapplied(to: raw, contexts: closed.contexts)
+    }
+
+    /// The entries of both lists once each, ordered by `less`.
+    static func union<Entry: Hashable>(_ first: [Entry], _ second: [Entry], by less: (Entry, Entry) -> Bool) -> [Entry] {
+        var seen = Set<Entry>()
+        return (first + second).filter { seen.insert($0).inserted }.sorted(by: less)
     }
 }

@@ -1,116 +1,155 @@
-// AgentEngine+Timeline: keeping the block log one timeline, where `device`
-// and synced Safari blocks only cover time the Mac's blocks leave free
-// (spec_activity_tracking.md §2.8).
+// AgentEngine+Timeline: forming a day's blocks from everything stored for
+// it and rewriting the day in both logs (spec_activity_tracking.md §2.8,
+// §4.2, §4.3).
 
 import Foundation
 import os
 import TimeTrackingCore
 
+/// A day's timeline inputs, kept between ticks; the engine appends each new
+/// sample and drops the cache when any other input of the day changes.
+struct TimelineCache {
+    var day: String
+    var inputs: TimelineInputs
+
+    mutating func append(_ sample: Sample) {
+        inputs.mac.append(sample)
+    }
+}
+
 extension AgentEngine {
-    /// The time in `[from, to]` claimed by blocks ranked above `rank`: those
-    /// in the block log and, for ranks below the Mac's, the live open block
-    /// up to its last attentive sample and a held short block.
-    func claimed(from: Date, to: Date, above rank: Int) -> [DateInterval] {
-        let zone = environment.timeZone
-        let range = DateInterval(start: from, end: max(from, to))
-        var result: [DateInterval] = []
-        let files = MonthFileRewriter.monthFiles(
-            in: logs.blocksFolder,
-            fromDay: ActivityTimestamp.day(from, timeZone: zone),
-            toDay: ActivityTimestamp.day(to, timeZone: zone)
-        )
-        for url in files {
-            for block in (try? BlockLogFile(contentsOf: url))?.blocks ?? []
-                where Timeline.rank(block, mac: configuration.device) > rank
-            {
-                let interval = DateInterval(start: block.start, end: max(block.start, block.end))
-                if Timeline.overlaps(interval, [range]) {
-                    result.append(interval)
-                }
-            }
-        }
-        if rank < Timeline.mac {
-            if let open = blocker.open, open.lastAttentive > open.start {
-                result.append(DateInterval(start: open.start, end: open.lastAttentive))
-            }
-            if let held = blocker.held, held.end > held.start {
-                result.append(DateInterval(start: held.start, end: held.end))
-            }
-        }
-        return result.sorted { $0.start < $1.start }
+    /// The local date of `date` in the agent's time zone.
+    func day(of date: Date) -> String {
+        ActivityTimestamp.day(date, timeZone: environment.timeZone)
     }
 
     /// The local day `day` (`YYYY-MM-DD`) in the agent's time zone.
-    func dayInterval(_ day: String, timeZone: TimeZone? = nil) -> DateInterval? {
-        let zone = timeZone ?? environment.timeZone
+    func dayInterval(_ day: String) -> DateInterval? {
+        let zone = environment.timeZone
         guard let start = ActivityTimestamp.date(day + "T00:00:00", timeZone: zone) else {
             return nil
         }
         return DateInterval(start: start, end: ActivityTimestamp.nextMidnight(after: start, timeZone: zone))
     }
 
-    /// After a block of the Mac was written on `day`: merges the day's
-    /// device events again around it and cuts it out of synced Safari blocks.
-    func settleTimeline(day: String) {
-        do {
-            for deviceDay in try store.deviceDays(on: day) {
-                try mergeDeviceDay(deviceDay)
-            }
-            try clipRemoteBlocks(day: day)
-        } catch {
-            logger.error("timeline: \(error.localizedDescription, privacy: .public)")
+    /// Forms today's blocks again; after midnight it first closes the
+    /// previous day. `final` (agent shutdown) closes the open block too.
+    func rebuildToday(final: Bool = false) {
+        let today = day(of: environment.clock.now)
+        if let previous = rebuiltDay, previous != today {
+            rebuild(day: previous)
+        }
+        rebuiltDay = today
+        rebuild(day: today, final: final)
+        let cutoff = environment.clock.now.addingTimeInterval(-2 * 86_400)
+        if let kept = transitions.last(where: { $0.time < cutoff }) {
+            transitions.removeAll { $0.time < cutoff }
+            transitions.insert(kept, at: 0)
         }
     }
 
-    /// Replaces the synced Safari blocks of `day` that overlap a Mac or
-    /// device block (or the open block) by their free parts of at least
-    /// `min_block`; leaves the files untouched when none overlaps.
-    func clipRemoteBlocks(day: String) throws {
+    /// Forms the blocks of `day` from its stored inputs and replaces the
+    /// day's lines in both logs when they changed. A past day is closed at
+    /// its end, with the next `idle_close` read so a block open at midnight
+    /// ends there; today's last block stays open (`current.json`) unless
+    /// `final`.
+    func rebuild(day: String, final: Bool = false) {
         guard let range = dayInterval(day) else {
             return
         }
-        let claims = claimed(from: range.start, to: range.end, above: Timeline.remote)
-        let mac = configuration.device
-        let isClipped: (ActivityBlock) -> Bool = { block in
-            block.localDay == day
-                && Timeline.rank(block, mac: mac) == Timeline.remote
-                && Timeline.overlaps(DateInterval(start: block.start, end: max(block.start, block.end)), claims)
+        let now = environment.clock.now
+        let isToday = day == self.day(of: now)
+        let end = isToday ? now.addingTimeInterval(1) : range.end.addingTimeInterval(settings.blocks.idleClose)
+        let inputs = timelineInputs(day: day, from: range.start, to: end)
+        let result = Timeline.run(
+            inputs,
+            settings: settings.blocks,
+            timeZone: environment.timeZone,
+            mac: configuration.device,
+            flush: !isToday || final,
+            until: now
+        )
+        if isToday {
+            openBlock = result.open.flatMap { range.contains($0.start) ? $0 : nil }
         }
-        let blocksFile = logs.blocksFolder.appending(path: "\(day.prefix(7)).jsonl", directoryHint: .notDirectory)
-        guard ((try? BlockLogFile(contentsOf: blocksFile))?.blocks ?? []).contains(where: isClipped) else {
+        do {
+            try write(day: day, result.closed.filter { $0.block.localDay == day })
+        } catch {
+            logger.error("block log: \(error.localizedDescription, privacy: .public)")
+        }
+    }
+
+    /// Drops the cached inputs, after another input of a day changed.
+    func timelineInputsChanged() {
+        timelineCache = nil
+    }
+
+    /// The inputs of `day` within `[from, to)`: today's from the cache.
+    private func timelineInputs(day: String, from: Date, to: Date) -> TimelineInputs {
+        if let cache = timelineCache, cache.day == day {
+            return cache.inputs
+        }
+        var inputs = TimelineInputs()
+        inputs.mac = ((try? store.rows(from: from, to: to)) ?? []).map(\.sample)
+        inputs.reconstructed = ((try? store.extraSamples(.knowledge, from: from, to: to)) ?? []).map(\.sample)
+        let remote = ((try? store.extraSamples(.remote, from: from, to: to)) ?? []).map { (sample: $0.sample, device: $0.device) }
+        inputs.others = Timeline.remoteStretches(remote)
+        let merger = DeviceEventMerger(settings: settings, exclusions: resolveContext().exclusions)
+        for deviceDay in (try? store.deviceDays(on: day)) ?? [] {
+            let events = (try? store.deviceEvents(device: deviceDay.device, day: deviceDay.day)) ?? []
+            let zone = TimeZone(secondsFromGMT: deviceDay.utcOffset) ?? environment.timeZone
+            let (stretches, closers) = merger.stretches(events, device: deviceDay.device, timeZone: zone)
+            inputs.others += stretches
+            inputs.closers += closers
+        }
+        inputs.suppressed = (try? store.suppressed(from: from, to: to)) ?? []
+        if day == self.day(of: environment.clock.now) {
+            timelineCache = TimelineCache(day: day, inputs: inputs)
+        }
+        return inputs
+    }
+
+    /// Replaces the blocks of `day` by `closed` unless they are the same;
+    /// an unchanged block keeps its detail line, a new or changed one gets
+    /// the detail entries of the old lines within its range and its own.
+    private func write(day: String, _ closed: [ClosedBlock]) throws {
+        let existing = logs.blocks(on: day)
+        guard existing != closed.map(\.block) else {
             return
         }
-        var removed: [ActivityBlock] = []
-        var detailItems: [String: [ActivityItem]] = [:]
-        var contexts: [String: [String: String]] = [:]
-        try logs.rewrite(fromDay: day, toDay: day) { block, detail, header in
-            guard isClipped(block) else {
-                return .keep
-            }
-            if let detail {
-                detailItems[block.id] = detail.items
+        let unchanged = Set(existing)
+        let old = logs.detailEntries(on: day)
+        let oldDetails = Dictionary(old.compactMap { entry in entry.detail.map { (entry.block.id, $0) } }) { first, _ in first }
+        let pool = DetailPool(old.compactMap(\.detail))
+        var previousEnd = dayInterval(day)?.start ?? closed.first?.block.start ?? .distantPast
+        var written: [(block: ClosedBlock, detail: ActivityBlockDetail)] = []
+        for block in closed {
+            if unchanged.contains(block.block), var detail = oldDetails[block.block.id] {
+                detail.items = block.detailItems
+                written.append((block, detail))
             } else {
-                removed.append(block)
-                contexts[block.id] = header
+                written.append((block, detail(for: block, since: previousEnd, pool: pool)))
             }
-            return .drop
+            previousEnd = block.block.end
         }
-        for block in removed {
-            let parts = Timeline.clipped(
-                block,
-                detailItems: detailItems[block.id] ?? block.items,
-                outside: claims,
-                minBlock: settings.blocks.minBlock
-            )
-            for part in parts {
-                let used = Set((part.detailItems + part.block.background).map(\.context))
-                let closed = ClosedBlock(
-                    block: part.block,
-                    detailItems: part.detailItems,
-                    contexts: (contexts[block.id] ?? [:]).filter { used.contains($0.key) }
-                )
-                try logs.appendSummary(closed)
-            }
+        try logs.replaceDay(day, with: written)
+    }
+}
+
+/// The timestamped detail entries of a day's old detail lines, handed to
+/// the blocks that now cover their times.
+struct DetailPool {
+    var urls: [ActivityURLVisit] = []
+    var files: [ActivityFileChange] = []
+    var presence: [ActivityPresenceTransition] = []
+    var dwell: [ActivityDwell] = []
+
+    init(_ details: [ActivityBlockDetail]) {
+        for detail in details {
+            urls += detail.urls
+            files += detail.files
+            presence += detail.presence
+            dwell += detail.dwell
         }
     }
 }

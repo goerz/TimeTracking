@@ -84,7 +84,7 @@ extension CalendarModel {
         sendTrackerCommand != nil && isRecordingMac && !block.isOpen
     }
 
-    /// Asks first; Delete sends one `delete-block <dev> <s>`.
+    /// Asks first; Delete sends one `delete-block <s>`.
     func confirmDeleteFromLog(_ block: ActivityBlock) {
         guard canDeleteFromLog(block) else {
             return
@@ -100,10 +100,7 @@ extension CalendarModel {
         guard confirmed, let send = sendTrackerCommand else {
             return
         }
-        let command = TrackerCommand.deleteBlock(
-            device: block.device,
-            start: ActivityTimestamp.text(block.start, utcOffset: block.utcOffset)
-        )
+        let command = TrackerCommand.deleteBlock(start: ActivityTimestamp.text(block.start, utcOffset: block.utcOffset))
         if let error = await send(command.line) {
             trackerError = error
         }

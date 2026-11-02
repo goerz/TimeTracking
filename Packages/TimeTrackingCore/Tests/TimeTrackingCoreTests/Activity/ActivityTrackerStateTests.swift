@@ -6,8 +6,8 @@ import TimeTrackingCore
 
 struct ActivityTrackerStateTests {
     private static let example = """
-    {"format":1,"dev":"macbook","block":{"s":"2026-10-28T09:10:00","a":1080,"g":"tmux:paper","gs":0.71,\
-    "items":[["tmux:paper","draft","nvim (3 files)",1080]],"bg":[]},"primary":["tmux:paper","draft","nvim notes.tex"],\
+    {"format":1,"dev":"macbook","block":{"s":"2026-10-28T09:10:00","a":1080,"dev":[["macbook",1080]],"rec":0,"g":"tmux:paper","gs":0.71,\
+    "items":[["tmux:paper","draft","nvim (3 files)",1080,"macbook"]],"bg":[]},"primary":["tmux:paper","draft","nvim notes.tex"],\
     "presence":{"state":"active","since":"2026-10-28T09:10:00","last_input":"2026-10-28T09:44:27"},\
     "health":{"last_tick":"2026-10-28T09:44:30","version":"1.0 (42)","sources":[\
     {"id":"terminal","name":"Terminal","status":"active","reason":""},\

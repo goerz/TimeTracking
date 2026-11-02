@@ -1,19 +1,15 @@
-// SyncedSafariCollector: blocks from Safari history synced from other
+// SyncedSafariCollector: samples from Safari history synced from other
 // devices, attributed through CloudTabs.db (spec_activity_tracking.md §6.1).
 
 import Foundation
 import TimeTrackingCore
 
-/// Forms blocks from `History.db` visits with `origin = 1`: each visit is a
-/// sample, and a gap over 5 minutes closes the block. Visits within time
-/// `claimed` by a higher-ranked block (§2.8) are skipped, and a claim closes
-/// the block at its start. A block carries `dev`
-/// `remote` unless exactly one device's `CloudTabs.db` tab set changed to
-/// include a visited URL within the block; then it carries that device's name.
+/// Turns `History.db` visits with `origin = 1` into samples of the user's
+/// timeline, attributed through the `CloudTabs.db` tab sets.
 struct SyncedSafariCollector {
-    /// The gap that closes a block, and the CloudTabs poll interval.
+    /// The gap that ends a run of visits, and the CloudTabs poll interval.
     static let gap: TimeInterval = 300
-    static let remoteDevice = "remote"
+    static let remoteDevice = ActivityDeviceTime.remote
 
     /// Tabs per device at the last poll.
     private var lastTabs: [String: Set<String>] = [:]
@@ -37,62 +33,46 @@ struct SyncedSafariCollector {
         additions.removeAll { now.timeIntervalSince($0.time) > 2 * 86_400 }
     }
 
-    /// The closed blocks of `visits` (time-ordered or not).
-    func blocks(visits: [HistoryVisit], context: ResolveContext, timeZone: TimeZone, claimed: [DateInterval] = []) -> [ClosedBlock] {
-        var blockSettings = context.settings.blocks
-        blockSettings.idleClose = Self.gap
-        var blocker = Blocker(settings: blockSettings, timeZone: timeZone, device: Self.remoteDevice)
-        blocker.creditCap = Self.gap
+    /// The visits as samples of the user's timeline (§2.8), each with its
+    /// device: a run of visits without a gap over 5 minutes carries
+    /// `remote` unless exactly one device's tab set gained a visited URL
+    /// within the run (or 5 minutes around it); then that device's name.
+    func samples(visits: [HistoryVisit], context: ResolveContext) -> [(sample: Sample, device: String)] {
         let rules = BrowserItemRules(settings: context.settings.browser, exclusions: context.exclusions)
-        var closed: [ClosedBlock] = []
-        var urlsByTime: [(Date, String)] = []
+        var runs: [[(sample: Sample, url: String?)]] = []
         var last = Date.distantPast
         for visit in visits.sorted(by: { $0.time < $1.time }) {
-            if claimed.contains(where: { $0.start > last && $0.start <= visit.time }) {
-                closed += blocker.flush()
-            }
-            last = visit.time
-            guard !claimed.contains(where: { $0.start <= visit.time && $0.end > visit.time }),
-                  let parts = rules.parts(for: visit.url)
-            else {
+            guard let parts = rules.parts(for: visit.url) else {
                 continue
             }
             let item = SampleItem(browser: "safari", parts: parts, app: BrowserApp.safariBundleID)
-            if !parts.isExcluded {
-                urlsByTime.append((visit.time, visit.url))
+            let sample = Sample(time: visit.time, state: .active, primary: item, bundleID: BrowserApp.safariBundleID)
+            let entry = (sample: sample, url: parts.isExcluded ? nil : Optional(visit.url))
+            if visit.time.timeIntervalSince(last) > Self.gap || runs.isEmpty {
+                runs.append([entry])
+            } else {
+                runs[runs.count - 1].append(entry)
             }
-            closed += blocker.add(Sample(time: visit.time, state: .active, primary: item, bundleID: BrowserApp.safariBundleID))
+            last = visit.time
         }
-        closed += blocker.flush()
-        return ClosedBlock.resolved(closed).map { attribute($0, urls: urlsByTime) }
+        return runs.flatMap { run in
+            let device = attribution(run)
+            return run.map { (sample: $0.sample, device: device) }
+        }
     }
 
-    /// Sets `dev` to the one device whose tab set gained a visited URL within the block.
-    private func attribute(_ closed: ClosedBlock, urls: [(Date, String)]) -> ClosedBlock {
-        let block = closed.block
-        let visited = Set(urls.filter { $0.0 >= block.start && $0.0 <= block.end }.map(\.1))
+    /// The one device whose tab set gained a URL of `run` around it, else `remote`.
+    private func attribution(_ run: [(sample: Sample, url: String?)]) -> String {
+        guard let start = run.first?.sample.time, let end = run.last?.sample.time else {
+            return Self.remoteDevice
+        }
+        let visited = Set(run.compactMap(\.url))
         let devices = Set(additions.filter { addition in
             visited.contains(addition.url)
-                && addition.time >= block.start.addingTimeInterval(-Self.gap)
-                && addition.time <= block.end.addingTimeInterval(Self.gap)
+                && addition.time >= start.addingTimeInterval(-Self.gap)
+                && addition.time <= end.addingTimeInterval(Self.gap)
         }.map(\.device))
-        guard devices.count == 1, let device = devices.first else {
-            return closed
-        }
-        var result = closed
-        result.block = ActivityBlock(
-            start: block.start,
-            end: block.end,
-            activeSeconds: block.activeSeconds,
-            device: device,
-            groupKey: block.groupKey,
-            groupShare: block.groupShare,
-            items: block.items,
-            utcOffset: block.utcOffset,
-            source: block.source,
-            background: block.background
-        )
-        return result
+        return devices.count == 1 ? devices.first ?? Self.remoteDevice : Self.remoteDevice
     }
 }
 

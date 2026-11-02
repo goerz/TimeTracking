@@ -64,10 +64,9 @@ public final class InMemoryActivityStore: ActivityReading {
     public func blocks(in interval: DateInterval, devices: Set<String>?) -> [ActivityBlock] {
         state.withLock(\.blocks)
             .filter { block in
-                let overlaps = block.end > block.start ? block.start < interval.end && block.end > interval.start : interval
-                    .contains(block.start)
-                return overlaps && (devices?.contains(block.device) ?? true)
+                block.end > block.start ? block.start < interval.end && block.end > interval.start : interval.contains(block.start)
             }
+            .compactMap { FileActivityStore.part(of: $0, on: devices) }
             .sorted { ($0.start, $0.id) < ($1.start, $1.id) }
     }
 

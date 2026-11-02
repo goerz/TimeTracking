@@ -13,7 +13,7 @@ struct FileActivityStoreTests {
     ]
 
     private static func item(_ context: String, _ seconds: Int) -> ActivityItem {
-        ActivityItem(context: context, subject: "\(context) subject", detail: "", seconds: seconds)
+        ActivityItem(context: context, subject: "\(context) subject", detail: "", seconds: seconds, device: "macbook")
     }
 
     private static func writeBlocks(_ blocks: [ActivityBlock], to folder: URL, device: String = "macbook") throws {
@@ -41,8 +41,9 @@ struct FileActivityStoreTests {
 
     private static func currentJSON(lastTick: String, activeSeconds: Int) -> String {
         """
-        {"format":1,"dev":"macbook","block":{"s":"2026-10-28T09:10:00","a":\(activeSeconds),"g":"tmux:paper","gs":0.71,\
-        "items":[["tmux:paper","draft","nvim (3 files)",\(activeSeconds)]],"bg":[]},"primary":["tmux:paper","draft","nvim notes.tex"],\
+        {"format":1,"dev":"macbook","block":{"s":"2026-10-28T09:10:00","a":\(activeSeconds),"dev":[["macbook",\(activeSeconds)]],\
+        "rec":0,"g":"tmux:paper","gs":0.71,"items":[["tmux:paper","draft","nvim (3 files)",\(activeSeconds),"macbook"]],"bg":[]},\
+        "primary":["tmux:paper","draft","nvim notes.tex"],\
         "presence":{"state":"active","since":"2026-10-28T09:10:00","last_input":"2026-10-28T09:44:27"},\
         "health":{"last_tick":"\(lastTick)","version":"1.0 (42)","sources":[]}}
         """
@@ -50,7 +51,7 @@ struct FileActivityStoreTests {
 
     // swiftlint:disable line_length
     @Test(
-        "DATA-43 the query blocks(in:) across a month boundary reads both files and returns blocks by start, filtered by device when asked, without excluded contexts"
+        "DATA-43 the query blocks(in:) across a month boundary reads both files and returns blocks by start, filtered by device when asked to each block's part on it, without excluded contexts"
     )
     // swiftlint:enable line_length
     func blocksAcrossAMonthBoundary() async throws {
@@ -76,9 +77,21 @@ struct FileActivityStoreTests {
         let other = try ActivityFixture.block(
             start: "2026-10-01T03:30:00Z", end: "2026-10-01T03:50:00Z", items: [Self.item("safari", 1200)], device: "imac"
         )
+        var phone = Self.item("mail", 600)
+        phone.device = "iPhone"
+        let mixed = try ActivityBlock(
+            start: ActivityFixture.instant("2026-10-01T05:00:00Z"),
+            end: ActivityFixture.instant("2026-10-01T05:30:00Z"),
+            activeSeconds: 1800,
+            devices: [ActivityDeviceTime(name: "macbook", seconds: 1200), ActivityDeviceTime(name: "iPhone", seconds: 600)],
+            groupKey: "safari",
+            groupShare: 0.67,
+            items: [Self.item("safari", 1200), phone],
+            utcOffset: -4 * 3600
+        )
         #expect(september.month == "2026-09")
         #expect(october.month == "2026-10")
-        try Self.writeBlocks([vaultOnly, september, october], to: folders.sharedBlocks)
+        try Self.writeBlocks([vaultOnly, september, october, mixed], to: folders.sharedBlocks)
         try Self.writeBlocks([other], to: folders.sharedBlocks, device: "imac")
         let store = try Self.store(folders)
 
@@ -87,12 +100,18 @@ struct FileActivityStoreTests {
             end: ActivityFixture.instant("2026-10-02T04:00:00Z")
         )
         let all = try await store.blocks(in: interval)
-        #expect(all.map(\.id) == [september.id, other.id, october.id])
-        let cut = try #require(all.last)
+        #expect(all.map(\.id) == [september.id, other.id, october.id, mixed.id])
+        let cut = try #require(all.first { $0.id == october.id })
         #expect(cut.items.map(\.context) == ["tmux:paper"])
         #expect(cut.activeSeconds == 1800)
         let mine = try await store.blocks(in: interval, devices: ["macbook"])
-        #expect(mine.map(\.id) == [september.id, october.id])
+        #expect(mine.map(\.id) == [september.id, october.id, mixed.id])
+        #expect(mine.last?.activeSeconds == 1200)
+        #expect(mine.last?.devices.map(\.isRecordingMac) == [true])
+        let phoneOnly = try await store.blocks(in: interval, devices: ["iPhone"])
+        #expect(phoneOnly.map(\.id) == [mixed.id])
+        #expect(phoneOnly.first?.activeSeconds == 600)
+        #expect(phoneOnly.first?.items.map(\.context) == ["mail"])
         #expect(store.bundleIdentifier(forContext: "safari") == "com.apple.Safari")
         #expect(store.exclusions.excludesApp("com.example.vault"))
         #expect(await store.malformedLineCount == 0)
@@ -167,7 +186,7 @@ struct FileActivityStoreTests {
         #expect(blocks.count == 1)
         let open = try #require(blocks.first)
         #expect(open.isOpen)
-        #expect(open.id == "macbook/2026-10-28T09:10:00-04:00")
+        #expect(open.id == "2026-10-28T09:10:00-04:00" && open.deviceNames == ["macbook"])
         #expect(try open.end == ActivityFixture.instant("2026-10-28T14:00:00Z"))
         #expect(try await store.detail(for: open.id) == nil)
         #expect(try await store.blocks(in: Self.day("2026-10-27")).isEmpty)
@@ -189,12 +208,12 @@ struct FileActivityStoreTests {
                 ActivityURLVisit(time: block.start, browser: "safari", url: "https://example.org/", title: "Y"),
             ]
         )
-        var writer = BlockLogWriter(folder: folders.detailFolder, device: "macbook")
+        var writer = BlockLogWriter(folder: folders.detailFolder, device: "macbook", period: .day)
         try writer.append(block, contexts: Self.contexts, detail: detail)
         let store = try Self.store(folders)
         let read = try #require(try await store.detail(for: block.id))
         #expect(read.urls.map(\.title) == ["Y"])
-        #expect(try await store.detail(for: "macbook/2026-10-27T10:00:00-04:00") == nil)
+        #expect(try await store.detail(for: "2026-10-27T10:00:00-04:00") == nil)
     }
 
     @Test func aBlockInBothFoldersCountsOnceAndChangedFilesAreReread() async throws {

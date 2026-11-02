@@ -31,7 +31,7 @@ nonisolated enum SampleRewrite {
     }
 
     static func reapplied(_ item: SampleItem, bundleID: String, rules: ExclusionRules) -> SampleItem? {
-        let recorded = ActivityItem(context: item.context, subject: item.subject, detail: item.detail, seconds: 0)
+        let recorded = ActivityItem(context: item.context, subject: item.subject, detail: item.detail, seconds: 0, device: "")
         guard let kept = rules.reapplied(to: recorded, bundleIdentifier: bundleID) else {
             return nil
         }

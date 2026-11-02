@@ -6,7 +6,8 @@ import os
 import Synchronization
 
 /// Reads the block log of the shared and the local folder, the detail log
-/// and `current.json` of the local folder, and `settings.toml`.
+/// and `current.json` of the local folder, and `settings.toml`. A device
+/// filter keeps each block's part on those devices.
 ///
 /// Month files are read lazily, parsed once, and parsed again when their
 /// modification date or size changes. Blocks with the same id in both
@@ -65,19 +66,19 @@ public actor FileActivityStore: ActivityReading {
             for name in Self.monthFileNames(in: folder, covering: interval) {
                 let file = try monthFile(folder.appending(path: name, directoryHint: .notDirectory))
                 for entry in file.entries where Self.overlaps(entry.block, interval) && seen.insert(entry.block.id).inserted {
-                    guard devices.map({ $0.contains(entry.block.device) }) ?? true else {
+                    guard let part = Self.part(of: entry.block, on: devices) else {
                         continue
                     }
-                    if let block = Self.applying(rules, to: entry.block, contexts: entry.contexts, fallback: fallback) {
+                    if let block = Self.applying(rules, to: part, contexts: entry.contexts, fallback: fallback) {
                         result.append(block)
                     }
                 }
             }
         }
-        if let open = todaysOpenBlock(), !seen.contains(open.id), devices.map({ $0.contains(open.device) }) ?? true, Self.overlaps(
-            open,
-            interval
-        ), let block = Self.applying(rules, to: open, contexts: [:], fallback: shared.withLock(\.contexts)) {
+        if let open = todaysOpenBlock(), !seen.contains(open.id), Self.overlaps(open, interval),
+           let part = Self.part(of: open, on: devices),
+           let block = Self.applying(rules, to: part, contexts: [:], fallback: shared.withLock(\.contexts))
+        {
             result.append(block)
         }
         return result.sorted { ($0.start, $0.id) < ($1.start, $1.id) }
@@ -89,17 +90,12 @@ public actor FileActivityStore: ActivityReading {
 
     public func details(for ids: [ActivityBlock.ID]) throws(ActivityError) -> [ActivityBlock.ID: ActivityBlockDetail] {
         let wanted = Set(ids)
-        let months = Set(ids.compactMap { id -> String? in
-            guard let slash = id.lastIndex(of: "/") else {
-                return nil
-            }
-            let month = String(id[id.index(after: slash)...].prefix(7))
-            return month.count == 7 ? month : nil
-        })
+        // An id starts with the block's local date, the detail file's name.
+        let days = Set(ids.map { String($0.prefix(10)) }.filter { $0.count == 10 })
         var result: [ActivityBlock.ID: ActivityBlockDetail] = [:]
         let rules = exclusions
-        for month in months.sorted() {
-            let url = folders.detailFolder.appending(path: "\(month).jsonl", directoryHint: .notDirectory)
+        for day in days.sorted() {
+            let url = folders.detailFolder.appending(path: "\(day).jsonl", directoryHint: .notDirectory)
             guard FileManager.default.fileExists(atPath: url.path) else {
                 continue
             }
@@ -264,6 +260,17 @@ public actor FileActivityStore: ActivityReading {
             return month >= first && month <= last
         }
     }
+
+    // swiftlint:disable discouraged_optional_collection
+    /// `block`, or its part on `devices` when given (`nil` means every device).
+    static func part(of block: ActivityBlock, on devices: Set<String>?) -> ActivityBlock? {
+        guard let devices else {
+            return block
+        }
+        return block.restricted(to: devices)
+    }
+
+    // swiftlint:enable discouraged_optional_collection
 
     /// Whether `block` overlaps `interval`; an empty block counts when it lies inside.
     private static func overlaps(_ block: ActivityBlock, _ interval: DateInterval) -> Bool {

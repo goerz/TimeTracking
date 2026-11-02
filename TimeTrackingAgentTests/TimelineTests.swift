@@ -1,5 +1,6 @@
-// One timeline: device and synced Safari blocks only cover the time the
-// Mac's blocks leave free (spec_activity_tracking.md §2.8, TRK-40).
+// One timeline of the user: the Mac, iPhones and iPads, and synced Safari
+// history merged into one stream of blocks (spec_activity_tracking.md §2.8,
+// TRK-40).
 
 import Foundation
 import Testing
@@ -8,6 +9,8 @@ import TimeTrackingCore
 
 @MainActor
 struct TimelineTests {
+    static let mac = AgentHarness.device
+
     /// A harness with the default `min_block` (10 minutes) reading `server`.
     static func harness(settings: String? = nil) throws -> (AgentHarness, InMemoryDeviceEventServer) {
         let harness = try AgentHarness(settings: settings, minBlock: nil)
@@ -16,91 +19,120 @@ struct TimelineTests {
         return (harness, server)
     }
 
-    /// The Mac's TextEdit block from the fixture time for `seconds`, closed by a lock.
-    static func macBlock(_ harness: AgentHarness, seconds: TimeInterval) async {
-        harness.frontmost("com.apple.TextEdit", name: "TextEdit", title: "Notes")
-        await harness.run(for: seconds)
-        harness.engine.handle(.lock, at: harness.clock.now)
+    /// An event of the iPad `seconds` after the fixture time.
+    static func padEvent(_ seconds: TimeInterval, _ kind: String, sequence: Int) -> DeviceEvent {
+        DeviceEvent(
+            deviceID: "pad-0123456789",
+            time: ManualClock.fixtureNow(in: AgentHarness.zone).addingTimeInterval(seconds),
+            source: .app,
+            label: "TimeTracking",
+            kind: kind,
+            payload: DeviceEvent.payloadText([:]),
+            sequence: sequence,
+            utcOffset: -14_400,
+            deviceName: "iPad"
+        )
     }
 
-    /// Whether no two blocks of the log share time.
+    /// Whether no two blocks share time.
     static func isOneTimeline(_ blocks: [ActivityBlock]) -> Bool {
         let sorted = blocks.sorted { $0.start < $1.start }
         return zip(sorted, sorted.dropFirst()).allSatisfy { $0.end <= $1.start }
     }
 
-    /// The (start, end) of the blocks of `source` other than the Mac's, as seconds after the fixture time.
-    static func spans(_ harness: AgentHarness, device: String) -> [[TimeInterval]] {
-        harness.blocks.filter { $0.device == device }.sorted { $0.start < $1.start }.map { block in
-            [block.start.timeIntervalSince(harness.time(0)), block.end.timeIntervalSince(harness.time(0))]
-        }
+    /// The device shares of `block` as `[name: seconds]`.
+    static func shares(_ block: ActivityBlock?) -> [String: Int] {
+        Dictionary(uniqueKeysWithValues: (block?.devices ?? []).map { ($0.name, $0.seconds) })
     }
 
-    @Test("TRK-40 iPhone use from 20 minutes before to 15 after a 20 minute Mac block gives device blocks only before and after it")
-    func deviceBlocksAroundTheMac() async throws {
+    @Test("TRK-40 Mac work, 5 minutes on the iPhone while the Mac is locked, and Mac work again form one block of both devices")
+    func iPhoneBetweenMacWork() async throws {
         let (harness, server) = try Self.harness()
-        await Self.macBlock(harness, seconds: 1200)
-        try await server.upload(DeviceTests.minutes("Everything", 1 ... 55, start: -1200))
-        await harness.engine.syncDeviceEvents(now: harness.time(2400))
-        #expect(Self.spans(harness, device: "iPhone") == [[-1200, 0], [1200, 2100]])
-        #expect(harness.blocks.filter { $0.device == "iPhone" }.map(\.activeSeconds) == [1200, 900])
-        #expect(Self.isOneTimeline(harness.blocks))
-    }
-
-    @Test("TRK-40 iPhone time left shorter than min_block around a Mac block is dropped, not merged across it")
-    func shortDeviceRemaindersAreDropped() async throws {
-        let (harness, server) = try Self.harness()
-        await Self.macBlock(harness, seconds: 1200)
-        try await server.upload(DeviceTests.minutes("Everything", 1 ... 29, start: -240))
-        await harness.engine.syncDeviceEvents(now: harness.time(2400))
-        #expect(Self.spans(harness, device: "iPhone").isEmpty)
-        #expect(harness.blocks.count == 1)
-    }
-
-    @Test("TRK-40 a Mac block closing over a device block merged while it was open removes the overlap")
-    func macBlockClosesOverADeviceBlock() async throws {
-        let (harness, server) = try Self.harness()
-        try await server.upload(DeviceTests.minutes("Everything", 1 ... 40, start: -1200))
         harness.frontmost("com.apple.TextEdit", name: "TextEdit", title: "Notes")
-        await harness.run(for: 600)
-        await harness.engine.syncDeviceEvents(now: harness.clock.now)
-        // The open block claims the time up to its last attentive sample.
-        #expect(Self.spans(harness, device: "iPhone") == [[-1200, 0], [570, 1200]])
-        await harness.run(for: 600)
+        await harness.run(for: 900)
         harness.engine.handle(.lock, at: harness.clock.now)
-        #expect(Self.spans(harness, device: "iPhone") == [[-1200, 0]])
-        #expect(Self.isOneTimeline(harness.blocks))
-        #expect(harness.details.count == 2)
+        try await server.upload(DeviceTests.minutes("Everything", 1 ... 5, start: 900))
+        harness.advance(300)
+        await harness.engine.syncDeviceEvents(now: harness.clock.now)
+        harness.engine.handle(.unlock, at: harness.clock.now)
+        harness.schedule = TickSchedule(start: harness.clock.now)
+        await harness.run(for: 900)
+        harness.engine.handle(.lock, at: harness.clock.now)
+        await harness.run(for: 900)
+
+        let block = try #require(harness.blocks.first)
+        #expect(harness.blocks.count == 1)
+        #expect(block.start == harness.time(0))
+        #expect(block.end == harness.time(2100))
+        #expect(Self.shares(block) == [Self.mac: 1800, "iPhone": 300])
+        #expect(block.deviceNames.first == Self.mac)
+        #expect(block.items.contains { $0.context == "Everything" && $0.device == "iPhone" && $0.seconds == 300 })
+        #expect(harness.blockLogText.contains(#"["Everything","Everything","",300,"iPhone"]"#))
     }
 
-    @Test("TRK-40 synced Safari visits during a Mac block form no block; a remote block the Mac block overlaps keeps its free part")
-    func syncedSafariAroundTheMac() async throws {
-        let (harness, _) = try Self.harness(settings: "[devices]\nsynced_safari_history = true\n")
-        let remote = ActivityBlock(
-            start: harness.time(-600),
-            end: harness.time(900),
-            activeSeconds: 1500,
-            device: "remote",
-            groupKey: "example.com",
-            groupShare: 1,
-            items: [ActivityItem(context: "safari", subject: "example.com", detail: "", seconds: 1500)],
-            utcOffset: -14_400
-        )
-        let closed = ClosedBlock(block: remote, detailItems: remote.items, contexts: ["safari": "com.apple.Safari"])
-        try harness.engine.logs.appendSummary(closed)
-        await Self.macBlock(harness, seconds: 1200)
-        #expect(Self.spans(harness, device: "remote") == [[-600, 0]])
-        #expect(harness.blocks.first { $0.device == "remote" }?.activeSeconds == 600)
-        #expect(harness.details.first { $0.blockID.hasPrefix("remote/") }?.items.map(\.seconds) == [600])
+    @Test("TRK-40 iPhone use while the Mac has attention is a background item and adds no active time")
+    func iPhoneDuringMacWork() async throws {
+        let (harness, server) = try Self.harness()
+        try await server.upload(DeviceTests.minutes("Everything", 1 ... 10, start: 300))
+        await harness.engine.syncDeviceEvents(now: harness.clock.now)
+        harness.frontmost("com.apple.TextEdit", name: "TextEdit", title: "Notes")
+        await harness.run(for: 1200)
+        harness.engine.handle(.lock, at: harness.clock.now)
 
-        harness.history.safari = stride(from: 600, through: 2400, by: 60).map { second in
+        let block = try #require(harness.blocks.first)
+        #expect(harness.blocks.count == 1)
+        #expect(Self.shares(block) == [Self.mac: 1200])
+        #expect(block.activeSeconds == 1200)
+        #expect(block.background.map { "\($0.context) \($0.device) \($0.seconds)" } == ["Everything iPhone 600"])
+    }
+
+    @Test("TRK-40 overlapping iPhone and iPad use forms one block in which the more specific iPad app wins its minutes")
+    func iPhoneAndIPad() async throws {
+        let (harness, server) = try Self.harness()
+        try await server.upload(DeviceTests.minutes("Everything", 1 ... 20, start: -1200) + [
+            Self.padEvent(-600, "foreground", sequence: 1),
+            Self.padEvent(-300, "background", sequence: 2),
+        ])
+        await harness.syncDevices(at: 600)
+
+        let block = try #require(harness.blocks.first)
+        #expect(harness.blocks.count == 1)
+        #expect(block.start == harness.time(-1200))
+        #expect(block.end == harness.time(0))
+        #expect(Self.shares(block) == ["iPhone": 900, "iPad": 300])
+        #expect(harness.details.count == 1)
+    }
+
+    @Test("TRK-40 synced Safari history fills only time no iPhone stretch claims")
+    func syncedSafariBelowTheIPhone() async throws {
+        let (harness, server) = try Self.harness(settings: "[devices]\nsynced_safari_history = true\n")
+        try await server.upload(DeviceTests.minutes("Everything", 1 ... 10, start: -1800))
+        await harness.engine.syncDeviceEvents(now: harness.clock.now)
+        harness.history.safari = stride(from: -1500, through: -900, by: 60).map { second in
             let time = harness.time(TimeInterval(second))
             return (HistoryVisit(time: time, browser: "safari", url: "https://example.com/b", title: ""), 1)
         }
-        harness.engine.collectSyncedSafari(now: harness.time(3000))
-        let spans = Self.spans(harness, device: "remote")
-        #expect(spans.count == 2)
-        #expect(spans.last?.first == 1200)
+        harness.engine.collectSyncedSafari(now: harness.time(600))
+
+        let block = try #require(harness.blocks.first)
+        #expect(harness.blocks.count == 1)
+        #expect(block.start == harness.time(-1800))
+        #expect(block.end == harness.time(-900))
+        #expect(Self.shares(block) == ["iPhone": 600, ActivityDeviceTime.remote: 300])
+    }
+
+    @Test("TRK-40 a deleted block stays deleted when late iPhone events for its time arrive")
+    func deletedTimeStaysDeleted() async throws {
+        let (harness, server) = try Self.harness()
+        try await server.upload(DeviceTests.minutes("Everything", 1 ... 20, start: -1800))
+        await harness.engine.syncDeviceEvents(now: harness.clock.now)
+        let block = try #require(harness.blocks.first)
+        let start = ActivityTimestamp.text(block.start, utcOffset: block.utcOffset)
+        #expect(harness.engine.rewrite(.deleteBlock(start: start)) == .success)
+        #expect(harness.blocks.isEmpty)
+        try await server.upload(DeviceTests.minutes("Mail", 1 ... 15, start: -1800))
+        await harness.engine.syncDeviceEvents(now: harness.clock.now)
+        #expect(harness.blocks.isEmpty)
         #expect(Self.isOneTimeline(harness.blocks))
     }
 }

@@ -1,98 +1,292 @@
-// Timeline: one list of blocks for the user across the Mac, iPhone and
-// iPad, and synced Safari history (spec_activity_tracking.md §2.8).
+// Timeline: one stream of samples for the user from the Mac, iPhone and
+// iPad, and synced Safari history, cut into blocks (spec_activity_tracking.md
+// §2.6, §2.8).
 
 import Foundation
 import TimeTrackingCore
 
-/// The rank of a block's source and the arithmetic of claimed time.
+/// A stretch of attention on another device: an iPhone or iPad's events
+/// (§6.2) or synced Safari history (§6.1).
+nonisolated struct TimelineStretch: Hashable, Sendable {
+    var start: Date
+    var end: Date
+    var item: SampleItem
+    var device: String
+    /// Where stretches overlap, the higher rank wins (the later start on a tie).
+    var rank: Int
+}
+
+/// Everything a day's blocks are formed from.
+nonisolated struct TimelineInputs: Sendable {
+    /// The Mac's samples, oldest first.
+    var mac: [Sample] = []
+    /// Samples reconstructed from the Mac's app usage history (§3.2).
+    var reconstructed: [Sample] = []
+    /// Stretches of the other devices.
+    var others: [TimelineStretch] = []
+    /// Times at which an iPhone or iPad Focus suspends collection.
+    var closers: [Date] = []
+    /// Deleted time (`delete-block`, `forget-day`): nothing there counts.
+    var suppressed: [DateInterval] = []
+}
+
+/// Merges the inputs into one sample stream and runs the Blocker over it.
 ///
-/// The Mac's own blocks (`live` and `knowledge`) rank highest, then
-/// `device` blocks from the iOS app, then synced Safari history. A source
-/// only covers the time that no higher-ranked block claims.
+/// The Mac's attention wins: each attentive Mac sample claims the time it
+/// is credited with, and another device's stretch over that time becomes a
+/// secondary of the Mac sample. Elsewhere the other devices' stretches,
+/// resolved by rank, become samples every 30 seconds, and the Mac's
+/// samples without attention (idle, lock, sleep) within them are dropped,
+/// so a block runs on from one device to the next.
 nonisolated enum Timeline {
-    static let mac = 2
-    static let device = 1
-    static let remote = 0
+    static let spacing: TimeInterval = 30
+    /// The rank of synced Safari history, below every iOS stretch.
+    static let remoteRank = 0
+    /// The longest gap between two synced visits that one visit is credited across.
+    static let remoteGap: TimeInterval = 300
 
-    /// The rank of `block` on the Mac named `mac`.
-    static func rank(_ block: ActivityBlock, mac name: String) -> Int {
-        if block.device == name {
-            return mac
+    /// One step of the merged stream.
+    enum Step: Hashable, Sendable {
+        case sample(Sample, SampleOrigin, background: [DeviceItem])
+        /// Closes the open block (a Focus that suspends collection).
+        case close
+
+        /// The sample's time.
+        var time: Date? {
+            if case let .sample(sample, _, _) = self {
+                return sample.time
+            }
+            return nil
         }
-        return block.source == .device ? device : remote
     }
 
-    /// Whether `interval` shares more than an instant with one of `claimed`.
-    static func overlaps(_ interval: DateInterval, _ claimed: [DateInterval]) -> Bool {
-        claimed.contains { $0.start < interval.end && $0.end > interval.start }
+    /// The blocks the Blocker closed, and the block still open at the end
+    /// of the stream (none after a flush).
+    struct Result: Sendable {
+        var closed: [ClosedBlock]
+        var open: TrackerOpenBlock?
     }
 
-    /// The parts of `interval` outside every one of `claimed`, in order.
-    static func free(_ interval: DateInterval, outside claimed: [DateInterval]) -> [DateInterval] {
-        var pieces = [interval]
-        for claim in claimed.sorted(by: { $0.start < $1.start }) {
-            pieces = pieces.flatMap { piece -> [DateInterval] in
-                guard claim.start < piece.end, claim.end > piece.start else {
-                    return [piece]
-                }
-                var rest: [DateInterval] = []
-                if claim.start > piece.start {
-                    rest.append(DateInterval(start: piece.start, end: claim.start))
-                }
-                if claim.end < piece.end {
-                    rest.append(DateInterval(start: claim.end, end: piece.end))
-                }
-                return rest
+    /// The blocks of `inputs` on the Mac `mac`; `flush` closes the block
+    /// open at the end (a past day, agent shutdown, a replay). Without it,
+    /// a stream that ends before `until` (now) ends with an idle sample
+    /// there, so a block without attention for `idle_close` closes.
+    static func run(
+        _ inputs: TimelineInputs,
+        settings: TrackerBlockSettings,
+        timeZone: TimeZone,
+        mac: String,
+        flush: Bool,
+        until: Date? = nil
+    ) -> Result {
+        var blocker = Blocker(settings: settings, timeZone: timeZone, device: mac)
+        var closed: [ClosedBlock] = []
+        var stream = steps(inputs, mac: mac)
+        if !flush, let until {
+            let marker = Sample(time: until, state: .idle)
+            if let last = stream.last(where: { $0.time != nil })?.time, last < marker.time {
+                stream.append(.sample(marker, SampleOrigin(device: mac), background: []))
             }
         }
-        return pieces
+        for step in stream {
+            switch step {
+            case let .sample(sample, origin, background):
+                closed += blocker.add(sample, origin: origin, background: background)
+            case .close:
+                closed += blocker.flush()
+            }
+        }
+        if flush {
+            closed += blocker.flush()
+        }
+        return Result(closed: ClosedBlock.resolved(closed), open: flush ? nil : blocker.openSummary)
     }
 
-    /// `block` without the claimed time: one block per free part, its
-    /// seconds and those of `detailItems` scaled by the part's share of the
-    /// block's length; parts shorter than `minBlock` are dropped.
-    static func clipped(
-        _ block: ActivityBlock,
-        detailItems: [ActivityItem],
-        outside claimed: [DateInterval],
-        minBlock: TimeInterval
-    ) -> [(block: ActivityBlock, detailItems: [ActivityItem])] {
-        let whole = DateInterval(start: block.start, end: max(block.start, block.end))
-        let length = whole.duration
-        guard length > 0 else {
-            return []
-        }
-        return free(whole, outside: claimed).compactMap { part in
-            guard part.duration >= minBlock else {
+    /// Synced Safari visits (each a sample with its device) as stretches:
+    /// a visit lasts until the next one when that follows within 5 minutes.
+    static func remoteStretches(_ visits: [(sample: Sample, device: String)]) -> [TimelineStretch] {
+        let sorted = visits.filter { $0.sample.primary != nil }.sorted { $0.sample.time < $1.sample.time }
+        return zip(sorted, sorted.dropFirst()).compactMap { visit, next in
+            guard let item = visit.sample.primary, next.sample.time > visit.sample.time,
+                  next.sample.time.timeIntervalSince(visit.sample.time) <= remoteGap
+            else {
                 return nil
             }
-            let share = part.duration / length
-            func scaled(_ items: [ActivityItem]) -> [ActivityItem] {
-                items.compactMap { item in
-                    let seconds = Int((Double(item.seconds) * share).rounded())
-                    guard seconds > 0 else {
-                        return nil
-                    }
-                    return ActivityItem(context: item.context, subject: item.subject, detail: item.detail, seconds: seconds)
-                }
+            return TimelineStretch(start: visit.sample.time, end: next.sample.time, item: item, device: visit.device, rank: remoteRank)
+        }
+    }
+
+    // MARK: Merging
+
+    static func steps(_ inputs: TimelineInputs, mac: String) -> [Step] {
+        let suppressed = inputs.suppressed
+        let macSamples = (inputs.mac.map { ($0, SampleOrigin(device: mac)) }
+            + inputs.reconstructed.map { ($0, SampleOrigin(device: mac, isReconstructed: true)) })
+            .filter { sample, _ in !suppressed.contains { $0.start <= sample.time && sample.time < $0.end } }
+            .enumerated()
+            .sorted { ($0.element.0.time, $0.offset) < ($1.element.0.time, $1.offset) }
+            .map(\.element)
+        let coverage = claimed(by: macSamples.map(\.0))
+        let others = resolve(inputs.others, cuts: inputs.closers).flatMap { stretch in
+            parts(of: stretch, outside: suppressed)
+        }
+        let free = others.flatMap { parts(of: $0, outside: coverage) }
+        let covered = others.flatMap { parts(of: $0, inside: coverage) }
+
+        var ordered: [Timed] = []
+        for closer in inputs.closers where !contains(coverage, closer) {
+            ordered.append(Timed(time: closer, order: 1, step: .close))
+        }
+        ordered += otherSteps(free, cuts: Set(inputs.closers))
+        for (sample, origin) in macSamples {
+            if sample.isAttentive {
+                let background = covered.filter { $0.start <= sample.time && sample.time < $0.end }
+                    .map { DeviceItem(item: $0.item, device: $0.device) }
+                ordered.append(Timed(time: sample.time, order: 3, step: .sample(sample, origin, background: background)))
+            } else if !free.contains(where: { $0.start <= sample.time && sample.time < $0.end }) {
+                ordered.append(Timed(time: sample.time, order: 3, step: .sample(sample, origin, background: [])))
             }
-            let active = Int((Double(block.activeSeconds) * share).rounded())
-            guard active > 0 else {
+        }
+        return ordered.enumerated()
+            .sorted { ($0.element.time, $0.element.order, $0.offset) < ($1.element.time, $1.element.order, $1.offset) }
+            .map(\.element.step)
+    }
+
+    /// A step with its time and its order among steps of the same time:
+    /// the end of a run (0), a closer (1), another device's sample (2), the Mac's (3).
+    struct Timed {
+        var time: Date
+        var order: Int
+        var step: Step
+    }
+
+    /// The time the attentive Mac samples are credited with (up to the next
+    /// sample, at most the credit cap), merged into disjoint intervals.
+    static func claimed(by samples: [Sample]) -> [DateInterval] {
+        var intervals: [DateInterval] = []
+        for (index, sample) in samples.enumerated() where sample.isAttentive {
+            let next = index + 1 < samples.count ? samples[index + 1].time : sample.time
+            let length = min(Blocker.defaultCreditCap, max(0, next.timeIntervalSince(sample.time)))
+            guard length > 0 else {
+                continue
+            }
+            let interval = DateInterval(start: sample.time, duration: length)
+            if let last = intervals.last, last.end >= interval.start {
+                intervals[intervals.count - 1] = DateInterval(start: last.start, end: max(last.end, interval.end))
+            } else {
+                intervals.append(interval)
+            }
+        }
+        return intervals
+    }
+
+    private static func contains(_ intervals: [DateInterval], _ time: Date) -> Bool {
+        intervals.contains { $0.start <= time && time < $0.end }
+    }
+
+    /// The stretches cut at every boundary and at `cuts`, each piece taking
+    /// the stretch of the highest rank over it (the later start on a tie);
+    /// adjacent pieces of one item and device are joined unless a cut
+    /// separates them.
+    static func resolve(_ stretches: [TimelineStretch], cuts: [Date]) -> [TimelineStretch] {
+        let sorted = stretches.filter { $0.end > $0.start }.sorted { $0.start < $1.start }
+        let bounds = Set(sorted.flatMap { [$0.start, $0.end] } + cuts).sorted()
+        let cutSet = Set(cuts)
+        var result: [TimelineStretch] = []
+        var next = 0
+        var active: [TimelineStretch] = []
+        for (start, end) in zip(bounds, bounds.dropFirst()) {
+            while next < sorted.count, sorted[next].start <= start {
+                active.append(sorted[next])
+                next += 1
+            }
+            active.removeAll { $0.end <= start }
+            guard let winner = active.max(by: { ($0.rank, $0.start) < ($1.rank, $1.start) }) else {
+                continue
+            }
+            if var last = result.last, last.end == start, last.item == winner.item, last.device == winner.device,
+               !cutSet.contains(start)
+            {
+                last.end = end
+                result[result.count - 1] = last
+            } else {
+                var piece = winner
+                piece.start = start
+                piece.end = end
+                result.append(piece)
+            }
+        }
+        return result
+    }
+
+    /// The parts of `stretch` outside the disjoint, ordered `intervals`.
+    static func parts(of stretch: TimelineStretch, outside intervals: [DateInterval]) -> [TimelineStretch] {
+        var result: [TimelineStretch] = []
+        var start = stretch.start
+        for interval in intervals.sorted(by: { $0.start < $1.start }) where interval.end > start && interval.start < stretch.end {
+            if interval.start > start {
+                var piece = stretch
+                piece.start = start
+                piece.end = interval.start
+                result.append(piece)
+            }
+            start = max(start, interval.end)
+        }
+        if start < stretch.end {
+            var piece = stretch
+            piece.start = start
+            result.append(piece)
+        }
+        return result
+    }
+
+    /// The parts of `stretch` inside `intervals`.
+    static func parts(of stretch: TimelineStretch, inside intervals: [DateInterval]) -> [TimelineStretch] {
+        intervals.compactMap { interval in
+            let start = max(stretch.start, interval.start)
+            let end = min(stretch.end, interval.end)
+            guard end > start else {
                 return nil
             }
-            let piece = ActivityBlock(
-                start: part.start,
-                end: part.end,
-                activeSeconds: active,
-                device: block.device,
-                groupKey: block.groupKey,
-                groupShare: block.groupShare,
-                items: scaled(block.items),
-                utcOffset: block.utcOffset,
-                source: block.source,
-                background: scaled(block.background)
+            var piece = stretch
+            piece.start = start
+            piece.end = end
+            return piece
+        }
+    }
+
+    /// Samples every 30 seconds within each run of adjacent pieces; at the
+    /// end of a run (a gap or one of `cuts`) an attentive sample credits the
+    /// last piece and an idle one stops the credit, so gaps are never counted.
+    private static func otherSteps(_ pieces: [TimelineStretch], cuts: Set<Date>) -> [Timed] {
+        var result: [Timed] = []
+        var last: TimelineStretch?
+        func sample(_ time: Date, _ state: TrackerPresenceState, _ piece: TimelineStretch) -> Step {
+            .sample(
+                Sample(time: time, state: state, primary: state == .idle ? nil : piece.item),
+                SampleOrigin(device: piece.device),
+                background: []
             )
-            return (piece, scaled(detailItems))
         }
+        func endRun() {
+            if let run = last {
+                result.append(Timed(time: run.end, order: 0, step: sample(run.end, .active, run)))
+                result.append(Timed(time: run.end, order: 0, step: sample(run.end, .idle, run)))
+            }
+            last = nil
+        }
+        for piece in pieces.sorted(by: { $0.start < $1.start }) {
+            if let run = last, run.end != piece.start || cuts.contains(piece.start) {
+                endRun()
+            }
+            var time = piece.start
+            while time < piece.end {
+                result.append(Timed(time: time, order: 2, step: sample(time, .active, piece)))
+                time += spacing
+            }
+            last = piece
+        }
+        endRun()
+        return result
     }
 }

@@ -67,8 +67,8 @@ struct TrackerEventTests {
 
     @Test("TRK-21 tracker-event quotes words with spaces and reports an error reply with exit 1")
     func reportsErrors() async throws {
-        let (line, result) = try await exchange(["delete-block", "Alex's Mac", "2024-03-14T09:10:00"], reply: "error no block")
-        #expect(line == #"delete-block "Alex's Mac" 2024-03-14T09:10:00"#)
+        let (line, result) = try await exchange(["tmux", "client-session-changed", "Alex's session"], reply: "error no block")
+        #expect(line == #"tmux client-session-changed "Alex's session""#)
         #expect(result.status == 1)
         #expect(result.standardError.contains("error no block"))
     }

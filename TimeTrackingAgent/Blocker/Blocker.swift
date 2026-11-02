@@ -19,6 +19,9 @@ import TimeTrackingCore
 /// the previous block of the same stream when that ended within the window
 /// before it (a `ClosedBlock` that replaces the previous one), or is dropped.
 /// Neither crosses midnight, a `flush`, or `max_block`.
+///
+/// Each sample comes with its origin, the device it was observed on and
+/// whether it was reconstructed (§2.8); a block sums its time per device.
 nonisolated struct Blocker: Sendable {
     /// The most one sample is credited with, so a missed tick cannot inflate `a`.
     static let defaultCreditCap: TimeInterval = 60
@@ -26,29 +29,29 @@ nonisolated struct Blocker: Sendable {
     static let maxBlockLookback: TimeInterval = 1800
 
     var settings: TrackerBlockSettings
-    var creditCap = Self.defaultCreditCap
     let timeZone: TimeZone
+    /// The recording Mac, the origin of a sample added without one.
     let device: String
-    let source: ActivitySource
     private(set) var open: OpenBlock?
     /// A closed block shorter than `min_block`, waiting for a neighbor.
     var held: RawBlock?
     /// The last block handed out, for a backward merge.
     var previous: RawBlock?
 
-    init(settings: TrackerBlockSettings, timeZone: TimeZone, device: String, source: ActivitySource = .live) {
+    init(settings: TrackerBlockSettings, timeZone: TimeZone, device: String) {
         self.settings = settings
         self.timeZone = timeZone
         self.device = device
-        self.source = source
     }
 
-    /// A credited stretch of one primary item.
+    /// A credited stretch of one item on one device.
     struct Segment: Hashable, Sendable {
         var start: Date
         var seconds: Int
         var item: SampleItem
         var passive: Bool
+        var device: String
+        var isReconstructed = false
     }
 
     /// The last attentive sample, credited when the next sample arrives.
@@ -56,7 +59,8 @@ nonisolated struct Blocker: Sendable {
         var time: Date
         var item: SampleItem
         var passive: Bool
-        var secondaries: [SampleItem]
+        var origin: SampleOrigin
+        var secondaries: [DeviceItem]
     }
 
     /// The open block.
@@ -71,9 +75,15 @@ nonisolated struct Blocker: Sendable {
 
     // MARK: Samples
 
-    /// Adds `sample` (not earlier than the previous one) and returns the
-    /// blocks it closed, oldest first.
+    /// Adds `sample` of the recording Mac (not earlier than the previous
+    /// one) and returns the blocks it closed, oldest first.
     mutating func add(_ sample: Sample) -> [ClosedBlock] {
+        add(sample, origin: SampleOrigin(device: device))
+    }
+
+    /// Adds `sample` observed at `origin`, with `background` items of other
+    /// devices, and returns the blocks it closed, oldest first.
+    mutating func add(_ sample: Sample, origin: SampleOrigin, background: [DeviceItem] = []) -> [ClosedBlock] {
         var closed: [ClosedBlock] = []
         let time = sample.time
         if let block = open, ActivityTimestamp.startOfDay(time, timeZone: timeZone) > ActivityTimestamp.startOfDay(
@@ -124,9 +134,10 @@ nonisolated struct Blocker: Sendable {
         } else {
             credit(until: time)
         }
-        open?.pending = Pending(time: time, item: item, passive: sample.state == .passive, secondaries: sample.secondaries)
+        let secondaries = sample.secondaries.map { DeviceItem(item: $0, device: origin.device) } + background
+        open?.pending = Pending(time: time, item: item, passive: sample.state == .passive, origin: origin, secondaries: secondaries)
         open?.lastAttentive = time
-        for entry in [item] + sample.secondaries where open?.contexts[entry.context] == nil {
+        for entry in [item] + secondaries.map(\.item) where open?.contexts[entry.context] == nil {
             open?.contexts[entry.context] = entry.app
         }
         closed += checkLength(now: time)
@@ -151,23 +162,17 @@ nonisolated struct Blocker: Sendable {
         guard let block = open else {
             return nil
         }
-        let summary = BlockSummary(segments: block.segments, background: block.background, settings: settings)
+        let summary = BlockSummary(segments: block.segments, background: block.background, settings: settings, mac: device)
         return TrackerOpenBlock(
             start: block.start,
             activeSeconds: summary.activeSeconds,
+            devices: summary.devices,
             groupKey: summary.groupKey,
             groupShare: summary.groupShare,
             items: summary.items,
-            background: summary.background
+            background: summary.background,
+            reconstructedSeconds: summary.reconstructedSeconds
         )
-    }
-
-    /// Drops the open block and a held short block without writing them
-    /// (`forget-day`, `delete-block`), and forgets the previous block.
-    mutating func discardOpenBlock() {
-        open = nil
-        held = nil
-        previous = nil
     }
 
     // MARK: Crediting and closing
@@ -177,14 +182,27 @@ nonisolated struct Blocker: Sendable {
         guard let pending = open?.pending else {
             return
         }
-        let seconds = Int(min(creditCap, max(0, time.timeIntervalSince(pending.time))))
+        let seconds = Int(min(Self.defaultCreditCap, max(0, time.timeIntervalSince(pending.time))))
         open?.pending = nil
         guard seconds > 0 else {
             return
         }
-        open?.segments.append(Segment(start: pending.time, seconds: seconds, item: pending.item, passive: pending.passive))
+        open?.segments.append(Segment(
+            start: pending.time,
+            seconds: seconds,
+            item: pending.item,
+            passive: pending.passive,
+            device: pending.origin.device,
+            isReconstructed: pending.origin.isReconstructed
+        ))
         for secondary in pending.secondaries {
-            open?.background.append(Segment(start: pending.time, seconds: seconds, item: secondary, passive: false))
+            open?.background.append(Segment(
+                start: pending.time,
+                seconds: seconds,
+                item: secondary.item,
+                passive: false,
+                device: secondary.device
+            ))
         }
     }
 
@@ -213,7 +231,7 @@ nonisolated struct Blocker: Sendable {
 
     func finish(_ raw: RawBlock, replacesPrevious: Bool = false) -> [ClosedBlock] {
         let (start, end, contexts) = (raw.start, raw.end, raw.contexts)
-        let summary = BlockSummary(segments: raw.segments, background: raw.background, settings: settings)
+        let summary = BlockSummary(segments: raw.segments, background: raw.background, settings: settings, mac: device)
         guard summary.activeSeconds > 0 else {
             return []
         }
@@ -222,13 +240,13 @@ nonisolated struct Blocker: Sendable {
             start: start,
             end: end,
             activeSeconds: summary.activeSeconds,
-            device: device,
+            devices: summary.devices,
             groupKey: summary.groupKey,
             groupShare: summary.groupShare,
             items: summary.items,
             utcOffset: timeZone.secondsFromGMT(for: start),
-            source: source,
-            background: summary.background
+            background: summary.background,
+            reconstructedSeconds: summary.reconstructedSeconds
         )
         let closed = ClosedBlock(
             block: block,

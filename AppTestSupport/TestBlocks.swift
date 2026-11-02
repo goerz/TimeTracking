@@ -17,10 +17,10 @@ enum TestBlocks {
             start: begin,
             end: finish,
             activeSeconds: seconds,
-            device: "macbook",
+            devices: [ActivityDeviceTime(name: "macbook", seconds: seconds, isRecordingMac: true)],
             groupKey: context,
             groupShare: 1,
-            items: [ActivityItem(context: context, subject: "~/Papers", detail: "", seconds: seconds)],
+            items: [ActivityItem(context: context, subject: "~/Papers", detail: "", seconds: seconds, device: "macbook")],
             utcOffset: TimeZone.current.secondsFromGMT(for: begin),
             isOpen: open
         )

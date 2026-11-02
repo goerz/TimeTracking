@@ -8,9 +8,12 @@ import Testing
 
 struct ActivityAgentSupportTests {
     @Test func commandsRoundTripWithQuotes() throws {
-        let command = TrackerCommand.deleteBlock(device: "Alex's \"Mac\"", start: "2024-03-14T09:10:00")
-        #expect(command.line == #"delete-block "Alex's \"Mac\"" 2024-03-14T09:10:00"#)
+        let command = TrackerCommand.deleteBlock(start: "2024-03-14T09:10:00")
+        #expect(command.line == "delete-block 2024-03-14T09:10:00")
         #expect(try TrackerCommand.parse(command.line) == command)
+        let quoted = TrackerCommand.tmuxEvent(hook: "after-select-pane", arguments: ["Alex's \"pane\""])
+        #expect(quoted.line == #"tmux after-select-pane "Alex's \"pane\"""#)
+        #expect(try TrackerCommand.parse(quoted.line) == quoted)
         #expect(try TrackerCommand.parse("tmux after-select-pane %3\n") == .tmuxEvent(hook: "after-select-pane", arguments: ["%3"]))
         #expect(try TrackerCommand.parse("reapply-exclusions 2024-03-01 2024-03-14") == .reapplyExclusions(
             from: "2024-03-01",
@@ -53,13 +56,13 @@ struct ActivityAgentSupportTests {
             start: start,
             end: start.addingTimeInterval(1800),
             activeSeconds: 1500,
-            device: "macbook",
+            devices: [ActivityDeviceTime(name: "macbook", seconds: 1500)],
             groupKey: "news.example.com",
             groupShare: 0.6,
             items: [
-                ActivityItem(context: "safari", subject: "news.example.com", detail: "story/42", seconds: 900),
-                ActivityItem(context: "notes", subject: "Diary", detail: "", seconds: 300),
-                ActivityItem(context: "preview", subject: "~/Documents/Medical", detail: "scan.pdf", seconds: 300),
+                ActivityItem(context: "safari", subject: "news.example.com", detail: "story/42", seconds: 900, device: "macbook"),
+                ActivityItem(context: "notes", subject: "Diary", detail: "", seconds: 300, device: "macbook"),
+                ActivityItem(context: "preview", subject: "~/Documents/Medical", detail: "scan.pdf", seconds: 300, device: "macbook"),
             ],
             utcOffset: -14_400
         )
@@ -84,10 +87,10 @@ struct ActivityAgentSupportTests {
             start: start,
             end: start.addingTimeInterval(600),
             activeSeconds: 600,
-            device: "macbook",
+            devices: [ActivityDeviceTime(name: "macbook", seconds: 600)],
             groupKey: "safari",
             groupShare: 1,
-            items: [ActivityItem(context: "safari", subject: "example.com", detail: "", seconds: 600)],
+            items: [ActivityItem(context: "safari", subject: "example.com", detail: "", seconds: 600, device: "macbook")],
             utcOffset: -14_400
         )
         let detail = ActivityBlockDetail(

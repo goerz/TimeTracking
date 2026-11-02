@@ -31,14 +31,13 @@ extension ActivitySummaryTests {
         #expect(elsewhere.subjectRows.first?.hasDetails == false)
     }
 
-    @Test("PA-15 Away counts only gaps over idle_close between one device's blocks of a day, classified with details")
+    @Test("PA-15 Away counts only gaps over idle_close between consecutive blocks of a day, classified with details")
     func away() throws {
         let morning = try Self.block("2026-10-26", "09:00", "10:00", [Self.item("safari", 3600)])
         let shortGap = try Self.block("2026-10-26", "10:04", "11:00", [Self.item("safari", 3000)])
         let afterLunch = try Self.block("2026-10-26", "12:00", "13:00", [Self.item("mail", 3000)])
-        let otherDevice = try Self.block("2026-10-26", "10:30", "10:40", [Self.item("safari", 600)], device: "iPad")
         let nextDay = try Self.block("2026-10-27", "09:00", "10:00", [Self.item("safari", 3600)])
-        let blocks = [morning, shortGap, afterLunch, otherDevice, nextDay]
+        let blocks = [morning, shortGap, afterLunch, nextDay]
         let unknown = Self.summary(blocks).away
         #expect(unknown.seconds == 3600)
         #expect(unknown.parts == [ActivityAway.Part(cause: .unknown, seconds: 3600, count: 1)])

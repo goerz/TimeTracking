@@ -69,12 +69,21 @@ nonisolated enum MonthFileRewriter {
         return affected
     }
 
+    /// The day files `YYYY-MM-DD.jsonl` of `folder` from `fromDay` to `toDay`.
+    static func dayFiles(in folder: URL, fromDay: String, toDay: String) -> [URL] {
+        let names = (try? FileManager.default.contentsOfDirectory(atPath: folder.path)) ?? []
+        let days = names.filter { $0.hasSuffix(".jsonl") }.map { String($0.dropLast(6)) }
+            .filter { $0.count == 10 && $0 >= fromDay && $0 <= toDay }
+        return days.sorted().map { day in folder.appending(path: "\(day).jsonl", directoryHint: .notDirectory) }
+    }
+
     /// The `YYYY-MM.jsonl` files of `folder` whose month overlaps `[from, to]` (days `YYYY-MM-DD`).
     static func monthFiles(in folder: URL, fromDay: String, toDay: String) -> [URL] {
         let names = (try? FileManager.default.contentsOfDirectory(atPath: folder.path)) ?? []
         let first = String(fromDay.prefix(7))
         let last = String(toDay.prefix(7))
-        let months = names.filter { $0.hasSuffix(".jsonl") }.map { String($0.dropLast(6)) }.filter { $0 >= first && $0 <= last }
+        let months = names.filter { $0.hasSuffix(".jsonl") }.map { String($0.dropLast(6)) }
+            .filter { $0.count == 7 && $0 >= first && $0 <= last }
         return months.sorted().map { month in folder.appending(path: "\(month).jsonl", directoryHint: .notDirectory) }
     }
 }

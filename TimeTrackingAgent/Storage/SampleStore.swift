@@ -54,6 +54,20 @@ final class SampleStore {
             CREATE INDEX device_event_time ON device_event(time);
             """)
         }
+        migrator.registerMigration("v3") { database in
+            try database.execute(sql: """
+            CREATE TABLE extra_sample (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                kind TEXT NOT NULL,
+                device TEXT NOT NULL,
+                time REAL NOT NULL,
+                utc_offset INTEGER NOT NULL,
+                line TEXT NOT NULL
+            );
+            CREATE INDEX extra_sample_time ON extra_sample(kind, time);
+            CREATE TABLE suppressed (start REAL NOT NULL, end REAL NOT NULL);
+            """)
+        }
         try migrator.migrate(database)
     }
 
@@ -117,9 +131,13 @@ final class SampleStore {
         }
     }
 
-    /// Deletes samples older than `date`.
+    /// Deletes samples, reconstructed and synced samples, and deleted time older than `date`.
     func purge(before date: Date) throws {
         try delete(from: .distantPast, to: date)
+        try database.write { database in
+            try database.execute(sql: "DELETE FROM extra_sample WHERE time < ?", arguments: [date.timeIntervalSince1970])
+            try database.execute(sql: "DELETE FROM suppressed WHERE end < ?", arguments: [date.timeIntervalSince1970])
+        }
     }
 
     /// The sample times in `[from, to)`, for finding when the agent was down.

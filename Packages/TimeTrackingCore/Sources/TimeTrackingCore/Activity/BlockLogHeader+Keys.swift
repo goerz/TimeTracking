@@ -1,4 +1,4 @@
-// BlockLogHeader+Keys: the legend of the line keys in a month file's first
+// BlockLogHeader+Keys: the legend of the line keys in a log file's first
 // header (spec_activity_tracking.md §4.2, §4.3).
 
 import Foundation
@@ -9,12 +9,12 @@ extension BlockLogHeader {
         "s": "start (local time)",
         "e": "end (local time)",
         "a": "active seconds",
-        "dev": "device",
+        "dev": "devices [device, active seconds]",
+        "rec": "seconds reconstructed from the Mac's app usage history",
         "g": "dominant group",
         "gs": "share of the dominant group",
-        "items": "items [context, subject, detail, seconds]",
-        "bg": "background items [context, subject, detail, seconds]",
-        "src": "source (live, knowledge, or device)",
+        "items": "items [context, subject, detail, seconds, device]",
+        "bg": "background items [context, subject, detail, seconds, device]",
     ]
 
     /// The keys a detail-log line adds, in line order, with their labels.

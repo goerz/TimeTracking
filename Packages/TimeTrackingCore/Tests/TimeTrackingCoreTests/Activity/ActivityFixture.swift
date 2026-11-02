@@ -38,7 +38,7 @@ enum ActivityFixture {
         try handle.write(contentsOf: Data(text.utf8))
     }
 
-    /// A block of `device` from `start` to `end` (RFC 3339) with one item per entry of `items`.
+    /// A block of the Mac `device` from `start` to `end` (RFC 3339) with `items`.
     static func block(
         start: String,
         end: String,
@@ -52,10 +52,14 @@ enum ActivityFixture {
             start: instant(start),
             end: instant(end),
             activeSeconds: total,
-            device: device,
+            devices: [ActivityDeviceTime(name: device, seconds: total, isRecordingMac: true)],
             groupKey: groupKey ?? items.first?.context ?? "",
             groupShare: 1,
-            items: items,
+            items: items.map { item in
+                var tagged = item
+                tagged.device = device
+                return tagged
+            },
             utcOffset: utcOffset
         )
     }

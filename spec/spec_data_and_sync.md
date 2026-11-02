@@ -307,27 +307,30 @@ The tracker spec defines the formats; this section fixes locations and the reade
 
 | Artifact | Location | Writer | Readers |
 |---|---|---|---|
-| `Activity/blocks/YYYY-MM.jsonl` | iCloud Drive container `iCloud.<APP_ID>`, outside `Documents/`; local fallback `<App Group>/Library/Application Support/TimeTracking/Activity/` | Tracker agent, append only (or the Mac app's copy, tracker spec §4.1) | Mac app, iPhone, iPad, scripts |
+| `Activity/blocks/YYYY-MM.jsonl` | iCloud Drive container `iCloud.<APP_ID>`, outside `Documents/`; local fallback `<App Group>/Library/Application Support/TimeTracking/Activity/` | Tracker agent, which replaces a day's lines when it forms the day again (or the Mac app's copy, tracker spec §4.1) | Mac app, iPhone, iPad, scripts |
 | `Activity/settings.toml` | Same folder | The Mac app's Tracker pane only | Tracker agent, iOS app (exclusions) |
 | `Activity/current.json` | Mac, local folder | Tracker agent, every tick | Mac app, including `LiveStatePublisher` |
-| `Activity/detail/YYYY-MM.jsonl` | Mac, local folder | Tracker agent | `detail(for:)` on the recording Mac; scripts |
+| `Activity/detail/YYYY-MM-DD.jsonl` | Mac, local folder | Tracker agent | `detail(for:)` on the recording Mac; scripts |
 | `DeviceEvent` records, zone `ActivityEvents` | CloudKit | iOS app | Tracker agent, through `DeviceEventSource` |
 | `Activity/events.jsonl` | iOS, App Group | iOS extensions and app, append | iOS app (flushes to CloudKit, truncates) |
 
-The iPhone and iPad learn the Mac's current activity only from `LiveState`. The `DeviceEvent` fields are `deviceID`, `time`, `source` (`ladder`, `focus`, `intent`, `webext`, `app`), `label`, `kind` (tracker spec), optional JSON `payload`. The record name `<deviceID>-<time in ms>-<sequence>` makes an interrupted flush resume without duplicates. The agent merges events into blocks with `"src":"device"` and deletes records older than 90 days.
+The iPhone and iPad learn the Mac's current activity only from `LiveState`. The `DeviceEvent` fields are `deviceID`, `time`, `source` (`ladder`, `focus`, `intent`, `webext`, `app`), `label`, `kind` (tracker spec), optional JSON `payload`. The record name `<deviceID>-<time in ms>-<sequence>` makes an interrupted flush resume without duplicates. The agent merges events into the user's timeline (tracker spec §2.8) and deletes records older than 90 days.
 
 ```swift
-public struct ActivityItem { var context, subject, detail: String; var seconds: Int }
+public struct ActivityItem { var context, subject, detail: String; var seconds: Int; var device: String }
+public struct ActivityDeviceTime { var name: String; var seconds: Int; var isRecordingMac: Bool }   // isIOSDevice: neither the Mac nor "remote"
 public struct ActivityBlock: Identifiable {
-    var id: String                              // "<dev>/<start, RFC 3339>"
-    var start, end: Date; var activeSeconds: Int; var device: String
-    var source: ActivitySource                  // .live, .knowledge, .device
+    var id: String                              // the start, RFC 3339 with offset
+    var start, end: Date; var activeSeconds: Int
+    var devices: [ActivityDeviceTime]           // most time first
+    var reconstructedSeconds: Int               // isMostlyReconstructed: more than half of activeSeconds
     var groupKey: String; var groupShare: Double
     var items, background: [ActivityItem]
     var isOpen: Bool                            // today's provisional block (Mac only)
+    func restricted(to: Set<String>) -> Self?   // the part on those devices: their items and time
 }
 public protocol ActivityReading: Sendable {
-    func blocks(in: DateInterval, devices: Set<String>?) async throws -> [ActivityBlock]   // exclusions applied
+    func blocks(in: DateInterval, devices: Set<String>?) async throws -> [ActivityBlock]   // exclusions applied; a device filter keeps each block's part on them
     func detail(for: ActivityBlock.ID) async throws -> ActivityBlockDetail?                // URLs, files, presence; nil off the recording Mac
     func currentState() async -> TrackerState?                                              // parsed current.json, Mac only
     func aggregate(in: DateInterval, by: ActivityGroupKey, device: String?) async throws -> [ActivityAggregate]   // context, subject, groupKey, hourOfDay, day
@@ -343,7 +346,7 @@ public protocol DeviceEventSource {                                             
 }
 ```
 
-The `FileActivityStore` reads JSON Lines lazily from a shared and a local folder, skips headers, counts malformed lines for health, converts local times with the latest header's `tz`, and indexes month files, invalidating on change. On iOS it downloads the months in view and watches with `NSMetadataQuery`. The tracker closes blocks at midnight, so the reader never splits them.
+The `FileActivityStore` reads JSON Lines lazily from a shared and a local folder, skips headers, counts malformed lines for health, converts local times with the latest header's `tz` (whose `dev` marks the recording Mac's time), and indexes month files, invalidating on change; `detail(for:)` reads the day file named by the id's date. On iOS it downloads the months in view and watches with `NSMetadataQuery`. The tracker closes blocks at midnight, so the reader never splits them.
 
 ## 7. Query layer
 
@@ -522,7 +525,7 @@ Views use `TrackingCalendar(timeZone: .current)`, rebuilt on a time zone change.
 40. A client without a general area gets one with id UUIDv5(namespace: client id, name: `general-area`), once.
 41. An imported entry from 22:00 to 02:00 becomes two pieces; an imported running entry starting before the local one stops at the local start; missing `timeZone` and `deviceID` default as in 5.2; `dryRun` reports the same and changes nothing.
 42. A month file with a header, three blocks, a time zone change header, and a malformed line yields three blocks with correct instants and one counted parse error.
-43. The query `blocks(in:)` across a month boundary reads both files and returns blocks by start, filtered by device when asked, without excluded contexts.
+43. The query `blocks(in:)` across a month boundary reads both files and returns blocks by start, filtered by device when asked to each block's part on it, without excluded contexts.
 44. Aggregating by hour of day a block from 09:50 to 10:20 gives 600 s to hour 9 and 1200 s to hour 10.
 45. The call `currentState()` is `nil` without `current.json`; a rewrite produces a change event and today's `blocks(in:)` includes one block with `isOpen`; `detail(for:)` is `nil` without the detail log.
 46. In `Europe/Berlin`, the March and October transition days are 23 and 25 hours long; 23:59:59 and 00:00:00 fall on consecutive days; weeks start on Monday and ISO week 1 of 2027 begins on 2027-01-04.

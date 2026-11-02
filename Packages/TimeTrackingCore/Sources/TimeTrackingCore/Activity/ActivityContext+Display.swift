@@ -52,6 +52,6 @@ extension ActivityContext {
     /// A device as the Activity section and the Calendar name it: `remote`
     /// (synced Safari history of no known device) reads "Other devices (Safari)".
     public static func deviceName(_ device: String) -> String {
-        device == "remote" ? "Other devices (Safari)" : device
+        device == ActivityDeviceTime.remote ? "Other devices (Safari)" : device
     }
 }

@@ -68,11 +68,11 @@ Apps in `passive_apps`, tabs on `passive_domains`, and meeting and screen-sharin
 
 ### 2.6 From samples to blocks
 
-Each active tick appends its sample to the open block, opening one if none is open; idle samples do not extend it. The block closes on any of:
+Blocks are formed from one stream of samples per local day, the user's timeline of 2.8. Each active sample appends to the open block, opening one if none is open; idle samples do not extend it. The block closes on any of:
 
 - Idle for `idle_close`; the end is the last active sample, and shorter gaps are absorbed.
-- Screen lock, sleep, display sleep, or a user switch, at the event time.
-- Local midnight: the block closes at 00:00 and the next active sample opens a new one. This holds for every source, so no block spans two dates.
+- Screen lock, sleep, display sleep, or a user switch, at the event time, unless another device's use covers it (2.8).
+- Local midnight: the block closes at 00:00 and the next active sample opens a new one, so no block spans two dates.
 - The split test.
 - Reaching `max_block` without a split: the block closes at the best change point in the last 30 minutes, or at the current tick. A mostly passive block may run to `max_passive_block`.
 
@@ -81,21 +81,22 @@ The split test runs on every tick once the open block exceeds `split_after`. For
 No block is shorter than `min_block` (from `s` to `e`). A block that closes shorter is held back, unwritten, and merged or dropped. Its merge window is `idle_close` plus its own length:
 
 1. An active sample within the window after its end reopens it: it continues as the open block, and the gap is absorbed like a short idle gap (across a lock or sleep too).
-2. Otherwise, when the window has passed: if the previous block of the same stream (same device and `src`) ended within the window before its start, on the same date, and the two together stay within `max_block` (`max_passive_block` when mostly passive), the two merge into one block with the previous block's start. Its line replaces the previous block's line in both logs (the merged line is appended, the old one removed; the detail keeps the old line's URLs, files, presence, and dwell times).
+2. Otherwise, when the window has passed: if the previous block ended within the window before its start, on the same date, and the two together stay within `max_block` (`max_passive_block` when mostly passive), the two merge into one block with the previous block's start, which replaces the previous block in both logs.
 3. Otherwise it is dropped.
 
-Nothing merges across midnight or the end of a batch (a Knowledge reconstruction gap, a poll of synced history, a Focus that suspends collection, agent shutdown). The rule holds for every source, so the `knowledge`, `device`, and `remote` blocks of 3.2, 6.1, and 6.2 follow it too.
+Nothing merges across midnight, a Focus that suspends collection, or agent shutdown.
 
 ### 2.7 The block summary
 
 When a block closes:
 
-1. Sum the seconds per primary item.
-2. Merge items sharing context and subject when their details would take more than three lines (`nvim draft (5 files)`).
+1. Sum the seconds per primary item and device.
+2. Merge items of one device sharing context and subject when their details would take more than three lines (`nvim draft (5 files)`).
 3. Drop items under `summary_min_share` and under 60 s, but keep the top item of every group key present for at least 3 minutes.
 4. Order by time, cap at `summary_lines`.
-5. Append secondaries that ran at least 5 minutes.
+5. Append secondaries that ran at least 5 minutes, among them another device's use during the Mac's attention (2.8).
 6. Store the dominant group key and its share.
+7. Store the active seconds per device, most first, and the seconds reconstructed from the Knowledge store.
 
 ```
 09:10-09:44  tmux:paper (71%)  tmux:paper nvim draft (3 files) 18m · safari github.com/owner/repo pull/123 9m · mail Inbox 4m  + claude refactor-parser (busy 12m)
@@ -103,13 +104,16 @@ When a block closes:
 
 ### 2.8 One timeline
 
-The block log describes the user, not each device: no two blocks share time. The other devices count for the time away from the Mac, so each source covers only the time no higher-ranked block claims:
+The block log describes the user, not each device. Blocks are formed from one stream of samples per local day that merges everything recorded for that day, so no two blocks share time and one block may span several devices:
 
-1. The Mac's own blocks (`live` and `knowledge`), including the open block up to its last active sample and a short block held back under 2.6.
-2. `device` blocks from the iOS app (6.2).
-3. Synced Safari history (6.1).
+- The Mac's samples, live (2.4) or reconstructed from the Knowledge store (3.2), claim the time they are credited with.
+- The stretches of the iPhone and iPad (6.2) and of synced Safari history (6.1) cover the rest. Where they overlap, the most specific wins: the iOS app, then automations, web extension tabs, named ladder sets, "Everything", and synced Safari history last; on a tie the later start. Their time becomes samples every 30 seconds.
+- Another device's stretch during the Mac's attention becomes a secondary of the Mac's sample: it appears in `bg` and adds nothing to `a`.
+- Within another device's stretch, the Mac's samples without attention (idle, locked, asleep) and its lock and sleep events are dropped, so a block runs on from the Mac to the iPhone and back; the split test still separates them where the activity differs.
 
-The Devices module cuts the claimed time out of a device-day's stretches before forming blocks, and a claim closes the open device block at its start, so no device block merges across a Mac block. It merges the device-days of a date again whenever a Mac block of that date is written; a device block formed while the Mac block was still open thus loses the part the closed block covers. Synced Safari visits within claimed time form no sample, and a claim closes the open block at its start. A synced Safari block already written that a Mac or device block later overlaps is replaced by its free parts, each with `a` and the items' seconds scaled by its share of the block's length; parts shorter than `min_block` are dropped. Blocks of different iPhones and iPads are not ranked against each other.
+Every item carries its device, and every block its time per device (`dev`) and its reconstructed time (`rec`).
+
+The agent stores what the stream is made of for 90 days: the samples, the samples reconstructed from the Knowledge store, the synced Safari visits with their attributed device, and the iPhone and iPad events (4.1). It forms today's blocks again on every tick, and a past day's whenever an input of that day arrives (iPhone events through iCloud, a Knowledge reconstruction, synced Safari history), and replaces the day's lines in the block log and its detail file when they changed. A past day's last block closes at its last active sample, or at midnight. A new or changed block's detail keeps the URLs, files, presence transitions, and dwell times of the day's old detail lines within its range.
 
 ## 3. Sources
 
@@ -129,7 +133,7 @@ The tmux hooks `client-session-changed`, `after-select-window`, `after-select-pa
 
 ### 3.2 Knowledge store
 
-The macOS Knowledge store (`~/Library/Application Support/Knowledge/knowledgeC.db`, Full Disk Access) records app intervals (`/app/usage`), Safari dwell time (`/app/webUsage`), and display state (`/display/isBacklit`). The agent reads a copy of the database and its WAL, and sets the source `off` when the schema is not the expected one. At agent start and every 15 minutes it reconstructs blocks (`src` `knowledge`) for periods the agent was down and adds Safari dwell times to the detail log; once a day it cross-checks the agent's app timeline.
+The macOS Knowledge store (`~/Library/Application Support/Knowledge/knowledgeC.db`, Full Disk Access) records app intervals (`/app/usage`), Safari dwell time (`/app/webUsage`), and display state (`/display/isBacklit`). The agent reads a copy of the database and its WAL, and sets the source `off` when the schema is not the expected one. At agent start and every 15 minutes it reconstructs samples for periods the agent was down (one per 30 seconds of each app interval, counted in `rec`, 2.8) and adds Safari dwell times to the detail log; once a day it cross-checks the agent's app timeline.
 
 ### 3.3 Browsers
 
@@ -155,9 +159,9 @@ Never recorded: keystrokes, clipboard, screenshots, message bodies, terminal com
 
 | Tier | Where | Content | Retention |
 |---|---|---|---|
-| Samples | Agent folder, `samples.sqlite` (GRDB) | One row per tick | 90 days |
+| Samples | Agent folder, `samples.sqlite` (GRDB) | One row per tick; reconstructed samples, synced Safari visits, iPhone and iPad events, and deleted time (2.8, 7.3) | 90 days |
 | Block log | Shared folder, `blocks/YYYY-MM.jsonl` | One line per closed block | Permanent |
-| Detail log | Agent folder, `Activity/detail/YYYY-MM.jsonl` | Per block: all items, URLs, modified files, presence transitions | Permanent |
+| Detail log | Agent folder, `Activity/detail/YYYY-MM-DD.jsonl` | Per block: all items, URLs, modified files, presence transitions | Permanent |
 | Current state | Agent folder, `Activity/current.json` | Open block, primary item, presence, health | Each tick |
 | Settings | Shared folder, `settings.toml` | Section 7 | Permanent |
 
@@ -168,25 +172,25 @@ Phase 1 verifies that the agent can write the container. If it cannot, the agent
 ### 4.2 Block log format
 
 ```json
-{"type":"header","format":1,"tz":"-04:00","dev":"macbook","contexts":{"tmux:paper":"com.github.wez.wezterm","safari":"com.apple.Safari","mail":"com.apple.mail","claude":"claude"},"keys":{"s":"start (local time)","e":"end (local time)","a":"active seconds","dev":"device","g":"dominant group","gs":"share of the dominant group","items":"items [context, subject, detail, seconds]","bg":"background items [context, subject, detail, seconds]","src":"source (live, knowledge, or device)"}}
-{"s":"2026-10-28T09:10:00","e":"2026-10-28T09:44:30","a":1860,"dev":"macbook","g":"tmux:paper","gs":0.71,"items":[["tmux:paper","draft","nvim (3 files)",1080],["safari","github.com/owner/repo","pull/123",540],["mail","Inbox","",240]],"bg":[["claude","refactor-parser","",720]],"src":"live"}
+{"type":"header","format":1,"tz":"-04:00","dev":"macbook","contexts":{"tmux:paper":"com.github.wez.wezterm","safari":"com.apple.Safari","Mail":"ladder","claude":"claude"},"keys":{"s":"start (local time)","e":"end (local time)","a":"active seconds","dev":"devices [device, active seconds]","rec":"seconds reconstructed from the Mac's app usage history","g":"dominant group","gs":"share of the dominant group","items":"items [context, subject, detail, seconds, device]","bg":"background items [context, subject, detail, seconds, device]"}}
+{"s":"2026-10-28T09:10:00","e":"2026-10-28T09:44:30","a":1860,"dev":[["macbook",1620],["iPhone",240]],"rec":0,"g":"tmux:paper","gs":0.71,"items":[["tmux:paper","draft","nvim (3 files)",1080,"macbook"],["safari","github.com/owner/repo","pull/123",540,"macbook"],["Mail","Mail","",240,"iPhone"]],"bg":[["claude","refactor-parser","",720,"macbook"]]}
 ```
 
-Each month file starts with a header object; another header follows a time zone change and precedes the first block using a context not yet in `contexts`, which maps context keys to bundle identifiers (or process names). The block keys are short to keep lines short, so the first header of each month file also carries `keys`, a legend mapping each block key to a human-readable label (the labels of the example); later headers leave it out, and readers ignore it. Readers skip objects with a `type` and ignore unknown keys. In a block, `s` and `e` are local times on one date; `a` is the active seconds, the sum of item seconds before the summary cut (less than `e` minus `s` when idle gaps were absorbed); `g` and `gs` are the dominant group key and its share; `items` and `bg` (secondaries) hold `[context, subject, detail, seconds]` with `""` for no detail; `dev` is the device name, or `remote` for unattributed synced Safari history (6.1); `src` is `live`, `knowledge`, or `device`. Idle is the absence of a block.
+Each month file starts with a header object; another header follows a time zone change and precedes the first block using a context not yet in `contexts`, which maps context keys to bundle identifiers (or process names). The block keys are short to keep lines short, so the first header of each month file also carries `keys`, a legend mapping each block key to a human-readable label (the labels of the example); later headers leave it out, and readers ignore it. Readers skip objects with a `type` and ignore unknown keys. The header's `dev` names the Mac that wrote the file. In a block, `s` and `e` are local times on one date, and `s` identifies the block (no two blocks share time); `a` is the active seconds, the sum of item seconds before the summary cut (less than `e` minus `s` when idle gaps were absorbed); `dev` lists `[device, active seconds]` for each device the block spent time on, most first, where a device is the Mac's name, an iPhone's or iPad's, or `remote` for unattributed synced Safari history (6.1); `rec` is the part of `a` reconstructed from the Knowledge store (3.2); `g` and `gs` are the dominant group key and its share; `items` and `bg` (secondaries) hold `[context, subject, detail, seconds, device]` with `""` for no detail. Idle is the absence of a block.
 
 ### 4.3 Detail log format
 
-A block line with `items` uncut, plus `urls` as `[time, browser, url, title]`, `files` as `[time, path]`, and `presence` as the state transitions in and around the block, so every gap between blocks is covered, and `dwell` as Safari dwell times `[time, url, seconds]` from the Knowledge store (3.2) when there are any. The legend `keys` of the first header also labels these: `urls` "URL visits [time, browser, URL, title]", `files` "modified files [time, path]", `presence` "presence transitions [time, state]", `dwell` "Safari dwell times [time, URL, seconds]". The library reads it on the recording Mac only (`detail(for:)`, `spec_data_and_sync.md`).
+One file per local date, headers as in 4.2. A block line with `items` uncut, plus `urls` as `[time, browser, url, title]`, `files` as `[time, path]`, and `presence` as the state transitions in and around the block, so every gap between blocks is covered, and `dwell` as Safari dwell times `[time, url, seconds]` from the Knowledge store (3.2) when there are any. The legend `keys` of the first header also labels these: `urls` "URL visits [time, browser, URL, title]", `files` "modified files [time, path]", `presence` "presence transitions [time, state]", `dwell` "Safari dwell times [time, URL, seconds]". The library reads it on the recording Mac only (`detail(for:)`, `spec_data_and_sync.md`).
 
 ### 4.4 Current state
 
 Rewritten atomically (temporary file, then rename) on every tick and presence event; never copied to the shared folder.
 
 ```json
-{"format":1,"dev":"macbook","block":{"s":"2026-10-28T09:10:00","a":1080,"g":"tmux:paper","gs":0.71,"items":[["tmux:paper","draft","nvim (3 files)",1080]],"bg":[]},"primary":["tmux:paper","draft","nvim notes.tex"],"presence":{"state":"active","since":"2026-10-28T09:10:00","last_input":"2026-10-28T09:44:27"},"health":{"last_tick":"2026-10-28T09:44:30","version":"1.0 (42)","sources":[{"id":"terminal","name":"Terminal tab","status":"active","reason":""},{"id":"browser","name":"Browser tab","status":"active","reason":""},{"id":"knowledge","name":"App usage history","status":"off","reason":"Full Disk Access is off; macOS app usage history can't be read"}]}}
+{"format":1,"dev":"macbook","block":{"s":"2026-10-28T09:10:00","a":1080,"dev":[["macbook",1080]],"rec":0,"g":"tmux:paper","gs":0.71,"items":[["tmux:paper","draft","nvim (3 files)",1080,"macbook"]],"bg":[]},"primary":["tmux:paper","draft","nvim notes.tex"],"presence":{"state":"active","since":"2026-10-28T09:10:00","last_input":"2026-10-28T09:44:27"},"health":{"last_tick":"2026-10-28T09:44:30","version":"1.0 (42)","sources":[{"id":"terminal","name":"Terminal tab","status":"active","reason":""},{"id":"browser","name":"Browser tab","status":"active","reason":""},{"id":"knowledge","name":"App usage history","status":"off","reason":"Full Disk Access is off; macOS app usage history can't be read"}]}}
 ```
 
-The `block` is the open block summarized as of now, without `e` (or `null`); `primary` is `null` while idle; `presence.state` is `active`, `passive`, `idle`, `locked`, `asleep`, or `other_user`, and `since` is the time of the event or input that set it, not of the tick that noticed it; `health.sources` lists every source of 2.3.
+The `block` is today's open block of the timeline (2.8) summarized as of now, with the keys of 4.2 but without `e` (or `null`); `primary` is `null` while idle; `presence.state` is `active`, `passive`, `idle`, `locked`, `asleep`, or `other_user`, and `since` is the time of the event or input that set it, not of the tick that noticed it; `health.sources` lists every source of 2.3.
 
 Every reader derives the tracker's liveness from `health.last_tick` by one rule: the tracker is running while the last tick is younger than 2 minutes, and not running when it is 2 minutes old or older or `current.json` is missing. While running, a last tick of 90 seconds or older counts as delayed. The Tracker pane (7.4), the Activity footer, the menu bar warning, the Timer's idle detection, and `agentRunning` in `LiveState` all use this rule.
 
@@ -208,7 +212,7 @@ Permissions: Accessibility (required), granted to `TimeTrackingAgent.app`; Autom
 
 ### 6.1 Synced Safari history
 
-With `synced_safari_history` on, the History module forms blocks from Safari's `History.db` visits with `origin = 1` (synced from other devices) by the same algorithm, a visit being a sample and a gap over 5 minutes closing the block. They carry `src` `live` and `dev` `remote`, unless `CloudTabs.db` (polled every 5 minutes) shows that within the block exactly one device's tab set changed to include a visited URL; then `dev` is that device's name. They only cover time that no Mac or `device` block claims (2.8).
+With `synced_safari_history` on, the History module stores Safari's `History.db` visits with `origin = 1` (synced from other devices) for the timeline (2.8): a visit lasts until the next one when that follows within 5 minutes. A run of visits without a longer gap belongs to `remote`, unless `CloudTabs.db` (polled every 5 minutes) shows that within it exactly one device's tab set changed to include a visited URL; then to that device's name. Synced Safari history ranks below every iPhone and iPad stretch.
 
 ### 6.2 Collected by the iOS app
 
@@ -224,7 +228,7 @@ The iOS app writes raw, labeled `DeviceEvent` records per device, exclusions app
 
 The cap on monitored events is undocumented; phase 7 measures it and sets the ladder steps.
 
-The Devices module merges events into blocks with `src` `device` and the device's name as `dev`. Consecutive ladder minutes are samples with the set's label as context, subject, and group key, and gaps over `idle_close` separate blocks. A Focus that suspends collection closes the block. Intent events are samples with their label, web extension URLs are browser items under the rules of 3.3, and app transitions are samples of the app. The agent deletes merged records older than 90 days.
+The Devices module turns each device-day's events into stretches of the timeline (2.8) on the device's name: a counted ladder minute covers the minutes since the set's previous counted step, with the set's label as context, subject, and group key; a web extension tab covers up to a minute, until the next tab, as a browser item under the rules of 3.3; an automation covers a minute, or from `appOpened` to `appClosed`, with its label; the app covers the time from its foreground to its background. Gaps over `idle_close` separate blocks, and a Focus that suspends collection closes the open block. The agent deletes stored events older than 90 days.
 
 ## 7. Settings and exclusions
 
@@ -364,7 +368,7 @@ Exclusions apply wherever data enters (sampler, histories, file stream, Knowledg
 
 ### 7.3 Rewrite commands
 
-Settings changes never touch past logs. Three socket commands rewrite the month files and samples they touch: `delete-block <dev> <s>`, `forget-day <date>`, and `reapply-exclusions <from> <to>`. The agent rewrites, replacing each file atomically and keeping unaffected lines byte-identical; the answer is `ok` or `error <reason>`. The UI for `delete-block` is "Delete Block from Log…" in the Calendar's activity column (`spec_calendar.md`); the other two are run with `tracker-event`, which the Tracker pane's "Activity logs" info shows. The reasons are protocol text; the Mac app logs them and shows its own sentence: "The tracker could not be reached." (no socket, or the link to it fails), "The tracker is not running." (nothing listens), "This activity is no longer in the logs." (a reason starting with `no block of`), "The tracker is restarting. Try again in a moment." (`the tracker is stopping`), and "The tracker could not change the logs." for any other.
+Settings changes never touch past logs. Three socket commands rewrite the log files and samples they touch: `delete-block <s>`, `forget-day <date>`, and `reapply-exclusions <from> <to>`. `delete-block` and `forget-day` delete what the block or day was formed from (samples, reconstructed samples, synced Safari visits, iPhone and iPad events) and record the time as deleted, so late events never form a block there again; then the day is formed again (2.8). The agent rewrites, replacing each file atomically and keeping unaffected lines byte-identical; the answer is `ok` or `error <reason>`. The UI for `delete-block` is "Delete Block from Log…" in the Calendar's activity column (`spec_calendar.md`); the other two are run with `tracker-event`, which the Tracker pane's "Activity logs" info shows. The reasons are protocol text; the Mac app logs them and shows its own sentence: "The tracker could not be reached." (no socket, or the link to it fails), "The tracker is not running." (nothing listens), "This activity is no longer in the logs." (a reason starting with `no block at`), "The tracker is restarting. Try again in a moment." (`the tracker is stopping`), and "The tracker could not change the logs." for any other.
 
 ### 7.4 The Tracker settings pane
 
@@ -424,7 +428,7 @@ The pane has no editors for exclusions or options and no maintenance controls: t
 - TRK-8. For each setting of 7.2, a matching fixture leaves no excluded path, domain, session, or title in any sample, log line, or `current.json`, through every entry point listed there.
 - TRK-9. A block closes at its last active sample after `idle_close`; shorter idle gaps are not counted in `a`.
 - TRK-10. Lock, sleep, display sleep, and a user switch close the block at the event time.
-- TRK-11. No block of any `src` has `s` and `e` on different dates; a block open at midnight ends at 00:00:00.
+- TRK-11. No block has `s` and `e` on different dates; a block open at midnight ends at 00:00:00.
 - TRK-12. 15 minutes on one group key then 15 on another splits within one tick of the change; two keys alternating every 2 minutes for 40 minutes never split.
 - TRK-13. A block reaching `max_block` closes at the best change point in its last 30 minutes, or the current tick when there is none; a mostly passive one runs to `max_passive_block`.
 - TRK-14. Summaries follow 2.7, and `a` never exceeds `e` minus `s`.
@@ -437,11 +441,11 @@ The pane has no editors for exclusions or options and no maintenance controls: t
 - TRK-21. A `tracker-event` line advances the tick within 1 second; an unknown socket command gets `error` and changes nothing.
 - TRK-22. The `reapply-exclusions` command, after a domain is added to `exclude_domains`, removes its items and visits from both logs and the samples in range, leaving other lines byte-identical; `delete-block` and `forget-day` do the same for their block or day.
 - TRK-23. Changing `idle_after` changes the next sample's verdict without a restart.
-- TRK-24. An unexpected Knowledge schema sets `knowledge` to `off` with a reason and writes no `knowledge` blocks.
+- TRK-24. An unexpected Knowledge schema sets `knowledge` to `off` with a reason and reconstructs nothing; with the expected schema the time the agent was down forms blocks whose `rec` equals `a`.
 - TRK-25. Without Accessibility, samples carry the app name only and `window` reports `fallback`.
 - TRK-26. Samples and merged `DeviceEvent` records older than 90 days are deleted.
-- TRK-27. With `synced_safari_history` off, no `remote` block is written and `CloudTabs.db` is not opened; on, blocks and attribution follow 6.1.
-- TRK-28. Ladder minutes 1 to 20, a 10 minute gap, and minutes 21 to 30 yield two `device` blocks split at the gap, with the set's label as context and group key.
+- TRK-27. With `synced_safari_history` off, no `remote` time is recorded and `CloudTabs.db` is not opened; on, synced visits form blocks and runs are attributed as in 6.1.
+- TRK-28. Ladder minutes 1 to 20, a 10 minute gap, and minutes 21 to 30 yield two blocks of the iPhone split at the gap, with the set's label as context and group key.
 - TRK-29. The `--replay` flag reproduces the expected file byte for byte and exits 0; a changed threshold makes it exit non-zero.
 - TRK-30. The `--record` output contains no home path, host name, or URL path of the live run.
 - TRK-31. The pane's dot, button, and setup marks follow 7.4 and update within 5 seconds; the agent is not registered until "Enable Tracker".
@@ -451,9 +455,9 @@ The pane has no editors for exclusions or options and no maintenance controls: t
 - TRK-35. The "Open `<APP_NAME>` at login" row is ✓ when the app's login item is enabled; otherwise its action registers it, or opens Login Items when approval is required.
 - TRK-36. The tmux snippet sets `focus-events` and has one hook line per hook of 3.1, each calling `tracker-event tmux <hook>` with its own hook name, which the agent accepts; the Claude Code snippet does the same for its three hooks; every call discards its output and exit status.
 - TRK-37. "Ask for Access" on the Automation row asks for exactly the browsers and terminals the agent reads through Apple Events, skipping those that are not open, and the row then lists each open app's answer; before the first ask the row shows no such line.
-- TRK-38. The first header of each block-log and detail-log month file carries `keys`, naming exactly the keys of that log's block lines with the labels of 4.2 and 4.3; later headers carry none.
+- TRK-38. The first header of each block-log month file and detail-log day file carries `keys`, naming exactly the keys of that log's block lines with the labels of 4.2 and 4.3; later headers carry none.
 - TRK-39. With `min_block` 10 minutes and `idle_close` 5 minutes: 4 minutes active, 6 idle, then 8 active give one block over all 18 minutes; 20 active, 7 idle, then 4 active and nothing more give one block of 31 minutes in place of the first; 4 minutes active alone gives no block; a short block is never merged across midnight; and in the logs the merged block's line replaces the previous one.
-- TRK-40. With `min_block` 10 minutes: iPhone use from 20 minutes before to 15 minutes after a 20 minute Mac block gives device blocks only before and after it; iPhone time left shorter than `min_block` beside a Mac block is dropped, not merged across it; a device block merged while the Mac block was open loses the part the closed Mac block covers; synced Safari visits during a Mac block form no block, and a synced Safari block written before a Mac block overlapped it keeps only its free part, with its seconds scaled.
+- TRK-40. With `min_block` 10 minutes: 15 minutes of Mac work, 5 minutes on the iPhone while the Mac is locked, and 15 more minutes of Mac work form one block with 30 minutes on the Mac and 5 on the iPhone; iPhone use during the Mac's attention is a secondary that adds nothing to `a`; overlapping iPhone and iPad use forms one block in which an iPad app wins its minutes over the iPhone's "Everything"; synced Safari history fills only time no iPhone stretch claims; a deleted block stays deleted when late iPhone events for its time arrive.
 
 ## 10. Decisions
 

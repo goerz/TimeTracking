@@ -42,10 +42,10 @@ extension SyntheticDataset {
                 start: entry.start,
                 end: end,
                 activeSeconds: seconds,
-                device: device,
+                devices: [ActivityDeviceTime(name: device, seconds: seconds, isRecordingMac: true)],
                 groupKey: context,
                 groupShare: 1,
-                items: [ActivityItem(context: context, subject: entry.task, detail: "", seconds: seconds)],
+                items: [ActivityItem(context: context, subject: entry.task, detail: "", seconds: seconds, device: device)],
                 utcOffset: timeZone.secondsFromGMT(for: entry.start) + shift
             )
             try writer.append(block, contexts: Self.contexts)

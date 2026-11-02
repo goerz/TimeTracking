@@ -74,8 +74,9 @@ extension AgentEngine {
     /// How far back the first backfill looks.
     static let knowledgeLookback: TimeInterval = 7 * 86_400
 
-    /// Reconstructs `knowledge` blocks for the periods since the watermark
-    /// in which the agent took no sample, from `/app/usage`.
+    /// Reconstructs samples for the periods since the watermark in which
+    /// the agent took no sample, from `/app/usage`, stores them, and forms
+    /// the days they touch again.
     func backfillFromKnowledge(now: Date) {
         let watermark = (try? store.date(Self.knowledgeWatermarkKey)) ?? now.addingTimeInterval(-Self.knowledgeLookback)
         let from = max(watermark, now.addingTimeInterval(-Self.knowledgeLookback))
@@ -92,39 +93,41 @@ extension AgentEngine {
             return
         }
         health.set(.knowledge, .active)
-        let gaps = downPeriods(from: from, to: until)
         let rules = resolveContext().exclusions
-        var knowledgeBlocker = Blocker(
-            settings: settings.blocks,
-            timeZone: environment.timeZone,
-            device: configuration.device,
-            source: .knowledge
-        )
-        for gap in gaps {
-            var closed: [ClosedBlock] = []
-            for sample in KnowledgeBackfill
-                .samples(apps: apps, displayOff: displayOff, in: gap, rules: rules, interval: Self.tickInterval)
-            {
-                closed += knowledgeBlocker.add(sample)
+        var days = Set<String>()
+        for gap in downPeriods(from: from, to: until) {
+            let samples = KnowledgeBackfill.samples(apps: apps, displayOff: displayOff, in: gap, rules: rules, interval: Self.tickInterval)
+            do {
+                try store.replaceExtraSamples(
+                    .knowledge,
+                    from: gap.start,
+                    to: gap.end.addingTimeInterval(1),
+                    with: samples.map { (sample: $0, device: configuration.device) }
+                ) { environment.timeZone.secondsFromGMT(for: $0) }
+            } catch {
+                logger.error("knowledge samples: \(error.localizedDescription, privacy: .public)")
             }
-            closed += knowledgeBlocker.flush()
-            let written = ClosedBlock.resolved(closed)
-            for block in written {
-                appendSummary(block, kind: "knowledge")
-            }
-            for day in Set(written.map(\.block.localDay)).sorted() {
-                settleTimeline(day: day)
+            if !samples.isEmpty {
+                days.insert(day(of: gap.start))
+                days.insert(day(of: gap.end))
             }
         }
         try? store.setDate(until, for: Self.knowledgeWatermarkKey)
+        rebuild(days: days)
     }
 
-    /// Appends a block formed off the tick (`kind` names it in the log).
-    private func appendSummary(_ closed: ClosedBlock, kind: String) {
-        do {
-            try logs.appendSummary(closed)
-        } catch {
-            logger.error("\(kind, privacy: .public) block: \(error.localizedDescription, privacy: .public)")
+    /// Forms `days` again after their inputs changed, today last.
+    func rebuild(days: Set<String>) {
+        guard !days.isEmpty else {
+            return
+        }
+        timelineInputsChanged()
+        let today = day(of: environment.clock.now)
+        for day in days.sorted() where day < today {
+            rebuild(day: day)
+        }
+        if days.contains(today) {
+            rebuildToday()
         }
     }
 
@@ -146,24 +149,28 @@ extension AgentEngine {
 
     static let syncedSafariWatermarkKey = "synced_safari.watermark"
 
-    /// Forms `remote` blocks from Safari visits synced from other devices
-    /// (§6.1), in the time no Mac or device block claims (§2.8).
+    /// Stores Safari visits synced from other devices as samples (§6.1)
+    /// and forms the days they touch again.
     func collectSyncedSafari(now: Date) {
         guard settings.devices.syncedSafariHistory, environment.history.canReadSafari else {
             return
         }
         syncedSafari.poll(history: environment.history, now: now)
         let watermark = (try? store.date(Self.syncedSafariWatermarkKey)) ?? now.addingTimeInterval(-86_400)
-        // Visits younger than the gap may still belong to an open block.
+        // Visits younger than the gap may still belong to an unfinished run.
         let until = now.addingTimeInterval(-SyncedSafariCollector.gap)
         guard until > watermark, let visits = environment.history.safariVisits(from: watermark, to: until, origin: 1) else {
             return
         }
-        let context = resolveContext()
-        let claims = claimed(from: watermark, to: until, above: Timeline.remote)
-        for closed in syncedSafari.blocks(visits: visits, context: context, timeZone: environment.timeZone, claimed: claims) {
-            appendSummary(closed, kind: "synced Safari")
+        let samples = syncedSafari.samples(visits: visits, context: resolveContext())
+        do {
+            try store.replaceExtraSamples(.remote, from: watermark, to: until, with: samples) { date in
+                environment.timeZone.secondsFromGMT(for: date)
+            }
+        } catch {
+            logger.error("synced Safari: \(error.localizedDescription, privacy: .public)")
         }
         try? store.setDate(until, for: Self.syncedSafariWatermarkKey)
+        rebuild(days: Set(samples.map { day(of: $0.sample.time) }))
     }
 }

@@ -66,7 +66,7 @@ struct TrackerPaneWordsTests {
 
     @Test("TRK-31 the agent's socket replies become sentences for the Calendar's delete alert")
     func socketReplies() {
-        #expect(TrackerCommandResult.rejection(reason: "no block of macbook at 2024-03-14T09:00:00")
+        #expect(TrackerCommandResult.rejection(reason: "no block at 2024-03-14T09:00:00")
             == .rejected("This activity is no longer in the logs."))
         #expect(TrackerCommandResult.rejection(reason: TrackerReply.stoppingReason)
             == .rejected("The tracker is restarting. Try again in a moment."))
@@ -78,7 +78,7 @@ struct TrackerPaneWordsTests {
     @Test("TRK-31 a socket that does not exist reads as a tracker that could not be reached or is not running")
     func socketWithoutTracker() async {
         let missing = FileManager.default.temporaryDirectory.appending(path: "tt-missing-\(UUID().uuidString)/tracker.sock")
-        let result = await TrackerSocket(url: missing).send("delete-block mac 2024-03-14T09:00:00")
+        let result = await TrackerSocket(url: missing).send("delete-block 2024-03-14T09:00:00")
         #expect([TrackerCommandResult.unreachable, .notRunning].contains(result))
     }
 }

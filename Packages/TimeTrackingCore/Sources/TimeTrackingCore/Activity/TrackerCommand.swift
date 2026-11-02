@@ -18,9 +18,9 @@ public enum TrackerCommand: Sendable, Hashable {
     /// `agent <hook> [<argument>...]`: a coding agent hook fired
     /// (`UserPromptSubmit`, `Stop`, `SessionEnd`); advances the tick.
     case agentEvent(hook: String, arguments: [String])
-    /// `delete-block <dev> <s>`: removes the block of device `dev` starting at
-    /// the local time `s` from both logs and the samples.
-    case deleteBlock(device: String, start: String)
+    /// `delete-block <s>`: removes the block starting at the local time `s`
+    /// from both logs and what it was formed from.
+    case deleteBlock(start: String)
     /// `forget-day <date>`: removes everything of the local date `YYYY-MM-DD`.
     case forgetDay(String)
     /// `reapply-exclusions <from> <to>`: applies the current exclusions to the
@@ -55,10 +55,10 @@ public enum TrackerCommand: Sendable, Hashable {
             let rest = Array(arguments.dropFirst())
             return name == "tmux" ? .tmuxEvent(hook: hook, arguments: rest) : .agentEvent(hook: hook, arguments: rest)
         case "delete-block":
-            guard arguments.count == 2 else {
+            guard arguments.count == 1 else {
                 throw .wrongArguments(name)
             }
-            return .deleteBlock(device: arguments[0], start: arguments[1])
+            return .deleteBlock(start: arguments[0])
         case "forget-day":
             guard arguments.count == 1, isDate(arguments[0]) else {
                 throw .wrongArguments(name)
@@ -83,8 +83,8 @@ public enum TrackerCommand: Sendable, Hashable {
             ["tmux", hook] + arguments
         case let .agentEvent(hook, arguments):
             ["agent", hook] + arguments
-        case let .deleteBlock(device, start):
-            ["delete-block", device, start]
+        case let .deleteBlock(start):
+            ["delete-block", start]
         case let .forgetDay(day):
             ["forget-day", day]
         case let .reapplyExclusions(from, to):
@@ -164,8 +164,8 @@ public enum TrackerReply: Sendable, Hashable {
     case error(String)
 
     /// The start of the reason when `delete-block` finds no such block;
-    /// the device and start follow. The app maps it to its own text.
-    public static let noBlockReason = "no block of"
+    /// the start follows. The app maps it to its own text.
+    public static let noBlockReason = "no block at"
     /// The reason while the agent shuts down.
     public static let stoppingReason = "the tracker is stopping"
 

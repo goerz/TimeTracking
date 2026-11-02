@@ -15,10 +15,10 @@ struct ActivitySectionTests {
             start: begin,
             end: TestApp.date("\(day)T\(end)"),
             activeSeconds: items.reduce(0) { $0 + $1.1 },
-            device: "macbook",
+            devices: [ActivityDeviceTime(name: "macbook", seconds: items.reduce(0) { $0 + $1.1 }, isRecordingMac: true)],
             groupKey: items.first?.0 ?? "",
             groupShare: 1,
-            items: items.map { ActivityItem(context: $0.0, subject: "s", detail: "", seconds: $0.1) },
+            items: items.map { ActivityItem(context: $0.0, subject: "s", detail: "", seconds: $0.1, device: "macbook") },
             utcOffset: TimeZone.current.secondsFromGMT(for: begin)
         )
     }

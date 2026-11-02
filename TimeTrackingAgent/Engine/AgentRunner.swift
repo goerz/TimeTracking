@@ -146,8 +146,6 @@ final class AgentRunner {
         observer.stop()
         fileStream?.stop()
         socket.stop()
-        for closed in engine.blocker.flush() {
-            engine.write(closed)
-        }
+        engine.rebuildToday(final: true)
     }
 }

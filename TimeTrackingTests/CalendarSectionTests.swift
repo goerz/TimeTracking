@@ -160,7 +160,7 @@ struct CalendarSectionTests {
         model.confirmDeleteFromLog(closed)
         #expect(model.blockToDelete == closed)
         await model.deleteBlockFromLog(confirmed: true)
-        #expect(world.commands.commands == ["delete-block macbook \(ActivityTimestamp.text(closed.start, utcOffset: closed.utcOffset))"])
+        #expect(world.commands.commands == ["delete-block \(ActivityTimestamp.text(closed.start, utcOffset: closed.utcOffset))"])
         #expect(!model.canDeleteFromLog(open))
         model.isRecordingMac = false
         #expect(!model.canDeleteFromLog(closed))

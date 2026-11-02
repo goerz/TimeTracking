@@ -19,7 +19,7 @@ struct BlockCard: View {
         let tint = Color.activityBlock
         let style = CalendarZoom.cardStyle(height: Double(size.height))
         ZStack(alignment: .topLeading) {
-            if block.source == .knowledge {
+            if block.isMostlyReconstructed {
                 RoundedRectangle(cornerRadius: Design.Radius.small).fill(Hatch.paint(tint.opacity(0.3), on: tint.opacity(0.1)))
             } else {
                 RoundedRectangle(cornerRadius: Design.Radius.small).fill(tint.opacity(0.18))
@@ -91,10 +91,10 @@ struct BlockCard: View {
         if block.background.count + max(0, block.items.count - 1) > 0, !block.background.isEmpty {
             Text("+\(block.background.count)").foregroundStyle(.secondary)
         }
-        if block.source == .device {
+        if block.devices.contains(where: \.isIOSDevice) {
             Image(systemName: SymbolName.iPhone).imageScale(.small).accessibilityHidden(true)
         }
-        if block.device == "remote" {
+        if block.deviceNames.contains(ActivityDeviceTime.remote) {
             Image(systemName: SymbolName.otherDevices).imageScale(.small).accessibilityHidden(true)
         }
     }

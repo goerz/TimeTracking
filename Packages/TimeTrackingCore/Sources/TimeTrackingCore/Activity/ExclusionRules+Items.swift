@@ -23,7 +23,7 @@ extension ExclusionRules {
             return nil
         }
         if item.context.lowercased().hasPrefix("tmux:"), excludesTmuxSession(String(item.context.dropFirst(5))) {
-            return ActivityItem(context: "tmux:\(Self.privateMarker)", subject: "", detail: "", seconds: item.seconds)
+            return ActivityItem(context: "tmux:\(Self.privateMarker)", subject: "", detail: "", seconds: item.seconds, device: item.device)
         }
         if let bundleIdentifier, isNameOnlyApp(bundleIdentifier) {
             result.subject = ""
@@ -32,7 +32,7 @@ extension ExclusionRules {
         }
         let host = Self.leadingHost(item.subject)
         if let host, excludesDomain(host) {
-            return ActivityItem(context: item.context, subject: Self.privateMarker, detail: "", seconds: item.seconds)
+            return ActivityItem(context: item.context, subject: Self.privateMarker, detail: "", seconds: item.seconds, device: item.device)
         }
         if let host, isPrivateDomain(host) {
             result.subject = host

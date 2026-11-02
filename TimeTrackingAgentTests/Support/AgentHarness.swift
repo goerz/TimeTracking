@@ -125,6 +125,14 @@ final class AgentHarness {
         schedule = TickSchedule(start: end)
     }
 
+    /// Moves the clock to the fixture time plus `seconds` and fetches the
+    /// device events there.
+    func syncDevices(at seconds: TimeInterval) async {
+        clock.set(time(seconds))
+        schedule = TickSchedule(start: clock.now)
+        await engine.syncDeviceEvents(now: clock.now)
+    }
+
     /// Moves the clock by `seconds`.
     func advance(_ seconds: TimeInterval) {
         clock.advance(by: seconds)

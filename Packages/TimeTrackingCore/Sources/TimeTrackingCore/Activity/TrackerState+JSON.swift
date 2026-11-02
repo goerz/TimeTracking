@@ -24,10 +24,12 @@ extension TrackerState {
             openBlock = try TrackerOpenBlock(
                 start: instant(block.start, "block.s"),
                 activeSeconds: block.active,
+                devices: block.devices,
                 groupKey: block.group ?? "",
                 groupShare: block.share ?? 0,
                 items: block.items,
-                background: block.background
+                background: block.background,
+                reconstructedSeconds: block.reconstructed ?? 0
             )
         }
         var primary: TrackerPrimaryItem?
@@ -70,6 +72,8 @@ extension TrackerState {
             var block = JSONObjectWriter()
             block.add("s", local(openBlock.start))
             block.add("a", openBlock.activeSeconds)
+            block.add("dev", openBlock.devices)
+            block.add("rec", openBlock.reconstructedSeconds)
             block.add("g", openBlock.groupKey)
             block.add("gs", openBlock.groupShare)
             block.add("items", openBlock.items)
@@ -132,6 +136,8 @@ private struct BlockRecord: Decodable {
     enum CodingKeys: String, CodingKey {
         case start = "s"
         case active = "a"
+        case devices = "dev"
+        case reconstructed = "rec"
         case group = "g"
         case share = "gs"
         case items
@@ -140,6 +146,8 @@ private struct BlockRecord: Decodable {
 
     var start: String
     var active: Int
+    var devices: [ActivityDeviceTime]
+    var reconstructed: Int?
     var group: String?
     var share: Double?
     var items: [ActivityItem]
@@ -149,6 +157,8 @@ private struct BlockRecord: Decodable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.start = try container.decode(String.self, forKey: .start)
         self.active = try container.decode(Int.self, forKey: .active)
+        self.devices = try container.decodeIfPresent([ActivityDeviceTime].self, forKey: .devices) ?? []
+        self.reconstructed = try container.decodeIfPresent(Int.self, forKey: .reconstructed)
         self.group = try container.decodeIfPresent(String.self, forKey: .group)
         self.share = try container.decodeIfPresent(Double.self, forKey: .share)
         self.items = try container.decodeIfPresent([ActivityItem].self, forKey: .items) ?? []

@@ -1,12 +1,11 @@
-// DeviceEventMerger: one device-day's DeviceEvents as blocks with `src`
-// `device` (spec_activity_tracking.md §6.2, §7.2; spec_ios.md §9).
+// DeviceEventMerger: one device-day's DeviceEvents as stretches of the
+// user's timeline (spec_activity_tracking.md §2.8, §6.2, §7.2; spec_ios.md §9).
 
 import Foundation
 import TimeTrackingCore
 
-/// Turns the events of one device on one local day into closed blocks.
-///
-/// Each event becomes a stretch of attention with an item and a rank:
+/// Turns the events of one device on one local day into stretches of
+/// attention, each with an item and a rank:
 /// - a counted ladder step k (not `early`) covers the minutes since the
 ///   set's previous counted step, ending at its time (one minute for the
 ///   day's first), with the set's label as context, subject, and group key;
@@ -16,16 +15,10 @@ import TimeTrackingCore
 ///   `appClosed` (at most `max_block`), any other automation a minute,
 ///   with its label;
 /// - the app's `foreground` covers the time to its `background`.
-/// Where stretches overlap the most specific wins: the app, then
-/// automations, web tabs, named sets, and "Everything" last. A Focus that
-/// suspends collection closes the block at its `on`. Time `claimed` by a
-/// higher-ranked block (the Mac's, §2.8) is cut out of every stretch and
-/// closes the block at its start. The stretches become
-/// samples every 30 seconds for the Blocker, so gaps over `idle_close`,
-/// the split test, midnight, and the summary rules apply as on the Mac.
+/// Where stretches overlap the most specific wins (`Timeline.resolve`):
+/// the app, then automations, web tabs, named sets, and "Everything" last.
+/// A Focus that suspends collection closes the block at its `on`.
 nonisolated struct DeviceEventMerger {
-    /// The sample spacing within a stretch.
-    static let spacing: TimeInterval = 30
     /// What a point event covers.
     static let pointLength: TimeInterval = 60
     static let safariApp = "com.apple.mobilesafari"
@@ -33,7 +26,7 @@ nonisolated struct DeviceEventMerger {
     var settings: TrackerSettings
     var exclusions: ExclusionRules
 
-    /// A stretch of attention.
+    /// A stretch of attention before it is tied to the device.
     struct Stretch {
         var start: Date
         var end: Date
@@ -41,36 +34,22 @@ nonisolated struct DeviceEventMerger {
         var rank: Int
     }
 
-    func blocks(_ events: [DeviceEvent], device: String, timeZone: TimeZone, claimed: [DateInterval] = []) -> [ClosedBlock] {
+    /// The stretches of `events` (one device's, one local day's) on
+    /// `device`, clipped to the day, and the times of the Focus closers.
+    func stretches(_ events: [DeviceEvent], device: String, timeZone: TimeZone) -> (stretches: [TimelineStretch], closers: [Date]) {
         let sorted = events.sorted { ($0.time, $0.sequence) < ($1.time, $1.sequence) }
         guard let first = sorted.first else {
-            return []
+            return ([], [])
         }
         let dayStart = ActivityTimestamp.startOfDay(first.time, timeZone: timeZone)
         let dayEnd = ActivityTimestamp.nextMidnight(after: first.time, timeZone: timeZone)
         let stretches = (ladder(sorted, dayStart: dayStart) + web(sorted) + intents(sorted) + app(sorted)).compactMap { stretch in
-            var clipped = stretch
-            clipped.start = max(stretch.start, dayStart)
-            clipped.end = min(stretch.end, dayEnd)
-            return clipped.end > clipped.start ? clipped : nil
-        }.flatMap { stretch in
-            Timeline.free(DateInterval(start: stretch.start, end: stretch.end), outside: claimed).map { part in
-                Stretch(start: part.start, end: part.end, item: stretch.item, rank: stretch.rank)
-            }
+            let start = max(stretch.start, dayStart)
+            let end = min(stretch.end, dayEnd)
+            return end > start ? TimelineStretch(start: start, end: end, item: stretch.item, device: device, rank: stretch.rank) : nil
         }
-        let focusClosers = sorted.filter { $0.source == .focus && $0.kind == "on" && !$0.payloadBool("collect", default: true) }.map(\.time)
-        let closers = focusClosers + claimed.map(\.start).filter { $0 > dayStart && $0 < dayEnd }
-        var blocker = Blocker(settings: settings.blocks, timeZone: timeZone, device: device, source: .device)
-        var closed: [ClosedBlock] = []
-        for step in steps(segments(stretches, cuts: closers), closers: closers) {
-            switch step {
-            case let .sample(sample):
-                closed += blocker.add(sample)
-            case .close:
-                closed += blocker.flush()
-            }
-        }
-        return ClosedBlock.resolved(closed + blocker.flush())
+        let closers = sorted.filter { $0.source == .focus && $0.kind == "on" && !$0.payloadBool("collect", default: true) }.map(\.time)
+        return (stretches, closers)
     }
 
     // MARK: Stretches
@@ -145,72 +124,6 @@ nonisolated struct DeviceEventMerger {
             )
             result.append(Stretch(start: event.time, end: end, item: item, rank: 6))
         }
-        return result
-    }
-
-    // MARK: Segments and samples
-
-    /// The stretches cut at every boundary and at `cuts`, each piece taking
-    /// the item of the highest-ranked stretch over it (the later start on a
-    /// tie); adjacent pieces of one item are joined unless a cut separates them.
-    private func segments(_ stretches: [Stretch], cuts: [Date]) -> [Stretch] {
-        let bounds = Set(stretches.flatMap { [$0.start, $0.end] } + cuts).sorted()
-        var result: [Stretch] = []
-        for (start, end) in zip(bounds, bounds.dropFirst()) {
-            let covering = stretches.filter { $0.start <= start && $0.end >= end }
-            guard let winner = covering.max(by: { ($0.rank, $0.start) < ($1.rank, $1.start) }) else {
-                continue
-            }
-            if var last = result.last, last.end == start, last.item == winner.item, !cuts.contains(start) {
-                last.end = end
-                result[result.count - 1] = last
-            } else {
-                result.append(Stretch(start: start, end: end, item: winner.item, rank: winner.rank))
-            }
-        }
-        return result
-    }
-
-    /// What the Blocker is fed: a sample, or the end of the open block.
-    enum Step {
-        case sample(Sample)
-        case close
-    }
-
-    /// Samples every 30 seconds within each segment; at the end of a run an
-    /// attentive sample credits the last stretch and an idle one stops the
-    /// credit, so gaps are never counted. A cut closes the block there.
-    private func steps(_ segments: [Stretch], closers: [Date]) -> [Step] {
-        var result: [Step] = []
-        var open: Stretch?
-        var pendingClosers = closers.sorted()
-        func endRun() {
-            if let run = open {
-                result.append(.sample(Sample(time: run.end, state: .active, primary: run.item)))
-                result.append(.sample(Sample(time: run.end, state: .idle)))
-            }
-            open = nil
-        }
-        func close(upTo time: Date) {
-            while let closer = pendingClosers.first, closer <= time {
-                pendingClosers.removeFirst()
-                endRun()
-                result.append(.close)
-            }
-        }
-        for segment in segments {
-            close(upTo: segment.start)
-            if let run = open, run.end != segment.start {
-                endRun()
-            }
-            var time = segment.start
-            while time < segment.end {
-                result.append(.sample(Sample(time: time, state: .active, primary: segment.item)))
-                time += Self.spacing
-            }
-            open = segment
-        }
-        endRun()
         return result
     }
 }

@@ -16,7 +16,7 @@ The range control, its presets, and its shortcuts are those of Reports ([spec_re
 
 ### 1.2 Header
 
-Line 1, in the metric style of [spec_design.md](spec_design.md) §1: "34h 10m active", the sum of the blocks' `a`, or under a context filter the sum of the selected contexts' item seconds. Line 2, secondary color, separated by middle dots: the number of days with a block, the average per such day, and, when blocks of more than one device are in the range, the total per device (names from `dev`; `remote` reads "Other devices (Safari)"). An "All devices" popup in the toolbar, hidden with one device, narrows every panel to one device and lists each device's total.
+Line 1, in the metric style of [spec_design.md](spec_design.md) §1: "34h 10m active", the sum of the blocks' `a`, or under a context filter the sum of the selected contexts' item seconds. Line 2, secondary color, separated by middle dots: the number of days with a block, the average per such day, and, when more than one device has time in the range, the total per device (each block's `dev` shares; `remote` reads "Other devices (Safari)"). An "All devices" popup in the toolbar, hidden with one device, narrows every panel to one device, each block to its part on that device (its items and time there), and lists each device's total.
 
 Durations read `Nh Mm` from one hour, `Mm` below, and `Ss` below one minute.
 
@@ -93,11 +93,11 @@ The secondaries, ranked by seconds, each with a gear glyph, context by name and 
 
 ### 1.8 Away
 
-Away time is a gap longer than the tracker's `idle_close` (5 minutes) between consecutive blocks of one device on one day; time before a device's first block and after its last is night, not away. The panel shows the total ("4h 12m during the day"), per cause the time and number of gaps ("idle 1h 10m (3 times)"): idle, asleep, locked, another user, and unknown when no presence transition covers the gap, and the note "Time before your first and after your last activity of the day is not counted." Causes come from the detail log on the recording Mac; elsewhere and for other devices' blocks all gaps are unknown, and the line adds "(cause known only on the Mac that recorded it)". The filter does not apply.
+Away time is a gap longer than the tracker's `idle_close` (5 minutes) between consecutive blocks of one day (the blocks of all devices form one timeline, [spec_activity_tracking.md](spec_activity_tracking.md) §2.8); time before the day's first block and after its last is night, not away. The panel shows the total ("4h 12m during the day"), per cause the time and number of gaps ("idle 1h 10m (3 times)"): idle, asleep, locked, another user, and unknown when no presence transition covers the gap, and the note "Time before your first and after your last activity of the day is not counted." Causes come from the detail log on the recording Mac; elsewhere and for other devices' blocks all gaps are unknown, and the line adds "(cause known only on the Mac that recorded it)". The filter does not apply.
 
 ### 1.9 Live updates and empty states
 
-The section follows the reader's change stream: an appended block updates the aggregates within 2 seconds. On the Mac today's figures include the open block (`isOpen`), drawn like a closed block with "running" in tooltips, until the closed block replaces it. Blocks with `src` `knowledge` count normally and say "Reconstructed from macOS app usage history" in the Calendar's popover. Block times are shown as recorded in the device's time zone. Aggregation runs off the main thread and keeps the previous figures until the new ones are ready.
+The section follows the reader's change stream: an appended block updates the aggregates within 2 seconds. On the Mac today's figures include the open block (`isOpen`), drawn like a closed block with "running" in tooltips, until the closed block replaces it. Reconstructed time (`rec`) counts normally and is named in the Calendar's popover ("Reconstructed from macOS app usage history"). Block times are shown as recorded in the device's time zone. Aggregation runs off the main thread and keeps the previous figures until the new ones are ready.
 
 With no blocks after filtering, the panels give way to one message (an empty-state view with the section's symbol): "No activity recorded between Oct 20 and Oct 26" (plus "The tracker was not running." and "Tracker Settings…" when the footer is red), or "Nothing recorded for the selected apps" with "Show All Apps". With an empty block log and the tracker not set up on this Mac (not enabled, no `current.json`, or Accessibility missing), an empty-state view titled "No Activity Yet" reads "Set up the tracker to see where your time goes. Nothing is recorded until you enable it." with "Open Tracker Settings…"; once a block exists it never returns.
 
@@ -135,7 +135,7 @@ The Activity tab shows the same panels from the synced block log, without subjec
 
 ## 6. Testable behaviors
 
-1. Without a filter the header total is the sum of `a` after exclusions; with one, the selected contexts' item seconds; device totals sum to the header total and appear only with more than one `dev`.
+1. Without a filter the header total is the sum of `a` after exclusions; with one, the selected contexts' item seconds; device totals sum to the header total and appear only with more than one device.
 2. Durations render per 1.2.
 3. A range changed in Reports changes here and the other way; a custom range over 366 days is clipped to its last 366 days with the header note.
 4. Chips toggle, "All" clears, and the filter changes every panel but Away; over eight contexts, "N more…" lists the rest and filters as the user types.
@@ -149,7 +149,7 @@ The Activity tab shows the same panels from the synced block log, without subjec
 12. Context shares stay relative to the unfiltered total; "Brief activity" and "Other (brief activity)" equal `a` minus item seconds.
 13. Selecting only browsers switches Subjects to Sites, only sessions to Sessions, a mix or All to All.
 14. A subject has a chevron only on the Mac holding a detail record for one of its blocks, with "details for N of M periods" when some lack one; elsewhere the note shows.
-15. Away counts only gaps over `idle_close` between same-device blocks of one day, classified on the recording Mac and unknown elsewhere.
+15. Away counts only gaps over `idle_close` between consecutive blocks of one day, classified on the recording Mac and unknown elsewhere.
 16. The Mac footer's dot matches the Tracker pane's status for the same `current.json`; the iPad footer shows `lastTick` from `LiveState` without sources.
 17. Clicking a cell opens the Calendar at that day and hour with the hour's blocks pulsed; ⌘5 returns with range, filter, and scroll unchanged.
 18. With an empty log and no tracker set up the setup card shows and opens the Tracker pane; after a block exists it does not return.

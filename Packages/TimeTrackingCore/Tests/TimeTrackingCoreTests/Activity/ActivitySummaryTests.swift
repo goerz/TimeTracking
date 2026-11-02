@@ -14,11 +14,11 @@ struct ActivitySummaryTests {
     }
 
     static func item(_ context: String, _ subject: String, _ detail: String, _ seconds: Int) -> ActivityItem {
-        ActivityItem(context: context, subject: subject, detail: detail, seconds: seconds)
+        ActivityItem(context: context, subject: subject, detail: detail, seconds: seconds, device: "macbook")
     }
 
     static func item(_ context: String, _ seconds: Int) -> ActivityItem {
-        ActivityItem(context: context, subject: "s", detail: "", seconds: seconds)
+        ActivityItem(context: context, subject: "s", detail: "", seconds: seconds, device: "macbook")
     }
 
     /// A block on a day of the week (`HH:mm` local, offset −4 h) with `a` = `active` or the item sum.
@@ -32,14 +32,19 @@ struct ActivitySummaryTests {
         background: [ActivityItem] = [],
         isOpen: Bool = false
     ) throws -> ActivityBlock {
-        try ActivityBlock(
+        let seconds = active ?? items.reduce(0) { $0 + $1.seconds }
+        return try ActivityBlock(
             start: ActivityFixture.instant("\(day)T\(start):00-04:00"),
             end: ActivityFixture.instant("\(day)T\(end):00-04:00"),
-            activeSeconds: active ?? items.reduce(0) { $0 + $1.seconds },
-            device: device,
+            activeSeconds: seconds,
+            devices: [ActivityDeviceTime(name: device, seconds: seconds, isRecordingMac: device == "macbook")],
             groupKey: items.first?.context ?? "",
             groupShare: 1,
-            items: items,
+            items: items.map { item in
+                var tagged = item
+                tagged.device = device
+                return tagged
+            },
             utcOffset: -4 * 3600,
             background: background,
             isOpen: isOpen

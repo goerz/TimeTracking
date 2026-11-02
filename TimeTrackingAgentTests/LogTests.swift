@@ -49,7 +49,7 @@ struct LogTests {
         #expect(aprilLines[0].hasPrefix("{\"type\":\"header\""))
         for line in march + aprilLines where !line.hasPrefix("{\"type\"") {
             let object = try #require(try JSONSerialization.jsonObject(with: Data(line.utf8)) as? [String: Any])
-            #expect(Set(object.keys) == ["s", "e", "a", "dev", "g", "gs", "items", "bg", "src"])
+            #expect(Set(object.keys) == ["s", "e", "a", "dev", "rec", "g", "gs", "items", "bg"])
         }
     }
 

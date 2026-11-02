@@ -8,16 +8,16 @@ import TimeTrackingCore
 struct ActivityBlockLogTests {
     private static let monthFile = """
     {"type":"header","format":1,"tz":"-04:00","dev":"macbook","contexts":{"tmux:paper":"com.example.terminal","safari":"com.apple.Safari"}}
-    {"s":"2026-10-28T09:10:00","e":"2026-10-28T09:44:30","a":1860,"dev":"macbook","g":"tmux:paper","gs":0.71,\
-    "items":[["tmux:paper","draft","nvim (3 files)",1080],["safari","github.com/owner/repo","pull/123",540]],"bg":[],"src":"live"}
+    {"s":"2026-10-28T09:10:00","e":"2026-10-28T09:44:30","a":1860,"dev":[["macbook",1620],["iPhone",240]],"rec":0,"g":"tmux:paper",\
+    "gs":0.71,"items":[["tmux:paper","draft","nvim (3 files)",1080,"macbook"],["safari","github.com/owner/repo","pull/123",540,"macbook"]],"bg":[]}
     {"type":"note","s":5}
-    {"s":"2026-10-29T14:00:00","e":"2026-10-29T14:30:00","a":1800,"dev":"macbook","g":"safari","gs":1.0,\
-    "items":[["safari","example.org","",1800]],"src":"knowledge","future_key":true}
+    {"s":"2026-10-29T14:00:00","e":"2026-10-29T14:30:00","a":1800,"dev":[["macbook",1800]],"rec":1800,"g":"safari","gs":1.0,\
+    "items":[["safari","example.org","",1800,"macbook"]],"future_key":true}
     {"s":"2026-10-29T15:00:00","e":
     {"type":"header","format":1,"tz":"+01:00","dev":"macbook","contexts":{"mail":"com.apple.mail"}}
 
-    {"s":"2026-10-30T08:00:00","e":"2026-10-30T08:20:00","a":1200,"dev":"macbook","g":"mail","gs":1,\
-    "items":[["mail","Inbox","",1200]],"bg":[["claude","refactor","",600]],"src":"live"}
+    {"s":"2026-10-30T08:00:00","e":"2026-10-30T08:20:00","a":1200,"dev":[["macbook",1200]],"rec":0,"g":"mail","gs":1,\
+    "items":[["mail","Inbox","",1200,"macbook"]],"bg":[["claude","refactor","",600,"macbook"]]}
 
     """
 
@@ -33,16 +33,21 @@ struct ActivityBlockLogTests {
         let first = try #require(file.blocks.first)
         #expect(try first.start == (ActivityFixture.instant("2026-10-28T13:10:00Z")))
         #expect(try first.end == (ActivityFixture.instant("2026-10-28T13:44:30Z")))
-        #expect(first.id == "macbook/2026-10-28T09:10:00-04:00")
+        #expect(first.id == "2026-10-28T09:10:00-04:00")
         #expect(first.items.count == 2)
         #expect(first.groupShare == 0.71)
-        #expect(file.blocks[1].source == .knowledge)
+        #expect(first.devices == [
+            ActivityDeviceTime(name: "macbook", seconds: 1620, isRecordingMac: true),
+            ActivityDeviceTime(name: "iPhone", seconds: 240),
+        ])
+        #expect(first.devices.map(\.isIOSDevice) == [false, true])
+        #expect(file.blocks[1].isMostlyReconstructed && !first.isMostlyReconstructed)
         #expect(try file.blocks[1].start == (ActivityFixture.instant("2026-10-29T18:00:00Z")))
         let last = file.blocks[2]
         #expect(try last.start == (ActivityFixture.instant("2026-10-30T07:00:00Z")))
         #expect(last.utcOffset == 3600)
-        #expect(last.id == "macbook/2026-10-30T08:00:00+01:00")
-        #expect(last.background == [ActivityItem(context: "claude", subject: "refactor", detail: "", seconds: 600)])
+        #expect(last.id == "2026-10-30T08:00:00+01:00")
+        #expect(last.background == [ActivityItem(context: "claude", subject: "refactor", detail: "", seconds: 600, device: "macbook")])
         #expect(file.contexts["tmux:paper"] == "com.example.terminal")
         #expect(file.contexts["mail"] == "com.apple.mail")
         #expect(file.lastHeader?.utcOffset == 3600)
@@ -62,14 +67,14 @@ struct ActivityBlockLogTests {
         let block = try ActivityFixture.block(
             start: "2026-10-28T13:10:00Z",
             end: "2026-10-28T13:44:30Z",
-            items: [ActivityItem(context: "safari", subject: "github.com/owner/repo", detail: "pull/123", seconds: 540)]
+            items: [ActivityItem(context: "safari", subject: "github.com/owner/repo", detail: "pull/123", seconds: 540, device: "macbook")]
         )
         let header = BlockLogHeader(utcOffset: -4 * 3600, device: "macbook", contexts: ["safari": "com.apple.Safari"])
         let headerText = BlockLogLine.header(header).jsonText
         #expect(headerText.hasPrefix(#"{"type":"header","format":1,"tz":"-04:00","dev":"macbook""#))
         #expect(try BlockLogLine.parse(Data(headerText.utf8), header: nil) == .header(header))
         let blockText = BlockLogLine.block(block, detail: nil).jsonText
-        #expect(blockText.hasPrefix(#"{"s":"2026-10-28T09:10:00","e":"2026-10-28T09:44:30","a":540,"dev":"macbook""#))
+        #expect(blockText.hasPrefix(#"{"s":"2026-10-28T09:10:00","e":"2026-10-28T09:44:30","a":540,"dev":[["macbook",540]],"rec":0,"#))
         #expect(try BlockLogLine.parse(Data(blockText.utf8), header: header) == .block(block, detail: nil))
     }
 
@@ -77,11 +82,11 @@ struct ActivityBlockLogTests {
         let block = try ActivityFixture.block(
             start: "2026-10-28T13:10:00Z",
             end: "2026-10-28T13:44:30Z",
-            items: [ActivityItem(context: "safari", subject: "example.org", detail: "", seconds: 60)]
+            items: [ActivityItem(context: "safari", subject: "example.org", detail: "", seconds: 60, device: "macbook")]
         )
         let detail = try ActivityBlockDetail(
             blockID: block.id,
-            items: block.items + [ActivityItem(context: "mail", subject: "Inbox", detail: "", seconds: 10)],
+            items: block.items + [ActivityItem(context: "mail", subject: "Inbox", detail: "", seconds: 10, device: "macbook")],
             urls: [ActivityURLVisit(time: block.start, browser: "safari", url: "https://example.org/a", title: "A")],
             files: [ActivityFileChange(time: ActivityFixture.instant("2026-10-28T13:20:00Z"), path: "~/Documents/a.txt")],
             presence: [ActivityPresenceTransition(time: block.start, state: .active)]
@@ -102,8 +107,8 @@ struct ActivityBlockLogTests {
         defer { folder.remove() }
         var writer = BlockLogWriter(folder: folder.url.appending(path: "blocks"), device: "macbook")
         let contexts = ["safari": "com.apple.Safari", "mail": "com.apple.mail"]
-        let safari = ActivityItem(context: "safari", subject: "example.org", detail: "", seconds: 600)
-        let mail = ActivityItem(context: "mail", subject: "Inbox", detail: "", seconds: 300)
+        let safari = ActivityItem(context: "safari", subject: "example.org", detail: "", seconds: 600, device: "macbook")
+        let mail = ActivityItem(context: "mail", subject: "Inbox", detail: "", seconds: 300, device: "macbook")
         try writer.append(
             ActivityFixture.block(start: "2026-10-01T13:00:00Z", end: "2026-10-01T13:10:00Z", items: [safari]),
             contexts: contexts
@@ -123,7 +128,7 @@ struct ActivityBlockLogTests {
             contexts: contexts
         )
 
-        let october = try String(contentsOf: writer.fileURL(forMonth: "2026-10"), encoding: .utf8)
+        let october = try String(contentsOf: writer.fileURL(for: "2026-10"), encoding: .utf8)
         let lines = october.split(separator: "\n")
         let headers = lines.filter { $0.contains(#""type":"header""#) }
         #expect(lines.count == 7)
@@ -133,18 +138,18 @@ struct ActivityBlockLogTests {
         #expect(lines[5].contains(#""tz":"+01:00""#))
         let file = BlockLogFile(data: Data(october.utf8))
         #expect(file.malformedLines == 0)
-        #expect(file.blocks.map(\.id).last == "macbook/2026-10-02T09:00:00+01:00")
-        let november = try BlockLogFile(data: Data(contentsOf: writer.fileURL(forMonth: "2026-11")))
+        #expect(file.blocks.map(\.id).last == "2026-10-02T09:00:00+01:00")
+        let november = try BlockLogFile(data: Data(contentsOf: writer.fileURL(for: "2026-11")))
         #expect(november.lastHeader != nil)
         #expect(november.blocks.count == 1)
     }
 
-    @Test("TRK-38 the first header of a month file names every line key in its legend; later headers carry none")
+    @Test("TRK-38 the first header of a block-log month file and a detail-log day file names every line key; later headers carry none")
     func theFirstHeaderCarriesTheLegend() throws {
         let folder = try TemporaryFolder()
         defer { folder.remove() }
-        let safari = ActivityItem(context: "safari", subject: "example.org", detail: "", seconds: 600)
-        let mail = ActivityItem(context: "mail", subject: "Inbox", detail: "", seconds: 300)
+        let safari = ActivityItem(context: "safari", subject: "example.org", detail: "", seconds: 600, device: "macbook")
+        let mail = ActivityItem(context: "mail", subject: "Inbox", detail: "", seconds: 300, device: "macbook")
         let first = try ActivityFixture.block(start: "2026-10-01T13:00:00Z", end: "2026-10-01T13:10:00Z", items: [safari])
         let second = try ActivityFixture.block(start: "2026-10-01T14:00:00Z", end: "2026-10-01T14:10:00Z", items: [mail])
         var blocks = BlockLogWriter(folder: folder.url.appending(path: "blocks"), device: "macbook")
@@ -158,7 +163,7 @@ struct ActivityBlockLogTests {
             presence: [ActivityPresenceTransition(time: first.start, state: .active)],
             dwell: [ActivityDwell(time: first.start, url: "https://example.org/a", seconds: 30)]
         )
-        var details = BlockLogWriter(folder: folder.url.appending(path: "detail"), device: "macbook")
+        var details = BlockLogWriter(folder: folder.url.appending(path: "detail"), device: "macbook", period: .day)
         try details.append(first, contexts: [:], detail: detail)
 
         func objects(_ url: URL) throws -> [[String: Any]] {
@@ -166,17 +171,17 @@ struct ActivityBlockLogTests {
                 try #require(try JSONSerialization.jsonObject(with: Data(line.utf8)) as? [String: Any])
             }
         }
-        let blockLines = try objects(blocks.fileURL(forMonth: "2026-10"))
+        let blockLines = try objects(blocks.fileURL(for: "2026-10"))
         #expect(blockLines.count == 4)
         let legend = try #require(blockLines[0]["keys"] as? [String: String])
         #expect(Set(legend.keys) == Set(blockLines[1].keys))
         #expect(legend["s"] == "start (local time)" && legend["a"] == "active seconds")
         #expect(blockLines[2]["type"] as? String == "header" && blockLines[2]["keys"] == nil)
-        let detailLines = try objects(details.fileURL(forMonth: "2026-10"))
+        let detailLines = try objects(details.fileURL(for: "2026-10-01"))
         let detailLegend = try #require(detailLines[0]["keys"] as? [String: String])
         #expect(Set(detailLegend.keys) == Set(detailLines[1].keys))
 
-        let headerText = try String(contentsOf: blocks.fileURL(forMonth: "2026-10"), encoding: .utf8).split(separator: "\n")[0]
+        let headerText = try String(contentsOf: blocks.fileURL(for: "2026-10"), encoding: .utf8).split(separator: "\n")[0]
         #expect(headerText.contains(#""keys":{"s":"start (local time)","e":"end (local time)","a":"active seconds""#))
         let parsed = try BlockLogLine.parse(Data(headerText.utf8), header: nil)
         let expected = BlockLogHeader(utcOffset: -4 * 3600, device: "macbook", contexts: ["safari": ""], keys: BlockLogHeader.blockLogKeys)
@@ -188,12 +193,12 @@ struct ActivityBlockLogTests {
         let folder = try TemporaryFolder()
         defer { folder.remove() }
         let blocks = folder.url.appending(path: "blocks")
-        let item = ActivityItem(context: "safari", subject: "example.org", detail: "", seconds: 600)
+        let item = ActivityItem(context: "safari", subject: "example.org", detail: "", seconds: 600, device: "macbook")
         var first = BlockLogWriter(folder: blocks, device: "macbook")
         try first.append(ActivityFixture.block(start: "2026-10-01T13:00:00Z", end: "2026-10-01T13:10:00Z", items: [item]), contexts: [:])
         var second = BlockLogWriter(folder: blocks, device: "macbook")
         try second.append(ActivityFixture.block(start: "2026-10-01T14:00:00Z", end: "2026-10-01T14:10:00Z", items: [item]), contexts: [:])
-        let text = try String(contentsOf: second.fileURL(forMonth: "2026-10"), encoding: .utf8)
+        let text = try String(contentsOf: second.fileURL(for: "2026-10"), encoding: .utf8)
         #expect(text.split(separator: "\n").count == 3)
     }
 }

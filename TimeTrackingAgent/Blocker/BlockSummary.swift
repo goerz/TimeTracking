@@ -14,6 +14,9 @@ import TimeTrackingCore
 /// 4. Ordered by first appearance, capped at `summary_lines`.
 /// 5. Secondaries that ran at least 5 minutes appended as `bg`.
 /// 6. The dominant group key and its share.
+///
+/// Items are kept apart per device; the block's time is summed per device
+/// (most first) and over the reconstructed segments.
 nonisolated struct BlockSummary {
     static let mergeAbove = 3
     static let minimumSeconds = 60
@@ -26,14 +29,29 @@ nonisolated struct BlockSummary {
     var detailItems: [ActivityItem]
     var background: [ActivityItem]
     var activeSeconds: Int
+    var devices: [ActivityDeviceTime]
+    var reconstructedSeconds: Int
     var groupKey: String
     var groupShare: Double
 
-    init(segments: [Blocker.Segment], background: [Blocker.Segment], settings: TrackerBlockSettings) {
+    /// The summary of `segments` and `background` recorded on the Mac `mac`.
+    init(segments: [Blocker.Segment], background: [Blocker.Segment], settings: TrackerBlockSettings, mac: String) {
         let summed = Self.sum(segments)
         let total = summed.reduce(0) { $0 + $1.seconds }
         self.detailItems = summed.map(\.activityItem)
         self.activeSeconds = total
+        var perDevice: [String: Int] = [:]
+        var deviceOrder: [String] = []
+        for segment in segments {
+            if perDevice[segment.device] == nil {
+                deviceOrder.append(segment.device)
+            }
+            perDevice[segment.device, default: 0] += segment.seconds
+        }
+        self.devices = deviceOrder
+            .map { ActivityDeviceTime(name: $0, seconds: perDevice[$0, default: 0], isRecordingMac: $0 == mac) }
+            .sorted { ($1.seconds, $0.name) < ($0.seconds, $1.name) }
+        self.reconstructedSeconds = segments.filter(\.isReconstructed).reduce(0) { $0 + $1.seconds }
         var groups: [String: Int] = [:]
         var groupOrder: [String] = []
         for entry in summed {
@@ -65,12 +83,14 @@ nonisolated struct BlockSummary {
         var entries: [Entry] = []
         var index: [ItemKey: Int] = [:]
         for segment in segments {
-            if let position = index[segment.item.key] {
+            var key = segment.item.key
+            key.device = segment.device
+            if let position = index[key] {
                 entries[position].seconds += segment.seconds
             } else {
-                index[segment.item.key] = entries.count
+                index[key] = entries.count
                 entries.append(Entry(
-                    key: segment.item.key,
+                    key: key,
                     groupKey: segment.item.groupKey,
                     seconds: segment.seconds,
                     first: segment.start
@@ -80,16 +100,18 @@ nonisolated struct BlockSummary {
         return entries
     }
 
-    /// Merges the items of a context and subject with more than three details.
+    /// Merges the items of a context and subject on one device with more than three details.
     private static func merge(_ entries: [Entry]) -> [Entry] {
         var result: [Entry] = []
         var handled = Set<String>()
         for entry in entries {
-            let group = "\(entry.key.context)\u{1F}\(entry.key.subject)"
+            let group = "\(entry.key.context)\u{1F}\(entry.key.subject)\u{1F}\(entry.key.device)"
             guard !handled.contains(group) else {
                 continue
             }
-            let members = entries.filter { $0.key.context == entry.key.context && $0.key.subject == entry.key.subject }
+            let members = entries.filter { member in
+                member.key.context == entry.key.context && member.key.subject == entry.key.subject && member.key.device == entry.key.device
+            }
             guard members.count > Self.mergeAbove else {
                 result.append(entry)
                 continue
@@ -120,7 +142,7 @@ nonisolated struct BlockSummary {
         var first: Date
 
         var activityItem: ActivityItem {
-            ActivityItem(context: key.context, subject: key.subject, detail: key.detail, seconds: seconds)
+            ActivityItem(context: key.context, subject: key.subject, detail: key.detail, seconds: seconds, device: key.device)
         }
     }
 }

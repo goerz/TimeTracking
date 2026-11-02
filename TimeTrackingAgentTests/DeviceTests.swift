@@ -53,10 +53,10 @@ struct DeviceTests {
         let first = Self.minutes("Mail", 1 ... 20, start: 0)
         let second = Self.minutes("Mail", 21 ... 30, start: 600)
         try await server.upload(first + second)
-        await harness.engine.syncDeviceEvents(now: harness.time(3600))
+        await harness.syncDevices(at: 3600)
         let blocks = harness.blocks
         #expect(blocks.count == 2)
-        #expect(blocks.allSatisfy { $0.source == .device && $0.device == "iPhone" })
+        #expect(blocks.allSatisfy { $0.deviceNames == ["iPhone"] })
         #expect(blocks.map(\.groupKey) == ["Mail", "Mail"])
         #expect(blocks.map { $0.items.first?.context } == ["Mail", "Mail"])
         #expect(blocks.map { $0.items.first?.subject } == ["Mail", "Mail"])
@@ -65,7 +65,7 @@ struct DeviceTests {
         #expect(blocks[0].end == harness.time(1200))
         #expect(blocks[1].start == harness.time(1800))
         #expect(blocks[1].end == harness.time(2400))
-        #expect(harness.blockLogText.contains(#""src":"device""#))
+        #expect(harness.blockLogText.contains(#""dev":[["iPhone",1200]]"#))
         #expect(harness.health("device_events")?.status == .active)
         #expect(harness.health("device_events")?.reason.isEmpty == true)
     }
@@ -73,14 +73,14 @@ struct DeviceTests {
     @Test func lateEventsReplaceTheDaysBlocks() async throws {
         let (harness, server) = try Self.harness()
         try await server.upload(Self.minutes("Mail", 1 ... 10, start: 0))
-        await harness.engine.syncDeviceEvents(now: harness.time(900))
+        await harness.syncDevices(at: 900)
         #expect(harness.blocks.map(\.activeSeconds) == [600])
         let before = harness.blockLogText
         // A fetch with nothing new leaves the file as it was.
-        await harness.engine.syncDeviceEvents(now: harness.time(1200))
+        await harness.syncDevices(at: 1200)
         #expect(harness.blockLogText == before)
         try await server.upload(Self.minutes("Mail", 11 ... 15, start: 0))
-        await harness.engine.syncDeviceEvents(now: harness.time(1500))
+        await harness.syncDevices(at: 1500)
         #expect(harness.blocks.map(\.activeSeconds) == [900])
         #expect(harness.details.count == 1)
         #expect(try harness.engine.store.deviceEventCount() == 15)
@@ -94,7 +94,7 @@ struct DeviceTests {
         }
         events.append(Self.event(61, .ladder, "Everything", "minute", payload: ["n": 5, "early": true], sequence: 200))
         try await server.upload(events)
-        await harness.engine.syncDeviceEvents(now: harness.time(3600))
+        await harness.syncDevices(at: 3600)
         let block = try #require(harness.blocks.first)
         #expect(harness.blocks.count == 1)
         #expect(block.activeSeconds == 600)
@@ -111,7 +111,7 @@ struct DeviceTests {
             Self.event(300, .app, "TimeTracking", "foreground", sequence: 4),
             Self.event(420, .app, "TimeTracking", "background", sequence: 5),
         ])
-        await harness.engine.syncDeviceEvents(now: harness.time(3600))
+        await harness.syncDevices(at: 3600)
         let block = try #require(harness.blocks.first)
         #expect(harness.blocks.count == 1)
         let items = block.items.map { "\($0.context) \($0.subject) \($0.detail) \($0.seconds)" }
@@ -124,7 +124,7 @@ struct DeviceTests {
         var events = Self.minutes("Everything", 1 ... 6, start: 0)
         events.append(Self.event(180, .focus, "Sleep", "on", payload: ["collect": false], sequence: 50))
         try await server.upload(events)
-        await harness.engine.syncDeviceEvents(now: harness.time(3600))
+        await harness.syncDevices(at: 3600)
         #expect(harness.blocks.map(\.activeSeconds) == [180, 180])
         #expect(harness.blocks.map(\.end) == [harness.time(180), harness.time(360)])
     }
@@ -141,7 +141,7 @@ struct DeviceTests {
             Self.event(60, .webext, "mail.example/inbox/7", "tab", sequence: 2),
             Self.event(120, .webext, "example.com/docs", "tab", sequence: 3),
         ])
-        await harness.engine.syncDeviceEvents(now: harness.time(3600))
+        await harness.syncDevices(at: 3600)
         let output = harness.blockLogText + harness.detailLogText
         #expect(!output.contains("bank.example"))
         #expect(!output.contains("accounts"))
@@ -168,7 +168,7 @@ struct DeviceTests {
             )
         }
         try await server.upload(events)
-        await harness.engine.syncDeviceEvents(now: harness.time(15 * 3600))
+        await harness.syncDevices(at: 15 * 3600)
         let blocks = harness.blocks
         #expect(blocks.count == 2)
         let days = blocks.map { block in
@@ -184,14 +184,14 @@ struct DeviceTests {
         let old = Self.event(-91 * 86_400, .app, "TimeTracking", "foreground", sequence: 1)
         let recent = Self.event(-86_400, .app, "TimeTracking", "foreground", sequence: 2)
         try await server.upload([old, recent])
-        await harness.engine.syncDeviceEvents(now: harness.time(0))
+        await harness.syncDevices(at: 0)
         #expect(await server.all == [recent])
         #expect(try harness.engine.store.deviceEventCount() == 1)
     }
 
     @Test func withoutCloudKitTheSourceIsOff() async throws {
         let harness = try AgentHarness()
-        await harness.engine.syncDeviceEvents(now: harness.time(0))
+        await harness.syncDevices(at: 0)
         #expect(harness.health("device_events")?.status == .off)
         #expect(harness.currentStateText.contains("iCloud is not available; iPhone and iPad activity doesn't reach this Mac"))
     }
@@ -201,11 +201,11 @@ struct DeviceTests {
         let (harness, server) = try Self.harness()
         try await server.upload(Self.minutes("Mail", 1 ... 3, start: 0))
         await server.setFailing(Offline())
-        await harness.engine.syncDeviceEvents(now: harness.time(600))
+        await harness.syncDevices(at: 600)
         #expect(harness.blocks.isEmpty)
         #expect(harness.health("device_events")?.reason == "Couldn't reach iCloud; trying again in 5 minutes")
         await server.setFailing(nil)
-        await harness.engine.syncDeviceEvents(now: harness.time(900))
+        await harness.syncDevices(at: 900)
         #expect(harness.blocks.count == 1)
     }
 }

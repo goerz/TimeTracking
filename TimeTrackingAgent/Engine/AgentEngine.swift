@@ -6,8 +6,10 @@ import os
 import TimeTrackingCore
 
 /// The tracker. Every tick (and every presence event or pushed event)
-/// takes a sample, appends it to `samples.sqlite`, runs the Blocker, writes
-/// closed blocks to the block and detail logs, and rewrites `current.json`.
+/// takes a sample, appends it to `samples.sqlite`, forms today's blocks
+/// again from everything stored for today (the user's timeline, §2.8),
+/// rewrites today's lines of the block and detail logs when they changed,
+/// and rewrites `current.json`.
 /// Tests drive `tick()` and `handle(_:at:)` under a `ManualClock`.
 @MainActor
 final class AgentEngine {
@@ -22,17 +24,20 @@ final class AgentEngine {
     private(set) var choice: SharedFolderChoice
     var monitor: SettingsMonitor
     var presence: PresenceTracker
-    var blocker: Blocker
     var logs: ActivityLogs
     var health = SourceHealthBoard()
     let terminal: TerminalResolver
     let browser: BrowserResolver
     var fileChanges = FileChangeLog()
     var syncedSafari = SyncedSafariCollector()
-    /// Presence transitions not yet written to a detail line.
+    /// The presence transitions of the last two days, for the detail log.
     var transitions: [ActivityPresenceTransition] = []
-    /// The end of the last block written to the detail log.
-    var lastDetailEnd: Date?
+    /// Today's open block as of the last rebuild.
+    var openBlock: TrackerOpenBlock?
+    /// The day of the last rebuild of today, to close it after midnight.
+    var rebuiltDay: String?
+    /// The inputs of a day's timeline other than new samples, kept between ticks.
+    var timelineCache: TimelineCache?
     private(set) var lastSample: Sample?
     var recorder: Recorder?
     var deviceEvents: (any DeviceEventSource)?
@@ -52,7 +57,6 @@ final class AgentEngine {
         self.monitor = SettingsMonitor(url: choice.settingsURL)
         let now = environment.clock.now
         self.presence = PresenceTracker(start: now)
-        self.blocker = Blocker(settings: monitor.settings.blocks, timeZone: environment.timeZone, device: configuration.device)
         self.logs = ActivityLogs(blocksFolder: choice.blocksFolder, folders: configuration.folders, device: configuration.device)
         self.terminal = TerminalResolver(environment: environment)
         self.browser = BrowserResolver(environment: environment)
@@ -120,15 +124,14 @@ final class AgentEngine {
         return sample
     }
 
-    /// Reloads `settings.toml` if it changed and hands new block settings
-    /// to the live Blocker (§7: applied from the next tick).
+    /// Reloads `settings.toml` if it changed (§7: applied from the next tick).
     func reloadSettings() {
         if monitor.reload() {
-            blocker.settings = settings.blocks
+            timelineCache = nil
         }
     }
 
-    /// Stores a sample, runs the Blocker, writes closed blocks and `current.json`.
+    /// Stores a sample, forms today's blocks again, writes `current.json`.
     func process(_ sample: Sample) {
         let offset = environment.timeZone.secondsFromGMT(for: sample.time)
         do {
@@ -138,43 +141,9 @@ final class AgentEngine {
         }
         recorder?.record(sample, utcOffset: offset)
         lastSample = sample
-        for closed in blocker.add(sample) {
-            write(closed)
-        }
+        timelineCache?.append(sample)
+        rebuildToday()
         writeCurrentState()
-    }
-
-    /// Appends a closed block and its detail to the logs; a block that
-    /// replaces the previous one (a short block merged into it) first
-    /// removes that block's lines and keeps its detail.
-    func write(_ closed: ClosedBlock) {
-        var detail = detail(for: closed)
-        do {
-            if closed.replacesPrevious {
-                var earlier: ActivityBlockDetail?
-                try logs.rewrite(fromDay: closed.block.localDay, toDay: closed.block.localDay) { block, lineDetail, _ in
-                    guard block.id == closed.block.id, block.source == closed.block.source else {
-                        return .keep
-                    }
-                    earlier = lineDetail ?? earlier
-                    return .drop
-                }
-                if let earlier {
-                    detail = detail.including(earlier)
-                }
-            }
-            try logs.append(closed, detail: detail)
-        } catch {
-            logger.error("block log: \(error.localizedDescription, privacy: .public)")
-        }
-        settleTimeline(day: closed.block.localDay)
-        lastDetailEnd = closed.block.end
-        // The state in effect at the end stays: it opens the next gap.
-        let current = transitions.last { $0.time < closed.block.end }
-        transitions.removeAll { $0.time < closed.block.end }
-        if let current {
-            transitions.insert(current, at: 0)
-        }
     }
 
     /// Rewrites `current.json` from the open block, the last sample, presence, and health.
@@ -185,7 +154,7 @@ final class AgentEngine {
         }
         let state = TrackerState(
             device: configuration.device,
-            openBlock: blocker.openSummary,
+            openBlock: openBlock,
             primary: primary,
             presence: TrackerPresence(state: presence.state, since: presence.since, lastInput: presence.lastInput),
             health: TrackerHealth(lastTick: lastSample?.time ?? now, version: configuration.version, sources: health.all)

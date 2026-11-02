@@ -9,8 +9,8 @@ extension AgentEngine {
     func rewrite(_ command: TrackerCommand) -> TrackerReply {
         do {
             switch command {
-            case let .deleteBlock(device, start):
-                return try deleteBlock(device: device, start: start)
+            case let .deleteBlock(start):
+                return try deleteBlock(start: start)
             case let .forgetDay(day):
                 try forgetDay(day)
                 return .success
@@ -36,43 +36,44 @@ extension AgentEngine {
         return start ..< ActivityTimestamp.nextMidnight(after: last, timeZone: zone)
     }
 
-    private func deleteBlock(device: String, start: String) throws -> TrackerReply {
+    /// Deletes the block starting at `start` (local time) and what it was
+    /// formed from, and records its time as deleted.
+    private func deleteBlock(start: String) throws -> TrackerReply {
         guard ActivityTimestamp.date(start, utcOffset: 0) != nil else {
             return .error("not a local time: \(start)")
         }
         let day = String(start.prefix(10))
-        let removed = try logs.rewrite(fromDay: day, toDay: day) { block, _, _ in
-            block.device == device && ActivityTimestamp.text(block.start, utcOffset: block.utcOffset) == start ? .drop : .keep
+        let now = environment.clock.now
+        let blocks = logs.blocks(on: day)
+        if let block = blocks.first(where: { ActivityTimestamp.text($0.start, utcOffset: $0.utcOffset) == start }) {
+            // A sample at the end belongs to the block that starts there.
+            let followed = blocks.contains { $0.start == block.end }
+            try forget(from: block.start, to: followed ? block.end : block.end.addingTimeInterval(1))
+        } else if let open = openBlock, ActivityTimestamp.text(open.start, timeZone: environment.timeZone) == start {
+            try forget(from: open.start, to: now.addingTimeInterval(1))
+        } else {
+            return .error("\(TrackerReply.noBlockReason) \(start)")
         }
-        if let open = blocker.open, device == configuration.device,
-           ActivityTimestamp.text(open.start, timeZone: environment.timeZone) == start
-        {
-            try store.delete(from: open.start, to: environment.clock.now.addingTimeInterval(1))
-            blocker.discardOpenBlock()
-            writeCurrentState()
-            return .success
-        }
-        guard let block = removed.first else {
-            return .error("\(TrackerReply.noBlockReason) \(device) at \(start)")
-        }
-        if device == configuration.device {
-            try store.delete(from: block.start, to: block.end.addingTimeInterval(1))
-        }
+        rebuild(days: [day])
+        writeCurrentState()
         return .success
     }
 
     private func forgetDay(_ day: String) throws {
-        try logs.rewrite(fromDay: day, toDay: day) { block, _, _ in block.localDay == day ? .drop : .keep }
         guard let range = dayRange(from: day, to: day) else {
             return
         }
-        try store.delete(from: range.lowerBound, to: range.upperBound)
-        fileChanges.removeAll(from: range.lowerBound, to: range.upperBound)
-        transitions.removeAll { range.contains($0.time) }
-        if let open = blocker.open, range.contains(open.start) {
-            blocker.discardOpenBlock()
-        }
+        try forget(from: range.lowerBound, to: range.upperBound)
+        rebuild(days: [day])
         writeCurrentState()
+    }
+
+    /// Deletes every input of `[from, to)` and its file changes and presence transitions.
+    private func forget(from: Date, to: Date) throws {
+        try store.deleteTimeline(from: from, to: to)
+        fileChanges.removeAll(from: from, to: to)
+        transitions.removeAll { $0.time >= from && $0.time < to }
+        timelineInputsChanged()
     }
 
     private func reapplyExclusions(fromDay: String, toDay: String) throws {
@@ -97,5 +98,14 @@ extension AgentEngine {
                 try store.update(row.id, with: updated, utcOffset: row.utcOffset)
             }
         }
+        for kind in [ExtraSampleKind.knowledge, .remote] {
+            for row in try store.extraSamples(kind, from: range.lowerBound, to: range.upperBound) {
+                let updated = SampleRewrite.reapplied(row.sample, rules: rules)
+                if updated != row.sample {
+                    try store.updateExtraSample(row.id, with: updated, utcOffset: row.utcOffset)
+                }
+            }
+        }
+        timelineInputsChanged()
     }
 }

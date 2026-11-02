@@ -48,7 +48,7 @@ struct KnowledgeTests {
         await harness.engine.tick()
         #expect(harness.health("knowledge")?.status == .off)
         #expect(harness.health("knowledge")?.reason == reason)
-        #expect(!harness.blockLogText.contains("\"src\":\"knowledge\""))
+        #expect(harness.blocks.allSatisfy { $0.reconstructedSeconds == 0 })
     }
 
     @Test("TRK-24 with the expected schema the agent backfills knowledge blocks for the time it was down")
@@ -69,7 +69,8 @@ struct KnowledgeTests {
         await harness.engine.tick()
         #expect(harness.health("knowledge")?.status == .active)
         let block = try #require(harness.blocks.first)
-        #expect(block.source == .knowledge)
+        #expect(block.reconstructedSeconds == block.activeSeconds)
+        #expect(block.deviceNames == [AgentHarness.device])
         #expect(block.items.first?.context == "mail")
         #expect(block.start == harness.time(-3 * 3600))
         #expect(block.activeSeconds == 1200)
@@ -82,7 +83,7 @@ struct KnowledgeTests {
         harness.history.tabs = [CloudTabDevice(name: "iPhone", urls: [])]
         await harness.run(for: 900)
         #expect(harness.history.cloudTabsReads == 0)
-        #expect(!harness.blocks.contains { $0.device == "remote" })
+        #expect(!harness.blocks.contains { $0.deviceNames.contains(ActivityDeviceTime.remote) })
         #expect(harness.health("synced_safari")?.status == .off)
     }
 
@@ -105,7 +106,7 @@ struct KnowledgeTests {
         harness.history.tabs = [CloudTabDevice(name: "iPhone", urls: [])]
         await harness.engine.tick()
         #expect(harness.history.cloudTabsReads == 1)
-        let remote = try #require(harness.blocks.first { $0.device == "remote" })
+        let remote = try #require(harness.blocks.first { $0.deviceNames == [ActivityDeviceTime.remote] })
         #expect(remote.items.first?.subject == "example.com")
         #expect(remote.activeSeconds == 300)
 
@@ -116,16 +117,15 @@ struct KnowledgeTests {
         collector.poll(history: history, now: start)
         history.tabs = [CloudTabDevice(name: "iPhone", urls: ["https://example.com/b"]), CloudTabDevice(name: "iPad", urls: [])]
         collector.poll(history: history, now: start.addingTimeInterval(300))
-        let attributed = collector.blocks(
+        let attributed = collector.samples(
             visits: [
                 HistoryVisit(time: start.addingTimeInterval(200), browser: "safari", url: "https://example.com/b", title: ""),
                 HistoryVisit(time: start.addingTimeInterval(320), browser: "safari", url: "https://example.com/c", title: ""),
                 HistoryVisit(time: start.addingTimeInterval(4000), browser: "safari", url: "https://example.com/d", title: ""),
                 HistoryVisit(time: start.addingTimeInterval(4100), browser: "safari", url: "https://example.com/e", title: ""),
             ],
-            context: harness.engine.resolveContext(),
-            timeZone: AgentHarness.zone
+            context: harness.engine.resolveContext()
         )
-        #expect(attributed.map(\.block.device) == ["iPhone", "remote"])
+        #expect(attributed.map(\.device) == ["iPhone", "iPhone", "remote", "remote"])
     }
 }
