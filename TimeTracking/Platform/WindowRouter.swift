@@ -2,7 +2,9 @@
 // (spec_timer.md §1.3, §8.3; spec_menubar.md §2.2, §4).
 
 import AppKit
+import os
 import SwiftUI
+import TimeTrackingCore
 
 /// The live `AppRouting`: AppKit for the Mini Timer, the SwiftUI actions
 /// captured from a view for the main window and Settings.
@@ -16,6 +18,8 @@ final class WindowRouter: AppRouting {
     init(miniTimerWindow: MiniTimerController) {
         self.miniTimerWindow = miniTimerWindow
     }
+
+    private static let logger = Logging.logger(category: "App")
 
     /// The Mini Timer: brought forward, or
     /// opened the first time.
@@ -48,7 +52,17 @@ final class WindowRouter: AppRouting {
             app?.mainItem = item
         }
         NSApp.activate()
-        openWindowAction?(id: MainWindowSetup.sceneID)
+        open(id: MainWindowSetup.sceneID)
+    }
+
+    /// No scene has handed over its actions when no window appeared since
+    /// launch.
+    private func open(id: String) {
+        guard let openWindowAction else {
+            Self.logger.fault("No openWindow action for \(id, privacy: .public)")
+            return
+        }
+        openWindowAction(id: id)
     }
 
     /// Where the Settings window's `@AppStorage` reads its last pane.
@@ -59,7 +73,11 @@ final class WindowRouter: AppRouting {
             paneDefaults.set(pane.rawValue, forKey: SettingsPane.storageKey)
         }
         NSApp.activate()
-        openSettingsAction?()
+        guard let openSettingsAction else {
+            Self.logger.fault("No openSettings action")
+            return
+        }
+        openSettingsAction()
     }
 }
 

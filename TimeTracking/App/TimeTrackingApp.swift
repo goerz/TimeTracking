@@ -36,6 +36,13 @@ struct TimeTrackingApp: App {
         }
         .defaultSize(width: 1100, height: 760)
         .windowResizability(.contentMinSize)
+        // Opened at every launch, also when state restoration recorded it
+        // closed: the router's `openWindow` and `openSettings` come from
+        // this window's view (`RouterActions`), so without it the menu bar
+        // and the Dock tile could open nothing. A login launch closes it
+        // again on attach (`hidesMainWindowOnAttach`).
+        .defaultLaunchBehavior(.presented)
+        .restorationBehavior(.disabled)
         // The scene keeps its Window menu item (the main window, by name).
         .commands {
             MainMenuCommands(host: delegate.host)
