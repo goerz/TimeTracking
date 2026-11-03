@@ -195,7 +195,7 @@ User-visible text names what the user sees and gets, never how the code works. T
 | activity block | activity ("Delete This Activity…"); counted, "periods of activity" |
 | time block | time block (only these are "blocks") |
 | context | app; a tmux session keeps its name and a tmux badge |
-| group key, `kind:name` key | the app, session, or folder name as Activity shows it |
+| workspace, `kind:name` key | the app, session, or folder name as Activity shows it |
 | not itemized | brief activity |
 | store, database, record | your entries, your data |
 | outbox, pending changes | waiting to sync |

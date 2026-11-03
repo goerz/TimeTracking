@@ -4,7 +4,7 @@ The Activity section of the main window (fifth sidebar item, ⌘5) shows what th
 
 Not included: editing, deleting, or merging blocks (the Calendar's activity column deletes a block); assigning projects or creating entries; reading the tracker's sample database; exporting.
 
-Vocabulary: an item has a context (an app, a terminal session such as `tmux:paper`, a browser), a subject (a site, a folder, a window), and a detail (a file, a page). A block has items with seconds, active seconds `a` (all item seconds before the tracker's summary cut), and secondaries (`bg`: busy coding agents, builds), which are not attention. Blocks never cross midnight.
+Vocabulary: an item has a context (an app, a terminal session such as `tmux:paper`, a browser), a subject (a site, a folder, a window), and a detail (a file, a page). A block has items with seconds, active seconds `a` (all item seconds before the tracker's summary cut), a dominant workspace `g` (the tmux session, work folder, site, or app that took the most time), and background items (`bg`: busy coding agents, builds), which are not attention. Blocks never cross midnight.
 
 ## 1. Layout
 
@@ -31,7 +31,7 @@ An "All" chip, then one chip per context ranked by time: the first eight, the re
 | `safari`, `arc`, `chrome`, `brave`, `edge`, `vivaldi`, `firefox` | browser | the browser's name | the browser's icon |
 | any other | app | the app's name for the bundle identifier of the month header's `contexts` map, else the name of a table of known apps ("VS Code", "PowerPoint"), else a lowercase string with each word capitalized | the app's icon, else a generic app glyph |
 
-A raw context or group key never shows. A group key (Calendar cards and popovers) reads like its context ("paper (tmux)", "Safari", "VS Code"), a site or folder key as written ("github.com/owner", "~/Papers/2026_Noise"); the library's `ActivityContext.label()` and `ActivityContext.groupKeyName(_:)` give these names.
+A raw context or workspace never shows. A workspace (Calendar cards and popovers) reads like its context ("paper (tmux)", "Safari", "VS Code"), a site or folder as written ("github.com/owner", "~/Papers/2026_Noise"); the library's `ActivityContext.label()` and `ActivityContext.groupKeyName(_:)` give these names.
 
 Context colors are automatic and separate from area colors. They belong to this section; the Calendar's activity column draws every block in one neutral color ([spec_calendar.md](spec_calendar.md) §3.1). A context seen here for the first time gets the index used by the fewest contexts so far, lowest on ties, stored in the synced, append-only `activity.contextColors`; it never changes and the user cannot pick one. Contexts marked `(private)` are gray (secondary label color) and take no index.
 
@@ -89,11 +89,11 @@ Both lists show twenty rows and a "Show all (48)" link.
 
 ### 1.7 In the background
 
-The secondaries, ranked by seconds, each with a gear glyph, context by name and subject, a folder after "in" ("Claude refactor-parser", "paper (tmux) in ~/Code/app"), and duration, under the subtitle "Does not count as active time". The filter applies by the secondary's context. Hidden when there are none.
+The background items, ranked by seconds, each with a gear glyph, context by name and subject, a folder after "in" ("Claude refactor-parser", "paper (tmux) in ~/Code/app"), and duration, under the subtitle "Does not count as active time". The filter applies by the background item's context. Hidden when there are none.
 
 ### 1.8 Away
 
-Away time is a gap longer than the tracker's `idle_close` (5 minutes) between consecutive blocks of one day (the blocks of all devices form one timeline, [spec_activity_tracking.md](spec_activity_tracking.md) §2.8); time before the day's first block and after its last is night, not away. The panel shows the total ("4h 12m during the day"), per cause the time and number of gaps ("idle 1h 10m (3 times)"): idle, asleep, locked, another user, and unknown when no presence transition covers the gap, and the note "Time before your first and after your last activity of the day is not counted." Causes come from the detail log on the recording Mac; elsewhere and for other devices' blocks all gaps are unknown, and the line adds "(cause known only on the Mac that recorded it)". The filter does not apply.
+Away time is a gap longer than the tracker's `idle_close` (5 minutes) between consecutive blocks of one day (the blocks of all devices form one timeline, [spec_activity_tracking.md](spec_activity_tracking.md) §2.4); time before the day's first block and after its last is night, not away. The panel shows the total ("4h 12m during the day"), per cause the time and number of gaps ("idle 1h 10m (3 times)"): idle, asleep, locked, another user, and unknown when no presence transition covers the gap, and the note "Time before your first and after your last activity of the day is not counted." Causes come from the detail log on the recording Mac; elsewhere and for other devices' blocks all gaps are unknown, and the line adds "(cause known only on the Mac that recorded it)". The filter does not apply.
 
 ### 1.9 Live updates and empty states
 
