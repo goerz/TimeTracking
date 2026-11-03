@@ -220,11 +220,15 @@ agent-test: secrets ## (1 min) TimeTrackingAgentTests
 	$(require_team)
 	$(AGENT_TEST)
 
-ui-test: secrets ## (8 min) Mac UI tests, iOS UI tests on both simulators
+ui-test: secrets ## (8 min) Mac UI tests, iOS UI tests on both simulators (UI_TESTS=Class[/method] runs only those Mac tests)
 	$(require_team)
+ifdef UI_TESTS
+	$(XCB) test -scheme TimeTracking $(MAC_DEST) $(foreach t,$(UI_TESTS),-only-testing:TimeTrackingUITests/$(t)) $(SIGN)
+else
 	@$(MAKE) --no-print-directory sim-create
 	$(XCB) test -scheme TimeTracking $(MAC_DEST) -only-testing:TimeTrackingUITests $(SIGN)
 	$(SIM_UDIDS) $(XCB) test -scheme TimeTrackingiOS $(IPHONE_DEST) $(IPAD_DEST) -only-testing:TimeTrackingiOSUITests $(SIGN)
+endif
 
 test: unit-test ## (15 min) unit-test, slow library tests, TimeTrackingiOSTests on the iPhone simulator, ui-test
 	@# Timing targets hold for optimized builds, one test at a time (spec_data_and_sync.md §7.5).

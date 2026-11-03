@@ -222,7 +222,7 @@ While on, idle, inside the hours on a selected day, and unlocked, the app sends 
 
 Settings… (⌘,) opens a SwiftUI `Settings` scene with seven toolbar panes: General (`gearshape`), Pomodoro (`pomodoro`), Idle (`moon.zzz`), Reminders (`bell`), Calendar (`calendar`), Shortcuts (`keyboard`), Tracker (`waveform.path.ecg`). It reopens on the last pane shown. Changes apply immediately.
 
-Every pane is a grouped `Form` (`spec_design.md` §8). The window is resizable, at least 520 by 320 pt and first 520 by 620 pt; it keeps its size when the pane changes, and a pane longer than the window scrolls. Related settings share a section; explanations are section footers, never rows. A number with a stepper is a row with the label leading and the value, then the stepper, trailing ("Focus duration   25 min ⇅"). A dependent setting is disabled, not indented, while the setting it depends on is off.
+Every pane is a grouped `Form` (`spec_design.md` §8). The window has the size of the current pane, as the macOS HIG describes: every pane is 520 pt wide and as tall as its content, up to 720 pt, beyond which it scrolls; the window follows the height when the pane changes and can't be resized. Related settings share a section; explanations are section footers, never rows. A number with a stepper is a row with the label leading and the value, then the stepper, trailing ("Focus duration   25 min ⇅"). A dependent setting is disabled, not indented, while the setting it depends on is off.
 
 ### 8.1 General
 
@@ -353,6 +353,7 @@ Clicking a notification shows the Mini Timer (with the idle prompt for `idle`). 
 - TM-36. The Mini Timer and the main window's Timer are independent: the project picker, an edit popover, the selection, the filter, and a task-field focus request in one leave the other unchanged; a project chosen in one is the project of both; New from the main menu focuses the key window's Timer; a store change reloads both lists. An alert of the Timer shows in the key window, also while the main window shows another item, and with no key window the Mini Timer comes forward with it.
 - TM-37. Editing the running entry's Start in the popover, opened from the timer label or the running row, moves the timer label and keeps the task in the popover, the bar, and the row; a task committed before the popover loaded is the stored task, never an empty one; a task typed in the bar just before opening is the popover's task and survives a Start edit; a task changed in the popover shows in the bar.
 - TM-38. With "At launch, show" set to Mini Timer, a launch shows the Mini Timer instead of the main window, a login-item launch only with "Also show it at login"; the setting persists.
+- TM-39. Every settings pane has the same width; the window is shorter on Pomodoro than on General, returns to General's height on going back, and a drag at its corner doesn't resize it.
 
 ## 12. Decisions
 
