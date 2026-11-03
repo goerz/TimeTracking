@@ -116,8 +116,6 @@ struct GeneralPane: View {
                     Text("Mini Timer").tag(LaunchWindow.miniTimer)
                 }
                 .accessibilityIdentifier("settings.launchWindow")
-                Toggle("Also show it at login", isOn: $settings.showTimerAtLogin)
-                    .disabled(!app.tracker.opensAtLogin)
             }
             menuBarSection
             if let live = app.live {

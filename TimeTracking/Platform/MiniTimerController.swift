@@ -12,10 +12,11 @@ final class MiniTimerController: NSObject, MiniTimerControlling {
     private let settings: AppSettings
     private var observers: [NSObjectProtocol] = []
     private var closeInterceptor: WindowCloseInterceptor?
-    /// Whether the window should stay hidden after SwiftUI shows it at launch.
-    var hideOnAttach = false
     /// Called when the window becomes key or resigns (menus).
     var onKeyChange: () -> Void = {}
+    /// Called with `true` when the window opens or comes forward, with
+    /// `false` when it closes (`OpenWindowsRecord`).
+    var onOpenChange: (Bool) -> Void = { _ in }
 
     init(settings: AppSettings) {
         self.settings = settings
@@ -51,14 +52,13 @@ final class MiniTimerController: NSObject, MiniTimerControlling {
         let stored = settings.device[.timerFrame]?.rect
         window.setFrame(MiniTimerGeometry.restored(stored, screens: screens, mainScreen: main), display: false)
         applyPin(settings.timerPinned)
-        let interceptor = WindowCloseInterceptor(original: window.delegate)
+        let interceptor = WindowCloseInterceptor(original: window.delegate) { [weak self] in
+            self?.onOpenChange(false)
+        }
         closeInterceptor = interceptor
         window.delegate = interceptor
         observe(window)
-        if hideOnAttach {
-            hideOnAttach = false
-            window.orderOut(nil)
-        }
+        onOpenChange(true)
     }
 
     /// `-UITesting YES -UITestingAppearance dark` (or `light`) sets the
@@ -141,6 +141,7 @@ final class MiniTimerController: NSObject, MiniTimerControlling {
         }
         NSApp.activate()
         window.makeKeyAndOrderFront(nil)
+        onOpenChange(true)
     }
 
     func hide() {
@@ -153,13 +154,16 @@ final class MiniTimerController: NSObject, MiniTimerControlling {
 private final class WindowCloseInterceptor: NSObject, NSWindowDelegate {
     /// Only read by the Objective-C runtime on the main thread.
     nonisolated(unsafe) weak var original: NSWindowDelegate?
+    private let onClose: () -> Void
 
-    init(original: NSWindowDelegate?) {
+    init(original: NSWindowDelegate?, onClose: @escaping () -> Void) {
         self.original = original
+        self.onClose = onClose
     }
 
     func windowShouldClose(_ sender: NSWindow) -> Bool {
         sender.orderOut(nil)
+        onClose()
         return false
     }
 

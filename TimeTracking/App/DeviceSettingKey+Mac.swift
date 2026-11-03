@@ -9,10 +9,6 @@ extension DeviceSettingKey where Value == Bool {
         Self("timerPinned", default: false)
     }
 
-    static var showTimerAtLogin: Self {
-        Self("showTimerAtLogin", default: false)
-    }
-
     static var menuBarShowTimer: Self {
         Self("menuBar.showTimer", default: true)
     }
@@ -53,6 +49,13 @@ extension DeviceSettingKey where Value == Bool {
 extension DeviceSettingKey where Value == LaunchWindow {
     static var launchWindow: Self {
         Self("launchWindow", default: .mainWindow)
+    }
+}
+
+extension DeviceSettingKey where Value == Set<LaunchWindow> {
+    /// The windows open now, or when the app last quit (`OpenWindowsRecord`).
+    static var openWindows: Self {
+        Self("openWindows", default: [])
     }
 }
 

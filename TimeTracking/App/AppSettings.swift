@@ -15,10 +15,6 @@ final class AppSettings {
         didSet { device[.timerPinned] = timerPinned }
     }
 
-    var showTimerAtLogin: Bool {
-        didSet { device[.showTimerAtLogin] = showTimerAtLogin }
-    }
-
     var launchWindow: LaunchWindow {
         didSet { device[.launchWindow] = launchWindow }
     }
@@ -75,7 +71,6 @@ final class AppSettings {
     init(device: DeviceSettings) {
         self.device = device
         self.timerPinned = device[.timerPinned]
-        self.showTimerAtLogin = device[.showTimerAtLogin]
         self.launchWindow = device[.launchWindow]
         self.menuBarShowTimer = device[.menuBarShowTimer]
         self.menuBarShowSeconds = device[.menuBarShowSeconds]

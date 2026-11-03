@@ -37,9 +37,8 @@ final class AppModel {
     /// of a section.
     var showsTimer = true
 
-    /// The launch shows no window or the Mini Timer (`LaunchWindow`): the
-    /// main window closes as it appears.
-    @ObservationIgnored var hidesMainWindowOnAttach = false
+    /// The main window and the Mini Timer as open now, or at the last quit.
+    @ObservationIgnored let openWindows: OpenWindowsRecord
 
     /// Sync and live updates; `nil` under `-UITesting` and in tests.
     var live: LiveUpdates?
@@ -80,6 +79,7 @@ final class AppModel {
         self.store = store
         self.clock = clock
         self.settings = settings
+        self.openWindows = OpenWindowsRecord(device: settings.device)
         self.notifier = notifier
         self.timer = TimerModel(store: store, clock: clock, notifier: notifier)
         self.miniTimer = TimerUIState(place: .miniTimer, store: store, clock: clock)

@@ -4,7 +4,7 @@ The Timer is the Mac app's everyday surface: the running entry on top, recent en
 
 ## 1. Windows
 
-The main window is one SwiftUI `Window` scene titled `<APP_NAME>`, opened at launch unless "At launch, show" is Mini Timer (1.3). Its sidebar is the iPad's adaptable tab view ([spec_ios.md](spec_ios.md) §10.1), shown on the Mac as a sidebar: Timer, Calendar, Reports, Projects, Activity, selected with View › Timer to Activity (⌘1 to ⌘5). The four sections are specified in [spec_projects.md](spec_projects.md) §1 and the section specs. Default size 1100 × 760 pt; the window is no smaller than the shown item's minimum. At launch it shows the Timer; clicking the Dock tile shows the window on its current item. Closing it keeps the app running.
+The main window is one SwiftUI `Window` scene titled `<APP_NAME>`, opened at launch as 1.3 says. Its sidebar is the iPad's adaptable tab view ([spec_ios.md](spec_ios.md) §10.1), shown on the Mac as a sidebar: Timer, Calendar, Reports, Projects, Activity, selected with View › Timer to Activity (⌘1 to ⌘5). The four sections are specified in [spec_projects.md](spec_projects.md) §1 and the section specs. Default size 1100 × 760 pt; the window is no smaller than the shown item's minimum. At launch it shows the Timer; clicking the Dock tile shows the window on its current item. Closing it keeps the app running.
 
 The Timer item is laid out as the iPad's Timer tab: above 900 pt of width the running-entry bar (§2) is a column 40% of the width (400 to 480 pt) beside the list (§3), below it the bar sits above the list. It has no title-bar row and no pin; its minimum is 400 × 300 pt.
 
@@ -33,9 +33,11 @@ The pin button (`pin`, `pin.fill` while pinned) toggles window level `.floating`
 
 ### 1.3 Opening, closing, and restoration
 
-The Mini Timer opens from Window › Mini Timer, the menu bar's "Show Mini Timer", and the show/hide shortcut (8.3), and at launch when "At launch, show" is Mini Timer. Opening it restores mode, frame, and pin; a frame with less than 100 × 44 pt on any screen moves to the main screen's center. The list starts at the top, the filter is cleared, and the task field is focused when nothing runs.
+The Mini Timer opens from Window › Mini Timer, the menu bar's "Show Mini Timer", and the show/hide shortcut (8.3), and at launch (below). Opening it restores mode, frame, and pin; a frame with less than 100 × 44 pt on any screen moves to the main screen's center. The list starts at the top, the filter is cleared, and the task field is focused when nothing runs.
 
-A launch shows one window, the main window or the Mini Timer as "At launch, show" (8.1) says; state restoration does not apply to either. Launched as a login item, the app shows only the menu bar item unless "Also show it at login" is on. Closing a window keeps the app running. Quitting does not stop the running entry.
+No window opens by itself at launch: every scene has `.defaultLaunchBehavior(.suppressed)` and `.restorationBehavior(.disabled)`, so the state macOS saves, also after a crash or a force quit, never decides what shows. The app opens the launch's windows once the store is open (when it can't be opened, the main window with the message). Launched as a login item (at login, after a restart or a logout), the app reopens the main window and the Mini Timer as far as they were open when it last quit, which a logout or shutdown does; with neither open, it shows only the menu bar item. Any other launch shows the window "At launch, show" (8.1) names. The device setting `openWindows` records which of the two are open, updated as each opens and closes, so it is current also after an unclean exit; from the start of a quit it no longer changes, so the windows that close as the app terminates stay recorded. Under `-UITesting`, `-LoginItemLaunch YES` launches as a login item.
+
+The Dock tile, the Window menu, the menu bar item, the show/hide shortcut, notifications, and URLs open their windows whether or not a window is open: the router opens the scenes with SwiftUI's default `openWindow` and `openSettings`, which need no view. Closing a window keeps the app running. Quitting does not stop the running entry.
 
 ## 2. The running-entry bar
 
@@ -229,8 +231,7 @@ Every pane is a grouped `Form` (`spec_design.md` §8). The window has the size o
 | Section | Setting | Default | Notes |
 |---|---|---|---|
 | (none) | Open at login | off | `SMAppService.mainApp`; the first-launch alert proposes it (8.2) and the Tracker pane's setup shows it (`spec_activity_tracking.md` §7.4) |
-| (none) | At launch, show: Main window, Mini Timer | Main window | 1.3 |
-| (none) | Also show it at login | off | Disabled while "Open at login" is off |
+| (none) | At launch, show: Main window, Mini Timer | Main window | 1.3; a login-item launch reopens the windows open at the last quit instead |
 | Menu bar and Dock | Show timer, Show seconds, Show project, During a Pomodoro, show | on, off, off, Timer and countdown | `spec_menubar.md` §6 |
 | Menu bar and Dock | Show Dock icon | on | `spec_menubar.md` §4 |
 | iCloud | "Sync" ("Up to date", "Not signed in to iCloud. Entries stay on this Mac.", "Couldn't sync with iCloud. The app will try again.") and "Widget updates" ("Instant", "Last sent at 10:42", "Off (no push key)" without a push key, "Not working" with the detail in the log), followed by an info button (as in the Tracker pane, `spec_activity_tracking.md` §7.4) whose popover says that the Mac pushes each timer change to the widgets within seconds, that without the APNs key widgets change only when iOS reloads them, and how to create the key, with `make apns-key P8=…` as the snippet | | `spec_data_and_sync.md` §3.1, §4.3 |
@@ -319,7 +320,7 @@ Clicking a notification shows the Mini Timer (with the idle prompt for `idle`). 
 - TM-2. ⇧⌘M toggles between the remembered compact and full frames at the current top-left corner; without remembered frames, between 480 × 106 and 480 × 600 pt.
 - TM-3. Opened after a relaunch, the Mini Timer has its mode, frame, and pin state from quit; with the pin on it stays above another app's key window.
 - TM-4. ⌥⌘R shows the Mini Timer with the task field focused, or hides the app when the Mini Timer is key; Window › Mini Timer displays the recorded shortcut and none when cleared.
-- TM-5. Launched as a login item with "Also show it at login" off, the app shows no window; quitting leaves a running entry running.
+- TM-5. Launched as a login item, the app reopens the windows open when it last quit (the closes while it quits don't count), and with none shows no window; quitting leaves a running entry running.
 - TM-6. Each action of §2.1 has its effect; ⌘N and Continue stop a running entry at the instant the new one starts; ⌘O without selection continues the most recent other entry.
 - TM-7. A task edit of the running entry is stored within 500 ms of the last keystroke; Escape reverts it.
 - TM-8. Typing three characters shows at most 8 suggestions, the current project's first; accepting sets task and project.
@@ -352,8 +353,9 @@ Clicking a notification shows the Mini Timer (with the idle prompt for `idle`). 
 - TM-35. Every window has the menus File, Edit, View, Timer, Entry, Project, and Window; Window lists "Mini Timer" once and the main window once, by the app's name, as its last item. With the Timer shown Entry › Set Project… is enabled and View › Go to Today and the Project menu's items are not. In the Calendar Entry › Duplicate to Next Day and View › Go to Today and Previous Period are enabled, Set Project… is not, and there is no Next Day, Next Entry, or Deselect item. In Projects Project › Edit Project… is enabled for a selected project and File › New Project… always; there is no Start Timer item outside the Timer menu. View › Compact Mode is enabled only while the Mini Timer is key.
 - TM-36. The Mini Timer and the main window's Timer are independent: the project picker, an edit popover, the selection, the filter, and a task-field focus request in one leave the other unchanged; a project chosen in one is the project of both; New from the main menu focuses the key window's Timer; a store change reloads both lists. An alert of the Timer shows in the key window, also while the main window shows another item, and with no key window the Mini Timer comes forward with it.
 - TM-37. Editing the running entry's Start in the popover, opened from the timer label or the running row, moves the timer label and keeps the task in the popover, the bar, and the row; a task committed before the popover loaded is the stored task, never an empty one; a task typed in the bar just before opening is the popover's task and survives a Start edit; a task changed in the popover shows in the bar.
-- TM-38. With "At launch, show" set to Mini Timer, a launch shows the Mini Timer instead of the main window, a login-item launch only with "Also show it at login"; the setting persists.
+- TM-38. With "At launch, show" set to Mini Timer, a launch other than a login-item launch shows the Mini Timer instead of the main window, also after the app was killed with the main window and Settings open; the setting persists.
 - TM-39. Every settings pane has the same width; the window is shorter on Pomodoro than on General, returns to General's height on going back, and a drag at its corner doesn't resize it.
+- TM-40. With no window open (a login-item launch with none open at the last quit), the menu bar's Open `<APP_NAME>`, Show Mini Timer, and Settings… open the main window, the Mini Timer, and the settings window.
 
 ## 12. Decisions
 

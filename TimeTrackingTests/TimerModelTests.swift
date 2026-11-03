@@ -127,14 +127,29 @@ struct TimerModelTests {
         #expect(timer.timerText(at: test.clock.now) == "0:55:01")
     }
 
-    @Test("TM-5 a login-item launch hides the window unless Show at login; quitting leaves the entry running")
+    @Test("TM-5 a login-item launch reopens the windows open at the last quit, none without any; quitting leaves the entry running")
     func loginItemAndQuit() async throws {
         let test = try await TestApp()
-        let controller = MiniTimerController(settings: test.app.settings)
-        #expect(!controller.hideOnAttach)
-        #expect(LaunchWindow.shown(setting: .mainWindow, launchedAsLoginItem: true, showAtLogin: false) == nil)
-        #expect(LaunchWindow.shown(setting: .mainWindow, launchedAsLoginItem: true, showAtLogin: true) == .mainWindow)
-        #expect(LaunchWindow.shown(setting: .mainWindow, launchedAsLoginItem: false, showAtLogin: false) == .mainWindow)
+        let record = test.app.openWindows
+        // Kept current as the windows open and close.
+        test.app.mainWindowOpened()
+        record.opened(.miniTimer)
+        #expect(record.windows == [.mainWindow, .miniTimer])
+        test.app.mainWindowClosed()
+        #expect(record.windows == [.miniTimer])
+        // The closes while the app quits leave the record alone.
+        record.freeze()
+        record.closed(.miniTimer)
+        #expect(record.windows == [.miniTimer])
+        // The next launch takes the record and starts it empty.
+        let next = OpenWindowsRecord(device: test.app.settings.device)
+        let atQuit = next.takeOpenAtQuit()
+        #expect(atQuit == [.miniTimer])
+        #expect(next.windows.isEmpty)
+        #expect(LaunchWindow.opened(setting: .mainWindow, launchedAsLoginItem: true, openAtQuit: atQuit) == [.miniTimer])
+        #expect(LaunchWindow.opened(setting: .mainWindow, launchedAsLoginItem: true, openAtQuit: []).isEmpty)
+        let both = LaunchWindow.opened(setting: .miniTimer, launchedAsLoginItem: true, openAtQuit: [.miniTimer, .mainWindow])
+        #expect(both == [.mainWindow, .miniTimer])
         await test.app.timer.start()
         test.app.perform(.start)
         // Quit: the Pomodoro ends, the entry keeps running.
@@ -144,15 +159,15 @@ struct TimerModelTests {
         #expect(try await test.store.runningEntry() != nil)
     }
 
-    @Test("TM-38 At launch, show: the Mini Timer instead of the main window, at login only with Also show it at login")
+    @Test("TM-38 At launch, show: the Mini Timer instead of the main window at a launch other than a login launch, whatever was open")
     func launchWindowSetting() {
         let settings = AppSettings.ephemeral()
         #expect(settings.launchWindow == .mainWindow)
         settings.launchWindow = .miniTimer
         #expect(AppSettings(device: settings.device).launchWindow == .miniTimer)
-        #expect(LaunchWindow.shown(setting: .miniTimer, launchedAsLoginItem: false, showAtLogin: false) == .miniTimer)
-        #expect(LaunchWindow.shown(setting: .miniTimer, launchedAsLoginItem: true, showAtLogin: false) == nil)
-        #expect(LaunchWindow.shown(setting: .miniTimer, launchedAsLoginItem: true, showAtLogin: true) == .miniTimer)
+        #expect(LaunchWindow.opened(setting: .miniTimer, launchedAsLoginItem: false, openAtQuit: []) == [.miniTimer])
+        #expect(LaunchWindow.opened(setting: .miniTimer, launchedAsLoginItem: false, openAtQuit: [.mainWindow]) == [.miniTimer])
+        #expect(LaunchWindow.opened(setting: .mainWindow, launchedAsLoginItem: false, openAtQuit: [.miniTimer]) == [.mainWindow])
     }
 
     @Test("TM-31 the continue/stop shortcut stops or continues; Show the Mini Timer when an entry starts shows it")

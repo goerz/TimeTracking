@@ -40,10 +40,6 @@ struct MainWindowView: View {
         .focusedSceneValue(\.mainWindowActive, true)
         .background(WindowAccessor { window in
             MainWindowSetup.configure(window)
-            if app.hidesMainWindowOnAttach {
-                app.hidesMainWindowOnAttach = false
-                window.close()
-            }
         })
         .onAppear { app.mainWindowOpened() }
         .onDisappear {

@@ -24,12 +24,14 @@ extension AppModel {
     /// The main window appeared.
     func mainWindowOpened() {
         mainWindowIsOpen = true
+        openWindows.opened(.mainWindow)
         sections.activity.mainWindowReopened()
     }
 
     /// The main window closed: its undo stacks go with it.
     func mainWindowClosed() {
         mainWindowIsOpen = false
+        openWindows.closed(.mainWindow)
         sections.projects.undoManager?.removeAllActions()
         sections.calendar.undoManager?.removeAllActions()
     }

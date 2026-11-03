@@ -22,8 +22,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationWillFinishLaunching(_: Notification) {
         let event = NSAppleEventManager.shared().currentAppleEvent
-        launchedAsLoginItem = event?.eventID == kAEOpenApplication
+        let loginItemEvent = event?.eventID == kAEOpenApplication
             && event?.paramDescriptor(forKeyword: keyAEPropData)?.enumCodeValue == keyAELaunchedAsLogInItem
+        // UI tests stand in for a login with `-LoginItemLaunch YES`.
+        launchedAsLoginItem = loginItemEvent || (host.arguments.uiTesting && host.arguments.loginItemLaunch)
         if !AppHost.isTestHost {
             urlEvents.install()
         }
@@ -69,6 +71,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             activity: activity ?? InMemoryActivityStore(),
             calendarEvents: uiTesting ? InMemoryCalendarEventStore(access: .denied) : EventKitCalendarStore()
         ) else {
+            // The main window shows why.
+            WindowRouter.openWindow(id: MainWindowSetup.sceneID)
             return
         }
         Self.logger.notice("Store open")
@@ -136,17 +140,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func wire(_ app: AppModel) {
         let window = MiniTimerController(settings: app.settings)
-        // Set before the main window's view appears: host.load published the
-        // model in this same main-actor turn.
-        let shown = LaunchWindow.shown(
-            setting: app.settings.launchWindow,
-            launchedAsLoginItem: launchedAsLoginItem,
-            showAtLogin: app.settings.showTimerAtLogin
-        )
-        // The main window opens at every launch (it hands the router its
-        // actions) and closes again unless it is the window to show.
-        app.hidesMainWindowOnAttach = shown != .mainWindow
         window.onKeyChange = { [weak app] in app?.timerKeyChanged() }
+        window.onOpenChange = { [weak app] open in
+            if open {
+                app?.openWindows.opened(.miniTimer)
+            } else {
+                app?.openWindows.closed(.miniTimer)
+            }
+        }
         let router = WindowRouter(miniTimerWindow: window)
         router.app = app
         app.router = router
@@ -158,11 +159,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         miniTimerWindow = window
         self.router = router
-        if shown == .miniTimer {
-            // Waits in the router until the main window's view hands over
-            // `openWindow`.
-            router.showTimer(focusTask: false)
-        }
         let status = StatusItemController(app: app)
         statusItem = status
         let events = SystemEvents(app: app, statusItem: status)
@@ -187,6 +183,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         app.shortcutSource = { GlobalShortcuts.showHideKey }
         app.refreshShortcutDisplay()
         followDockIconSetting(app)
+        openLaunchWindows(app, router: router)
+    }
+
+    /// For a login-item launch the windows open at the last quit (none:
+    /// only the menu bar item), for any other the "At launch, show" window.
+    private func openLaunchWindows(_ app: AppModel, router: WindowRouter) {
+        let loginItem = launchedAsLoginItem
+        let windows = LaunchWindow.opened(
+            setting: app.settings.launchWindow,
+            launchedAsLoginItem: loginItem,
+            openAtQuit: app.openWindows.takeOpenAtQuit()
+        )
+        let names = windows.map(\.rawValue).joined(separator: ", ")
+        Self.logger.notice("Launch windows: [\(names, privacy: .public)], login item: \(loginItem, privacy: .public)")
+        for window in windows {
+            switch window {
+            case .mainWindow: router.showMainWindow(item: nil)
+            case .miniTimer: router.showTimer(focusTask: false)
+            }
+        }
     }
 
     /// Applies "Show Dock icon" at launch and on every change.
@@ -240,6 +256,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// The app keeps running when its last window closes.
     func applicationShouldTerminateAfterLastWindowClosed(_: NSApplication) -> Bool {
         false
+    }
+
+    /// The windows that close while the app quits stay in the record the
+    /// next login-item launch reopens.
+    func applicationShouldTerminate(_: NSApplication) -> NSApplication.TerminateReply {
+        host.model?.openWindows.freeze()
+        return .terminateNow
     }
 
     func applicationWillTerminate(_: Notification) {

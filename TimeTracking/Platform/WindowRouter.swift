@@ -2,36 +2,25 @@
 // (spec_timer.md §1.3, §8.3; spec_menubar.md §2.2, §4).
 
 import AppKit
-import os
 import SwiftUI
 import TimeTrackingCore
 
-/// The live `AppRouting`: AppKit for the Mini Timer, the SwiftUI actions
-/// captured from a view for the main window and Settings.
+/// The live `AppRouting`: AppKit for the Mini Timer once it exists,
+/// SwiftUI's default `openWindow` and `openSettings` for the scenes.
 final class WindowRouter: AppRouting {
     let miniTimerWindow: MiniTimerController
     weak var app: AppModel?
-    /// Captured from a scene's environment (`RouterActions`).
-    var openSettingsAction: OpenSettingsAction?
-    var openWindowAction: OpenWindowAction? {
-        didSet { openPending() }
-    }
-
-    /// Scenes asked for before any view handed over `openWindowAction`.
-    private var pendingWindowIDs: [String] = []
 
     init(miniTimerWindow: MiniTimerController) {
         self.miniTimerWindow = miniTimerWindow
     }
-
-    private static let logger = Logging.logger(category: "App")
 
     /// The Mini Timer: brought forward, or
     /// opened the first time.
     func showTimer(focusTask: Bool) {
         if miniTimerWindow.window == nil {
             NSApp.activate()
-            open(id: "timer")
+            Self.openWindow(id: "timer")
         } else {
             miniTimerWindow.show()
         }
@@ -57,38 +46,7 @@ final class WindowRouter: AppRouting {
             app?.mainItem = item
         }
         NSApp.activate()
-        open(id: MainWindowSetup.sceneID)
-    }
-
-    /// Before the main window's view has handed over its actions (early in
-    /// a launch), the request waits for them.
-    private func open(id: String) {
-        guard let openWindowAction else {
-            if !pendingWindowIDs.contains(id) {
-                pendingWindowIDs.append(id)
-            }
-            return
-        }
-        openWindowAction(id: id)
-    }
-
-    /// The actions arrive in a view's `onAppear`, inside a SwiftUI update
-    /// that would drop a window opened there; the next turn opens it.
-    private func openPending() {
-        guard openWindowAction != nil, !pendingWindowIDs.isEmpty else {
-            return
-        }
-        Task { @MainActor [weak self] in
-            guard let self, let openWindowAction else {
-                return
-            }
-            let ids = pendingWindowIDs
-            pendingWindowIDs = []
-            for id in ids {
-                Self.logger.notice("Opening \(id, privacy: .public) at launch")
-                openWindowAction(id: id)
-            }
-        }
+        Self.openWindow(id: MainWindowSetup.sceneID)
     }
 
     /// Where the Settings window's `@AppStorage` reads its last pane.
@@ -99,11 +57,22 @@ final class WindowRouter: AppRouting {
             paneDefaults.set(pane.rawValue, forKey: SettingsPane.storageKey)
         }
         NSApp.activate()
-        guard let openSettingsAction else {
-            Self.logger.fault("No openSettings action")
-            return
-        }
-        openSettingsAction()
+        Self.scenes.openSettings()
+    }
+
+    /// Opens the scene `id`; also before the router exists (the main
+    /// window with a launch's failure).
+    static func openWindow(id: String) {
+        scenes.openWindow(id: id)
+    }
+
+    /// The default environment, made here instead of read from a view,
+    /// which Apple calls atypical (it holds only default values). Its
+    /// `openWindow` and `openSettings` are all the router needs, and they
+    /// work with no window open, so the menu bar, the Dock tile, the
+    /// shortcuts, and a launch open windows without any view on screen.
+    private static var scenes: EnvironmentValues {
+        EnvironmentValues()
     }
 }
 

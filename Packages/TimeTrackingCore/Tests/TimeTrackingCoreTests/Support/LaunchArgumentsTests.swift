@@ -19,6 +19,8 @@ struct LaunchArgumentsTests {
                 "true",
                 "-RealAgent",
                 "YES",
+                "-LoginItemLaunch",
+                "YES",
             ],
             environment: [:]
         )
@@ -26,6 +28,7 @@ struct LaunchArgumentsTests {
         #expect(parsed.fixture == "small")
         #expect(parsed.resetState)
         #expect(parsed.realAgent)
+        #expect(parsed.loginItemLaunch)
         #expect(!parsed.unregister)
     }
 
