@@ -10,7 +10,11 @@ enum LaunchWindow: String, Codable, Sendable, CaseIterable {
 
     /// The windows a launch opens, in this order: for a login-item launch
     /// the windows open when the app last quit (none leaves only the menu
-    /// bar item), for any other launch the "At launch, show" window.
+    /// bar item), for any other launch the "At launch, show" window. A
+    /// login launch follows the session (what was open at logout or
+    /// shutdown comes back), a launch by hand follows the setting. The
+    /// order of `allCases` opens the main window first, so the small Mini
+    /// Timer ends up in front of it.
     static func opened(setting: Self, launchedAsLoginItem: Bool, openAtQuit: Set<Self>) -> [Self] {
         launchedAsLoginItem ? allCases.filter(openAtQuit.contains) : [setting]
     }

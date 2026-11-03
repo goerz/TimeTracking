@@ -7,6 +7,14 @@ import TimeTrackingCore
 
 /// The live `AppRouting`: AppKit for the Mini Timer once it exists,
 /// SwiftUI's default `openWindow` and `openSettings` for the scenes.
+///
+/// SwiftUI windows open only through these actions, which SwiftUI normally
+/// hands to the views it shows. Most callers here are not SwiftUI views
+/// (the AppKit status item, the Dock tile, the global shortcut,
+/// notifications, URLs, the launch itself), so the router can't take the
+/// actions from a view. It used to borrow them from the main window's view,
+/// which forced that window open at every launch and left every caller
+/// unable to open anything when the window didn't appear.
 final class WindowRouter: AppRouting {
     let miniTimerWindow: MiniTimerController
     weak var app: AppModel?
@@ -66,11 +74,18 @@ final class WindowRouter: AppRouting {
         scenes.openWindow(id: id)
     }
 
-    /// The default environment, made here instead of read from a view,
-    /// which Apple calls atypical (it holds only default values). Its
-    /// `openWindow` and `openSettings` are all the router needs, and they
-    /// work with no window open, so the menu bar, the Dock tile, the
-    /// shortcuts, and a launch open windows without any view on screen.
+    /// The default environment, made here instead of read from a view.
+    /// Apple's documentation calls creating `EnvironmentValues` yourself
+    /// atypical, because its values (color scheme, text size) are defaults
+    /// that don't follow the system; it doesn't say what `openWindow` and
+    /// `openSettings` do in it. On macOS 27 they open the app's scenes with
+    /// no window on screen, also during launch, which is all the router
+    /// needs: the actions act for the whole app, not for one window (the
+    /// ones once borrowed from the main window kept working after it
+    /// closed). Should a later SwiftUI stop this, nothing opens, every time,
+    /// and every UI test that opens a window fails; the documented
+    /// alternative is a `MenuBarExtra` whose label hands its actions over
+    /// (it can't show the Pomodoro glyph or the styled menu header).
     private static var scenes: EnvironmentValues {
         EnvironmentValues()
     }

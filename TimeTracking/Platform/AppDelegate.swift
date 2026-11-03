@@ -71,7 +71,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             activity: activity ?? InMemoryActivityStore(),
             calendarEvents: uiTesting ? InMemoryCalendarEventStore(access: .denied) : EventKitCalendarStore()
         ) else {
-            // The main window shows why.
+            // The main window shows why. No scene opens by itself, and the
+            // status item comes only with a model (`wire`), so without this
+            // a failed launch would show nothing at all.
             WindowRouter.openWindow(id: MainWindowSetup.sceneID)
             return
         }

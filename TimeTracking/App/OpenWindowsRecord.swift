@@ -8,6 +8,12 @@ import TimeTrackingCore
 /// close, so it holds the windows open at quit also after a crash or a
 /// force quit. From the start of a quit it no longer changes: the windows
 /// that close while the app terminates stay recorded.
+///
+/// The app keeps this record itself instead of using macOS state
+/// restoration: restoration applies at every launch, not only at login,
+/// and saved state is what made SwiftUI skip the launch window (see
+/// `TimeTrackingApp`). As a consequence, the shutdown dialog's "Reopen
+/// windows when logging back in" doesn't affect this app.
 final class OpenWindowsRecord {
     private let device: DeviceSettings
     private var frozen = false

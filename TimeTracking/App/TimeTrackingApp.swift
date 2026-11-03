@@ -35,11 +35,16 @@ struct TimeTrackingApp: App {
         }
         .defaultSize(width: 1100, height: 760)
         .windowResizability(.contentMinSize)
-        // No scene opens by itself or by state restoration: the app
-        // delegate opens the launch's windows (`LaunchWindow`).
+        // No scene opens by itself or by state restoration; the app delegate
+        // opens the launch's windows (`LaunchWindow`). SwiftUI's own launch
+        // presentation (`.presented`) is skipped whenever macOS holds saved
+        // window state (the app last quit with Settings open, crashed, or
+        // was force quit), which left the app with no window at all, so the
+        // app makes that decision itself, the same way at every launch.
         .defaultLaunchBehavior(.suppressed)
         .restorationBehavior(.disabled)
-        // The scene keeps its Window menu item (the main window, by name).
+        // Its Window menu item is the app's own (MainMenuCommands): SwiftUI
+        // lists a lone Window scene in no Window menu.
         .commands {
             MainMenuCommands(host: delegate.host)
         }
@@ -59,8 +64,9 @@ struct TimeTrackingApp: App {
         .windowStyle(.hiddenTitleBar)
         .windowResizability(.contentMinSize)
         .defaultSize(MiniTimerGeometry.defaultFullSize)
+        // Opened by the app delegate at launch and by the router, as for the
+        // main window; its frame and mode come from MiniTimerController.
         .defaultLaunchBehavior(.suppressed)
-        // Its frame and mode come from MiniTimerController.
         .restorationBehavior(.disabled)
         // Window › Mini Timer (in MainMenuCommands) replaces the scene's item.
         .commandsRemoved()
@@ -70,6 +76,8 @@ struct TimeTrackingApp: App {
                 SettingsView().environment(app)
             }
         }
+        // Settings opens only on request; a Settings window restored at
+        // launch would count as saved state too (see the main window).
         .defaultLaunchBehavior(.suppressed)
         .restorationBehavior(.disabled)
     }
