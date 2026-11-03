@@ -9,11 +9,8 @@ import TimeTrackingCore
 struct SettingsView: View {
     @AppStorage(SettingsPane.storageKey) private var pane = SettingsPane.general.rawValue
 
-    /// The window's minimum and initial width (spec_design.md §8).
+    /// Every pane's width (spec_design.md §8).
     static let width: CGFloat = 520
-    /// The window's minimum and initial height.
-    static let minHeight: CGFloat = 320
-    static let idealHeight: CGFloat = 620
 
     var body: some View {
         TabView(selection: $pane) {
@@ -21,6 +18,7 @@ struct SettingsView: View {
                 Tab(value: pane.rawValue) {
                     content(for: pane)
                         .accessibilityIdentifier("settings.pane.\(pane.rawValue)")
+                        .modifier(PaneFrame())
                 } label: {
                     Label {
                         Text(pane.title)
@@ -30,14 +28,6 @@ struct SettingsView: View {
                 }
             }
         }
-        .frame(
-            minWidth: Self.width,
-            idealWidth: Self.width,
-            maxWidth: .infinity,
-            minHeight: Self.minHeight,
-            idealHeight: Self.idealHeight,
-            maxHeight: .infinity
-        )
     }
 
     @ViewBuilder
@@ -54,9 +44,35 @@ struct SettingsView: View {
     }
 }
 
+/// A pane's fixed size: the common width, and the height of its form's
+/// content up to `maxHeight`. A settings window has the size of its
+/// current pane (macOS HIG), so a fixed frame per pane makes the window
+/// follow the selected pane; a form scrolls, so its height is measured
+/// from its scroll content rather than proposed.
+private struct PaneFrame: ViewModifier {
+    @State private var height: CGFloat?
+
+    /// The height before the form first reports its content.
+    static let initialHeight: CGFloat = 400
+    /// The tallest pane; a taller form scrolls.
+    static let maxHeight: CGFloat = 720
+
+    func body(content: Content) -> some View {
+        content
+            // The content size already holds the grouped form's margins;
+            // the top inset is the toolbar's, outside the pane's frame.
+            .onScrollGeometryChange(for: CGFloat.self) { geometry in
+                geometry.contentSize.height.rounded(.up)
+            } action: { _, contentHeight in
+                height = min(contentHeight, Self.maxHeight)
+            }
+            .frame(width: SettingsView.width, height: height ?? Self.initialHeight)
+    }
+}
+
 extension View {
-    /// A grouped settings form that scrolls when the window is shorter
-    /// than its content.
+    /// A grouped settings form; it scrolls only when its content is
+    /// taller than the tallest pane.
     func settingsForm() -> some View {
         formStyle(.grouped)
     }

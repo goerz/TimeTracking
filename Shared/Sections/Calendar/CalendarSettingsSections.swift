@@ -129,8 +129,9 @@ struct CalendarSettingsSections: View {
     }
 
     #if os(macOS)
-        /// About seven calendars.
-        private static let listHeight: CGFloat = 150
+        /// About five calendars, so the Calendar pane stays within the
+        /// settings window's tallest pane.
+        private static let listHeight: CGFloat = 120
     #endif
 
     private var timeBlockCalendarText: String {
