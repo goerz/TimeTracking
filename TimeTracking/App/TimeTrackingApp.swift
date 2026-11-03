@@ -76,6 +76,10 @@ struct TimeTrackingApp: App {
                 SettingsView().environment(app)
             }
         }
+        // A restored Settings window counts as restored state, and SwiftUI
+        // then skips the main window's `.presented` launch: the app came up
+        // with no window and the router without actions.
+        .restorationBehavior(.disabled)
     }
 }
 

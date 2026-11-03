@@ -32,6 +32,10 @@ final class MenuUITests: XCTestCase {
         let window = items(app, menu: "Window")
         XCTAssertEqual(window.filter { $0.title == "Mini Timer" }.count, 1)
         XCTAssertFalse(window.contains { ["Timer", "Planner", "Timer Window"].contains($0.title) })
+        // The main window, by the app's name, last (where macOS lists windows).
+        let appName = app.menuBars.firstMatch.menuBarItems.element(boundBy: 1).title
+        XCTAssertEqual(window.filter { $0.title == appName }.count, 1, "\(window.map(\.title))")
+        XCTAssertEqual(window.last?.title, appName)
 
         // Calendar: its entry commands, without the navigation keys.
         app.typeKey("2", modifierFlags: .command)

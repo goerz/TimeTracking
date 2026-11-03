@@ -34,6 +34,12 @@ struct MainMenuCommands: Commands {
             miniTimerButton
             Divider()
         }
+        // SwiftUI lists a `Window` scene only while another one is listed
+        // too; with the Mini Timer's own item replaced, the main window
+        // needs its item here, last, where macOS lists an app's windows.
+        CommandGroup(after: .windowList) {
+            Button(AppHost.appName) { app?.router?.showMainWindow(item: nil) }
+        }
     }
 
     /// Window › Mini Timer, with the recorded show/hide shortcut (⌥⌘R), as
