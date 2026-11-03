@@ -317,7 +317,7 @@ The tracker spec defines the formats; this section fixes locations and the reade
 | `DeviceEvent` records, zone `ActivityEvents` | CloudKit | iOS app | Tracker agent, through `DeviceEventSource` |
 | `Activity/events.jsonl` | iOS, App Group | iOS extensions and app, append | iOS app (flushes to CloudKit, truncates) |
 
-The iPhone and iPad learn the Mac's current activity only from `LiveState`. The `DeviceEvent` fields are `deviceID`, `time`, `source` (`ladder`, `focus`, `intent`, `webext`, `app`), `label`, `kind` (tracker spec), optional JSON `payload`. The record name `<deviceID>-<time in ms>-<sequence>` makes an interrupted flush resume without duplicates. The agent merges events into the user's timeline (tracker spec §2.8) and deletes records older than 90 days.
+The iPhone and iPad learn the Mac's current activity only from `LiveState`. The `DeviceEvent` fields are `deviceID`, `time`, `source` (`ladder`, `focus`, `intent`, `webext`, `app`), `label`, `kind` (tracker spec), optional JSON `payload`. The record name `<deviceID>-<time in ms>-<sequence>` makes an interrupted flush resume without duplicates. The agent merges events into the user's timeline (tracker spec §2.4) and deletes records older than 90 days.
 
 ```swift
 public struct ActivityItem { var context, subject, detail: String; var seconds: Int; var device: String }
@@ -332,8 +332,13 @@ public struct ActivityBlock: Identifiable {
     var isOpen: Bool                            // today's provisional block (Mac only)
     func restricted(to: Set<String>) -> Self?   // the part on those devices: their items and time
 }
+public struct ActivityBackgroundStretch: Identifiable {   // background work while the user was away (tracker spec §2.7)
+    var id: String; var start, end: Date
+    var items: [ActivityItem]                   // background items with their seconds
+}
 public protocol ActivityReading: Sendable {
     func blocks(in: DateInterval, devices: Set<String>?) async throws -> [ActivityBlock]   // exclusions applied; a device filter keeps each block's part on them
+    func backgroundStretches(in: DateInterval, devices: Set<String>?) async throws -> [ActivityBackgroundStretch]   // exclusions applied; a device filter keeps the items on them
     func detail(for: ActivityBlock.ID) async throws -> ActivityBlockDetail?                // URLs, files, presence; nil off the recording Mac
     func currentState() async -> TrackerState?                                              // parsed current.json, Mac only
     func aggregate(in: DateInterval, by: ActivityGroupKey, device: String?) async throws -> [ActivityAggregate]   // context, subject, groupKey, hourOfDay, day
@@ -538,6 +543,7 @@ Views use `TrackingCalendar(timeZone: .current)`, rebuilt on a time zone change.
 50. Replacing the sleep periods from March 10 with the same night and a new nap keeps the night's record and creates one; a night starting March 9 is ignored; a shifted night tombstones the old record; after a sync the other device holds the same live periods and an empty outbox.
 51. Asleep samples 23:00 to 01:00, 00:30 to 02:00, and 02:20 to 04:00 make one period 23:00 to 04:00, one at 06:00 another; an in-bed night without asleep samples is a period; two overlapping workouts are one; the first import starts 60 days before now, a later one 3 days before the previous; importing the same samples again changes nothing.
 52. A run 18:00 to 18:45 (running, 7012 m), a copy 18:01 to 18:40 (6990 m), and a walk 18:45 to 19:00 make two workout periods: 18:00 to 18:45 running with 7012 m, and the walk; importing them over the same periods stored without details keeps the records, fills in activity and distance, and the other device receives them; the workout import key is `health.importedThrough.workout.3`.
+53. The query `backgroundStretches(in:)` returns the stretches overlapping the interval, with the items of the asked devices and without excluded contexts; `blocks(in:)` never returns them.
 
 ### 9.1 Fixtures
 

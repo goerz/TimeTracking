@@ -79,7 +79,16 @@ extension AgentEngine {
     private func reapplyExclusions(fromDay: String, toDay: String) throws {
         reloadSettings()
         let rules = resolveContext().exclusions
-        try logs.rewrite(fromDay: fromDay, toDay: toDay) { block, detail, contexts in
+        let decideStretch: (ActivityBackgroundStretch, [String: String]) -> StretchDecision = { stretch, contexts in
+            guard stretch.localDay >= fromDay, stretch.localDay <= toDay else {
+                return .keep
+            }
+            guard let updated = rules.reapplied(to: stretch, contexts: contexts) else {
+                return .drop
+            }
+            return updated == stretch ? .keep : .replace(updated)
+        }
+        try logs.rewrite(fromDay: fromDay, toDay: toDay, decideStretch: decideStretch) { block, detail, contexts in
             guard block.localDay >= fromDay, block.localDay <= toDay else {
                 return .keep
             }

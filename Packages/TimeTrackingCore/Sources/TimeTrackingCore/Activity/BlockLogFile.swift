@@ -3,7 +3,7 @@
 
 public import Foundation
 
-/// The content of one `YYYY-MM.jsonl`: its blocks in file order, the
+/// The content of one `YYYY-MM.jsonl`: its blocks and background stretches in file order, the
 /// headers' context maps, and the number of malformed lines.
 public struct BlockLogFile: Sendable {
     /// A block with the header context map in effect where it was written.
@@ -14,7 +14,15 @@ public struct BlockLogFile: Sendable {
         public var contexts: [String: String]
     }
 
+    /// A background stretch with the header context map in effect where it was written.
+    public struct BackgroundEntry: Sendable, Hashable {
+        public var stretch: ActivityBackgroundStretch
+        public var contexts: [String: String]
+    }
+
     public var entries: [Entry]
+    /// The background stretches in file order.
+    public var backgrounds: [BackgroundEntry]
     /// The last header of the file.
     public var lastHeader: BlockLogHeader?
     /// Every header's contexts merged, later headers winning.
@@ -23,11 +31,12 @@ public struct BlockLogFile: Sendable {
     public var malformedLines: Int
 
     /// Parses JSON Lines: headers set the `tz` for the lines that follow,
-    /// objects with another `type` are skipped, blank lines are ignored,
+    /// objects with a `type` other than `header` and `background` are skipped, blank lines are ignored,
     /// and everything else unreadable counts as malformed.
     public init(data: Data) {
         let decoder = JSONDecoder()
         var parsed: [Entry] = []
+        var stretches: [BackgroundEntry] = []
         var header: BlockLogHeader?
         var merged: [String: String] = [:]
         var malformed = 0
@@ -39,6 +48,8 @@ public struct BlockLogFile: Sendable {
                     merged.merge(value.contexts) { _, new in new }
                 case let .block(block, detail):
                     parsed.append(Entry(block: block, detail: detail, contexts: header?.contexts ?? [:]))
+                case let .background(stretch):
+                    stretches.append(BackgroundEntry(stretch: stretch, contexts: header?.contexts ?? [:]))
                 case .other:
                     break
                 }
@@ -47,6 +58,7 @@ public struct BlockLogFile: Sendable {
             }
         }
         self.entries = parsed
+        self.backgrounds = stretches
         self.lastHeader = header
         self.contexts = merged
         self.malformedLines = malformed

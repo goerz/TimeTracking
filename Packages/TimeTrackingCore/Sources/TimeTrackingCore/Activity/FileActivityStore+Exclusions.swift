@@ -38,6 +38,21 @@ extension FileActivityStore {
         return result
     }
 
+    /// `stretch` without the items whose context is excluded (as for
+    /// blocks); `nil` when none is left.
+    static func applying(
+        _ rules: ExclusionRules,
+        to stretch: ActivityBackgroundStretch,
+        contexts: [String: String],
+        fallback: [String: String]
+    ) -> ActivityBackgroundStretch? {
+        var result = stretch
+        result.items = stretch.items.filter { item in
+            !rules.excludesContext(item.context, bundleIdentifier: contexts[item.context] ?? fallback[item.context])
+        }
+        return result.items.isEmpty ? nil : result
+    }
+
     /// `detail` without excluded items, visits to `exclude_domains`, and
     /// files under `exclude_paths` or `exclude_keywords`.
     static func applying(_ rules: ExclusionRules, to detail: ActivityBlockDetail, contexts: [String: String]) -> ActivityBlockDetail {

@@ -56,8 +56,16 @@ nonisolated enum Replay {
         let folder = FileManager.default.temporaryDirectory.appending(path: "replay-\(UUID().uuidString)", directoryHint: .isDirectory)
         defer { try? FileManager.default.removeItem(at: folder) }
         var writer = BlockLogWriter(folder: folder, device: device)
+        var stretches = result.stretches.sorted { $0.stretch.start < $1.stretch.start }[...]
         for block in result.closed {
+            while let stretch = stretches.first, stretch.stretch.start < block.block.start {
+                try writer.append(stretch.stretch, contexts: stretch.contexts)
+                stretches.removeFirst()
+            }
             try writer.append(block.block, contexts: block.contexts)
+        }
+        for stretch in stretches {
+            try writer.append(stretch.stretch, contexts: stretch.contexts)
         }
         return try monthFilesText(in: folder)
     }

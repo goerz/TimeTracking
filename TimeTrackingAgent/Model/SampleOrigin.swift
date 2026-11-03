@@ -1,5 +1,5 @@
-// SampleOrigin and DeviceItem: where a sample of the user's timeline was
-// observed (spec_activity_tracking.md §2.8).
+// SampleOrigin: where a sample of the user's timeline was observed
+// (spec_activity_tracking.md §2.4).
 
 import Foundation
 
@@ -8,10 +8,4 @@ import Foundation
 nonisolated struct SampleOrigin: Hashable, Sendable {
     var device: String
     var isReconstructed = false
-}
-
-/// An item with the device it ran on, for secondaries.
-nonisolated struct DeviceItem: Hashable, Sendable {
-    var item: SampleItem
-    var device: String
 }

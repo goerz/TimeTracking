@@ -1,5 +1,5 @@
 // BlockSummary: the summary of a closed or open block
-// (spec_activity_tracking.md §2.7).
+// (spec_activity_tracking.md §2.6).
 
 import Foundation
 import TimeTrackingCore
@@ -12,8 +12,9 @@ import TimeTrackingCore
 /// 3. Items under `summary_min_share` or under 60 s dropped, except the top
 ///    item of every group key present for at least 3 minutes.
 /// 4. Ordered by first appearance, capped at `summary_lines`.
-/// 5. Secondaries that ran at least 5 minutes appended as `bg`.
-/// 6. The dominant group key and its share.
+/// 5. The dominant workspace (`groupKey`) and its share.
+///
+/// The background items (`bg`) come from `BackgroundWork`.
 ///
 /// Items are kept apart per device; the block's time is summed per device
 /// (most first) and over the reconstructed segments.
@@ -21,21 +22,19 @@ nonisolated struct BlockSummary {
     static let mergeAbove = 3
     static let minimumSeconds = 60
     static let groupKeepSeconds = 180
-    static let backgroundSeconds = 300
 
     /// The cut items of the block log.
     var items: [ActivityItem]
     /// Every item, for the detail log.
     var detailItems: [ActivityItem]
-    var background: [ActivityItem]
     var activeSeconds: Int
     var devices: [ActivityDeviceTime]
     var reconstructedSeconds: Int
     var groupKey: String
     var groupShare: Double
 
-    /// The summary of `segments` and `background` recorded on the Mac `mac`.
-    init(segments: [Blocker.Segment], background: [Blocker.Segment], settings: TrackerBlockSettings, mac: String) {
+    /// The summary of `segments` recorded on the Mac `mac`.
+    init(segments: [Blocker.Segment], settings: TrackerBlockSettings, mac: String) {
         let summed = Self.sum(segments)
         let total = summed.reduce(0) { $0 + $1.seconds }
         self.detailItems = summed.map(\.activityItem)
@@ -75,7 +74,6 @@ nonisolated struct BlockSummary {
         }
         kept.sort { $0.first < $1.first }
         self.items = Array(kept.prefix(max(0, settings.summaryLines))).map(\.activityItem)
-        self.background = Self.sum(background).filter { $0.seconds >= Self.backgroundSeconds }.map(\.activityItem)
     }
 
     /// Seconds per item, in order of first appearance.

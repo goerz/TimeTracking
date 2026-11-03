@@ -84,6 +84,29 @@ public actor FileActivityStore: ActivityReading {
         return result.sorted { ($0.start, $0.id) < ($1.start, $1.id) }
     }
 
+    // swiftlint:disable:next discouraged_optional_collection
+    public func backgroundStretches(in interval: DateInterval, devices: Set<String>?) throws(ActivityError) -> [ActivityBackgroundStretch] {
+        let rules = exclusions
+        let fallback = shared.withLock(\.contexts)
+        var seen = Set<String>()
+        var result: [ActivityBackgroundStretch] = []
+        for folder in folders.blockFolders {
+            for name in Self.monthFileNames(in: folder, covering: interval) {
+                let file = try monthFile(folder.appending(path: name, directoryHint: .notDirectory))
+                for entry in file.backgrounds where entry.stretch.start < interval.end && entry.stretch.end > interval.start
+                    && seen.insert(entry.stretch.id).inserted
+                {
+                    if let part = entry.stretch.part(on: devices),
+                       let stretch = Self.applying(rules, to: part, contexts: entry.contexts, fallback: fallback)
+                    {
+                        result.append(stretch)
+                    }
+                }
+            }
+        }
+        return result.sorted { ($0.start, $0.id) < ($1.start, $1.id) }
+    }
+
     public func detail(for id: ActivityBlock.ID) throws(ActivityError) -> ActivityBlockDetail? {
         try details(for: [id])[id]
     }

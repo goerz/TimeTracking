@@ -1,6 +1,6 @@
 // Timeline: one stream of samples for the user from the Mac, iPhone and
 // iPad, and synced Safari history, cut into blocks (spec_activity_tracking.md
-// §2.6, §2.8).
+// §2.4 to §2.7).
 
 import Foundation
 import TimeTrackingCore
@@ -34,7 +34,7 @@ nonisolated struct TimelineInputs: Sendable {
 ///
 /// The Mac's attention wins: each attentive Mac sample claims the time it
 /// is credited with, and another device's stretch over that time becomes a
-/// secondary of the Mac sample. Elsewhere the other devices' stretches,
+/// background item of the Mac's time (`BackgroundWork`). Elsewhere the other devices' stretches,
 /// resolved by rank, become samples every 30 seconds, and the Mac's
 /// samples without attention (idle, lock, sleep) within them are dropped,
 /// so a block runs on from one device to the next.
@@ -47,16 +47,18 @@ nonisolated enum Timeline {
 
     /// One step of the merged stream.
     enum Step: Hashable, Sendable {
-        case sample(Sample, SampleOrigin, background: [DeviceItem])
+        case sample(Sample, SampleOrigin)
         /// Closes the open block (a Focus that suspends collection).
         case close
     }
 
-    /// The blocks the Blocker closed, and the block still open at the end
-    /// of the stream (none after a flush).
+    /// The blocks the Blocker closed, the block still open at the end of
+    /// the stream (none after a flush), and the background stretches
+    /// outside the blocks, each with its background items.
     struct Result: Sendable {
         var closed: [ClosedBlock]
         var open: TrackerOpenBlock?
+        var stretches: [BackgroundWork.Stretch] = []
     }
 
     /// The Blocker after every step before `time`, which later samples of
@@ -88,11 +90,12 @@ nonisolated enum Timeline {
         until: Date? = nil,
         checkpoint: Checkpoint? = nil
     ) -> (result: Result, checkpoint: Checkpoint?) {
-        var stream = timedSteps(inputs, mac: mac)
+        let merged = merged(inputs, mac: mac)
+        var stream = merged.steps
         if !flush, let until {
             let marker = Sample(time: until, state: .idle)
             if let last = stream.last?.time, last < marker.time {
-                stream.append(Timed(time: marker.time, order: 3, step: .sample(marker, SampleOrigin(device: mac), background: [])))
+                stream.append(Timed(time: marker.time, order: 3, step: .sample(marker, SampleOrigin(device: mac))))
             }
         }
         var blocker = checkpoint?.blocker ?? Blocker(settings: settings, timeZone: timeZone, device: mac)
@@ -105,8 +108,8 @@ nonisolated enum Timeline {
                 taken = Checkpoint(time: next, blocker: blocker, closed: closed)
             }
             switch timed.step {
-            case let .sample(sample, origin, background):
-                closed += blocker.add(sample, origin: origin, background: background)
+            case let .sample(sample, origin):
+                closed += blocker.add(sample, origin: origin)
             case .close:
                 closed += blocker.flush()
             }
@@ -114,7 +117,24 @@ nonisolated enum Timeline {
         if flush {
             closed += blocker.flush()
         }
-        let result = Result(closed: ClosedBlock.resolved(closed), open: flush ? nil : blocker.openSummary)
+        var blocks = ClosedBlock.resolved(closed)
+        var open = flush ? nil : blocker.openSummary
+        let work = BackgroundWork.assign(
+            samples: merged.macSamples,
+            covered: merged.covered,
+            blocks: blocks.map(\.block),
+            openStart: open?.start,
+            frame: BackgroundWork.Frame(until: until, flush: flush, idleClose: settings.idleClose, timeZone: timeZone, mac: mac)
+        )
+        for index in blocks.indices {
+            let items = work.blockItems[blocks[index].block.id] ?? []
+            blocks[index].block.background = items
+            for item in items where blocks[index].contexts[item.context] == nil {
+                blocks[index].contexts[item.context] = work.contexts[item.context] ?? ""
+            }
+        }
+        open?.background = work.openItems
+        let result = Result(closed: blocks, open: open, stretches: work.stretches)
         return (result, taken ?? checkpoint)
     }
 
@@ -135,11 +155,21 @@ nonisolated enum Timeline {
     // MARK: Merging
 
     static func steps(_ inputs: TimelineInputs, mac: String) -> [Step] {
-        timedSteps(inputs, mac: mac).map(\.step)
+        merged(inputs, mac: mac).steps.map(\.step)
     }
 
-    /// The merged stream with each step's time, in order.
-    static func timedSteps(_ inputs: TimelineInputs, mac: String) -> [Timed] {
+    /// The merged stream, the Mac's live samples outside deleted time (for
+    /// their background items), and the other devices' use during the
+    /// Mac's attention.
+    struct Merged: Sendable {
+        var steps: [Timed]
+        var macSamples: [Sample]
+        var covered: [TimelineStretch]
+    }
+
+    /// The merged stream with each step's time, in order, and what
+    /// `BackgroundWork` needs.
+    static func merged(_ inputs: TimelineInputs, mac: String) -> Merged {
         let suppressed = inputs.suppressed
         let macSamples = (inputs.mac.map { ($0, SampleOrigin(device: mac)) }
             + inputs.reconstructed.map { ($0, SampleOrigin(device: mac, isReconstructed: true)) })
@@ -159,18 +189,16 @@ nonisolated enum Timeline {
             ordered.append(Timed(time: closer, order: 1, step: .close))
         }
         ordered += otherSteps(free, cuts: Set(inputs.closers))
-        for (sample, origin) in macSamples {
-            if sample.isAttentive {
-                let background = covered.filter { $0.start <= sample.time && sample.time < $0.end }
-                    .map { DeviceItem(item: $0.item, device: $0.device) }
-                ordered.append(Timed(time: sample.time, order: 3, step: .sample(sample, origin, background: background)))
-            } else if !free.contains(where: { $0.start <= sample.time && sample.time < $0.end }) {
-                ordered.append(Timed(time: sample.time, order: 3, step: .sample(sample, origin, background: [])))
-            }
+        for (sample, origin) in macSamples
+            where sample.isAttentive || !free.contains(where: { $0.start <= sample.time && sample.time < $0.end })
+        {
+            ordered.append(Timed(time: sample.time, order: 3, step: .sample(sample, origin)))
         }
-        return ordered.enumerated()
+        let steps = ordered.enumerated()
             .sorted { ($0.element.time, $0.element.order, $0.offset) < ($1.element.time, $1.element.order, $1.offset) }
             .map(\.element)
+        let live = macSamples.filter { !$0.1.isReconstructed }.map(\.0)
+        return Merged(steps: steps, macSamples: live, covered: covered)
     }
 
     /// A step with its time and its order among steps of the same time:
@@ -285,8 +313,7 @@ nonisolated enum Timeline {
         func sample(_ time: Date, _ state: TrackerPresenceState, _ piece: TimelineStretch) -> Step {
             .sample(
                 Sample(time: time, state: state, primary: state == .idle ? nil : piece.item),
-                SampleOrigin(device: piece.device),
-                background: []
+                SampleOrigin(device: piece.device)
             )
         }
         func endRun() {

@@ -2,13 +2,16 @@
 
 public import Foundation
 
-/// Reads blocks, details, the tracker state, and aggregates.
+/// Reads blocks, background stretches, details, the tracker state, and aggregates.
 public protocol ActivityReading: Sendable {
     // `nil` devices means every device, which an empty set cannot express.
     // swiftlint:disable discouraged_optional_collection
     /// The blocks overlapping `interval` by start, exclusions applied;
     /// `devices` limits them to those device names.
     func blocks(in interval: DateInterval, devices: Set<String>?) async throws -> [ActivityBlock]
+    /// The background stretches overlapping `interval`, exclusions applied;
+    /// `devices` keeps only the items on those device names.
+    func backgroundStretches(in interval: DateInterval, devices: Set<String>?) async throws -> [ActivityBackgroundStretch]
     // swiftlint:enable discouraged_optional_collection
     /// URLs, files, and presence of a block; `nil` off the recording Mac.
     func detail(for id: ActivityBlock.ID) async throws -> ActivityBlockDetail?

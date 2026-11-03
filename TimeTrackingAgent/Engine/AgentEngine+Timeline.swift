@@ -1,6 +1,6 @@
-// AgentEngine+Timeline: forming a day's blocks from everything stored for
-// it and rewriting the day in both logs (spec_activity_tracking.md §2.8,
-// §4.2, §4.3).
+// AgentEngine+Timeline: forming a day's blocks and background stretches
+// from everything stored for it and rewriting the day in both logs
+// (spec_activity_tracking.md §2.7, §4.2, §4.3).
 
 import Foundation
 import os
@@ -80,7 +80,11 @@ extension AgentEngine {
             openBlock = result.open.flatMap { range.contains($0.start) ? $0 : nil }
         }
         do {
-            try write(day: day, result.closed.filter { $0.block.localDay == day })
+            try write(
+                day: day,
+                result.closed.filter { $0.block.localDay == day },
+                stretches: result.stretches.filter { $0.stretch.localDay == day }
+            )
         } catch {
             logger.error("block log: \(error.localizedDescription, privacy: .public)")
         }
@@ -116,12 +120,13 @@ extension AgentEngine {
         return inputs
     }
 
-    /// Replaces the blocks of `day` by `closed` unless they are the same;
-    /// an unchanged block keeps its detail line, a new or changed one gets
-    /// the detail entries of the old lines within its range and its own.
-    private func write(day: String, _ closed: [ClosedBlock]) throws {
+    /// Replaces the blocks and background stretches of `day` by `closed`
+    /// and `stretches` unless they are the same; an unchanged block keeps
+    /// its detail line, a new or changed one gets the detail entries of the
+    /// old lines within its range and its own.
+    private func write(day: String, _ closed: [ClosedBlock], stretches: [BackgroundWork.Stretch]) throws {
         let existing = logs.blocks(on: day)
-        guard existing != closed.map(\.block) else {
+        guard existing != closed.map(\.block) || logs.stretches(on: day) != stretches.map(\.stretch) else {
             return
         }
         let unchanged = Set(existing)
@@ -139,7 +144,7 @@ extension AgentEngine {
             }
             previousEnd = block.block.end
         }
-        try logs.replaceDay(day, with: written)
+        try logs.replaceDay(day, with: written, stretches: stretches)
     }
 }
 

@@ -1,5 +1,5 @@
 // Blocker+ShortBlocks: holding, merging, and dropping blocks shorter than
-// min_block (spec_activity_tracking.md §2.6).
+// min_block (spec_activity_tracking.md §2.5).
 
 import Foundation
 import TimeTrackingCore
@@ -10,7 +10,6 @@ nonisolated extension Blocker {
         var start: Date
         var end: Date
         var segments: [Segment]
-        var background: [Segment]
         var contexts: [String: String]
 
         var length: TimeInterval {
@@ -51,7 +50,6 @@ nonisolated extension Blocker {
             start: before.start,
             end: short.end,
             segments: before.segments + short.segments,
-            background: before.background + short.background,
             contexts: contexts
         )
         guard merged.length <= lengthLimit(merged.segments) else {

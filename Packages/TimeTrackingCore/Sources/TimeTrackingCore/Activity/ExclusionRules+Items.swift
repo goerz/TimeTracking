@@ -100,6 +100,14 @@ extension ExclusionRules {
         return result
     }
 
+    /// `stretch` under the current exclusions, its items as for blocks;
+    /// `nil` when every item is excluded.
+    public func reapplied(to stretch: ActivityBackgroundStretch, contexts: [String: String]) -> ActivityBackgroundStretch? {
+        var result = stretch
+        result.items = reapplied(stretch.items, contexts: contexts)
+        return result.items.isEmpty ? nil : result
+    }
+
     // MARK: Helpers
 
     private func reapplied(_ items: [ActivityItem], contexts: [String: String]) -> [ActivityItem] {

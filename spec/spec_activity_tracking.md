@@ -10,30 +10,30 @@ The tracker records raw identifiers (session names, paths, domains, app names) a
 
 ### 2.1 Overview
 
-Every 30 seconds, and at once when the user switches apps or tmux panes or locks the screen, the agent takes a *sample* of the Mac (2.3). A sample is a time, a presence state, and, while the user is present, a set of *items*: exactly one primary item and any number of background items. The agent first decides whether the user is present, from keyboard and mouse input and the display state; while the user is away, the sample has no items. Otherwise the agent reads what the frontmost window shows, through Accessibility and from the app itself (the terminal's focused pane and its tmux session, the browser's current tab, a window's document; section 3), and describes it as the sample's *primary item*: three strings from coarse to fine, the *context* (the app or terminal session, `tmux:paper`), the *subject* (the piece of work: a tmux window, a folder, a repository), and the *detail* (the thing in hand: a file, a page). The sample also lists *background items*: work that goes on without the user's attention, such as a busy coding agent or a running build, which blocks show but never count as active time. Fixed rules derive each item's *workspace*: the tmux session, project folder, website, or app the work belongs to, the same whichever app shows it (2.2).
+Every 30 seconds, and at once when the user switches apps or tmux panes or locks the screen, the agent takes a *sample* of the Mac (2.3). A sample is a time, a presence state, and a set of *items*: while the user is present, exactly one primary item, and at any time any number of background items. The agent first decides whether the user is present, from keyboard and mouse input and the display state; while the user is away, the sample has only background items. Otherwise the agent reads what the frontmost window shows, through Accessibility and from the app itself (the terminal's focused pane and its tmux session, the browser's current tab, a window's document; section 3), and describes it as the sample's *primary item*: three strings from coarse to fine, the *context* (the app or terminal session, `tmux:paper`), the *subject* (the piece of work: a tmux window, a folder, a repository), and the *detail* (the thing in hand: a file, a page). The sample also lists *background items*: work that goes on without the user's attention, such as a busy coding agent or a running build, present or not. They never count as active time. Fixed rules derive each item's *workspace*: the tmux session, project folder, website, or app the work belongs to, the same whichever app shows it (2.2).
 
 The iPhone and iPad allow no such access. The iOS app records coarser events (minutes of use of app groups the user labels, Safari tabs, automations, Focus changes), and the agent turns them into items of the same form (6.2).
 
-The samples of all devices for one local day form one *timeline* (2.4). The agent cuts the timeline into *blocks*: a block ends when the user goes away, at midnight, or when the mix of workspaces changes (2.5). When a block closes, the agent adds up the seconds of each item and keeps the main items as the block's *summary*, named after its dominant workspace (2.6).
+The samples of all devices for one local day form one *timeline* (2.4). The agent cuts the timeline into *blocks*: a block ends when the user goes away, at midnight, or when the mix of workspaces changes (2.5). When a block closes, the agent adds up the seconds of each item and keeps the main items as the block's *summary*, named after its dominant workspace (2.6). Background work goes to the block whose time it falls in; work done while the user was away forms *background stretches* between the blocks, so the record shows what went on for a project even when nobody was at the Mac (2.7).
 
 The tracker keeps four records (section 4):
 
-- The block log: one line per block with its time range, active seconds, summary, background items, and dominant workspace (4.2). It is permanent and syncs through iCloud Drive, so every device's Calendar and Activity section show it. The Tracker pane calls these files the "activity logs".
+- The block log: one line per block with its time range, active seconds, summary, background items, and dominant workspace, and one line per background stretch with its time range and background items (4.2). It is permanent and syncs through iCloud Drive, so every device's Calendar and Activity section show it. The Tracker pane calls these files the "activity logs".
 - The detail log: per block, every item with its seconds, before the summary merges and cuts them (2.6), plus the timestamped browser visits, modified files, presence changes, and Safari dwell times within the block (4.3). It holds totals per item, not the samples, so when the samples expire, the order in which items had attention is gone. Permanent, and kept on the Mac that recorded it.
 - The current state: the open block, the current primary item, presence, and the health of each source, rewritten on every sample for the Mac app (4.4).
-- The samples: the raw material of the blocks, kept on the Mac for 90 days so that a day's blocks can be formed again (2.7).
+- The samples: the raw material of the blocks and stretches, kept on the Mac for 90 days so that a day can be formed again (2.8).
 
 Principles:
 
 1. Attention, not activity. Presence comes from input and the display, never from what apps do: tabs reloading after a display wake are not attention.
 2. One timeline of the user. Blocks never overlap. The iPhone and iPad fill the time the user spends away from the Mac rather than forming a parallel track.
-3. Blocks are derived. A day's blocks are formed again from its samples whenever input for that day arrives, so a late iPhone event changes the blocks as if it had arrived on time.
+3. Blocks are derived. A day's blocks and background stretches are formed again from its samples whenever input for that day arrives, so a late iPhone event changes the blocks as if it had arrived on time.
 4. Privacy where data enters. Exclusions (7.2) apply before anything is written. Of what the tracker records, only the block log and the live activity the Mac app publishes (4.4) leave the Mac. Never recorded: keystrokes, clipboard, screenshots, message bodies, terminal command lines, password manager contents, and anything of a private browser window beyond the browser name.
 5. Degrade instead of failing. Every source that depends on a permission, on configuration, or on an undocumented format has a fallback and reports its status (3.5).
 
 ### 2.2 Items and workspaces
 
-The agent forms the items of each attentive sample when it takes the sample (2.3 steps 3 and 4), from what it reads about the frontmost window. The app's bundle identifier picks the resolver: terminals (3.1), browsers (3.3), document apps, Finder, chat and meeting apps, and a generic one for every other app. An item that comes from an iPhone or iPad is formed by the Mac agent from the device's events (6.2). Every item carries the device it was observed on.
+The agent forms the items of each sample when it takes the sample (2.3 steps 3 and 4), from what it reads about the frontmost window. The app's bundle identifier picks the resolver: terminals (3.1), browsers (3.3), document apps, Finder, chat and meeting apps, and a generic one for every other app. An item that comes from an iPhone or iPad is formed by the Mac agent from the device's events (6.2). Every item carries the device it was observed on.
 
 | Level | Meaning | Terminal | Browser | Document | Other app |
 |---|---|---|---|---|---|
@@ -62,10 +62,10 @@ A tick takes a sample every 30 seconds. Events advance the tick, so that a chang
 
 A sample is taken in five steps:
 
-1. Presence (3.4). The sample is not attentive, and the remaining steps are skipped, when there was no input for `idle_after` and no passive item is frontmost or the display is off (`idle`), the screen is locked (`locked`), the Mac sleeps (`asleep`), or another user owns the console (`other_user`). Otherwise it is attentive: `active`, or `passive` by the rule below.
+1. Presence (3.4). The sample is not attentive, and steps 2 and 3 are skipped, when there was no input for `idle_after` and no passive item is frontmost or the display is off (`idle`), the screen is locked (`locked`), the Mac sleeps (`asleep`), or another user owns the console (`other_user`). Otherwise it is attentive: `active`, or `passive` by the rule below.
 2. The frontmost app and its focused window through Accessibility (`AXTitle`, `AXDocument`, `AXURL` for browsers; no Screen Recording).
 3. The primary item, by the app's bundle identifier: terminals by 3.1, browsers by 3.3. Chat apps give team and channel from the title. Meeting and screen-sharing apps give the meeting or host name. Document apps give `AXDocument`, else the title; Finder gives the front window's folder. Any other app gives its name plus the window title.
-4. The background items: every busy coding agent session; every tmux client with input in the last 30 seconds in a session other than the primary item's; `job_commands` running in panes that are not active.
+4. The background items, also while the user is away but not while the Mac sleeps: every busy coding agent session; every tmux client with input in the last 30 seconds in a session other than the primary item's; `job_commands` running in panes that are not active.
 5. Apply the exclusions (7.2) and write the sample: time, state, primary item, background items, and debug fields (bundle identifier, filtered title, tmux target).
 
 Passive attention: apps in `passive_apps`, tabs on `passive_domains`, and meeting and screen-sharing apps count as attention while frontmost with the display on, even without input, up to `passive_limit`; such samples are `passive`. Audio-only apps never count.
@@ -76,12 +76,12 @@ Blocks are formed from one timeline per local day, which merges everything recor
 
 - The Mac's samples, live (2.3) or reconstructed from the Knowledge store (3.2), claim the time they cover.
 - The stretches of the iPhone and iPad (6.2) and of synced Safari history (6.1) fill the rest, as one sample every 30 seconds. Where they overlap, the most specific wins: the iOS app, then automations, web extension tabs, named ladder sets, "Everything", and synced Safari history last; on a tie the later start.
-- Another device's stretch during the Mac's attention becomes a background item of the Mac's samples, so it is listed with the block and adds nothing to its active time.
+- Another device's stretch during the Mac's attention becomes a background item of that time (2.7), so it is listed with the block and adds nothing to its active time.
 - Within another device's stretch, the Mac's samples that are not attentive, and its lock and sleep events, are dropped, so a block runs on from the Mac to the iPhone and back. The split test still separates them where the workspaces differ.
 
 ### 2.5 Blocks
 
-The agent reads the timeline in time order. Each attentive sample is credited with the time up to the next sample, at most 60 seconds, when that sample is attentive or an event that closes the block; otherwise it is credited nothing. The credit goes to the sample's primary item, and the same time to each background item.
+The agent reads the timeline in time order. Each attentive sample is credited with the time up to the next sample, at most 60 seconds, when that sample is attentive or an event that closes the block; otherwise it is credited nothing. The credit goes to the sample's primary item; background items are credited on their own (2.7).
 
 An attentive sample opens a block when none is open. The open block takes every following attentive sample until it closes on the first of these:
 
@@ -91,7 +91,7 @@ An attentive sample opens a block when none is open. The open block takes every 
 - A split, by the split test.
 - Reaching `max_block` (`max_passive_block` when mostly passive) without a split: it ends at the best change point in its last 30 minutes, or at the current sample when there is none, and the rest stays open as a new block.
 
-The split test runs after every sample once the open block is longer than `split_after`. The candidates are the change points, where the credited time moves from one workspace to another, with at least `min_half` of credited time on each side. For each candidate, the two sides are compared as shares of their credited time per workspace, by weighted Jaccard distance: 1 minus the sum over workspaces of the smaller share divided by the sum of the larger share (0 for the same mix, 1 for no workspace in common). The candidate with the largest distance (the earliest on a tie) is the best change point. If it reaches `split_threshold`, the part before it closes as a block, with the background items of its time, and the rest stays open. So moving from one workspace to another splits at the move, while alternating between two never does, because both sides hold the same mix.
+The split test runs after every sample once the open block is longer than `split_after`. The candidates are the change points, where the credited time moves from one workspace to another, with at least `min_half` of credited time on each side. For each candidate, the two sides are compared as shares of their credited time per workspace, by weighted Jaccard distance: 1 minus the sum over workspaces of the smaller share divided by the sum of the larger share (0 for the same mix, 1 for no workspace in common). The candidate with the largest distance (the earliest on a tie) is the best change point. If it reaches `split_threshold`, the part before it closes as a block, and the rest stays open. So moving from one workspace to another splits at the move, while alternating between two never does, because both sides hold the same mix.
 
 No block is shorter than `min_block` (from start to end). A block that closes shorter is held back, unwritten, with a merge window of `idle_close` plus its own length:
 
@@ -109,17 +109,29 @@ When a block closes:
 2. Merge items of one device sharing context and subject when their details would take more than three lines (`nvim draft (5 files)`).
 3. Drop items under `summary_min_share` and under 60 seconds, but keep the top item of every workspace present for at least 3 minutes.
 4. Order by time, cap at `summary_lines`.
-5. Append the background items that ran at least 5 minutes.
-6. Store the dominant workspace and its share.
-7. Store the active seconds per device, most first, and the seconds reconstructed from the Knowledge store.
+5. Store the dominant workspace and its share.
+6. Store the active seconds per device, most first, and the seconds reconstructed from the Knowledge store.
+7. Append the background items with at least 5 minutes within the block's range (2.7).
 
 ```
 09:10-09:44  tmux:paper (71%)  tmux:paper nvim draft (3 files) 18m · safari github.com/owner/repo pull/123 9m · mail Inbox 4m  + claude refactor-parser (busy 12m)
 ```
 
-### 2.7 Forming a day again
+### 2.7 Background work
 
-The agent stores what a day's timeline is made of for 90 days (4.1): the samples, the samples reconstructed from the Knowledge store, the synced Safari visits with their attributed device, and the iPhone and iPad events. It forms today's blocks again on every tick, and a past day's whenever an input for that day arrives (iPhone events through iCloud, a Knowledge reconstruction, synced Safari history), and replaces the day's lines in the block log and its detail file when they changed. Today's last block may still be open; `current.json` shows it (4.4). A past day's last block closes at its last attentive sample, or at midnight. A new or changed block's detail keeps the URLs, files, presence transitions, and dwell times of the day's old detail lines within its range.
+Background items are credited by time, apart from the blocks: every Mac sample, attentive or not, credits each of its background items with the time up to the next Mac sample, at most 60 seconds, and another device's use during the Mac's attention counts for the time it covers (2.4). Time within a block's range goes to that block, which lists every background item with at least 5 minutes there, including time in the idle gaps the block absorbed.
+
+The rest is background work while the user was away, and forms *background stretches*. A gap of `idle_close` or more without background time, a block, or local midnight separates two stretches. A stretch lists its background items with at least 5 minutes and spans the time of those items; without such an item it is not recorded. Today's last stretch is recorded once `idle_close` has passed without background work.
+
+A stretch is not a block: it has no active time and no workspace, it never overlaps a block, and the time it covers still counts as away (`spec_activity.md`).
+
+```
+12:10-12:48  (away)  + claude refactor-parser (busy 38m)
+```
+
+### 2.8 Forming a day again
+
+The agent stores what a day's timeline is made of for 90 days (4.1): the samples, the samples reconstructed from the Knowledge store, the synced Safari visits with their attributed device, and the iPhone and iPad events. It forms today's blocks and background stretches again on every tick, and a past day's whenever an input for that day arrives (iPhone events through iCloud, a Knowledge reconstruction, synced Safari history), and replaces the day's lines in the block log and its detail file when they changed. Today's last block may still be open; `current.json` shows it (4.4). A past day's last block closes at its last attentive sample, or at midnight. A new or changed block's detail keeps the URLs, files, presence transitions, and dwell times of the day's old detail lines within its range.
 
 ## 3. Sources
 
@@ -184,8 +196,8 @@ Each source is detected at runtime and reports `active`, `fallback`, or `off` (c
 
 | Tier | Where | Content | Retention |
 |---|---|---|---|
-| Samples | Agent folder, `samples.sqlite` (GRDB) | One row per sample; reconstructed samples, synced Safari visits, iPhone and iPad events, and deleted time (2.7, 7.3) | 90 days |
-| Block log | Shared folder, `blocks/YYYY-MM.jsonl` | One line per closed block | Permanent |
+| Samples | Agent folder, `samples.sqlite` (GRDB) | One row per sample; reconstructed samples, synced Safari visits, iPhone and iPad events, and deleted time (2.8, 7.3) | 90 days |
+| Block log | Shared folder, `blocks/YYYY-MM.jsonl` | One line per closed block and per background stretch | Permanent |
 | Detail log | Agent folder, `Activity/detail/YYYY-MM-DD.jsonl` | Per block: all items, URLs, modified files, presence transitions | Permanent |
 | Current state | Agent folder, `Activity/current.json` | Open block, primary item, presence, health | Each tick |
 | Settings | Shared folder, `settings.toml` | Section 7 | Permanent |
@@ -199,11 +211,14 @@ At start, the agent checks that it can write the container. If it cannot, it wri
 ```json
 {"type":"header","format":1,"tz":"-04:00","dev":"macbook","contexts":{"tmux:paper":"com.github.wez.wezterm","safari":"com.apple.Safari","Mail":"ladder","claude":"claude"},"keys":{"s":"start (local time)","e":"end (local time)","a":"active seconds","dev":"devices [device, active seconds]","rec":"seconds reconstructed from the Mac's app usage history","g":"dominant workspace","gs":"share of the dominant workspace","items":"items [context, subject, detail, seconds, device]","bg":"background items [context, subject, detail, seconds, device]"}}
 {"s":"2026-10-28T09:10:00","e":"2026-10-28T09:44:30","a":1860,"dev":[["macbook",1620],["iPhone",240]],"rec":0,"g":"tmux:paper","gs":0.71,"items":[["tmux:paper","draft","nvim (3 files)",1080,"macbook"],["safari","github.com/owner/repo","pull/123",540,"macbook"],["Mail","Mail","",240,"iPhone"]],"bg":[["claude","refactor-parser","",720,"macbook"]]}
+{"type":"background","s":"2026-10-28T12:10:00","e":"2026-10-28T12:48:30","bg":[["claude","refactor-parser","",2280,"macbook"]]}
 ```
 
-Each month file starts with a header object; another header follows a time zone change and precedes the first block using a context not yet in `contexts`, which maps context keys to bundle identifiers (or process names). The block keys are short to keep lines short, so the first header of each month file also carries `keys`, a legend mapping each block key to a human-readable label (the labels of the example); later headers leave it out, and readers ignore it. Readers skip objects with a `type` and ignore unknown keys. The header's `dev` names the Mac that wrote the file.
+Each month file starts with a header object; another header follows a time zone change and precedes the first block using a context not yet in `contexts`, which maps context keys to bundle identifiers (or process names). The block keys are short to keep lines short, so the first header of each month file also carries `keys`, a legend mapping each block key to a human-readable label (the labels of the example); later headers leave it out, and readers ignore it. Readers skip objects with a `type` other than `header` and `background`, and ignore unknown keys. The header's `dev` names the Mac that wrote the file.
 
 In a block, `s` and `e` are local times on one date, and `s` identifies the block (no two blocks share time). `a` is the active seconds, the sum of credited item seconds before the summary cut (less than `e` minus `s` when idle gaps were absorbed). `dev` lists `[device, active seconds]` for each device the block spent time on, most first, where a device is the Mac's name, an iPhone's or iPad's, or `remote` for unattributed synced Safari history (6.1). `rec` is the part of `a` reconstructed from the Knowledge store (3.2). `g` and `gs` are the dominant workspace and its share of `a`. `items` and `bg` (the background items) hold `[context, subject, detail, seconds, device]`, with `""` for no detail. Idle time is the absence of a block.
+
+A background stretch (2.7) is a line with `type` `background`, its local `s` and `e` on one date, and `bg` as in a block; the month's lines are in time order. A header precedes a stretch that uses a context not yet in `contexts`, as it does a block. Readers written before stretches existed skip these lines.
 
 ### 4.3 Detail log format
 
@@ -217,7 +232,7 @@ Rewritten atomically (temporary file, then rename) on every tick and presence ev
 {"format":1,"dev":"macbook","block":{"s":"2026-10-28T09:10:00","a":1080,"dev":[["macbook",1080]],"rec":0,"g":"tmux:paper","gs":0.71,"items":[["tmux:paper","draft","nvim (3 files)",1080,"macbook"]],"bg":[]},"primary":["tmux:paper","draft","nvim notes.tex"],"presence":{"state":"active","since":"2026-10-28T09:10:00","last_input":"2026-10-28T09:44:27"},"health":{"last_tick":"2026-10-28T09:44:30","version":"1.0 (42)","sources":[{"id":"terminal","name":"Terminal tab","status":"active","reason":""},{"id":"browser","name":"Browser tab","status":"active","reason":""},{"id":"knowledge","name":"App usage history","status":"off","reason":"Full Disk Access is off; macOS app usage history can't be read"}]}}
 ```
 
-The `block` is today's open block (2.7) summarized as of now, with the keys of 4.2 but without `e` (or `null`); `primary` is `null` while the user is not attentive; `presence.state` is the presence state (2.3), and `since` is the time of the event or input that set it, not of the tick that noticed it; `health.sources` lists every source of 3.5.
+The `block` is today's open block (2.8) summarized as of now, with the keys of 4.2 but without `e` (or `null`); `primary` is `null` while the user is not attentive; `presence.state` is the presence state (2.3), and `since` is the time of the event or input that set it, not of the tick that noticed it; `health.sources` lists every source of 3.5.
 
 Every reader derives the tracker's liveness from `health.last_tick` by one rule: the tracker is running while the last tick is younger than 2 minutes, and not running when it is 2 minutes old or older or `current.json` is missing. While running, a last tick of 90 seconds or older counts as delayed. The Tracker pane (7.4), the Activity footer, the menu bar warning, the Timer's idle detection, and `agentRunning` in `LiveState` all use this rule.
 
@@ -408,7 +423,7 @@ Exclusions apply wherever data enters (sampler, histories, file stream, Knowledg
 
 ### 7.3 Rewrite commands
 
-Settings changes never touch past logs. Three socket commands rewrite the log files and samples they touch: `delete-block <s>`, `forget-day <date>`, and `reapply-exclusions <from> <to>`. `delete-block` and `forget-day` delete what the block or day was formed from (samples, reconstructed samples, synced Safari visits, iPhone and iPad events) and record the time as deleted, so late events never form a block there again; then the day is formed again (2.7). The agent rewrites, replacing each file atomically and keeping unaffected lines byte-identical; the answer is `ok` or `error <reason>`. The UI for `delete-block` is "Delete This Activity…" in the Calendar's activity column (`spec_calendar.md`); the other two are run with `tracker-event`, which the Tracker pane's "Activity logs" info shows. The reasons are protocol text; the Mac app logs them and shows its own sentence: "The tracker could not be reached." (no socket, or the link to it fails), "The tracker is not running." (nothing listens), "This activity is no longer in the logs." (a reason starting with `no block at`), "The tracker is restarting. Try again in a moment." (`the tracker is stopping`), and "The tracker could not change the logs." for any other.
+Settings changes never touch past logs. Three socket commands rewrite the log files and samples they touch: `delete-block <s>`, `forget-day <date>`, and `reapply-exclusions <from> <to>`. `delete-block` and `forget-day` delete what the block or day was formed from (samples, reconstructed samples, synced Safari visits, iPhone and iPad events) and record the time as deleted, so late events never form a block there again; then the day is formed again (2.8), which removes the background stretches of that time too. `reapply-exclusions` applies to the items of background stretches as to blocks and drops a stretch left without items. The agent rewrites, replacing each file atomically and keeping unaffected lines byte-identical; the answer is `ok` or `error <reason>`. The UI for `delete-block` is "Delete This Activity…" in the Calendar's activity column (`spec_calendar.md`); the other two are run with `tracker-event`, which the Tracker pane's "Activity logs" info shows. The reasons are protocol text; the Mac app logs them and shows its own sentence: "The tracker could not be reached." (no socket, or the link to it fails), "The tracker is not running." (nothing listens), "This activity is no longer in the logs." (a reason starting with `no block at`), "The tracker is restarting. Try again in a moment." (`the tracker is stopping`), and "The tracker could not change the logs." for any other.
 
 ### 7.4 The Tracker settings pane
 
@@ -485,6 +500,9 @@ The pane has no editors for exclusions or options and no maintenance controls: t
 - TRK-38. The first header of each block-log month file and detail-log day file carries `keys`, naming exactly the keys of that log's block lines with the labels of 4.2 and 4.3; later headers carry none.
 - TRK-39. With `min_block` 10 minutes and `idle_close` 5 minutes: 4 minutes active, 6 idle, then 8 active give one block over all 18 minutes; 20 active, 7 idle, then 4 active and nothing more give one block of 31 minutes in place of the first; 4 minutes active alone gives no block; a short block is never merged across midnight; and in the logs the merged block's line replaces the previous one.
 - TRK-40. With `min_block` 10 minutes: 15 minutes of Mac work, 5 minutes on the iPhone while the Mac is locked, and 15 more minutes of Mac work form one block with 30 minutes on the Mac and 5 on the iPhone; iPhone use during the Mac's attention is a background item that adds nothing to `a`; overlapping iPhone and iPad use forms one block in which an iPad app wins its minutes over the iPhone's "Everything"; synced Safari history fills only time no iPhone stretch claims; a deleted block stays deleted when late iPhone events for its time arrive.
+- TRK-41. A sample that is idle, locked, or taken while another user owns the console lists the busy coding agents and running jobs as background items; an asleep one lists none.
+- TRK-42. Twenty minutes of work with a busy coding agent, then forty minutes away while it stays busy, give one block whose `bg` lists the agent for the block's range and one background stretch from the block's end for the rest; background time in an absorbed idle gap counts for the block; an item under 5 minutes forms no stretch; a gap of `idle_close` separates two stretches; today's last stretch is recorded only after `idle_close` without background work; no stretch spans midnight or a block.
+- TRK-43. A background stretch line carries `type` `background`, `s`, `e`, and `bg`, and reads back as written; reapplied exclusions remove its excluded items and drop it when none is left.
 
 ## 9. Decisions
 
@@ -495,12 +513,13 @@ The pane has no editors for exclusions or options and no maintenance controls: t
 - In a terminal, the tmux session is the workspace, not the folder: a session often holds panes in several folders of one piece of work.
 - Configuration of other programs (Neovim, tmux, Claude Code) is offered as snippets, never installed.
 - Synced Safari history is off by default: weak attribution, and it duplicates the iOS extension, which outranks it (2.4).
+- Background work while the user is away is recorded as background stretches beside the blocks, not as blocks: a block measures attention, and the time between blocks stays away time, while the stretches still tell what went on for a project.
 
 Not included: Screen Time data from other devices; terminal adapters beyond WezTerm, iTerm2, and Terminal.app.
 
 ## 10. Interfaces
 
-Provided, read through the shared library: the block log (4.2, every device), the detail log (4.3, recording Mac only), `current.json` (4.4: Timer, menu bar, Calendar and Activity open block, Tracker pane, `LiveStatePublisher`), the socket and `tracker-event` (7.3), `settings.toml` (7: agent, iOS collection, Tracker pane), the device-event merge (6.2), and the Tracker pane (7.4).
+Provided, read through the shared library: the block log with its background stretches (4.2, every device), the detail log (4.3, recording Mac only), `current.json` (4.4: Timer, menu bar, Calendar and Activity open block, Tracker pane, `LiveStatePublisher`), the socket and `tracker-event` (7.3), `settings.toml` (7: agent, iOS collection, Tracker pane), the device-event merge (6.2), and the Tracker pane (7.4).
 
 Assumed:
 

@@ -37,7 +37,9 @@ public enum BlockLogLine: Sendable, Hashable {
     case header(BlockLogHeader)
     /// A block, with its detail when the line came from the detail log.
     case block(ActivityBlock, detail: ActivityBlockDetail?)
-    /// An object with a `type` other than `header`, which readers skip.
+    /// A stretch of background work outside every block (`type` `background`).
+    case background(ActivityBackgroundStretch)
+    /// An object with another `type`, which readers skip.
     case other(type: String)
 
     /// Parses one line. Block times are local times converted with the
@@ -53,7 +55,9 @@ public enum BlockLogLine: Sendable, Hashable {
             record = try decoder.decode(LineRecord.self, from: data)
         } catch {
             // A line of another type may use the block keys differently.
-            if let probe = try? decoder.decode(TypeProbe.self, from: data), let type = probe.type, type != "header" {
+            if let probe = try? decoder.decode(TypeProbe.self, from: data), let type = probe.type, type != "header",
+               type != Self.backgroundType
+            {
                 return .other(type: type)
             }
             throw .malformedLine(error.localizedDescription)
@@ -61,6 +65,11 @@ public enum BlockLogLine: Sendable, Hashable {
         switch record.type {
         case "header":
             return try .header(Self.header(record))
+        case Self.backgroundType:
+            guard let header else {
+                throw .malformedLine("a background stretch before the first header")
+            }
+            return try background(record, header: header)
         case let .some(type):
             return .other(type: type)
         case .none:
@@ -82,6 +91,28 @@ public enum BlockLogLine: Sendable, Hashable {
             keys: record.keys,
             format: record.format ?? 1
         )
+    }
+
+    /// The `type` of a background stretch line.
+    static let backgroundType = "background"
+
+    private static func background(_ record: LineRecord, header: BlockLogHeader) throws(ActivityError) -> Self {
+        guard let startText = record.start, let start = LocalTimestamp(text: startText),
+              let endText = record.end, let end = LocalTimestamp(text: endText)
+        else {
+            throw .malformedLine("a background stretch without valid s and e")
+        }
+        let startDate = start.date(utcOffset: header.utcOffset)
+        let endDate = end.date(utcOffset: header.utcOffset)
+        guard endDate >= startDate else {
+            throw .malformedLine("a background stretch ending before its start")
+        }
+        return .background(ActivityBackgroundStretch(
+            start: startDate,
+            end: endDate,
+            items: record.background,
+            utcOffset: header.utcOffset
+        ))
     }
 
     private static func block(_ record: LineRecord, header: BlockLogHeader) throws(ActivityError) -> Self {

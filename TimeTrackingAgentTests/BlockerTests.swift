@@ -179,7 +179,7 @@ struct BlockerTests {
         #expect(late.first?.block.end ?? .distantFuture <= midnight)
     }
 
-    @Test("TRK-14 summaries merge, drop, keep, order, cap, and append background per 2.7; a never exceeds e minus s")
+    @Test("TRK-14 summaries merge, drop, keep, order, and cap per 2.6; a never exceeds e minus s")
     func summary() throws {
         func segment(_ minute: Int, _ seconds: Int, _ key: String, _ subject: String, _ detail: String) -> Blocker.Segment {
             Blocker.Segment(
@@ -200,35 +200,18 @@ struct BlockerTests {
             segment(25, 190, "notes", "List", ""),
             segment(29, 70, "chat", "Team", "general"),
         ]
-        let background = [
-            Blocker.Segment(
-                start: start,
-                seconds: 400,
-                item: SampleItem(context: "claude", subject: "refactor", groupKey: "claude", app: "claude"),
-                passive: false,
-                device: "macbook"
-            ),
-            Blocker.Segment(
-                start: start,
-                seconds: 200,
-                item: SampleItem(context: "tmux:tools", subject: "x", groupKey: "tmux:tools", app: "tmux"),
-                passive: false,
-                device: "macbook"
-            ),
-        ]
         var settings = TrackerBlockSettings()
         settings.summaryMinShare = 0.1
-        let summary = BlockSummary(segments: segments, background: background, settings: settings, mac: "macbook")
+        let summary = BlockSummary(segments: segments, settings: settings, mac: "macbook")
         #expect(summary.activeSeconds == 1710)
         #expect(summary.detailItems.count == 8)
         #expect(summary.items.map(\.context) == ["tmux:paper", "safari", "notes"])
         #expect(summary.items.first?.detail == "nvim (4 files)")
         #expect(summary.items.first?.seconds == 1200)
-        #expect(summary.background.map(\.context) == ["claude"])
         #expect(summary.groupKey == "tmux:paper")
         #expect(summary.groupShare == 0.7)
         settings.summaryLines = 2
-        #expect(BlockSummary(segments: segments, background: [], settings: settings, mac: "macbook").items.count == 2)
+        #expect(BlockSummary(segments: segments, settings: settings, mac: "macbook").items.count == 2)
 
         let fixture = AgentHarness.fixtureURL("samples/2024-03-14.jsonl")
         let produced = try Replay.blockLog(samplesText: String(contentsOf: fixture, encoding: .utf8), settings: .defaults)

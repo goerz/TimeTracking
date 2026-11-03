@@ -11,17 +11,25 @@ nonisolated enum LineDecision {
     case replace(ActivityBlock, ActivityBlockDetail?)
 }
 
+/// What to do with one background stretch line.
+nonisolated enum StretchDecision {
+    case keep
+    case drop
+    case replace(ActivityBackgroundStretch)
+}
+
 /// Rewrites month files: unaffected lines (headers included) stay byte
 /// identical, and each changed file is replaced atomically.
 nonisolated enum MonthFileRewriter {
-    /// Applies `decide` to every block line of `url`; returns the blocks
-    /// dropped or replaced (their original form). A file without changes is
-    /// not touched.
+    /// Applies `decide` to every block line of `url` and `decideStretch` to
+    /// every background stretch line; returns the blocks dropped or replaced
+    /// (their original form). A file without changes is not touched.
     @discardableResult
     // One switch over the line kinds and decisions.
     // swiftlint:disable:next cyclomatic_complexity
     static func rewrite(
         _ url: URL,
+        decideStretch: (ActivityBackgroundStretch, [String: String]) -> StretchDecision = { _, _ in .keep },
         decide: (ActivityBlock, ActivityBlockDetail?, [String: String]) -> LineDecision
     ) throws -> [ActivityBlock] {
         guard FileManager.default.fileExists(atPath: url.path) else {
@@ -56,6 +64,18 @@ nonisolated enum MonthFileRewriter {
                         affected.append(block)
                         changed = true
                     }
+                    output.append(encoded)
+                }
+            case let .background(stretch):
+                switch decideStretch(stretch, header?.contexts ?? [:]) {
+                case .keep:
+                    output.append(text)
+                case .drop:
+                    changed = true
+                    continue
+                case let .replace(newStretch):
+                    let encoded = Data(BlockLogLine.background(newStretch).jsonText.utf8)
+                    changed = changed || encoded != text
                     output.append(encoded)
                 }
             case .other, nil:

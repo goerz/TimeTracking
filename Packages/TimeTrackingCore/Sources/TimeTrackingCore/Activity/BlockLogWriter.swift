@@ -3,7 +3,7 @@
 
 public import Foundation
 
-/// Appends blocks to `<folder>/YYYY-MM.jsonl` (the block log) or
+/// Appends blocks and background stretches to `<folder>/YYYY-MM.jsonl` (the block log) or
 /// `<folder>/YYYY-MM-DD.jsonl` (the detail log), writing a header where
 /// the format requires one.
 ///
@@ -53,25 +53,57 @@ public struct BlockLogWriter: Sendable {
         contexts: [String: String],
         detail: ActivityBlockDetail? = nil
     ) throws(ActivityError) {
-        let key = period.key(of: block)
+        try appendLine(
+            .block(block, detail: detail),
+            key: period.key(of: block),
+            utcOffset: block.utcOffset,
+            lineContexts: block.contexts + (detail?.items.map(\.context) ?? []),
+            contexts: contexts
+        )
+    }
+
+    /// Appends a background stretch to the block log's file of its local month.
+    public mutating func append(_ stretch: ActivityBackgroundStretch, contexts: [String: String]) throws(ActivityError) {
+        try appendLine(
+            .background(stretch),
+            key: period == .month ? stretch.month : stretch.localDay,
+            utcOffset: stretch.utcOffset,
+            lineContexts: stretch.contexts,
+            contexts: contexts
+        )
+    }
+
+    /// Appends `line`, preceded by a header when the file has none yet, the
+    /// time zone changed, or the header lacks one of `lineContexts`; a
+    /// file's first header carries the legend of its log.
+    private mutating func appendLine(
+        _ line: BlockLogLine,
+        key: String,
+        utcOffset: Int,
+        lineContexts: [String],
+        contexts: [String: String]
+    ) throws(ActivityError) {
         let url = fileURL(for: key)
         var state = try knownFile(key: key, url: url)
         var text = ""
-        let blockContexts = block.contexts + (detail?.items.map(\.context) ?? [])
-        let missing = blockContexts.filter { state.header?.contexts[$0] == nil }
-        if state.header?.utcOffset != block.utcOffset || !missing.isEmpty {
+        let missing = lineContexts.filter { state.header?.contexts[$0] == nil }
+        if state.header?.utcOffset != utcOffset || !missing.isEmpty {
             var merged = state.header?.contexts ?? [:]
             for context in missing {
                 merged[context] = contexts[context] ?? ""
             }
-            var header = BlockLogHeader(utcOffset: block.utcOffset, device: device, contexts: merged)
+            var header = BlockLogHeader(utcOffset: utcOffset, device: device, contexts: merged)
             if state.header == nil {
-                header.keys = detail == nil ? BlockLogHeader.blockLogKeys : BlockLogHeader.detailLogKeys
+                header.keys = if case .block(_, detail: .some) = line {
+                    BlockLogHeader.detailLogKeys
+                } else {
+                    BlockLogHeader.blockLogKeys
+                }
             }
             text += BlockLogLine.header(header).jsonText + "\n"
             state.header = header
         }
-        text += BlockLogLine.block(block, detail: detail).jsonText + "\n"
+        text += line.jsonText + "\n"
         state.size = try Self.append(Data(text.utf8), to: url)
         known[key] = state
     }

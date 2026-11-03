@@ -37,6 +37,12 @@ struct ActivityLogs {
         return ((try? BlockLogFile(contentsOf: url))?.blocks ?? []).filter { $0.localDay == day }
     }
 
+    /// The background stretches of `day` in the block log, in file order.
+    func stretches(on day: String) -> [ActivityBackgroundStretch] {
+        let url = blocksFolder.appending(path: "\(day.prefix(7)).jsonl", directoryHint: .notDirectory)
+        return ((try? BlockLogFile(contentsOf: url))?.backgrounds ?? []).map(\.stretch).filter { $0.localDay == day }
+    }
+
     /// The lines of the detail file of `day`.
     func detailEntries(on day: String) -> [DayEntry] {
         let url = detailURL(day)
@@ -49,13 +55,29 @@ struct ActivityLogs {
         detailFolder.appending(path: "\(day).jsonl", directoryHint: .notDirectory)
     }
 
-    /// Replaces the blocks of `day` in the block log by `closed`, in order,
-    /// and the detail file of `day` by their details.
-    mutating func replaceDay(_ day: String, with closed: [(block: ClosedBlock, detail: ActivityBlockDetail)]) throws {
+    /// Replaces the blocks and background stretches of `day` in the block
+    /// log by `closed` and `stretches`, in time order, and the detail file of
+    /// `day` by the blocks' details.
+    mutating func replaceDay(
+        _ day: String,
+        with closed: [(block: ClosedBlock, detail: ActivityBlockDetail)],
+        stretches: [BackgroundWork.Stretch] = []
+    ) throws {
         let month = blocksFolder.appending(path: "\(day.prefix(7)).jsonl", directoryHint: .notDirectory)
-        try MonthFileRewriter.rewrite(month) { block, _, _ in block.localDay == day ? .drop : .keep }
-        for entry in closed {
-            try blockWriter.append(entry.block.block, contexts: entry.block.contexts)
+        try MonthFileRewriter.rewrite(
+            month,
+            decideStretch: { stretch, _ in stretch.localDay == day ? .drop : .keep },
+            decide: { block, _, _ in block.localDay == day ? .drop : .keep }
+        )
+        var blocks = closed.map(\.block)[...]
+        var others = stretches.sorted { $0.stretch.start < $1.stretch.start }[...]
+        while !blocks.isEmpty || !others.isEmpty {
+            if let block = blocks.first, others.first.map({ block.block.start <= $0.stretch.start }) ?? true {
+                try blockWriter.append(block.block, contexts: block.contexts)
+                blocks.removeFirst()
+            } else if let stretch = others.popFirst() {
+                try blockWriter.append(stretch.stretch, contexts: stretch.contexts)
+            }
         }
         let url = detailURL(day)
         guard !closed.isEmpty else {
@@ -73,17 +95,19 @@ struct ActivityLogs {
 
     /// Applies `decide` to every block line of the month files of the block
     /// log and the day files of the detail log within `[fromDay, toDay]`
-    /// (days `YYYY-MM-DD`); returns the blocks dropped or replaced, block
+    /// (days `YYYY-MM-DD`), and `decideStretch` to the block log's
+    /// background stretches; returns the blocks dropped or replaced, block
     /// log first.
     @discardableResult
     func rewrite(
         fromDay: String,
         toDay: String,
+        decideStretch: (ActivityBackgroundStretch, [String: String]) -> StretchDecision = { _, _ in .keep },
         _ decide: (ActivityBlock, ActivityBlockDetail?, [String: String]) -> LineDecision
     ) throws -> [ActivityBlock] {
         var affected: [ActivityBlock] = []
         for url in MonthFileRewriter.monthFiles(in: blocksFolder, fromDay: fromDay, toDay: toDay) {
-            affected += try MonthFileRewriter.rewrite(url, decide: decide)
+            affected += try MonthFileRewriter.rewrite(url, decideStretch: decideStretch, decide: decide)
         }
         for url in MonthFileRewriter.dayFiles(in: detailFolder, fromDay: fromDay, toDay: toDay) {
             affected += try MonthFileRewriter.rewrite(url, decide: decide)

@@ -88,7 +88,7 @@ final class AgentEngine {
         let before = presence.state
         if presence.blockedState(reading) != nil {
             let state = presence.update(reading: reading, now: now, passiveCandidate: false, settings: settings.presence)
-            sample = Sample(time: now, state: state)
+            sample = Sample(time: now, state: state, secondaries: awayBackground(state, snapshot: snapshot, now: now, context: &context))
         } else {
             let focus = await resolveFocus(snapshot: snapshot, context: &context)
             let passive = focus
@@ -113,7 +113,12 @@ final class AgentEngine {
                     url: focus.url
                 )
             } else {
-                sample = Sample(time: now, state: state, bundleID: focus?.bundleID ?? "")
+                sample = Sample(
+                    time: now,
+                    state: state,
+                    secondaries: awayBackground(state, snapshot: snapshot, now: now, context: &context),
+                    bundleID: focus?.bundleID ?? ""
+                )
             }
         }
         if presence.state != before || transitions.isEmpty {
@@ -122,6 +127,20 @@ final class AgentEngine {
         process(sample)
         runMaintenance(now: now)
         return sample
+    }
+
+    /// The background items of a sample without attention (§2.3 step 4):
+    /// recorded while the user is away, but not while the Mac sleeps.
+    private func awayBackground(
+        _ state: TrackerPresenceState,
+        snapshot: TerminalSnapshot,
+        now: Date,
+        context: inout ResolveContext
+    ) -> [SampleItem] {
+        guard state != .asleep else {
+            return []
+        }
+        return terminal.secondaries(snapshot: snapshot, primary: nil, primaryTarget: "", now: now, context: &context)
     }
 
     /// Reloads `settings.toml` if it changed (§7: applied from the next tick).

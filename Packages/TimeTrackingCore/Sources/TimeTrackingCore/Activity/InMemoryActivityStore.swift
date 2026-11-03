@@ -4,11 +4,12 @@
 public import Foundation
 import Synchronization
 
-/// Blocks, details, and a tracker state held in memory. Exclusions are not
+/// Blocks, background stretches, details, and a tracker state held in memory. Exclusions are not
 /// applied (callers hand in what the reader would return).
 public final class InMemoryActivityStore: ActivityReading {
     private struct State {
         var blocks: [ActivityBlock] = []
+        var stretches: [ActivityBackgroundStretch] = []
         var details: [ActivityBlock.ID: ActivityBlockDetail] = [:]
         var trackerState: TrackerState?
         var contexts: [String: String] = [:]
@@ -20,12 +21,14 @@ public final class InMemoryActivityStore: ActivityReading {
 
     public init(
         blocks: [ActivityBlock] = [],
+        stretches: [ActivityBackgroundStretch] = [],
         details: [ActivityBlockDetail] = [],
         trackerState: TrackerState? = nil,
         contexts: [String: String] = [:]
     ) {
         state.withLock { state in
             state.blocks = blocks
+            state.stretches = stretches
             state.details = Dictionary(details.map { ($0.blockID, $0) }) { first, _ in first }
             state.trackerState = trackerState
             state.contexts = contexts
@@ -67,6 +70,14 @@ public final class InMemoryActivityStore: ActivityReading {
                 block.end > block.start ? block.start < interval.end && block.end > interval.start : interval.contains(block.start)
             }
             .compactMap { FileActivityStore.part(of: $0, on: devices) }
+            .sorted { ($0.start, $0.id) < ($1.start, $1.id) }
+    }
+
+    // swiftlint:disable:next discouraged_optional_collection
+    public func backgroundStretches(in interval: DateInterval, devices: Set<String>?) -> [ActivityBackgroundStretch] {
+        state.withLock(\.stretches)
+            .filter { $0.start < interval.end && $0.end > interval.start }
+            .compactMap { $0.part(on: devices) }
             .sorted { ($0.start, $0.id) < ($1.start, $1.id) }
     }
 

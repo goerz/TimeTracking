@@ -13,6 +13,8 @@ extension BlockLogLine {
             Self.headerText(header)
         case let .block(block, detail):
             Self.blockText(block, detail: detail)
+        case let .background(stretch):
+            Self.backgroundText(stretch)
         case let .other(type):
             Self.otherText(type)
         }
@@ -38,6 +40,15 @@ extension BlockLogLine {
     private static func otherText(_ type: String) -> String {
         var writer = JSONObjectWriter()
         writer.add("type", type)
+        return writer.text
+    }
+
+    private static func backgroundText(_ stretch: ActivityBackgroundStretch) -> String {
+        var writer = JSONObjectWriter()
+        writer.add("type", backgroundType)
+        writer.add("s", LocalTimestamp(date: stretch.start, utcOffset: stretch.utcOffset).text)
+        writer.add("e", LocalTimestamp(date: stretch.end, utcOffset: stretch.utcOffset).text)
+        writer.add("bg", stretch.items)
         return writer.text
     }
 
