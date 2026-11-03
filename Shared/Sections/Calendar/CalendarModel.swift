@@ -77,6 +77,8 @@ final class CalendarModel {
     // Loaded data.
     private(set) var entries: [EntryListing] = []
     private(set) var blocks: [ActivityBlock] = []
+    /// The tracker's background stretches: work while the user was away (§3.1).
+    private(set) var stretches: [ActivityBackgroundStretch] = []
     private(set) var timeBlocks: [TimeBlock] = []
     private(set) var externalEvents: [CalendarEvent] = []
     private(set) var calendars: [CalendarInfo] = []
@@ -205,6 +207,7 @@ final class CalendarModel {
             projectRows = Dictionary(rows.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
             let loaded = try await activity.blocks(in: interval, devices: nil)
             blocks = isRecordingMac ? loaded : loaded.filter { !$0.isOpen }
+            stretches = try await activity.backgroundStretches(in: interval, devices: nil)
             await loadEvents(around: interval)
             summary = CalendarSummary(
                 days: days,

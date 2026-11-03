@@ -57,10 +57,24 @@ public struct ActivityAway: Sendable, Hashable {
     public var parts: [Part]
     /// Some gaps had no detail record on this device.
     public var hasUnclassified: Bool
+    /// The part of `seconds` that background stretches cover.
+    public var backgroundSeconds = 0
+
+    public init(seconds: Int, parts: [Part], hasUnclassified: Bool, backgroundSeconds: Int = 0) {
+        self.seconds = seconds
+        self.parts = parts
+        self.hasUnclassified = hasUnclassified
+        self.backgroundSeconds = backgroundSeconds
+    }
 
     /// "4h 12m during the day".
     public var totalText: String {
         "\(ActivityText.duration(seconds)) during the day"
+    }
+
+    /// "Work went on in the background for 38m of it.", or `nil` without.
+    public var backgroundText: String? {
+        backgroundSeconds > 0 ? "Work went on in the background for \(ActivityText.duration(backgroundSeconds)) of it." : nil
     }
 
     /// "idle 57m (3 times) · asleep 7h 18m (3 times)", plus "(cause known
@@ -73,11 +87,13 @@ public struct ActivityAway: Sendable, Hashable {
 
 extension ActivitySummary {
     /// The Away panel: gaps over `idleClose` between consecutive blocks of
-    /// one day; the context filter does not apply.
+    /// one day, and how much of them background stretches cover; the
+    /// context filter does not apply.
     public var away: ActivityAway {
         var seconds: [ActivityAway.Cause: Int] = [:]
         var counts: [ActivityAway.Cause: Int] = [:]
         var unclassified = false
+        var background = 0
         let groups = Dictionary(grouping: blocks.filter { !$0.isOpen }) { $0.localDay }
         for group in groups.values {
             let sorted = group.sorted { $0.start < $1.start }
@@ -90,7 +106,12 @@ extension ActivitySummary {
                 if details.isEmpty {
                     unclassified = true
                 }
-                let cause = Self.cause(of: DateInterval(start: previous.end, end: next.start), details: details, idleClose: input.idleClose)
+                let interval = DateInterval(start: previous.end, end: next.start)
+                background += stretches.reduce(0) { total, stretch in
+                    let overlap = min(stretch.end, interval.end).timeIntervalSince(max(stretch.start, interval.start))
+                    return total + max(0, Int(overlap))
+                }
+                let cause = Self.cause(of: interval, details: details, idleClose: input.idleClose)
                 seconds[cause, default: 0] += Int(gap)
                 counts[cause, default: 0] += 1
             }
@@ -98,7 +119,12 @@ extension ActivitySummary {
         let parts = ActivityAway.Cause.allCases.compactMap { cause in
             counts[cause].map { ActivityAway.Part(cause: cause, seconds: seconds[cause] ?? 0, count: $0) }
         }
-        return ActivityAway(seconds: seconds.values.reduce(0, +), parts: parts, hasUnclassified: unclassified)
+        return ActivityAway(
+            seconds: seconds.values.reduce(0, +),
+            parts: parts,
+            hasUnclassified: unclassified,
+            backgroundSeconds: background
+        )
     }
 
     /// The first absence transition near the gap's start, else unknown.

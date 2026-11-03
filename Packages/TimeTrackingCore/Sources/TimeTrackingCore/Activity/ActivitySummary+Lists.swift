@@ -83,11 +83,24 @@ public struct ActivitySubjectRow: Sendable, Hashable, Identifiable {
     }
 }
 
-/// A secondary of the In the background panel.
+extension ActivityBackgroundStretch {
+    /// "In the background while away: Claude refactor-parser 38m", the
+    /// Calendar's text for the stretch.
+    public var summaryText: String {
+        let names = items.map { item in
+            "\(ActivityBackgroundRow.title(context: item.context, subject: item.subject)) \(ActivityText.duration(item.seconds))"
+        }
+        return "In the background while away: " + names.joined(separator: ", ")
+    }
+}
+
+/// A background item of the In the background panel.
 public struct ActivityBackgroundRow: Sendable, Hashable, Identifiable {
     public var context: String
     public var subject: String
     public var seconds: Int
+    /// The part of `seconds` in background stretches, while the user was away.
+    public var awaySeconds = 0
 
     public var id: String {
         "\(context)\u{1F}\(subject)"
@@ -98,8 +111,8 @@ public struct ActivityBackgroundRow: Sendable, Hashable, Identifiable {
         Self.title(context: context, subject: subject)
     }
 
-    /// The name of a secondary: its context as Activity names it, then its
-    /// subject, a folder after "in".
+    /// The name of a background item: its context as Activity names it,
+    /// then its subject, a folder after "in".
     public static func title(context: String, subject: String) -> String {
         let name = ActivityContext(context).label()
         guard !subject.isEmpty else {
@@ -167,20 +180,27 @@ extension ActivitySummary {
         return rows
     }
 
-    /// The In the background panel: secondaries by seconds, filtered by context.
+    /// The In the background panel: the background items of the blocks and
+    /// of the background stretches by seconds, filtered by context.
     public var backgroundRows: [ActivityBackgroundRow] {
-        var seconds: [ActivityBackgroundRow: Int] = [:]
-        for block in blocks {
-            for item in block.background where input.contexts.isEmpty || input.contexts.contains(item.context) {
-                seconds[ActivityBackgroundRow(context: item.context, subject: item.subject, seconds: 0), default: 0] += item.seconds
+        var rows: [String: ActivityBackgroundRow] = [:]
+        func add(_ item: ActivityItem, away: Bool) {
+            guard input.contexts.isEmpty || input.contexts.contains(item.context) else {
+                return
             }
+            var row = ActivityBackgroundRow(context: item.context, subject: item.subject, seconds: 0)
+            row = rows[row.id] ?? row
+            row.seconds += item.seconds
+            row.awaySeconds += away ? item.seconds : 0
+            rows[row.id] = row
         }
-        return seconds.map { key, value in
-            var row = key
-            row.seconds = value
-            return row
+        for block in blocks {
+            block.background.forEach { add($0, away: false) }
         }
-        .sorted { ($1.seconds, $0.id) < ($0.seconds, $1.id) }
+        for stretch in stretches {
+            stretch.items.forEach { add($0, away: true) }
+        }
+        return rows.values.sorted { ($1.seconds, $0.id) < ($0.seconds, $1.id) }
     }
 
     /// The chips beyond the first eight whose display name contains `search`.

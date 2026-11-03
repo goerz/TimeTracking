@@ -166,7 +166,8 @@ private struct TrackedColumn: View {
 
 // MARK: Activity
 
-/// The tracker's blocks, covered parts dimmed, gap labels (§3.1).
+/// The tracker's blocks, covered parts dimmed, gap labels, and background
+/// stretches (§3.1).
 private struct ActivityColumn: View {
     var model: CalendarModel
     var day: TrackingDay
@@ -199,6 +200,7 @@ private struct ActivityColumn: View {
                         .offset(y: frame.y)
                 }
             }
+            strips(axis)
             ForEach(model.blocks.filter { $0.localDay == day.description }) { block in
                 if let frame = axis.frame(of: DateInterval(start: block.start, end: max(block.start, block.end))) {
                     BlockCard(model: model, block: block, size: CGSize(width: width - 4, height: max(4, frame.height)))
@@ -210,6 +212,17 @@ private struct ActivityColumn: View {
         // The cards inside keep their own identifiers.
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("calendar.activity.\(day)")
+    }
+
+    /// The day's background stretches at the column's trailing edge.
+    private func strips(_ axis: CalendarDayAxis) -> some View {
+        ForEach(model.stretches.filter { $0.localDay == day.description }) { stretch in
+            if let frame = axis.frame(of: DateInterval(start: stretch.start, end: max(stretch.start, stretch.end))) {
+                BackgroundStrip(stretch: stretch)
+                    .frame(width: Design.healthLineWidth, height: max(Design.healthLineWidth, frame.height))
+                    .offset(x: width - Design.healthLineWidth - 2, y: frame.y)
+            }
+        }
     }
 }
 
@@ -245,6 +258,21 @@ private struct GapLabel: View {
                 .background(.background, in: .capsule)
                 .accessibilityLabel(text)
         }
+    }
+}
+
+/// Background work while the user was away: a narrow strip at the column's
+/// trailing edge over the stretch, in the block color at half strength (§3.1).
+private struct BackgroundStrip: View {
+    var stretch: ActivityBackgroundStretch
+
+    var body: some View {
+        Capsule()
+            .fill(Color.activityBlock.opacity(0.5))
+            .help(stretch.summaryText)
+            .accessibilityElement()
+            .accessibilityLabel(stretch.summaryText)
+            .accessibilityIdentifier("calendar.background.\(stretch.id)")
     }
 }
 

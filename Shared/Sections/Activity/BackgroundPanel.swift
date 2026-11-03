@@ -16,6 +16,9 @@ struct BackgroundPanel: View {
                         Image(systemName: SymbolName.settings).accessibilityHidden(true).foregroundStyle(.secondary)
                         Text(row.title)
                         Spacer()
+                        if row.awaySeconds > 0 {
+                            Text("\(ActivityText.duration(row.awaySeconds)) while away").foregroundStyle(.secondary)
+                        }
                         Text(ActivityText.duration(row.seconds))
                     }
                 }

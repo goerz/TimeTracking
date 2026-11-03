@@ -9,6 +9,8 @@ public import Foundation
 public struct ActivitySummaryInput: Sendable {
     /// The blocks of every device in the range, exclusions applied.
     public var blocks: [ActivityBlock]
+    /// The background stretches in the range, exclusions applied.
+    public var stretches: [ActivityBackgroundStretch]
     /// The shown days (at most 366).
     public var days: ClosedRange<TrackingDay>
     public var today: TrackingDay
@@ -31,9 +33,11 @@ public struct ActivitySummaryInput: Sendable {
         device: String? = nil,
         details: [ActivityBlock.ID: ActivityBlockDetail] = [:],
         idleClose: TimeInterval = 300,
-        exclusions: ExclusionRules? = nil
+        exclusions: ExclusionRules? = nil,
+        stretches: [ActivityBackgroundStretch] = []
     ) {
         self.blocks = blocks
+        self.stretches = stretches
         self.days = days
         self.today = today
         self.contexts = contexts
@@ -49,6 +53,8 @@ public struct ActivitySummary: Sendable {
     public let input: ActivitySummaryInput
     /// The blocks of the range narrowed to the device, by start.
     public let blocks: [ActivityBlock]
+    /// The background stretches of the range narrowed to the device, by start.
+    public let stretches: [ActivityBackgroundStretch]
     /// The header total: the sum of `a`, or the selected contexts' item seconds.
     public let total: Int
     /// The sum of `a` without the context filter (shares are relative to it).
@@ -105,6 +111,10 @@ public struct ActivitySummary: Sendable {
         let blocks = inRange.compactMap { block in input.device.map { block.restricted(to: [$0]) } ?? block }
             .sorted { ($0.start, $0.id) < ($1.start, $1.id) }
         self.blocks = blocks
+        self.stretches = input.stretches
+            .filter { TrackingDay($0.localDay).map { input.days.contains($0) } ?? false }
+            .compactMap { $0.part(on: input.device.map { [$0] }) }
+            .sorted { ($0.start, $0.id) < ($1.start, $1.id) }
         let value = Self.valueFunction(contexts: input.contexts)
         self.total = blocks.reduce(0) { $0 + value($1) }
         self.unfilteredTotal = blocks.reduce(0) { $0 + $1.activeSeconds }

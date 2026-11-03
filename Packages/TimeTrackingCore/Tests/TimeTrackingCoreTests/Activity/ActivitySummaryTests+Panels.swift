@@ -54,6 +54,40 @@ extension ActivitySummaryTests {
         #expect(classified.totalText == "1h during the day")
     }
 
+    @Test("PA-21 In the background adds the stretches' items with their part while away; Away says how much of it had background work")
+    func backgroundWhileAway() throws {
+        let agent = Self.item("claude", "refactor-parser", "", 600)
+        let morning = try Self.block("2026-10-26", "09:00", "10:00", [Self.item("safari", 3600)], background: [agent])
+        let afternoon = try Self.block("2026-10-26", "11:00", "12:00", [Self.item("safari", 3600)])
+        var away = agent
+        away.seconds = 2280
+        let stretch = try ActivityBackgroundStretch(
+            start: ActivityFixture.instant("2026-10-26T10:10:00-04:00"),
+            end: ActivityFixture.instant("2026-10-26T10:48:00-04:00"),
+            items: [away],
+            utcOffset: -4 * 3600
+        )
+        let input = ActivitySummaryInput(blocks: [morning, afternoon], days: Self.week, today: Self.thursday, stretches: [stretch])
+        let summary = ActivitySummary(input)
+        let row = try #require(summary.backgroundRows.first)
+        #expect(summary.backgroundRows.count == 1)
+        #expect(row.seconds == 2880)
+        #expect(row.awaySeconds == 2280)
+        #expect(summary.away.seconds == 3600)
+        #expect(summary.away.backgroundSeconds == 2280)
+        #expect(summary.away.backgroundText == "Work went on in the background for 38m of it.")
+        #expect(Self.summary([morning, afternoon]).away.backgroundText == nil)
+        let filtered = ActivitySummary(ActivitySummaryInput(
+            blocks: [morning, afternoon],
+            days: Self.week,
+            today: Self.thursday,
+            contexts: ["safari"],
+            stretches: [stretch]
+        ))
+        #expect(filtered.backgroundRows.isEmpty)
+        #expect(filtered.away.backgroundSeconds == 2280)
+    }
+
     @Test("PA-16 the Mac footer's dot follows the liveness rule of the Tracker pane; the iPad footer shows lastTick")
     func healthFooter() throws {
         let now = try ActivityFixture.instant("2026-10-29T14:20:00-04:00")

@@ -4,7 +4,7 @@ The Activity section of the main window (fifth sidebar item, ⌘5) shows what th
 
 Not included: editing, deleting, or merging blocks (the Calendar's activity column deletes a block); assigning projects or creating entries; reading the tracker's sample database; exporting.
 
-Vocabulary: an item has a context (an app, a terminal session such as `tmux:paper`, a browser), a subject (a site, a folder, a window), and a detail (a file, a page). A block has items with seconds, active seconds `a` (all item seconds before the tracker's summary cut), a dominant workspace `g` (the tmux session, work folder, site, or app that took the most time), and background items (`bg`: busy coding agents, builds), which are not attention. Blocks never cross midnight.
+Vocabulary: an item has a context (an app, a terminal session such as `tmux:paper`, a browser), a subject (a site, a folder, a window), and a detail (a file, a page). A block has items with seconds, active seconds `a` (all item seconds before the tracker's summary cut), a dominant workspace `g` (the tmux session, work folder, site, or app that took the most time), and background items (`bg`: busy coding agents, builds), which are not attention. Blocks never cross midnight. A background stretch is background work while the user was away, between blocks; it has only background items.
 
 ## 1. Layout
 
@@ -89,11 +89,11 @@ Both lists show twenty rows and a "Show all (48)" link.
 
 ### 1.7 In the background
 
-The background items, ranked by seconds, each with a gear glyph, context by name and subject, a folder after "in" ("Claude refactor-parser", "paper (tmux) in ~/Code/app"), and duration, under the subtitle "Does not count as active time". The filter applies by the background item's context. Hidden when there are none.
+The background items of the blocks and of the background stretches, ranked by seconds, each with a gear glyph, context by name and subject, a folder after "in" ("Claude refactor-parser", "paper (tmux) in ~/Code/app"), the part in background stretches in the secondary color ("38m while away") when there is one, and duration, under the subtitle "Does not count as active time". The filter applies by the background item's context. Hidden when there are none.
 
 ### 1.8 Away
 
-Away time is a gap longer than the tracker's `idle_close` (5 minutes) between consecutive blocks of one day (the blocks of all devices form one timeline, [spec_activity_tracking.md](spec_activity_tracking.md) §2.4); time before the day's first block and after its last is night, not away. The panel shows the total ("4h 12m during the day"), per cause the time and number of gaps ("idle 1h 10m (3 times)"): idle, asleep, locked, another user, and unknown when no presence transition covers the gap, and the note "Time before your first and after your last activity of the day is not counted." Causes come from the detail log on the recording Mac; elsewhere and for other devices' blocks all gaps are unknown, and the line adds "(cause known only on the Mac that recorded it)". The filter does not apply.
+Away time is a gap longer than the tracker's `idle_close` (5 minutes) between consecutive blocks of one day (the blocks of all devices form one timeline, [spec_activity_tracking.md](spec_activity_tracking.md) §2.4); time before the day's first block and after its last is night, not away. The panel shows the total ("4h 12m during the day"), per cause the time and number of gaps ("idle 1h 10m (3 times)"): idle, asleep, locked, another user, and unknown when no presence transition covers the gap, a line on how much of the away time had background work ("Work went on in the background for 38m of it.", the background stretches' time within the counted gaps; none without), and the note "Time before your first and after your last activity of the day is not counted." Causes come from the detail log on the recording Mac; elsewhere and for other devices' blocks all gaps are unknown, and the line adds "(cause known only on the Mac that recorded it)". The filter does not apply.
 
 ### 1.9 Live updates and empty states
 
@@ -155,6 +155,7 @@ The Activity tab shows the same panels from the synced block log, without subjec
 18. With an empty log and no tracker set up the setup card shows and opens the Tracker pane; after a block exists it does not return.
 19. "Exclude <name> from Tracking…" opens the Tracker pane with the right list and value and saves nothing; after saving, past items of that rule disappear from every total while the log files stay byte-identical.
 20. The view never modifies the block log, detail log, `current.json`, or `settings.toml`.
+21. In the background adds the background stretches' items, each with its part while away; the Away panel says how much of the counted gaps background stretches cover, also under a context filter, and has no such line without them.
 
 ## 7. Decisions
 

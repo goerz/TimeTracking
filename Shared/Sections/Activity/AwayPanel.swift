@@ -14,6 +14,9 @@ struct AwayPanel: View {
             if !away.parts.isEmpty {
                 Text(away.partsText).foregroundStyle(.secondary)
             }
+            if let text = away.backgroundText {
+                Text(text).foregroundStyle(.secondary)
+            }
             Text("Time before your first and after your last activity of the day is not counted.")
                 .font(.caption)
                 .foregroundStyle(.secondary)

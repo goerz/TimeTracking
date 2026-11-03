@@ -19,10 +19,14 @@ struct CalendarSectionTests {
         let events: InMemoryCalendarEventStore
         let commands = RecordingTrackerCommands()
 
-        init(blocks: [ActivityBlock] = [], events: InMemoryCalendarEventStore = InMemoryCalendarEventStore()) async throws {
+        init(
+            blocks: [ActivityBlock] = [],
+            stretches: [ActivityBackgroundStretch] = [],
+            events: InMemoryCalendarEventStore = InMemoryCalendarEventStore()
+        ) async throws {
             let test = try await TestApp()
             self.test = test
-            self.activity = InMemoryActivityStore(blocks: blocks)
+            self.activity = InMemoryActivityStore(blocks: blocks, stretches: stretches)
             self.events = events
             self.router = SectionRouter(
                 store: test.store,
@@ -46,6 +50,21 @@ struct CalendarSectionTests {
 
     static func day(_ text: String) -> TrackingDay {
         TrackingDay(text) ?? TrackingDay(year: 2000, month: 1, day: 1)
+    }
+
+    @Test("PC-26 the activity column has the day's background stretches, each named by its items and their time while away")
+    func backgroundStretches() async throws {
+        let start = ManualClock.fixtureNow().addingTimeInterval(-3 * 3600)
+        let item = ActivityItem(context: "claude", subject: "refactor-parser", detail: "", seconds: 2280, device: "macbook")
+        let stretch = ActivityBackgroundStretch(
+            start: start,
+            end: start.addingTimeInterval(2310),
+            items: [item],
+            utcOffset: TimeZone.current.secondsFromGMT(for: start)
+        )
+        let world = try await World(stretches: [stretch])
+        #expect(world.model.stretches == [stretch])
+        #expect(stretch.summaryText == "In the background while away: Claude refactor-parser 38m")
     }
 
     @Test("PC-2 with today Thursday, ⌘T makes the first day Tuesday for 5 days, Monday for 7, Thursday for 1 and 2")

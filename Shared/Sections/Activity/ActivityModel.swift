@@ -101,6 +101,7 @@ final class ActivityModel {
             // Only the recording Mac shows the open block.
             let blocks = isRecordingMac ? loaded : loaded.filter { !$0.isOpen }
             newestBlockEnd = blocks.map(\.end).max()
+            let stretches = try await activity.backgroundStretches(in: interval, devices: nil)
             let details = isRecordingMac ? try await activity.details(for: blocks.map(\.id)) : [:]
             let input = ActivitySummaryInput(
                 blocks: blocks,
@@ -109,7 +110,8 @@ final class ActivityModel {
                 contexts: contexts,
                 device: selectedDevice,
                 details: details,
-                exclusions: activity.exclusions
+                exclusions: activity.exclusions,
+                stretches: stretches
             )
             let summary = await Task.detached { ActivitySummary(input) }.value
             self.summary = summary
