@@ -47,7 +47,7 @@ struct ProjectsTable: View {
         Table(
             of: ProjectTableItem.self,
             selection: selection,
-            sortOrder: ProjectTableItem.sortOrder($model.options),
+            sortOrder: ProjectColumnSort.sortOrder($model.options),
             columnCustomization: columns
         ) {
             nameColumns
@@ -120,21 +120,21 @@ struct ProjectsTable: View {
 
     // MARK: Columns
 
-    private typealias Sort = KeyPathComparator<ProjectTableItem>
+    private typealias Sort = ProjectColumnSort
 
     @TableColumnBuilder<ProjectTableItem, Sort> private var nameColumns: some TableColumnContent<ProjectTableItem, Sort> {
-        TableColumn("Project", value: \.sortName) { item in
+        TableColumn("Project", sortUsing: Sort(key: .name)) { item in
             ProjectNameCell(model: model, item: item)
         }
         .width(min: 160, ideal: 280)
         .customizationID("project")
         .disabledCustomizationBehavior(.visibility)
-        TableColumn("Client", value: \.sortClient) { item in
+        TableColumn("Client", sortUsing: Sort(key: .client)) { item in
             Text(item.row?.clientText ?? "")
         }
         .width(ideal: 140)
         .customizationID("client")
-        TableColumn("Area", value: \.sortArea) { item in
+        TableColumn("Area", sortUsing: Sort(key: .area)) { item in
             if let row = item.row {
                 Text(row.areaIsGeneral ? row.row.client?.name ?? "" : row.areaText)
                     .foregroundStyle(row.areaIsGeneral || row.isOrphan ? .secondary : .primary)
@@ -151,21 +151,21 @@ struct ProjectsTable: View {
     }
 
     @TableColumnBuilder<ProjectTableItem, Sort> private var dateColumns: some TableColumnContent<ProjectTableItem, Sort> {
-        TableColumn("Created", value: \.sortCreated) { item in
+        TableColumn("Created", sortUsing: Sort(key: .created)) { item in
             if let row = item.row {
                 dateText(row.row.project.createdAt)
             }
         }
         .width(ideal: 100)
         .customizationID("created")
-        TableColumn("Last tracked", value: \.sortLastTracked) { item in
+        TableColumn("Last tracked", sortUsing: Sort(key: .lastTracked)) { item in
             if let row = item.row {
                 dateText(row.row.lastUsed)
             }
         }
         .width(ideal: 120)
         .customizationID("lastTracked")
-        TableColumn("Total tracked", value: \.sortTotalTracked) { item in
+        TableColumn("Total tracked", sortUsing: Sort(key: .totalTracked)) { item in
             totalCell(item)
         }
         .width(ideal: 120)
