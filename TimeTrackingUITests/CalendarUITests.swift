@@ -131,8 +131,11 @@ final class CalendarUITests: XCTestCase {
         let today = header(app, "2024-03-14")
         let start = today.frame.minX
         XCTAssertNotNil(dayAtLeftEdge(app), "Today puts a day start at the left edge \(leftEdge(app)): \(headers(app))")
-        // Up and down scrolls the hours only.
+        // Up and down scrolls the hours, and only the hours.
+        let now = element(app, "calendar.nowLine")
+        let lineY = now.frame.minY
         element(app, "calendar.tracked.2024-03-14").scroll(byDeltaX: 0, deltaY: -150)
+        XCTAssertTrue(waitUntil { abs(now.frame.minY - lineY) > 50 }, "the hours did not scroll")
         XCTAssertEqual(today.frame.minX, start, accuracy: 0.5)
         // Sideways moves through time, without snapping to a day.
         element(app, "calendar.tracked.2024-03-14").scroll(byDeltaX: -70, deltaY: 0)

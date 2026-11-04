@@ -151,13 +151,14 @@ extension PhoneModel {
         MenuState(router: pad?.router, timerKey: padTab == .timer, sectionKey: padTab != .timer)
     }
 
-    /// ⌘F: the Timer list's filter, or the Projects or Reports search.
+    /// ⌘F: the Timer list's filter, or the Calendar, Projects, or Reports search.
     private func find(in router: SectionRouter) {
         switch padTab {
         case .timer: list.showFilter()
+        case .calendar: router.calendar.focusSearch()
         case .projects: router.projects.focusSearch()
         case .reports: router.reports.focusSearch()
-        case .calendar, .activity: break
+        case .activity: break
         }
     }
 }

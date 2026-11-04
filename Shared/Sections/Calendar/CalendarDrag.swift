@@ -56,30 +56,11 @@ extension View {
         var onLongPress: (() -> Void)?
         var onChanged: (CalendarDrag) -> Void
         var onEnded: (CalendarDrag) -> Void
-        @State private var start: CGPoint?
 
         func body(content: Content) -> some View {
             content
-                .gesture(LongPressGesture(minimumDuration: CalendarTouch.liftSeconds)
-                    .sequenced(before: DragGesture(minimumDistance: 0))
-                    .onChanged { value in
-                        if case let .second(true, drag?) = value {
-                            onChanged(CalendarDrag(start: drag.startLocation, location: drag.location))
-                        }
-                    }
-                    .onEnded { value in
-                        guard case let .second(true, drag) = value else {
-                            return
-                        }
-                        let ended = drag.map { CalendarDrag(start: $0.startLocation, location: $0.location) }
-                        if let ended, hypot(ended.translation.width, ended.translation.height) >= 4 {
-                            onEnded(ended)
-                        } else if let onLongPress {
-                            onLongPress()
-                        } else if let ended {
-                            onEnded(ended)
-                        }
-                    })
+                // UIKit's long press, which leaves a quick drag to the scroll view.
+                .gesture(TouchLiftDrag(onLongPress: onLongPress, onChanged: onChanged, onEnded: onEnded))
                 .gesture(PencilDrag(onChanged: onChanged, onEnded: onEnded))
         }
     }

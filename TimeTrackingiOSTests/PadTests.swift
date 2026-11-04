@@ -142,12 +142,16 @@ struct PadTests {
         #expect(model.padMenuState.projectCommands)
         #expect(router.continueTarget == nil)
 
-        // Calendar: Go to Today and the period commands, no Find.
+        // Calendar: Go to Today, the period commands, and Find, which
+        // focuses its search field.
         model.padTab = .calendar
         #expect(model.padMenuState.sectionMenuTitle == "Calendar")
         #expect(model.padMenuState.calendarCommands)
         #expect(model.padMenuState.periodCommands)
-        #expect(!model.isEnabled(.find))
+        #expect(model.isEnabled(.find))
+        let calendarSearches = router.calendar.searchFocusRequests
+        await model.perform(.find)
+        #expect(router.calendar.searchFocusRequests == calendarSearches + 1)
 
         model.padTab = .reports
         #expect(model.padMenuState.reportCommands)

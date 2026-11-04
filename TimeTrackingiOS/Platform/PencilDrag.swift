@@ -34,7 +34,7 @@ struct PencilDrag: UIGestureRecognizerRepresentable {
             let translation = recognizer.translation(in: recognizer.view)
             let start = CGPoint(x: location.x - translation.x, y: location.y - translation.y)
             coordinator.start = start
-            coordinator.scrollPan = Self.scrollPan(above: recognizer.view)
+            coordinator.scrollPan = EnclosingScrollPan.of(recognizer.view)
             coordinator.scrollPan?.isEnabled = false
             onChanged(CalendarDrag(start: start, location: location))
         case .changed:
@@ -57,17 +57,5 @@ struct PencilDrag: UIGestureRecognizerRepresentable {
         coordinator.start = nil
         coordinator.scrollPan?.isEnabled = true
         coordinator.scrollPan = nil
-    }
-
-    /// The pan of the nearest enclosing scroll view.
-    private static func scrollPan(above view: UIView?) -> UIGestureRecognizer? {
-        var current = view
-        while let candidate = current {
-            if let scroll = candidate as? UIScrollView {
-                return scroll.panGestureRecognizer
-            }
-            current = candidate.superview
-        }
-        return nil
     }
 }
