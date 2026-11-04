@@ -60,6 +60,25 @@ public final class DarwinChangeNotifier: ChangeNotifier {
     }
 }
 
+/// Posts through another notifier and listens to nothing: for a process
+/// that writes and exits (the command-line tool), which needs no change
+/// events and must not keep its store open past its last command.
+public struct PostOnlyChangeNotifier: ChangeNotifier {
+    private let base: any ChangeNotifier
+
+    public init(_ base: any ChangeNotifier) {
+        self.base = base
+    }
+
+    public func post() {
+        base.post()
+    }
+
+    public func notifications() -> AsyncStream<Void> {
+        AsyncStream { $0.finish() }
+    }
+}
+
 /// An in-process stand-in for the Darwin notification: endpoints of one
 /// hub see each other's posts, as separate processes would. Counts posts.
 public final class InMemoryChangeNotifier: ChangeNotifier {

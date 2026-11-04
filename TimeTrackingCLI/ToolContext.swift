@@ -65,7 +65,8 @@ nonisolated struct ToolContext {
                 deviceID: deviceID(for: url),
                 clock: clock,
                 readOnly: !writing,
-                busyTimeout: isDebug ? arguments.busyTimeout ?? TimeStore.defaultBusyTimeout : TimeStore.defaultBusyTimeout
+                busyTimeout: isDebug ? arguments.busyTimeout ?? TimeStore.defaultBusyTimeout : TimeStore.defaultBusyTimeout,
+                observesOtherProcesses: false
             )
             return AutomationService(store: store, timeZone: timeZone)
         } catch {
