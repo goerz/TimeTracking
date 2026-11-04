@@ -99,6 +99,10 @@ protocol ActivationTarget: AnyObject {
     @discardableResult
     func setActivationPolicy(_ activationPolicy: NSApplication.ActivationPolicy) -> Bool
     func activate()
+    /// Activates the app although another app is active now.
+    func reclaimActivation()
+    /// Runs `action` if the app resigns active right away (`ResignWatch.window`).
+    func onPromptDeactivation(_ action: @escaping () -> Void)
 }
 
 /// What `ActivationPolicy` needs of a window.
@@ -111,6 +115,17 @@ protocol KeyWindowTarget: AnyObject {
 extension NSApplication: ActivationTarget {
     var keyWindowTarget: (any KeyWindowTarget)? {
         keyWindow
+    }
+
+    /// Cooperative `activate()` is refused once another app has taken
+    /// over, which the switch to accessory causes on its own; this request
+    /// follows the user's own click in this app a moment before.
+    func reclaimActivation() {
+        activate(ignoringOtherApps: true)
+    }
+
+    func onPromptDeactivation(_ action: @escaping () -> Void) {
+        ResignWatch.start(action)
     }
 }
 
@@ -126,9 +141,17 @@ enum ActivationPolicy {
         let window = keyWindow ?? application.keyWindowTarget
         application.setActivationPolicy(policy)
         if !showDockIcon, let window, window.isVisible {
-            // Switching to accessory deactivates the app; keep the window key.
+            // Switching to accessory deactivates the app, asynchronously:
+            // ask to stay active and keep the window key now, and take
+            // activation back if the deactivation comes after this request
+            // (it sometimes does, and the window then ended up behind
+            // another app's, which a cooperative request cannot undo).
             application.activate()
             window.makeKeyAndOrderFront(nil)
+            application.onPromptDeactivation {
+                application.reclaimActivation()
+                window.makeKeyAndOrderFront(nil)
+            }
         }
     }
 }

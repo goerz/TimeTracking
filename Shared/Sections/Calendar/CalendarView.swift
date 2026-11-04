@@ -156,15 +156,21 @@ struct CalendarView: View {
         .onChange(of: model.pointsPerHour) { old, new in keepTimeInPlace(from: old, to: new) }
         #if os(iOS)
             // Pinch vertically to zoom the hours, horizontally the day width;
-            // two fingers sideways scroll through time (spec_ios.md §10.2).
+            // a sideways swipe, with one finger or two, scrolls through time
+            // (spec_ios.md §10.2).
             .gesture(CalendarPinch { scale, horizontal in
                 pinch(scale: scale, horizontal: horizontal)
             } onEnd: {
                 pinchBase = nil
                 dayWidthBase = nil
             })
-            .gesture(CalendarTwoFingerSwipe { delta in
+            .gesture(CalendarSidewaysPan { delta in
                 model.scroll(byPoints: -Double(delta))
+            } onEnded: { velocity in
+                // The days coast on, slowing down, as a scroll view's would.
+                withAnimation(.easeOut(duration: 0.45)) {
+                    model.scroll(byPoints: -Double(velocity) * 0.2)
+                }
             })
         #else
             .gesture(MagnifyGesture().onChanged { value in

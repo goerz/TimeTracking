@@ -101,6 +101,12 @@ final class PadUITests: XCTestCase {
         let headerX = header.frame.minX
         header.swipeLeft()
         XCTAssertLessThan(header.frame.minX, headerX - 75, "the days did not scroll")
+        // So does a sideways swipe over the hours, without scrolling them.
+        let swipedX = header.frame.minX
+        let swipedLineY = now.frame.minY
+        app.scrollViews.firstMatch.swipeRight()
+        XCTAssertGreaterThan(header.frame.minX, swipedX + 75, "a swipe over the hours did not scroll the days")
+        XCTAssertEqual(now.frame.minY, swipedLineY, accuracy: 20, "a sideways swipe scrolled the hours")
         // A pinch zooms: the hours or the day width, by the fingers' axis.
         let height = column.frame.height
         let width = header.frame.width

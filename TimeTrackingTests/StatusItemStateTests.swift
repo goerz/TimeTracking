@@ -115,6 +115,12 @@ struct StatusItemStateTests {
         #expect(application.policy == .accessory)
         #expect(application.activations == 1)
         #expect(window.madeKey == 1)
+        // A deactivation after that request: active and key again.
+        application.afterDeactivation?()
+        #expect(application.activations == 2)
+        #expect(window.madeKey == 2)
+        application.activations = 1
+        window.madeKey = 1
         // Already accessory: nothing changes.
         ActivationPolicy.apply(showDockIcon: false, keyWindow: window, application: application)
         #expect(application.activations == 1)
@@ -189,6 +195,17 @@ final class FakeApplication: ActivationTarget {
 
     func activate() {
         activations += 1
+    }
+
+    func reclaimActivation() {
+        activations += 1
+    }
+
+    /// The re-activation after a late deactivation, run when the test says.
+    var afterDeactivation: (() -> Void)?
+
+    func onPromptDeactivation(_ action: @escaping () -> Void) {
+        afterDeactivation = action
     }
 }
 

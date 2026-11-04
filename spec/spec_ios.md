@@ -282,7 +282,7 @@ A `TabView` with the iPadOS tab bar (collapsible to a sidebar): Timer, Calendar,
 | Drag a block or event into the Tracked column | The same drag after a long press |
 | Hover tooltip or hover button | Tap shows a popover with the text and actions; Apple Pencil hover and a trackpad pointer show it as hover does |
 | Right-click context menu | Long press |
-| Vertical zoom and day width; sideways scrolling | Pinch vertically for the hours, horizontally for the day width; a two-finger sideways swipe scrolls through time, following the fingers |
+| Vertical zoom and day width; sideways scrolling | Pinch vertically for the hours, horizontally for the day width; a sideways swipe with one finger or two over the days or their headers scrolls through time, following the fingers and coasting on with their speed; a swipe that starts mostly up or down scrolls the hours, and a press held still lifts an item instead. Two fingers swiping sideways always change their spread a little, so a pinch zooms only once the spread has changed by about 12% (from there on, without a jump), and whichever of the two starts first owns the touch until the fingers lift |
 | Menu bar item, global shortcuts, login item, idle detection, reminders, CLI | Absent |
 
 The Calendar tab requests calendar access per [spec_calendar.md](spec_calendar.md); the iPhone never uses EventKit.
@@ -357,7 +357,7 @@ The iPad reads the block log through `ActivityReading` and the Mac's activity fr
 - IOS-40. With Sleep on in the synced settings, the iPhone asks for sleep access at the next foreground and imports the night; turning Workouts on asks for both kinds and imports the workout; a refresh task imports without asking; with both off nothing is asked.
 - IOS-41. An import records the synced import status with the device name and the kinds read; a refresh 10 minutes later leaves it unchanged, turning Workouts on rewrites it with both kinds at once, and a refresh an hour later moves its time.
 - IOS-42. Tapping the card's elapsed time, tapping the running row, and the running row's Edit open the running entry's sheet with its task and End "Running"; the running row's context menu also has Copy Task and Discard. Moving Start 15 minutes earlier and Done moves the card's elapsed time by 15 minutes and keeps the task on the card and in the row; a task typed on the card just before is the sheet's task and is kept; a task stored after the sheet loaded is kept when Done changes only Start and the project.
-- IOS-43. In the iPad's Calendar a swipe up scrolls the hours, a sideways swipe on the day headers scrolls the days, and a pinch zooms; a long press then drag draws instead (IOS-35).
+- IOS-43. In the iPad's Calendar a swipe up scrolls the hours, a sideways swipe on the day headers or over the hours scrolls the days (and not the hours), and a pinch zooms; a long press then drag draws instead (IOS-35).
 
 ## 13. Decisions
 

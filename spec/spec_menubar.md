@@ -112,7 +112,7 @@ While active, the icon carries the badge and the menu starts with the warning he
 | On (default) | Regular | Dock tile with a Dock menu; in ⌘-Tab. Clicking the tile shows the main window. |
 | Off | Accessory | No Dock tile, not in ⌘-Tab; windows open normally and the main menu shows while one is key. |
 
-The app keeps running when its last window closes. Switching to accessory with a window open re-activates the app so the window that was key (the settings window, when the change comes from there; else the main window or the Mini Timer) stays key and in front. The Dock menu has "New Entry", "Continue Latest", and "Stop", with the enablement and actions of 2.2.
+The app keeps running when its last window closes. Switching to accessory with a window open re-activates the app so the window that was key (the settings window, when the change comes from there; else the main window or the Mini Timer) stays key and in front. The switch deactivates the app asynchronously, sometimes only after that request, and then another app is active and a cooperative request is refused, so a deactivation within 300 ms of the switch (it comes after about 150 ms; a deliberate switch to another app takes longer and stands) takes activation back (`activate(ignoringOtherApps: true)`) on the next turn of the run loop. The Dock menu has "New Entry", "Continue Latest", and "Stop", with the enablement and actions of 2.2.
 
 ## 5. Refresh
 
