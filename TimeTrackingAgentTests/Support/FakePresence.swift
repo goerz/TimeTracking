@@ -38,8 +38,12 @@ final class FakeCommands: CommandRunning {
     var outputs: [String: String] = [:]
     private(set) var calls: [[String]] = []
 
+    /// Awaited by every run before it answers (a test holds a tick there).
+    var beforeAnswer: (@MainActor () async -> Void)?
+
     func run(_ arguments: [String]) async -> String? {
         calls.append(arguments)
+        await beforeAnswer?()
         return outputs[arguments.joined(separator: " ")]
     }
 
@@ -81,8 +85,10 @@ final class FakeFiles: FileProbe {
         folders[path]
     }
 
-    func modificationDate(_: String) -> Date? {
-        nil
+    var modified: [String: Date] = [:]
+
+    func modificationDate(_ path: String) -> Date? {
+        modified[path]
     }
 }
 

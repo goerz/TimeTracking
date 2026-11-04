@@ -159,7 +159,7 @@ The active tab of a frontmost browser is read through Apple Events: Safari's cur
 
 Safari private windows write no history: a sampled Safari URL with no visit in a copy of `History.db` within 3 minutes is recorded as `safari (private)` and the sampled URL is dropped. Without Full Disk Access, Safari URLs are reduced to the domain.
 
-At block close, the detail log gets every visit in the block's range from Safari's `History.db` (`origin = 0`) and each Chromium profile's `History` (copies, never the live files).
+At block close, the detail log gets every visit in the block's range from Safari's `History.db` (`origin = 0`) and each Chromium profile's `History` (copies, never the live files; a copy during which the database or its WAL changed is made again, up to three times).
 
 Block summaries strip query and fragment except on a short allowlist (code host pull request and issue paths, forum topic ids, arXiv ids), map `localhost:<port>` to the owning pane's item, and reduce domains in the `summary_domain_only` categories to the domain. The detail log keeps full URLs, apart from private domains.
 
@@ -167,7 +167,7 @@ Block summaries strip query and fragment except on a short allowlist (code host 
 
 Idle seconds come from `CGEventSource` (no permission); lock from `com.apple.screenIsLocked` and `com.apple.screenIsUnlocked`; display sleep, system sleep, and user switches from `NSWorkspace` notifications; console ownership is checked each tick.
 
-An FSEvents stream on `roots`, skipping `prune_names`, records modified files into the detail log of the block. When a block's terminal items have no resolved file, files modified in the pane's cwd fill the detail.
+An FSEvents stream on `roots`, skipping `prune_names`, records modified files into the detail log of the block. FSEvents delivers late and without a time, so a change counts at the file's modification time when that lies within the last minute, else at its delivery. When a block's terminal items have no resolved file, files modified in the pane's cwd fill the detail.
 
 ### 3.5 Health and fallbacks
 
@@ -202,7 +202,7 @@ Each source is detected at runtime and reports `active`, `fallback`, or `off` (c
 | Current state | Agent folder, `Activity/current.json` | Open block, primary item, presence, health | Each tick |
 | Settings | Shared folder, `settings.toml` | Section 7 | Permanent |
 
-The agent folder is `<App Group container>/Library/Application Support/TimeTracking/` (`spec_architecture.md`); it also holds the socket `tracker.sock` and the health watchdog file, and nothing in it leaves the Mac. The shared folder is `Activity/` in the product's iCloud Drive container, outside `Documents/`, and holds only `blocks/` and `settings.toml`. Each Mac's agent writes only its own subfolder of `blocks/`, named by the Mac's hardware UUID (which stays when the Mac is renamed), so no two Macs ever rewrite the same file and iCloud Drive never has to choose between two versions; readers read every subfolder. Month files directly in `blocks/` come from before the subfolders: readers still read them, and on start each agent moves the lines that follow a header whose `dev` is its own name into its subfolder, leaves another Mac's lines, and removes a file left without blocks or stretches. Every block-log, detail-log, and `current.json` write replaces the whole file (a temporary file, then a rename), so a reader sees a day as it was before or after a rewrite, never in between; when a day changes, its detail file is replaced before its month file. Without iCloud Drive, the agent folder's `Activity/` takes its place (`shared_folder` reports `off`).
+The agent folder is `<App Group container>/Library/Application Support/TimeTracking/` (`spec_architecture.md`); it also holds the socket `tracker.sock`, the health watchdog file, and `agent.lock`, which the running agent holds (a second agent finds it taken and exits), and nothing in it leaves the Mac. The shared folder is `Activity/` in the product's iCloud Drive container, outside `Documents/`, and holds only `blocks/` and `settings.toml`. Each Mac's agent writes only its own subfolder of `blocks/`, named by the Mac's hardware UUID (which stays when the Mac is renamed), so no two Macs ever rewrite the same file and iCloud Drive never has to choose between two versions; readers read every subfolder. Month files directly in `blocks/` come from before the subfolders: readers still read them, and on start each agent moves the lines that follow a header whose `dev` is its own name into its subfolder, leaves another Mac's lines, and removes a file left without blocks or stretches. Every block-log, detail-log, and `current.json` write replaces the whole file (a temporary file, then a rename), so a reader sees a day as it was before or after a rewrite, never in between; when a day changes, its detail file is replaced before its month file. A month file that iCloud Drive holds only as a placeholder (evicted, or not yet downloaded) is never written: the agent asks for its download and writes the day once it is here. Without iCloud Drive, the agent folder's `Activity/` takes its place (`shared_folder` reports `off`).
 
 At start, the agent checks that it can write the container. If it cannot, it writes `blocks/` and reads `settings.toml` in the agent folder's `Activity/`, and `shared_folder` reports `fallback`; the Mac app then copies each changed month file into the container at the same path below `blocks/` (whole-file replace, `NSFileCoordinator`) and keeps the two `settings.toml` identical (newer modification time wins). The status alone tells the Mac app to copy: `shared_folder` reports `fallback` only in this case, and the reason is display text that nothing compares.
 
@@ -240,7 +240,7 @@ The agent pushes nothing. The Timer reads `presence` for its own idle detection 
 
 ## 5. Agent
 
-The agent, `TimeTrackingAgent.app`, is a headless login item with `KeepAlive` (bundle, registration, entitlements in `spec_architecture.md`), always team-signed because TCC keys grants to signing identities. Its modules: Presence, Focus, Resolvers (adapters per app), Settings (loads and reloads `settings.toml`), Sampler, Blocker (blocks, summaries, logs, `current.json`), Knowledge, History, Devices (6.2), Events (the socket), and Health. A tick takes under 100 ms.
+The agent, `TimeTrackingAgent.app`, is a headless login item with `KeepAlive` (bundle, registration, entitlements in `spec_architecture.md`), always team-signed because TCC keys grants to signing identities. Ticks come from the 30-second loop, socket commands, presence events, and app activation; they run one at a time, and the requests arriving during a tick share one follow-up tick. A command the agent runs (`ps`, `tmux`, `lsof`) that is still running after 5 seconds is stopped and counts as unreadable, so a hung one cannot stall the ticks. Its modules: Presence, Focus, Resolvers (adapters per app), Settings (loads and reloads `settings.toml`), Sampler, Blocker (blocks, summaries, logs, `current.json`), Knowledge, History, Devices (6.2), Events (the socket), and Health. A tick takes under 100 ms.
 
 | Flag | Effect |
 |---|---|
@@ -260,7 +260,7 @@ macOS checks Accessibility for the agent itself, but attributes the agent's file
 
 ### 6.1 Synced Safari history
 
-With `synced_safari_history` on, the History module stores Safari's `History.db` visits with `origin = 1` (synced from other devices) for the timeline (2.4): a visit lasts until the next one when that follows within 5 minutes. A run of visits without a longer gap belongs to `remote`, unless `CloudTabs.db` (polled every 5 minutes) shows that within it exactly one device's tab set changed to include a visited URL; then to that device's name.
+With `synced_safari_history` on, the History module stores Safari's `History.db` visits with `origin = 1` (synced from other devices) for the timeline (2.4); since such visits, like the Knowledge store's app usage, can arrive hours late, each read covers the last 24 hours again and replaces what it stored for them: a visit lasts until the next one when that follows within 5 minutes. A run of visits without a longer gap belongs to `remote`, unless `CloudTabs.db` (polled every 5 minutes) shows that within it exactly one device's tab set changed to include a visited URL; then to that device's name.
 
 ### 6.2 Collected by the iOS app
 
@@ -287,7 +287,7 @@ A Focus that suspends collection closes the open block.
 
 ## 7. Settings and exclusions
 
-All settings live in `settings.toml` in the shared folder, read by the agent and the iOS collection. The file is the user's to edit in a text editor: the default file comments every setting, and the Tracker pane (7.4) shows the file and opens it. The app writes it only to create the default file when there is none, and to add an exclusion drafted in the Activity section, which inserts one value and keeps every other byte (comments, order, formatting). The agent reloads the file on change and applies it from the next tick.
+All settings live in `settings.toml` in the shared folder, read by the agent and the iOS collection. A file that cannot be read (a parse error, or an iCloud Drive placeholder after eviction) leaves the settings in force, exclusions included, until it can. The file is the user's to edit in a text editor: the default file comments every setting, and the Tracker pane (7.4) shows the file and opens it. The app writes it only to create the default file when there is none, and to add an exclusion drafted in the Activity section, which inserts one value and keeps every other byte (comments, order, formatting). The agent reloads the file on change and applies it from the next tick.
 
 ### 7.1 Defaults
 
@@ -423,7 +423,7 @@ Exclusions apply wherever data enters (sampler, histories, file stream, Knowledg
 
 ### 7.3 Rewrite commands
 
-Settings changes never touch past logs. Three socket commands rewrite the log files and samples they touch: `delete-block <s>`, `forget-day <date>`, and `reapply-exclusions <from> <to>`. `delete-block` and `forget-day` delete what the block or day was formed from (samples, reconstructed samples, synced Safari visits, iPhone and iPad events) and record the time as deleted, so late events never form a block there again; then the day is formed again (2.8), which removes the background stretches of that time too. `reapply-exclusions` applies to the items of background stretches as to blocks and drops a stretch left without items. The agent rewrites, replacing each file atomically and keeping unaffected lines byte-identical; the answer is `ok` or `error <reason>`. The UI for `delete-block` is "Delete This Activity…" in the Calendar's activity column (`spec_calendar.md`); the other two are run with `tracker-event`, which the Tracker pane's "Activity logs" info shows. The reasons are protocol text; the Mac app logs them and shows its own sentence: "The tracker could not be reached." (no socket, or the link to it fails), "The tracker is not running." (nothing listens), "This activity is no longer in the logs." (a reason starting with `no block at`), "The tracker is restarting. Try again in a moment." (`the tracker is stopping`), and "The tracker could not change the logs." for any other.
+Settings changes never touch past logs. Three socket commands rewrite the log files and samples they touch: `delete-block <s> [<e>]`, `forget-day <date>`, and `reapply-exclusions <from> <to>`. With `<e>`, `delete-block` deletes everything from `<s>` to `<e>`, so a block the Calendar showed is deleted whole even when a tick has cut it since; the Calendar always sends both. `delete-block` and `forget-day` delete what the block or day was formed from (samples, reconstructed samples, synced Safari visits, iPhone and iPad events) and record the time as deleted, so late events never form a block there again; then the day is formed again (2.8), which removes the background stretches of that time too. `reapply-exclusions` applies to the items of background stretches as to blocks and drops a stretch left without items. The agent rewrites, replacing each file atomically and keeping unaffected lines byte-identical; the answer is `ok` or `error <reason>`. The UI for `delete-block` is "Delete This Activity…" in the Calendar's activity column (`spec_calendar.md`); the other two are run with `tracker-event`, which the Tracker pane's "Activity logs" info shows. The reasons are protocol text; the Mac app logs them and shows its own sentence: "The tracker could not be reached." (no socket, or the link to it fails), "The tracker is not running." (nothing listens), "This activity is no longer in the logs." (a reason starting with `no block at`), "The tracker is restarting. Try again in a moment." (`the tracker is stopping`), and "The tracker could not change the logs." for any other.
 
 ### 7.4 The Tracker settings pane
 
@@ -506,6 +506,15 @@ The pane has no editors for exclusions or options and no maintenance controls: t
 - TRK-44. Each Mac writes only `blocks/<mac>/`: forming a day again leaves another Mac's blocks of that day, and readers show both; on start the agent moves its own lines out of a month file directly in `blocks/` and leaves another Mac's.
 - TRK-45. Replacing a day writes its detail file and then its month file, each in one rename; when the detail file cannot be written, the month file is unchanged.
 - TRK-46. A block still open when the agent stopped without a SIGTERM is closed on its own day by the agent's first tick days later.
+- TRK-47. Two tick requests arriving while a tick waits for `ps` start one follow-up tick, after the first; no two ticks run at once.
+- TRK-48. A copy of another app's database during which its WAL changed is made again and matches the files as they are afterwards.
+- TRK-49. A second agent finds `agent.lock` taken and does not start.
+- TRK-50. A file event delivered 20 seconds after the save is recorded at the save; one whose file was last modified an hour ago, at its delivery.
+- TRK-51. A month file present only as an iCloud Drive placeholder is not written; once it is downloaded, the day joins the month's other days.
+- TRK-52. A command still running at its deadline is stopped and answers nothing; the tick goes on.
+- TRK-53. With `settings.toml` replaced by an iCloud Drive placeholder, the agent and the readers keep the exclusions they had.
+- TRK-54. `delete-block <s> <e>` over two blocks deletes both and their samples.
+- TRK-55. Synced Safari visits arriving after the agent read past their time still form a remote block; the Knowledge backfill likewise reads the last 24 hours again.
 
 ## 9. Decisions
 

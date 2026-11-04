@@ -33,6 +33,9 @@ public actor TimeStore {
         /// How long a write waits for another process's write lock before
         /// failing with `StoreError.busy` (spec_data_and_sync.md §2.2).
         public var busyTimeout: TimeInterval
+        /// Called once when a write starts waiting for another process's
+        /// lock (the tool's test seam); `nil` for none.
+        public var onBusy: (@Sendable () -> Void)?
 
         @preconcurrency
         public init(
@@ -75,11 +78,28 @@ public actor TimeStore {
     /// The busy timeout of §2.2: a write outlasts another writer's 2-second
     /// transaction but not a 10-second one.
     public static let defaultBusyTimeout: TimeInterval = 5
+    /// The wait between retries of a busy write with `onBusy`.
+    static let busyRetryInterval: TimeInterval = 0.01
 
     /// Opens the database and migrates it; prefer `open(_:)`.
     public init(_ configuration: Configuration) throws {
         var options = GRDB.Configuration()
-        options.busyMode = .timeout(configuration.busyTimeout)
+        if let onBusy = configuration.onBusy {
+            // The timeout of `.timeout`, with a report at the first wait.
+            let timeout = configuration.busyTimeout
+            options.busyMode = .callback { tries in
+                if tries == 0 {
+                    onBusy()
+                }
+                guard Double(tries) * Self.busyRetryInterval < timeout else {
+                    return false
+                }
+                usleep(useconds_t(Self.busyRetryInterval * 1_000_000))
+                return true
+            }
+        } else {
+            options.busyMode = .timeout(configuration.busyTimeout)
+        }
         options.readonly = configuration.readOnly
         options.foreignKeysEnabled = false
         switch configuration.location {

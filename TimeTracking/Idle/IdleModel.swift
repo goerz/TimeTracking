@@ -101,9 +101,11 @@ final class IdleModel {
             case .keep:
                 return
             case .discard:
-                try await store.stop(at: stopAt)
+                _ = try await store.transaction { try $0.stop(chainOf: running.id, at: stopAt) }
             case .discardAndContinue:
-                try await store.stop(at: stopAt)
+                guard try await store.transaction({ try $0.stop(chainOf: running.id, at: stopAt) }) != nil else {
+                    break
+                }
                 try await store.start(projectID: running.projectID, task: running.task, at: clock.now)
             case .split:
                 try await store.start(projectID: nil, task: "", at: stopAt)
@@ -123,7 +125,9 @@ final class IdleModel {
             guard let running else {
                 return
             }
-            _ = try? await store.stop(at: max(time, running.start))
+            // Only the entry the decision was about, in one write: one
+            // started meanwhile keeps running.
+            _ = try? await store.transaction { try $0.stop(chainOf: running.id, at: max(time, running.start)) }
             await onChange?()
         case let .prompt(idleStart):
             guard let running else {
@@ -137,6 +141,10 @@ final class IdleModel {
         // A new idle period extends an open prompt.
         let start = min(prompt?.idleStart ?? idleStart, idleStart)
         let listing = try? await store.listings(for: [running]).first
+        // Stopped while the prompt was being prepared: nothing to ask.
+        guard await (try? store.runningEntry())?.id == running.id else {
+            return
+        }
         let project = listing.flatMap { $0.project?.name } ?? "No project"
         let task = running.task.isEmpty ? "No task" : running.task
         prompt = IdlePrompt(idleStart: start, entryID: running.id, runningText: "Running: \(task) · \(project)")

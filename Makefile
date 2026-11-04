@@ -220,10 +220,13 @@ agent-test: secrets ## (1 min) TimeTrackingAgentTests
 	$(require_team)
 	$(AGENT_TEST)
 
-ui-test: secrets ## (8 min) Mac UI tests, iOS UI tests on both simulators (UI_TESTS=Class[/method] runs only those Mac tests)
+ui-test: secrets ## (8 min) Mac UI tests, iOS UI tests on both simulators (UI_TESTS=Class[/method] runs only those Mac tests, IPAD_UI_TESTS those on the iPad simulator)
 	$(require_team)
 ifdef UI_TESTS
 	$(XCB) test -scheme TimeTracking $(MAC_DEST) $(foreach t,$(UI_TESTS),-only-testing:TimeTrackingUITests/$(t)) $(SIGN)
+else ifdef IPAD_UI_TESTS
+	@$(MAKE) --no-print-directory sim-create
+	$(SIM_UDIDS) $(XCB) test -scheme TimeTrackingiOS $(IPAD_DEST) $(foreach t,$(IPAD_UI_TESTS),-only-testing:TimeTrackingiOSUITests/$(t)) $(SIGN)
 else
 	@$(MAKE) --no-print-directory sim-create
 	$(XCB) test -scheme TimeTracking $(MAC_DEST) -only-testing:TimeTrackingUITests $(SIGN)

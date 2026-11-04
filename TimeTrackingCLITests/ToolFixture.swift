@@ -37,8 +37,26 @@ struct ToolFixture {
         self.temporary = try TemporaryFolder("tool")
     }
 
+    /// The change notification of this fixture's tool runs, not the real
+    /// `<APP_ID>.changed`, so a running Debug app's posts are not counted.
+    var changeNotification: String {
+        "timetracking.tests.\(folder.lastPathComponent).changed"
+    }
+
+    /// The file the tool creates when a write waits for the store's lock.
+    var busyMarker: URL {
+        folder.appending(path: "busy.marker")
+    }
+
     var environment: [String: String] {
-        ["TIMETRACKING_STORE": store.path, "TIMETRACKING_NOW": Self.now, "TZ": Self.zone, "NO_COLOR": "1"]
+        [
+            "TIMETRACKING_STORE": store.path,
+            "TIMETRACKING_NOW": Self.now,
+            "TZ": Self.zone,
+            "NO_COLOR": "1",
+            "TIMETRACKING_CHANGE_NOTIFICATION": changeNotification,
+            "TIMETRACKING_BUSY_MARKER": busyMarker.path,
+        ]
     }
 
     func run(_ arguments: [String], environment extra: [String: String] = [:]) throws -> ToolResult {

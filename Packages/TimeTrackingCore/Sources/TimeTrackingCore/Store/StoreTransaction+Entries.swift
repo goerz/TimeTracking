@@ -64,6 +64,19 @@ extension StoreTransaction {
         return stopped
     }
 
+    /// Stops the running entry at `at` only while it belongs to the chain
+    /// of `id` (the entry itself or a midnight continuation of it); `nil`
+    /// when something else runs or nothing does. The check and the stop
+    /// are one transaction, so a button showing an old entry never stops
+    /// one started elsewhere meanwhile.
+    @discardableResult
+    public func stop(chainOf id: EntryID, at: Date) throws -> TimeEntry? {
+        guard let shown = try entry(id, includeDeleted: true), try runningEntries().contains(where: { $0.rootID == shown.rootID }) else {
+            return nil
+        }
+        return try stop(at: at)
+    }
+
     /// Starts a new entry with the project and task of `id`.
     public func `continue`(_ id: EntryID, at: Date) throws -> TimeEntry {
         let entry = try liveEntry(id)

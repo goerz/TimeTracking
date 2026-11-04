@@ -9,16 +9,21 @@ import AppKit
 import Darwin
 import Foundation
 
-/// Runs commands with `Process`, off the main actor.
+/// Runs commands with `Process`, off the main actor. A command still
+/// running at `timeout` (a hung `tmux` server, `lsof` on a stalled mount)
+/// is terminated and answers `nil`, so it cannot stall the tick loop.
 struct LiveCommandRunner: CommandRunning {
+    var timeout: Duration = .seconds(5)
+
     func run(_ arguments: [String]) async -> String? {
         guard let executable = arguments.first, FileManager.default.isExecutableFile(atPath: executable) else {
             return nil
         }
-        return await Task.detached { Self.execute(arguments) }.value
+        let timeout = timeout
+        return await Task.detached { Self.execute(arguments, timeout: timeout) }.value
     }
 
-    private nonisolated static func execute(_ arguments: [String]) -> String? {
+    private nonisolated static func execute(_ arguments: [String], timeout: Duration) -> String? {
         let process = Process()
         process.executableURL = URL(filePath: arguments[0])
         process.arguments = Array(arguments.dropFirst())
@@ -31,8 +36,14 @@ struct LiveCommandRunner: CommandRunning {
         } catch {
             return nil
         }
+        let pid = process.processIdentifier
+        let deadline = Task.detached {
+            try await Task.sleep(for: timeout)
+            kill(pid, SIGKILL)
+        }
         let data = output.fileHandleForReading.readDataToEndOfFile()
         process.waitUntilExit()
+        deadline.cancel()
         guard process.terminationStatus == 0 else {
             return nil
         }

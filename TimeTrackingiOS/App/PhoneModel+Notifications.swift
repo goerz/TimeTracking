@@ -60,7 +60,9 @@ extension PhoneModel {
             category: .longRunning,
             title: "Still tracking \(subject)?",
             body: "Running for \(elapsedHours) hour\(elapsedHours == 1 ? "" : "s").",
-            date: max(date, clock.now + 1)
+            date: max(date, clock.now + 1),
+            // Its Stop acts on this entry only (IOS-45).
+            entryID: timer.running?.rootID.rawValue
         ))
     }
 
@@ -80,7 +82,11 @@ extension PhoneModel {
                 elapsedHours: hours + settings.longRunningHours
             )
         case .stop:
-            await timer.stop()
+            if let root = entryID.flatMap({ EntryID($0) }) {
+                await timer.stop(chainOf: root)
+            } else {
+                await timer.stop()
+            }
         case nil:
             if category == .syncAdjusted, let id = entryID.flatMap({ EntryID($0) }) {
                 openEditor(id)

@@ -121,7 +121,10 @@ final class PhoneModel {
 
     /// Loads everything and replays the Pomodoro; with `observing`, follows
     /// the store's changes.
+    /// The stream is created before the first read, so a change committed
+    /// while loading (or by a sync started before) is not missed.
     func start(observing: Bool) async {
+        let stream = observing ? store.changes : nil
         await pomodoro.loadSettings()
         _ = try? await store.checkInvariants()
         await timer.refresh()
@@ -130,8 +133,7 @@ final class PhoneModel {
         await list.reload()
         await refreshLive()
         rescheduleLongRunning()
-        if observing {
-            let stream = store.changes
+        if let stream {
             changeTask = Task { [weak self] in
                 for await change in stream {
                     await self?.storeChanged(change)

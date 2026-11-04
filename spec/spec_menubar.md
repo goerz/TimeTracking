@@ -124,7 +124,7 @@ The app keeps running when its last window closes. Switching to accessory with a
 | Pomodoro on | 1 s | The phase end |
 | Menu open with an entry or Pomodoro | 1 s while open | |
 
-A tick re-reads the clock; nothing is accumulated. Ticks run in the common run loop modes with 100 ms tolerance. The item also re-renders at once on any change of the running entry or Pomodoro state (local or synced), a settings change, a warning change, and a clock or time zone change. Sleep cancels the tick; wake and unlock re-render from the clock and re-arm it.
+A tick re-reads the clock; nothing is accumulated. Ticks run in the common run loop modes with 100 ms tolerance. The item also re-renders at once on any change of the running entry or Pomodoro state (local or synced), a settings change, a warning change, and a clock or time zone change. Sleep cancels the tick; wake and unlock re-render from the clock and re-arm it. The Mac app runs the invariant pass (`spec_data_and_sync.md` §1.5) at the running entry's next midnight, on wake, and on a clock or time zone change, so an entry running across midnight is split there while the Mac sleeps through it or its clock moves.
 
 ## 6. Settings
 
@@ -158,6 +158,7 @@ Device settings, edited in Settings > General (`spec_timer.md` 8.1).
 - MB-16. With the menu open, the per-second refresh of an unchanged menu keeps every item and the menu's width; only the header view updates.
 - MB-17. The dial is the empty ring with nothing running, a minute hand while an entry runs (95 min 20 s: 35/60 of a turn), the phase's progress during a Pomodoro (10 minutes into a 25-minute focus: 0.4), and the full ring once the phase has ended; with "Show timer" off the item still ticks each minute; the image is a 16 pt template, 18 pt wide with the badge.
 - MB-18. The countdown keeps the width of its phase's full length: 9:59 left of a 25-minute focus reads ` ` + `9:59` (a figure space first); a 5-minute break needs no padding.
+- MB-19. An entry started at 23:30 that runs while the Mac sleeps past midnight is split at 00:00 on wake, and the item counts from the chain start; a time zone change runs the same pass.
 
 ## 8. Decisions
 

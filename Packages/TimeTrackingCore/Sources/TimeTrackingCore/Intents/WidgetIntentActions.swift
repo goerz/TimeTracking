@@ -73,13 +73,13 @@ public enum WidgetIntentActions {
             if await (try? store.entry(expected)) == nil {
                 await fetch()
             }
-            guard let entry = await (try? store.entry(expected)) else {
+            guard await (try? store.entry(expected)) != nil else {
                 throw .failure(unreachableMessage)
             }
-            // Stopped elsewhere meanwhile: nothing left to do.
-            guard entry.isRunning, !entry.isDeleted else {
-                return
-            }
+            // Stopped elsewhere meanwhile, or another entry started there:
+            // nothing to do (checked and stopped in one transaction).
+            _ = try await service.stop(chainOf: expected)
+            return
         }
         guard try await service.status().running != nil else {
             return

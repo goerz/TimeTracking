@@ -66,7 +66,10 @@ nonisolated struct ToolContext {
                 clock: clock,
                 readOnly: !writing,
                 busyTimeout: isDebug ? arguments.busyTimeout ?? TimeStore.defaultBusyTimeout : TimeStore.defaultBusyTimeout,
-                observesOtherProcesses: false
+                observesOtherProcesses: false,
+                onBusy: (isDebug ? arguments.busyMarker : nil).map { marker in
+                    { _ = FileManager.default.createFile(atPath: marker, contents: nil) }
+                }
             )
             return AutomationService(store: store, timeZone: timeZone)
         } catch {

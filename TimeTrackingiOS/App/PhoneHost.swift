@@ -6,11 +6,15 @@ import CloudKit
 import Foundation
 import Observation
 import os
+import SwiftUI
 import TimeTrackingCore
 
 /// Holds the model once the store is open; the scene waits for it.
 @Observable
 final class PhoneHost {
+    /// The app's one host: the app delegate starts loading it at launch,
+    /// before any window exists.
+    static let shared = PhoneHost()
     private(set) var model: PhoneModel?
     private(set) var onboarding: OnboardingModel?
     private(set) var failure: String?
@@ -84,10 +88,35 @@ final class PhoneHost {
             model.padTab = tab
         }
         PhoneIntentBridge.shared.attach(model)
-        await model.sync?.start()
+        // Observe first, so the first sync's changes reach the model.
         await model.start(observing: true)
+        await model.sync?.start()
         await onboarding.check()
-        await model.foreground()
+        // A background launch (silent push, widget or notification action)
+        // has no active scene and does not run the foreground work.
+        model.isActive = scenePhase == .active
+        if scenePhase == .active {
+            await model.foreground()
+        }
+    }
+
+    /// The scene phase as last reported, also while the model loads.
+    var scenePhase: ScenePhase?
+
+    /// A scene phase change: recorded, and passed on once the model exists.
+    func scenePhaseChanged(to phase: ScenePhase) {
+        let previous = scenePhase
+        scenePhase = phase
+        guard let model, previous != phase else {
+            return
+        }
+        model.isActive = phase == .active
+        if phase == .active {
+            Task { await model.foreground() }
+        } else if phase == .background {
+            RefreshScheduler.schedule()
+            Task { await model.background() }
+        }
     }
 
     /// Recording services, no sync; set up and onboarded unless asked.
@@ -129,7 +158,7 @@ final class PhoneHost {
     ) async -> PhoneModel {
         // Only the iPad creates a calendar store (spec_ios.md §10.2).
         let pad = settings.isPad ? await PadSections.live(store: store, clock: clock, device: settings.device, identity: identity) : nil
-        let notifications = UserNotifications()
+        let notifications = UserNotifications.shared
         let widgets = WidgetCenterReloader()
         let collection = identity.flatMap { CollectionModel.live(identity: $0, device: settings.device, shared: shared, clock: clock) }
         let model = PhoneModel(
@@ -150,9 +179,6 @@ final class PhoneHost {
                 await widgets.reloadTimelines()
                 await widgets.reloadControls()
             }
-        }
-        notifications.onResponse = { [weak model] category, action, entryID in
-            await model?.handleNotification(category, action, entryID: entryID)
         }
         return model
     }

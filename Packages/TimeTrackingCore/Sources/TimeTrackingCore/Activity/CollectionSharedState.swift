@@ -13,6 +13,15 @@ public protocol LadderStore: Sendable {
 
     func ladderState(for setID: String) -> LadderSetState?
     func setLadderState(_ state: LadderSetState?, for setID: String)
+    /// Runs a read-modify-write of the ledgers while no other process
+    /// (the app, the monitor extension) does one.
+    func withExclusiveAccess<Value>(_ body: () throws -> Value) rethrows -> Value
+}
+
+extension LadderStore {
+    public func withExclusiveAccess<Value>(_ body: () throws -> Value) rethrows -> Value {
+        try body()
+    }
 }
 
 /// Values in the App Group's `UserDefaults` suite, read and written by the
@@ -32,8 +41,10 @@ public struct CollectionSharedState: LadderStore {
         static let statePrefix = "collection.ladder.state."
     }
 
-    public init(defaults: UserDefaults) {
-        self.suite = AppGroupDefaults(defaults: defaults)
+    /// `lockFile` serializes ledger updates across processes (tests pass
+    /// one; the App Group suite has its own).
+    public init(defaults: UserDefaults, lockFile: URL? = nil) {
+        self.suite = AppGroupDefaults(defaults: defaults, lockURL: lockFile)
     }
 
     /// The App Group suite of `identity`, or the standard defaults.
@@ -43,6 +54,10 @@ public struct CollectionSharedState: LadderStore {
 
     private var defaults: UserDefaults {
         suite.defaults
+    }
+
+    public func withExclusiveAccess<Value>(_ body: () throws -> Value) rethrows -> Value {
+        try suite.withExclusiveAccess(body)
     }
 
     /// The master switch of the Activity collection screen (off by default).

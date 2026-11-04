@@ -10,6 +10,8 @@ struct CalendarView: View {
     @Environment(\.undoManager) private var undoManager
     @State private var scrollPosition = ScrollPosition(y: 0)
     @State private var viewportHeight: CGFloat = 600
+    /// Whether the opening scroll to the current time has happened.
+    @State private var scrolledToNow = false
     /// The hours' scroll offset and visible height.
     @State private var hoursScroll = CGRect(x: 0, y: 0, width: 0, height: 600)
     /// Where a pinch began, in the visible hours.
@@ -45,8 +47,7 @@ struct CalendarView: View {
                 columns
             }
             .onGeometryChange(for: CGSize.self) { $0.size } action: { size in
-                viewportHeight = size.height
-                model.setViewportWidth(Double(size.width - Self.gutter))
+                viewportChanged(to: size)
             }
             #if os(macOS)
             // Sideways trackpad and mouse scrolling moves through time.
@@ -75,7 +76,6 @@ struct CalendarView: View {
                 model.undoManager = undoManager
                 await model.reload()
                 await model.router?.consumeCalendarRequest()
-                scrollToNow()
             }
             .task(id: model.router?.calendarRequest) {
                 await model.router?.consumeCalendarRequest()
@@ -206,6 +206,19 @@ struct CalendarView: View {
         let target = CalendarZoom.scrollOffset(offset, anchor: anchor, from: old, to: new, maximum: hours * new - height)
         scrollPosition.scrollTo(y: target)
         zoomOffset = CGFloat(target)
+    }
+
+    /// The viewport's new size; the opening position does not depend on
+    /// the data, so it is taken as soon as the height is known.
+    private func viewportChanged(to size: CGSize) {
+        viewportHeight = size.height
+        model.setViewportWidth(Double(size.width - Self.gutter))
+        if !scrolledToNow, size.height > 0 {
+            scrolledToNow = true
+            // After this layout pass: a position set during it stays pending
+            // and is applied again, undoing the user's scrolling.
+            Task { scrollToNow() }
+        }
     }
 
     /// On opening, the current time sits one third down the viewport.

@@ -34,13 +34,20 @@ public struct DeviceSettings: Sendable {
         }
     }
 
-    /// The `deviceID` device setting, created on first use.
+    /// The `deviceID` device setting, created on first use. The app, its
+    /// extensions, and the tool may ask at once; creation holds the App
+    /// Group lock, so they all get the same id.
     public var deviceID: DeviceID {
         if let string = defaults.string(forKey: "deviceID"), let id = DeviceID(string) {
             return id
         }
-        let id = DeviceID()
-        defaults.set(id.rawValue, forKey: "deviceID")
-        return id
+        return suite.withExclusiveAccess {
+            if let string = defaults.string(forKey: "deviceID"), let id = DeviceID(string) {
+                return id
+            }
+            let id = DeviceID()
+            defaults.set(id.rawValue, forKey: "deviceID")
+            return id
+        }
     }
 }

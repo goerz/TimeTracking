@@ -14,8 +14,11 @@ final class SystemEvents {
     private var sampling: Task<Void, Never>?
     private var checking: Task<Void, Never>?
     private(set) var isLocked = false
+    /// The invariant pass started by the last wake or time change (tests await it).
+    private(set) var invariantCheck: Task<Void, Never>?
     private let workspace: NotificationCenter
     private let distributed: NotificationCenter
+    private let local: NotificationCenter
 
     /// `workspace` and `distributed` default to the system's centers; tests
     /// pass their own to post sleep and wake.
@@ -23,12 +26,14 @@ final class SystemEvents {
         app: AppModel,
         statusItem: StatusItemController?,
         workspace: NotificationCenter = NSWorkspace.shared.notificationCenter,
-        distributed: NotificationCenter = DistributedNotificationCenter.default()
+        distributed: NotificationCenter = DistributedNotificationCenter.default(),
+        local: NotificationCenter = .default
     ) {
         self.app = app
         self.statusItem = statusItem
         self.workspace = workspace
         self.distributed = distributed
+        self.local = local
     }
 
     /// Observes the system events; `polling` also starts the 10-second
@@ -55,6 +60,13 @@ final class SystemEvents {
             },
             distributed.addObserver(forName: Notification.Name("com.apple.screenIsUnlocked"), object: nil, queue: .main) { [weak self] _ in
                 MainActor.assumeIsolated { self?.event(.unlock) }
+            },
+            // A changed clock or zone may put a running entry past midnight.
+            local.addObserver(forName: .NSSystemClockDidChange, object: nil, queue: .main) { [weak self] _ in
+                MainActor.assumeIsolated { self?.timeChanged() }
+            },
+            local.addObserver(forName: .NSSystemTimeZoneDidChange, object: nil, queue: .main) { [weak self] _ in
+                MainActor.assumeIsolated { self?.timeChanged() }
             },
         ]
         guard polling else {
@@ -92,6 +104,10 @@ final class SystemEvents {
         await app.reminders.check()
     }
 
+    private func timeChanged() {
+        invariantCheck = Task { await app.checkInvariants() }
+    }
+
     private func event(_ event: IdleSystemEvent) {
         let now = app.clock.now
         switch event {
@@ -104,6 +120,9 @@ final class SystemEvents {
             statusItem?.setAsleep(false)
             app.pomodoro.tick()
             Task { await app.tracker.becamePresent(at: now) }
+            if event == .wake {
+                timeChanged()
+            }
         case .shutdown:
             break
         }

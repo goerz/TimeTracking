@@ -172,6 +172,24 @@ struct PomodoroIdleTests {
         #expect(await !(test.app.reminders.check()))
     }
 
+    @Test("TM-43 a start removes the delivered reminder, and its Start New and Continue Latest do nothing while an entry runs")
+    func reminderAfterAStart() async throws {
+        let test = try await TestApp(now: "2024-03-12T09:50")
+        test.app.settings.reminders.isEnabled = true
+        await test.app.timer.start()
+        try test.clock.set(test.date("2024-03-12T10:00"))
+        await test.app.timer.stop()
+        try test.clock.set(test.date("2024-03-12T10:10"))
+        #expect(await test.app.reminders.check())
+        // Another device starts an entry before the reminder is answered.
+        let running = try await test.store.start(projectID: nil, task: "From the iPhone", at: test.clock.now)
+        await test.app.afterChange()
+        #expect(test.notifier.removed.last == .reminder)
+        await test.app.handle(.startNew)
+        await test.app.handle(.continueLatest)
+        #expect(try await test.store.runningEntry()?.id == running.id)
+    }
+
     @Test("TM-32 each notification category offers exactly its actions; Settings reopens on the last pane shown")
     func categoriesAndPane() throws {
         #expect(NotificationCategory.pomodoroFocusDone.actions.map(\.title) == ["Start Break", "Skip Break"])

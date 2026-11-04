@@ -73,6 +73,18 @@ public struct AutomationService: Sendable {
         return try await listing(stopped)
     }
 
+    /// Stops the running entry only while it belongs to the chain of
+    /// `id`; `nil` when another entry or none runs.
+    public func stop(chainOf id: EntryID) async throws(AutomationError) -> EntryListing? {
+        let store = store
+        let now = store.clock.now
+        let stopped = try await run { try await store.transaction { try $0.stop(chainOf: id, at: now) } }
+        guard let stopped else {
+            return nil
+        }
+        return try await listing(stopped)
+    }
+
     /// What `continue` repeats: the given entry, the most recent entry of a
     /// project or with a task, or the most recent entry other than the
     /// running one.

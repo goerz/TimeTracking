@@ -139,6 +139,21 @@ extension TimeStore {
         try read { try Int64.fetchOne($0, sql: "SELECT MAX(seq) FROM outbox") ?? 0 }
     }
 
+    /// The outbox's highest sequence and the current records of `refs`, read
+    /// in one transaction, so no write can fall between the two: a batch
+    /// confirmed up to that sequence holds every change below it.
+    public func syncSnapshot(_ refs: [SyncRecordRef]) throws -> (sequence: Int64, records: [SyncRecordRef: SyncRecord]) {
+        try read { database in
+            let sequence = try Int64.fetchOne(database, sql: "SELECT MAX(seq) FROM outbox") ?? 0
+            let transaction = StoreTransaction(database: database, now: clock.now, deviceID: deviceID, timeZone: timeZone())
+            var records: [SyncRecordRef: SyncRecord] = [:]
+            for ref in refs {
+                records[ref] = try transaction.syncRecord(ref)
+            }
+            return (sequence, records)
+        }
+    }
+
     /// The current record of `ref` with its system fields, or `nil` when the
     /// row no longer exists (the engine builds its batches from these).
     public func syncRecord(_ ref: SyncRecordRef) throws -> SyncRecord? {

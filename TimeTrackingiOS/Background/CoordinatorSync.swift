@@ -9,13 +9,17 @@ import TimeTrackingCore
 @MainActor
 final class CoordinatorSync: SyncDriving {
     let coordinator: SyncCoordinator
+    private let applied: @Sendable () async -> Void
 
     init(store: TimeStore, containerIdentifier: String, onApplied: @escaping @Sendable () async -> Void) {
         self.coordinator = SyncCoordinator(store: store, factory: CloudKitSyncEngineFactory(containerIdentifier: containerIdentifier))
-        Task { [coordinator] in await coordinator.onApplied(onApplied) }
+        self.applied = onApplied
     }
 
+    /// Registers the applied-fetch handler before the engine starts, so
+    /// the first applied fetch already reloads the widgets.
     func start() async {
+        await coordinator.onApplied(applied)
         await coordinator.start()
     }
 

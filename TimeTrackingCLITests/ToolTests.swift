@@ -126,8 +126,8 @@ struct ToolTests {
         let fixture = try ToolFixture()
         let lock = try WriteLock(fixture.store)
         let waiting = try ToolProcess.start("timetracking", ["start", "Locked"], environment: fixture.environment)
-        // The tool has the store open and blocks on the lock; release it.
-        #expect(ToolProcess.waitUntilOpen(waiting, file: fixture.store))
+        // The tool reports that its write waits for the lock; release it.
+        #expect(ToolProcess.waitUntilExists(fixture.busyMarker, while: waiting))
         #expect(waiting.process.isRunning)
         lock.commit()
         let short = ToolProcess.finish(waiting)
@@ -146,21 +146,21 @@ struct ToolTests {
     @Test("AUTO-33 a successful write posts <APP_ID>.changed once and appends one outbox row per changed record; a failed one neither")
     func notificationAndOutbox() throws {
         let fixture = try ToolFixture()
-        let posts = ChangeSignalCounter()
+        let posts = ChangeSignalCounter(name: fixture.changeNotification)
         let outbox = try fixture.count("SELECT COUNT(*) FROM outbox")
         // Stops the running entry and starts one: two entries and LiveState.
         #expect(try fixture.run(["start", "Next"]).status == 0)
-        #expect(posts.count() == 1)
+        #expect(posts.count(expecting: 1) == 1)
         #expect(try fixture.count("SELECT COUNT(*) FROM outbox") == outbox + 3)
         #expect(try fixture.run(["start", "--project", "Old paper"]).status == 4)
-        #expect(posts.count() == 0)
+        #expect(posts.count(expecting: 0) == 0)
         #expect(try fixture.count("SELECT COUNT(*) FROM outbox") == outbox + 3)
     }
 
     @Test("AUTO-33 AUTO-36 a write command with --csv exits 2 before it opens the store, so it changes nothing and posts nothing")
     func writeWithCSV() throws {
         let fixture = try ToolFixture()
-        let posts = ChangeSignalCounter()
+        let posts = ChangeSignalCounter(name: fixture.changeNotification)
         let outbox = try fixture.count("SELECT COUNT(*) FROM outbox")
         let entries = try fixture.count("SELECT COUNT(*) FROM time_entry WHERE deleted_at IS NULL")
         let modified = fixture.modificationDate
@@ -184,7 +184,7 @@ struct ToolTests {
         let imported = try fixture.run(["import", file, "--csv"])
         #expect(imported.status == 2)
         #expect(imported.standardError == "error: import has no CSV form.\n")
-        #expect(posts.count() == 0)
+        #expect(posts.count(expecting: 0) == 0)
         #expect(try fixture.count("SELECT COUNT(*) FROM outbox") == outbox)
         #expect(try fixture.count("SELECT COUNT(*) FROM time_entry WHERE deleted_at IS NULL") == entries)
         #expect(try fixture.count("SELECT COUNT(*) FROM time_entry WHERE \"end\" IS NULL AND task = 'Review'") == 1)
@@ -192,13 +192,13 @@ struct ToolTests {
     }
 }
 
-/// Counts the posts of `<APP_ID>.changed` since creation or the last count.
+/// Counts the posts of a notification since creation or the last count.
 final class ChangeSignalCounter {
     private var descriptor: Int32 = -1
     private var token: Int32 = 0
 
-    init() {
-        let name = ToolProcess.appID + ".changed"
+    /// Counts `name` (a fixture's own, by default the real `<APP_ID>.changed`).
+    init(name: String = ToolProcess.appID + ".changed") {
         #expect(notify_register_file_descriptor(name, &descriptor, 0, &token) == NOTIFY_STATUS_OK)
         _ = fcntl(descriptor, F_SETFL, O_NONBLOCK)
     }
@@ -207,7 +207,30 @@ final class ChangeSignalCounter {
         notify_cancel(token)
     }
 
-    func count() -> Int {
+    /// The posts so far. Delivery is asynchronous, so this waits until
+    /// `expected` arrived (at most 5 seconds) and then 200 ms more for any
+    /// extra ones; with `expected` 0 it waits those 200 ms.
+    func count(expecting expected: Int) -> Int {
+        var count = drain()
+        let deadline = ContinuousClock.now + .seconds(5)
+        while count < expected, ContinuousClock.now < deadline {
+            count += wait(milliseconds: 100)
+        }
+        count += wait(milliseconds: 200)
+        return count
+    }
+
+    /// Waits up to `milliseconds` for the descriptor to become readable;
+    /// returns the posts read.
+    private func wait(milliseconds: Int32) -> Int {
+        var poller = pollfd(fd: descriptor, events: Int16(POLLIN), revents: 0)
+        guard poll(&poller, 1, milliseconds) > 0 else {
+            return 0
+        }
+        return drain()
+    }
+
+    private func drain() -> Int {
         var count = 0
         var value: Int32 = 0
         while read(descriptor, &value, MemoryLayout<Int32>.size) == MemoryLayout<Int32>.size {

@@ -8,7 +8,7 @@ import TimeTrackingCore
 @main
 struct TimeTrackingiOSApp: App {
     @UIApplicationDelegateAdaptor(PhoneAppDelegate.self) private var delegate
-    @State private var host = PhoneHost()
+    @State private var host = PhoneHost.shared
     @Environment(\.scenePhase) private var scenePhase
 
     init() {
@@ -30,17 +30,8 @@ struct TimeTrackingiOSApp: App {
                     }
                 }
         }
-        .onChange(of: scenePhase) { _, phase in
-            guard let model = host.model else {
-                return
-            }
-            model.isActive = phase == .active
-            if phase == .active {
-                Task { await model.foreground() }
-            } else if phase == .background {
-                RefreshScheduler.schedule()
-                Task { await model.background() }
-            }
+        .onChange(of: scenePhase, initial: true) { _, phase in
+            host.scenePhaseChanged(to: phase)
         }
         .backgroundTask(.appRefresh(RefreshScheduler.identifier)) {
             await RefreshScheduler.run()

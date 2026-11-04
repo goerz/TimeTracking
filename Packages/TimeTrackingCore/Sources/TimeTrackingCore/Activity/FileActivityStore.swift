@@ -193,8 +193,12 @@ public actor FileActivityStore: ActivityReading {
             found.append(.currentState)
         }
         if current.settings != stamps.settings {
-            let rules = Self.loadExclusions(folders: folders, homeDirectory: homeDirectory)
-            shared.withLock { $0.exclusions = rules }
+            // A file that cannot be read now (a placeholder, a parse error)
+            // keeps the exclusions in force.
+            if let settings = try? TrackerSettings(contentsOf: folders.settingsURL) {
+                let rules = settings.exclusions(homeDirectory: homeDirectory)
+                shared.withLock { $0.exclusions = rules }
+            }
             found.append(.settings)
         }
         var changedMonths = Set<String>()

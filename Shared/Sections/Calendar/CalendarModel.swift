@@ -78,6 +78,8 @@ final class CalendarModel {
     /// The days the loaded data covers.
     @ObservationIgnored var loadedDays: ClosedRange<TrackingDay>?
     @ObservationIgnored var loadTask: Task<Void, Never>?
+    /// Counts reloads; only the latest one assigns what it read.
+    @ObservationIgnored var loadGeneration = 0
     /// Set when the arrows or a header click snap the days, until the next
     /// trackpad gesture.
     @ObservationIgnored var ignoresMomentum = false
@@ -201,69 +203,54 @@ final class CalendarModel {
         self.shownDays = viewport.shownDays
     }
 
-    // MARK: Days
-
-    var today: TrackingDay {
-        calendar.day(containing: clock.now)
-    }
-
-    /// The visible columns of each day.
-    var columns: [CalendarColumn] {
-        CalendarColumn.allCases.filter { column in
-            switch column {
-            case .activity: showsActivity
-            case .tracked: true
-            case .calendar: showsCalendar
-            }
-        }
-    }
-
-    func axis(_ day: TrackingDay) -> CalendarDayAxis {
-        CalendarDayAxis(day: day, calendar: calendar, pointsPerHour: pointsPerHour)
-    }
-
-    func editing(_ day: TrackingDay, option: Bool = false, limitToNow: Bool = true) -> CalendarEditing {
-        CalendarEditing(
-            day: calendar.interval(of: day),
-            now: clock.now,
-            snap: CalendarSnap(minutes: option ? 1 : snapMinutes),
-            limitToNow: limitToNow
-        )
-    }
-
     // MARK: Loading
 
     /// Re-reads entries, blocks, events, settings, and the summary over the
     /// days in view and as many again on either side (at least two), so a
-    /// sideways scroll finds them loaded.
+    /// sideways scroll finds them loaded. Everything is read first and
+    /// assigned at once, and only when no later reload started meanwhile,
+    /// so overlapping reloads (an edit starts two) never leave a mix of
+    /// old and new data, and the loaded days are claimed only once their
+    /// data is in.
     func reload() async {
+        loadGeneration += 1
+        let generation = loadGeneration
         do {
             try await readSyncedSettings()
             let pad = max(2, days.count)
             let range = days[0].adding(days: -pad) ... days[days.count - 1].adding(days: pad)
-            loadedDays = range
             let interval = calendar.interval(of: range)
             let found = try await store.entries(in: interval, includeDeleted: false)
-            entries = try await store.listings(for: found)
+            let entries = try await store.listings(for: found)
             let rows = try await store.projects(filter: ProjectFilter(state: .all))
-            projects = rows.map(\.project)
-            filterTree = try await CalendarFilterTree(
+            let filterTree = try await CalendarFilterTree(
                 clients: store.clients(includeRetired: true),
                 areas: store.areas(of: nil, includeRetired: true),
                 projects: rows
             )
-            projectRows = Dictionary(rows.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
             let loaded = try await activity.blocks(in: interval, devices: nil)
+            let stretches = try await activity.backgroundStretches(in: interval, devices: nil)
+            let healthPeriods = try await loadHealthPeriods(in: interval)
+            guard generation == loadGeneration else {
+                return
+            }
+            self.entries = entries
+            projects = rows.map(\.project)
+            self.filterTree = filterTree
+            projectRows = Dictionary(rows.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
             blocks = isRecordingMac ? loaded : loaded.filter { !$0.isOpen }
-            stretches = try await activity.backgroundStretches(in: interval, devices: nil)
-            await loadEvents(around: interval)
+            self.stretches = stretches
+            self.healthPeriods = healthPeriods
+            loadedDays = range
             refreshTotals()
             if isRecordingMac {
                 loadGapLabels()
             }
-            healthPeriods = try await loadHealthPeriods(in: interval)
+            await loadEvents(around: interval, generation: generation)
         } catch {
-            report(error)
+            if generation == loadGeneration {
+                report(error)
+            }
         }
     }
 
@@ -293,7 +280,8 @@ final class CalendarModel {
 
     /// The time-block calendar and the checked calendars over the visible
     /// range plus one day on each side.
-    func loadEvents(around interval: DateInterval) async {
+    /// With `generation`, nothing is assigned once a later reload started.
+    func loadEvents(around interval: DateInterval, generation: Int? = nil) async {
         guard showsCalendar else {
             return
         }
@@ -301,6 +289,9 @@ final class CalendarModel {
             _ = await events.requestAccess()
         }
         await resolveTimeBlockCalendar()
+        guard generation == nil || generation == loadGeneration, showsCalendar else {
+            return
+        }
         guard events.access() == .fullAccess else {
             timeBlocks = []
             externalEvents = []

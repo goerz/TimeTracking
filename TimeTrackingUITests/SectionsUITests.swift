@@ -27,8 +27,8 @@ final class SectionsUITests: XCTestCase {
         var app = launch()
         let window = app.mainWindow
         XCTAssertTrue(window.waitForExistence(timeout: 5))
-        XCTAssertTrue(app.descendants(matching: .any)["timer.list"].exists)
-        XCTAssertFalse(app.windows["timer"].exists)
+        XCTAssertTrue(app.descendants(matching: .any)["timer.list"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.windows["timer"].waitForExistence(timeout: 2))
         app.typeKey("3", modifierFlags: .command)
         XCTAssertTrue(app.descendants(matching: .any)["reports.chart"].waitForExistence(timeout: 5))
         // Move the window by its title bar; the frame is the one to come back.

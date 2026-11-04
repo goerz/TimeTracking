@@ -11,6 +11,10 @@ public struct WidgetSharedState: Sendable {
     private let suite: AppGroupDefaults
 
     private enum Key {
+        /// The whole `LiveState` in one value, so a reader never sees the
+        /// running part of one write with the activity of another.
+        static let liveState = "widget.liveState"
+        // The four keys of earlier builds, read until the first write.
         static let running = "widget.liveState.running"
         static let changedAt = "widget.liveState.changedAt"
         static let activity = "widget.liveState.activity"
@@ -36,9 +40,17 @@ public struct WidgetSharedState: Sendable {
         suite.defaults
     }
 
-    /// The last `LiveState` the resolver or the app recorded.
+    /// The last `LiveState` the resolver or the app recorded, written and
+    /// read as one value by the app and the widget extension.
     public var liveState: LiveState? {
         get {
+            if let stored = defaults.dictionary(forKey: Key.liveState) {
+                return LiveState(
+                    running: LiveState.running(json: stored["running"] as? String),
+                    changedAt: stored["changedAt"] as? Date,
+                    activity: LiveState.activity(json: stored["activity"] as? String)
+                )
+            }
             guard defaults.bool(forKey: Key.hasLiveState) else {
                 return nil
             }
@@ -49,16 +61,18 @@ public struct WidgetSharedState: Sendable {
             )
         }
         nonmutating set {
+            for key in [Key.running, Key.changedAt, Key.activity, Key.hasLiveState] {
+                defaults.removeObject(forKey: key)
+            }
             guard let newValue else {
-                for key in [Key.running, Key.changedAt, Key.activity, Key.hasLiveState] {
-                    defaults.removeObject(forKey: key)
-                }
+                defaults.removeObject(forKey: Key.liveState)
                 return
             }
-            defaults.set(LiveState.runningJSON(newValue.running), forKey: Key.running)
-            defaults.set(newValue.changedAt, forKey: Key.changedAt)
-            defaults.set(LiveState.activityJSON(newValue.activity), forKey: Key.activity)
-            defaults.set(true, forKey: Key.hasLiveState)
+            var stored: [String: Any] = [:]
+            stored["running"] = LiveState.runningJSON(newValue.running)
+            stored["changedAt"] = newValue.changedAt
+            stored["activity"] = LiveState.activityJSON(newValue.activity)
+            defaults.set(stored, forKey: Key.liveState)
         }
     }
 

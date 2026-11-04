@@ -11,8 +11,9 @@ public import Foundation
 /// `UserDefaults`); the agent
 /// understands `--record <folder>`, `--replay <file>`, and `--unregister`,
 /// which it hands to the Mac app's own `--unregister`;
-/// the tool reads `TIMETRACKING_STORE`, `TIMETRACKING_NOW`, and
-/// `TIMETRACKING_BUSY_TIMEOUT`. Unknown
+/// the tool reads `TIMETRACKING_STORE`, `TIMETRACKING_NOW`,
+/// `TIMETRACKING_BUSY_TIMEOUT`, `TIMETRACKING_BUSY_MARKER`, and
+/// `TIMETRACKING_CHANGE_NOTIFICATION` (the last four in Debug builds). Unknown
 /// arguments are ignored, so the system's own launch arguments pass through.
 public struct LaunchArguments: Sendable, Equatable {
     /// `-UITesting YES`: in-memory store and transport, fixture, no animations.
@@ -40,6 +41,13 @@ public struct LaunchArguments: Sendable, Equatable {
     /// `TIMETRACKING_BUSY_TIMEOUT` in seconds, if set and valid: the store's
     /// busy timeout, for tests. Only Debug builds honor it.
     public var busyTimeout: TimeInterval?
+    /// `TIMETRACKING_BUSY_MARKER`: a file the tool creates when a write
+    /// starts waiting for another process's lock (tests). Debug only.
+    public var busyMarker: String?
+    /// `TIMETRACKING_CHANGE_NOTIFICATION`: the change notification's name
+    /// instead of `<APP_ID>.changed`, so a test counts only its own posts.
+    /// Debug only.
+    public var changeNotificationName: String?
 
     public init(
         uiTesting: Bool = false,
@@ -125,6 +133,12 @@ public struct LaunchArguments: Sendable, Equatable {
         }
         if let seconds = environment["TIMETRACKING_BUSY_TIMEOUT"].flatMap(TimeInterval.init), seconds >= 0 {
             busyTimeout = seconds
+        }
+        if let path = environment["TIMETRACKING_BUSY_MARKER"], !path.isEmpty {
+            busyMarker = path
+        }
+        if let name = environment["TIMETRACKING_CHANGE_NOTIFICATION"], !name.isEmpty {
+            changeNotificationName = name
         }
     }
 

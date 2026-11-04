@@ -194,6 +194,23 @@ struct WidgetSnapshotTests {
         #expect(fetcher.count == 3)
     }
 
+    @Test("IOS-46 a provider resolving while another one's fetch is under way fetches too, instead of reusing it")
+    func unfinishedFetchIsNotReused() async {
+        let clock = ManualClock(Date(timeIntervalSince1970: 1_000_000))
+        let shared = ephemeralShared()
+        let fetcher = GatedLiveStateFetcher()
+        let resolver = WidgetLiveResolver(shared: shared, reader: LiveStateReader(transport: fetcher), clock: clock)
+        let first = Task { await resolver.resolve(local: nil) }
+        await fetcher.waitUntilHeld()
+        let second = await resolver.resolve(local: nil)
+        #expect(second.fetched)
+        #expect(fetcher.count == 2)
+        fetcher.release()
+        #expect(await first.value.fetched)
+        // Once a fetch returned, the next provider reuses it.
+        #expect(await !(resolver.resolve(local: nil).fetched))
+    }
+
     @Test("IOS-15 the shared state keeps the widget push token, nil when no widget is installed")
     func pushToken() {
         let shared = ephemeralShared()
@@ -247,5 +264,70 @@ struct WidgetSnapshotTests {
             "B · another user since 14:02",
             "C · locked since 14:02",
         ])
+    }
+}
+
+/// Holds the first fetch until `release()`; answers the others at once.
+final class GatedLiveStateFetcher: LiveStateFetching {
+    private struct Gate {
+        var count = 0
+        var held: CheckedContinuation<Void, Never>?
+        var waiter: CheckedContinuation<Void, Never>?
+        var released = false
+    }
+
+    private let state = Mutex(Gate())
+
+    var count: Int {
+        state.withLock { $0.count }
+    }
+
+    func waitUntilHeld() async {
+        await withCheckedContinuation { continuation in
+            let ready = state.withLock { value in
+                guard value.held == nil else {
+                    return true
+                }
+                value.waiter = continuation
+                return false
+            }
+            if ready {
+                continuation.resume()
+            }
+        }
+    }
+
+    func release() {
+        let held = state.withLock { value in
+            value.released = true
+            defer { value.held = nil }
+            return value.held
+        }
+        held?.resume()
+    }
+
+    func fetch(_: SyncRecordRef) async -> SyncRecord? {
+        let first = state.withLock { value in
+            value.count += 1
+            return value.count == 1
+        }
+        guard first else {
+            return nil
+        }
+        await withCheckedContinuation { continuation in
+            let (proceed, waiter) = state.withLock { value in
+                if value.released {
+                    return (true, CheckedContinuation<Void, Never>?.none)
+                }
+                value.held = continuation
+                defer { value.waiter = nil }
+                return (false, value.waiter)
+            }
+            waiter?.resume()
+            if proceed {
+                continuation.resume()
+            }
+        }
+        return nil
     }
 }

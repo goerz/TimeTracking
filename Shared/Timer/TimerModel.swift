@@ -46,6 +46,8 @@ final class TimerModel {
     /// Waits between the last keystroke and the task commit.
     @ObservationIgnored var debounce: @Sendable (Duration) async throws -> Void = { try await Task.sleep(for: $0) }
     @ObservationIgnored var pendingTaskCommit: Task<Void, Never>?
+    /// Counts refreshes; only the latest one assigns what it read.
+    @ObservationIgnored private var refreshGeneration = 0
     @ObservationIgnored private let logger = Logging.logger(category: "Timer")
     /// The undo action in flight (tests await it).
     @ObservationIgnored private(set) var pendingUndo: Task<Void, Never>?
@@ -101,30 +103,34 @@ final class TimerModel {
         running == nil ? draftProjectID : running?.projectID
     }
 
-    /// Seconds since the chain start, or 0 when idle.
-    func elapsedSeconds(at now: Date) -> Int {
-        guard let chainStart else {
-            return 0
-        }
-        return max(0, Int(now.timeIntervalSince(chainStart).rounded(.down)))
-    }
-
-    /// The timer label without a Pomodoro: `h:mm:ss`, `0:00:00` when idle.
-    func timerText(at now: Date) -> String {
-        DurationText.clock(elapsedSeconds(at: now))
-    }
-
     func requestTaskFieldFocus() {
         focusTaskFieldRequest += 1
     }
 
     // MARK: Loading
 
-    /// Re-reads the running entry and what the menu bar shows.
+    /// Re-reads the running entry and what the menu bar shows. Everything
+    /// is read first and assigned at once, and only by the latest refresh:
+    /// an earlier one finishing later (refreshes overlap after every
+    /// change) leaves the newer figures.
     func refresh() async {
+        refreshGeneration += 1
+        let generation = refreshGeneration
         do {
             let current = try await store.runningEntry()
+            var label = ProjectLabel.noProject
+            var chain: Date?
+            if let current {
+                label = try await ProjectLabel(store.listings(for: [current])[0])
+                chain = try await store.chainStart(of: current.id)
+            }
+            let other = try await store.recentEntries(before: nil, limit: 2).first { $0.id != current?.id }
+            let stopped = try await store.lastStoppedEntry(excluding: current?.id)
+            guard generation == refreshGeneration else {
+                return
+            }
             let previous = running
+            var stoppedElsewhere = false
             if current?.id != previous?.id {
                 pendingTaskCommit?.cancel()
                 pendingTaskCommit = nil
@@ -132,23 +138,20 @@ final class TimerModel {
                     taskText = current.task
                 } else if previous != nil {
                     // Stopped elsewhere: the field goes blank, as at startup.
-                    await clearDraft()
+                    stoppedElsewhere = true
                 }
             } else if let current, pendingTaskCommit == nil, current.task != previous?.task {
                 taskText = current.task
             }
             running = current
-            if let current {
-                runningLabel = try await ProjectLabel(store.listings(for: [current])[0])
-                chainStart = try await store.chainStart(of: current.id)
-            } else {
-                runningLabel = .noProject
-                chainStart = nil
-            }
-            mostRecentOther = try await store.recentEntries(before: nil, limit: 2).first { $0.id != current?.id }
-            let stopped = try await store.lastStoppedEntry(excluding: current?.id)
+            runningLabel = label
+            chainStart = chain
+            mostRecentOther = other
             let today = TrackingCalendar(timeZone: .current).day(containing: clock.now)
             lastStoppedToday = stopped.flatMap { $0.day == today ? $0 : nil }
+            if stoppedElsewhere {
+                await clearDraft()
+            }
         } catch {
             report(error)
         }
@@ -235,15 +238,6 @@ final class TimerModel {
             await perform { [store, clock] in try await store.continue(id, at: clock.now) }
         } catch {
             report(error)
-        }
-    }
-
-    /// The continue/stop shortcut: stop, or continue the most recent entry.
-    func continueOrStop() async {
-        if running != nil {
-            await stop()
-        } else {
-            await continueEntry()
         }
     }
 

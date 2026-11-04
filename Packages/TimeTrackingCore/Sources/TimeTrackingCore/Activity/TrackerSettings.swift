@@ -78,8 +78,18 @@ public struct TrackerSettings: Sendable, Hashable, Codable {
     }
 
     /// Reads `url`; a missing file gives the defaults.
+    /// The settings of the file at `url`, the defaults when there is none.
+    /// A file iCloud Drive holds only as a placeholder (`.<name>.icloud`)
+    /// throws, after asking for its download: its exclusions are unknown,
+    /// so callers keep the settings they have.
     public init(contentsOf url: URL) throws(ActivityError) {
         guard FileManager.default.fileExists(atPath: url.path) else {
+            let placeholder = url.deletingLastPathComponent()
+                .appending(path: ".\(url.lastPathComponent).icloud", directoryHint: .notDirectory)
+            if FileManager.default.fileExists(atPath: placeholder.path) {
+                try? FileManager.default.startDownloadingUbiquitousItem(at: url)
+                throw .fileSystem("\(url.lastPathComponent) is not downloaded from iCloud Drive yet")
+            }
             self.init()
             return
         }

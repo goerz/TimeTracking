@@ -102,6 +102,32 @@ struct SyncCoordinatorTests {
         #expect(try await deviceB.store.outboxCount() == 0)
     }
 
+    @Test("DATA-55 an edit made while its record is being sent stays queued and goes out with the next send")
+    func editDuringSend() async throws {
+        let net = try await Self.pair()
+        let device = net.first
+        let engine = try #require(device.engine)
+        let entry = try await device.store.create(EntryDraft(
+            projectID: nil,
+            task: "Draft",
+            start: device.test.date("2024-03-14T08:00"),
+            end: device.test.date("2024-03-14T09:00")
+        ))[0]
+        let ref = SyncRecordRef(.timeEntry, entry.id.rawValue)
+        _ = await device.coordinator.drain()
+        // The engine takes the batch; the user edits before the server answers.
+        let batch = try #require(await device.coordinator.nextBatch(engine.pending))
+        #expect(batch.records.map(\.ref).contains(ref))
+        _ = try await device.store.update(entry.id, EntryChange(task: "Draft, edited"))
+        engine.removePending(engine.pending)
+        await device.coordinator.didSend(SyncSendOutcome(saved: batch.records))
+        #expect(engine.pending.contains(.save(ref)))
+        #expect(try await device.store.outboxCount() >= 1)
+        await device.coordinator.sendNow()
+        #expect(await net.server.record(ref)?["task"] == .string("Draft, edited"))
+        #expect(try await device.store.outboxCount() == 0)
+    }
+
     @Test("DATA-29 through the coordinator a conflict merges once and a missing zone re-sends every record")
     func conflictsAndZone() async throws {
         let net = try await Self.pair()

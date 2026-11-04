@@ -6,10 +6,19 @@ import UserNotifications
 
 /// Schedules the categories of `NotificationCategory` and forwards responses.
 final class UserNotifications: NSObject, NotificationScheduling, UNUserNotificationCenterDelegate {
+    /// The one instance, the notification center's delegate from launch on
+    /// (`PhoneAppDelegate`), so a response that launches the app in the
+    /// background is not lost while the store opens.
+    static let shared = UserNotifications()
+
     private let center = UNUserNotificationCenter.current()
     /// An action button, or `nil` for a tap on the notification; the
-    /// notification's entry id, if any. Awaited before the system is told.
-    var onResponse: (NotificationCategory?, NotificationAction?, String?) async -> Void = { _, _, _ in }
+    /// notification's entry id, if any. Awaited before the system is told;
+    /// it waits for the model.
+    var onResponse: (NotificationCategory?, NotificationAction?, String?) async -> Void = { category, action, entryID in
+        let model = await PhoneIntentBridge.shared.awaitModel()
+        await model.handleNotification(category, action, entryID: entryID)
+    }
 
     override init() {
         super.init()

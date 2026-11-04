@@ -54,6 +54,11 @@ final class ReminderModel {
         return settings.reminders.nextFire(after: anchor, snoozedUntil: snoozedUntil, calendar: .current)
     }
 
+    /// Something started: a delivered reminder goes away.
+    func trackingStarted() {
+        notifier.remove([.reminder])
+    }
+
     /// The notification's Snooze action.
     func snooze() {
         snoozedUntil = clock.now + settings.reminders.snoozeInterval

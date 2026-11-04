@@ -38,7 +38,7 @@ extension ToolTests {
         let fixture = try ToolFixture()
         let file = try fixture.write(fixture.run(["export"]).standardOutput, named: "export.json")
         let outbox = try fixture.count("SELECT COUNT(*) FROM outbox")
-        let posts = ChangeSignalCounter()
+        let posts = ChangeSignalCounter(name: fixture.changeNotification)
         let result = try fixture.run(["import", file, "--json"])
         #expect(result.status == 0)
         for kind in ["clients", "areas", "projects", "entries"] {
@@ -47,7 +47,7 @@ extension ToolTests {
         }
         #expect((result.json["entries"] as? [String: Int])?["unchanged"] == 7)
         #expect(try fixture.count("SELECT COUNT(*) FROM outbox") == outbox)
-        #expect(posts.count() == 0)
+        #expect(posts.count(expecting: 0) == 0)
     }
 
     @Test("AUTO-26 a record id that is a tombstone here is skipped; a record with deletedAt keeps the live record")

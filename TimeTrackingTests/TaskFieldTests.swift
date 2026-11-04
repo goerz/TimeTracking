@@ -33,6 +33,26 @@ struct TaskFieldTests {
         #expect(!field.isShowingSuggestions)
     }
 
+    @Test("TM-44 Return accepts no suggestion or picker line loaded for text the user has typed past")
+    func staleHighlightNotAccepted() async throws {
+        let test = try await TestApp()
+        let projects = try await test.projects(["Noise Model", "Website"])
+        try await test.entry("Clarify noise model", projects[0], from: "06:00", to: "06:30")
+        let field = test.app.miniTimer.taskField
+        await field.userEdited("cla", chipProject: nil)
+        #expect(field.isShowingSuggestions)
+        // A keystroke whose suggestions have not loaded yet.
+        field.textChanged("clax")
+        #expect(field.acceptSuggestion() == nil)
+        await field.userEdited("@noi", chipProject: nil)
+        let picker = try #require(field.picker)
+        #expect(picker.chooseHighlighted() != nil)
+        picker.search = "web"
+        #expect(picker.chooseHighlighted() == nil)
+        await picker.reload()
+        #expect(picker.chooseHighlighted() != nil)
+    }
+
     @Test("TM-9 @noi opens the picker searching noi; Return assigns and removes @noi; Escape leaves it; a@b opens nothing")
     func atTrigger() async throws {
         let test = try await TestApp()

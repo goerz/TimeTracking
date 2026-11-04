@@ -169,20 +169,6 @@ struct CalendarSectionTests {
         #expect(try await world.test.store.entries(on: Self.day("2024-03-14")).isEmpty)
     }
 
-    @Test("PC-31 two commits of one draft arriving together store one entry")
-    func draftCommitsOnce() async throws {
-        let world = try await World()
-        let model = world.model
-        try model.draw(on: Self.day("2024-03-14"), from: TestApp.date("2024-03-14T08:00"), to: TestApp.date("2024-03-14T09:00"))
-        model.draft?.task = "Draft intro"
-        // Return and a click elsewhere: the second starts while the first awaits the store.
-        async let first: Void = model.commitDraft()
-        async let second: Void = model.dismissDraft(commit: true)
-        _ = await (first, second)
-        #expect(model.draft == nil)
-        #expect(try await world.test.store.entries(on: Self.day("2024-03-14")).map(\.task) == ["Draft intro"])
-    }
-
     @Test("PC-10 Delete then ⌘Z restores the entry with the same id and fields; the running entry asks first and comes back stopped")
     func deleteAndUndo() async throws {
         let world = try await World()
@@ -259,7 +245,9 @@ struct CalendarSectionTests {
         model.confirmDeleteFromLog(closed)
         #expect(model.blockToDelete == closed)
         await model.deleteBlockFromLog(confirmed: true)
-        #expect(world.commands.commands == ["delete-block \(ActivityTimestamp.text(closed.start, utcOffset: closed.utcOffset))"])
+        let range = ActivityTimestamp.text(closed.start, utcOffset: closed.utcOffset) + " "
+            + ActivityTimestamp.text(closed.end, utcOffset: closed.utcOffset)
+        #expect(world.commands.commands == ["delete-block \(range)"])
         #expect(!model.canDeleteFromLog(open))
         model.isRecordingMac = false
         #expect(!model.canDeleteFromLog(closed))

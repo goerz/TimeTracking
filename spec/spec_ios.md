@@ -212,7 +212,7 @@ Local notifications only. Authorization is requested at the first start of an en
 |---|---|---|---|---|
 | `pomodoroFocusDone` | Scheduled at focus start for `focusEnd` | The Mac's | Start Break, Skip Break | `timeSensitive` |
 | `pomodoroBreakDone` | Scheduled at break start for `breakEnd` | The Mac's | Start Focus, End Pomodoro | `timeSensitive` |
-| `longRunning` | N hours (setting) after the running entry's chain start, whichever device started it | "Still tracking Plan the widget layout?" / "Running for 4 hours." | Keep Running, Stop | `active` |
+| `longRunning` | N hours (setting) after the running entry's chain start, whichever device started it | "Still tracking Plan the widget layout?" / "Running for 4 hours." | Keep Running, Stop (stops that entry only, not one started since) | `active` |
 | `syncAdjusted` | Section 7, item 3 applies while the app is in the background | "An entry was changed" / the explanation | None; tap opens the entry | `passive` |
 
 Actions run in the background without opening the app: the Pomodoro actions perform their transitions; Keep Running schedules the next `longRunning` N hours from now; Stop stops the running entry. Tapping a body opens the Timer. The app reschedules `longRunning` whenever the running entry changes and removes it when nothing runs.
@@ -359,6 +359,9 @@ The iPad reads the block log through `ActivityReading` and the Mac's activity fr
 - IOS-42. Tapping the card's elapsed time, tapping the running row, and the running row's Edit open the running entry's sheet with its task and End "Running"; the running row's context menu also has Copy Task and Discard. Moving Start 15 minutes earlier and Done moves the card's elapsed time by 15 minutes and keeps the task on the card and in the row; a task typed on the card just before is the sheet's task and is kept; a task stored after the sheet loaded is kept when Done changes only Start and the project.
 - IOS-43. In the iPad's Calendar a swipe up scrolls the hours, a sideways swipe on the day headers or over the hours scrolls the days (and not the hours), and a pinch zooms; a long press then drag draws instead (IOS-35).
 - IOS-44. In every section tab of the iPad, in portrait and landscape, the sidebar opens and closes with its button and the tabs then still switch by tap.
+- IOS-45. A widget's Stop and the long-running notification's Stop stop only the entry they showed or its midnight continuation, checked and stopped in one write; an entry started since keeps running.
+- IOS-46. A widget provider resolving while another provider's CloudKit fetch is still under way fetches too; a fetch counts for the 10-second reuse only once it returned.
+- IOS-47. The app's ladder configuration and the monitor extension's callbacks read and write a set's ledger while holding the App Group lock; the device ID is created under the same lock.
 
 ## 13. Decisions
 

@@ -128,4 +128,27 @@ struct KnowledgeTests {
         )
         #expect(attributed.map(\.device) == ["iPhone", "iPhone", "remote", "remote"])
     }
+
+    @Test("TRK-55 Safari visits that sync in after the watermark passed their time still form a remote block")
+    func lateSyncedVisits() async throws {
+        let harness = try AgentHarness(settings: "[devices]\nsynced_safari_history = true\n")
+        harness.history.tabs = [CloudTabDevice(name: "iPhone", urls: [])]
+        await harness.engine.tick()
+        #expect(!harness.blocks.contains { $0.deviceNames == [ActivityDeviceTime.remote] })
+        // An hour's visits arrive through iCloud only now.
+        harness.history.safari = (0 ..< 6).map { minute in
+            (
+                HistoryVisit(
+                    time: harness.time(TimeInterval(-3600 + minute * 60)),
+                    browser: "safari",
+                    url: "https://example.com/a",
+                    title: ""
+                ),
+                1
+            )
+        }
+        await harness.run(for: 301)
+        let remote = try #require(harness.blocks.first { $0.deviceNames == [ActivityDeviceTime.remote] })
+        #expect(remote.start == harness.time(-3600))
+    }
 }

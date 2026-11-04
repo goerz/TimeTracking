@@ -73,13 +73,18 @@ extension AgentEngine {
     static let knowledgeWatermarkKey = "knowledge.watermark"
     /// How far back the first backfill looks.
     static let knowledgeLookback: TimeInterval = 7 * 86_400
+    /// How far before its watermark a source is read again: data that
+    /// arrives late (an app's usage written when it quits, Safari visits
+    /// synced hours later) carries times before the watermark. The samples
+    /// of the range are replaced, so reading again changes nothing else.
+    static let lateDataWindow: TimeInterval = 86_400
 
     /// Reconstructs samples for the periods since the watermark in which
     /// the agent took no sample, from `/app/usage`, stores them, and forms
     /// the days they touch again.
     func backfillFromKnowledge(now: Date) {
         let watermark = (try? store.date(Self.knowledgeWatermarkKey)) ?? now.addingTimeInterval(-Self.knowledgeLookback)
-        let from = max(watermark, now.addingTimeInterval(-Self.knowledgeLookback))
+        let from = max(min(watermark, now.addingTimeInterval(-Self.lateDataWindow)), now.addingTimeInterval(-Self.knowledgeLookback))
         // The current open stretch is the live agent's; stop one tick before now.
         let until = now.addingTimeInterval(-Self.tickInterval)
         guard until > from else {
@@ -156,21 +161,25 @@ extension AgentEngine {
             return
         }
         syncedSafari.poll(history: environment.history, now: now)
-        let watermark = (try? store.date(Self.syncedSafariWatermarkKey)) ?? now.addingTimeInterval(-86_400)
+        let watermark = (try? store.date(Self.syncedSafariWatermarkKey)) ?? now.addingTimeInterval(-Self.lateDataWindow)
+        let from = min(watermark, now.addingTimeInterval(-Self.lateDataWindow))
         // Visits younger than the gap may still belong to an unfinished run.
         let until = now.addingTimeInterval(-SyncedSafariCollector.gap)
-        guard until > watermark, let visits = environment.history.safariVisits(from: watermark, to: until, origin: 1) else {
+        guard until > from, let visits = environment.history.safariVisits(from: from, to: until, origin: 1) else {
             return
         }
         let samples = syncedSafari.samples(visits: visits, context: resolveContext())
+        let known = Set(((try? store.extraSamples(.remote, from: from, to: until)) ?? []).map(\.sample.time))
         do {
-            try store.replaceExtraSamples(.remote, from: watermark, to: until, with: samples) { date in
+            try store.replaceExtraSamples(.remote, from: from, to: until, with: samples) { date in
                 environment.timeZone.secondsFromGMT(for: date)
             }
         } catch {
             logger.error("synced Safari: \(error.localizedDescription, privacy: .public)")
         }
         try? store.setDate(until, for: Self.syncedSafariWatermarkKey)
-        rebuild(days: Set(samples.map { day(of: $0.sample.time) }))
+        // Only the days that gained or lost a visit form again.
+        let changed = Set(samples.map(\.sample.time)).symmetricDifference(known)
+        rebuild(days: Set(changed.map { day(of: $0) }))
     }
 }

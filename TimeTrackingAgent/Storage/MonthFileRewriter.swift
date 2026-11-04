@@ -30,6 +30,9 @@ nonisolated enum MonthFileRewriter {
         decideStretch: (ActivityBackgroundStretch, [String: String]) -> StretchDecision = { _, _ in .keep },
         decide: (ActivityBlock, ActivityBlockDetail?, [String: String]) -> LineDecision
     ) throws -> [ActivityBlock] {
+        if ICloudFile.isPending(url) {
+            throw ICloudFile.pendingError(url)
+        }
         guard FileManager.default.fileExists(atPath: url.path) else {
             return []
         }

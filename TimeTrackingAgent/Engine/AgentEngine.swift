@@ -42,6 +42,9 @@ final class AgentEngine {
     var recorder: Recorder?
     var deviceEvents: (any DeviceEventSource)?
     var lastMaintenance: [String: Date] = [:]
+    /// The tick running now and the one follow-up waiting for it.
+    private var runningTick: Task<Sample, Never>?
+    private var queuedTick: Task<Sample, Never>?
     let logger = Logging.logger(category: "Agent")
 
     var settings: TrackerSettings {
@@ -85,14 +88,46 @@ final class AgentEngine {
 
     // MARK: The tick
 
-    /// Takes one sample now and processes it; returns the sample.
+    /// Takes one sample now and processes it; returns the sample. The
+    /// loop, socket commands, presence events, and app activation all ask
+    /// for ticks; they run one at a time, and every request arriving while
+    /// one runs shares a single follow-up tick, which reads the state after
+    /// the running one.
     @discardableResult
     func tick() async -> Sample {
+        if let queuedTick {
+            return await queuedTick.value
+        }
+        if let runningTick {
+            let next = Task {
+                _ = await runningTick.value
+                queuedTick = nil
+                return await runTick()
+            }
+            queuedTick = next
+            return await next.value
+        }
+        return await runTick()
+    }
+
+    private func runTick() async -> Sample {
+        let task = Task { await takeSample() }
+        runningTick = task
+        let sample = await task.value
+        if runningTick == task {
+            runningTick = nil
+        }
+        return sample
+    }
+
+    /// One tick's sample. The time and presence are read after the
+    /// terminal snapshot, so the sample describes the state it records.
+    private func takeSample() async -> Sample {
         reloadSettings()
-        let now = environment.clock.now
-        let reading = environment.presence.read()
         var context = resolveContext()
         let snapshot = await TerminalSnapshot.read(environment: environment)
+        let now = environment.clock.now
+        let reading = environment.presence.read()
         updateStaticHealth(snapshot: snapshot, now: now)
         var sample: Sample
         let before = presence.state

@@ -61,6 +61,9 @@ struct TrackerSocket: TrackerCommandSending {
         return await Task.detached { Self.exchange(command, at: url) }.value
     }
 
+    /// Seconds a command waits for the agent's reply.
+    nonisolated static let replyTimeout = 120
+
     private nonisolated static func exchange(_ command: String, at url: URL) -> TrackerCommandResult {
         let link = URL(filePath: NSTemporaryDirectory()).appending(path: "tt-\(UUID().uuidString.prefix(8)).sock")
         guard (try? FileManager.default.createSymbolicLink(at: link, withDestinationURL: url)) != nil else {
@@ -74,6 +77,10 @@ struct TrackerSocket: TrackerCommandSending {
         defer { close(descriptor) }
         var noSignal: Int32 = 1
         setsockopt(descriptor, SOL_SOCKET, SO_NOSIGPIPE, &noSignal, socklen_t(MemoryLayout<Int32>.size))
+        // A hung agent must not hold the caller forever; a rewrite command
+        // gets as long as `tracker-event` gives it.
+        var timeout = timeval(tv_sec: Self.replyTimeout, tv_usec: 0)
+        setsockopt(descriptor, SOL_SOCKET, SO_RCVTIMEO, &timeout, socklen_t(MemoryLayout<timeval>.size))
         var address = sockaddr_un()
         address.sun_family = sa_family_t(AF_UNIX)
         let name = Array(link.path.utf8CString)
@@ -97,8 +104,17 @@ struct TrackerSocket: TrackerCommandSending {
         }
         var reply = [UInt8]()
         var byte: UInt8 = 0
-        while read(descriptor, &byte, 1) == 1, byte != UInt8(ascii: "\n") {
+        var complete = false
+        while read(descriptor, &byte, 1) == 1 {
+            if byte == UInt8(ascii: "\n") {
+                complete = true
+                break
+            }
             reply.append(byte)
+        }
+        // No reply line (a timeout or a closed connection) is no answer.
+        guard complete else {
+            return .unreachable
         }
         let text = String(decoding: reply, as: UTF8.self)
         if text == "ok" {

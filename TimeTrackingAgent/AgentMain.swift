@@ -2,6 +2,7 @@
 // (spec_activity_tracking.md §5, spec_architecture.md §1.4).
 
 import AppKit
+import os
 import TimeTrackingCore
 
 @main
@@ -20,6 +21,12 @@ enum AgentMain {
         let application = NSApplication.shared
         application.setActivationPolicy(.prohibited)
         if !isHostingTests, let identity = AppIdentity.main {
+            if let group = identity.groupContainerURL,
+               !InstanceLock.acquire(at: identity.supportDirectory(in: group).appending(path: "agent.lock", directoryHint: .notDirectory))
+            {
+                Logging.logger(category: "Agent").notice("Another tracker agent is running; exiting")
+                exit(0)
+            }
             runner = AgentRunner.live(
                 identity: identity,
                 clock: arguments.clock(honorFixedNow: identity.isDebug),

@@ -45,8 +45,13 @@ public final class DarwinChangeNotifier: ChangeNotifier {
             return stream
         }
         let handle = FileHandle(fileDescriptor: descriptor, closeOnDealloc: false)
-        handle.readabilityHandler = { handle in
-            guard !handle.availableData.isEmpty else {
+        let fileDescriptor = descriptor
+        handle.readabilityHandler = { _ in
+            // read(2), not availableData: when the stream ends, notify_cancel
+            // closes the descriptor, possibly while this handler runs, and
+            // availableData then raises instead of failing.
+            var token: Int32 = 0
+            guard read(fileDescriptor, &token, MemoryLayout<Int32>.size) > 0 else {
                 return
             }
             continuation.yield()

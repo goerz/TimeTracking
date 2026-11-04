@@ -26,6 +26,8 @@ final class ProjectPickerModel {
     var search = ""
     private(set) var content = ProjectPickerContent(search: "", showsNoProject: true, recent: [], groups: [], createName: nil)
     var highlight: ProjectPickerItem?
+    /// The search the lines were loaded for.
+    @ObservationIgnored private var loadedSearch: String?
 
     init(store: TimeStore, currentProject: ProjectID?, taskMatching: Bool) {
         self.store = store
@@ -45,6 +47,7 @@ final class ProjectPickerModel {
             return
         }
         content = loaded
+        loadedSearch = query
         highlight = loaded.initialHighlight(current: currentProject)
     }
 
@@ -61,9 +64,13 @@ final class ProjectPickerModel {
         self.highlight = items[min(max(index + offset, 0), items.count - 1)]
     }
 
-    /// ↩: the highlighted line's choice.
+    /// ↩: the highlighted line's choice, unless the search changed since
+    /// the lines loaded (the highlight would be the old search's).
     func chooseHighlighted() -> ProjectPickerChoice? {
-        highlight.map(choice(for:))
+        guard loadedSearch == search else {
+            return nil
+        }
+        return highlight.map(choice(for:))
     }
 
     /// ⌘↩: create from the search text.

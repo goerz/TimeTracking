@@ -59,8 +59,13 @@ final class AppModel {
     /// Whether the Mini Timer is key.
     private(set) var timerIsKey = false
 
-    @ObservationIgnored private var changeTask: Task<Void, Never>?
-    @ObservationIgnored private var lastRunningID: EntryID?
+    @ObservationIgnored var changeTask: Task<Void, Never>?
+    /// The coalesced reload after entry and structure changes.
+    @ObservationIgnored var reloadLoop: Task<Void, Never>?
+    /// Wakes at the running entry's next midnight to run the invariant pass.
+    @ObservationIgnored var midnightTask: Task<Void, Never>?
+    @ObservationIgnored var reloadRequested = false
+    @ObservationIgnored var lastRunningID: EntryID?
 
     init(
         store: TimeStore,
@@ -119,27 +124,11 @@ final class AppModel {
         ModifierState.readsKeyPresses = true
     }
 
-    /// Loads everything; with `observing`, follows the store's changes.
-    func start(observing: Bool) async {
-        await pomodoro.loadSettings()
-        await timer.refresh()
-        lastRunningID = timer.running?.id
-        await reloadLists()
-        await tracker.refresh()
-        guard observing else {
-            return
-        }
-        let stream = store.changes
-        changeTask = Task { [weak self] in
-            for await change in stream {
-                await self?.storeChanged(change)
-            }
-        }
-    }
-
     func stop() {
         changeTask?.cancel()
         changeTask = nil
+        midnightTask?.cancel()
+        midnightTask = nil
     }
 
     /// A change from the store (this process, the tool, or sync).
@@ -168,7 +157,7 @@ final class AppModel {
     }
 
     /// Both Timer views' lists.
-    private func reloadLists() async {
+    func reloadLists() async {
         await miniTimer.list.reload()
         await mainTimer.list.reload()
     }
@@ -183,6 +172,10 @@ final class AppModel {
         if running?.id != lastRunningID {
             pomodoro.runningChanged(isRunning: running != nil)
             idle.runningChanged(running)
+            if running != nil {
+                // "Nothing is being tracked" no longer holds.
+                reminders.trackingStarted()
+            }
             if running != nil, settings.focusOnStart {
                 router?.showTimer(focusTask: true)
             } else if running == nil, settings.focusOnStop {
@@ -234,10 +227,18 @@ final class AppModel {
             perform(pomodoroAction)
         } else if let option = Self.idleOptions[action] {
             await idle.resolve(option)
-        } else if action == .startNew {
-            await newEntry()
-        } else if action == .continueLatest {
-            await continueLatest()
+        } else if action == .startNew || action == .continueLatest {
+            // The reminder's actions, which stop nothing: an entry started
+            // since the reminder (on any device) keeps running.
+            await timer.refresh()
+            guard !timer.isRunning else {
+                return
+            }
+            if action == .startNew {
+                await newEntry()
+            } else {
+                await continueLatest()
+            }
         } else if action == .snooze {
             reminders.snooze()
         }

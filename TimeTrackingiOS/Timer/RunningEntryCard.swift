@@ -86,6 +86,7 @@ struct RunningEntryCard: View {
                     return
                 }
                 timer.taskTextChanged()
+                model.taskField.textChanged(text)
                 Task { await model.taskField.userEdited(text, chipProject: timer.chipProjectID) }
             }
             .onChange(of: taskFocused) { _, focused in

@@ -12,6 +12,22 @@ extension AgentEngine {
     /// A presence event at `time` (lock, sleep, display sleep, user switch,
     /// and their ends): records an event sample, closes the open block at
     /// the event time where §2.6 says so, and rewrites `current.json`.
+    /// How far before its delivery a file event's modification time may lie.
+    static let fileEventWindow: TimeInterval = 60
+
+    /// Records modified files from FSEvents. FSEvents reports no time, and
+    /// delivers with a delay; the file's modification time, when it lies
+    /// within the last minute, places the change in the right block.
+    func recordFileEvents(_ paths: [String]) {
+        let now = environment.clock.now
+        let context = resolveContext()
+        for path in paths {
+            let modified = environment.files.modificationDate(path)
+            let time = modified.flatMap { $0 <= now && now.timeIntervalSince($0) <= Self.fileEventWindow ? $0 : nil } ?? now
+            fileChanges.record(path: path, at: time, context: context)
+        }
+    }
+
     func handle(_ event: PresenceEvent, at time: Date) {
         if presence.apply(event, at: time) {
             transitions.append(ActivityPresenceTransition(time: presence.since, state: presence.state))

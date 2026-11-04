@@ -124,7 +124,7 @@ final class WindowsUITests: XCTestCase {
         XCTAssertTrue(app.buttons["timer.stopButton"].waitForExistence(timeout: 5))
         app.buttons["timer.stopButton"].click()
         XCTAssertTrue(app.buttons["timer.startButton"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.descendants(matching: .any).matching(Self.stoppedRow).firstMatch.exists)
+        XCTAssertTrue(app.descendants(matching: .any).matching(Self.stoppedRow).firstMatch.waitForExistence(timeout: 5))
         app.terminate()
     }
 

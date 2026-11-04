@@ -545,6 +545,7 @@ Views use `TrackingCalendar(timeZone: .current)`, rebuilt on a time zone change.
 52. A run 18:00 to 18:45 (running, 7012 m), a copy 18:01 to 18:40 (6990 m), and a walk 18:45 to 19:00 make two workout periods: 18:00 to 18:45 running with 7012 m, and the walk; importing them over the same periods stored without details keeps the records, fills in activity and distance, and the other device receives them; the workout import key is `health.importedThrough.workout.3`.
 53. The query `backgroundStretches(in:)` returns the stretches overlapping the interval, with the items of the asked devices and without excluded contexts; `blocks(in:)` never returns them.
 54. When another process writes and posts and this process writes and posts before its listener runs, this process's observers still receive `.entries([])`, and `.settings` with each key the other process changed.
+55. An edit made while its record is being sent stays queued after the send is confirmed and goes out with the next send; a batch's outbox sequence and records are read in one transaction.
 
 ### 9.1 Fixtures
 

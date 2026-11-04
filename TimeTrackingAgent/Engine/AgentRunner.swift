@@ -97,10 +97,7 @@ final class AgentRunner {
             guard let self else {
                 return
             }
-            let context = engine.resolveContext()
-            for path in paths {
-                engine.fileChanges.record(path: path, at: engine.environment.clock.now, context: context)
-            }
+            engine.recordFileEvents(paths)
         }
         fileStream = stream
         loop = Task { [weak self] in

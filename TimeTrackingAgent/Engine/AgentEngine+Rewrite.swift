@@ -9,8 +9,8 @@ extension AgentEngine {
     func rewrite(_ command: TrackerCommand) -> TrackerReply {
         do {
             switch command {
-            case let .deleteBlock(start):
-                return try deleteBlock(start: start)
+            case let .deleteBlock(start, end):
+                return try deleteBlock(start: start, end: end)
             case let .forgetDay(day):
                 try forgetDay(day)
                 return .success
@@ -38,14 +38,25 @@ extension AgentEngine {
 
     /// Deletes the block starting at `start` (local time) and what it was
     /// formed from, and records its time as deleted.
-    private func deleteBlock(start: String) throws -> TrackerReply {
+    private func deleteBlock(start: String, end: String?) throws -> TrackerReply {
         guard ActivityTimestamp.date(start, utcOffset: 0) != nil else {
             return .error("not a local time: \(start)")
         }
         let day = String(start.prefix(10))
         let now = environment.clock.now
         let blocks = logs.blocks(on: day)
-        if let block = blocks.first(where: { ActivityTimestamp.text($0.start, utcOffset: $0.utcOffset) == start }) {
+        if let end {
+            // The range the user saw: a tick may have cut it into several
+            // blocks since, and all of them go.
+            guard let from = ActivityTimestamp.date(start, timeZone: environment.timeZone),
+                  let to = ActivityTimestamp.date(end, timeZone: environment.timeZone), to > from,
+                  blocks.contains(where: { $0.start < to && $0.end > from })
+            else {
+                return .error("\(TrackerReply.noBlockReason) \(start)")
+            }
+            let followed = blocks.contains { $0.start == to }
+            try forget(from: from, to: followed ? to : to.addingTimeInterval(1))
+        } else if let block = blocks.first(where: { ActivityTimestamp.text($0.start, utcOffset: $0.utcOffset) == start }) {
             // A sample at the end belongs to the block that starts there.
             let followed = blocks.contains { $0.start == block.end }
             try forget(from: block.start, to: followed ? block.end : block.end.addingTimeInterval(1))

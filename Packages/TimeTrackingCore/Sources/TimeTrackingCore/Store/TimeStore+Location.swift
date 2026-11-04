@@ -38,16 +38,18 @@ extension TimeStore {
         timeZone: @escaping @Sendable () -> TimeZone = { .current },
         readOnly: Bool = false,
         busyTimeout: TimeInterval = TimeStore.defaultBusyTimeout,
-        observesOtherProcesses: Bool = true
+        observesOtherProcesses: Bool = true,
+        onBusy: (@Sendable () -> Void)? = nil
     ) async throws -> TimeStore {
         guard let location = Location.resolve(arguments: arguments, identity: identity) else {
             throw StoreError.database("No App Group container")
         }
         let notifier: (any ChangeNotifier)? = arguments.uiTesting ? nil : identity.map { identity in
-            let darwin = DarwinChangeNotifier(identity: identity)
+            let name = (identity.isDebug ? arguments.changeNotificationName : nil) ?? identity.changeNotificationName
+            let darwin = DarwinChangeNotifier(name: name)
             return observesOtherProcesses ? darwin : PostOnlyChangeNotifier(darwin)
         }
-        let store = try await open(Configuration(
+        var configuration = Configuration(
             location: location,
             clock: clock,
             deviceID: deviceID,
@@ -55,7 +57,9 @@ extension TimeStore {
             notifier: notifier,
             readOnly: readOnly,
             busyTimeout: busyTimeout
-        ))
+        )
+        configuration.onBusy = onBusy
+        let store = try await open(configuration)
         if arguments.uiTesting, let name = arguments.fixture {
             try await StoreFixture.load(named: name, into: store, timeZone: timeZone())
         }

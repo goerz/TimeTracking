@@ -22,6 +22,10 @@ final class TaskFieldModel {
     /// The offset of the `@` whose picker was closed with Escape.
     @ObservationIgnored private var dismissedTrigger: Int?
     @ObservationIgnored private var suggestionsDismissed = false
+    /// The field's text as last edited, and the text the suggestions were
+    /// loaded for: Return accepts a suggestion only when they match.
+    @ObservationIgnored private var latestText: String?
+    @ObservationIgnored private var suggestionsText: String?
 
     init(store: TimeStore) {
         self.store = store
@@ -51,8 +55,15 @@ final class TaskFieldModel {
         return String(String(Array(text)[..<offset]).trimmingTrailingSpaces)
     }
 
+    /// A keystroke changed the field to `text`: noted at once, before the
+    /// suggestions for it load.
+    func textChanged(_ text: String) {
+        latestText = text
+    }
+
     /// A keystroke changed the field to `text`.
     func userEdited(_ text: String, chipProject: ProjectID?) async {
+        textChanged(text)
         if let (offset, query) = Self.trigger(in: text), offset != dismissedTrigger {
             suggestions = []
             if picker == nil {
@@ -77,7 +88,12 @@ final class TaskFieldModel {
             return
         }
         let found = await (try? store.taskCompletions(containing: text, preferredProject: chipProject, limit: Self.suggestionLimit)) ?? []
+        // A later keystroke loads its own suggestions; these are outdated.
+        guard text == latestText else {
+            return
+        }
         suggestions = found
+        suggestionsText = text
         highlightedSuggestion = found.isEmpty ? nil : 0
         var labels: [ProjectID: ProjectLabel] = [:]
         for id in Set(found.compactMap(\.projectID)) {
@@ -101,7 +117,9 @@ final class TaskFieldModel {
 
     /// Return or Tab with suggestions showing: the highlighted one.
     func acceptSuggestion() -> TaskSuggestion? {
-        guard isShowingSuggestions, let index = highlightedSuggestion, suggestions.indices.contains(index) else {
+        guard isShowingSuggestions, suggestionsText == latestText, let index = highlightedSuggestion,
+              suggestions.indices.contains(index)
+        else {
             return nil
         }
         let suggestion = suggestions[index]

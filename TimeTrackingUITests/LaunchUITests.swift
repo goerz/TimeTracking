@@ -40,7 +40,7 @@ final class LaunchUITests: XCTestCase {
         app = XCUIApplication.timeTracking(reset: false)
         app.launch()
         XCTAssertTrue(app.mainWindow.waitForExistence(timeout: 10))
-        XCTAssertFalse(app.windows["timer"].exists)
+        XCTAssertFalse(app.windows["timer"].waitForExistence(timeout: 2), "a window shown late must fail too")
         XCTAssertFalse(app.windows[Self.settingsWindow].exists)
         // At launch, show: Mini Timer.
         app.typeKey(",", modifierFlags: .command)
@@ -57,7 +57,7 @@ final class LaunchUITests: XCTestCase {
         app = XCUIApplication.timeTracking(reset: false)
         app.launch()
         XCTAssertTrue(app.windows["timer"].waitForExistence(timeout: 10))
-        XCTAssertFalse(app.mainWindow.exists)
+        XCTAssertFalse(app.mainWindow.waitForExistence(timeout: 2), "a window shown late must fail too")
         XCTAssertFalse(app.windows[Self.settingsWindow].exists)
         app.terminate()
     }

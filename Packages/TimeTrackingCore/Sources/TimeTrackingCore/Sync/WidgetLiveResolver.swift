@@ -36,7 +36,11 @@ public struct WidgetLiveResolver: Sendable {
     }
 
     /// Merges `local` (the store's row, if the store is readable), the last
-    /// resolved state, and a fetch when due; records the result.
+    /// resolved state, and a fetch when due; records the result. A fetch
+    /// counts for reuse only once it returned, so a provider resolving while
+    /// another one's fetch is still under way fetches itself instead of
+    /// taking the state from before; the result merges with whatever another
+    /// provider recorded meanwhile.
     public func resolve(local: LiveState?) async -> Resolution {
         let now = clock.now
         let cached = shared.liveState
@@ -44,9 +48,12 @@ public struct WidgetLiveResolver: Sendable {
         var fetched = false
         if let reader, isFetchDue(at: now) {
             fetched = true
-            shared.lastFetchAt = now
             if let remote = try? await reader.fetch(timeout: Self.fetchTimeout) {
                 state = state.merged(with: remote)
+            }
+            shared.lastFetchAt = now
+            if let recorded = shared.liveState {
+                state = state.merged(with: recorded)
             }
         }
         shared.liveState = state

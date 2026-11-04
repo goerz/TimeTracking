@@ -13,8 +13,14 @@ final class PhoneAppDelegate: NSObject, UIApplicationDelegate {
         didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
         if !LaunchArguments.current.uiTesting {
+            // The delegate before anything awaits: a notification action
+            // that launched the app is delivered to it.
+            _ = UserNotifications.shared
             application.registerForRemoteNotifications()
         }
+        // The store opens at launch, also without a window (a silent push,
+        // a widget button, a notification action).
+        Task { await PhoneHost.shared.load() }
         return true
     }
 

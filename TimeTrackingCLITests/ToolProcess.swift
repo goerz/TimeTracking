@@ -117,6 +117,18 @@ enum ToolProcess {
         return false
     }
 
+    /// Waits until `file` exists, or `tool` exits, or 30 seconds pass.
+    static func waitUntilExists(_ file: URL, while tool: RunningTool) -> Bool {
+        let deadline = ContinuousClock.now + .seconds(30)
+        while tool.process.isRunning, ContinuousClock.now < deadline {
+            if FileManager.default.fileExists(atPath: file.path) {
+                return true
+            }
+            usleep(1000)
+        }
+        return FileManager.default.fileExists(atPath: file.path)
+    }
+
     /// The paths of the vnodes process `pid` has open.
     static func openFiles(of pid: pid_t) -> [String] {
         let size = proc_pidinfo(pid, PROC_PIDLISTFDS, 0, nil, 0)

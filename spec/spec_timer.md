@@ -218,7 +218,7 @@ The prompt closes if the entry stops on another device. With "Stop the entry at 
 | On | Monday to Friday |
 | Snooze for | 60 min (5 to 480) |
 
-While on, idle, inside the hours on a selected day, and unlocked, the app sends the `reminder` notification every N minutes, counted from the last stop or reminder. Snooze pauses reminders for the snooze duration.
+While on, idle, inside the hours on a selected day, and unlocked, the app sends the `reminder` notification every N minutes, counted from the last stop or reminder. Snooze pauses reminders for the snooze duration. A start, on any device, removes a delivered reminder; its Start New and Continue Latest do nothing while an entry runs, so they never stop an entry started since.
 
 ## 8. Settings window
 
@@ -358,6 +358,8 @@ Clicking a notification shows the Mini Timer (with the idle prompt for `idle`). 
 - TM-40. With no window open (a login-item launch with none open at the last quit), the menu bar's Open `<APP_NAME>`, Show Mini Timer, and Settings… open the main window, the Mini Timer, and the settings window.
 - TM-41. A task typed into the running entry less than 500 ms before New, Continue, or Start Timer replaces it is stored on that entry.
 - TM-42. With an editor (the Mac popover or the iPhone edit sheet) open on an entry whose Stop another device then changes, editing Start stores the new start and keeps the other device's stop.
+- TM-43. Starting an entry, here or on another device, removes a delivered "Nothing is being tracked" reminder, and its Start New and Continue Latest do nothing while an entry runs.
+- TM-44. Return accepts no suggestion or picker line loaded for text the user has since typed past.
 
 ## 12. Decisions
 

@@ -75,6 +75,12 @@ struct ActivityLogs {
         stretches: [BackgroundWork.Stretch] = []
     ) throws {
         let manager = FileManager.default
+        let month = monthURL(day)
+        // A month file iCloud Drive holds only as a placeholder would be
+        // replaced by this day alone; the day is written once it is here.
+        if ICloudFile.isPending(month) {
+            throw ICloudFile.pendingError(month)
+        }
         let staging = manager.temporaryDirectory.appending(path: "day-\(UUID().uuidString)", directoryHint: .isDirectory)
         defer { try? manager.removeItem(at: staging) }
 
@@ -93,7 +99,6 @@ struct ActivityLogs {
             try AtomicFile.write(Data(contentsOf: writer.fileURL(for: day)), to: detail)
         }
 
-        let month = monthURL(day)
         let stagedFolder = staging.appending(path: "blocks", directoryHint: .isDirectory)
         var writer = BlockLogWriter(folder: stagedFolder, device: device)
         let staged = writer.fileURL(for: String(day.prefix(7)))
@@ -129,7 +134,7 @@ struct ActivityLogs {
     @discardableResult
     func moveOwnLinesFromSharedMonthFiles() throws -> [String] {
         var moved: [String] = []
-        for shared in BlockLogFolder.monthFiles(directlyIn: blocksRoot) {
+        for shared in BlockLogFolder.monthFiles(directlyIn: blocksRoot) where !ICloudFile.isPending(shared) {
             let split = try Self.split(Data(contentsOf: shared), device: device)
             guard split.ownLines > 0 else {
                 continue

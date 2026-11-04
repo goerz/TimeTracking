@@ -84,16 +84,20 @@ public struct LadderController: Sendable {
         }
         let today = dayKey(now)
         for set in store.ladderSets {
-            var state: LadderSetState
-            if let existing = store.ladderState(for: set.id), existing.day == today {
-                state = existing
-                state.generation += 1
-                state.window = LadderPlan.window(after: existing.countedStep, budget: budget(for: set), everything: set.isEverything)
-            } else {
-                state = fresh(set, day: today)
+            // The monitor extension may count a step meanwhile; each set's
+            // ledger is read and written under the App Group lock.
+            try store.withExclusiveAccess {
+                var state: LadderSetState
+                if let existing = store.ladderState(for: set.id), existing.day == today {
+                    state = existing
+                    state.generation += 1
+                    state.window = LadderPlan.window(after: existing.countedStep, budget: budget(for: set), everything: set.isEverything)
+                } else {
+                    state = fresh(set, day: today)
+                }
+                try monitor.startMonitoring(registration(for: set, state: state), for: set)
+                store.setLadderState(state, for: set.id)
             }
-            try monitor.startMonitoring(registration(for: set, state: state), for: set)
-            store.setLadderState(state, for: set.id)
         }
     }
 
@@ -107,9 +111,11 @@ public struct LadderController: Sendable {
         guard let set = store.ladderSets.first(where: { $0.id == setID }) else {
             return
         }
-        let state = fresh(set, day: dayKey(now))
-        try monitor.startMonitoring(registration(for: set, state: state), for: set)
-        store.setLadderState(state, for: set.id)
+        try store.withExclusiveAccess {
+            let state = fresh(set, day: dayKey(now))
+            try monitor.startMonitoring(registration(for: set, state: state), for: set)
+            store.setLadderState(state, for: set.id)
+        }
     }
 
     private func fresh(_ set: LadderSet, day: String) -> LadderSetState {
@@ -136,34 +142,38 @@ public struct LadderController: Sendable {
         guard name.day == today.replacingOccurrences(of: "-", with: "") else {
             return .ignored
         }
-        var state = store.ladderState(for: set.id).flatMap { $0.day == today ? $0 : nil } ?? fresh(set, day: today)
-        let base = state.countedStep ?? 0
-        guard name.step > base else {
-            return .ignored
-        }
-        let since = state.countedAt ?? ActivityTimestamp.startOfDay(now, timeZone: timeZone)
-        let earliest = since.addingTimeInterval(TimeInterval(name.step - base) * 60)
-        if now < earliest {
-            try log.append(.ladder, label: set.label, kind: "minute", payload: DeviceEvent.payloadText(["n": name.step, "early": true]))
-            guard name.generation == state.generation else {
-                return .early(step: name.step, reregistered: false)
+        // The app may reconfigure the set meanwhile; the ledger is read and
+        // written under the App Group lock.
+        return try store.withExclusiveAccess { () throws -> Outcome in
+            var state = store.ladderState(for: set.id).flatMap { $0.day == today ? $0 : nil } ?? fresh(set, day: today)
+            let base = state.countedStep ?? 0
+            guard name.step > base else {
+                return .ignored
             }
-            state.generation += 1
-            try monitor.startMonitoring(registration(for: set, state: state), for: set)
-            store.setLadderState(state, for: set.id)
-            return .early(step: name.step, reregistered: true)
-        }
-        try log.append(.ladder, label: set.label, kind: "minute", payload: DeviceEvent.payloadText(["n": name.step]))
-        state.countedStep = name.step
-        state.countedAt = now
-        if name.step >= (state.window.last ?? 0) {
-            state.generation += 1
-            state.window = LadderPlan.window(after: name.step, budget: budget(for: set), everything: set.isEverything)
-            if !state.window.isEmpty {
+            let since = state.countedAt ?? ActivityTimestamp.startOfDay(now, timeZone: timeZone)
+            let earliest = since.addingTimeInterval(TimeInterval(name.step - base) * 60)
+            if now < earliest {
+                try log.append(.ladder, label: set.label, kind: "minute", payload: DeviceEvent.payloadText(["n": name.step, "early": true]))
+                guard name.generation == state.generation else {
+                    return .early(step: name.step, reregistered: false)
+                }
+                state.generation += 1
                 try monitor.startMonitoring(registration(for: set, state: state), for: set)
+                store.setLadderState(state, for: set.id)
+                return .early(step: name.step, reregistered: true)
             }
+            try log.append(.ladder, label: set.label, kind: "minute", payload: DeviceEvent.payloadText(["n": name.step]))
+            state.countedStep = name.step
+            state.countedAt = now
+            if name.step >= (state.window.last ?? 0) {
+                state.generation += 1
+                state.window = LadderPlan.window(after: name.step, budget: budget(for: set), everything: set.isEverything)
+                if !state.window.isEmpty {
+                    try monitor.startMonitoring(registration(for: set, state: state), for: set)
+                }
+            }
+            store.setLadderState(state, for: set.id)
+            return .counted(step: name.step)
         }
-        store.setLadderState(state, for: set.id)
-        return .counted(step: name.step)
     }
 }

@@ -49,15 +49,26 @@ final class TrackerStatusModel {
         self.presentSince = clock.now
     }
 
+    /// Counts refreshes; only the latest one assigns.
+    @ObservationIgnored private var refreshGeneration = 0
+
     var liveness: TrackerLiveness {
         TrackerLiveness(registration: registration, state: state, now: clock.now)
     }
 
-    /// Re-reads the registration and `current.json`.
+    /// Re-reads the registration and `current.json`. Overlapping refreshes
+    /// (the 30-second check, the pane's 5-second one) assign together, and
+    /// only the latest one.
     func refresh() async {
+        refreshGeneration += 1
+        let generation = refreshGeneration
+        let read = await readState()
+        guard generation == refreshGeneration else {
+            return
+        }
         registration = agent.registration
         appLoginItem = loginItem.registration
-        state = await readState()
+        state = read
         warningActive = TrackerWarning.isActive(registration: registration, state: state, presentSince: presentSince, now: clock.now)
     }
 

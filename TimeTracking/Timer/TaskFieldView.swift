@@ -70,6 +70,7 @@ struct TaskFieldView: View {
                 app.timer.taskTextChanged()
             }
             let chip = app.timer.chipProjectID
+            view.taskField.textChanged(newValue)
             Task { await view.taskField.userEdited(newValue, chipProject: chip) }
         }
     }

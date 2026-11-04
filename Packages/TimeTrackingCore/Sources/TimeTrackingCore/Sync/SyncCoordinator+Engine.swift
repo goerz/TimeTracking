@@ -18,12 +18,19 @@ extension SyncCoordinator {
     /// `LiveState` travels with the pending entries, atomically.
     public func nextBatch(_ pending: [SyncPendingChange]) async -> SyncBatch? {
         do {
-            let sequence = try await store.outboxMaxSequence()
+            let changes = Array(Self.ordered(pending).prefix(Self.batchLimit))
+            let saved = changes.compactMap { change -> SyncRecordRef? in
+                if case let .save(ref) = change {
+                    return ref
+                }
+                return nil
+            }
+            let (sequence, records) = try await store.syncSnapshot(saved)
             var batch = SyncBatch(records: [], deletions: [], atomic: false, dropped: [])
-            for change in Self.ordered(pending).prefix(Self.batchLimit) {
+            for change in changes {
                 switch change {
                 case let .save(ref):
-                    guard let record = try await store.syncRecord(ref) else {
+                    guard let record = records[ref] else {
                         batch.dropped.append(change)
                         continue
                     }

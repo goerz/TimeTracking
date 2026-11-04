@@ -67,6 +67,11 @@ final class OnboardingModel {
                         in: DateInterval(start: .distantPast, end: .distantFuture),
                         includeDeleted: false
                     ).count) ?? 0
+                    // A count arriving after the sync finished must not
+                    // take the step back from done.
+                    guard !Task.isCancelled, case .syncing = self?.step else {
+                        continue
+                    }
                     self?.step = .syncing(entries: count)
                 }
             }

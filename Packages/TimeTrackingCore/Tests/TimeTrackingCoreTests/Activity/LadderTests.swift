@@ -67,7 +67,61 @@ struct LadderHarness {
     }
 }
 
+/// Checks, at every registration, whether another process could take the
+/// App Group lock at that moment.
+final class LockProbingMonitor: LadderMonitoring {
+    let lockFile: URL
+    private let probes = Mutex<[Bool]>([])
+
+    init(lockFile: URL) {
+        self.lockFile = lockFile
+    }
+
+    /// For each registration: whether the lock was free.
+    var lockWasFree: [Bool] {
+        probes.withLock { $0 }
+    }
+
+    func startMonitoring(_: LadderRegistration, for _: LadderSet) {
+        // A second open file stands for another process.
+        let descriptor = open(lockFile.path, O_RDWR | O_CREAT, 0o644)
+        defer { close(descriptor) }
+        let free = flock(descriptor, LOCK_EX | LOCK_NB) == 0
+        if free {
+            flock(descriptor, LOCK_UN)
+        }
+        probes.withLock { $0.append(free) }
+    }
+
+    func stopMonitoring(_: [String]) {}
+}
+
 struct LadderTests {
+    @Test("IOS-47 the app's configuration and the monitor's callback update a set's ledger holding the App Group lock")
+    func ledgerUpdatesHoldTheLock() throws {
+        let folder = try TemporaryFolder()
+        defer { folder.remove() }
+        let lockFile = folder.url.appending(path: "defaults.lock")
+        let zone = ActivityFixture.newYork
+        let clock = try ManualClock(#require(ActivityTimestamp.date("2024-03-14T10:00:00", timeZone: zone)))
+        let defaults = try #require(UserDefaults(suiteName: "LadderTests.\(UUID().uuidString)"))
+        let state = CollectionSharedState(defaults: defaults, lockFile: lockFile)
+        state.isEnabled = true
+        state.ladderSets = [.everything]
+        state.eventCap = 100
+        let monitor = LockProbingMonitor(lockFile: lockFile)
+        let sink = DeviceEventStagingFile(folder: folder.url)
+        let log = CollectionLog(state: state, sink: sink, deviceID: "phone", clock: clock, timeZone: zone)
+        let controller = LadderController(store: state, monitor: monitor, log: log)
+        try controller.configure()
+        try controller.intervalDidStart(setID: LadderSet.everythingID)
+        #expect(monitor.lockWasFree == [false, false])
+        // Outside an update the lock is free again.
+        let descriptor = open(lockFile.path, O_RDWR)
+        defer { close(descriptor) }
+        #expect(flock(descriptor, LOCK_EX | LOCK_NB) == 0)
+    }
+
     @Test("phase 7: a cap of 100 gives Everything 1 to 60 and 65 to 180, a named set 1 to 10 and 15 to 40")
     func theCapIsDividedByExpectedUse() {
         let mail = LadderSet(id: "mail", label: "Mail")
