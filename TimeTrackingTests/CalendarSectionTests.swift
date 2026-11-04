@@ -224,10 +224,18 @@ struct CalendarSectionTests {
         try await model.split(entry.id, at: TestApp.date("2024-03-13T10:59:30"))
         #expect(try await world.test.store.entries(on: Self.day("2024-03-13")).count == 1)
         try await model.split(entry.id, at: TestApp.date("2024-03-13T10:00"))
-        let pieces = try await world.test.store.entries(on: Self.day("2024-03-13")).sorted { $0.start < $1.start }
+        var pieces = try await world.test.store.entries(on: Self.day("2024-03-13")).sorted { $0.start < $1.start }
         #expect(pieces.count == 2)
         #expect(pieces[0].end == pieces[1].start)
         #expect(try pieces[0].end == TestApp.date("2024-03-13T10:00"))
+        // ⌘Z joins the pieces again in one write.
+        world.test.undo.undo()
+        await model.waitForUndo()
+        let joined = try await world.test.store.entries(on: Self.day("2024-03-13"))
+        #expect(joined.map(\.id) == [entry.id])
+        #expect(try joined.first?.end == TestApp.date("2024-03-13T11:00"))
+        try await model.split(entry.id, at: TestApp.date("2024-03-13T10:00"))
+        pieces = try await world.test.store.entries(on: Self.day("2024-03-13")).sorted { $0.start < $1.start }
         // Duplicate to Next Day: 09:00–10:00 would end at 10:00 today (now), 10:00–11:00 would not be past.
         model.select(.entry(pieces[1].id))
         await model.perform(.duplicate)

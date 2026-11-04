@@ -305,10 +305,14 @@ extension CalendarModel {
         let deletedAt = clock.now
         do {
             try await store.delete(ids)
+            // One transaction, so no observer sees the restored entry running.
+            let running = doomed.filter(\.isRunning).map(\.id)
             registerUndo("Undo Delete Entry") { store in
-                try await store.restore(ids)
-                for entry in doomed where entry.isRunning {
-                    _ = try await store.update(entry.id, EntryChange(end: deletedAt))
+                try await store.transaction { transaction in
+                    try transaction.restore(ids)
+                    for id in running {
+                        _ = try transaction.update(id, EntryChange(end: deletedAt))
+                    }
                 }
             }
             if let first = doomed.first {
@@ -339,9 +343,13 @@ extension CalendarModel {
         }
         do {
             let (_, later) = try await store.split(id, at: at)
+            let end = entry.end ?? later.end
+            // One transaction, so the entry is never without its later part.
             registerUndo("Undo Split") { store in
-                try await store.delete([later.id])
-                _ = try await store.update(entry.id, EntryChange(end: entry.end ?? later.end))
+                try await store.transaction { transaction in
+                    try transaction.delete([later.id])
+                    _ = try transaction.update(entry.id, EntryChange(end: end))
+                }
             }
         } catch {
             report(error)
