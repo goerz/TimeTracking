@@ -358,6 +358,7 @@ The iPad reads the block log through `ActivityReading` and the Mac's activity fr
 - IOS-41. An import records the synced import status with the device name and the kinds read; a refresh 10 minutes later leaves it unchanged, turning Workouts on rewrites it with both kinds at once, and a refresh an hour later moves its time.
 - IOS-42. Tapping the card's elapsed time, tapping the running row, and the running row's Edit open the running entry's sheet with its task and End "Running"; the running row's context menu also has Copy Task and Discard. Moving Start 15 minutes earlier and Done moves the card's elapsed time by 15 minutes and keeps the task on the card and in the row; a task typed on the card just before is the sheet's task and is kept; a task stored after the sheet loaded is kept when Done changes only Start and the project.
 - IOS-43. In the iPad's Calendar a swipe up scrolls the hours, a sideways swipe on the day headers or over the hours scrolls the days (and not the hours), and a pinch zooms; a long press then drag draws instead (IOS-35).
+- IOS-44. In every section tab of the iPad, in portrait and landscape, the sidebar opens and closes with its button and the tabs then still switch by tap.
 
 ## 13. Decisions
 

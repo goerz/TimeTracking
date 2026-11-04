@@ -119,6 +119,36 @@ final class PadUITests: XCTestCase {
     }
 
     @MainActor
+    func testIOS44_sidebarRoundTripKeepsTheTabs() throws {
+        let app = try launch()
+        let sidebarButton = { app.buttons.matching(NSPredicate(format: "label CONTAINS[c] 'sidebar'")).firstMatch }
+        // In every section tab, in both orientations: the sidebar opens and
+        // closes with its button, and the tabs then still switch by tap.
+        for orientation in [UIDeviceOrientation.portrait, .landscapeLeft] {
+            XCUIDevice.shared.orientation = orientation
+            let tabs = [
+                ("2", "Calendar", "Reports"),
+                ("3", "Reports", "Projects"),
+                ("4", "Projects", "Activity"),
+                ("5", "Activity", "Calendar"),
+            ]
+            for (key, tab, next) in tabs {
+                app.typeKey(key, modifierFlags: .command)
+                XCTAssertTrue(sidebarButton().waitForExistence(timeout: 5), "\(tab): no sidebar button")
+                sidebarButton().tap()
+                XCTAssertTrue(app.staticTexts[next].waitForExistence(timeout: 5), "\(tab): the sidebar did not open")
+                sidebarButton().tap()
+                let nextTab = app.buttons[next].firstMatch
+                XCTAssertTrue(nextTab.waitForExistence(timeout: 5), "\(tab): no \(next) tab after closing the sidebar")
+                XCTAssertTrue(nextTab.isHittable, "\(tab): the \(next) tab cannot be tapped")
+            }
+            app.buttons["Reports"].firstMatch.tap()
+            XCTAssertTrue(element(app, "reports.card").waitForExistence(timeout: 5), "tapping Reports")
+        }
+        XCUIDevice.shared.orientation = .portrait
+    }
+
+    @MainActor
     func testIOS38_reportsURLSelectsTheReportsTab() throws {
         let app = try launch()
         let url = try XCTUnwrap(URL(string: "timetracking-debug://planner/reports"))
