@@ -2,6 +2,7 @@
 // (spec_activity_tracking.md §4.1, §4.4; spec_architecture.md §1.5).
 
 import Foundation
+import IOKit
 import TimeTrackingCore
 
 /// Where the agent keeps its files and how it names itself.
@@ -10,6 +11,9 @@ struct AgentConfiguration {
     var agentFolder: URL
     var folders: ActivityFolders
     var device: String
+    /// The name of this Mac's subfolder of `blocks/` (§4.1): the hardware
+    /// UUID, which stays when the Mac is renamed.
+    var macFolder: String
     /// `1.0 (42)`.
     var version: String
     /// Whether the agent may write the shared folder (tests deny it).
@@ -40,6 +44,23 @@ struct AgentConfiguration {
             return nil
         }
         let name = Host.current().localizedName ?? ProcessInfo.processInfo.hostName
-        return Self(agentFolder: identity.supportDirectory(in: group), folders: folders, device: name, version: bundleVersion)
+        return Self(
+            agentFolder: identity.supportDirectory(in: group),
+            folders: folders,
+            device: name,
+            macFolder: hardwareUUID ?? name.replacing("/", with: "-").replacing(":", with: "-"),
+            version: bundleVersion
+        )
+    }
+
+    /// The Mac's hardware UUID, lower-case (`IOPlatformUUID`).
+    static var hardwareUUID: String? {
+        let service = IOServiceGetMatchingService(kIOMainPortDefault, IOServiceMatching("IOPlatformExpertDevice"))
+        guard service != 0 else {
+            return nil
+        }
+        defer { IOObjectRelease(service) }
+        let value = IORegistryEntryCreateCFProperty(service, kIOPlatformUUIDKey as CFString, kCFAllocatorDefault, 0)
+        return (value?.takeRetainedValue() as? String)?.lowercased()
     }
 }

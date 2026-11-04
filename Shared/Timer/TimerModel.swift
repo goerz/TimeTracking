@@ -163,8 +163,10 @@ final class TimerModel {
         }
     }
 
-    /// ⌘N: starts an empty entry.
+    /// ⌘N: starts an empty entry. The task typed into the running entry
+    /// is committed first, also within the field's debounce.
     func new() async {
+        await commitTask()
         taskText = ""
         await perform { [store, clock] in
             try await store.start(projectID: nil, task: "", at: clock.now)
@@ -175,6 +177,7 @@ final class TimerModel {
     /// Projects' Start Timer: an entry on `project` with an empty task,
     /// stopping a running one.
     func startEmpty(on project: ProjectID) async {
+        await commitTask()
         do {
             _ = try await store.start(projectID: project, task: "", at: clock.now)
         } catch {
@@ -206,6 +209,7 @@ final class TimerModel {
         guard let id = id ?? mostRecentOther?.id else {
             return
         }
+        await commitTask()
         do {
             guard let source = try await store.entry(id) else {
                 return
@@ -222,6 +226,7 @@ final class TimerModel {
 
     /// "Restore Project and Continue".
     func restoreProjectAndContinue(_ id: EntryID) async {
+        await commitTask()
         do {
             guard let projectID = try await store.entry(id)?.projectID else {
                 return

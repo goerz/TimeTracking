@@ -1,28 +1,42 @@
 // ICloudBlockDownloads: asks iCloud Drive for the block log's month files
 // on the iPad, which `FileActivityStore` reads only once downloaded
-// (spec_data_and_sync.md §6; spec_activity.md §5).
+// (spec_data_and_sync.md §6; spec_activity.md §5;
+// spec_activity_tracking.md §4.1).
 
 import Foundation
+import TimeTrackingCore
 
 /// Downloads of `Activity/blocks/` in the ubiquity container.
 nonisolated enum ICloudBlockDownloads {
-    /// Starts the download of every month file of `folder` not yet local
-    /// and answers whether `month` (`YYYY-MM`) is local and current.
+    /// Starts the download of every month file of `folder` and its per-Mac
+    /// subfolders not yet local and answers whether `month` (`YYYY-MM`) is
+    /// local and current in at least one of them and pending in none.
     static func request(folder: URL, month: String) -> Bool {
-        let files = FileManager.default
-        let names = (try? files.contentsOfDirectory(atPath: folder.path)) ?? []
-        for name in names {
-            // A file not yet downloaded may show as `.<name>.icloud`.
-            let real = name.hasPrefix(".") && name.hasSuffix(".icloud") ? String(name.dropFirst().dropLast(".icloud".count)) : name
-            guard real.hasSuffix(".jsonl") else {
-                continue
-            }
-            let url = folder.appending(path: real, directoryHint: .notDirectory)
-            if !isCurrent(url) {
-                try? files.startDownloadingUbiquitousItem(at: url)
+        var found = false
+        var pending = false
+        for subfolder in [folder] + BlockLogFolder.macFolders(in: folder) {
+            for url in monthFiles(in: subfolder) {
+                let current = isCurrent(url)
+                if !current {
+                    try? FileManager.default.startDownloadingUbiquitousItem(at: url)
+                }
+                if url.lastPathComponent == "\(month).jsonl" {
+                    found = found || current
+                    pending = pending || !current
+                }
             }
         }
-        return isCurrent(folder.appending(path: "\(month).jsonl", directoryHint: .notDirectory))
+        return found && !pending
+    }
+
+    /// The month files of `folder`, downloaded or not: a file not yet
+    /// downloaded may show as `.<name>.icloud`.
+    private static func monthFiles(in folder: URL) -> [URL] {
+        let names = (try? FileManager.default.contentsOfDirectory(atPath: folder.path)) ?? []
+        return names.compactMap { name in
+            let real = name.hasPrefix(".") && name.hasSuffix(".icloud") ? String(name.dropFirst().dropLast(".icloud".count)) : name
+            return real.hasSuffix(".jsonl") ? folder.appending(path: real, directoryHint: .notDirectory) : nil
+        }
     }
 
     private static func isCurrent(_ url: URL) -> Bool {

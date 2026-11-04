@@ -26,6 +26,7 @@ enum AgentMain {
                 recordFolder: arguments.recordFolder
             )
             runner?.start()
+            TerminationSignal.install { runner?.stop() }
         }
         application.run()
     }

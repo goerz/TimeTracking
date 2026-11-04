@@ -168,14 +168,17 @@ struct LogTests {
         let harness = try AgentHarness(canWriteShared: false)
         #expect(harness.health("shared_folder")?.status == .fallback)
         #expect(harness.health("shared_folder")?.reason == "Copied to iCloud Drive while the app is open")
-        #expect(harness.engine.logs.blocksFolder == harness.folders.localBlocks)
+        #expect(harness.engine.logs.blocksFolder == harness.folders.localBlocks.appending(
+            path: AgentHarness.macFolder,
+            directoryHint: .isDirectory
+        ))
         let mirror = ActivityFolderMirror(local: harness.folders.local, container: harness.folders.shared)
         await harness.run(for: 300)
         harness.engine.handle(.lock, at: harness.clock.now)
         let report = try mirror.sync()
-        #expect(report.months == ["2024-03.jsonl"])
-        let local = try Data(contentsOf: harness.folders.localBlocks.appending(path: "2024-03.jsonl"))
-        let copy = try Data(contentsOf: harness.folders.sharedBlocks.appending(path: "2024-03.jsonl"))
+        #expect(report.months == ["mac-1/2024-03.jsonl"])
+        let local = try Data(contentsOf: harness.folders.localBlocks.appending(path: "mac-1/2024-03.jsonl"))
+        let copy = try Data(contentsOf: harness.folders.sharedBlocks.appending(path: "mac-1/2024-03.jsonl"))
         #expect(local == copy)
         #expect(try mirror.sync().months.isEmpty)
 

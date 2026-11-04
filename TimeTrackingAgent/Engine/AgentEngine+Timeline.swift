@@ -34,20 +34,53 @@ extension AgentEngine {
         return DateInterval(start: start, end: ActivityTimestamp.nextMidnight(after: start, timeZone: zone))
     }
 
-    /// Forms today's blocks again; after midnight it first closes the
-    /// previous day. `final` (agent shutdown) closes the open block too.
+    /// The `meta` key of the last day `rebuildToday` formed.
+    static let rebuiltDayKey = "rebuiltDay"
+
+    /// Forms today's blocks again. After midnight, or on the first tick
+    /// after the agent was not running, it first closes every day since the
+    /// last one it formed (kept in `meta`, so a block still open when the
+    /// agent stopped is closed on its own day). `final` (agent shutdown)
+    /// closes the open block too.
     func rebuildToday(final: Bool = false) {
         let today = day(of: environment.clock.now)
-        if let previous = rebuiltDay, previous != today {
-            rebuild(day: previous)
+        let previous = rebuiltDay ?? (try? store.value(Self.rebuiltDayKey))
+        if let previous, previous != today {
+            for day in daysToClose(since: previous, before: today) {
+                rebuild(day: day)
+            }
         }
-        rebuiltDay = today
+        if rebuiltDay != today {
+            rebuiltDay = today
+            do {
+                try store.setValue(today, for: Self.rebuiltDayKey)
+            } catch {
+                logger.error("samples: \(error.localizedDescription, privacy: .public)")
+            }
+        }
         rebuild(day: today, final: final)
         let cutoff = environment.clock.now.addingTimeInterval(-2 * 86_400)
         if let kept = transitions.last(where: { $0.time < cutoff }) {
             transitions.removeAll { $0.time < cutoff }
             transitions.insert(kept, at: 0)
         }
+    }
+
+    /// The days from `previous` up to the day before `today`, at most the
+    /// 90 days the samples are kept; just `previous` when the clock or the
+    /// time zone moved back past it.
+    private func daysToClose(since previous: String, before today: String) -> [String] {
+        guard previous < today else {
+            return [previous]
+        }
+        let retention = day(of: environment.clock.now.addingTimeInterval(-90 * 86_400))
+        var days: [String] = []
+        var current = max(previous, retention)
+        while current < today, let range = dayInterval(current) {
+            days.append(current)
+            current = day(of: range.end)
+        }
+        return days
     }
 
     /// Forms the blocks of `day` from its stored inputs and replaces the

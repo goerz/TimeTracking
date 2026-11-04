@@ -14,6 +14,7 @@ final class AgentHarness {
     static let home = "/Users/alex"
     static let zone = TimeZone(identifier: "America/New_York") ?? .gmt
     static let device = "macbook"
+    static let macFolder = "mac-1"
 
     let root: URL
     let clock = ManualClock.fixture(in: AgentHarness.zone)
@@ -60,6 +61,7 @@ final class AgentHarness {
             agentFolder: root.appending(path: "Group", directoryHint: .isDirectory),
             folders: folders,
             device: Self.device,
+            macFolder: Self.macFolder,
             version: "1.0 (1)"
         )
         configuration.canWriteShared = { _ in canWriteShared }
@@ -96,6 +98,15 @@ final class AgentHarness {
 
     deinit {
         try? FileManager.default.removeItem(at: root)
+    }
+
+    /// Replaces the engine by a new one over the same store, folders, and
+    /// fakes, as when the agent starts again.
+    func restart() throws {
+        let recorder = engine.recorder
+        engine = try AgentEngine(environment: engine.environment, configuration: engine.configuration, store: engine.store)
+        engine.recorder = recorder
+        schedule = TickSchedule(start: clock.now)
     }
 
     /// `settings` with `min_block = minBlock` in its `[blocks]` table.

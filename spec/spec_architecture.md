@@ -232,7 +232,7 @@ The `test` target needs no network and no permission grant; the Mac UI tests run
 The folder `Fixtures/` at the root serves every test target and the SwiftUI previews:
 
 - `Store/<name>.json` in the JSON export format: `empty`, `small` (3 clients, 5 areas, 12 projects, two weeks of entries), `large` (two years), `running` (an entry running for 25 minutes).
-- `Activity/blocks/YYYY-MM.jsonl` and `current.json`.
+- `Activity/blocks/<mac>/YYYY-MM.jsonl` and `current.json`.
 - `Agent/<adapter>/*.txt`, recorded and anonymized by `TimeTrackingAgent --record`.
 - `Agent/samples/<day>.jsonl` with `<day>.expected.jsonl`.
 

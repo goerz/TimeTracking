@@ -46,6 +46,9 @@ final class CollectionModel: CollectionFlushing {
     /// Whether to flush every 5 minutes while in the foreground (live only).
     @ObservationIgnored var flushesPeriodically = false
     @ObservationIgnored private var periodicTask: Task<Void, Never>?
+    /// The flush in progress; a second caller waits for it instead of
+    /// starting another (the staging file is safe either way, IOS-27).
+    @ObservationIgnored private var flushTask: Task<Void, Never>?
     /// The last transition logged; `nil` before the first.
     @ObservationIgnored private var lastTransition: ScenePlace?
     @ObservationIgnored private let logger = Logging.logger(category: "Collection")
@@ -167,8 +170,20 @@ final class CollectionModel: CollectionFlushing {
 
     // MARK: Flush and the app's own lines
 
-    /// Uploads the staged events now; records the time on success.
+    /// Uploads the staged events now; records the time on success. A call
+    /// while a flush runs waits for that flush.
     func flush() async {
+        if let running = flushTask {
+            await running.value
+            return
+        }
+        let task = Task { await self.flushOnce() }
+        flushTask = task
+        await task.value
+        flushTask = nil
+    }
+
+    private func flushOnce() async {
         do {
             try await staging.flush()
             shared.lastFlushAt = log.clock.now

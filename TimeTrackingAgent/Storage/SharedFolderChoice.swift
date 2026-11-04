@@ -12,6 +12,7 @@ nonisolated struct SharedFolderChoice: Hashable {
     var status: TrackerSourceStatus
     var reason: String
 
+    /// `blocks/`, holding one subfolder per Mac.
     var blocksFolder: URL {
         activityFolder.appending(path: "blocks", directoryHint: .isDirectory)
     }

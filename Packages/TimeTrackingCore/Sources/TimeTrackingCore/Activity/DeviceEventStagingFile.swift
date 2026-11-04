@@ -12,8 +12,11 @@ public import Foundation
 /// `lastFlushedSeq`, the highest sequence CloudKit acknowledged. A flush
 /// uploads the lines above `lastFlushedSeq` through the injected uploader,
 /// advances `lastFlushedSeq` only when the upload returns, and then
-/// removes only the bytes it read, keeping events appended during the
-/// upload. A flush interrupted after the acknowledgement skips the
+/// rewrites the file with the lines above the new `lastFlushedSeq`,
+/// keeping events appended during the upload. Removal goes by sequence,
+/// never by byte count, so two overlapping flushes (each read the file
+/// before the other trimmed it) cannot remove a line the other appended
+/// meanwhile. A flush interrupted after the acknowledgement skips the
 /// acknowledged lines next time; one interrupted before it re-sends them
 /// under the same record names. A malformed line is skipped and removed
 /// with the flushed ones.
@@ -90,7 +93,7 @@ public struct DeviceEventStagingFile: DeviceEventSink {
             counters.flushed = max(counters.flushed, staged.events.map(\.sequence).max() ?? 0)
             try writeCounters(counters)
             try handle.seek(toOffset: 0)
-            let remainder = try handle.readToEnd()?.dropFirst(staged.consumedBytes) ?? Data()
+            let remainder = try Self.unflushedLines(of: handle.readToEnd() ?? Data(), above: counters.flushed)
             try handle.truncate(atOffset: 0)
             try handle.write(contentsOf: remainder)
         }
@@ -109,6 +112,24 @@ public struct DeviceEventStagingFile: DeviceEventSink {
             try? decoder.decode(DeviceEvent.self, from: Data(line))
         }
         return StagedEvents(events: events, consumedBytes: complete.count)
+    }
+
+    /// The bytes of `data` to keep after a flush: every complete line whose
+    /// event is above `flushed`, unchanged, and an incomplete last line.
+    /// Malformed complete lines go.
+    private static func unflushedLines(of data: Data, above flushed: Int) -> Data {
+        let decoder = JSONDecoder()
+        var kept = Data()
+        var start = data.startIndex
+        while let newline = data[start...].firstIndex(of: UInt8(ascii: "\n")) {
+            let line = data[start ..< newline]
+            if let event = try? decoder.decode(DeviceEvent.self, from: Data(line)), event.sequence > flushed {
+                kept.append(data[start ... newline])
+            }
+            start = data.index(after: newline)
+        }
+        kept.append(data[start...])
+        return kept
     }
 
     /// The counters of the sidecar; call with the lock held.

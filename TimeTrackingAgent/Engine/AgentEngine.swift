@@ -57,10 +57,20 @@ final class AgentEngine {
         self.monitor = SettingsMonitor(url: choice.settingsURL)
         let now = environment.clock.now
         self.presence = PresenceTracker(start: now)
-        self.logs = ActivityLogs(blocksFolder: choice.blocksFolder, folders: configuration.folders, device: configuration.device)
+        self.logs = ActivityLogs(
+            blocksRoot: choice.blocksFolder,
+            macFolder: configuration.macFolder,
+            folders: configuration.folders,
+            device: configuration.device
+        )
         self.terminal = TerminalResolver(environment: environment)
         self.browser = BrowserResolver(environment: environment)
         health.set(.sharedFolder, choice.status, choice.reason)
+        do {
+            try logs.moveOwnLinesFromSharedMonthFiles()
+        } catch {
+            logger.error("block log: moving this Mac's lines: \(error.localizedDescription, privacy: .public)")
+        }
         terminal.recentFile = { [weak self] folder in
             guard let self else {
                 return nil

@@ -75,6 +75,38 @@ struct TimerModelTests {
         #expect(try await test.store.runningEntry()?.task == "Draft intro")
     }
 
+    @Test("TM-41 a task typed within the debounce stays on the running entry when New, Continue, or Start Timer replaces it")
+    func taskTypedBeforeReplacing() async throws {
+        let test = try await TestApp()
+        let projects = try await test.projects(["Noise Model"])
+        let timer = test.app.timer
+        timer.debounce = { _ in try await Task.sleep(for: .seconds(3600)) }
+        await timer.start()
+        let first = try #require(timer.running)
+        timer.taskText = "Draft intro"
+        timer.taskTextChanged()
+        test.clock.advance(by: 60)
+        await test.app.newEntry()
+        #expect(try await test.store.entry(first.id)?.task == "Draft intro")
+        #expect(timer.taskText.isEmpty)
+
+        let second = try #require(timer.running)
+        timer.taskText = "Read paper"
+        timer.taskTextChanged()
+        test.clock.advance(by: 60)
+        await timer.continueEntry(first.id)
+        #expect(try await test.store.entry(second.id)?.task == "Read paper")
+        #expect(timer.taskText == "Draft intro")
+
+        let third = try #require(timer.running)
+        timer.taskText = "Draft intro and methods"
+        timer.taskTextChanged()
+        test.clock.advance(by: 60)
+        await timer.startEmpty(on: projects[0].id)
+        #expect(try await test.store.entry(third.id)?.task == "Draft intro and methods")
+        #expect(timer.running?.projectID == projects[0].id)
+    }
+
     @Test("TM-12 discard asks first and ⌘Z restores; an archived project's entry continues only after Restore Project and Continue")
     func discardAndArchived() async throws {
         let test = try await TestApp()

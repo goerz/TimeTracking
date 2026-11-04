@@ -146,6 +146,64 @@ struct IntentAndURLTests {
     /// its delay is the delivery time alone; the watchdog only ends a
     /// broken run and never sleeps on success. `TimeTrackingTests`
     /// checks the menu bar against the real tool.
+    @Test("DATA-54 a notification posted together with this process's own still reaches its listener", .timeLimit(.minutes(1)))
+    func coalescedNotifications() async {
+        let name = "data54.\(UUID().uuidString).changed"
+        let tool = DarwinChangeNotifier(name: name)
+        let app = DarwinChangeNotifier(name: name)
+        var received = app.notifications().makeAsyncIterator()
+        tool.post()
+        app.post()
+        #expect(await received.next() != nil)
+    }
+
+    @Test(
+        "DATA-54 another process's write and setting reach a store that wrote right after it as .entries([]) and .settings",
+        .timeLimit(.minutes(1))
+    )
+    func externalWriteAfterOwnWrite() async throws {
+        let folder = try TemporaryFolder()
+        defer { folder.remove() }
+        let url = folder.url.appending(path: "store.sqlite")
+        let name = "data54.\(UUID().uuidString).changed"
+        let clock = ManualClock(Date(timeIntervalSince1970: 1_800_000_000))
+        func open() async throws -> TimeStore {
+            try await TimeStore.open(TimeStore.Configuration(
+                location: .file(url),
+                clock: clock,
+                deviceID: DeviceID(),
+                notifier: DarwinChangeNotifier(name: name)
+            ))
+        }
+        let app = try await open()
+        let tool = try await open()
+        let changes = app.changes
+        let received = Task {
+            var sawEntries = false
+            var sawSetting = false
+            for await change in changes {
+                switch change {
+                case .entries([]):
+                    sawEntries = true
+                case let .settings(keys) where keys.contains("pomodoro.focusMinutes"):
+                    sawSetting = true
+                default:
+                    break
+                }
+                if sawEntries, sawSetting {
+                    return true
+                }
+            }
+            return false
+        }
+        // The tool writes and posts; the app writes and posts before its
+        // listener has run, so the two posts may arrive as one.
+        try await tool.set(.pomodoroFocusMinutes, 50)
+        _ = try await app.start(projectID: nil, task: "In the app", at: clock.now)
+        #expect(await received.value)
+        #expect(try await app.value(.pomodoroFocusMinutes) == 50)
+    }
+
     @Test("AUTO-40 a write by another process reaches an observing store's changes by notification, without a clock advance")
     func crossProcessChange() async throws {
         let folder = try TemporaryFolder()

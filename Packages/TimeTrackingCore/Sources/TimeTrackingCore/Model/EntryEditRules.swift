@@ -50,6 +50,19 @@ public struct EntryEditResult: Hashable, Sendable {
     public var change: EntryChange {
         EntryChange(start: start, end: end)
     }
+
+    /// The change to pass to `update(_:_:)` for an editor showing `entry`:
+    /// only the times that differ from it, so a time another device or
+    /// window changed since the editor read `entry` is not written back.
+    public func change(from entry: TimeEntry) -> EntryChange {
+        EntryChange(start: start != entry.start ? start : nil, end: end != entry.end ? end : nil)
+    }
+
+    /// The change for an editor showing `entry`, or `nil` when neither time differs.
+    public func changeIfAny(from entry: TimeEntry) -> EntryChange? {
+        let change = change(from: entry)
+        return change.start == nil && change.end == nil ? nil : change
+    }
 }
 
 /// The editor's rules of §4.2.

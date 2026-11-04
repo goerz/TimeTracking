@@ -194,7 +194,7 @@ Scripts open the file read-only (`?mode=ro`) and may rely on the `entries` view 
 
 ### 2.2 Processes and change notification
 
-Writers are the app (Mac and iOS) and, on the Mac, the command-line tool; iOS widget and control buttons write through intents that run in the app process. WAL with a 5 second busy timeout serializes them. Each write transaction runs the invariant pass (3.3), appends one `outbox` row per changed record, and after commit posts the Darwin notification `<APP_ID>.changed`, the only cross-process change signal. Only the app runs the sync engine and drains the outbox: on the Mac within a second, on iOS at the app's next run. After applying remote changes on iOS the library reloads all widget timelines.
+Writers are the app (Mac and iOS) and, on the Mac, the command-line tool; iOS widget and control buttons write through intents that run in the app process. WAL with a 5 second busy timeout serializes them. Each write transaction runs the invariant pass (3.3), appends one `outbox` row per changed record, and after commit posts the Darwin notification `<APP_ID>.changed`, the only cross-process change signal. Every listener receives every post, its own included, and posts close together arrive as one; a store re-reads when `PRAGMA data_version` of its writer connection shows that another connection committed since the last notification, so its own posts cost nothing and another process's post that arrived together with its own is not lost. Only the app runs the sync engine and drains the outbox: on the Mac within a second, on iOS at the app's next run. After applying remote changes on iOS the library reloads all widget timelines.
 
 ## 3. Synchronization
 
@@ -310,7 +310,7 @@ The tracker spec defines the formats; this section fixes locations and the reade
 
 | Artifact | Location | Writer | Readers |
 |---|---|---|---|
-| `Activity/blocks/YYYY-MM.jsonl` | iCloud Drive container `iCloud.<APP_ID>`, outside `Documents/`; local fallback `<App Group>/Library/Application Support/TimeTracking/Activity/` | Tracker agent, which replaces a day's lines when it forms the day again (or the Mac app's copy, tracker spec §4.1) | Mac app, iPhone, iPad, scripts |
+| `Activity/blocks/<mac>/YYYY-MM.jsonl` | iCloud Drive container `iCloud.<APP_ID>`, outside `Documents/`; local fallback `<App Group>/Library/Application Support/TimeTracking/Activity/` | Each Mac's tracker agent, only its own subfolder, which replaces a day's lines when it forms the day again (or the Mac app's copy, tracker spec §4.1) | Mac app, iPhone, iPad, scripts |
 | `Activity/settings.toml` | Same folder | The Mac app's Tracker pane only | Tracker agent, iOS app (exclusions) |
 | `Activity/current.json` | Mac, local folder | Tracker agent, every tick | Mac app, including `LiveStatePublisher` |
 | `Activity/detail/YYYY-MM-DD.jsonl` | Mac, local folder | Tracker agent | `detail(for:)` on the recording Mac; scripts |
@@ -453,7 +453,7 @@ public enum StoreChange { case entries(Set<EntryID>), runningEntry(TimeEntry?), 
 public protocol StoreObserving { var changes: AsyncStream<StoreChange> { get }; func recentAdjustments(limit: Int) async -> [EntryAdjustment] }
 ```
 
-Same-process changes arrive after commit; other processes' changes arrive through the Darwin notification as `.entries([])`, `.runningEntry`, `.structure`, and `.health`, and observers re-read.
+Same-process changes arrive after commit; other processes' changes arrive through the Darwin notification as `.entries([])`, `.runningEntry`, `.structure`, `.health`, `.liveState`, and `.settings` with the keys whose rows changed, and observers re-read.
 
 ### 7.5 Performance
 
@@ -544,6 +544,7 @@ Views use `TrackingCalendar(timeZone: .current)`, rebuilt on a time zone change.
 51. Asleep samples 23:00 to 01:00, 00:30 to 02:00, and 02:20 to 04:00 make one period 23:00 to 04:00, one at 06:00 another; an in-bed night without asleep samples is a period; two overlapping workouts are one; the first import starts 60 days before now, a later one 3 days before the previous; importing the same samples again changes nothing.
 52. A run 18:00 to 18:45 (running, 7012 m), a copy 18:01 to 18:40 (6990 m), and a walk 18:45 to 19:00 make two workout periods: 18:00 to 18:45 running with 7012 m, and the walk; importing them over the same periods stored without details keeps the records, fills in activity and distance, and the other device receives them; the workout import key is `health.importedThrough.workout.3`.
 53. The query `backgroundStretches(in:)` returns the stretches overlapping the interval, with the items of the asked devices and without excluded contexts; `blocks(in:)` never returns them.
+54. When another process writes and posts and this process writes and posts before its listener runs, this process's observers still receive `.entries([])`, and `.settings` with each key the other process changed.
 
 ### 9.1 Fixtures
 

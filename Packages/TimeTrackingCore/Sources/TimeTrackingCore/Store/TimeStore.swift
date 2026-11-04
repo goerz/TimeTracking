@@ -64,7 +64,13 @@ public actor TimeStore {
     nonisolated let broadcaster = ChangeBroadcaster()
     var adjustmentRing: [EntryAdjustment] = []
     var lastRunning: TimeEntry?
-    private var externalChanges: Task<Void, Never>?
+    var externalChanges: Task<Void, Never>?
+    /// `PRAGMA data_version` of the writer connection at the last
+    /// notification: it changes only when another connection commits.
+    var dataVersion: Int?
+    /// Each setting row's value and deletion as last seen, to report the
+    /// keys another process changed.
+    var knownSettings: [String: String] = [:]
     static let logger = Logging.logger(category: "Store")
     /// The busy timeout of §2.2: a write outlasts another writer's 2-second
     /// transaction but not a 10-second one.
@@ -246,6 +252,11 @@ public actor TimeStore {
             broadcaster.yield(.health)
         }
         if !outcome.changedSettings.isEmpty {
+            // This process's own changes are not another's to report later.
+            let rows = settingRows()
+            for key in outcome.changedSettings {
+                knownSettings[key] = rows[key]
+            }
             broadcaster.yield(.settings(outcome.changedSettings))
         }
         let own = outcome.adjustments.filter { adjustment in
@@ -266,27 +277,5 @@ public actor TimeStore {
         if adjustmentRing.count > 100 {
             adjustmentRing.removeFirst(adjustmentRing.count - 100)
         }
-    }
-
-    private func listenForExternalChanges() {
-        guard let notifier, externalChanges == nil else {
-            return
-        }
-        let stream = notifier.notifications()
-        externalChanges = Task { [weak self] in
-            for await _ in stream {
-                await self?.externalChange()
-            }
-        }
-    }
-
-    /// Another process committed: observers re-read.
-    func externalChange() {
-        broadcaster.yield(.entries([]))
-        let running = try? runningEntry()
-        lastRunning = running
-        broadcaster.yield(.runningEntry(running))
-        broadcaster.yield(.structure)
-        broadcaster.yield(.health)
     }
 }

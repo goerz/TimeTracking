@@ -223,7 +223,7 @@ Collection is opt-in per device. Collectors record raw, labeled events, never ma
 
 ### 9.1 The collection file
 
-Every collector appends one JSON line through `DeviceEventSink.append(_:)` to `Activity/events.jsonl` in the App Group (location and `DeviceEvent` fields: [spec_data_and_sync.md](spec_data_and_sync.md) §6); the sink serializes appends across processes. The app's `flush()` turns the lines into `DeviceEvent` records and truncates the file; the record name and `lastFlushedSeq` make an interrupted flush resume without duplicates.
+Every collector appends one JSON line through `DeviceEventSink.append(_:)` to `Activity/events.jsonl` in the App Group (location and `DeviceEvent` fields: [spec_data_and_sync.md](spec_data_and_sync.md) §6); the sink serializes appends across processes. The app's `flush()` turns the lines into `DeviceEvent` records and then removes the lines up to the acknowledged `lastFlushedSeq`, keeping every line with a higher sequence, so an event appended during the upload, or during another flush, stays; the record name and `lastFlushedSeq` make an interrupted flush resume without duplicates. A flush requested while one runs waits for it.
 
 | Source | Label | Kind | Payload |
 |---|---|---|---|
@@ -341,7 +341,7 @@ The iPad reads the block log through `ActivityReading` and the Mac's activity fr
 - IOS-24. An offline change is visible at once, shows the sync pill, and syncs at the next connection, after which the pill disappears.
 - IOS-25. When the invariant pass stops an entry this device started, the banner appears and the row is badged until its sheet opens; a midnight split shows no banner.
 - IOS-26. The `longRunning` notification is scheduled at the chain start plus the configured hours, also for an entry started on the Mac; Keep Running reschedules N hours later; Stop stops the entry.
-- IOS-27. Concurrent appends from two processes never interleave lines; `lastFlushedSeq` advances only after CloudKit acknowledges the batch.
+- IOS-27. Concurrent appends from two processes never interleave lines; `lastFlushedSeq` advances only after CloudKit acknowledges the batch; two overlapping flushes keep an event appended while both were uploading.
 - IOS-28. A ladder callback earlier than its ledger time is logged with `"early": true`, not counted, and re-registered.
 - IOS-29. Turning a configured Focus on and off appends `on` and `off` lines with its label while the app is not running.
 - IOS-30. The Safari handler drops `exclude_domains`, reduces `private_domains` to the domain, and strips query strings and fragments.

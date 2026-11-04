@@ -127,8 +127,10 @@ final class EntryEditSheetModel {
             if newTask != nil || newProject != nil {
                 _ = try await store.updateChain(of: entry.id, task: newTask, projectID: newProject)
             }
-            if start != entry.start || (!isRunning && end != entry.end) {
-                _ = try await store.update(entry.id, EntryChange(start: start, end: isRunning ? nil : end))
+            // Only the times the sheet changed: an end stored meanwhile on
+            // another device stays when only the start changes.
+            if let change = EntryEditResult(start: start, end: isRunning ? nil : end).changeIfAny(from: entry) {
+                _ = try await store.update(entry.id, change)
             }
             await onChange?()
             return true

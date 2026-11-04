@@ -25,8 +25,6 @@ nonisolated enum MonthFileRewriter {
     /// every background stretch line; returns the blocks dropped or replaced
     /// (their original form). A file without changes is not touched.
     @discardableResult
-    // One switch over the line kinds and decisions.
-    // swiftlint:disable:next cyclomatic_complexity
     static func rewrite(
         _ url: URL,
         decideStretch: (ActivityBackgroundStretch, [String: String]) -> StretchDecision = { _, _ in .keep },
@@ -35,7 +33,31 @@ nonisolated enum MonthFileRewriter {
         guard FileManager.default.fileExists(atPath: url.path) else {
             return []
         }
-        let data = try Data(contentsOf: url)
+        let result = try rewritten(Data(contentsOf: url), decideStretch: decideStretch, decide: decide)
+        if result.changed {
+            try AtomicFile.write(result.data, to: url)
+        }
+        return result.affected
+    }
+
+    /// A rewritten file: its content, the blocks dropped or replaced (in
+    /// their original form), and whether anything changed.
+    struct Rewritten {
+        var data: Data
+        var affected: [ActivityBlock]
+        var changed: Bool
+    }
+
+    // One switch over the line kinds and decisions.
+    // swiftlint:disable cyclomatic_complexity
+
+    /// The content of a month or day file after applying `decide` and
+    /// `decideStretch` to `data`. Unaffected lines stay byte identical.
+    static func rewritten(
+        _ data: Data,
+        decideStretch: (ActivityBackgroundStretch, [String: String]) -> StretchDecision = { _, _ in .keep },
+        decide: (ActivityBlock, ActivityBlockDetail?, [String: String]) -> LineDecision
+    ) -> Rewritten {
         var output = Data()
         var header: BlockLogHeader?
         var affected: [ActivityBlock] = []
@@ -83,11 +105,10 @@ nonisolated enum MonthFileRewriter {
             }
             output.append(UInt8(ascii: "\n"))
         }
-        if changed {
-            try AtomicFile.write(output, to: url)
-        }
-        return affected
+        return Rewritten(data: output, affected: affected, changed: changed)
     }
+
+    // swiftlint:enable cyclomatic_complexity
 
     /// The day files `YYYY-MM-DD.jsonl` of `folder` from `fromDay` to `toDay`.
     static func dayFiles(in folder: URL, fromDay: String, toDay: String) -> [URL] {

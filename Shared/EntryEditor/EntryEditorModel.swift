@@ -197,8 +197,11 @@ final class EntryEditorModel {
 
     private func store(_ result: EntryEditResult) async {
         let old = entry
+        guard let change = result.changeIfAny(from: old) else {
+            return
+        }
         await perform(undo: old) { [store, entry] in
-            try await store.update(entry.id, result.change)
+            try await store.update(entry.id, change)
         }
     }
 

@@ -61,7 +61,7 @@ Every start stops a running entry at the same instant. Continuing an entry of an
 
 ### 2.2 The task field
 
-While an entry runs, the field edits its task: a change commits 500 ms after the last keystroke and on Return, focus loss, or window close. Escape reverts to the stored task; Escape in an unchanged field moves focus to the list. While nothing runs, the field holds the draft, which is empty (placeholder "What are you working on?", no project) after a stop or a discard, on this or another device, until something is typed or picked.
+While an entry runs, the field edits its task: a change commits 500 ms after the last keystroke and on Return, focus loss, or window close, and before New, Continue, or Start Timer replaces the running entry. Escape reverts to the stored task; Escape in an unchanged field moves focus to the list. While nothing runs, the field holds the draft, which is empty (placeholder "What are you working on?", no project) after a stop or a discard, on this or another device, until something is typed or picked.
 
 Autocompletion: from the first character a popup lists up to 8 distinct (task, project) pairs whose task contains the text (case- and diacritic-insensitive), the chip's project first, then most recent. ↑ and ↓ move, Return or Tab accepts (sets task and project; Return also starts if idle), Escape closes.
 
@@ -112,7 +112,7 @@ Each field commits on Return or focus loss. Escape in an edited field reverts it
 
 ### 4.2 Rules
 
-Editing Start keeps Stop and recomputes Duration; editing Stop or Duration keeps Start and recomputes the other. A Stop at or before Start means the next date. Changing Date moves the entry by whole days, keeping its times.
+Editing Start keeps Stop and recomputes Duration; editing Stop or Duration keeps Start and recomputes the other. A Stop at or before Start means the next date. Changing Date moves the entry by whole days, keeping its times. A commit stores only the times it changed, so a time changed on another device or in another window since the editor opened stays.
 
 A commit that would put any start or stop after now is refused: the field reverts and "Entries cannot be in the future" shows under the fields until the next edit.
 
@@ -356,6 +356,8 @@ Clicking a notification shows the Mini Timer (with the idle prompt for `idle`). 
 - TM-38. With "At launch, show" set to Mini Timer, a launch other than a login-item launch shows the Mini Timer instead of the main window, also after the app was killed with the main window and Settings open; the setting persists.
 - TM-39. Every settings pane has the same width; the window is shorter on Pomodoro than on General, returns to General's height on going back, and a drag at its corner doesn't resize it.
 - TM-40. With no window open (a login-item launch with none open at the last quit), the menu bar's Open `<APP_NAME>`, Show Mini Timer, and Settings… open the main window, the Mini Timer, and the settings window.
+- TM-41. A task typed into the running entry less than 500 ms before New, Continue, or Start Timer replaces it is stored on that entry.
+- TM-42. With an editor (the Mac popover or the iPhone edit sheet) open on an entry whose Stop another device then changes, editing Start stores the new start and keeps the other device's stop.
 
 ## 12. Decisions
 

@@ -171,6 +171,24 @@ struct ActivityDeviceEventTests {
         }
     }
 
+    @Test("IOS-27 two overlapping flushes keep an event appended while both were uploading")
+    func overlappingFlushesKeepALateEvent() async throws {
+        try await withTemporaryFolder { temporary in
+            let folder = temporary.url
+            // B runs entirely inside A's upload, then an extension appends;
+            // A's trim must not cut the new line by the byte count it read.
+            let inner = DeviceEventStagingFile(folder: folder) { _ in }
+            let outer = DeviceEventStagingFile(folder: folder) { _ in
+                try await inner.flush()
+                try DeviceEventStagingFile(folder: folder).append(Self.event(9000))
+            }
+            try outer.append(Self.event(1000))
+            try await outer.flush()
+            #expect(try outer.readAll() == [Self.numbered(Self.event(9000), 2)])
+            #expect(try outer.lastFlushedSequence() == 1)
+        }
+    }
+
     @Test func anExtensionCannotFlush() async throws {
         try await withTemporaryFolder { temporary in
             let staging = DeviceEventStagingFile(folder: temporary.url)

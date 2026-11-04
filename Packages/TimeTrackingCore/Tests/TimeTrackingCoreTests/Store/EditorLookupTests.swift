@@ -7,6 +7,28 @@ import Testing
 import TimeTrackingCore
 
 struct EditorLookupTests {
+    @Test("TM-42 an editor's Start edit keeps a Stop another device stored after the editor read the entry")
+    func editKeepsATimeChangedElsewhere() async throws {
+        let test = try await TestStore()
+        let created = try await test.store.create(EntryDraft(
+            projectID: nil,
+            task: "Model",
+            start: test.date("2024-03-14T08:00"),
+            end: test.date("2024-03-14T09:00")
+        ))
+        let shown = try #require(created.first)
+        // Another device moves the end while the editor shows the entry.
+        _ = try await test.store.update(shown.id, EntryChange(end: test.date("2024-03-14T09:30")))
+        // Editing Start keeps the Stop the editor shows (§4.2).
+        let edited = try EntryEditResult(start: test.date("2024-03-14T08:15"), end: shown.end)
+        #expect(try edited.changeIfAny(from: shown) == EntryChange(start: test.date("2024-03-14T08:15")))
+        #expect(EntryEditResult(start: shown.start, end: shown.end).changeIfAny(from: shown) == nil)
+        _ = try await test.store.update(shown.id, edited.change(from: shown))
+        let stored = try #require(try await test.store.entry(shown.id))
+        #expect(try stored.start == test.date("2024-03-14T08:15"))
+        #expect(try stored.end == test.date("2024-03-14T09:30"))
+    }
+
     @Test("projectRow finds a live project, archived too, as projects(filter:) lists it; nil for a deleted one")
     func projectRowByID() async throws {
         let test = try await TestStore()

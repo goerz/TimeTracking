@@ -5,7 +5,8 @@ public import Foundation
 import os
 import Synchronization
 
-/// Reads the block log of the shared and the local folder, the detail log
+/// Reads the block log of the shared and the local folder (every Mac's
+/// subfolder and the month files from before them), the detail log
 /// and `current.json` of the local folder, and `settings.toml`. A device
 /// filter keeps each block's part on those devices.
 ///
@@ -16,7 +17,7 @@ import Synchronization
 /// the previous refresh and reports changes on `changes`; `startWatching`
 /// calls it periodically. On iOS the months in view must already be
 /// downloaded; the `NSMetadataQuery` download and watch is not part of
-/// this type.
+/// this type. Blocks with the same id in two Macs' files also count once.
 public actor FileActivityStore: ActivityReading {
     public let folders: ActivityFolders
     private let timeZone: TimeZone
@@ -63,8 +64,8 @@ public actor FileActivityStore: ActivityReading {
         var seen = Set<String>()
         var result: [ActivityBlock] = []
         for folder in folders.blockFolders {
-            for name in Self.monthFileNames(in: folder, covering: interval) {
-                let file = try monthFile(folder.appending(path: name, directoryHint: .notDirectory))
+            for url in Self.monthFiles(in: folder, covering: interval) {
+                let file = try monthFile(url)
                 for entry in file.entries where Self.overlaps(entry.block, interval) && seen.insert(entry.block.id).inserted {
                     guard let part = Self.part(of: entry.block, on: devices) else {
                         continue
@@ -91,8 +92,8 @@ public actor FileActivityStore: ActivityReading {
         var seen = Set<String>()
         var result: [ActivityBackgroundStretch] = []
         for folder in folders.blockFolders {
-            for name in Self.monthFileNames(in: folder, covering: interval) {
-                let file = try monthFile(folder.appending(path: name, directoryHint: .notDirectory))
+            for url in Self.monthFiles(in: folder, covering: interval) {
+                let file = try monthFile(url)
                 for entry in file.backgrounds where entry.stretch.start < interval.end && entry.stretch.end > interval.start
                     && seen.insert(entry.stretch.id).inserted
                 {
@@ -273,13 +274,14 @@ public actor FileActivityStore: ActivityReading {
         }
     }
 
-    /// The month files of `folder` whose month can hold blocks overlapping
-    /// `interval` (a day of slack on each side covers every UTC offset).
-    private static func monthFileNames(in folder: URL, covering interval: DateInterval) -> [String] {
+    /// The month files of `folder` and its per-Mac subfolders whose month
+    /// can hold blocks overlapping `interval` (a day of slack on each side
+    /// covers every UTC offset).
+    private static func monthFiles(in folder: URL, covering interval: DateInterval) -> [URL] {
         let first = LocalTimestamp(date: interval.start - 24 * 3600, utcOffset: 0).monthKey
         let last = LocalTimestamp(date: interval.end + 24 * 3600, utcOffset: 0).monthKey
-        return FolderStamps.monthFileNames(in: folder).filter { name in
-            let month = String(name.prefix(7))
+        return BlockLogFolder.monthFiles(in: folder).filter { url in
+            let month = BlockLogFolder.month(of: url)
             return month >= first && month <= last
         }
     }

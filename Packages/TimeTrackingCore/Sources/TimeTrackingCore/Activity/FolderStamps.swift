@@ -30,25 +30,10 @@ struct FolderStamps: Hashable {
         self.settings = FileStamp(url: folders.settingsURL)
         var found: [String: FileStamp] = [:]
         for folder in folders.blockFolders {
-            for name in Self.monthFileNames(in: folder) {
-                let url = folder.appending(path: name, directoryHint: .notDirectory)
+            for url in BlockLogFolder.monthFiles(in: folder) {
                 found[url.path] = FileStamp(url: url)
             }
         }
         self.months = found
-    }
-
-    /// The `YYYY-MM.jsonl` files of `folder`, sorted.
-    static func monthFileNames(in folder: URL) -> [String] {
-        let names = (try? FileManager.default.contentsOfDirectory(atPath: folder.path)) ?? []
-        return names.filter(isMonthFileName).sorted()
-    }
-
-    private static func isMonthFileName(_ name: String) -> Bool {
-        let bytes = Array(name.utf8)
-        guard bytes.count == 13, name.hasSuffix(".jsonl"), bytes[4] == UInt8(ascii: "-") else {
-            return false
-        }
-        return [0, 1, 2, 3, 5, 6].allSatisfy { (UInt8(ascii: "0") ... UInt8(ascii: "9")).contains(bytes[$0]) }
     }
 }

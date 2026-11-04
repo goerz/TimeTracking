@@ -3,8 +3,9 @@
 
 public import Foundation
 
-/// Copies the local `Activity/blocks/` month files into the container's
-/// `Activity/blocks/` and keeps the two `settings.toml` identical.
+/// Copies the local `Activity/blocks/` month files (this Mac's subfolder
+/// and any from before it) into the container's `Activity/blocks/` and
+/// keeps the two `settings.toml` identical.
 ///
 /// Used when the agent cannot write the container: the agent writes its
 /// local folder, and the Mac app runs `sync()` every couple of seconds. A
@@ -35,7 +36,8 @@ public struct ActivityFolderMirror: Sendable {
 
     /// What one `sync()` copied.
     public struct Report: Sendable, Hashable {
-        /// Month files copied into the container, e.g. `2024-03.jsonl`.
+        /// Month files copied into the container, relative to `blocks/`,
+        /// e.g. `<mac>/2024-03.jsonl`.
         public var months: [String] = []
         /// `local` or `container`: the `settings.toml` that was copied over the other one.
         public var settingsFrom: String?
@@ -45,16 +47,15 @@ public struct ActivityFolderMirror: Sendable {
     @discardableResult
     public func sync() throws(ActivityError) -> Report {
         var report = Report()
-        let manager = FileManager.default
         let localBlocks = local.appending(path: "blocks", directoryHint: .isDirectory)
         let containerBlocks = container.appending(path: "blocks", directoryHint: .isDirectory)
-        let names = ((try? manager.contentsOfDirectory(atPath: localBlocks.path)) ?? []).filter { $0.hasSuffix(".jsonl") }.sorted()
-        for name in names {
-            let source = localBlocks.appending(path: name, directoryHint: .notDirectory)
-            let target = containerBlocks.appending(path: name, directoryHint: .notDirectory)
+        let prefix = localBlocks.standardizedFileURL.path + "/"
+        for source in BlockLogFolder.monthFiles(in: localBlocks) {
+            let relative = String(source.standardizedFileURL.path.dropFirst(prefix.count))
+            let target = containerBlocks.appending(path: relative, directoryHint: .notDirectory)
             if !Self.sameContents(source, target) {
                 try Self.replace(target, with: source)
-                report.months.append(name)
+                report.months.append(relative)
             }
         }
         let localSettings = local.appending(path: "settings.toml", directoryHint: .notDirectory)
