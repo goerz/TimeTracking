@@ -34,9 +34,14 @@ extension CalendarModel {
         CalendarStrip.menuTitle(first: shownDays[0], count: shownDays.count, today: today)
     }
 
-    /// A sideways trackpad or mouse scroll by `points`, without snapping.
-    func scroll(byPoints points: Double) {
-        guard points != 0 else {
+    /// A sideways trackpad or mouse scroll by `points`, without snapping;
+    /// `momentum` for a trackpad's coasting after the fingers lift, which
+    /// stops once the arrows or a header click have moved the days.
+    func scroll(byPoints points: Double, momentum: Bool = false) {
+        if !momentum {
+            ignoresMomentum = false
+        }
+        guard points != 0, !(momentum && ignoresMomentum) else {
             return
         }
         centersTodayOnLayout = false

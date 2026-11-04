@@ -17,6 +17,16 @@ struct CalendarDayHeader: View {
         let overlaps = model.overlapping(on: day).count
         VStack(alignment: .leading, spacing: Design.Spacing.tight) {
             titleRow(isToday: isToday, overlaps: overlaps)
+                // The weekday and date move the day to the left edge; the
+                // totals row below holds the column toggles, so a click
+                // that misses a toggle moves nothing.
+                .contentShape(Rectangle())
+                .accessibilityAddTraits(.isButton)
+                .onTapGesture {
+                    let alone = ModifierState.optionDown()
+                    withAnimation(.smooth(duration: 0.3)) { model.reveal(day, alone: alone) }
+                }
+                .help("Start the days here (⌥-click: this day alone)")
             totalsRow
             allDayStrip
         }
@@ -25,9 +35,6 @@ struct CalendarDayHeader: View {
         .frame(maxHeight: .infinity, alignment: .top)
         .background(isToday ? Color.accentColor.opacity(0.06) : day.isWeekend ? Color.weekendTint : .clear)
         .overlay(alignment: .leading) { DaySeparator() }
-        .contentShape(Rectangle())
-        .accessibilityAddTraits(.isButton)
-        .onTapGesture { Task { await model.showDay(day, alone: ModifierState.optionDown()) } }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("calendar.header.\(day)")
     }
@@ -69,6 +76,7 @@ struct CalendarDayHeader: View {
             ForEach(columns, id: \.self) { column in
                 let columnWidth = widths[column] ?? 0
                 let narrow = columnWidth < 72
+                // Below 50 points only the glyph fits; the total is in the tooltip.
                 HStack(spacing: narrow ? 0 : 2) {
                     if column == .tracked, !model.showsActivity {
                         ColumnToggle(model: model, column: .activity)
@@ -78,7 +86,7 @@ struct CalendarDayHeader: View {
                     } else {
                         ColumnToggle(model: model, column: column)
                     }
-                    if let totals {
+                    if let totals, columnWidth >= 50 {
                         total(column, totals: totals, narrow: narrow, columnWidth: columnWidth)
                     }
                     if column == .tracked, !model.showsCalendar {
@@ -88,6 +96,8 @@ struct CalendarDayHeader: View {
                 }
                 .padding(.horizontal, columnWidth >= 96 ? Design.Spacing.tight : 0)
                 .frame(width: CGFloat(columnWidth), alignment: .leading)
+                .clipped()
+                .help(totals.map { "\(column.title): \($0.text(columns: [column])[0])" } ?? column.title)
             }
         }
         .font(.caption)
@@ -108,7 +118,6 @@ struct CalendarDayHeader: View {
         }
         .lineLimit(1)
         .minimumScaleFactor(0.75)
-        .help("\(column.title): \(text)")
     }
 
     /// "4h" (whole hours from one hour on), "45m" below.

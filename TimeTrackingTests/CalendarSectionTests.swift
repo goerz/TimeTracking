@@ -103,6 +103,13 @@ struct CalendarSectionTests {
         await model.shift(days: -1)
         #expect(model.firstDay == first.adding(days: 1))
         #expect(model.viewport.offset == 0)
+        // A trackpad's momentum stops at the snap; the next gesture scrolls.
+        model.scroll(byPoints: 30, momentum: true)
+        #expect(model.viewport.offset == 0)
+        model.scroll(byPoints: 26)
+        model.scroll(byPoints: 26, momentum: true)
+        #expect(abs(model.viewport.offset - 0.2) < 1e-9)
+        await model.shift(days: -1)
         // Far away, the data loads around the new days.
         let entry = try await world.test.entry("Earlier", from: "2024-02-22T09:00", to: "2024-02-22T10:00")
         model.scroll(byPoints: -20 * model.dayWidth)

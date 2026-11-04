@@ -168,11 +168,18 @@ extension CalendarSectionTests {
         #expect(Set(CalendarKeyHandlers.commands) == Set(CalendarKeyCommand.allCases.filter(\.isViewKey)))
         #expect(CalendarKeyHandlers.commands.count == CalendarKeyCommand.allCases.count(where: \.isViewKey))
         // A plain key's button taking the key with ⇧ held does the ⇧ command.
-        #expect(CalendarKeyHandlers.resolved(.nextDay, shiftDown: true) == .nextSpan)
-        #expect(CalendarKeyHandlers.resolved(.previousDay, shiftDown: true) == .previousSpan)
-        #expect(CalendarKeyHandlers.resolved(.nextEntry, shiftDown: true) == .previousEntry)
-        #expect(CalendarKeyHandlers.resolved(.nextSpan, shiftDown: true) == .nextSpan)
-        #expect(CalendarKeyHandlers.resolved(.nextDay, shiftDown: false) == .nextDay)
+        #expect(CalendarKeyHandlers.resolved(.nextDay, shift: .held) == .nextSpan)
+        #expect(CalendarKeyHandlers.resolved(.previousDay, shift: .held) == .previousSpan)
+        #expect(CalendarKeyHandlers.resolved(.nextEntry, shift: .held) == .previousEntry)
+        #expect(CalendarKeyHandlers.resolved(.nextSpan, shift: .held) == .nextSpan)
+        #expect(CalendarKeyHandlers.resolved(.nextDay, shift: .notHeld) == .nextDay)
+        // And the ⇧ key's button taking the key without ⇧ does the plain command.
+        #expect(CalendarKeyHandlers.resolved(.nextSpan, shift: .notHeld) == .nextDay)
+        #expect(CalendarKeyHandlers.resolved(.previousSpan, shift: .notHeld) == .previousDay)
+        #expect(CalendarKeyHandlers.resolved(.previousEntry, shift: .notHeld) == .nextEntry)
+        // Without the key press's modifiers (the iPad) each button keeps its command.
+        #expect(CalendarKeyHandlers.resolved(.nextSpan, shift: .unknown) == .nextSpan)
+        #expect(CalendarKeyHandlers.resolved(.nextDay, shift: .unknown) == .nextDay)
         try await sharedViewCommands(world)
         let first = model.firstDay
         await model.perform(.nextDay)

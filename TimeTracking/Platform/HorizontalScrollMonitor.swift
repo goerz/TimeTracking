@@ -6,13 +6,14 @@ import AppKit
 import SwiftUI
 
 /// Reports the sideways part of scroll events over the view it backs, in
-/// points (positive: the content moves left, toward later days). A
+/// points (positive: the content moves left, toward later days), and
+/// whether it is a trackpad's momentum. A
 /// trackpad gesture counts only when it starts mostly sideways, and then
 /// with its momentum; an up-and-down one stays the scroll view's. The
 /// events still reach the scroll view, which keeps to the gesture's main
 /// axis, so a sideways gesture never scrolls the hours.
 struct HorizontalScrollMonitor: NSViewRepresentable {
-    var onScroll: (CGFloat) -> Void
+    var onScroll: (_ points: CGFloat, _ momentum: Bool) -> Void
 
     func makeNSView(context _: Context) -> MonitorView {
         let view = MonitorView()
@@ -47,7 +48,7 @@ struct HorizontalScrollMonitor: NSViewRepresentable {
     }
 
     final class MonitorView: NSView {
-        var onScroll: (CGFloat) -> Void = { _ in }
+        var onScroll: (_ points: CGFloat, _ momentum: Bool) -> Void = { _, _ in }
         private var monitor: Any?
         /// The current trackpad gesture's axis.
         private var axis = GestureAxis.undecided
@@ -103,7 +104,7 @@ struct HorizontalScrollMonitor: NSViewRepresentable {
             // A mouse wheel (or ⇧ with one): every event on its own.
             if scroll.phase.isEmpty, scroll.momentumPhase.isEmpty {
                 if inside, abs(scroll.deltaX) > abs(scroll.deltaY) {
-                    onScroll(-scroll.deltaX * (scroll.precise ? 1 : Self.lineHeight))
+                    onScroll(-scroll.deltaX * (scroll.precise ? 1 : Self.lineHeight), false)
                 }
                 return
             }
@@ -114,7 +115,7 @@ struct HorizontalScrollMonitor: NSViewRepresentable {
                 axis = inside && abs(scroll.deltaX) > abs(scroll.deltaY) ? .sideways : .vertical
             }
             if axis == .sideways {
-                onScroll(-scroll.deltaX)
+                onScroll(-scroll.deltaX, !scroll.momentumPhase.isEmpty)
             }
             if scroll.momentumPhase.contains(.ended) || scroll.momentumPhase.contains(.cancelled) {
                 axis = .undecided

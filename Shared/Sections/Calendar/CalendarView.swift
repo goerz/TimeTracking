@@ -50,7 +50,7 @@ struct CalendarView: View {
             }
             #if os(macOS)
             // Sideways trackpad and mouse scrolling moves through time.
-            .background(HorizontalScrollMonitor { model.scroll(byPoints: Double($0)) })
+            .background(HorizontalScrollMonitor { model.scroll(byPoints: Double($0), momentum: $1) })
             #endif
             .overlay(alignment: .bottomTrailing) {
                 CalendarZoomControl(model: model)
@@ -121,7 +121,8 @@ struct CalendarView: View {
             }
         }
         .fixedSize(horizontal: false, vertical: true)
-        .gesture(DragGesture(minimumDistance: 20).onChanged { value in
+        // Alongside the headers' own clicks, which would otherwise take the drag.
+        .simultaneousGesture(DragGesture(minimumDistance: 20).onChanged { value in
             model.scroll(byPoints: -Double(value.translation.width - panTranslation))
             panTranslation = value.translation.width
         }.onEnded { _ in panTranslation = 0 })
@@ -135,6 +136,8 @@ struct CalendarView: View {
             HStack(alignment: .top, spacing: 0) {
                 CalendarTimeAxis(model: model)
                     .frame(width: Self.gutter)
+                    .accessibilityElement(children: .contain)
+                    .accessibilityIdentifier("calendar.timeAxis")
                     .contentShape(Rectangle())
                     .zIndex(1)
                 CalendarDayStrip(model: model) { day, width in

@@ -15,7 +15,7 @@ struct CalendarSummaryStrip: View {
                 HStack(spacing: Design.Spacing.small) {
                     Text("Tracked").foregroundStyle(.secondary).fixedSize()
                     SummaryBar(summary: summary).frame(minWidth: 48, maxWidth: 200).frame(height: 8)
-                    value(summary.tracked)
+                    value(summary.tracked).accessibilityIdentifier("calendar.summary.tracked")
                 }
                 HStack(spacing: Design.Spacing.tight) {
                     Text("Time blocks").foregroundStyle(.secondary).fixedSize()

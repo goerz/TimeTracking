@@ -14,17 +14,30 @@ struct CalendarKeyHandlers: View {
         .previousSpan, .nextSpan, .previousEntry, .previousDay, .nextDay, .nextEntry, .escape,
     ]
 
-    /// The command a key performs with ⇧ held. On the Mac a view's plain
-    /// arrow or Tab shortcut may also take the key with ⇧ (which of the two
-    /// buttons gets it varies), so the plain keys check ⇧ themselves.
-    static func resolved(_ command: CalendarKeyCommand, shiftDown: Bool) -> CalendarKeyCommand {
-        guard shiftDown else {
-            return command
+    /// Whether ⇧ is held for a key press, as far as the platform tells.
+    enum Shift {
+        case held
+        case notHeld
+        /// The iPad: a shortcut's own modifiers are all there is.
+        case unknown
+    }
+
+    /// The command of a key by whether ⇧ is held for it. On the Mac a
+    /// view's arrow or Tab shortcut may take the key with or without ⇧
+    /// (which of the two buttons gets it varies), so either button decides
+    /// by the key press's own ⇧; where that is unknown each button keeps
+    /// its own command.
+    static func resolved(_ command: CalendarKeyCommand, shift: Shift) -> CalendarKeyCommand {
+        let held: Bool
+        switch shift {
+        case .held: held = true
+        case .notHeld: held = false
+        case .unknown: return command
         }
         switch command {
-        case .previousDay: return .previousSpan
-        case .nextDay: return .nextSpan
-        case .nextEntry: return .previousEntry
+        case .previousDay, .previousSpan: return held ? .previousSpan : .previousDay
+        case .nextDay, .nextSpan: return held ? .nextSpan : .nextDay
+        case .nextEntry, .previousEntry: return held ? .previousEntry : .nextEntry
         default: return command
         }
     }
@@ -44,7 +57,8 @@ struct CalendarKeyHandlers: View {
         ZStack {
             ForEach(Self.commands) { command in
                 Button(command.title) {
-                    let resolved = Self.resolved(command, shiftDown: ModifierState.shiftDown())
+                    let shift: Shift = ModifierState.readsKeyPresses ? (ModifierState.shiftDown() ? .held : .notHeld) : .unknown
+                    let resolved = Self.resolved(command, shift: shift)
                     if let days = Self.step(resolved, wholeDays: model.viewport.wholeDays) {
                         // The days slide over, as with the toolbar's arrows.
                         withAnimation(.smooth(duration: 0.3)) { model.step(days: days) }

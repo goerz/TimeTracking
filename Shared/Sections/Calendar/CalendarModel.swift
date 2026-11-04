@@ -78,6 +78,9 @@ final class CalendarModel {
     /// The days the loaded data covers.
     @ObservationIgnored var loadedDays: ClosedRange<TrackingDay>?
     @ObservationIgnored var loadTask: Task<Void, Never>?
+    /// Set when the arrows or a header click snap the days, until the next
+    /// trackpad gesture.
+    @ObservationIgnored var ignoresMomentum = false
 
     var pointsPerHour: Double {
         didSet { device[.calendarPointsPerHour] = pointsPerHour }

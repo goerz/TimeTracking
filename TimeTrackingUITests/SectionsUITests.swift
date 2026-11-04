@@ -87,22 +87,33 @@ final class SectionsUITests: XCTestCase {
         let app = launch()
         app.typeKey("2", modifierFlags: .command)
         XCTAssertTrue(app.descendants(matching: .any)["calendar.view"].waitForExistence(timeout: 5))
+        // Day headers in view, by the day at the left edge of the days.
+        let edge = app.descendants(matching: .any)["calendar.timeAxis"].frame.maxX
+        let headers = app.descendants(matching: .any).matching(NSPredicate(format: "identifier BEGINSWITH 'calendar.header.'"))
+        let first = { () -> String? in
+            headers.allElementsBoundByIndex.first { abs($0.frame.minX - edge) < 1.5 }
+                .map { String($0.identifier.dropFirst("calendar.header.".count)) }
+        }
+        let firstIs = { (day: String) in
+            let predicate = NSPredicate { _, _ in MainActor.assumeIsolated { first() == day } }
+            return XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: predicate, object: nil)], timeout: 5) == .completed
+        }
+        // ⌘T: today at position ⌈n / 2⌉ of the n whole days in view (3 in
+        // the 1100 point window at 260 points per day).
         app.typeKey("t", modifierFlags: .command)
-        let header = { (day: String) in app.descendants(matching: .any)["calendar.header.\(day)"] }
-        XCTAssertTrue(header("2024-03-12").waitForExistence(timeout: 5))
+        XCTAssertTrue(firstIs("2024-03-13"), "\(first() ?? "none") at \(edge)")
         XCTAssertTrue(app.menuBars.menuItems["Duplicate to Next Day"].exists)
         // The navigation keys are the view's, not menu items: → one day,
-        // ⇧→ the visible span; View › Previous Period (⌥⌘←) goes back a span.
+        // ⇧→ the whole days in view; View › Previous Period (⌥⌘←) goes back as far.
         XCTAssertFalse(app.menuBars.menuItems["Next Day"].exists)
         app.typeKey(.rightArrow, modifierFlags: [])
-        XCTAssertTrue(header("2024-03-17").waitForExistence(timeout: 5))
+        XCTAssertTrue(firstIs("2024-03-14"), "\(first() ?? "none")")
         app.typeKey(.rightArrow, modifierFlags: .shift)
-        XCTAssertTrue(header("2024-03-22").waitForExistence(timeout: 5))
+        XCTAssertTrue(firstIs("2024-03-17"), "\(first() ?? "none")")
         // Chosen from the menu: a window manager on the test Mac may hold ⌥⌘←.
         app.menuBars.firstMatch.menuBarItems["View"].click()
         app.menuBars.firstMatch.menuItems["Previous Period"].click()
-        XCTAssertTrue(header("2024-03-17").waitForExistence(timeout: 5))
-        XCTAssertFalse(header("2024-03-22").exists)
+        XCTAssertTrue(firstIs("2024-03-14"), "\(first() ?? "none")")
     }
 
     @MainActor

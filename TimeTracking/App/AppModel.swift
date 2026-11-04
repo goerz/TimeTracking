@@ -116,6 +116,7 @@ final class AppModel {
         sections.copyText = { Pasteboard.copy($0) }
         ModifierState.optionDown = { ModifierKeys.optionIsDown }
         ModifierState.shiftDown = { ModifierKeys.shiftIsDown }
+        ModifierState.readsKeyPresses = true
     }
 
     /// Loads everything; with `observing`, follows the store's changes.

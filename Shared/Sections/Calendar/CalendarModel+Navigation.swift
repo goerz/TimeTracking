@@ -25,19 +25,27 @@ extension CalendarModel {
     /// The arrows' step without waiting for the data (the view animates it).
     func step(days count: Int) {
         centersTodayOnLayout = false
+        // A trackpad's momentum would carry the days off the snapped edge.
+        ignoresMomentum = true
         viewport.step(days: count)
     }
 
     /// A click on a day header makes it the first day; ⌥-click shows it
     /// alone, as wide as the viewport.
     func showDay(_ day: TrackingDay, alone: Bool = false) async {
+        reveal(day, alone: alone)
+        await loaded()
+    }
+
+    /// `showDay` without waiting for the data (the view animates it).
+    func reveal(_ day: TrackingDay, alone: Bool = false) {
         centersTodayOnLayout = false
+        ignoresMomentum = true
         if alone {
             viewport.showAlone(day)
         } else {
             viewport.show(day)
         }
-        await loaded()
     }
 
     /// ⌘+, ⌘−, ⌘0 (the view keeps the center time in place).
