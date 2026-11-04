@@ -61,10 +61,12 @@ struct EntryCard: View {
             }
         }
         .frame(width: max(2, size.width - 2), height: max(4, size.height - edgeOffsets.top + edgeOffsets.bottom))
-        .offset(y: edgeOffsets.top)
+        // Nothing of the card is drawn outside its time range (§2.1).
+        .clipShape(.rect(cornerRadius: Design.Radius.small))
         .overlay(RoundedRectangle(cornerRadius: Design.Radius.small).strokeBorder(Color.accentColor, lineWidth: selected ? 2 : 0))
         .overlay(RoundedRectangle(cornerRadius: Design.Radius.small)
             .strokeBorder(textColor.opacity(entry.isRunning ? 0.5 : 0), lineWidth: 1.5))
+        .offset(y: edgeOffsets.top)
         .overlay {
             if Self.touch, selected {
                 touchHandles
@@ -110,29 +112,35 @@ struct EntryCard: View {
         let title = Text(entry.task.isEmpty ? "No task" : entry.task)
             .fontWeight(.semibold)
             .italic(entry.task.isEmpty)
+        let oneLine = HStack(spacing: Design.Spacing.tight) {
+            title
+            duration.opacity(0.85)
+        }
+        .font(.caption).foregroundStyle(textColor).lineLimit(1)
+        .padding(.horizontal, Design.Spacing.tight + 2)
         switch CalendarZoom.cardStyle(height: Double(size.height)) {
         case .bar:
             EmptyView()
         case .oneLine:
-            HStack(spacing: Design.Spacing.tight) {
-                title
-                duration.opacity(0.85)
-            }
-            .font(.caption).foregroundStyle(textColor).lineLimit(1)
-            .padding(.horizontal, Design.Spacing.tight + 2)
+            oneLine
         case .full:
-            VStack(alignment: .leading, spacing: 1) {
-                title
-                Text(label.projectAndClient).opacity(0.85)
-                HStack(spacing: 2) {
-                    Image(systemName: SymbolName.timer).imageScale(.small).accessibilityHidden(true)
-                    duration
+            // Three lines only where they fit (about 48 points at the
+            // default text size), else the one line (§1.3).
+            ViewThatFits(in: .vertical) {
+                VStack(alignment: .leading, spacing: 1) {
+                    title
+                    Text(label.projectAndClient).opacity(0.85)
+                    HStack(spacing: 2) {
+                        Image(systemName: SymbolName.timer).imageScale(.small).accessibilityHidden(true)
+                        duration
+                    }
+                    .opacity(0.85)
                 }
-                .opacity(0.85)
+                .font(.caption).foregroundStyle(textColor).lineLimit(1)
+                .padding(.horizontal, Design.Spacing.tight + 2)
+                .padding(.vertical, Design.Spacing.tight)
+                oneLine
             }
-            .font(.caption).foregroundStyle(textColor).lineLimit(1)
-            .padding(.horizontal, Design.Spacing.tight + 2)
-            .padding(.vertical, Design.Spacing.tight)
         }
     }
 

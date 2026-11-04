@@ -17,8 +17,8 @@ final class CalendarUITests: XCTestCase {
 
     /// The app on the fixture at 2024-03-14T10:00, showing the Calendar.
     @MainActor
-    private func openCalendar() -> XCUIApplication {
-        let app = XCUIApplication.timeTracking()
+    private func openCalendar(fixture: String = "small") -> XCUIApplication {
+        let app = XCUIApplication.timeTracking(fixture: fixture)
         app.launchPastOnboarding()
         app.typeKey("2", modifierFlags: .command)
         XCTAssertTrue(element(app, "calendar.view").waitForExistence(timeout: 5))
@@ -252,5 +252,66 @@ final class CalendarUITests: XCTestCase {
         element(app, "calendar.filters").click()
         XCTAssertTrue(element(app, "calendar.filter.includeArchived").waitForExistence(timeout: 5))
         app.typeKey(.escape, modifierFlags: [])
+    }
+
+    /// The text of an entry card labeled `label`, nearest to `near` if given.
+    @MainActor
+    private func cardText(_ app: XCUIApplication, _ label: String, near: CGRect? = nil) -> XCUIElement? {
+        let matches = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "identifier == 'calendar.entry' AND label == %@", label))
+            .allElementsBoundByIndex
+        guard let near else {
+            return matches.first
+        }
+        let distance = { (text: XCUIElement) in abs(text.frame.midY - near.midY) + abs(text.frame.minX - near.minX) }
+        return matches.min { distance($0) < distance($1) }
+    }
+
+    /// The y of `instant` in the Tracked column of `day` (midnight at its top).
+    @MainActor
+    private func y(_ app: XCUIApplication, _ instant: String, day: String) throws -> CGFloat {
+        let column = element(app, "calendar.tracked.\(day)").frame
+        let date = try Date(instant, strategy: .iso8601)
+        let hours = date.timeIntervalSince(Calendar.current.startOfDay(for: date)) / 3600
+        return column.minY + CGFloat(hours * 72)
+    }
+
+    @MainActor
+    func testPC30_cardsStayInsideTheirTimeRange() throws {
+        let app = openCalendar(fixture: "running")
+        // Today (Thursday) second from the left, after Wednesday.
+        XCTAssertTrue(header(app, "2024-03-13").exists)
+        // Two 33-minute entries, 10:52 to 11:25 and 11:29 to 12:03 (in UTC
+        // 14:52:15 to 15:25:46 and 15:29:46 to 16:03:09): 40 points, too
+        // short for three lines, so title and duration share one line inside
+        // the card.
+        for (task, start, end) in [
+            ("Plan appendix 5", "2024-03-13T14:52:15Z", "2024-03-13T15:25:46Z"),
+            ("Prepare slides 2", "2024-03-13T15:29:46Z", "2024-03-13T16:03:09Z"),
+        ] {
+            let top = try y(app, start, day: "2024-03-13")
+            let bottom = try y(app, end, day: "2024-03-13")
+            let title = try XCTUnwrap(cardText(app, task), task)
+            XCTAssertGreaterThanOrEqual(title.frame.minY, top - 1, task)
+            XCTAssertLessThanOrEqual(title.frame.maxY, bottom + 1, task)
+            let duration = try XCTUnwrap(cardText(app, "33m", near: title.frame), task)
+            XCTAssertEqual(duration.frame.midY, title.frame.midY, accuracy: 2, "\(task): the duration is not beside the title")
+            XCTAssertGreaterThan(duration.frame.minX, title.frame.maxX - 1, task)
+        }
+        // A 49-minute entry (58 points) keeps its three lines.
+        let revise = try XCTUnwrap(cardText(app, "Revise slides"))
+        let project = try XCTUnwrap(cardText(app, "Noise notes · University", near: revise.frame))
+        XCTAssertEqual(project.frame.minX, revise.frame.minX, accuracy: 2)
+        XCTAssertGreaterThan(project.frame.minY, revise.frame.maxY - 2)
+        XCTAssertLessThan(project.frame.minY, revise.frame.maxY + 6)
+        // The running entry, 09:35 to now (25 minutes, 30 points), ends on the
+        // now-line with its time beside the title.
+        let now = element(app, "calendar.nowLine")
+        XCTAssertTrue(now.waitForExistence(timeout: 5))
+        let running = try XCTUnwrap(cardText(app, "Prepare methods 6"))
+        XCTAssertGreaterThanOrEqual(running.frame.minY, try y(app, "2024-03-14T13:35:00Z", day: "2024-03-14") - 1)
+        XCTAssertLessThanOrEqual(running.frame.maxY, now.frame.midY + 1)
+        let elapsed = try XCTUnwrap(cardText(app, "0:25:00", near: running.frame))
+        XCTAssertEqual(elapsed.frame.midY, running.frame.midY, accuracy: 2, "the running time is not beside the title")
     }
 }

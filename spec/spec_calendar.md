@@ -33,7 +33,7 @@ The router call `SectionRouter.showCalendar(day:hour:highlight:)` ([spec_project
 
 ### 1.3 Vertical zoom
 
-Zoom is `pointsPerHour`, 24 to 480, default 72. ⌘+ and ⌘− and the zoom buttons multiply or divide it by 1.25, a pinch changes it continuously, and ⌘0 restores 72. The zoom buttons are Zoom In (`plus.magnifyingglass`) above Zoom Out (`minus.magnifyingglass`) in one glass capsule floating over the columns' bottom trailing corner, clear of the scroll bar, like a map's zoom control; each is disabled at its end of the range. A zoom keeps one time where it was on screen, so the view never jumps: under the fingers for a pinch, else the now-line while it is in view, else the time at the viewport's center; only the end of the day can stop it. Hour labels appear every two hours below 36 points per hour, every hour up to 120, every 30 minutes up to 240, and every 15 minutes above. A card under 14 points high is a bare color bar, under 28 points one line (title and duration).
+Zoom is `pointsPerHour`, 24 to 480, default 72. ⌘+ and ⌘− and the zoom buttons multiply or divide it by 1.25, a pinch changes it continuously, and ⌘0 restores 72. The zoom buttons are Zoom In (`plus.magnifyingglass`) above Zoom Out (`minus.magnifyingglass`) in one glass capsule floating over the columns' bottom trailing corner, clear of the scroll bar, like a map's zoom control; each is disabled at its end of the range. A zoom keeps one time where it was on screen, so the view never jumps: under the fingers for a pinch, else the now-line while it is in view, else the time at the viewport's center; only the end of the day can stop it. Hour labels appear every two hours below 36 points per hour, every hour up to 120, every 30 minutes up to 240, and every 15 minutes above. A card under 14 points high is a bare color bar, under 28 points one line (title and duration); an entry card also keeps to the one line while its three lines don't fit (about 48 points at the default text size). No card draws outside its time range.
 
 ### 1.4 Columns
 
@@ -233,6 +233,7 @@ Per device: `pointsPerHour` (72), `dayWidth` (260), column toggles (on), the Fil
 27. With a day width of 250 points, a 1000 point viewport shows 4 days and a 1100 point one 5, the fifth cut off, with the left edge kept; doubling the day width keeps the center time; the width clamps to [96, 1600]; ⌥-click makes one day as wide as the viewport; the slider is logarithmic; Saturday and Sunday are the shaded days.
 28. With "Noise Model" checked in Filters, the other entries are faded and the tracked totals count only Noise Model's, with its token in the filter bar; the search "draft" lets through only entries with "draft" in the task or the project, area, or client name; while the search field has the focus the plain keys are off.
 29. A night from 23:00 to 06:30 is labeled "7h 30m" on the day it ends; a workout from 23:15 to midnight is labeled "45m" on its own day.
+30. At 72 points per hour a 33-minute entry's card spans exactly its interval and shows its title and duration on one line; a 25-minute running entry's card ends on the now-line.
 
 ## 8. Decisions
 
