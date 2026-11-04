@@ -54,9 +54,10 @@ struct MenuState: Equatable {
         calendarCommands || reportCommands || activityCommands
     }
 
-    /// Edit › Find: the Timer list's filter, the Projects and Reports search.
+    /// Edit › Find: the Timer list's filter, the Calendar, Projects, and
+    /// Reports search.
     var findCommand: Bool {
-        timerKey || projectCommands || reportCommands
+        timerKey || calendarCommands || projectCommands || reportCommands
     }
 }
 

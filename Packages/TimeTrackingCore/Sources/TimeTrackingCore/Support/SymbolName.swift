@@ -76,7 +76,9 @@ public enum SymbolName {
     public static let sort = "arrow.up.arrow.down"
     public static let zoomIn = "plus.magnifyingglass"
     public static let zoomOut = "minus.magnifyingglass"
-    public static let calendarColumns = "rectangle.split.3x1"
+    /// The Calendar's day width slider: narrower days, wider days.
+    public static let narrowerDays = "arrow.right.and.line.vertical.and.arrow.left"
+    public static let widerDays = "arrow.left.and.line.vertical.and.arrow.right"
     public static let share = "square.and.arrow.up"
     public static let info = "info.circle"
     /// A total (App Shortcuts' today's total).

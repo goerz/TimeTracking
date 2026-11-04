@@ -57,10 +57,27 @@ final class CalendarModel {
     @ObservationIgnored var isRecordingMac = true
 
     var calendar = TrackingCalendar(timeZone: .current)
-    var firstDay: TrackingDay
-    var visibleDays: Int {
-        didSet { device[.calendarVisibleDays] = visibleDays }
+
+    /// The strip of days (§1.2). Every sideways scroll changes it, so only
+    /// the strip itself reads it; other views read the values derived below,
+    /// which change only when they differ.
+    var viewport: CalendarViewport {
+        didSet { viewportChanged() }
     }
+
+    /// Derived from the viewport; only `viewportChanged()` sets them.
+    /// The day width, the horizontal zoom (per device).
+    var dayWidth: Double
+    /// The days with a part in the viewport, left to right.
+    var days: [TrackingDay]
+    /// The days at least half visible: the subtitle, the date menu, and the
+    /// summary strip.
+    var shownDays: [TrackingDay]
+    /// Until the first width arrives, the viewport waits to center today.
+    @ObservationIgnored var centersTodayOnLayout = true
+    /// The days the loaded data covers.
+    @ObservationIgnored var loadedDays: ClosedRange<TrackingDay>?
+    @ObservationIgnored var loadTask: Task<Void, Never>?
 
     var pointsPerHour: Double {
         didSet { device[.calendarPointsPerHour] = pointsPerHour }
@@ -85,7 +102,35 @@ final class CalendarModel {
     private(set) var projects: [Project] = []
     /// Each project with its area and client, for chips and labels.
     private(set) var projectRows: [ProjectID: ProjectRow] = [:]
-    private(set) var summary: CalendarSummary?
+    /// The Filters tree's clients, areas, and projects (retired included).
+    private(set) var filterTree = CalendarFilterTree()
+
+    /// The Filters (per device) and the toolbar's search (not stored), as
+    /// in Reports; entries they leave out are faded (§1.6).
+    var filters: ReportFilters {
+        didSet {
+            device[.calendarFilters] = filters
+            refreshTotals()
+        }
+    }
+
+    var search = "" {
+        didSet {
+            if search != oldValue {
+                refreshTotals()
+            }
+        }
+    }
+
+    var showsFilters = false
+    /// Whether the search field has the focus (the plain keys are off).
+    var searchFocused = false
+    /// Bumped to focus the search field (⌘F).
+    var searchFocusRequests = 0
+    /// The summary strip's figures over the shown days (`refreshSummary()`).
+    var summary: CalendarSummary?
+    /// Each loaded day's column totals (the day headers).
+    var dayTotals: [TrackingDay: CalendarSummary.DayTotals] = [:]
     private(set) var timeBlockState: TimeBlockCalendarState?
     /// Sleep and workouts from Apple Health in the visible range, of the
     /// kinds the settings show.
@@ -141,32 +186,22 @@ final class CalendarModel {
         self.device = device
         self.activity = activity
         self.events = events
-        let visible = min(7, max(1, device[.calendarVisibleDays]))
-        self.visibleDays = visible
         self.pointsPerHour = CalendarZoom.clamped(device[.calendarPointsPerHour])
         self.showsActivity = device[.calendarShowsActivity]
         self.showsCalendar = device[.calendarShowsCalendar]
+        self.filters = device[.calendarFilters]
         let today = TrackingCalendar(timeZone: .current).day(containing: clock.now)
-        self.firstDay = CalendarStrip.firstDay(centering: today, visibleDays: visible)
+        let viewport = CalendarViewport(firstDay: today, dayWidth: device[.calendarDayWidth])
+        self.viewport = viewport
+        self.dayWidth = viewport.dayWidth
+        self.days = viewport.touchedDays
+        self.shownDays = viewport.shownDays
     }
 
     // MARK: Days
 
     var today: TrackingDay {
         calendar.day(containing: clock.now)
-    }
-
-    var days: [TrackingDay] {
-        (0 ..< visibleDays).map { firstDay.adding(days: $0) }
-    }
-
-    var visibleInterval: DateInterval {
-        calendar.interval(of: firstDay ... firstDay.adding(days: visibleDays - 1))
-    }
-
-    /// "Mon, Oct 26 – Fri, Oct 30 · W44".
-    var rangeLabel: String {
-        CalendarStrip.label(first: firstDay, count: visibleDays)
     }
 
     /// The visible columns of each day.
@@ -195,28 +230,31 @@ final class CalendarModel {
 
     // MARK: Loading
 
-    /// Re-reads entries, blocks, events, settings, and the summary.
+    /// Re-reads entries, blocks, events, settings, and the summary over the
+    /// days in view and as many again on either side (at least two), so a
+    /// sideways scroll finds them loaded.
     func reload() async {
         do {
             try await readSyncedSettings()
-            let interval = visibleInterval
+            let pad = max(2, days.count)
+            let range = days[0].adding(days: -pad) ... days[days.count - 1].adding(days: pad)
+            loadedDays = range
+            let interval = calendar.interval(of: range)
             let found = try await store.entries(in: interval, includeDeleted: false)
             entries = try await store.listings(for: found)
             let rows = try await store.projects(filter: ProjectFilter(state: .all))
             projects = rows.map(\.project)
+            filterTree = try await CalendarFilterTree(
+                clients: store.clients(includeRetired: true),
+                areas: store.areas(of: nil, includeRetired: true),
+                projects: rows
+            )
             projectRows = Dictionary(rows.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
             let loaded = try await activity.blocks(in: interval, devices: nil)
             blocks = isRecordingMac ? loaded : loaded.filter { !$0.isOpen }
             stretches = try await activity.backgroundStretches(in: interval, devices: nil)
             await loadEvents(around: interval)
-            summary = CalendarSummary(
-                days: days,
-                calendar: calendar,
-                entries: entries,
-                activity: blocks,
-                timeBlocks: timeBlocks.map(\.event.interval),
-                now: clock.now
-            )
+            refreshTotals()
             if isRecordingMac {
                 loadGapLabels()
             }
@@ -310,11 +348,6 @@ final class CalendarModel {
         }
     }
 
-    /// The color of an external event's calendar.
-    func color(of event: CalendarEvent) -> String {
-        calendars.first { $0.id == event.calendarID }?.color ?? "#8E8E93"
-    }
-
     /// Gaps over 15 minutes between blocks of any device, labeled with
     /// their duration (§3.1).
     private func loadGapLabels() {
@@ -333,24 +366,6 @@ final class CalendarModel {
     func report(_ error: any Error) {
         lastError = UserMessage.text(for: error)
         Logging.logger(category: "Sections").error("Calendar: \(String(describing: error), privacy: .public)")
-    }
-
-    func listing(_ id: EntryID) -> EntryListing? {
-        entries.first { $0.entry.id == id }
-    }
-
-    func project(_ id: ProjectID?) -> Project? {
-        id.flatMap { id in projects.first { $0.id == id } }
-    }
-
-    /// The chip label of a project: name, client, area, color.
-    func label(_ id: ProjectID?) -> ProjectLabel {
-        id.flatMap { projectRows[$0] }.map(ProjectLabel.init) ?? .noProject
-    }
-
-    /// Waits for a pending undo (tests).
-    func waitForUndo() async {
-        await pendingUndo?.value
     }
 }
 

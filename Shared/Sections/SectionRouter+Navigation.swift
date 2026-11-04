@@ -46,7 +46,7 @@ extension SectionRouter {
     func shiftPeriod(by step: Int) async {
         switch section {
         case .calendar:
-            await calendar.shift(days: step * calendar.visibleDays)
+            await calendar.shift(days: step * calendar.viewport.wholeDays)
         case .reports:
             if step < 0 {
                 await reports.previousPeriod()

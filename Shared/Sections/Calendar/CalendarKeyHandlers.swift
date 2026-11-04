@@ -29,12 +29,28 @@ struct CalendarKeyHandlers: View {
         }
     }
 
+    /// The days ←, →, ⇧←, and ⇧→ step by; nil for the other keys.
+    static func step(_ command: CalendarKeyCommand, wholeDays: Int) -> Int? {
+        switch command {
+        case .previousDay: -1
+        case .nextDay: 1
+        case .previousSpan: -wholeDays
+        case .nextSpan: wholeDays
+        default: nil
+        }
+    }
+
     var body: some View {
         ZStack {
             ForEach(Self.commands) { command in
                 Button(command.title) {
                     let resolved = Self.resolved(command, shiftDown: ModifierState.shiftDown())
-                    Task { await model.perform(resolved) }
+                    if let days = Self.step(resolved, wholeDays: model.viewport.wholeDays) {
+                        // The days slide over, as with the toolbar's arrows.
+                        withAnimation(.smooth(duration: 0.3)) { model.step(days: days) }
+                    } else {
+                        Task { await model.perform(resolved) }
+                    }
                 }
                 .keyboardShortcut(command.shortcut)
                 .disabled(model.takesTextInput)

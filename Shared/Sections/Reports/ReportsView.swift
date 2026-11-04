@@ -17,7 +17,11 @@ struct ReportsView: View {
             let compact = geometry.size.height < 700
             VStack(spacing: Design.Spacing.large) {
                 if !model.filterChips.isEmpty {
-                    ReportFilterBar(model: model)
+                    FilterChipBar(chips: model.filterChips, identifier: "reports") { kind in
+                        Task { await model.removeChip(kind) }
+                    } clearAll: {
+                        Task { await model.clearFilters() }
+                    }
                 }
                 ReportTilesView(model: model, compact: compact)
                 ReportChartCard(model: model, height: compact ? 180 : 280)
@@ -88,41 +92,6 @@ struct ReportsView: View {
             ReportFiltersButton(model: model)
         }
         .visibilityPriority(.high)
-    }
-}
-
-/// The active filters as removable tokens above the tiles, with Clear All.
-private struct ReportFilterBar: View {
-    var model: ReportsModel
-
-    var body: some View {
-        HStack(spacing: Design.Spacing.small) {
-            Image(systemName: SymbolName.filter)
-                .foregroundStyle(.secondary)
-                .accessibilityHidden(true)
-            ForEach(model.filterChips) { chip in
-                Button {
-                    Task { await model.removeChip(chip.kind) }
-                } label: {
-                    HStack(spacing: Design.Spacing.tight) {
-                        Text(chip.text)
-                        Image(systemName: SymbolName.discard).imageScale(.small).foregroundStyle(.secondary).accessibilityHidden(true)
-                    }
-                }
-                .buttonStyle(.bordered)
-                .buttonBorderShape(.capsule)
-                .controlSize(.small)
-                .help("Remove Filter")
-                .accessibilityIdentifier("reports.chip")
-            }
-            Button("Clear All") { Task { await model.clearFilters() } }
-                .buttonStyle(.borderless)
-                .controlSize(.small)
-            Spacer(minLength: 0)
-        }
-        .font(.subheadline)
-        .accessibilityElement(children: .contain)
-        .accessibilityIdentifier("reports.filterBar")
     }
 }
 

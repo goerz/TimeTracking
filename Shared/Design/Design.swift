@@ -64,6 +64,9 @@ extension Color {
     /// The tracker's block cards in the Calendar's Activity column, one
     /// neutral color for every context.
     static let activityBlock = Color.secondary
+    /// Saturdays and Sundays in the Calendar, a shade darker than weekdays
+    /// (lighter in dark mode).
+    static let weekendTint = Color.primary.opacity(0.035)
     /// Sleep from Apple Health in the Calendar's Activity column (dark blue).
     static let sleepLine = Color(red: 0.11, green: 0.22, blue: 0.56)
     /// Workouts from Apple Health there (dark green).

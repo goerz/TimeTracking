@@ -5,9 +5,19 @@
 import SwiftUI
 import UIKit
 
-/// Two fingers swiping sideways: the days scroll by the translation.
+/// Two fingers swiping sideways: the days follow the fingers.
 struct CalendarTwoFingerSwipe: UIGestureRecognizerRepresentable {
-    var onEnded: (_ translation: CGFloat) -> Void
+    /// The sideways movement since the last call, in points.
+    var onChanged: (_ delta: CGFloat) -> Void
+
+    final class Coordinator {
+        var last: CGFloat = 0
+        var sideways = false
+    }
+
+    func makeCoordinator(converter _: CoordinateSpaceConverter) -> Coordinator {
+        Coordinator()
+    }
 
     func makeUIGestureRecognizer(context _: Context) -> UIPanGestureRecognizer {
         let recognizer = UIPanGestureRecognizer()
@@ -16,12 +26,21 @@ struct CalendarTwoFingerSwipe: UIGestureRecognizerRepresentable {
         return recognizer
     }
 
-    func handleUIGestureRecognizerAction(_ recognizer: UIPanGestureRecognizer, context _: Context) {
-        if recognizer.state == .ended {
-            let translation = recognizer.translation(in: recognizer.view)
-            if abs(translation.x) > abs(translation.y) {
-                onEnded(translation.x)
+    func handleUIGestureRecognizerAction(_ recognizer: UIPanGestureRecognizer, context: Context) {
+        let translation = recognizer.translation(in: recognizer.view)
+        let coordinator = context.coordinator
+        switch recognizer.state {
+        case .began, .changed:
+            if recognizer.state == .began {
+                coordinator.last = 0
+                coordinator.sideways = abs(translation.x) > abs(translation.y)
             }
+            if coordinator.sideways {
+                onChanged(translation.x - coordinator.last)
+                coordinator.last = translation.x
+            }
+        default:
+            coordinator.last = 0
         }
     }
 }

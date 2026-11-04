@@ -1,5 +1,5 @@
-// CalendarDayAxis: the Calendar section's time axis, with its zoom, visible
-// days, columns, and snapping (spec_calendar.md §1).
+// CalendarDayAxis: the Calendar section's time axis, with its zoom, the
+// strip's labels, columns, and snapping (spec_calendar.md §1).
 
 public import Foundation
 
@@ -24,9 +24,23 @@ public enum CalendarZoom {
     }
 
     /// The scroll offset after a zoom that keeps the time under `anchor`
-    /// (a y position in the viewport) in place.
-    public static func scrollOffset(_ offset: Double, anchor: Double, from old: Double, to new: Double) -> Double {
-        max(0, (offset + anchor) * new / old - anchor)
+    /// (a y position in the viewport) in place, at most `maximum`.
+    public static func scrollOffset(
+        _ offset: Double,
+        anchor: Double,
+        from old: Double,
+        to new: Double,
+        maximum: Double = .infinity
+    ) -> Double {
+        min(max(0, maximum), max(0, (offset + anchor) * new / old - anchor))
+    }
+
+    /// The point of the viewport a zoom keeps in place: a pinch's `pinchY`,
+    /// else the now-line at `nowY` (from the content's top) while it is in
+    /// view, else the viewport's center.
+    public static func anchor(offset: Double, viewportHeight: Double, nowY: Double?, pinchY: Double?) -> Double {
+        let now = nowY.map { $0 - offset }.flatMap { (0 ... viewportHeight).contains($0) ? $0 : nil }
+        return pinchY ?? now ?? viewportHeight / 2
     }
 
     /// Minutes between hour labels.
@@ -98,19 +112,11 @@ public struct CalendarDayAxis: Sendable, Hashable {
     }
 }
 
-/// The horizontal strip of visible days (§1.2).
+/// The labels and the Today position of the strip of days (§1.1, §1.2).
 public enum CalendarStrip {
-    public static let dayCounts = 1 ... 7
-    public static let defaultVisibleDays = 5
-
     /// The first day that puts `today` at position ⌈visibleDays / 2⌉ (⌘T).
     public static func firstDay(centering today: TrackingDay, visibleDays: Int) -> TrackingDay {
         today.adding(days: -((visibleDays + 1) / 2 - 1))
-    }
-
-    /// The whole days a sideways scroll of `dayWidths` snaps to.
-    public static func snappedShift(dayWidths: Double) -> Int {
-        Int(dayWidths.rounded())
     }
 
     /// The date menu's title (§1.1): "Today" while today is visible, else

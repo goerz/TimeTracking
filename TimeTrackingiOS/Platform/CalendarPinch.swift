@@ -4,8 +4,8 @@
 import SwiftUI
 import UIKit
 
-/// A pinch whose axis follows the fingers' spread (vertical zoom or the
-/// number of days).
+/// A pinch whose axis follows the fingers' spread (the hours' zoom or the
+/// day width).
 struct CalendarPinch: UIGestureRecognizerRepresentable {
     /// The scale since the pinch began and whether the fingers spread horizontally.
     var onPinch: (_ scale: Double, _ horizontal: Bool) -> Void

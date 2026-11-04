@@ -1,12 +1,12 @@
-// CalendarToolbar: the Calendar's toolbar, the period items leading and
-// days, columns, and zoom trailing
-// (spec_calendar.md §1.1; spec_design.md §4).
+// CalendarToolbar: the Calendar's toolbar, the period items and Filters, as
+// in Reports and Projects (spec_calendar.md §1.1; spec_design.md §4).
 
 import SwiftUI
 import TimeTrackingCore
 
-/// The toolbar of §1.1: the period items leading; days, columns, and zoom
-/// trailing (spec_design.md §4).
+/// The toolbar of §1.1: the arrows and the date menu leading, Filters
+/// trailing, then the search field (`CalendarView`). The day width, the
+/// columns, and the hours' zoom sit in the content (spec_design.md §4).
 struct CalendarToolbar: ToolbarContent {
     @Bindable var model: CalendarModel
     @Binding var pickedDate: Date
@@ -21,36 +21,9 @@ struct CalendarToolbar: ToolbarContent {
             dateControl: { dateMenu }
         )
         ToolbarItem(placement: .primaryAction) {
-            Picker("Days", selection: Binding { model.visibleDays } set: { count in Task { await model.setVisibleDays(count) } }) {
-                ForEach(Self.dayChoices(current: model.visibleDays), id: \.self) { Text("\($0)").tag($0) }
-            }
-            .pickerStyle(.segmented)
-            .help("Visible Days")
-            .fixedSize()
-            .accessibilityIdentifier("calendar.days")
+            CalendarFiltersButton(model: model)
         }
         .visibilityPriority(.high)
-        ToolbarItem(placement: .primaryAction) {
-            Menu {
-                Toggle(isOn: Binding { model.showsActivity } set: { _ in Task { await model.toggle(.activity) } }) {
-                    Label("Activity Column", systemImage: CalendarColumn.activity.glyph)
-                }
-                Toggle(isOn: Binding { model.showsCalendar } set: { _ in Task { await model.toggle(.calendar) } }) {
-                    Label("Calendar Column", systemImage: CalendarColumn.calendar.glyph)
-                }
-            } label: {
-                Label("Columns", systemImage: SymbolName.calendarColumns)
-            }
-            .help("Columns")
-            .accessibilityIdentifier("calendar.columns")
-        }
-        ToolbarItemGroup(placement: .primaryAction) {
-            Button { model.zoom(by: -1) } label: { Label("Zoom Out", systemImage: SymbolName.zoomOut) }
-                .help("Zoom Out")
-            Button { model.zoom(by: 1) } label: { Label("Zoom In", systemImage: SymbolName.zoomIn) }
-                .help("Zoom In")
-        }
-        .visibilityPriority(.low)
     }
 
     /// The date menu, titled by what is shown ("Today", "Oct 19 – 23"), with
@@ -61,7 +34,7 @@ struct CalendarToolbar: ToolbarContent {
             Button("Go to Today") { Task { await model.goToToday() } }
             Button("Go to Date…") { model.showsMonthPicker = true }
         } label: {
-            Text(CalendarStrip.menuTitle(first: model.firstDay, count: model.visibleDays, today: model.today))
+            Text(model.menuTitle)
         }
         .help("Date")
         .accessibilityIdentifier("calendar.range")
@@ -77,14 +50,10 @@ struct CalendarToolbar: ToolbarContent {
         }
     }
 
-    /// 1, 3, 5, 7, and the current count when it is 2, 4, or 6.
-    static func dayChoices(current: Int) -> [Int] {
-        ([1, 3, 5, 7] + ([1, 3, 5, 7].contains(current) ? [] : [current])).sorted()
-    }
-
-    /// The arrows scroll one day; with ⌥ the number of visible days.
+    /// The arrows step one day, snapped so a day starts at the left edge;
+    /// with ⌥ by the whole days in view.
     private func shift(_ direction: Int) {
-        let step = ModifierState.optionDown() ? model.visibleDays : 1
-        Task { await model.shift(days: direction * step) }
+        let step = ModifierState.optionDown() ? model.viewport.wholeDays : 1
+        withAnimation(.smooth(duration: 0.3)) { model.step(days: direction * step) }
     }
 }

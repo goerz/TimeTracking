@@ -10,8 +10,8 @@ enum CalendarKeyCommand: String, CaseIterable, Identifiable {
     case zoomIn
     case zoomOut
     case zoomReset
-    case fewerDays
-    case moreDays
+    case narrowerDays
+    case widerDays
     case previousDay
     case nextDay
     case previousSpan
@@ -40,8 +40,8 @@ enum CalendarKeyCommand: String, CaseIterable, Identifiable {
         case .zoomIn: "Zoom In"
         case .zoomOut: "Zoom Out"
         case .zoomReset: "Actual Size"
-        case .fewerDays: "One Day Fewer"
-        case .moreDays: "One Day More"
+        case .narrowerDays: "Narrower Days"
+        case .widerDays: "Wider Days"
         case .previousDay: "Previous Day"
         case .nextDay: "Next Day"
         case .previousSpan: "Previous Days"
@@ -69,8 +69,8 @@ enum CalendarKeyCommand: String, CaseIterable, Identifiable {
         case .zoomIn: KeyboardShortcut("+")
         case .zoomOut: KeyboardShortcut("-")
         case .zoomReset: KeyboardShortcut("0")
-        case .fewerDays: KeyboardShortcut("[", modifiers: [.command, .option])
-        case .moreDays: KeyboardShortcut("]", modifiers: [.command, .option])
+        case .narrowerDays: KeyboardShortcut("[", modifiers: [.command, .option])
+        case .widerDays: KeyboardShortcut("]", modifiers: [.command, .option])
         case .previousDay: KeyboardShortcut(.leftArrow, modifiers: [])
         case .nextDay: KeyboardShortcut(.rightArrow, modifiers: [])
         case .previousSpan: KeyboardShortcut(.leftArrow, modifiers: .shift)
@@ -112,12 +112,12 @@ extension CalendarModel {
         case .zoomIn: zoom(by: 1)
         case .zoomOut: zoom(by: -1)
         case .zoomReset: zoom(by: 0)
-        case .fewerDays: await setVisibleDays(visibleDays - 1)
-        case .moreDays: await setVisibleDays(visibleDays + 1)
+        case .narrowerDays: zoomDays(by: -1)
+        case .widerDays: zoomDays(by: 1)
         case .previousDay: await shift(days: -1)
         case .nextDay: await shift(days: 1)
-        case .previousSpan: await shift(days: -visibleDays)
-        case .nextSpan: await shift(days: visibleDays)
+        case .previousSpan: await shift(days: -viewport.wholeDays)
+        case .nextSpan: await shift(days: viewport.wholeDays)
         case .toggleActivity: await toggle(.activity)
         case .toggleCalendar: await toggle(.calendar)
         default: await performSelectionCommand(command)
@@ -144,6 +144,7 @@ extension CalendarModel {
     /// A popover or editor takes the plain keys.
     var takesTextInput: Bool {
         draft != nil || blockDraft != nil || editingEntry != nil || pendingOverlap != nil || showsMonthPicker
+            || showsFilters || searchFocused
     }
 
     /// Return: the editor of the selected entry or time block.

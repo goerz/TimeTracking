@@ -8,11 +8,10 @@ extension DeviceSettingKey where Value == Double {
     static var calendarPointsPerHour: Self {
         Self("planner.calendar.pointsPerHour", default: CalendarZoom.defaultPointsPerHour)
     }
-}
 
-extension DeviceSettingKey where Value == Int {
-    static var calendarVisibleDays: Self {
-        Self("planner.calendar.visibleDays", default: CalendarStrip.defaultVisibleDays)
+    /// The day width, the horizontal zoom.
+    static var calendarDayWidth: Self {
+        Self("planner.calendar.dayWidth", default: CalendarViewport.defaultDayWidth)
     }
 }
 
@@ -28,6 +27,13 @@ extension DeviceSettingKey where Value == Bool {
     /// A block existed once; the Activity setup card never returns.
     static var activitySawBlock: Self {
         Self("planner.activity.sawBlock", default: false)
+    }
+}
+
+extension DeviceSettingKey where Value == ReportFilters {
+    /// The Calendar's Filters (§1.6).
+    static var calendarFilters: Self {
+        Self("planner.calendar.filters", default: ReportFilters())
     }
 }
 

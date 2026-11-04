@@ -53,13 +53,15 @@ struct MainMenuCommands: Commands {
         }
     }
 
-    /// ⌘F: the Timer list's filter, or the Projects or Reports search field.
+    /// ⌘F: the Timer list's filter, or the Calendar, Projects, or Reports search field.
     private func find() {
         guard let app else {
             return
         }
         if state.timerKey {
             app.activeTimer.list.showFilter()
+        } else if state.calendarCommands {
+            app.sections.calendar.focusSearch()
         } else if state.reportCommands {
             app.sections.reports.focusSearch()
         } else if state.projectCommands {

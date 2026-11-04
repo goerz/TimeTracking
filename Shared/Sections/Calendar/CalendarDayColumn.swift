@@ -25,9 +25,9 @@ struct CalendarDayColumn: View {
         }
         .frame(width: width, height: axis.height, alignment: .topLeading)
         .background(HourGrid(pointsPerHour: model.pointsPerHour, height: axis.height))
-        .background(day == model.today ? Color.accentColor.opacity(0.03) : .clear)
+        .background(day == model.today ? Color.accentColor.opacity(0.03) : day.isWeekend ? Color.weekendTint : .clear)
         .overlay(alignment: .topLeading) { NowLine(model: model, day: day) }
-        .overlay(alignment: .leading) { Divider() }
+        .overlay(alignment: .leading) { DaySeparator() }
     }
 }
 
@@ -92,8 +92,13 @@ private struct TrackedColumn: View {
                 if let frame = axis.frame(of: listing.entry.interval(at: model.clock.now)) {
                     let lane = lanes[listing.entry.id] ?? CalendarLane(index: 0, count: 1)
                     let laneWidth = (width - 4) / CGFloat(lane.count)
-                    EntryCard(model: model, listing: listing, size: CGSize(width: laneWidth, height: max(4, frame.height)), dayWidth: width)
-                        .offset(x: 2 + laneWidth * CGFloat(lane.index), y: frame.y)
+                    EntryCard(
+                        model: model,
+                        listing: listing,
+                        size: CGSize(width: laneWidth, height: max(4, frame.height)),
+                        dayWidth: CGFloat(model.dayWidth)
+                    )
+                    .offset(x: 2 + laneWidth * CGFloat(lane.index), y: frame.y)
                 }
             }
             if let draft = model.draft, draft.day == day, let frame = axis.frame(of: draft.interval) {
@@ -175,31 +180,9 @@ private struct ActivityColumn: View {
 
     var body: some View {
         let axis = model.axis(day)
-        let gaps = model.isRecordingMac ? model.gapLabels[day] ?? [] : []
         ZStack(alignment: .topLeading) {
             Color.clear
-            // Gap lines under the health lines, the gap texts over them.
-            ForEach(Array(gaps.enumerated()), id: \.offset) { _, label in
-                if let frame = axis.frame(of: label.0) {
-                    GapLabel(text: label.1, part: .lines)
-                        .frame(width: width, height: frame.height)
-                        .offset(y: frame.y)
-                }
-            }
-            ForEach(model.healthPeriods(on: day)) { period in
-                if let frame = axis.frame(of: period.interval) {
-                    HealthLine(period: period)
-                        .frame(width: width, height: max(Design.healthLineWidth, frame.height))
-                        .offset(y: frame.y)
-                }
-            }
-            ForEach(Array(gaps.enumerated()), id: \.offset) { _, label in
-                if let frame = axis.frame(of: label.0) {
-                    GapLabel(text: label.1, part: .text)
-                        .frame(width: width, height: frame.height)
-                        .offset(y: frame.y)
-                }
-            }
+            healthAndGaps(axis)
             strips(axis)
             ForEach(model.blocks.filter { $0.localDay == day.description }) { block in
                 if let frame = axis.frame(of: DateInterval(start: block.start, end: max(block.start, block.end))) {
@@ -212,6 +195,45 @@ private struct ActivityColumn: View {
         // The cards inside keep their own identifiers.
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("calendar.activity.\(day)")
+    }
+
+    /// The gap lines, the health lines over them, then the gap texts and
+    /// the health labels; a gap's text where a health label sits is left
+    /// out, so it never covers the label.
+    @ViewBuilder
+    private func healthAndGaps(_ axis: CalendarDayAxis) -> some View {
+        let gaps = model.isRecordingMac ? model.gapLabels[day] ?? [] : []
+        let periods = model.healthPeriods(on: day)
+        let labeled = periods.compactMap { period in
+            period.labelDay(in: model.calendar) == day ? axis.frame(of: period.interval).map { (period, $0) } : nil
+        }
+        let labelYs = labeled.map { $0.1.y + $0.1.height / 2 }
+        ForEach(Array(gaps.enumerated()), id: \.offset) { _, label in
+            if let frame = axis.frame(of: label.0) {
+                GapLabel(text: label.1, part: .lines)
+                    .frame(width: width, height: frame.height)
+                    .offset(y: frame.y)
+            }
+        }
+        ForEach(periods) { period in
+            if let frame = axis.frame(of: period.interval) {
+                HealthLine(period: period)
+                    .frame(width: width, height: max(Design.healthLineWidth, frame.height))
+                    .offset(y: frame.y)
+            }
+        }
+        ForEach(Array(gaps.enumerated()), id: \.offset) { _, label in
+            if let frame = axis.frame(of: label.0), !labelYs.contains(where: { abs($0 - frame.y - frame.height / 2) < 16 }) {
+                GapLabel(text: label.1, part: .text)
+                    .frame(width: width, height: frame.height)
+                    .offset(y: frame.y)
+            }
+        }
+        ForEach(labeled, id: \.0.id) { period, frame in
+            HealthLabel(period: period)
+                .frame(width: width, height: max(Design.healthLineWidth, frame.height))
+                .offset(y: frame.y)
+        }
     }
 
     /// The day's background stretches at the column's trailing edge.
@@ -276,6 +298,26 @@ private struct BackgroundStrip: View {
     }
 }
 
+/// The whole period's duration, centered on its line on the day it ends,
+/// on a background of its own (§3.1).
+private struct HealthLabel: View {
+    var period: HealthPeriod
+
+    var body: some View {
+        Text(period.durationText)
+            .font(.caption)
+            .monospacedDigit()
+            .fixedSize()
+            .foregroundStyle(.secondary)
+            .padding(.horizontal, 4)
+            .padding(.vertical, 1)
+            .background(.background, in: .capsule)
+            .overlay(Capsule().strokeBorder(period.kind == .sleep ? Color.sleepLine : Color.workoutLine, lineWidth: 1))
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
+    }
+}
+
 /// Sleep (dark blue) or a workout (dark green) from Apple Health: a line
 /// centered in the Activity column over the period (§3.1).
 private struct HealthLine: View {
@@ -294,7 +336,7 @@ private struct HealthLine: View {
     /// "Sleep 7h 10m", "Workout 45m".
     private var text: String {
         let name = period.kind == .sleep ? "Sleep" : "Workout"
-        return "\(name) \(ActivityText.duration(Int(period.interval.duration)))"
+        return "\(name) \(period.durationText)"
     }
 }
 

@@ -19,9 +19,21 @@ struct ViewDisplayItems: View {
                 .contextCommand(KeyboardShortcut(.upArrow), enabled: state.timerKey)
         }
         Section("Calendar") {
-            ForEach([CalendarKeyCommand.zoomIn, .zoomOut, .zoomReset, .fewerDays, .moreDays, .toggleActivity, .toggleCalendar]) { command in
+            ForEach([
+                CalendarKeyCommand.zoomIn,
+                .zoomOut,
+                .zoomReset,
+                .narrowerDays,
+                .widerDays,
+                .toggleActivity,
+                .toggleCalendar,
+            ]) { command in
                 CalendarCommandButton(model: router.calendar, command: command, enabled: state.isEnabled(command))
             }
+            Button("Filters…") { router.calendar.showsFilters = true }
+                .contextCommand(KeyboardShortcut("f", modifiers: [.command, .option]), enabled: state.calendarCommands)
+            Button("Clear Filters") { router.calendar.clearFilters() }
+                .contextCommand(KeyboardShortcut("f", modifiers: [.command, .option, .shift]), enabled: state.calendarCommands)
         }
         Section("Report") {
             ReportMenuContent(model: router.reports, enabled: state.reportCommands)

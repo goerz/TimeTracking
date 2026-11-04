@@ -137,7 +137,7 @@ extension CalendarSectionTests {
         let model = world.model
         await model.toggle(.activity)
         model.zoom(by: 1)
-        await model.setVisibleDays(3)
+        model.setDayWidth(300)
         let zoom = model.pointsPerHour
         world.router.showCalendar(day: Self.day("2024-03-14"), hour: 9, highlight: .hour(9))
         await world.router.consumeCalendarRequest()
@@ -148,7 +148,7 @@ extension CalendarSectionTests {
         #expect(model.isHighlighted(morning))
         #expect(!model.isHighlighted(afternoon))
         #expect(model.pointsPerHour == zoom)
-        #expect(model.visibleDays == 3)
+        #expect(model.dayWidth == 300)
     }
 
     @Test(
@@ -157,6 +157,7 @@ extension CalendarSectionTests {
     func keyCommands() async throws {
         let world = try await World()
         let model = world.model
+        model.setViewportWidth(5 * model.dayWidth)
         let shortcuts = CalendarKeyCommand.allCases.map { "\($0.shortcut.key.character)\($0.shortcut.modifiers.rawValue)" }
         #expect(Set(shortcuts).count == CalendarKeyCommand.allCases.count)
         #expect(CalendarKeyCommand.allCases.allSatisfy { !$0.title.isEmpty })
@@ -178,7 +179,7 @@ extension CalendarSectionTests {
         #expect(model.firstDay == first.adding(days: 1))
         await model.perform(.previousDay)
         await model.perform(.nextSpan)
-        #expect(model.firstDay == first.adding(days: model.visibleDays))
+        #expect(model.firstDay == first.adding(days: 5))
         await model.perform(.previousSpan)
         #expect(model.firstDay == first)
         await model.perform(.zoomIn)
@@ -188,16 +189,17 @@ extension CalendarSectionTests {
         #expect(model.pointsPerHour == 72 / 1.25)
         await model.perform(.zoomReset)
         #expect(model.pointsPerHour == 72)
-        await model.perform(.fewerDays)
-        #expect(model.visibleDays == 4)
-        await model.perform(.moreDays)
-        #expect(model.visibleDays == 5)
+        let width = model.dayWidth
+        await model.perform(.narrowerDays)
+        #expect(model.dayWidth == width / 1.25)
+        await model.perform(.widerDays)
+        #expect(abs(model.dayWidth - width) < 1e-9)
         await model.perform(.toggleActivity)
         #expect(!model.showsActivity)
         await model.perform(.toggleCalendar)
         #expect(!model.showsCalendar)
         await model.perform(.today)
-        #expect(model.firstDay == CalendarStrip.firstDay(centering: model.today, visibleDays: 5))
+        #expect(model.firstDay == CalendarStrip.firstDay(centering: model.today, visibleDays: model.viewport.wholeDays))
         try await entryCommands(world)
     }
 
@@ -210,7 +212,7 @@ extension CalendarSectionTests {
         #expect(router.canShiftPeriod)
         let first = model.firstDay
         await router.shiftPeriod(by: 1)
-        #expect(model.firstDay == first.adding(days: model.visibleDays))
+        #expect(model.firstDay == first.adding(days: model.viewport.wholeDays))
         await router.shiftPeriod(by: -1)
         #expect(model.firstDay == first)
         #expect(router.dateRangeTitle == "Go to Date…")

@@ -67,34 +67,85 @@ struct CalendarSectionTests {
         #expect(stretch.summaryText == "In the background while away: Claude refactor-parser 38m")
     }
 
-    @Test("PC-2 with today Thursday, ⌘T makes the first day Tuesday for 5 days, Monday for 7, Thursday for 1 and 2")
+    @Test("PC-2 with today Thursday and room for 5 whole days, ⌘T makes Tuesday first, Monday for 7, Thursday for 1 and 2")
     func today() async throws {
         let world = try await World()
         let model = world.model
-        for (count, first) in [(5, "2024-03-12"), (7, "2024-03-11"), (1, "2024-03-14"), (2, "2024-03-14")] {
-            await model.setVisibleDays(count)
+        for (days, first) in [(5.0, "2024-03-12"), (7, "2024-03-11"), (1, "2024-03-14"), (2, "2024-03-14"), (5.6, "2024-03-12")] {
+            model.setViewportWidth(days * model.dayWidth)
             await model.shift(days: 20)
             await model.perform(.today)
             #expect(model.firstDay == Self.day(first))
+            #expect(model.viewport.offset == 0)
         }
-        // Changing the day count keeps the leftmost day.
-        await model.setVisibleDays(3)
-        #expect(model.firstDay == Self.day("2024-03-14"))
+        // The subtitle names the days at least half visible.
+        #expect(model.rangeLabel == "Tue, Mar 12 – Sun, Mar 17 · W11")
+        #expect(model.menuTitle == "Today")
+        // A new window width keeps the leftmost day.
+        model.setViewportWidth(3 * model.dayWidth)
+        #expect(model.firstDay == Self.day("2024-03-12"))
     }
 
-    @Test("PC-3 a sideways scroll of 1.4 day widths snaps one day over; the calendar URL makes its date the first day")
+    @Test("PC-3 a sideways scroll of 1.4 day widths moves 1.4 days and loads what comes into view; the URL's date is first")
     func scrollAndURL() async throws {
         let world = try await World()
         let model = world.model
+        model.setViewportWidth(5 * model.dayWidth)
         let first = model.firstDay
-        await model.scrolled(dayWidths: 1.4)
+        model.scroll(byPoints: 1.4 * model.dayWidth)
         #expect(model.firstDay == first.adding(days: 1))
+        #expect(abs(model.viewport.offset - 0.4) < 1e-9)
+        #expect(model.days == (1 ... 6).map { first.adding(days: $0) })
+        // The arrows snap: → to the next day start, ← to the cut-off day's.
+        await model.shift(days: 1)
+        #expect(model.firstDay == first.adding(days: 2))
+        model.scroll(byPoints: -0.5 * model.dayWidth)
+        await model.shift(days: -1)
+        #expect(model.firstDay == first.adding(days: 1))
+        #expect(model.viewport.offset == 0)
+        // Far away, the data loads around the new days.
+        let entry = try await world.test.entry("Earlier", from: "2024-02-22T09:00", to: "2024-02-22T10:00")
+        model.scroll(byPoints: -20 * model.dayWidth)
+        await model.loaded()
+        #expect(model.days.contains(Self.day("2024-02-22")))
+        #expect(model.coversDays)
+        #expect(model.entries(on: Self.day("2024-02-22")).map(\.entry.id) == [entry.id])
         let router = URLRouter(app: world.test.app, scheme: "timetracking-debug")
         _ = try await router.open(#require(URL(string: "timetracking-debug://planner/calendar?date=2026-10-29")))
         let sections = world.test.app.sections
         #expect(sections.section == .calendar)
         await sections.consumeCalendarRequest()
         #expect(sections.calendar.firstDay == Self.day("2026-10-29"))
+    }
+
+    @Test("PC-28 Filters and the search fade the entries they leave out and keep them out of the tracked totals")
+    func filtersAndSearch() async throws {
+        let world = try await World()
+        let model = world.model
+        let projects = try await world.test.projects(["Noise Model", "Teaching"])
+        let noise = try await world.test.entry("Clarify noise model", projects[0], from: "08:00", to: "09:00")
+        let teaching = try await world.test.entry("Grade draft", projects[1], from: "09:00", to: "09:30")
+        await model.reload()
+        let listing = { (entry: TimeEntry) in try #require(model.listing(entry.id)) }
+        #expect(!model.isFiltering)
+        #expect(model.summary?.tracked == 5400)
+        model.filters.projects = [projects[0].id]
+        #expect(model.filters.activeKindCount == 1)
+        #expect(try model.passesFilters(listing(noise)))
+        #expect(try !model.passesFilters(listing(teaching)))
+        #expect(model.summary?.tracked == 3600)
+        #expect(model.dayTotals[Self.day("2024-03-14")]?.tracked == 3600)
+        #expect(model.filterChips.map(\.text) == ["University · Research · Noise Model"])
+        model.clearFilters()
+        model.search = "draft"
+        #expect(try model.passesFilters(listing(teaching)))
+        #expect(try !model.passesFilters(listing(noise)))
+        #expect(model.summary?.tracked == 1800)
+        // The plain keys are off while the search field has the focus.
+        model.searchFocused = true
+        #expect(model.takesTextInput)
+        model.search = ""
+        #expect(model.summary?.tracked == 5400)
     }
 
     @Test("PC-7 a press below the now-line draws nothing and says entries can't be in the future")

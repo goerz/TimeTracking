@@ -71,6 +71,8 @@ struct EntryCard: View {
             }
         }
         .offset(dragOffset)
+        // Faded while the Filters or the search leave it out (§1.6).
+        .opacity(model.passesFilters(listing) ? 1 : 0.25)
         .onHover { hovering = $0 }
         .accessibilityAddTraits(.isButton)
         .onTapGesture(count: 2) { model.editingEntry = entry.id }

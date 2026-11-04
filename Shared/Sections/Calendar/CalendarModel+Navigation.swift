@@ -1,5 +1,6 @@
-// The Calendar's navigation: Today, days, zoom, columns, and the router's
-// `showCalendar` request (spec_calendar.md §1.2, §1.3).
+// The Calendar's navigation: Today, the arrows, sideways scrolling, both
+// zooms, columns, and the router's `showCalendar` request
+// (spec_calendar.md §1.2, §1.3).
 
 import Foundation
 import TimeTrackingCore
@@ -7,39 +8,36 @@ import TimeTrackingCore
 extension CalendarModel {
     // MARK: Navigation (§1.2)
 
-    /// ⌘T: today at position ⌈visibleDays / 2⌉.
+    /// ⌘T: today at position ⌈n / 2⌉ of the whole days that fit.
     func goToToday() async {
-        firstDay = CalendarStrip.firstDay(centering: today, visibleDays: visibleDays)
-        await reload()
+        centersTodayOnLayout = false
+        viewport.center(today)
+        await loaded()
     }
 
-    /// ← / → by one day; with ⌥ or ⇧ by the visible span.
+    /// ← / → and the arrows by `count` days, snapped so a day starts at
+    /// the left edge; with ⌥ or ⇧ by the whole days in view.
     func shift(days count: Int) async {
-        firstDay = firstDay.adding(days: count)
-        await reload()
+        step(days: count)
+        await loaded()
     }
 
-    /// A sideways scroll snapped to whole days.
-    func scrolled(dayWidths: Double) async {
-        let shift = CalendarStrip.snappedShift(dayWidths: dayWidths)
-        if shift != 0 {
-            await self.shift(days: shift)
-        }
+    /// The arrows' step without waiting for the data (the view animates it).
+    func step(days count: Int) {
+        centersTodayOnLayout = false
+        viewport.step(days: count)
     }
 
-    /// The Days control and ⌥⌘[ / ⌥⌘]; keeps the leftmost day.
-    func setVisibleDays(_ count: Int) async {
-        visibleDays = min(CalendarStrip.dayCounts.upperBound, max(CalendarStrip.dayCounts.lowerBound, count))
-        await reload()
-    }
-
-    /// A click on a day header (⌥-click: that day alone).
+    /// A click on a day header makes it the first day; ⌥-click shows it
+    /// alone, as wide as the viewport.
     func showDay(_ day: TrackingDay, alone: Bool = false) async {
-        firstDay = day
+        centersTodayOnLayout = false
         if alone {
-            visibleDays = 1
+            viewport.showAlone(day)
+        } else {
+            viewport.show(day)
         }
-        await reload()
+        await loaded()
     }
 
     /// ⌘+, ⌘−, ⌘0 (the view keeps the center time in place).
@@ -65,7 +63,8 @@ extension CalendarModel {
     /// top (the first block's hour when nil), Activity on, the highlight
     /// pulsed for 1.5 s; zoom and day count unchanged.
     func apply(_ request: CalendarRequest) async {
-        firstDay = request.day
+        centersTodayOnLayout = false
+        viewport.show(request.day)
         showsActivity = true
         await reload()
         let firstBlock = blocks.filter { $0.localDay == request.day.description }.map(\.start).min()

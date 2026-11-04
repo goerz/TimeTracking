@@ -282,7 +282,7 @@ A `TabView` with the iPadOS tab bar (collapsible to a sidebar): Timer, Calendar,
 | Drag a block or event into the Tracked column | The same drag after a long press |
 | Hover tooltip or hover button | Tap shows a popover with the text and actions; Apple Pencil hover and a trackpad pointer show it as hover does |
 | Right-click context menu | Long press |
-| Vertical and horizontal zoom | Pinch vertically and horizontally; two-finger swipe scrolls days |
+| Vertical zoom and day width; sideways scrolling | Pinch vertically for the hours, horizontally for the day width; a two-finger sideways swipe scrolls through time, following the fingers |
 | Menu bar item, global shortcuts, login item, idle detection, reminders, CLI | Absent |
 
 The Calendar tab requests calendar access per [spec_calendar.md](spec_calendar.md); the iPhone never uses EventKit.

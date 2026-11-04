@@ -64,6 +64,11 @@ public struct TrackingDay: Hashable, Comparable, Codable, Sendable, CustomString
         (dayNumber % 7 + 7 + 3) % 7 + 1
     }
 
+    /// Saturday or Sunday (the Calendar shades them, spec_calendar.md §1.2).
+    public var isWeekend: Bool {
+        isoWeekday >= 6
+    }
+
     /// Days since 1970-01-01 in the proleptic Gregorian calendar (H. Hinnant's
     /// `days_from_civil`); invalid days roll over like `Calendar` does.
     var dayNumber: Int {

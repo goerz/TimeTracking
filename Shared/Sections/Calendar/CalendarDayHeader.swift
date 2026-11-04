@@ -1,6 +1,6 @@
 // CalendarDayHeader: a day's weekday and date, overlaps, the column
-// totals, and the all-day events (spec_calendar.md §1.2,
-// §1.4, §2.6, §4.3).
+// totals with the column toggles, and the all-day events
+// (spec_calendar.md §1.2, §1.4, §2.6, §4.3).
 
 import SwiftUI
 import TimeTrackingCore
@@ -22,7 +22,9 @@ struct CalendarDayHeader: View {
         }
         .padding(.vertical, Design.Spacing.small)
         .frame(width: width, alignment: .leading)
-        .background(isToday ? Color.accentColor.opacity(0.06) : .clear)
+        .frame(maxHeight: .infinity, alignment: .top)
+        .background(isToday ? Color.accentColor.opacity(0.06) : day.isWeekend ? Color.weekendTint : .clear)
+        .overlay(alignment: .leading) { DaySeparator() }
         .contentShape(Rectangle())
         .accessibilityAddTraits(.isButton)
         .onTapGesture { Task { await model.showDay(day, alone: ModifierState.optionDown()) } }
@@ -55,35 +57,58 @@ struct CalendarDayHeader: View {
         .padding(.horizontal, Design.Spacing.small)
     }
 
-    /// One cell per visible column, as wide as the column below it.
-    @ViewBuilder private var totalsRow: some View {
-        if let totals = model.summary?.days[day] {
-            let columns = model.columns
-            let widths = CalendarColumn.widths(dayWidth: Double(width), visible: columns)
-            HStack(spacing: 0) {
-                ForEach(Array(zip(columns, totals.text(columns: columns))), id: \.0) { column, text in
-                    let narrow = (widths[column] ?? 0) < 72
-                    HStack(spacing: narrow ? 2 : Design.Spacing.tight) {
-                        // The glyph names the column; a narrow column rounds
-                        // to whole hours (the exact total is in the tooltip).
-                        Image(systemName: column.glyph).imageScale(.small).accessibilityHidden(true)
-                        Text(narrow ? Self.compact(totals.seconds(column)) : text)
-                            .monospacedDigit()
-                            .foregroundStyle(column == .tracked ? .primary : .secondary)
-                        if CalendarColumn.showsNames(dayWidth: width), (widths[column] ?? 0) >= 120 {
-                            Text(column.title).foregroundStyle(.tertiary)
-                        }
+    /// One cell per visible column, as wide as the column below it, led by
+    /// the column's glyph. The Activity and Calendar glyphs are buttons that
+    /// hide their column; a hidden column leaves its glyph, struck through,
+    /// at its edge of the Tracked cell, as the button that shows it again.
+    private var totalsRow: some View {
+        let columns = model.columns
+        let widths = CalendarColumn.widths(dayWidth: Double(width), visible: columns)
+        let totals = model.dayTotals[day]
+        return HStack(spacing: 0) {
+            ForEach(columns, id: \.self) { column in
+                let columnWidth = widths[column] ?? 0
+                let narrow = columnWidth < 72
+                HStack(spacing: narrow ? 0 : 2) {
+                    if column == .tracked, !model.showsActivity {
+                        ColumnToggle(model: model, column: .activity)
                     }
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.75)
-                    .padding(.horizontal, (widths[column] ?? 0) >= 96 ? Design.Spacing.small : Design.Spacing.tight)
-                    .frame(width: CGFloat(widths[column] ?? 0), alignment: .leading)
-                    .help("\(column.title): \(text)")
+                    if column == .tracked {
+                        ColumnGlyph(column: column)
+                    } else {
+                        ColumnToggle(model: model, column: column)
+                    }
+                    if let totals {
+                        total(column, totals: totals, narrow: narrow, columnWidth: columnWidth)
+                    }
+                    if column == .tracked, !model.showsCalendar {
+                        Spacer(minLength: 0)
+                        ColumnToggle(model: model, column: .calendar)
+                    }
                 }
+                .padding(.horizontal, columnWidth >= 96 ? Design.Spacing.tight : 0)
+                .frame(width: CGFloat(columnWidth), alignment: .leading)
             }
-            .font(.caption)
-            .foregroundStyle(.secondary)
         }
+        .font(.caption)
+        .foregroundStyle(.secondary)
+    }
+
+    /// "6h 38m" with the column's name where there is room; a narrow column
+    /// rounds to whole hours (the exact total is in the tooltip).
+    private func total(_ column: CalendarColumn, totals: CalendarSummary.DayTotals, narrow: Bool, columnWidth: Double) -> some View {
+        let text = totals.text(columns: [column])[0]
+        return HStack(spacing: Design.Spacing.tight) {
+            Text(narrow ? Self.compact(totals.seconds(column)) : text)
+                .monospacedDigit()
+                .foregroundStyle(column == .tracked ? .primary : .secondary)
+            if CalendarColumn.showsNames(dayWidth: width), columnWidth >= 120 {
+                Text(column.title).foregroundStyle(.tertiary)
+            }
+        }
+        .lineLimit(1)
+        .minimumScaleFactor(0.75)
+        .help("\(column.title): \(text)")
     }
 
     /// "4h" (whole hours from one hour on), "45m" below.
@@ -115,6 +140,69 @@ extension CalendarSummary.DayTotals {
         case .activity: activity
         case .tracked: tracked
         case .calendar: calendar
+        }
+    }
+}
+
+/// A column's glyph at the size of the header's buttons.
+private struct ColumnGlyph: View {
+    var column: CalendarColumn
+
+    var body: some View {
+        Image(systemName: column.glyph)
+            .font(.body)
+            .frame(width: 22, height: 20)
+            .accessibilityHidden(true)
+    }
+}
+
+/// The Activity or Calendar glyph as the button that hides or shows its
+/// column; while the column is hidden the glyph is struck through, the
+/// way SF Symbols mark something off.
+private struct ColumnToggle: View {
+    var model: CalendarModel
+    var column: CalendarColumn
+    @State private var hovering = false
+
+    var body: some View {
+        let shown = column == .activity ? model.showsActivity : model.showsCalendar
+        let title = "\(shown ? "Hide" : "Show") \(column.title) Column"
+        Button {
+            Task { await model.toggle(column) }
+        } label: {
+            Image(systemName: column.glyph)
+                .font(.body)
+                .accessibilityHidden(true)
+                .overlay {
+                    if !shown {
+                        Slash().stroke(style: StrokeStyle(lineWidth: 3.5, lineCap: .round)).blendMode(.destinationOut)
+                    }
+                }
+                .compositingGroup()
+                .overlay {
+                    if !shown {
+                        Slash().stroke(style: StrokeStyle(lineWidth: 1.25, lineCap: .round))
+                    }
+                }
+                .foregroundStyle(hovering ? AnyShapeStyle(.primary) : shown ? AnyShapeStyle(.secondary) : AnyShapeStyle(.tertiary))
+                .frame(width: 22, height: 20)
+                .background(hovering ? Color.primary.opacity(0.08) : .clear, in: .rect(cornerRadius: Design.Radius.small))
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering = $0 }
+        .help(title)
+        .accessibilityLabel(title)
+        .accessibilityIdentifier("calendar.columnToggle.\(column.rawValue)")
+    }
+}
+
+/// A diagonal from the top leading to the bottom trailing corner.
+private nonisolated struct Slash: Shape {
+    func path(in rect: CGRect) -> Path {
+        Path { path in
+            path.move(to: CGPoint(x: rect.minX, y: rect.minY))
+            path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
         }
     }
 }

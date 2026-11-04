@@ -19,7 +19,7 @@ struct CalendarGeometryTests {
         try CalendarEditing(day: calendar.interval(of: thursday), now: time(now), snap: CalendarSnap(minutes: snap))
     }
 
-    @Test("PC-1 at 72 pt per hour 09:00 to 10:30 is 108 pt; ⌘+ makes it 135 with the center time kept; zoom clamps to 24…480")
+    @Test("PC-1 at 72 pt per hour 09:00 to 10:30 is 108 pt; ⌘+ makes it 135, the now-line or center kept in place; zoom clamps to 24…480")
     func zoom() throws {
         let axis = CalendarDayAxis(day: Self.thursday, calendar: Self.calendar, pointsPerHour: 72)
         let entry = try DateInterval(start: Self.time("2026-10-29T09:00"), end: Self.time("2026-10-29T10:30"))
@@ -34,6 +34,14 @@ struct CalendarGeometryTests {
         let center = axis.date(atY: offset + anchor)
         let newOffset = CalendarZoom.scrollOffset(offset, anchor: anchor, from: 72, to: zoomed)
         #expect(abs(larger.date(atY: newOffset + anchor).timeIntervalSince(center)) < 1)
+        // The now-line stays put while in view; else the center; a pinch's point wins.
+        #expect(CalendarZoom.anchor(offset: 500, viewportHeight: 600, nowY: 720, pinchY: nil) == 220)
+        #expect(CalendarZoom.anchor(offset: 1000, viewportHeight: 600, nowY: 144, pinchY: nil) == 300)
+        #expect(CalendarZoom.anchor(offset: 500, viewportHeight: 600, nowY: 720, pinchY: 100) == 100)
+        let kept = CalendarZoom.scrollOffset(500, anchor: 220, from: 72, to: 90)
+        #expect(abs((720 * 90 / 72 - kept) - 220) < 1e-9)
+        // Never past the end of the day.
+        #expect(CalendarZoom.scrollOffset(1100, anchor: 300, from: 72, to: 48, maximum: 24 * 48 - 600) == 24 * 48 - 600)
         #expect(CalendarZoom.zoomedIn(470) == 480)
         #expect(CalendarZoom.zoomedOut(25) == 24)
         #expect(CalendarZoom.labelMinutes(pointsPerHour: 30) == 120)
@@ -45,25 +53,27 @@ struct CalendarGeometryTests {
         #expect(CalendarZoom.cardStyle(height: 40) == .full)
     }
 
-    @Test("PC-2 with today Thursday, ⌘T makes the first day Tuesday for 5 days, Monday for 7, Thursday for 1 and 2; the date menu's title")
+    @Test(
+        "PC-2 with today Thursday and room for 5 whole days, ⌘T makes Tuesday first, Monday for 7, Thursday for 1 and 2; the date menu"
+    )
     func today() {
         #expect(CalendarStrip.firstDay(centering: Self.thursday, visibleDays: 5) == TrackingDay(year: 2026, month: 10, day: 27))
         #expect(CalendarStrip.firstDay(centering: Self.thursday, visibleDays: 7) == TrackingDay(year: 2026, month: 10, day: 26))
         #expect(CalendarStrip.firstDay(centering: Self.thursday, visibleDays: 1) == Self.thursday)
         #expect(CalendarStrip.firstDay(centering: Self.thursday, visibleDays: 2) == Self.thursday)
+        // The whole days that fit decide; a cut-off day does not count.
+        for (days, first) in [(5.0, 27), (5.9, 27), (7.2, 26), (1.0, 29), (2.5, 29), (0.5, 29)] {
+            var viewport = CalendarViewport(firstDay: Self.thursday.adding(days: 30), offset: 0.3, dayWidth: 200, width: days * 200)
+            viewport.center(Self.thursday)
+            #expect(viewport.firstDay == TrackingDay(year: 2026, month: 10, day: first))
+            #expect(viewport.offset == 0)
+        }
         #expect(CalendarStrip.label(first: TrackingDay(year: 2026, month: 10, day: 26), count: 5) == "Mon, Oct 26 – Fri, Oct 30 · W44")
         let monday = TrackingDay(year: 2026, month: 10, day: 26)
         #expect(CalendarStrip.menuTitle(first: monday, count: 5, today: Self.thursday) == "Today")
         #expect(CalendarStrip.menuTitle(first: monday.adding(days: -7), count: 5, today: Self.thursday) == "Oct 19 – 23")
         #expect(CalendarStrip.menuTitle(first: monday.adding(days: 4), count: 5, today: Self.thursday) == "Oct 30 – Nov 3")
         #expect(CalendarStrip.menuTitle(first: monday.adding(days: -7), count: 1, today: Self.thursday) == "Oct 19")
-    }
-
-    @Test("PC-3 a sideways scroll of 1.4 day widths snaps one day over")
-    func scrollSnap() {
-        #expect(CalendarStrip.snappedShift(dayWidths: 1.4) == 1)
-        #expect(CalendarStrip.snappedShift(dayWidths: -1.6) == -2)
-        #expect(CalendarStrip.snappedShift(dayWidths: 0.4) == 0)
     }
 
     @Test("PC-4 the day daylight-saving time ends is 25 hours tall; a 23:00 to 01:00 event is two pieces that move together")

@@ -1,5 +1,5 @@
 // CalendarView: the Calendar section's toolbar, summary strip, day headers,
-// and day columns (spec_calendar.md §1).
+// day columns, and zoom control (spec_calendar.md §1).
 
 import SwiftUI
 import TimeTrackingCore
@@ -10,26 +10,53 @@ struct CalendarView: View {
     @Environment(\.undoManager) private var undoManager
     @State private var scrollPosition = ScrollPosition(y: 0)
     @State private var viewportHeight: CGFloat = 600
+    /// The hours' scroll offset and visible height.
+    @State private var hoursScroll = CGRect(x: 0, y: 0, width: 0, height: 600)
+    /// Where a pinch began, in the visible hours.
+    @State private var pinchY: CGFloat?
+    /// A zoom's scroll offset, applied again once the content has its new
+    /// height (the scroll view keeps its old offset when the content shrinks).
+    @State private var zoomOffset: CGFloat?
     @State private var pinchBase: Double?
-    @State private var daysBase: Int?
+    @State private var dayWidthBase: Double?
+    @State private var panTranslation: CGFloat = 0
     @State private var pickedDate = Date()
+    @FocusState private var searchFocused: Bool
 
     static let gutter: CGFloat = 56
 
     var body: some View {
         VStack(spacing: 0) {
+            if !model.filterChips.isEmpty {
+                FilterChipBar(chips: model.filterChips, identifier: "calendar") { kind in
+                    model.removeChip(kind)
+                } clearAll: {
+                    model.clearFilters()
+                }
+                .padding(.horizontal, Design.Spacing.content)
+                .padding(.top, Design.Spacing.small)
+            }
             CalendarSummaryStrip(model: model)
                 .background { CalendarKeyHandlers(model: model) }
             Divider()
-            GeometryReader { proxy in
-                let dayWidth = max(60, (proxy.size.width - Self.gutter) / CGFloat(model.visibleDays))
-                VStack(spacing: 0) {
-                    headers(dayWidth: dayWidth)
-                    Divider()
-                    columns(dayWidth: dayWidth)
-                }
-                .onAppear { viewportHeight = proxy.size.height }
-                .onChange(of: proxy.size.height) { _, height in viewportHeight = height }
+            VStack(spacing: 0) {
+                headers
+                Divider()
+                columns
+            }
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { size in
+                viewportHeight = size.height
+                model.setViewportWidth(Double(size.width - Self.gutter))
+            }
+            #if os(macOS)
+            // Sideways trackpad and mouse scrolling moves through time.
+            .background(HorizontalScrollMonitor { model.scroll(byPoints: Double($0)) })
+            #endif
+            .overlay(alignment: .bottomTrailing) {
+                CalendarZoomControl(model: model)
+                    // Clear of the vertical scroll bar.
+                    .padding(.trailing, Design.Spacing.window)
+                    .padding(.bottom, Design.Spacing.large)
             }
         }
         .navigationTitle("Calendar")
@@ -38,6 +65,10 @@ struct CalendarView: View {
             .navigationBarTitleDisplayMode(.inline)
         #endif
             .toolbar { CalendarToolbar(model: model, pickedDate: $pickedDate) }
+            .searchable(text: $model.search, placement: .toolbar, prompt: "Search")
+            .searchFocused($searchFocused)
+            .onChange(of: model.searchFocusRequests) { searchFocused = true }
+            .onChange(of: searchFocused) { _, focused in model.searchFocused = focused }
             .accessibilityElement(children: .contain)
             .accessibilityIdentifier("calendar.view")
             .task {
@@ -78,63 +109,94 @@ struct CalendarView: View {
             .overlay(alignment: .bottom) { CalendarNoticeView(model: model) }
     }
 
-    private func headers(dayWidth: CGFloat) -> some View {
+    /// The day headers; dragging them sideways scrolls through time.
+    private var headers: some View {
         HStack(spacing: 0) {
             Color.clear.frame(width: Self.gutter)
-            ForEach(model.days, id: \.self) { day in
-                CalendarDayHeader(model: model, day: day, width: dayWidth)
+                // Over a cut-off day, so the gutter keeps its clicks.
+                .contentShape(Rectangle())
+                .zIndex(1)
+            CalendarDayStrip(model: model) { day, width in
+                CalendarDayHeader(model: model, day: day, width: width)
             }
         }
-        // The gutter's clear color must not take half the height.
         .fixedSize(horizontal: false, vertical: true)
-        .gesture(DragGesture(minimumDistance: 20).onEnded { value in
-            Task { await model.scrolled(dayWidths: -Double(value.translation.width / dayWidth)) }
-        })
+        .gesture(DragGesture(minimumDistance: 20).onChanged { value in
+            model.scroll(byPoints: -Double(value.translation.width - panTranslation))
+            panTranslation = value.translation.width
+        }.onEnded { _ in panTranslation = 0 })
     }
 
-    private func columns(dayWidth: CGFloat) -> some View {
+    private var columns: some View {
         ScrollView(.vertical) {
+            // Leading-aligned at the width the scroll view offers, so the
+            // columns line up with the headers whether or not a scroll bar
+            // takes room.
             HStack(alignment: .top, spacing: 0) {
                 CalendarTimeAxis(model: model)
                     .frame(width: Self.gutter)
-                ForEach(model.days, id: \.self) { day in
-                    CalendarDayColumn(model: model, day: day, width: dayWidth)
+                    .contentShape(Rectangle())
+                    .zIndex(1)
+                CalendarDayStrip(model: model) { day, width in
+                    CalendarDayColumn(model: model, day: day, width: width)
                 }
             }
         }
         .scrollPosition($scrollPosition)
+        .onScrollGeometryChange(for: CGRect.self) { $0.visibleRect } action: { _, rect in hoursScroll = rect }
+        .onScrollGeometryChange(for: CGFloat.self) { $0.contentSize.height } action: { _, _ in
+            if let zoomOffset {
+                scrollPosition.scrollTo(y: zoomOffset)
+                self.zoomOffset = nil
+            }
+        }
+        .onChange(of: model.pointsPerHour) { old, new in keepTimeInPlace(from: old, to: new) }
         #if os(iOS)
-            // Pinch vertically to zoom, horizontally to change the number of
-            // days; two fingers sideways scroll days (spec_ios.md §10.2).
+            // Pinch vertically to zoom the hours, horizontally the day width;
+            // two fingers sideways scroll through time (spec_ios.md §10.2).
             .gesture(CalendarPinch { scale, horizontal in
                 pinch(scale: scale, horizontal: horizontal)
             } onEnd: {
                 pinchBase = nil
-                daysBase = nil
+                dayWidthBase = nil
             })
-            .gesture(CalendarTwoFingerSwipe { translation in
-                Task { await model.scrolled(dayWidths: -Double(translation / dayWidth)) }
+            .gesture(CalendarTwoFingerSwipe { delta in
+                model.scroll(byPoints: -Double(delta))
             })
         #else
             .gesture(MagnifyGesture().onChanged { value in
+                pinchY = value.startLocation.y
                 pinch(scale: value.magnification, horizontal: false)
-            }.onEnded { _ in pinchBase = nil })
+            }.onEnded { _ in
+                pinchBase = nil
+                pinchY = nil
+            })
         #endif
     }
 
     private func pinch(scale: Double, horizontal: Bool) {
         if horizontal {
-            let base = daysBase ?? model.visibleDays
-            daysBase = base
-            let count = min(7, max(1, Int((Double(base) / max(scale, 0.01)).rounded())))
-            if count != model.visibleDays {
-                Task { await model.setVisibleDays(count) }
-            }
+            let base = dayWidthBase ?? model.dayWidth
+            dayWidthBase = base
+            model.setDayWidth(base * scale)
         } else {
             let base = pinchBase ?? model.pointsPerHour
             pinchBase = base
             model.pointsPerHour = CalendarZoom.clamped(base * scale)
         }
+    }
+
+    /// A zoom of the hours keeps one time where it was on screen: under a
+    /// pinch, else the now-line while it shows, else the center (§1.3).
+    private func keepTimeInPlace(from old: Double, to new: Double) {
+        let nowY = model.days.contains(model.today) ? model.axis(model.today).nowOffset(model.clock.now).map { $0 * old / new } : nil
+        let offset = Double(hoursScroll.minY)
+        let height = Double(hoursScroll.height)
+        let hours = model.days.map { model.axis($0).interval.duration / 3600 }.max() ?? 24
+        let anchor = CalendarZoom.anchor(offset: offset, viewportHeight: height, nowY: nowY, pinchY: pinchY.map(Double.init))
+        let target = CalendarZoom.scrollOffset(offset, anchor: anchor, from: old, to: new, maximum: hours * new - height)
+        scrollPosition.scrollTo(y: target)
+        zoomOffset = CGFloat(target)
     }
 
     /// On opening, the current time sits one third down the viewport.

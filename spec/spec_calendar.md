@@ -1,36 +1,39 @@
 # Spec: Calendar Section
 
-The Calendar section of the main window shows one to seven days side by side. Each day has up to three columns: Activity (the tracker's blocks), Tracked (time entries), and Calendar (time blocks and events from system calendars the user selects). Entries are drawn, moved, and resized here, and made from activity blocks, time blocks, and calendar events. The iPad's Calendar tab is the same view with the touch equivalents of [spec_ios.md](spec_ios.md) §10.2, without the open activity block, gap labels, or "Delete This Activity…"; the iPhone has no calendar view and never requests calendar access.
+The Calendar section of the main window shows days side by side, as many as the window's width holds at the chosen day width. Each day has up to three columns: Activity (the tracker's blocks), Tracked (time entries), and Calendar (time blocks and events from system calendars the user selects). Entries are drawn, moved, and resized here, and made from activity blocks, time blocks, and calendar events. The iPad's Calendar tab is the same view with the touch equivalents of [spec_ios.md](spec_ios.md) §10.2, without the open activity block, gap labels, or "Delete This Activity…"; the iPhone has no calendar view and never requests calendar access.
 
 ## 1. Layout
 
 ### 1.1 Toolbar and summary strip
 
-The window title is "Calendar" and its subtitle the visible range, "Mon, Oct 26 – Fri, Oct 30 · W44" (ISO 8601 week; weeks run Monday to Sunday). The toolbar follows [spec_design.md](spec_design.md) §4, leading items first:
+The window title is "Calendar" and its subtitle the shown days, "Mon, Oct 26 – Fri, Oct 30 · W44" (ISO 8601 week; weeks run Monday to Sunday); a day counts as shown while at least half of it is in view (1.2). The toolbar is that of Reports and Projects ([spec_design.md](spec_design.md) §4), leading items first:
 
 | Control | Behavior |
 |---|---|
-| ‹ › | Scroll by one day (with ⌥: by the number of visible days) |
-| Date menu | Titled by what is shown: "Today" while today is visible, else the visible days ("Oct 19 – 23", "Oct 30 – Nov 3", "Oct 19"), like the range menu of Reports; holds Go to Today, which centers today (1.2), and Go to Date…, which opens a month picker whose chosen day becomes the first visible day |
-| Days | Segmented control 1, 3, 5, 7; a count of 2, 4, or 6 (from ⌥⌘[ and ⌥⌘] or a pinch) shows as an extra segment |
-| Columns | Menu (`rectangle.split.3x1`) with check-marked Activity Column and Calendar Column; Tracked has none |
-| Zoom − + | Vertical zoom (1.3) |
+| ‹ › | One day back or forward, snapped so that a day starts at the left edge (with ⌥: by the whole days in view) |
+| Date menu | Titled by what is shown: "Today" while today is shown, else the shown days ("Oct 19 – 23", "Oct 30 – Nov 3", "Oct 19"), like the range menu of Reports; holds Go to Today (1.2) and Go to Date…, which opens a month picker whose chosen day goes to the left edge |
+| Filters | The Filters of Reports (1.6) |
+| Search | The search field of Reports (1.6) |
 
-In a narrow window Columns and zoom move into the toolbar's overflow menu first. The Calendar's settings are in the settings window and the iPad's Settings (section 6), not in the toolbar.
+The day width, the columns, and the hours' zoom are controls in the content, next to what they change: the day width slider at the end of the summary strip (1.2), the column toggles in the day headers (1.4), and the zoom buttons over the columns (1.3). The Calendar's settings are in the settings window and the iPad's Settings (section 6).
 
-Below the toolbar a summary strip shows the visible days' tracked time as a bar stacked by project in area colors with its total, then "Time blocks 6h 20m" and "Activity 34h 10m" (the tracker's active time). Hovering a segment shows the project and its time.
+Below the toolbar, the filter bar of Reports while a filter is active (1.6), then a summary strip that shows the shown days' tracked time as a bar stacked by project in area colors with its total, then "Time blocks 6h 20m" and "Activity 34h 10m" (the tracker's active time), and at its trailing end the day width slider. Hovering a segment shows the project and its time.
 
 ### 1.2 Days and scrolling
 
 A day column runs from midnight to midnight in the device's current time zone (23 or 25 hours on daylight-saving days). Entries and activity blocks never cross midnight. An external event or time block that does is drawn as one piece per day; dragging either piece moves the whole event.
 
-The view is a horizontal strip of `visibleDays` (1 to 7, default 5) equal-width day columns filling the viewport, loaded as it moves, with no first or last day. Sideways scrolling snaps so that a day boundary meets the left edge. Today's header has a highlighted date and a tinted background. Today (⌘T) puts today at position ⌈visibleDays / 2⌉ from the left. Changing `visibleDays` keeps the leftmost day. A click on a day header makes it the first visible day; ⌥-click shows that day alone. The URL `timetracking://planner/calendar?date=YYYY-MM-DD` makes that day the first visible day. All days share one time axis and vertical scroll position; on opening, the current time sits one third down the viewport.
+The view is a horizontal strip of day columns with no first or last day, loaded as it moves (the days in view and as many again on either side). Every day is `dayWidth` points wide, the horizontal zoom, from 96 to 1600 (default 260): the window's width decides how many days show, and the days at either edge may be cut off. The day width slider (`arrow.right.and.line.vertical.and.arrow.left` before it, `arrow.left.and.line.vertical.and.arrow.right` after it, logarithmic), ⌥⌘[ and ⌥⌘] (dividing or multiplying by 1.25), and a horizontal pinch on the iPad change it, keeping the time at the viewport's center in place.
 
-The router call `SectionRouter.showCalendar(day:hour:highlight:)` ([spec_projects.md](spec_projects.md) §1.3) selects this section, makes `day` leftmost, scrolls `hour` to the top (the day's first activity block when nil), turns the Activity column on, and pulses the block cards named by `highlight` (`BlockHighlight`: one hour of that day, or one context on that day) for 1.5 s. Nothing else changes, including `pointsPerHour` and `visibleDays`.
+Sideways scrolling moves through time smoothly and without snapping: a trackpad's sideways swipe (with its momentum) or ⇧ with a mouse wheel on the Mac, a drag on the day headers, and a two-finger swipe on the iPad. A trackpad gesture that starts mostly up or down scrolls the hours only. The arrows and ← → snap: forward to the next day start, back to the start of a cut-off leftmost day, else to the day before, with the days sliding over. ⇧← ⇧→ and ⌥ with the arrows step by the whole days in view.
+
+Today's header has a highlighted date and a tinted background. Saturday and Sunday are shaded a little darker (lighter in dark mode), header and columns. Today (⌘T), and every launch, puts today at position ⌈n / 2⌉ from the left of the `n` whole days in view, with a day starting at the left edge. A new window width keeps the left edge. A click on a day header moves that day to the left edge; ⌥-click shows that day alone, as wide as the viewport. The URL `timetracking://planner/calendar?date=YYYY-MM-DD` moves that day to the left edge. All days share one time axis and vertical scroll position; on opening, the current time sits one third down the viewport.
+
+The router call `SectionRouter.showCalendar(day:hour:highlight:)` ([spec_projects.md](spec_projects.md) §1.3) selects this section, moves `day` to the left edge, scrolls `hour` to the top (the day's first activity block when nil), turns the Activity column on, and pulses the block cards named by `highlight` (`BlockHighlight`: one hour of that day, or one context on that day) for 1.5 s. Nothing else changes, including `pointsPerHour` and `dayWidth`.
 
 ### 1.3 Vertical zoom
 
-Zoom is `pointsPerHour`, 24 to 480, default 72. ⌘+ and ⌘− multiply or divide it by 1.25, a pinch changes it continuously, and ⌘0 restores 72. The time under the pointer (pinch) or at the viewport's center (keys, buttons) stays in place. Hour labels appear every two hours below 36 points per hour, every hour up to 120, every 30 minutes up to 240, and every 15 minutes above. A card under 14 points high is a bare color bar, under 28 points one line (title and duration).
+Zoom is `pointsPerHour`, 24 to 480, default 72. ⌘+ and ⌘− and the zoom buttons multiply or divide it by 1.25, a pinch changes it continuously, and ⌘0 restores 72. The zoom buttons are Zoom In (`plus.magnifyingglass`) above Zoom Out (`minus.magnifyingglass`) in one glass capsule floating over the columns' bottom trailing corner, clear of the scroll bar, like a map's zoom control; each is disabled at its end of the range. A zoom keeps one time where it was on screen, so the view never jumps: under the fingers for a pinch, else the now-line while it is in view, else the time at the viewport's center; only the end of the day can stop it. Hour labels appear every two hours below 36 points per hour, every hour up to 120, every 30 minutes up to 240, and every 15 minutes above. A card under 14 points high is a bare color bar, under 28 points one line (title and duration).
 
 ### 1.4 Columns
 
@@ -40,11 +43,17 @@ Zoom is `pointsPerHour`, 24 to 480, default 72. ⌘+ and ⌘− multiply or divi
 | Tracked | Always | Time entries (section 2) | 2 |
 | Calendar | Toggle, default on | Time blocks and external events (section 4) | 1.5 |
 
-Each day gets the viewport width divided by `visibleDays`, split among its visible columns by weight. A column under 72 points draws its cards as bars with text on hover. The window's minimum width is 720 points. A day header shows weekday and date (`.headline`; today's date white on an accent-colored capsule), and an overlap warning (2.6). Below them each visible column's total sits above that column in `.caption` with monospaced digits, e.g. "6h 38m", "2h 21m", "1h", each led by its column's glyph (monitor, stopwatch, calendar) so every number names its column; a column under 72 points rounds its total to whole hours ("4h", "45m" below one hour) with the exact total in the tooltip; column names follow while the day is at least 240 points wide and the column at least 120. The Tracked total is in the primary color, the others in secondary. All-day events sit in a strip under the header over the Calendar column.
+Each day's width is split among its visible columns by weight. A column under 72 points draws its cards as bars with text on hover. The window's minimum width is 720 points. A day header shows weekday and date (`.headline`; today's date white on an accent-colored capsule), and an overlap warning (2.6). Below them each visible column's total sits above that column in `.caption` with monospaced digits, e.g. "6h 38m", "2h 21m", "1h", each led by its column's glyph (monitor, stopwatch, calendar) at body size so every number names its column; a column under 72 points rounds its total to whole hours ("4h", "45m" below one hour) with the exact total in the tooltip; column names follow while the day is at least 240 points wide and the column at least 120. The Tracked total is in the primary color, the others in secondary. All-day events sit in a strip under the header over the Calendar column. Day headers and columns are separated by a 1 point line at each day's leading edge.
+
+The Activity and Calendar glyphs are the columns' toggles, in every day's header: clicking one hides its column ("Hide Activity Column"). A hidden column leaves its glyph at its edge of the Tracked cell, the monitor leading and the calendar trailing, struck through the way SF Symbols mark something off (a diagonal that cuts a gap into the glyph) and in `.tertiary`; clicking it shows the column again ("Show Calendar Column"). A toggle highlights on hover and names its action in the tooltip. View › Show Activity Column (⌥⌘A) and Show Calendar Column (⌥⌘K) do the same; Tracked has no toggle.
 
 ### 1.5 The now-line
 
 Today's columns carry a 2 point accent line at the current time, with the time in a bubble in the axis gutter, updated every 30 seconds and when the window becomes key. The running entry and the open activity block end on it. The Tracked column below it is faintly hatched.
+
+### 1.6 Filters and search
+
+The Filters button and popover, the filter bar, and the search field are those of Reports ([spec_reports.md](spec_reports.md) §3, §3.1): the tree of clients, areas, and projects with "No project", "Include archived projects", Clear All, removable tokens above the summary strip, and a search for every word in the task or the project, area, or client name. The Calendar keeps its own filters (per device; the search is not stored). An entry they leave out stays in place, faded to 25% opacity, and still selectable, editable, and in the overlap checks; the tracked totals of the summary strip and the day headers count only the entries they let through. Activity blocks, time blocks, and events are unaffected. View › Calendar › Filters… (⌥⌘F) opens the popover, Clear Filters (⌥⇧⌘F) clears them, and ⌘F focuses the search field, whose focus turns the view's plain keys off.
 
 ## 2. Tracked column
 
@@ -87,7 +96,7 @@ The column shows the day's blocks from `ActivityReading`, plus on the Mac today'
 
 The day's background stretches (work that went on while the user was away, [spec_activity_tracking.md](spec_activity_tracking.md) §2.7) are 4 point strips at the column's trailing edge over their time, rounded at the ends, in the block color at half strength, on the Mac and the iPad. A strip lies in a gap, never on a block. Its tooltip and accessibility label name its items with their time ("In the background while away: Claude refactor-parser 38m"); it has no popover and makes no entry.
 
-With Sleep or Workouts on (section 6), the health periods of the day ([spec_data_and_sync.md](spec_data_and_sync.md) §1.9) are 4 point lines centered in the column over their time, rounded at the ends: sleep dark blue, workouts dark green, on the Mac and the iPad. A night that crosses midnight shows on both days. A line lies under the blocks and over a gap's thin lines, and the gap's label stays readable on a background of its own over it. Its tooltip reads "Sleep 7h 10m" or "Workout 45m".
+With Sleep or Workouts on (section 6), the health periods of the day ([spec_data_and_sync.md](spec_data_and_sync.md) §1.9) are 4 point lines centered in the column over their time, rounded at the ends: sleep dark blue, workouts dark green, on the Mac and the iPad. A night that crosses midnight shows on both days. A line lies under the blocks and over a gap's thin lines, and the gap's label stays readable on a background of its own over it. A period's whole duration, before midnight included, is a label ("7h 10m", `.caption`, secondary, on a background capsule outlined in the line's color) centered on its line on the day it ends, so a night is labeled on the morning it ends; a gap label that would sit within 16 points of it is left out. Its tooltip reads "Sleep 7h 10m" or "Workout 45m".
 
 ### 3.2 Block popover
 
@@ -147,16 +156,18 @@ Dragging a time block or event into the Tracked column, or its hover "+", create
 | Time block | Create Entry…, Edit…, Delete |
 | External event | Create Entry…, Open in Calendar, Hide This Calendar |
 
-The navigation keys (← → ⇧← ⇧→, Tab and ⇧Tab, Escape) are the view's own, as on every Mac, and are no menu items; they are off while a popover, editor, or sheet takes text input. ⌘T is View › Go to Today, and View › Previous Period and Next Period (⌥⌘← ⌥⌘→) and Go to Date… (⇧⌘D, the month picker) act on the Calendar too. Every other key is a menu item ([spec_timer.md](spec_timer.md) §9), enabled while the Calendar is shown: in the Entry menu Edit Selection…, Create Entry from Selection, Duplicate to Next Day, and Delete; and Move Earlier, Move Later, Lengthen, and Shorten; under View's Calendar header the zoom and day-count items and the two column toggles. Timer › Continue (⌘O) continues the one selected entry.
+The navigation keys (← → ⇧← ⇧→, Tab and ⇧Tab, Escape) are the view's own, as on every Mac, and are no menu items; they are off while a popover, editor, or sheet takes text input. ⌘T is View › Go to Today, and View › Previous Period and Next Period (⌥⌘← ⌥⌘→) and Go to Date… (⇧⌘D, the month picker) act on the Calendar too. Every other key is a menu item ([spec_timer.md](spec_timer.md) §9), enabled while the Calendar is shown: in the Entry menu Edit Selection…, Create Entry from Selection, Duplicate to Next Day, and Delete; and Move Earlier, Move Later, Lengthen, and Shorten; under View's Calendar header the zoom and day width items, the two column toggles, Filters…, and Clear Filters; Edit › Find (⌘F) focuses the search field. Timer › Continue (⌘O) continues the one selected entry.
 
 | Key | Effect |
 |---|---|
 | ⌘T | Today |
 | ⌘+ / ⌘− / ⌘0 | Zoom in / out / reset |
-| ⌥⌘[ / ⌥⌘] | One visible day fewer / more |
-| ← / → | Previous / next day |
-| ⇧← / ⇧→ | Back / forward by the visible span (Previous Days / Next Days) |
+| ⌥⌘[ / ⌥⌘] | Narrower / wider days (1.2) |
+| ← / → | Previous / next day, snapped (1.2) |
+| ⇧← / ⇧→ | Back / forward by the whole days in view (Previous Days / Next Days) |
 | ⌥⌘A / ⌥⌘K | Toggle the Activity / Calendar column |
+| ⌘F | Focus the search field |
+| ⌥⌘F / ⌥⇧⌘F | Filters… / Clear Filters |
 | Tab / ⇧Tab | Next / previous entry by start |
 | Return | Editor of the selected entry or block |
 | Space | Entry from the selected activity block, time block, or event |
@@ -189,13 +200,13 @@ The settings read the calendars without asking for access; like the Calendar col
 | `calendar.sleepAreaID`, `calendar.workoutAreaID` | none (not counted) | an area |
 | `calendar.healthImport` | unset | written by the iPhone's import |
 
-Per device: `pointsPerHour` (72), `visibleDays` (5), column toggles (on), the resolved time-block calendar. Each launch starts with today centered.
+Per device: `pointsPerHour` (72), `dayWidth` (260), column toggles (on), the Filters (none), the resolved time-block calendar. Each launch starts with today centered (1.2).
 
 ## 7. Testable behaviors
 
-1. At 72 points per hour a 09:00 to 10:30 entry is 108 points high; after ⌘+ it is 135 with the center time unchanged; zoom clamps to [24, 480].
-2. With today Thursday, ⌘T makes the first day Tuesday for 5 visible days, Monday for 7, Thursday for 1 and 2. The date menu reads "Today" while Thursday is visible, else "Oct 19 – 23", "Oct 30 – Nov 3", or for one day "Oct 19".
-3. A sideways scroll of 1.4 day widths snaps one day over; `timetracking://planner/calendar?date=2026-10-29` makes October 29 the first day.
+1. At 72 points per hour a 09:00 to 10:30 entry is 108 points high; after ⌘+ it is 135, with the now-line in place while in view, else the center time, else the time under a pinch; zoom clamps to [24, 480] and never scrolls past the end of the day.
+2. With today Thursday and room for 5 whole days, ⌘T makes the first day Tuesday, Monday for 7, Thursday for 1 and 2, with a day starting at the left edge; a cut-off day does not count. The date menu reads "Today" while Thursday is shown, else "Oct 19 – 23", "Oct 30 – Nov 3", or for one day "Oct 19"; the subtitle names the days at least half visible.
+3. A sideways scroll of 1.4 day widths moves 1.4 days without snapping and loads the days that come into view; → then goes to the next day start, ← from a cut-off day to its start; `timetracking://planner/calendar?date=2026-10-29` moves October 29 to the left edge.
 4. The column of the day daylight-saving time ends is 25 hours tall; a 23:00 to 01:00 event is drawn in two pieces that move together.
 5. The now-line's offset is (now − midnight) · `pointsPerHour` / 3600 within 1 point, on today only.
 6. Drawing 09:02 to 09:58 gives 09:00 to 10:00 (with ⌥, unchanged); under 1 minute creates nothing; Escape writes no record.
@@ -212,13 +223,16 @@ Per device: `pointsPerHour` (72), `visibleDays` (5), column toggles (on), the re
 17. Notes "Project: noise model" link the one active "Noise Model"; with two matches the block is unlinked and says "Several projects are named “noise model”"; a URL wins over the notes.
 18. Dragging a 09:00 to 11:00 time block into Tracked at 10:00 opens the popover for 09:00 to 10:00 with its project and title; an event uses its title as task; external events cannot be moved or deleted.
 19. Without calendar access, or without an iCloud calendar account, the column shows its notice and the rest of the view works.
-20. The call `showCalendar(day: Oct 29, hour: 9, highlight: hour)` makes October 29 leftmost with 09:00 at the top, Activity on, the hour's blocks pulsed, zoom and day count unchanged.
+20. The call `showCalendar(day: Oct 29, hour: 9, highlight: hour)` makes October 29 leftmost with 09:00 at the top, Activity on, the hour's blocks pulsed, zoom and day width unchanged.
 21. Every key of section 5 has its effect; the arrows, Tab, and Escape are the view's keys, ⌘T and the period keys View menu items acting on the Calendar (⌥⌘→ by the visible span, ⇧⌘D opening the month picker), the rest items of the Entry menu and of View's Calendar header; ⌘O continues the one selected entry.
 22. Snap to and Calendars to show are synced settings: with "Team" (Google) checked on another device, checking "Work" (iCloud) here stores both and unchecking it leaves "Team".
 23. The Calendar menu lists the iCloud account's writable calendars and not a read-only one or another account's; choosing "Work" writes its identifier and title, and a device on which that identifier differs resolves "Work" by title; "New Calendar…" with "Time Blocks" taken creates "Time Blocks 2".
 24. With Sleep on and Workouts off, a night from 23:00 to 06:30 is drawn on both of its days and a workout is not; turning Workouts on adds it, turning Sleep off removes the night.
 25. The Apple Health status line: with both toggles off there is none; with no import status it says no iPhone has read Apple Health; after an import of sleep alone, with Workouts on it waits for workouts; with both read and no workout periods it says none were found; with periods of every shown kind it says when it read them; the status syncs from the iPhone.
 26. The activity column has the day's background stretches, each named by its items and their time ("In the background while away: Claude refactor-parser 38m").
+27. With a day width of 250 points, a 1000 point viewport shows 4 days and a 1100 point one 5, the fifth cut off, with the left edge kept; doubling the day width keeps the center time; the width clamps to [96, 1600]; ⌥-click makes one day as wide as the viewport; the slider is logarithmic; Saturday and Sunday are the shaded days.
+28. With "Noise Model" checked in Filters, the other entries are faded and the tracked totals count only Noise Model's, with its token in the filter bar; the search "draft" lets through only entries with "draft" in the task or the project, area, or client name; while the search field has the focus the plain keys are off.
+29. A night from 23:00 to 06:30 is labeled "7h 30m" on the day it ends; a workout from 23:15 to midnight is labeled "45m" on its own day.
 
 ## 8. Decisions
 
