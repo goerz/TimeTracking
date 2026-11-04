@@ -67,7 +67,7 @@ No part of an entry can lie after now. Gestures clamp at the now-line; a drop th
 
 ### 2.3 Drawing
 
-Dragging vertically in empty space draws a provisional entry. Both ends snap to `snapMinutes` (default 5), or 1 minute with ⌥, and stop at the now-line and midnight. Under 1 minute creates nothing (and deselects). Otherwise the entry stays with a dashed border and the Timer's edit popover ([spec_timer.md](spec_timer.md) §4) opens on it with the times filled in. Return commits (empty task and no project allowed); Escape removes it; a click elsewhere commits if a project or task was given and cancels otherwise. The minimum entry length everywhere is 1 minute.
+Dragging vertically in empty space draws a provisional entry. Both ends snap to `snapMinutes` (default 5), or 1 minute with ⌥, and stop at the now-line and midnight. Under 1 minute creates nothing (and deselects). Otherwise the entry stays with a dashed border and the Timer's edit popover ([spec_timer.md](spec_timer.md) §4) opens on it with the times filled in. Return commits (empty task and no project allowed); Escape removes it; a click elsewhere commits if a project or task was given and cancels otherwise. A draft is stored once, also when Return, the popover's Save, and a click elsewhere come together. The minimum entry length everywhere is 1 minute.
 
 ### 2.4 Moving and resizing
 
@@ -234,6 +234,7 @@ Per device: `pointsPerHour` (72), `dayWidth` (260), column toggles (on), the Fil
 28. With "Noise Model" checked in Filters, the other entries are faded and the tracked totals count only Noise Model's, with its token in the filter bar; the search "draft" lets through only entries with "draft" in the task or the project, area, or client name; while the search field has the focus the plain keys are off.
 29. A night from 23:00 to 06:30 is labeled "7h 30m" on the day it ends; a workout from 23:15 to midnight is labeled "45m" on its own day.
 30. At 72 points per hour a 33-minute entry's card spans exactly its interval and shows its title and duration on one line; a 25-minute running entry's card ends on the now-line.
+31. Two commits of one draft arriving together (Return and Save, or Return and a click elsewhere) store one entry.
 
 ## 8. Decisions
 

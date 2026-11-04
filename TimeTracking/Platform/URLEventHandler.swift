@@ -9,6 +9,8 @@ import TimeTrackingCore
 final class URLEventHandler: NSObject {
     private var router: URLRouter?
     private var pending: [URL] = []
+    /// The last URL command, which the next one waits for.
+    private var lastOpen: Task<Void, Never>?
     /// The app that was frontmost before this one, to give the focus back.
     private var previousApp: NSRunningApplication?
     private var observer: (any NSObjectProtocol)?
@@ -66,7 +68,11 @@ final class URLEventHandler: NSObject {
         }
         let wasActive = NSApp.isActive
         let previous = previousApp
-        Task {
+        // Each URL waits for the one before, so `open start…; open stop`
+        // starts, then stops.
+        let before = lastOpen
+        lastOpen = Task {
+            await before?.value
             let outcome = await router.open(url)
             // Feedback for a start, stop, or continue is the menu bar and
             // the banner; the app that had the focus keeps it.

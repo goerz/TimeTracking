@@ -20,16 +20,21 @@ extension CalendarModel {
         }
     }
 
-    /// Return in the popover: stores the draft (empty task and no project allowed).
+    /// Return in the popover: stores the draft (empty task and no project
+    /// allowed). The draft is taken before the first suspension, so a second
+    /// commit (Return and the Save button, or Return and a click outside)
+    /// finds none; it comes back while the overlap prompt asks.
     func commitDraft() async {
         guard let draft else {
             return
         }
+        self.draft = nil
         let neighbors = await neighbors(of: draft.interval, excluding: nil)
         switch OverlapResolution.resolve(draft.interval, neighbors: neighbors) {
         case let .clear(interval), let .trimmedSilently(interval):
             await create(draft, interval: interval)
         case let .ask(prompt):
+            self.draft = draft
             pendingOverlap = PendingOverlap(prompt: prompt, action: .create(draft))
         }
     }
@@ -60,6 +65,7 @@ extension CalendarModel {
             self.draft = nil
             selection = Set(ids.map(CalendarItemID.entry))
         } catch {
+            self.draft = draft
             report(error)
         }
         await changed()

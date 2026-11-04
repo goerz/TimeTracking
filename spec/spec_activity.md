@@ -97,7 +97,7 @@ Away time is a gap longer than the tracker's `idle_close` (5 minutes) between co
 
 ### 1.9 Live updates and empty states
 
-The section follows the reader's change stream: an appended block updates the aggregates within 2 seconds. On the Mac today's figures include the open block (`isOpen`), drawn like a closed block with "running" in tooltips, until the closed block replaces it. Reconstructed time (`rec`) counts normally and is named in the Calendar's popover ("Reconstructed from macOS app usage history"). Block times are shown as recorded in the device's time zone. Aggregation runs off the main thread and keeps the previous figures until the new ones are ready.
+The section follows the reader's change stream: an appended block updates the aggregates within 2 seconds. On the Mac today's figures include the open block (`isOpen`), drawn like a closed block with "running" in tooltips, until the closed block replaces it. Reconstructed time (`rec`) counts normally and is named in the Calendar's popover ("Reconstructed from macOS app usage history"). Block times are shown as recorded in the device's time zone. Aggregation runs off the main thread and keeps the previous figures until the new ones are ready. When a slow read (a long range) finishes after a later one, its figures are dropped, so the section always shows the range chosen last.
 
 With no blocks after filtering, the panels give way to one message (an empty-state view with the section's symbol): "No activity recorded between Oct 20 and Oct 26" (plus "The tracker was not running." and "Tracker Settings…" when the footer is red), or "Nothing recorded for the selected apps" with "Show All Apps". With an empty block log and the tracker not set up on this Mac (not enabled, no `current.json`, or Accessibility missing), an empty-state view titled "No Activity Yet" reads "Set up the tracker to see where your time goes. Nothing is recorded until you enable it." with "Open Tracker Settings…"; once a block exists it never returns.
 
@@ -156,6 +156,7 @@ The Activity tab shows the same panels from the synced block log, without subjec
 19. "Exclude <name> from Tracking…" opens the Tracker pane with the right list and value and saves nothing; after saving, past items of that rule disappear from every total while the log files stay byte-identical.
 20. The view never modifies the block log, detail log, `current.json`, or `settings.toml`.
 21. In the background adds the background stretches' items, each with its part while away; the Away panel says how much of the counted gaps background stretches cover, also under a context filter, and has no such line without them.
+22. A reload of a long range that finishes after a later reload of a short range leaves the short range's figures and no loading indicator.
 
 ## 7. Decisions
 

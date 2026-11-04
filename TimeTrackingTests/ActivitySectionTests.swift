@@ -3,6 +3,7 @@
 // (spec_activity.md §6).
 
 import Foundation
+import Synchronization
 import Testing
 import TimeTrackingCore
 @testable import TimeTracking
@@ -37,6 +38,24 @@ struct ActivitySectionTests {
         let router = SectionRouter(store: test.store, clock: test.clock, device: test.app.settings.device, activity: activity)
         router.range.set(.preset(.thisWeek))
         return (router, activity)
+    }
+
+    @Test("PA-22 a slow reload finishing after a later one leaves the later range's figures and no loading indicator")
+    func laterReloadWins() async throws {
+        let test = try await TestApp()
+        let reader = try GatedActivityReader(InMemoryActivityStore(blocks: Self.week()))
+        let router = SectionRouter(store: test.store, clock: test.clock, device: test.app.settings.device, activity: reader)
+        let model = router.activity
+        router.range.set(.preset(.thisYear))
+        let slow = Task { await model.reload() }
+        await reader.waitUntilHeld()
+        router.range.set(.preset(.today))
+        await model.reload()
+        #expect(model.summary?.total == 3000)
+        reader.release()
+        await slow.value
+        #expect(model.summary?.total == 3000)
+        #expect(!model.isLoading)
     }
 
     @Test("PA-3 a range changed in Reports changes Activity and back; a custom range over 366 days is clipped with the note")
@@ -202,5 +221,107 @@ struct ActivitySectionTests {
         router.activity.exclude(site: "github.com/owner/repo")
         #expect(test.app.trackerSettings.pendingExclusion == PendingExclusion(list: .excludeDomains, value: "github.com"))
         #expect(test.app.trackerSettings.entries(.excludeDomains).isEmpty)
+    }
+}
+
+/// An activity reader whose first `blocks(in:devices:)` waits until
+/// `release()`, so a test can finish a later read first.
+final class GatedActivityReader: ActivityReading {
+    private let base: InMemoryActivityStore
+    private let state = Mutex<GateState>(GateState())
+
+    private struct GateState {
+        var used = false
+        var held: CheckedContinuation<Void, Never>?
+        var waiting: CheckedContinuation<Void, Never>?
+        var released = false
+    }
+
+    init(_ base: InMemoryActivityStore) {
+        self.base = base
+    }
+
+    /// Returns once the first read is waiting at the gate.
+    func waitUntilHeld() async {
+        await withCheckedContinuation { continuation in
+            let ready = state.withLock { state in
+                guard state.held == nil else {
+                    return true
+                }
+                state.waiting = continuation
+                return false
+            }
+            if ready {
+                continuation.resume()
+            }
+        }
+    }
+
+    /// Lets the first read go on.
+    func release() {
+        let held = state.withLock { state in
+            state.released = true
+            defer { state.held = nil }
+            return state.held
+        }
+        held?.resume()
+    }
+
+    // swiftlint:disable:next discouraged_optional_collection
+    func blocks(in interval: DateInterval, devices: Set<String>?) async -> [ActivityBlock] {
+        let first = state.withLock { state in
+            defer { state.used = true }
+            return !state.used
+        }
+        if first {
+            await withCheckedContinuation { continuation in
+                let (proceed, waiting) = state.withLock { state in
+                    if state.released {
+                        return (true, CheckedContinuation<Void, Never>?.none)
+                    }
+                    state.held = continuation
+                    defer { state.waiting = nil }
+                    return (false, state.waiting)
+                }
+                waiting?.resume()
+                if proceed {
+                    continuation.resume()
+                }
+            }
+        }
+        return base.blocks(in: interval, devices: devices)
+    }
+
+    // swiftlint:disable:next discouraged_optional_collection
+    func backgroundStretches(in interval: DateInterval, devices: Set<String>?) -> [ActivityBackgroundStretch] {
+        base.backgroundStretches(in: interval, devices: devices)
+    }
+
+    func detail(for id: ActivityBlock.ID) -> ActivityBlockDetail? {
+        base.detail(for: id)
+    }
+
+    func details(for ids: [ActivityBlock.ID]) async throws -> [ActivityBlock.ID: ActivityBlockDetail] {
+        try await base.details(for: ids)
+    }
+
+    func currentState() -> TrackerState? {
+        base.currentState()
+    }
+
+    func aggregate(in interval: DateInterval, by key: ActivityGroupKey, device: String?) -> [ActivityAggregate] {
+        base.aggregate(in: interval, by: key, device: device)
+    }
+
+    func bundleIdentifier(forContext context: String) -> String? {
+        base.bundleIdentifier(forContext: context)
+    }
+
+    var exclusions: ExclusionRules {
+        base.exclusions
+    }
+
+    var changes: AsyncStream<ActivityChange> {
+        base.changes
     }
 }

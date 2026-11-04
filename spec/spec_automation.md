@@ -263,7 +263,7 @@ No intent deletes, archives, or edits.
 
 ## 6. URL scheme
 
-Both apps handle `timetracking` (`timetracking-debug` in Debug) with `onOpenURL`. Query values are URL-encoded.
+Both apps handle `timetracking` (`timetracking-debug` in Debug) with `onOpenURL`. Query values are URL-encoded. URLs act in the order they arrive: on the Mac each waits for the one before, so `open …/start?…; open …/stop` starts, then stops.
 
 | URL | Action | Platform |
 |---|---|---|

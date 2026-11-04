@@ -32,10 +32,30 @@ final class PhoneHost {
         return defaults
     }
 
+    /// The load in progress or done; every window's `.task` awaits the same one.
+    @ObservationIgnored private var loadTask: Task<Void, Never>?
+
+    /// Opens the store and builds the model once: on the iPad each restored
+    /// window calls this, and a second call waits for the first instead of
+    /// opening a second store and sync engine.
     func load() async {
-        guard model == nil, !Self.isTestHost else {
+        guard !Self.isTestHost else {
             return
         }
+        if let loadTask {
+            await loadTask.value
+            return
+        }
+        let task = Task { await self.loadOnce() }
+        loadTask = task
+        await task.value
+        if model == nil {
+            // Opening failed: the next window tries again.
+            loadTask = nil
+        }
+    }
+
+    private func loadOnce() async {
         let identity = AppIdentity.main
         let testing = arguments.uiTesting
         let defaults = testing ? uiTestingDefaults(identity: identity) : nil

@@ -20,7 +20,7 @@ The target names are those of [spec_architecture.md](spec_architecture.md) §1.1
 
 All five share the App Group `group.<APP_ID>` and the iCloud container `iCloud.<APP_ID>`.
 
-Entry writes go through the app process. Interactive widget and control buttons run thin wrapper intents (6.1) in the app process: they conform to `LiveActivityIntent` for that reason only (WidgetKit performs such button intents by launching the app in the background), so the sync engine sends the change at once. The widget extension never writes the store: it keeps its push token and the last fetched `LiveState` in the App Group (4). The App Intents extension and the two collectors never open the store; they append through `DeviceEventSink.append`.
+Entry writes go through the app process. Interactive widget and control buttons run thin wrapper intents (6.1) in the app process: they conform to `LiveActivityIntent` for that reason only (WidgetKit performs such button intents by launching the app in the background), so the sync engine sends the change at once. The widget extension never writes the store: it keeps its push token and the last fetched `LiveState` in the App Group (4). The App Intents extension and the two collectors never open the store; they append through `DeviceEventSink.append`. The app opens the store, its sync engine, and its model once per process: when the iPad restores several windows, every window waits for the same load.
 
 ## 2. iPhone: the Timer screen
 

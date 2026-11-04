@@ -62,6 +62,8 @@ final class ActivityModel {
     private(set) var newestBlockEnd: Date?
     /// The range revision the figures belong to; arrows keep the filter.
     @ObservationIgnored private var seenRevision = -1
+    /// Counts reloads; only the latest one assigns its results.
+    @ObservationIgnored private var loadGeneration = 0
     @ObservationIgnored private var arrowRevision = -1
 
     init(store: TimeStore, clock: any Clock, device: DeviceSettings, activity: any ActivityReading, range: DateRangeModel) {
@@ -85,22 +87,30 @@ final class ActivityModel {
     // MARK: Loading
 
     /// Reads the blocks of the range and builds the summary off the main
-    /// thread, keeping the previous figures until it is ready.
+    /// thread, keeping the previous figures until it is ready. A reload
+    /// started later wins: an earlier one that finishes after it changes
+    /// nothing (a long range read can outlast a short one).
     func reload() async {
         if range.revision != seenRevision, range.revision != arrowRevision, seenRevision >= 0 {
             contexts = []
             drill = nil
         }
         seenRevision = range.revision
+        loadGeneration += 1
+        let generation = loadGeneration
         isLoading = true
-        defer { isLoading = false }
+        defer {
+            if generation == loadGeneration {
+                isLoading = false
+            }
+        }
         do {
             let days = days
             let interval = range.calendar.interval(of: days)
             let loaded = try await activity.blocks(in: interval, devices: nil)
             // Only the recording Mac shows the open block.
             let blocks = isRecordingMac ? loaded : loaded.filter { !$0.isOpen }
-            newestBlockEnd = blocks.map(\.end).max()
+            let newest = blocks.map(\.end).max()
             let stretches = try await activity.backgroundStretches(in: interval, devices: nil)
             let details = isRecordingMac ? try await activity.details(for: blocks.map(\.id)) : [:]
             let input = ActivitySummaryInput(
@@ -114,18 +124,26 @@ final class ActivityModel {
                 stretches: stretches
             )
             let summary = await Task.detached { ActivitySummary(input) }.value
+            guard generation == loadGeneration else {
+                return
+            }
+            newestBlockEnd = newest
             self.summary = summary
             if summary.hasBlocks {
                 device[.activitySawBlock] = true
             }
             await loadHealth()
-            emptyState = await ActivityEmptyState.resolve(
+            let emptyState = await ActivityEmptyState.resolve(
                 summary: summary,
                 everSawBlock: device[.activitySawBlock],
                 trackerSetUp: trackerSetUp(),
                 footerRed: health?.isRed ?? false
             )
-            if let assigned = try? await store.assignContextColors(summary.ranking.map(\.context)) {
+            guard generation == loadGeneration else {
+                return
+            }
+            self.emptyState = emptyState
+            if let assigned = try? await store.assignContextColors(summary.ranking.map(\.context)), generation == loadGeneration {
                 contextColors = assigned
             }
         } catch {
