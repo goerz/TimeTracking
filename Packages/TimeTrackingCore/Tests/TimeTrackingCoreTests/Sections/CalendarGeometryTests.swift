@@ -90,7 +90,7 @@ struct CalendarGeometryTests {
         #expect(moved.start == event.start + 1800)
     }
 
-    @Test("PC-5 the now-line's offset is (now − midnight) · pph / 3600, on today only")
+    @Test("PC-5 the now-line's offset is (now − the column's start) · pph / 3600, on today only")
     func nowLine() throws {
         let axis = CalendarDayAxis(day: Self.thursday, calendar: Self.calendar, pointsPerHour: 72)
         let now = try Self.time("2026-10-29T14:20")
@@ -111,7 +111,7 @@ struct CalendarGeometryTests {
         #expect(try editing.draw(from: Self.time("2026-10-29T09:02"), to: Self.time("2026-10-29T09:02:50")) == .tooShort)
     }
 
-    @Test("PC-7 no draw, move, resize, or drop puts any part of an entry after now or past midnight; a press below now is refused")
+    @Test("PC-7 no draw, move, resize, or drop puts any part of an entry after now or past the column's end; a press below now is refused")
     func neverInFuture() throws {
         let editing = try Self.editing()
         let now = editing.now
