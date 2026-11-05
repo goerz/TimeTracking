@@ -1,6 +1,6 @@
 // What only real windows show: the main window's Timer, the Mini Timer, the
 // menu bar item, the settings window (spec_timer.md, spec_menubar.md,
-// spec_architecture.md §8).
+// spec_architecture.md §7).
 
 import XCTest
 

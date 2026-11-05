@@ -1,4 +1,4 @@
-// The APNs request and its provider token (spec_architecture.md §2.4, §8 item 11).
+// The APNs request and its provider token (spec_architecture.md §2.4, §7 item 11).
 
 import CryptoKit
 import Foundation

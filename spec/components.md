@@ -1,10 +1,10 @@
 # Components
 
-TimeTracking is a personal time tracker for the Mac, iPhone, and iPad. It records what the user works on as time entries (client, area, project, task), keeps the running entry in sync across all devices within seconds, plans the day next to the calendar, reports on tracked time, and keeps a separate record of where attention actually went on each device. This document lists the components, what each owns, how they connect, and the rules that cut across them. Each linked spec ends with numbered testable behaviors, its decisions, and the interfaces it assumes of its neighbors.
+TimeTracking is a personal time tracker for the Mac, iPhone, and iPad. It records what the user works on as time entries, keeps the running entry in sync across all devices within seconds, plans the day next to the calendar, reports on tracked time, and keeps a separate record of where attention went on each device. This document names the components, how they connect, and the rules that cut across them. Each spec below ends with numbered testable behaviors.
 
 | Spec | Component |
 |---|---|
-| [spec_architecture.md](spec_architecture.md) | Project layout, targets, build system, testing, conventions, implementation order |
+| [spec_architecture.md](spec_architecture.md) | Project layout, targets, build system, testing, conventions |
 | [spec_data_and_sync.md](spec_data_and_sync.md) | Shared library: entities, store, sync, live updates, query layer |
 | [spec_timer.md](spec_timer.md) | Mac main window and main menu, Timer and Mini Timer, Pomodoro, idle detection, reminders, settings window, global shortcuts |
 | [spec_menubar.md](spec_menubar.md) | Mac menu bar item and Dock menu |
@@ -22,13 +22,14 @@ TimeTracking is a personal time tracker for the Mac, iPhone, and iPad. It record
 | Term | Meaning |
 |---|---|
 | Client | Who the work is for. Groups areas. |
-| Area | An ongoing part of life or line of work, belonging to exactly one client. Carries a color (any RGB value) and a manual order within its client. Every client has a general area named like the client. |
-| Project | A unit of work inside exactly one area; active or archived. Has no color of its own. |
+| Area | An ongoing part of life or line of work, belonging to exactly one client, with a color (any RGB value) and a manual order within its client. Every client has a general area named like the client. |
+| Project | A unit of work inside exactly one area; active or archived. Colors come from the area, and entries store no color, area, or client, so moving a project recolors and regroups its history. |
 | Task | The free-text description of a time entry ("Clarify noise model"), autocompleted from earlier entries. |
-| Time entry | A tracked interval: start, end (or running), project (optional), task. At most one entry runs at a time, across all devices. Entries never cross midnight; an interval spanning midnight is stored as one entry per day. |
-| Pomodoro | A local count-down display of focus and break phases over the running entry. It never starts, stops, or splits entries. |
-| Activity block | A contiguous stretch of attention on something, recorded by the tracker with items at three levels: context, subject, detail. Not a time entry; a source for one. |
-| Time block | A plan ("write the intro, 9 to 11"): an event in the dedicated time-block calendar, optionally linked to a project. Informational only. |
+| Time entry | A tracked interval: start, end (or running), project (optional), task. At most one entry runs at a time, across all devices. Stored entries never cross real midnight; an interval spanning it is stored as one entry per date. |
+| Midnight | The synced setting for the hour the app's days start, 00:00 by default (see "Days" under Cross-cutting rules). Written lowercase, "midnight" is the real one on the clock. |
+| Pomodoro | A count-down display of focus and break phases over the running entry, kept per device. It never starts, stops, or splits entries. |
+| Activity block | A contiguous stretch of attention, recorded by the tracker with items at three levels: context, subject, detail. Not a time entry; a source for one. The tracker never assigns projects, so its logs stay a neutral record. |
+| Time block | A plan ("write the intro, 9 to 11"): an event in an iCloud calendar, optionally linked to a project, so it reaches every device and calendar app. Informational only. |
 | Calendar event | An event from a calendar of the system calendar store that the user chose to show. |
 
 ## Architecture
@@ -36,7 +37,7 @@ TimeTracking is a personal time tracker for the Mac, iPhone, and iPad. It record
 ```
 ┌────────────────────────────── Mac ───────────────────────────────┐
 │  TimeTracking.app (not sandboxed)                                │
-│   ├─ Main window, Mini Timer, settings (spec_timer.md)    │
+│   ├─ Main window, Mini Timer, settings (spec_timer.md)           │
 │   ├─ Sections: Calendar, Reports, Projects, Activity             │
 │   │       (spec_calendar.md, spec_reports.md, spec_projects.md,  │
 │   │        spec_activity.md)                                     │
@@ -59,8 +60,8 @@ TimeTracking is a personal time tracker for the Mac, iPhone, and iPad. It record
            │                                    APNs widget pushes
 ┌──────────┴─────────────────────────── iOS (one target) ─┴────────┐
 │  TimeTrackingiOS.app (sandboxed)      (spec_ios.md)              │
-│   iPhone: Timer screen · iPad: Timer, Projects, Calendar,        │
-│   Reports, Activity tabs                                         │
+│   iPhone: Timer screen · iPad: Timer, Calendar, Reports,         │
+│   Projects, Activity tabs                                        │
 │   ├─ Widgets extension: widgets, control, widget push handler    │
 │   ├─ App Intents extension: Focus filter, log-event intent       │
 │   ├─ DeviceActivity monitor extension                            │
@@ -68,7 +69,7 @@ TimeTracking is a personal time tracker for the Mac, iPhone, and iPad. It record
 └──────────────────────────────────────────────────────────────────┘
 ```
 
-One Xcode project, one shared Swift package (`TimeTrackingCore`, linked statically) that every executable links, and a Makefile that builds, installs, and tests. The package owns the data model, persistence, sync, the reporting queries, the App Intents definitions, and the reader for the tracker's logs. The user interface targets own views, view state, and platform glue. All container identifiers derive from one bundle id; Debug builds carry a `.debug` suffix on both platforms and have their own containers and CloudKit container.
+One Xcode project, one Swift package (`TimeTrackingCore`) linked statically into every executable, and a Makefile that builds, installs, and tests. The package holds the data model, persistence, sync, reporting queries, App Intents, and the reader for the tracker's logs, so the running entry, project list, and reports agree on every device. User interface targets hold views, view state, and platform glue. All identifiers derive from one bundle id; Debug builds carry a `.debug` suffix and have their own containers.
 
 ## The components
 
@@ -76,76 +77,63 @@ One Xcode project, one shared Swift package (`TimeTrackingCore`, linked statical
 
 Spec: [spec_data_and_sync.md](spec_data_and_sync.md)
 
-Owns the entities (client, area, project, time entry, settings, device, health period), their invariants (one running entry, entries split at midnight, archived projects keep their history, soft deletion with tombstones kept 180 days), the store, synchronization, the live-update path, JSON export and import, and the query layer used by the Timer list, Reports, Calendar, and the scripting surface. The store is the product's own documented SQLite schema in the App Group container, read through GRDB, with a public `entries` view for scripts. Sync runs through CloudKit's `CKSyncEngine` in the app processes, with record-level last-writer-wins and an invariant pass after every change; the command-line tool writes to the same SQLite file and an outbox the app drains, and widget buttons write through intents that run in the app process. A `LiveState` record carries the running entry and the Mac's current activity, and the Mac app sends WidgetKit push updates to the iPhone and iPad so their widgets follow within seconds. The only files in iCloud Drive are the tracker's block log and settings. The library also reads the block log on every device and defines the `DeviceEvent` records through which the iOS collection reaches the Mac agent.
+The entities and their invariants, the store, sync, live updates, JSON export and import, and the query layer. The store is a documented SQLite schema in the App Group container, with a public `entries` view for scripts. CloudKit sync runs in the app processes, with record-level last-writer-wins and an invariant pass after every change. A `LiveState` record carries the running entry and the Mac's current activity, and the Mac sends WidgetKit pushes itself, without a server, so iPhone and iPad widgets follow within seconds even with the app suspended. The only files in iCloud Drive are the tracker's block log and settings.
 
 ### Mac app: main window and Mini Timer
 
 Spec: [spec_timer.md](spec_timer.md)
 
-One main window, as on the iPad: a sidebar with Timer, Calendar, Reports, Projects, and Activity (⌘1 to ⌘5), opened at launch on the Timer, and one set of object menus (File, Edit, View, Timer, Entry, Project, Window) in every window. The Timer is the everyday view: the running-entry bar (task field with autocompletion and the `@` project trigger, project chip, timer, start/stop, Pomodoro button) beside or above the list of recent entries grouped by day, with a live Today total. The Mini Timer (Window › Mini Timer) is the same bar and list in a small window of their own: resizing it below a threshold height leaves only the bar (compact mode), and its pin floats it above other windows. The Pomodoro is display only: the entry runs through focus and break phases, and a long absence is handled by idle detection. Idle detection (default 10 minutes) offers Keep, Discard, Discard and continue, and Split. The window also owns reminders, the settings window (General, Pomodoro, Idle, Reminders, Calendar, Shortcuts, Tracker), and the global shortcuts (⌥⌘R shows or hides the Mini Timer; continue/stop is unassigned by default; both recordable). The Timer creates entries only by starting them; past intervals are drawn in the Calendar.
+One main window with a sidebar of Timer, Calendar, Reports, Projects, and Activity (⌘1 to ⌘5). The Timer is the running-entry bar with the recent entries grouped by day. The Mini Timer is the same bar and list in a small window that can shrink to the bar and float above other windows. The spec also covers Pomodoro, idle detection, reminders, the settings window, and global shortcuts. The Timer creates entries only by starting them; past intervals are drawn in the Calendar.
 
 ### Mac app: sections
 
-The main window's sidebar items after the Timer (⌘2 to ⌘5). The shell, its restoration, and the hand-offs between sections are specified in the Projects spec. Reports and Activity share one date range.
+The sidebar items after the Timer. The shell and the hand-offs between sections are in the Projects spec. Reports and Activity share one date range.
 
-- Projects: [spec_projects.md](spec_projects.md). A table of projects with area color, client, area, state, created, last tracked, and total tracked; grouping, sorting, and filters (archived projects included on request); creating, editing, archiving, restoring, and deleting projects without entries; clients and areas as rows above their projects, with the system color picker for area colors. Defines the project dialog and the project picker reused by the Timer, Calendar, and iOS.
-- Calendar: [spec_calendar.md](spec_calendar.md). One to seven days side by side with vertical and horizontal zoom and Today (⌘T). Each day has up to three columns: activity (blocks from the tracker, including iPhone and iPad), tracked (always shown), and calendar (time blocks plus events from selected calendars). Entries are drawn, moved, resized, split, and edited in place, never in the future; overlaps are resolved by a trim/allow/cancel choice. Entries can be made from an activity block, a time block, or a calendar event. Its settings (snapping, the time-block calendar, the calendars to show) are synced and live in the settings window and the iPad's Settings.
-- Reports: [spec_reports.md](spec_reports.md). Date range with presets and period arrows, filters, summary tiles, a stacked bar chart in area colors, a breakdown table of up to four levels (client, area, project, task, day), an entry list that opens the shared editor, a search over tasks and names, and CSV export.
-- Activity: [spec_activity.md](spec_activity.md). The tracker's record rendered for a date range: active time per device, context chips, a heatmap by hour, stacked bars by day and context, ranked contexts with their subjects and (on the recording Mac) details, background work, away periods, and the tracker's health. Context colors are assigned automatically and synced. The view never edits the logs.
+- Projects: [spec_projects.md](spec_projects.md). A table of projects with clients and areas, and the project dialog and picker that the Timer, Calendar, and iOS reuse.
+- Calendar: [spec_calendar.md](spec_calendar.md). Days side by side, each with up to three columns: activity, tracked, and calendar. Entries are drawn, moved, resized, split, and edited in place, never in the future, and can be made from a block, time block, or event.
+- Reports: [spec_reports.md](spec_reports.md). Summary tiles, a stacked chart, a breakdown of up to four levels, an entry list, and CSV export over a date range.
+- Activity: [spec_activity.md](spec_activity.md). The tracker's record over a date range. The view never edits the logs.
 
 ### Mac app: Menu bar item
 
 Spec: [spec_menubar.md](spec_menubar.md)
 
-A status item showing the running time (or the Pomodoro countdown with its own glyph), optionally the project name, and a menu with the current task and project, New ⌘N, Continue ⌘O, Stop ⌘S, the pending Pomodoro confirmation, Show Mini Timer (⌥⌘R), Open TimeTracking, Settings ⌘,, and Quit ⌘Q. It owns the "Show Dock icon" setting and the Dock menu, and warns when the tracker is not running.
+A status item showing the running time or Pomodoro countdown, with a menu of the current entry and the main commands; also the Dock icon setting and Dock menu.
 
 ### Tracker agent
 
 Spec: [spec_activity_tracking.md](spec_activity_tracking.md)
 
-A background login item (`TimeTrackingAgent.app`, not sandboxed) that records where attention goes on the Mac, in blocks, with terminal sessions, browser sites, and documents resolved to the level that identifies the work. It never assigns projects and never opens the time-entry store. It writes an append-only block log in the iCloud Drive container, a local current-state file, a Mac-only detail log, and a health status, and accepts events and rewrite commands over a Unix socket. It merges the `DeviceEvent` records collected on iOS into blocks. Its TOML settings file, including the exclusions that apply before anything is written, is edited in the settings window's Tracker pane, which also shows health and the onboarding checklist. Tracking is opt-in: the agent is registered only when the user enables it in that pane.
+An opt-in background login item that records where attention goes on the Mac, in blocks, and merges in what iOS collects. It writes an append-only block log to iCloud Drive and local files on the Mac, and never opens the time-entry store. Exclusions apply before anything is written.
 
 ### iPhone and iPad app
 
 Spec: [spec_ios.md](spec_ios.md)
 
-One iOS target. On the iPhone: the Timer (start, stop, continue, the shared picker and project dialog as sheets, the recent list, the entry editor, the Pomodoro), widgets for the running entry (Stop), recent entries (Continue), and pinned projects (Start), including Lock Screen families, a Control Center control and Action button action, App Shortcuts over the library's intents, the URL scheme, and the device-side activity collection (DeviceActivity threshold ladder, Focus filter, a log-event intent for Shortcuts automations, a Safari web extension). Widgets update within seconds through the Mac's widget pushes. On the iPad: the Timer as the first tab, then Projects, Calendar, Reports, and Activity tabs equivalent to the sections, with touch, Pencil, and hardware-keyboard equivalents of the Mac interactions. An iCloud account is required.
+One iOS target. The iPhone has the Timer, widgets, a control, App Shortcuts, and device-side activity collection. The iPad has the Timer and the sections as tabs, with touch, Pencil, and keyboard equivalents of the Mac interactions. An iCloud account is required. There is no Mac widget, Apple Watch app, or Live Activity.
 
 ### Scripting surface
 
 Spec: [spec_automation.md](spec_automation.md)
 
-Every way a program other than the app's own interface reads or changes tracked time: the `timetracking` command-line tool embedded in the Mac app and linked into the PATH by `make install` (status, start, stop, continue, entries, entry, report, projects, clients, areas, management commands, check, import, export; tables, JSON, and CSV), App Intents defined once in the library and exposed on the Mac and iOS (Shortcuts, Siri, Spotlight), and a `timetracking://` URL scheme (nothing destructive). The consistency check compares the store with a TOML description of clients, areas with colors, and standing projects, and `check --fix` creates what is missing. Import reads the product's own JSON export format, which is the path for bringing in history from elsewhere through external converter scripts. Scripts may read the SQLite store read-only through its public views; writes go through the tool.
+The `timetracking` command-line tool, App Intents (Shortcuts, Siri, Spotlight), and the `timetracking://` URL scheme, plus a consistency check against a TOML description of standing projects and import of the JSON export format. Scripts may read the SQLite store through its public views; writes go through the tool.
 
 ## Data flow
 
-1. The user starts an entry in any interface (Timer, menu bar, iPhone, widget, control, intent, command line). The library stores it, writes `LiveState`, and syncs. The Mac app sends a widget push to every iPhone and iPad, whose widgets fetch `LiveState` and show the new entry within seconds, even with the app suspended; open apps receive the change through CloudKit. If two devices start entries while offline, the later start wins and the earlier entry stops at the later start.
-2. The tracker samples attention every 30 seconds, forms blocks, and appends them to the block log in the iCloud Drive container. The Mac app reads the log and the local current-state file through the library, and publishes the current activity into `LiveState`. The iPad and iPhone read the same log without the Mac-only details.
-3. In the Calendar, the user makes entries from activity blocks, time blocks, and calendar events, which become ordinary entries.
-4. Reports and the scripting surface query the store through the same library; every write goes through the library's operations.
-5. The iOS collection extensions append device events to a staging file in their App Group; the app flushes them to CloudKit as `DeviceEvent` records; the Mac agent reads them through the library and merges them into blocks as a separate source.
+1. The user starts an entry in any interface. The library stores it, writes `LiveState`, and syncs. The Mac sends a widget push to every iPhone and iPad; open apps receive the change through CloudKit. If two devices start entries while offline, the later start wins and the earlier entry stops at it.
+2. The tracker samples attention every 30 seconds, forms blocks, and appends them to the block log. The Mac app reads the log and publishes the current activity into `LiveState`. The iPhone and iPad read the same log without the Mac-only details.
+3. In the Calendar, the user makes ordinary entries from blocks, time blocks, and events.
+4. Reports and the scripting surface query the store through the same library, and every write goes through its operations.
+5. iOS extensions append device events to a staging file; the app flushes them to CloudKit as `DeviceEvent` records; the Mac agent merges them into blocks as a separate source.
 
 ## Cross-cutting rules
 
-- Current platforms only: macOS 27, iOS and iPadOS 27, Xcode 27, Swift 6 with complete strict concurrency, SwiftUI with Observation, AppKit or UIKit only where SwiftUI has no equivalent. No availability checks for older systems.
-- A paid Apple Developer Program membership is assumed. The apps are built and installed from source with the Makefile and are development-signed (APNs sandbox, CloudKit development environment); there is no App Store or TestFlight distribution. Family Controls uses the development entitlement.
-- Every explicitly specified behavior is backed by a test. Each spec numbers its testable behaviors continuously; tests carry the identifier `<prefix>-<n>` (ARCH, DATA, TM, MB, PP, PC, PR, PA, TRK, IOS, AUTO), and `make check-behaviors` enforces the mapping.
-- The Mac app, the agent, and the command-line tools are not sandboxed and share one App Group container; the iOS app and its extensions are sandboxed.
-- Privacy: raw activity detail stays on the Mac; only block summaries sync; exclusions apply before anything is written.
-- Stored data and the tracker use real days: entries and activity blocks are split at local midnight. What the app shows and reports (the Timer list, Calendar, Reports, Activity, Projects, widgets, the tool) follows the synced setting Midnight, the hour a day starts, 00:00 by default ([spec_data_and_sync.md](spec_data_and_sync.md) §8). Weeks run Monday to Sunday.
-- Every entity is soft-deleted; tombstones sync and are kept 180 days. Durations are never rounded outside display code.
-- Keyboard first on the Mac and iPad: every action has a menu command and, where it is frequent, a shortcut. Mini Timer ⌥⌘R (global, recordable), the sidebar's Timer, Calendar, Reports, Projects, and Activity ⌘1 to ⌘5, Today in Calendar ⌘T, compact Mini Timer ⇧⌘M, New ⌘N, Continue ⌘O, Stop ⌘S.
-- Calendar access (EventKit full access) is requested by the Mac and iPad apps for the Calendar section; the iPhone needs none.
-
-## Decisions
-
-- One shared library rather than per-app models, so the running entry, project list, and reports agree on every device.
-- The product's own SQLite schema (GRDB) with `CKSyncEngine`: unique constraints, custom merge, SQL aggregates for reports, and a documented on-disk format for scripts.
-- The tracker never maps activity to projects, so its logs stay a neutral record; the user assigns projects when making entries in the Calendar.
-- Areas carry the colors; projects do not. Entries store no color, area, or client; display resolves them through the project's current area, so moving a project recolors and regroups its history.
-- Entries are split at midnight in storage, so every daily sum is a plain sum. With Midnight at another hour, display and reports cut entries at that hour by the same rule, so list, Calendar, and report totals still agree, and changing the setting rewrites nothing.
-- Time blocks are events in an iCloud calendar of the system calendar store: they sync to every device without extra code, appear in every calendar app, and can be created by any calendar tool. The app reads them but does not manage them.
-- Live updates go through CloudKit plus WidgetKit pushes sent by the Mac itself (no server, no LAN connection), so the phone's widgets follow the Mac within seconds while the app is suspended.
-- Pomodoro state is device-local on every platform.
-- The iPad shares the iOS target and gets the sections as tabs; the Mac has one main window and the Mini Timer. No Mac widget, no Apple Watch app, no Live Activity.
-- Settings are either synced (Midnight, Pomodoro durations, pinned projects, context colors, and the Calendar's settings: snapping, the time-block calendar, sleep and workouts, the calendars to show) or per device (idle threshold, shortcuts, menu bar display, window frames).
+- Days: stored data and the tracker use real days, so entries and activity blocks are split at local midnight. What the app shows and reports (Timer list, Calendar, Reports, Activity, Projects, widgets, the tool's day ranges) follows Midnight ([spec_data_and_sync.md](spec_data_and_sync.md) §8). Display and reports cut entries at that hour the way storage cuts them at midnight, so daily sums stay plain sums and totals agree, and changing the setting rewrites nothing. Weeks run Monday to Sunday.
+- Settings are synced (Midnight, Pomodoro durations, pinned projects, context colors, the Calendar's settings) or per device (idle threshold, shortcuts, menu bar display, window frames).
+- Platforms: macOS 27 and iOS and iPadOS 27 only, with no availability checks. The apps are built from source with the Makefile and development-signed (APNs sandbox, CloudKit development environment); there is no App Store or TestFlight distribution.
+- Every testable behavior has a test carrying its identifier `<prefix>-<n>` (ARCH, DATA, TM, MB, PP, PC, PR, PA, TRK, IOS, AUTO); `make check-behaviors` enforces the mapping.
+- The Mac app, agent, and tools are not sandboxed and share one App Group container; the iOS app and its extensions are sandboxed.
+- Privacy: raw activity detail stays on the Mac, only block summaries sync, and exclusions apply before anything is written.
+- Every entity is soft-deleted; tombstones sync and are kept 180 days. Durations are rounded only for display.
+- Keyboard first on the Mac and iPad: every action has a menu command and, where frequent, a shortcut.
+- The Mac and iPad ask for full calendar access for the Calendar section; the iPhone needs none.

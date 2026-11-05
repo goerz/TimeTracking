@@ -1,185 +1,130 @@
 # Spec: Shared Library, Data Model, and Sync
 
-The shared library (`TimeTrackingCore`) is linked by every executable: the Mac app, the iPhone and iPad app, the widget and intent extensions, the command-line tool, and the tracker agent for the parts it shares. It owns the entities and their invariants, the store, iCloud sync, the live-update path to the iPhone and iPad widgets, JSON export and import, the reader for the tracker's logs, and the queries behind every view and script. User interfaces hold views and view state only.
+The shared library (`TimeTrackingCore`) is linked by every executable. It holds the entities and their invariants, the store, iCloud sync, the live-update path to the iPhone and iPad widgets, JSON export and import, the reader for the tracker's logs, and the queries behind every view and script. User interfaces hold views and view state only.
+
+In this spec, lowercase "midnight" is the real midnight of the local clock, and capitalized "Midnight" is the setting of section 8.
 
 ## 1. Entities
 
-Identifiers are lowercase UUIDs: version 4 for new records, version 5 for midnight-split pieces (1.5). Times are instants with second precision. Name uniqueness everywhere compares case- and diacritic-insensitively ("folded"). Every entity carries the bookkeeping fields of 1.7.
+Identifiers are lowercase UUIDs: version 4 for new records, version 5 for derived ones (split pieces, 1.5; generated general areas, 5.2). Times are instants with second precision. Name uniqueness compares case-, diacritic-, and width-insensitively after trimming ("folded"). Records carry the bookkeeping of 1.7.
 
 ### 1.1 Client
 
-| Field | Type | Meaning |
-|---|---|---|
-| id | UUID | |
-| name | String | Non-empty after trimming; unique among live clients. |
-
-Clients are listed alphabetically by folded name. A client has exactly one general area (1.2), created in the same transaction. A client is retired when none of its areas holds an active (live, unarchived) project; `Client.isRetired` is derived at query time, never stored. A client can be deleted only when it has no other area and no live project; deletion tombstones it and its general area together.
+A client has an `id` and a `name`, non-empty after trimming and unique among live clients. Clients are listed alphabetically by folded name. A client has exactly one general area (1.2), created in the same transaction. A client is retired when none of its areas holds an active (live, unarchived) project; this is derived at query time, never stored. A client can be deleted only when it has no other area and no live project; deletion tombstones it and its general area together.
 
 ### 1.2 Area
 
-| Field | Type | Meaning |
-|---|---|---|
-| id | UUID | |
-| clientID | UUID | Never changes. |
-| name | String | Non-empty; unique within the client; only the general area may carry the client's name. |
-| general | Bool | True for the client's general area (Swift `isGeneral`); fixed at creation. |
-| color | String | `#RRGGBB`, sRGB, stored uppercase. |
-| sortOrder | Int | Position within the client; the general area is always 0. |
-| retired | Bool | Hidden from pickers and project creation; history keeps reporting. |
+| Field | Meaning |
+|---|---|
+| clientID | Never changes. |
+| name | Non-empty; unique within the client; only the general area may carry the client's name. |
+| general | True for the client's general area; fixed at creation. |
+| color | `#RRGGBB`, sRGB. Accepted in either case and stored uppercase; anything else fails with `invalidColor`. |
+| sortOrder | Position within the client: 0 for the general area, at least 1 for the others. |
+| retired | Hidden from pickers and project creation; history keeps reporting. |
 
-Renaming a client renames its general area in the same transaction. The general area cannot be renamed separately, reordered, retired, or deleted (`StoreError.generalArea`); its color can change. Retiring an area with an active project fails (`activeProjects`); restoring a project of a retired area un-retires it; creating a project in a retired area fails (`areaRetired`). An area can be deleted only when no live project references it.
+Renaming a client renames its general area in the same transaction. The general area cannot be renamed separately, reordered, retired, or deleted (`generalArea`); its color can change. Retiring an area with an active project fails (`activeProjects`). Creating a project in a retired area or moving one there fails (`areaRetired`); restoring a project of a retired area un-retires it. An area can be deleted only when no live project references it. A project's color is its area's; projects and entries store none.
 
-The store accepts `#RRGGBB` in either case and stores it uppercase; anything else fails with `invalidColor`. A project's color is its area's; projects and entries store none.
+Default color of a new area (including a new client's general area): take the HSB hues (whole degrees) of all live areas with saturation at least 0.1. With none, use hue 210. Otherwise take the midpoint, rounded down, of the largest circular gap between sorted hues (on equal gaps, the one starting at the smallest hue). The color is that hue at saturation 0.65 and brightness 0.80, rounded per sRGB channel.
 
-Default color of a new area (including a new client's general area): take the HSB hues (whole degrees) of all live areas with saturation at least 0.1. With none, use hue 210. Otherwise take the midpoint, rounded down, of the largest circular gap between sorted hues (on equal gaps, the one starting at the smallest hue). The color is that hue at saturation 0.65 and brightness 0.80, rounded per sRGB channel. Hues 0 and 120 give 240.
-
-The type `AreaColor` implements every color derivation: relative luminance, the contrast-safe text color (black or white, whichever has the higher WCAG contrast), and the tints and per-project lightness steps whose parameters the Projects and Reports specs define.
+Text on an area color is black or white, whichever has the higher WCAG contrast; [spec_projects.md](spec_projects.md) §4.4 defines tints and lightness steps.
 
 ### 1.3 Project
 
-| Field | Type | Meaning |
-|---|---|---|
-| id | UUID | |
-| areaID | UUID | May change, also to another client's area. |
-| name | String | Non-empty; unique among the client's live projects. |
-| archived | Bool | Hidden from pickers and autocompletion; entries kept; restorable. |
-| archivedAt | Instant? | Set when archived, cleared when restored. |
+| Field | Meaning |
+|---|---|
+| areaID | May change, also to another client's area. |
+| name | Non-empty; unique among the client's live projects. |
+| archived | Hidden from pickers and autocompletion; entries kept; restorable. |
+| archivedAt | Set when archived, cleared when restored. |
 
-Moving a project into a client that has a live project of that name fails with `duplicateName`. Starting or continuing an entry on an archived project fails with `projectArchived`; a running entry whose project is archived elsewhere keeps running. A project with live entries cannot be deleted (`referenced`); `merge(project:into:)` moves all entries to another project and tombstones the first.
+Moving a project into a client that has a live project of that name fails with `duplicateName`. Starting or continuing an entry on an archived project fails with `projectArchived`; a running entry whose project is archived elsewhere keeps running. A project with live entries cannot be deleted (`referenced`); merging moves all its entries to another project and tombstones it.
 
 ### 1.4 Time entry
 
-| Field | Type | Meaning |
-|---|---|---|
-| id | UUID | |
-| projectID | UUID? | `nil` is "no project". |
-| task | String | Free-text description, trimmed, may be empty. |
-| start | Instant | |
-| end | Instant? | `nil` while running; otherwise `end >= start`. |
-| timeZone | String | IANA zone of the creating device; decides the entry's day and midnights (section 8). |
-| deviceID | UUID | Creating device (1.8). |
-| splitRootID | UUID? | For a split piece, the id of the chain's first piece. |
+| Field | Meaning |
+|---|---|
+| projectID | Nil means no project. |
+| task | Free-text description, trimmed, may be empty. |
+| start, end | Instants; `end` is nil while running, otherwise `end >= start`. |
+| timeZone | IANA zone of the creating device; decides the entry's stored day and its midnights. |
+| deviceID | Creating device (1.8). |
+| splitRootID | For a split piece, the id of the chain's first piece. |
 
 Duration is `end - start` (`now - start` while running), never stored or rounded. Invariants:
 
 1. At most one live entry runs across all devices (3.3).
 2. No live entry crosses a midnight of its `timeZone` (1.5); ending exactly at midnight is fine.
 3. No library write sets `start` or `end` after the writing device's current time (`inFuture`). Synced records are not checked; a running entry starting more than 5 minutes in the future is a consistency issue.
-4. Overlaps are tolerated; callers check with `overlaps(for:excluding:)`.
-5. A reference to a project not yet received is kept, shown as "unknown project", and reported by `consistencyIssues()`.
+4. Overlaps are tolerated; callers check for them before writing.
+5. A reference to a project not yet received is kept, shown as "unknown project", and reported as a consistency issue.
 
 ### 1.5 The midnight split and the chain
 
-Midnight is `Calendar.startOfDay` in the entry's `timeZone` (correct for zones whose DST change falls at midnight). An entry whose interval (up to now while running) contains midnights M1 < … < Mk after `start` becomes k + 1 pieces. The original keeps its id and ends at M1; the piece starting at Mi ends at the next midnight, at the original end, or keeps running. Each piece copies `projectID`, `task`, `timeZone`, and `deviceID`, has `createdAt = Mi`, `splitRootID = R` (the original's `splitRootID ?? id`), and id UUIDv5 (RFC 9562) with namespace R and name `split:YYYY-MM-DD`, the local date of Mi. Devices therefore produce identical pieces however they split.
+Entries are split at midnight in storage, so daily sums are plain sums, with derived ids, so every device produces the same pieces. A midnight is `Calendar.startOfDay` in the entry's `timeZone`, which handles zones whose DST change falls at midnight.
 
-The invariant pass splits a running entry when a writing process sees a midnight pass: at each local midnight of the entry's zone, on opening the store, on wake, on a clock or significant time change, and on every write. Creating, editing, moving, or importing across midnight splits in the same transaction; the write returns all pieces, the given id first. Pieces are ordinary entries afterwards and are never joined. A derived id that exists as a tombstone stays deleted and that part of the interval is dropped. Until a writer splits a running entry, read-only openers attribute it whole to its start day.
+An entry whose interval (up to now while running) contains midnights M1 < … < Mk after `start` becomes k + 1 pieces. The original keeps its id and ends at M1; the piece starting at Mi ends at the next midnight, at the original end, or keeps running. Each piece copies `projectID`, `task`, `timeZone`, and `deviceID`, has `createdAt = Mi`, `splitRootID = R` (the original's `splitRootID ?? id`), and id UUIDv5 (RFC 9562) with namespace R and name `split:YYYY-MM-DD`, the local date of Mi.
 
-An entry's chain is the live entries with the same root (`splitRootID ?? id`); its chain start is their earliest `start`. Running-entry displays (Timer label, menu bar, widgets) count elapsed time from the chain start (`chainStart(of:)`, 7.2).
+A running entry is split when a writing process sees a midnight pass: at each midnight of the entry's zone, on opening the store, on wake, on a clock or significant time change, and on every write. Creating, editing, moving, or importing across midnight splits in the same transaction; the write returns all pieces, the given id first. Pieces are ordinary entries afterwards and are never joined. A derived id that exists as a tombstone stays deleted and that part of the interval is dropped. Until a writer splits a running entry, read-only openers see it as one entry on its stored `day`.
+
+An entry's chain is the live entries with the same root (`splitRootID ?? id`); its chain start is their earliest `start`. Running-entry displays (Timer label, menu bar, widgets) count elapsed time from the chain start.
 
 ### 1.6 Settings
 
-Synced settings are records; device settings live in the App Group's `UserDefaults` suite. Other specs register their own keys through `SyncedSettingKey<T>` and `DeviceSettingKey<T>`. Shared or owned here:
+Synced settings are records; device settings live in the App Group's `UserDefaults` suite. The feature specs describe what each setting does ([spec_timer.md](spec_timer.md) §5.2, [spec_calendar.md](spec_calendar.md) §6, [spec_ios.md](spec_ios.md)).
 
-| Key | Scope | Type | Default | Owner |
-|---|---|---|---|---|
-| `pomodoro.focusMinutes` | synced | Int | 25 | Timer |
-| `pomodoro.breakMinutes` | synced | Int | 5 | Timer |
-| `pinnedProjectIDs` | synced | [UUID] | [] | iOS widgets |
-| `activity.contextColors` | synced | [String: Int] (context to hue index) | {} | Activity |
-| `calendar.timeBlockCalendarID` | synced | String? | nil | Calendar |
-| `calendar.timeBlockCalendarTitle` | synced | String? | nil ("Time Blocks") | Calendar |
-| `calendar.showSleep` | synced | Bool | false | Calendar; the iPhone imports sleep while on (1.9) |
-| `calendar.showWorkouts` | synced | Bool | false | Calendar; the iPhone imports workouts while on (1.9) |
-| `calendar.sleepAreaID`, `calendar.workoutAreaID` | synced | AreaID? | nil | Calendar settings; Reports count the kind in that area (7.3) |
-| `calendar.healthImport` | synced | HealthImportStatus? | nil | Written by the iPhone's import: device name, time, kinds read (1.9); the Calendar settings show it |
-| `calendar.snapMinutes` | synced | Int | 5 | Calendar |
-| `day.midnightHour` | synced | Int, 0 to 23 | 0 | §8 |
-| `calendar.shownCalendars` | synced | [(account, calendar)] titles | [] | Calendar |
-| `deviceID` | device | UUID | created on first launch | this spec |
-| `pomodoro.sounds` | device | Bool | true | Timer |
-| `idle.thresholdMinutes` | device | Int | 10 | Timer |
+| Key | Scope | Default |
+|---|---|---|
+| `day.midnightHour` | synced | 0, range 0 to 23 (section 8) |
+| `pomodoro.focusMinutes`, `pomodoro.breakMinutes` | synced | 25, 5 |
+| `pinnedProjectIDs` | synced | empty |
+| `activity.contextColors` | synced | empty (context to hue index) |
+| `calendar.snapMinutes` | synced | 5 |
+| `calendar.shownCalendars` | synced | empty |
+| `calendar.timeBlockCalendarID`, `calendar.timeBlockCalendarTitle` | synced | nil (no title means "Time Blocks") |
+| `calendar.showSleep`, `calendar.showWorkouts` | synced | false |
+| `calendar.sleepAreaID`, `calendar.workoutAreaID` | synced | nil |
+| `calendar.healthImport` | synced | nil (written by the iPhone's import, 1.9) |
+| `pomodoro.sounds` | device | true |
+| `idle.thresholdMinutes` | device | 10 |
+| `deviceID` | device | a UUID created on first use |
 
-Shortcuts, menu bar display, window frames, and Pomodoro state are device settings of their owner specs. Synced settings merge per key by last writer, except `activity.contextColors`, which merges as the union, the smaller index winning for a context assigned differently. A new context takes the hue index used by the fewest contexts, lowest on ties.
+Synced settings merge per key by last writer, except `activity.contextColors`, which merges as the union, the smaller index winning for a context assigned differently. A new context takes the hue index used by the fewest contexts, lowest on ties.
 
 ### 1.7 Bookkeeping
 
-Every record has `createdAt` (a split piece's: its midnight), `modifiedAt` (the last local change in milliseconds by the writing device's clock, which drives conflict resolution, 3.2), and `deletedAt`, set by every deletion. Tombstones are invisible unless `includeDeleted` is requested and are hard-deleted locally and in CloudKit after 180 days. Deleting anything a live record references fails with `referenced`.
+Records have `createdAt` (a split piece's: its midnight; settings have none), `modifiedAt` (the last local change in milliseconds by the writing device's clock, which drives conflict resolution, 3.2), and `deletedAt`, set by every deletion (devices have none). Tombstones are invisible unless `includeDeleted` is requested and are hard-deleted locally and in CloudKit after 180 days. Deleting anything a live record references fails with `referenced`.
 
 ### 1.8 Device
 
-| Field | Type | Meaning |
-|---|---|---|
-| id | UUID | The `deviceID` device setting. |
-| name | String | User-visible device name. |
-| platform | String | `mac`, `iphone`, or `ipad`. |
-| lastSeenAt | Instant | Updated at most hourly while the app runs. |
-| widgetPushToken | String? | iPhone and iPad: the widget extension's WidgetKit push token, hex; `nil` without installed widgets. |
-
-Entries show "created on iPhone" through this record. Devices are never deleted automatically.
+A device record has the `deviceID` setting as id, a user-visible `name`, a `platform` (`mac`, `iphone`, or `ipad`), `lastSeenAt` (updated at most hourly while the app runs), and on iPhone and iPad `widgetPushToken`, the widget extension's WidgetKit push token in hex, nil without installed widgets. Devices are never deleted automatically.
 
 ### 1.9 Health period
 
-| Field | Type | Meaning |
-|---|---|---|
-| id | UUID | |
-| kind | String | `sleep` or `workout`. |
-| start, end | Instant | Whole seconds. |
-| activity | String? | A workout's activity type: the name of its `HKWorkoutActivityType` case (`running`, `walking`, `traditionalStrengthTraining`), or `other-` and the raw value for a type the iPhone's table doesn't name. Nil for sleep and for workouts imported before schema version 3. |
-| distance | Int? | A workout's distance in whole meters, the sum of the distances it records (a swim-bike-run has three); nil when it records none, and for sleep. |
+| Field | Meaning |
+|---|---|
+| kind | `sleep` or `workout`. |
+| start, end | Whole seconds. |
+| activity | A workout's `HKWorkoutActivityType` case name (`running`), or `other-` and the raw value for a type the iPhone's table doesn't name. Nil for sleep and for workouts imported before schema version 3. |
+| distance | A workout's distance in whole meters, summed over what it records (a swim-bike-run has three); otherwise nil. |
 
-Sleep and workouts from Apple Health, for the Calendar ([spec_calendar.md](spec_calendar.md) §3.1). HealthKit exists only on the iPhone and iPad, so the iPhone imports and the store syncs the periods to the Mac and iPad; only the iPhone writes them ([spec_ios.md](spec_ios.md) §7 item 6). A sleep period is the asleep samples of any stage (unspecified, core, deep, REM) merged where they overlap or lie at most 30 minutes apart, plus each in-bed period that holds no asleep sample (a night recorded by the iPhone's sleep schedule alone); a workout period is a workout from start to end, overlapping workouts (one workout recorded by two apps) merged, while workouts that only touch (a walk ending as a run starts) stay apart. A merged period takes the activity and distance of its longest workout, since its members mostly record the same exercise twice and a sum would count the distance twice.
+Sleep and workouts from Apple Health, for the Calendar ([spec_calendar.md](spec_calendar.md) §3.1). Only the iPhone imports and writes them ([spec_ios.md](spec_ios.md) §7 item 6); they sync to the Mac and iPad and are not part of the JSON export.
 
-An import of one kind covers the 60 days before now the first time, afterwards from 3 days before the previous import (samples a watch syncs late), and reads samples from a day earlier still, so a period that began before the range is whole. `replaceHealthPeriods(kind, from:, with:)` then makes the live periods of that kind starting at or after the range's start equal the imported ones: a period with the same start and end keeps its record (updated when its activity or distance differs), the others become tombstones, and new ones are created. The iPhone keeps the time of the last workout import under a key that changed with schema version 3, so its first workout import after the upgrade covers 60 days again and fills in the activity and distance of those workouts; older ones keep none. Periods starting earlier are left alone. Health periods are not part of the JSON export.
+A sleep period is the asleep samples of any stage merged where they overlap or lie at most 30 minutes apart, plus each in-bed period holding no asleep sample (a night recorded by the sleep schedule alone). A workout period runs from a workout's start to its end; overlapping workouts (one workout recorded by two apps) merge, while workouts that only touch stay apart. A merged period takes the activity and distance of its longest workout, since a sum would count the same exercise twice.
 
-After an import in which at least one kind succeeded, the iPhone writes the synced setting `calendar.healthImport`: its device name, the time in whole seconds, and the kinds read, in the order sleep, workout. It skips the write when the stored status has the same device and kinds and is less than an hour old, so frequent wakes don't each sync a record. `HealthImportStatus.summary(_:shown:found:)` turns it, the kinds shown, and the kinds with live periods (`healthKinds()`) into the Calendar settings' status line ([spec_calendar.md](spec_calendar.md) §6).
+An import of one kind covers the 60 days before now the first time, afterwards from 3 days before the previous import (a watch syncs late), and reads samples from a day earlier still, so a period that began before the range is whole. The live periods of that kind starting in the range then become the imported ones: a period with the same start and end keeps its record (updated when its activity or distance differs), the others become tombstones, and new ones are created. The workout import's timestamp changed key with schema version 3, so the first import after the upgrade covers 60 days again and fills in activity and distance.
+
+After an import in which at least one kind succeeded, the iPhone writes `calendar.healthImport` (device name, time, kinds read) for the Calendar settings' status line, unless the stored status has the same device and kinds and is less than an hour old, so frequent wakes don't each sync a record.
 
 ## 2. Persistence
 
 ### 2.1 Store and schema
 
-One SQLite database in WAL mode, through GRDB.swift, at `<App Group container>/Library/Application Support/TimeTracking/store.sqlite` (identifiers in spec_architecture.md §1.5; Debug builds have their own). The tracker agent does not open it. Timestamps are Unix seconds except `modified_at` (milliseconds); booleans 0/1.
+The store is the product's own SQLite schema rather than SwiftData, because the running-entry and midnight rules need a custom merge, reports need SQL, and scripts need a stable format. It is one database in WAL mode at `<App Group container>/Library/Application Support/TimeTracking/store.sqlite` (spec_architecture.md §1.5; Debug builds have their own). The tracker agent does not open it. Timestamps are Unix seconds except `modified_at` (milliseconds); booleans are 0/1.
+
+Entity tables (`client`, `area`, `project`, `time_entry`, `setting`, `device`, `health_period`) hold the fields of section 1 in snake case, with `setting` as `key` and JSON `value`. The `time_entry` table adds the computed `day` (`YYYY-MM-DD`, the local date of `start` in `time_zone`) and `task_key` (the folded task). The tables `meta` (`schema_version`, currently 3, and `store_id`), `live_state`, `outbox`, `sync_state`, and `purged_record` (hard-deleted ids, so `restore` can report `retentionExpired`) are internal. Scripts read entries through this view, whose `day` is the stored day whatever Midnight says:
 
 ```sql
-CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);  -- schema_version '3', store_id
-
-CREATE TABLE client (id TEXT PRIMARY KEY, name TEXT NOT NULL,
-  created_at INTEGER NOT NULL, modified_at INTEGER NOT NULL, deleted_at INTEGER, ck_system_fields BLOB);
-
-CREATE TABLE area (id TEXT PRIMARY KEY, client_id TEXT NOT NULL, name TEXT NOT NULL,
-  general INTEGER NOT NULL DEFAULT 0, color TEXT NOT NULL,
-  sort_order INTEGER NOT NULL DEFAULT 0, retired INTEGER NOT NULL DEFAULT 0,
-  created_at INTEGER NOT NULL, modified_at INTEGER NOT NULL, deleted_at INTEGER, ck_system_fields BLOB);
-
-CREATE TABLE project (id TEXT PRIMARY KEY, area_id TEXT NOT NULL, name TEXT NOT NULL,
-  archived INTEGER NOT NULL DEFAULT 0, archived_at INTEGER,
-  created_at INTEGER NOT NULL, modified_at INTEGER NOT NULL, deleted_at INTEGER, ck_system_fields BLOB);
-
-CREATE TABLE time_entry (id TEXT PRIMARY KEY, project_id TEXT, task TEXT NOT NULL DEFAULT '',
-  task_key TEXT NOT NULL DEFAULT '',          -- task, trimmed and folded
-  start INTEGER NOT NULL, "end" INTEGER,       -- NULL while running
-  day TEXT NOT NULL,                           -- 'YYYY-MM-DD', local date of start in time_zone
-  time_zone TEXT NOT NULL, device_id TEXT NOT NULL, split_root_id TEXT,
-  created_at INTEGER NOT NULL, modified_at INTEGER NOT NULL, deleted_at INTEGER, ck_system_fields BLOB);
-
-CREATE TABLE setting (key TEXT PRIMARY KEY, value TEXT NOT NULL,  -- JSON
-  modified_at INTEGER NOT NULL, deleted_at INTEGER, ck_system_fields BLOB);
-
-CREATE TABLE device (id TEXT PRIMARY KEY, name TEXT NOT NULL, platform TEXT NOT NULL,
-  last_seen_at INTEGER NOT NULL, widget_push_token TEXT,
-  created_at INTEGER NOT NULL, modified_at INTEGER NOT NULL, ck_system_fields BLOB);
-
-CREATE TABLE live_state (id INTEGER PRIMARY KEY CHECK (id = 1),   -- section 4
-  running TEXT, changed_at INTEGER, activity TEXT NOT NULL DEFAULT '{}', ck_system_fields BLOB);
-
-CREATE TABLE health_period (id TEXT PRIMARY KEY, kind TEXT NOT NULL,   -- 1.9; schema version 2
-  start INTEGER NOT NULL, "end" INTEGER NOT NULL,
-  activity TEXT, distance INTEGER,                                       -- schema version 3
-  created_at INTEGER NOT NULL, modified_at INTEGER NOT NULL, deleted_at INTEGER, ck_system_fields BLOB);
-
-CREATE TABLE outbox (seq INTEGER PRIMARY KEY AUTOINCREMENT, record_type TEXT NOT NULL,
-  record_id TEXT NOT NULL, queued_at INTEGER NOT NULL);
-CREATE TABLE sync_state (key TEXT PRIMARY KEY, value BLOB NOT NULL);  -- CKSyncEngine state
-
 CREATE VIEW entries AS
   SELECT e.id, e.start, e."end", e."end" - e.start AS seconds, e.day, e.task,
          p.id AS project_id, p.name AS project, a.id AS area_id, a.name AS area, a.color,
@@ -189,53 +134,56 @@ CREATE VIEW entries AS
   WHERE e.deleted_at IS NULL;
 ```
 
-Partial indexes cover live entries by `start`, by `day`, the running entry, (`project_id`, `task_key`, `start`), and `split_root_id`. The library computes `day` and `task_key` on every write. No foreign keys are declared, since records sync in any order. Migrations run forward on open and only add columns and tables (version 2 adds `health_period` and its index on live starts, version 3 its `activity` and `distance`); a newer schema than the library knows is refused.
+No foreign keys are declared, since records sync in any order; integrity is reported, never repaired. Migrations run forward on open and only add columns and tables; a newer schema than the library knows is refused.
 
-Scripts open the file read-only (`?mode=ro`) and may rely on the `entries` view and the `client`, `area`, `project`, and `setting` tables, whose columns are stable within a major schema version (columns may be added). Everything else is private, `health_period` included (scripts list it with the tool's `health`); scripts write through the command-line tool.
+Scripts open the file read-only (`?mode=ro`) and may rely on the `entries` view and the `client`, `area`, `project`, and `setting` tables, whose columns are stable within a major schema version (columns may be added). Everything else is private (scripts list health periods with the tool's `health`); scripts write through the command-line tool.
 
 ### 2.2 Processes and change notification
 
-Writers are the app (Mac and iOS) and, on the Mac, the command-line tool; iOS widget and control buttons write through intents that run in the app process. WAL with a 5 second busy timeout serializes them. Each write transaction runs the invariant pass (3.3), appends one `outbox` row per changed record, and after commit posts the Darwin notification `<APP_ID>.changed`, the only cross-process change signal. Every listener receives every post, its own included, and posts close together arrive as one; a store re-reads when `PRAGMA data_version` of its writer connection shows that another connection committed since the last notification, so its own posts cost nothing and another process's post that arrived together with its own is not lost. The command-line tool posts but does not listen: it needs no change events, and its store closes (and checkpoints) when its command ends. Only the app runs the sync engine and drains the outbox: on the Mac within a second, on iOS at the app's next run. After applying remote changes on iOS the library reloads all widget timelines.
+Writers are the app and, on the Mac, the command-line tool; iOS widget and control buttons write through intents that run in the app process. A 5-second busy timeout serializes them; a write still locked out fails with `busy`. Each write transaction runs the invariant pass (3.3), appends one `outbox` row per changed record, and after commit posts the Darwin notification `<APP_ID>.changed`, the only cross-process change signal.
+
+Every listener receives every post, its own included, and posts close together arrive as one. A store therefore re-reads when `PRAGMA data_version` of its writer connection shows that another connection committed, so another process's post that arrived with its own is not lost. The command-line tool posts but does not listen.
+
+Only the app runs the sync engine and drains the outbox: on the Mac within a second, on iOS at the app's next run. After applying remote changes, the iOS app reloads all widget timelines.
 
 ## 3. Synchronization
 
 ### 3.1 CloudKit layout and engine
 
-The private database of `iCloud.<APP_ID>` (development environment, spec_architecture.md) holds the zone `TimeTracking` with the record types `Client`, `Area`, `Project`, `TimeEntry`, `Setting`, `Device`, `HealthPeriod`, and `LiveState`, and the zone `ActivityEvents` with `DeviceEvent` (section 6). Record names are the UUIDs (for `Setting` the key, for `LiveState` the fixed name `LiveState`); fields use the camelCase names of section 1; references are `String` UUIDs, so nothing cascades. Record types and fields are only ever added.
+The private database of `iCloud.<APP_ID>` (development environment) holds the zone `TimeTracking` with the record types `Client`, `Area`, `Project`, `TimeEntry`, `Setting`, `Device`, `HealthPeriod`, and `LiveState`, and the zone `ActivityEvents` with `DeviceEvent` (section 6). Record names are the UUIDs (for `Setting` the key, for `LiveState` the fixed name `LiveState`); fields use the camelCase names of section 1; references are `String` UUIDs, so nothing cascades. Record types and fields are only ever added.
 
-The `CKSyncEngine` runs in the app process with automatic sync and a database subscription for silent pushes; the library's `SyncCoordinator` is its delegate:
+A `CKSyncEngine` runs in the app process with automatic sync and a database subscription for silent pushes:
 
-1. It drains `outbox` into pending changes on every store change and calls `sendChanges()` at once after a change to the running entry or `LiveState`.
+1. Every store change hands the outbox to the engine; a change to the running entry or `LiveState` is sent at once.
 2. A batch containing a `LiveState` save is atomic by zone and includes the entry records that produced it.
-3. A `serverRecordChanged` conflict merges (3.2, 4.1) and re-queues; an `unknownItem` error re-saves without system fields; a `zoneNotFound` error recreates the zone and re-queues every live record and tombstone.
+3. A `serverRecordChanged` conflict merges (3.2, 4.1) and re-queues; `unknownItem` re-saves without system fields; `zoneNotFound` recreates the zone and re-queues every live record and tombstone.
 4. Fetched changes are applied in one transaction followed by the invariant pass. A remote hard deletion of a live local record acts as a tombstone at `now`.
-5. A switch to another iCloud account resets the store to empty after confirmation; with no account the store works locally.
+5. A switch to another iCloud account resets the store to empty after confirmation; declining stops sync. With no account the store works locally.
 
-CloudKit throttles and delays silent pushes, so the apps also fetch on their own. The Mac app fetches whenever it becomes active and 30 seconds after its last fetch while it runs, one fetch at a time; iOS fetches at every foreground, before acting on a widget or control button, and in its refresh task (iOS spec §6.1, §7).
+CloudKit throttles silent pushes, so the apps also fetch on their own. The Mac app fetches whenever it becomes active and 30 seconds after its last fetch, one fetch at a time; iOS fetches at every foreground, before acting on a widget or control button, and in its refresh task (iOS spec §6.1, §7).
 
-A start or stop on one online device appears in the app on another within 5 seconds in the common case and 30 seconds at worst before `SyncStatus` shows waiting. The `SyncStatus` values are `idle`, `sending(count)`, `fetching`, `waitingForNetwork`, `noAccount`, or `error(message)`. Writes never wait for the network. A fresh device fetches the whole zone behind a progress indicator before showing data.
+A start or stop on one online device appears in the app on another within 5 seconds in the common case and 30 seconds at worst. Writes never wait for the network. The sync status is `idle`, `sending(count)`, `fetching`, `waitingForNetwork`, `noAccount`, or `error(message)`.
 
 ### 3.2 Conflict resolution
 
-The copy with the later `modifiedAt` wins entirely; on a tie the greater `id`, then `deviceID` (`Setting` and `Device` by record name). Deletion is an ordinary modification, so a later edit resurrects a deleted record. The only field-level merges are `activity.contextColors` (1.6) and `LiveState` (4.1). The same project name created on two devices yields two projects, reported for "Merge into". A project added to an area whose client was deleted elsewhere is reported as orphaned for reassignment, never deleted. Daily maintenance hard-deletes tombstones older than 180 days everywhere.
+The copy with the later `modifiedAt` wins entirely; on a tie the greater `deviceID`, then the greater field text, so every device picks the same copy. Deletion is an ordinary modification, so a later edit resurrects a deleted record. The only field-level merges are `activity.contextColors` (1.6) and `LiveState` (4.1). The same project name created on two devices yields two projects, reported for "Merge into". A project added to an area whose client was deleted elsewhere is reported as orphaned for reassignment, never deleted. The Mac app's daily maintenance hard-deletes tombstones older than 180 days, and the deletion syncs to the other devices.
 
 ### 3.3 The invariant pass
 
-After every local write and every applied remote batch, in the same transaction, as a pure function of the store and the current time:
+The one-running-entry rule and the midnight split run as a deterministic pass, so devices converge without coordination. After every local write and every applied remote batch, in the same transaction, as a pure function of the store and the current time:
 
-1. Split every live entry that crosses a midnight of its zone (1.5).
+1. Split every running entry and every entry the transaction changed that crosses a midnight of its zone (1.5).
 2. If several entries run, order them by chain start, then root id. The last keeps running. For each other one, with T the next one's chain start: entries of its chain with `start >= T` are tombstoned, and the one with `start < T` that runs or ends after T gets `end = T`.
-3. Count for `consistencyIssues()`: a running entry starting more than 5 minutes ahead of this device's clock, dangling references, and duplicate names.
 
 Changed rows get `modifiedAt = now` and are queued; the pass never reopens an entry. Example: A starts X at 23:00 offline and B starts Y at 23:30, and both split at midnight while apart; every device ends with X from 23:00 to 23:30, Y from 23:30 to midnight, Y's continuation running, and X's continuation tombstoned.
 
-Every change the pass or conflict resolution makes to an entry is an `EntryAdjustment` (entry, reason, before, after, causing record and device, time), kept in a ring of 100 and the `os` log, with reason `splitAtMidnight`, `stoppedByLaterStart`, `removedByLaterStart`, `replacedByRemoteEdit`, `deletedRemotely`, or `restoredRemotely`. Adjustments other than `splitAtMidnight` to entries created on this device are emitted as `.adjusted` (7.4) ("Stopped at 10:14 because an entry started on MacBook").
+The pass repairs nothing else. The query `consistencyIssues()` reports a running entry starting more than 5 minutes ahead of this device's clock, dangling references, and duplicate names.
 
-The `SyncTransport` protocol has a `CloudKitTransport` and an `InMemoryTransport` (simulated server with change tags, delays, partitions, and `serverRecordChanged`); tests run several stores against it with a `ManualClock`. The `CloudKitTransport` has an integration test against the Debug container (`make test-sync`).
+Every change the pass or conflict resolution makes to an entry is an adjustment, kept in a ring of 100 and the `os` log, with reason `splitAtMidnight`, `stoppedByLaterStart`, `removedByLaterStart`, `replacedByRemoteEdit`, `deletedRemotely`, or `restoredRemotely`. Adjustments other than `splitAtMidnight` to entries created on this device are emitted as `.adjusted`, which the iOS app shows as a banner ([spec_ios.md](spec_ios.md) §7).
 
 ## 4. Live updates
 
-The running entry and each Mac's current activity reach iPhone and iPad widgets within seconds through the `LiveState` record, widget push tokens on `Device` records, and WidgetKit pushes sent by the Mac app. There is no server.
+The running entry and each Mac's current activity reach iPhone and iPad widgets within seconds through the `LiveState` record, widget push tokens on `Device` records, and WidgetKit pushes sent by the Mac app. There is no server: CloudKit silent pushes are throttled, and the Mac is nearly always online.
 
 ### 4.1 The `LiveState` record
 
@@ -247,32 +195,29 @@ One record named `LiveState` in zone `TimeTracking`, mirrored in the `live_state
 | changedAt | Date | Last change of the running part, milliseconds. |
 | activity | String (JSON) | Map from a Mac's device id to `{"device", "primary", "groupKey", "presence", "since", "agentRunning", "lastTick", "health", "updatedAt"}`. |
 
-The activity fields come from that Mac's `current.json` (tracker spec §4.4): the device name, `primary` as `[context, subject, detail]` or null, the open block's `g` or null, the presence state and its `since`, whether the tracker is running (tracker spec §4.4), the last tick, `health` as the ids of sources whose status is not `active`, and the time of this write.
+The activity fields come from that Mac's `current.json` (tracker spec §4.4): `primary` is `[context, subject, detail]` or null, `groupKey` the open block's `g` or null, and `health` the ids of sources whose status is not `active`.
 
-On a conflict the running part with the later `changedAt` wins, and per Mac the activity entry with the later `updatedAt` wins; entries present on one side only are kept.
+On a conflict the running part with the later `changedAt` wins, and per Mac the activity entry with the later `updatedAt` wins; ties pick the greater JSON text. Entries present on one side only are kept.
 
 ### 4.2 Writers
 
-Running part, any writing process: after each write transaction the library computes the snapshot and, if it differs from the local row, writes it with `changedAt = now` and queues `LiveState` in the same transaction. Applying a remote `LiveState` updates the local row first, so the receiver writes nothing.
+Running part, any writing process: after each write transaction the library computes the snapshot and, if it differs from the local row, writes it with `changedAt = now` and queues `LiveState` in the same transaction. A row naming the same entry and project is kept while that project has not arrived, so a receiver never replaces a complete snapshot with a partial one. Applying a remote `LiveState` updates the local row first, so the receiver writes nothing.
 
-Activity part, Mac app only: `LiveStatePublisher` (macOS) watches the local `current.json` and writes this Mac's entry. Changes of `presence`, `agentRunning`, or `health` are written at once; changes of `primary` or `groupKey` at most once per 30 seconds, a change inside the window being written at its end with the then current values. A `lastTick` change alone writes nothing; `agentRunning` is re-evaluated every 30 seconds.
+Activity part, Mac app only: the app watches the local `current.json` and writes this Mac's entry. Changes of `presence`, `agentRunning`, or `health` are written at once; changes of `primary` or `groupKey` at most once per 30 seconds, a change inside the window being written at its end with the then current values. A `lastTick` change alone writes nothing; `agentRunning` is re-evaluated every 30 seconds. Without `current.json` the entry stays, with `agentRunning` false.
 
 ### 4.3 Widget pushes
 
-The iOS app stores its widget push token with `setWidgetPushToken(_:)` on its `Device` record (iOS spec §4, item 1, says when). The library's `WidgetPushSender` (macOS, injectable transport and clock) runs only in the Mac app and decides when and to whom; credentials and the request are in spec_architecture.md §2.4. It pushes to every `Device` with platform `iphone` or `ipad` and a token:
+The iOS app stores its widget push token on its `Device` record (iOS spec §4, item 1). Only the Mac app sends pushes (spec_architecture.md §2.4), to every `iphone` or `ipad` device with a token, when the engine confirms the Mac's own `LiveState` save and when it applies a fetched `LiveState` whose running part changed. Another Mac's activity change sends nothing, since that Mac sends its own.
 
-- after the engine confirms the Mac's own `LiveState` save;
-- after the Mac applies a fetched `LiveState` whose running part changed (another Mac's activity change sends nothing; that Mac sends its own).
+Running-part pushes go out at once; activity-only pushes at most once per 60 seconds per token, a later one being sent at the window's end. With two Macs, duplicates only cause an extra reload. The push status is `noKey` (no pushes), `idle(lastSentAt)`, or `failing(message)`.
 
-Running-part pushes go out at once; activity-only pushes at most once per 60 seconds per token, a later one being sent at the window's end. With two Macs, duplicates only cause an extra reload. The `WidgetPushStatus` is `noKey` (no pushes), `idle(lastSentAt)`, or `failing(message)`.
-
-The call `LiveStateReader.fetch(timeout:) async throws -> LiveState` fetches the record from CloudKit without the sync engine, for the widget timeline providers (iOS spec §4, item 2). With the Mac awake and online, a stop on any device reaches a Home Screen widget in about 5 seconds; otherwise widgets follow CloudKit pushes, app runs, and scheduled reloads.
+Widget timeline providers fetch the record from CloudKit without the sync engine (iOS spec §4, item 2). With the Mac awake and online, a stop on any device reaches a Home Screen widget in about 5 seconds; otherwise widgets follow CloudKit pushes, app runs, and scheduled reloads.
 
 ## 5. JSON export and import
 
 ### 5.1 Export
 
-The command `timetracking export` and an App Intent write the whole store as one document, the backup and interchange format:
+The command `timetracking export` writes the whole store as one document, the backup and interchange format:
 
 ```json
 {
@@ -292,173 +237,63 @@ Timestamps are RFC 3339 UTC; a running entry has `"end": null`. Only synced sett
 
 ### 5.2 Import
 
-The call `importDocument(_:options:)` reads the same format and upserts by id; the command `timetracking import` calls it, and external converters write this format (spec_automation.md).
+The command `timetracking import` reads the same format and upserts by id. Import is the inverse of export, so converters for other products stay outside the app (spec_automation.md).
 
 Required: `format` 1; clients `id`, `name`; areas `id`, `clientID`, `name`, `color`; projects `id`, `areaID`, `name`; entries `id`, `start`, `end`. Missing optional fields default to `sortOrder` 0, false flags, null `archivedAt`, `projectID`, and `splitRootID`, empty `task`, `createdAt` now, `timeZone` `options.defaultTimeZone` (else the device's zone), and `deviceID` the importing device. The import ignores `generatedAt`, `storeID`, and `devices`, and applies `settings` only with `options.includeSettings`.
 
 In one transaction:
 
-1. Validate everything: format, required fields, UUIDs, colors, `end >= start`, nothing in the future, at most one running entry, resolvable references, and the name rules on the resulting store. The first failure throws `invalidDocument(path:reason:)` with a JSON path such as `entries[1041].end`, and nothing is written.
+1. Validate everything: format, required fields, UUIDs, colors, time zones, `end >= start`, nothing in the future, at most one running entry, resolvable references, and the name rules on the resulting store. The first failure throws `invalidDocument(path:reason:)` with a JSON path such as `entries[1041].end`, and nothing is written.
 2. Give a client without a general area one with id UUIDv5(namespace: client id, name: `general-area`), the client's name, and the default color.
 3. Upsert by id: insert new rows, replace changed live rows, skip equal ones, and skip local tombstones (`skippedDeleted`). Document records that carry `deletedAt` are ignored, so an import never deletes. Written rows get `modifiedAt = now`.
 4. Run the invariant pass.
 
-The `ImportReport` counts `created`, `updated`, `unchanged`, and `skippedDeleted` per entity, plus `splitPieces` and adjustments. With `options.dryRun` the transaction is rolled back.
+The report counts `created`, `updated`, `unchanged`, and `skippedDeleted` per entity, plus `splitPieces` and adjustments. With `options.dryRun` the transaction is rolled back.
 
 ## 6. Activity logs
 
-The tracker spec defines the formats; this section fixes locations and the reader.
+The tracker spec defines the formats and folders ([spec_activity_tracking.md](spec_activity_tracking.md) §4.1).
 
 | Artifact | Location | Writer | Readers |
 |---|---|---|---|
-| `Activity/blocks/<mac>/YYYY-MM.jsonl` | iCloud Drive container `iCloud.<APP_ID>`, outside `Documents/`; local fallback `<App Group>/Library/Application Support/TimeTracking/Activity/` | Each Mac's tracker agent, only its own subfolder, which replaces a day's lines when it forms the day again (or the Mac app's copy, tracker spec §4.1) | Mac app, iPhone, iPad, scripts |
-| `Activity/settings.toml` | Same folder | The Mac app's Tracker pane only | Tracker agent, iOS app (exclusions) |
-| `Activity/current.json` | Mac, local folder | Tracker agent, every tick | Mac app, including `LiveStatePublisher` |
-| `Activity/detail/YYYY-MM-DD.jsonl` | Mac, local folder | Tracker agent | `detail(for:)` on the recording Mac; scripts |
-| `DeviceEvent` records, zone `ActivityEvents` | CloudKit | iOS app | Tracker agent, through `DeviceEventSource` |
-| `Activity/events.jsonl` | iOS, App Group | iOS extensions and app, append | iOS app (flushes to CloudKit, truncates) |
+| `Activity/blocks/<mac>/YYYY-MM.jsonl` | iCloud Drive container, outside `Documents/`; local fallback in the App Group | Each Mac's agent, only its own subfolder | Mac app, iPhone, iPad, scripts |
+| `Activity/settings.toml` | Same folder | The Mac app's Tracker pane | Agent, iOS app (exclusions) |
+| `Activity/current.json` | Mac, local | Agent, every tick | Mac app |
+| `Activity/detail/YYYY-MM-DD.jsonl` | Mac, local | Agent | The recording Mac; scripts |
+| `DeviceEvent` records | CloudKit zone `ActivityEvents` | iOS app | Agent |
+| `Activity/events.jsonl` | iOS, App Group | iOS extensions and app | iOS app (flushes to CloudKit, truncates) |
 
-The iPhone and iPad learn the Mac's current activity only from `LiveState`. The `DeviceEvent` fields are `deviceID`, `time`, `source` (`ladder`, `focus`, `intent`, `webext`, `app`), `label`, `kind` (tracker spec), optional JSON `payload`. The record name `<deviceID>-<time in ms>-<sequence>` makes an interrupted flush resume without duplicates. The agent merges events into the user's timeline (tracker spec §2.4) and deletes records older than 90 days.
+The iPhone and iPad learn the Mac's current activity only from `LiveState`. A `DeviceEvent` carries `deviceID`, `time`, `source` (`ladder`, `focus`, `intent`, `webext`, `app`), `label`, `kind`, and an optional JSON `payload`. The record name `<deviceID>-<time in ms>-<sequence>` makes an interrupted flush resume without duplicates. The agent merges events into the user's timeline (tracker spec §2.4) and deletes records older than 90 days.
 
-```swift
-public struct ActivityItem { var context, subject, detail: String; var seconds: Int; var device: String }
-public struct ActivityDeviceTime { var name: String; var seconds: Int; var isRecordingMac: Bool }   // isIOSDevice: neither the Mac nor "remote"
-public struct ActivityBlock: Identifiable {
-    var id: String                              // the start, RFC 3339 with offset
-    var start, end: Date; var activeSeconds: Int
-    var devices: [ActivityDeviceTime]           // most time first
-    var reconstructedSeconds: Int               // isMostlyReconstructed: more than half of activeSeconds
-    var groupKey: String; var groupShare: Double
-    var items, background: [ActivityItem]
-    var isOpen: Bool                            // today's provisional block (Mac only)
-    func restricted(to: Set<String>) -> Self?   // the part on those devices: their items and time
-}
-public struct ActivityBackgroundStretch: Identifiable {   // background work while the user was away (tracker spec §2.7)
-    var id: String; var start, end: Date
-    var items: [ActivityItem]                   // background items with their seconds
-}
-public protocol ActivityReading: Sendable {
-    func blocks(in: DateInterval, devices: Set<String>?) async throws -> [ActivityBlock]   // exclusions applied; a device filter keeps each block's part on them
-    func backgroundStretches(in: DateInterval, devices: Set<String>?) async throws -> [ActivityBackgroundStretch]   // exclusions applied; a device filter keeps the items on them
-    func detail(for: ActivityBlock.ID) async throws -> ActivityBlockDetail?                // URLs, files, presence; nil off the recording Mac
-    func currentState() async -> TrackerState?                                              // parsed current.json, Mac only
-    func aggregate(in: DateInterval, by: ActivityGroupKey, device: String?) async throws -> [ActivityAggregate]   // context, subject, groupKey, hourOfDay, day
-    func bundleIdentifier(forContext: String) -> String?
-    var exclusions: ExclusionRules { get }
-    var changes: AsyncStream<ActivityChange> { get }
-}
-public protocol DeviceEventSink { func append(_: DeviceEvent) throws; func flush() async throws }   // iOS; flush in the app only
-public protocol DeviceEventSource {                                                            // Mac agent only
-    func events(since: ChangeToken?) async throws -> ([DeviceEvent], ChangeToken)
-    func purge(before: Date) async throws
-    var changes: AsyncStream<Void> { get }
-}
-```
-
-The `FileActivityStore` reads JSON Lines lazily from a shared and a local folder, skips headers, counts malformed lines for health, converts local times with the latest header's `tz` (whose `dev` marks the recording Mac's time), and indexes month files, invalidating on change; `detail(for:)` reads the day file named by the id's date. On iOS it downloads the months in view and watches with `NSMetadataQuery`. The tracker closes blocks at midnight, so the reader never splits them.
+The reader skips headers, counts malformed lines for health, converts local times with the latest header's `tz`, and re-reads a month file when it changes. Blocks with the same id count once. Exclusions in the current `settings.toml` apply to every read, and a device filter keeps each block's part on those devices. Block detail exists only on the recording Mac. A block is mostly reconstructed when reconstructed time exceeds half its active time. On the iPad the app asks iCloud Drive for the current month's file and rechecks every 60 seconds. The tracker closes blocks at midnight, so the reader never splits them.
 
 ## 7. Query layer
 
-Queries are SQL behind `async` APIs on the store's serial executor, returning value types with typed ids.
+Views and scripts read and write through `async` APIs on the store's serial executor.
 
 ### 7.1 Writing
 
-```swift
-public protocol TimeStoreWriting: Sendable {
-    func start(projectID: ProjectID?, task: String, at: Date) async throws -> TimeEntry   // stops the running entry at `at`
-    func stop(at: Date) async throws -> TimeEntry?
-    func `continue`(_: EntryID, at: Date) async throws -> TimeEntry
-    func create(_: EntryDraft) async throws -> [TimeEntry]                     // split pieces, given id first
-    func update(_: EntryID, _: EntryChange) async throws -> [TimeEntry]        // project, task, start, end
-    func move(_: EntryID, by: TimeInterval) async throws -> [TimeEntry]
-    func split(_: EntryID, at: Date) async throws -> (TimeEntry, TimeEntry)    // user split, random id
-    func delete(_: [EntryID]) async throws
-    func restore(_: [EntryID]) async throws
-    func createClient(name: String, generalAreaColor: String?) async throws -> (Client, Area)
-    func updateClient(_: ClientID, name: String) async throws
-    func deleteClient(_: ClientID) async throws
-    func createArea(_: AreaDraft) async throws -> Area
-    func updateArea(_: AreaID, _: AreaChange) async throws                     // name, color, sortOrder, retired
-    func deleteArea(_: AreaID) async throws
-    func createProject(_: ProjectDraft) async throws -> Project
-    func updateProject(_: ProjectID, _: ProjectChange) async throws            // name, areaID
-    func archive(_: ProjectID) async throws
-    func restoreProject(_: ProjectID) async throws
-    func merge(project: ProjectID, into: ProjectID) async throws
-    func deleteProject(_: ProjectID) async throws
-    func set<T: Codable>(_: SyncedSettingKey<T>, _: T) async throws
-    func setWidgetPushToken(_: String?) async throws
-    func replaceHealthPeriods(_: HealthPeriod.Kind, from: Date, with: [DateInterval]) async throws -> Int   // 1.9
-    func importDocument(_: Data, options: ImportOptions) async throws -> ImportReport
-    func transaction<R>(_: (TimeStoreWriting) async throws -> R) async throws -> R   // one transaction, one pass
-}
-```
-
-A `nil` color means the default rule. Every write validates, writes, runs the pass, queues, and notifies. The `StoreError` cases are `emptyName`, `duplicateName`, `projectArchived`, `areaRetired`, `generalArea`, `activeProjects`, `invalidColor`, `endBeforeStart`, `inFuture`, `referenced`, `unknownID`, `retentionExpired`, `invalidDocument`.
+Every write validates, writes, runs the pass, queues, and notifies; several writes can share one transaction and one pass. Starting stops the running entry at the new start. Creating, updating, and moving an entry return its split pieces, the given id first. A user split gives the second part a random id. The `StoreError` cases are `emptyName`, `duplicateName`, `projectArchived`, `areaRetired`, `generalArea`, `activeProjects`, `invalidColor`, `endBeforeStart`, `inFuture`, `referenced`, `unknownID`, `retentionExpired`, `invalidDocument`, `newerSchema`, `readOnly`, `busy`, and `database`.
 
 ### 7.2 Reading
 
-```swift
-public protocol TimeStoreReading: Sendable {
-    func runningEntry() async throws -> TimeEntry?
-    func chainStart(of: EntryID) async throws -> Date
-    func entry(_: EntryID) async throws -> TimeEntry?
-    func entries(in: DateInterval, includeDeleted: Bool) async throws -> [TimeEntry]   // intersecting
-    func entries(on: TrackingDay) async throws -> [TimeEntry]
-    func days(ending: TrackingDay, count: Int) async throws -> [DayGroup]               // newest first
-    func recentEntries(before: Date?, limit: Int) async throws -> [TimeEntry]
-    func lastStoppedEntry(excluding: EntryID?) async throws -> TimeEntry?
-    func healthPeriods(in: DateInterval) async throws -> [HealthPeriod]                 // live, intersecting, by start
-    func recentProjects(limit: Int) async throws -> [ProjectID]                         // by latest entry start
-    func overlaps(for: EntryDraft, excluding: EntryID?) async throws -> [TimeEntry]
-    func overlappingEntries(in: DateInterval) async throws -> [(TimeEntry, TimeEntry)]
-    func distinctTasks(projectID: ProjectID?, prefix: String, limit: Int) async throws -> [TaskSuggestion]
-    func projectsByTask(matching: String, since: Date) async throws -> [ProjectID]      // picker task matching (90 days)
-    func recentCombinations(limit: Int) async throws -> [(ProjectID?, String)]
-    func consistencyIssues() async throws -> [ConsistencyIssue]
-}
-public protocol StructureReading: Sendable {
-    func clients(includeRetired: Bool) async throws -> [Client]                         // alphabetical
-    func areas(of: ClientID?, includeRetired: Bool) async throws -> [Area]
-    func projects(filter: ProjectFilter) async throws -> [ProjectRow]                   // with client, area, color, entry count, last used, total
-    func project(_: ProjectID) async throws -> Project?
-    func projectTree(includeArchived: Bool) async throws -> [ClientNode]                // client > area > projects
-    func searchProjects(_: String, limit: Int) async throws -> [ProjectRow]             // fuzzy on project, area, client names
-    func devices() async throws -> [Device]
-}
-```
+The query `entries(in:)` returns entries intersecting an interval, and `entries(on:)` those with that stored `day`. The Timer list reads `days(ending:count:)`: shown days (section 8), newest first, empty days included, each with its entries or pieces, a total with the running entry counted to the query time, and whether it includes the running entry.
 
-A `DayGroup` holds a day's entries, `totalSeconds` (the running entry counted to the query time), and `includesRunning`. The query `distinctTasks` matches the folded prefix against `task_key`, skips archived projects, returns each task once by most recent use (recent tasks for an empty prefix), and with `projectID == nil` searches entries without a project.
+Task autocompletion matches the folded prefix against `task_key`, skips archived projects, returns each task once by most recent use, and without a project searches entries without one. The project picker's task matching looks back 90 days.
 
 ### 7.3 Reports
 
-```swift
-public enum Granularity { case day, week, month, year, total }
-public enum GroupKey { case client, area, project, task, day }
-public struct EntryFilter { var clients: Set<ClientID>?; var areas: Set<AreaID>?; var projects: Set<ProjectID>?; var taskContains: String?; var includeNoProject, includeArchived: Bool }
-public struct ReportQuery { var days: ClosedRange<TrackingDay>; var groupBy: [GroupKey]; var granularity: Granularity; var filter: EntryFilter }
-public struct ReportNode { var key: GroupKeyValue; var seconds, entryCount: Int; var buckets: [TrackingPeriod: Int]; var children: [ReportNode] }
-public protocol Reporting: Sendable {
-    func report(_: ReportQuery) async throws -> ReportNode                                  // root = grand total
-    func series(_: ReportQuery) async throws -> [(TrackingPeriod, [GroupKeyValue: Int])]   // stacked bars
-    func entries(matching: ReportQuery) async throws -> [TimeEntry]
-}
-```
+A report takes a range of shown days, up to four grouping levels (client, area, project, task, day), a granularity (day, week, month, year, total), and a filter.
 
-A report counts each entry in the days it lies on (with Midnight at 00:00 that is its `day`, section 8), the running one up to the query time, so the Timer list and Reports agree. Client and area grouping use the project's current area. A health kind that is shown and mapped to a live area by its setting adds one row per day it touches, its part of that day, under the fixed project id `kind.reportProjectID` named "Sleep" or "Workouts" in that area, with an empty task; the filters treat it as a project of that area with no record ([spec_reports.md](spec_reports.md) §1.1). `entries(matching:)` returns entries only. A query's `includeHealth` (default on; the tool's `report` turns it on only with `--health`) leaves the health rows out when off, and its optional `bounds`, instants inside the days, keep only the entries starting inside them and cut health time at them (the tool's instant ranges, spec_automation.md §3.2). The `ReportCSVWriter` writes the Breakdown and Entries CSV whose columns spec_automation.md defines.
+It counts each entry in the shown days it lies on (with Midnight at 00:00 that is its stored `day`, section 8), the running one up to the query time, so the Timer list and Reports agree. Client and area grouping use the project's current area. A health kind that is shown and mapped to a live area adds one row per day it touches, its part of that day, under a fixed project id named "Sleep" or "Workouts" in that area, with an empty task ([spec_reports.md](spec_reports.md) §1.1). The tool's `report` includes health rows only with `--health`. A query's optional instant bounds keep only the entries starting inside them and cut health time at them (spec_automation.md §3.2). The query `entries(matching:)` selects stored entries by their stored `day`.
 
 ### 7.4 Observation
 
-```swift
-public enum StoreChange { case entries(Set<EntryID>), runningEntry(TimeEntry?), structure, settings(Set<String>), liveState, health, sync(SyncStatus), adjusted([EntryAdjustment]) }
-public protocol StoreObserving { var changes: AsyncStream<StoreChange> { get }; func recentAdjustments(limit: Int) async -> [EntryAdjustment] }
-```
-
-Same-process changes arrive after commit; other processes' changes arrive through the Darwin notification as `.entries([])`, `.runningEntry`, `.structure`, `.health`, `.liveState`, and `.settings` with the keys whose rows changed, and observers re-read.
+Same-process changes reach observers after commit. Other processes' changes arrive through the Darwin notification as an unspecific re-read of entries, the running entry, structure, health, and live state, plus the setting keys whose rows changed.
 
 ### 7.5 Performance
 
-On the `large` fixture (9.1), on a current Mac and iPhone, checked by a separate test plan:
+Targets on the `large` fixture (9.1) in an optimized build on a current Mac, checked by the library's performance tests in `make test`:
 
 | Operation | Target |
 |---|---|
@@ -469,32 +304,20 @@ On the `large` fixture (9.1), on a current Mac and iPhone, checked by a separate
 | `blocks(in:)` for 7 days, month files cached; opening the store | under 50 ms |
 | `report` over one year, four levels, by day | under 100 ms |
 | `report` over ten years, four levels, by month | under 300 ms |
-| Export of the whole store; `importDocument` of 300,000 entries | under 10 s; under 60 s |
+| Export of the whole store | under 10 s |
+| `importDocument` | at the rate of 300,000 entries in 60 s |
 
 ## 8. Days, weeks, and time zones
 
-Stored days start at midnight, local time. A stored entry's `day` is the date of its `start` in its own `timeZone`, and the entry lies wholly within it; after travel, entries keep their recorded day. Weeks run Monday to Sunday with ISO 8601 numbers.
+Stored days start at midnight. A stored entry's `day` is the date of its `start` in its own `timeZone`, and the entry lies wholly within it; after travel, entries keep their recorded day. The tracker's blocks close at midnight and carry their local date too.
 
-The synced setting Midnight (`day.midnightHour`, whole hours, default 0) sets the hour of the local clock at which the days the app shows and reports start. People set it to the middle of their night, when they are least likely to be active. It changes no stored data and nothing the tracker collects: entries keep their real midnight splits and `day`, and blocks their dates, so changing it is instant, reversible, and rewrites no record. `TimeStore.displayCalendar(timeZone:)` is the `TrackingCalendar` of those days; storage code keeps the plain `TrackingCalendar(timeZone:)`.
+The synced setting Midnight (`day.midnightHour`, whole hours, default 00:00) sets the hour of the local clock at which the days the app shows and reports start: the Timer list, Calendar, Reports, Activity, Projects totals, widgets, and the tool's day ranges and `report`. People set it to the middle of their night. It changes no stored data and nothing the tracker collects, so changing it is instant, reversible, and rewrites no record. With Midnight at 00:00, shown days are the stored days. Views read `TimeStore.displayCalendar(timeZone:)` and rebuild it on a time zone change or a change of the setting; storage code keeps the plain `TrackingCalendar(timeZone:)`.
 
-A day that starts before noon is named after the date it starts on; one that starts at noon or later after the date it ends on, so with Midnight at 04:00 "Tuesday" runs Tuesday 04:00 to Wednesday 04:00, and with 22:00 Monday 22:00 to Tuesday 22:00. Each local date holds one day change. An hour a DST change skips is replaced by the first instant after it; of an hour it repeats, the first counts.
+A shown day that starts before noon is named after the date it starts on; one that starts at noon or later after the date it ends on, so with Midnight at 04:00 "Tuesday" runs Tuesday 04:00 to Wednesday 04:00, and with 22:00 Monday 22:00 to Tuesday 22:00. Each local date holds one day change. Days last 23 or 25 hours across DST changes. An hour a DST change skips is replaced by the first instant after it; of an hour it repeats, the first counts. Weeks are Monday to Sunday of shown days, with ISO 8601 numbers.
 
-Shown, an entry crossing the day change in its own zone is two *pieces* (`TrackingCalendar.pieces(of:at:)`) with the entry's id: each has its part of the interval and its day, only the last one runs, and each counts as an entry of its day, so sums over days stay plain sums. Entries split at a real midnight inside a shown day stay two entries there. Editing always acts on the stored entry. The tool's `entries` lists stored entries by their start (`spec_automation.md` §3.2). Activity blocks and background stretches keep one shown day, that of their start, because their items cannot be divided; the Calendar draws them in every column they reach.
+Shown, an entry crossing the day change in its own zone is two *pieces* (`TrackingCalendar.pieces(of:at:)`) with the entry's id: each has its part of the interval and its day, only the last one runs, and each counts as an entry of its day, so sums over days stay plain sums. Entries split at a midnight inside a shown day stay two entries there. Editing always acts on the stored entry. While an entry runs, the apps wake at the start of the next shown day so its part moves over. The tool's `entries` lists stored entries by their start (`spec_automation.md` §3.2). Activity blocks and background stretches keep one shown day, that of their start, because their items cannot be divided; the Calendar draws them in every column they reach.
 
-```swift
-public struct TrackingDay: Hashable, Comparable, Codable { var year, month, day: Int }   // "YYYY-MM-DD"
-public struct TrackingCalendar {
-    init(timeZone: TimeZone)
-    func day(containing: Date) -> TrackingDay
-    func interval(of: TrackingDay) -> DateInterval                  // 23 or 25 hours on DST days
-    func week(containing: TrackingDay) -> [TrackingDay]             // Monday first
-    func periods(_: Granularity, covering: ClosedRange<TrackingDay>) -> [TrackingPeriod]
-    static func day(of: TimeEntry) -> TrackingDay
-    static func midnights(after: Date, before: Date, in: TimeZone) -> [Date]
-}
-```
-
-Views use `TrackingCalendar(timeZone: .current)`, rebuilt on a time zone change. Durations are integer seconds throughout; rounding happens only in formatting.
+Durations are integer seconds throughout; rounding happens only in formatting.
 
 ## 9. Testable behaviors
 
@@ -560,38 +383,4 @@ Views use `TrackingCalendar(timeZone: .current)`, rebuilt on a time zone change.
 
 ### 9.1 Fixtures
 
-The generators `SyntheticDataset.small`, `.medium`, and `.large(seed:)` produce deterministic data: 3 clients, 6 areas, 15 projects, one month, about 250 entries; 8, 25, 90, three years, about 20,000; 10, 40, 120, ten years, 300,000. Workdays have 6 to 14 entries of 3 minutes to 3 hours (log-normal), with 10 percent evening work, 2 percent past midnight (stored split), configurable overlaps (default 0), 3 percent tombstones, 20 to 60 task phrases per project, 15 percent archived projects, default-rule colors, and an optional running entry. The call `Dataset.write(to:)` fills a store, `exportDocument()` produces the 5.1 document (used by the CLI tests), and `activityLog(to:)` writes block-log files that overlap the entries 70 percent of the time, with one time zone change.
-
-## 10. Decisions
-
-- Own SQLite schema with `CKSyncEngine`, not SwiftData: the running-entry and midnight rules need a custom merge, reports need SQL, scripts need a stable schema.
-- Record-level last writer wins; a later edit may resurrect a deleted record.
-- The one-running-entry rule and the midnight split run as a deterministic pass after every write and remote batch, so devices converge without coordination.
-- Entries are split at midnight in storage with ids derived from the chain root and date, so daily totals are plain sums and every device produces the same pieces.
-- No foreign keys: records sync in any order; integrity is reported, never repaired.
-- A `LiveState` record plus Mac-sent WidgetKit pushes instead of a server: CloudKit silent pushes are throttled and the Mac is nearly always online.
-- Import is the inverse of export, so converters for other products stay outside the app.
-
-## 11. Interfaces
-
-Provided:
-
-- Entity types, `AreaColor`, typed ids, `StoreError` (1, 7.1).
-- `TimeStoreWriting`, `TimeStoreReading` with `chainStart(of:)`, `StructureReading`, `Reporting`, `ReportCSVWriter`, `StoreObserving` (7).
-- `SyncStatus`, `EntryAdjustment` (3).
-- `LiveState`, `LiveStatePublisher`, `WidgetPushSender`, `WidgetPushStatus`, `LiveStateReader` (4).
-- JSON export and `importDocument` (5), used by the CLI.
-- `ActivityReading`, `DeviceEventSink`, `DeviceEventSource`, and the artifact table (6).
-- `TrackingCalendar`, `TrackingDay` (8); setting keys and scopes (1.6).
-- The store path, schema, and read-only script contract (2.1).
-
-Assumed:
-
-- Architecture: `<APP_ID>`, App Groups, `iCloud.<APP_ID>` in the development environment, `<APP_ID>.changed`, GRDB.swift, the CloudKit entitlement on the widget extension, the APNs credentials and request (§2.4).
-- Tracker: log formats, blocks closed at midnight, `DeviceEvent` access only through `DeviceEventSource`.
-- iOS: calls `setWidgetPushToken`, uses `LiveStateReader` in timeline providers, appends through `DeviceEventSink` and calls `flush()`, shows `.adjusted` as a banner.
-- Timer and Calendar: refuse future entries and decide on overlaps before writing; the settings window shows `WidgetPushStatus`.
-- Projects and Reports: tint and lightness-step parameters for `AreaColor`; Projects offers "Merge into" and reassignment for duplicates and orphans.
-- Automation: the CSV columns of `ReportCSVWriter`.
-- Calendar: time blocks live in the EventKit calendar `calendar.timeBlockCalendarID`.
-- Activity: the hue sequence that `activity.contextColors` indexes.
+The deterministic generators `SyntheticDataset.small`, `.medium`, and `.large(seed:)` produce 3 clients, 6 areas, 15 projects, one month, about 250 entries; 8, 25, 90, three years, about 7,000; and 10, 40, 120, ten years, about 24,000. Their entries include evening work, entries past midnight (stored split), tombstones, and archived projects. A dataset can fill a store, produce the 5.1 document, and write block-log files with one time zone change.

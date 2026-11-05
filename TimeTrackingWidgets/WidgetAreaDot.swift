@@ -132,7 +132,7 @@ extension WidgetSnapshot {
 }
 
 /// The Pomodoro of this device as the phase glyph and the countdown, or
-/// `+` and the time since the phase ended (spec_design.md §11).
+/// `+` and the time since the phase ended (spec_design.md §2).
 struct PomodoroLine: View {
     var snapshot: WidgetSnapshot
 

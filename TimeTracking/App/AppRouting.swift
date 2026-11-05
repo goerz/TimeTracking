@@ -1,5 +1,5 @@
 // AppRouting: the window commands other parts of the app call
-// (spec_timer.md §13, spec_menubar.md §2.2).
+// (spec_timer.md §1.3, spec_menubar.md §2.2).
 
 import Foundation
 import TimeTrackingCore

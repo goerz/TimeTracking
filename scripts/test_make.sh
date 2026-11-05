@@ -1,5 +1,5 @@
 #!/bin/bash
-# Tests of the Makefile, the scripts, and the hooks (spec_architecture.md §3.1, §8).
+# Tests of the Makefile, the scripts, and the hooks (spec_architecture.md §3.1, §7).
 #
 #   scripts/test_make.sh [--build] [--products] [--sim] [--install] [--all]
 #

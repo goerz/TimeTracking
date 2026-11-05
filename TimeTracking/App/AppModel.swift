@@ -1,6 +1,6 @@
 // AppModel: the Mac app's state and commands, shared by the main window,
 // the menu bar item, the Dock menu, notifications, and global shortcuts
-// (spec_timer.md §13, spec_menubar.md §9).
+// (spec_timer.md §1, §2; spec_menubar.md §2).
 
 import Foundation
 import Observation
