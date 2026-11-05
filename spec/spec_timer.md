@@ -82,7 +82,7 @@ Each field commits on Return or focus loss; there is no Save button, and a field
 
 ### 4.2 Rules
 
-Editing Start keeps Stop, and a Start at or after Stop reverts. Editing Stop or Duration keeps Start, and a Stop at or before Start means the next date. Changing Date moves the entry by whole days, keeping its times. A commit stores only the times it changed, so a time changed elsewhere since the editor opened stays.
+Start and Stop are wall-clock times, also on a day of 23 or 25 hours, and a time a DST change skips becomes the first instant after it. Editing Start keeps Stop, and a Start at or after Stop reverts. Editing Stop or Duration keeps Start, and a Stop at or before Start means the next date. Changing Date moves the entry by whole days, keeping its times. A commit stores only the times it changed, so a time changed elsewhere since the editor opened stays.
 
 A commit that would put any start or stop after now is refused: the field reverts and "Entries cannot be in the future" shows until the next edit. A change that overlaps an entry outside its own chain shows the notice "Overlaps “Morning Review” (9:00 to 9:25)" with "Keep" (stores it) and "Revert".
 
@@ -301,3 +301,4 @@ The two Pomodoro categories use bundled sounds with "Play a sound" on and are si
 - TM-51. ⌘J in the edit popover opens the popover's own project picker, and closing the picker leaves the popover open.
 - TM-52. Closing the Mini Timer clears its filter and returns its list to the top, so it opens that way again; the main window's Timer keeps its own filter.
 - TM-53. With "Play a sound" off a phase's notification is silent; on, it has its bundled sound; every other category uses the default sound.
+- TM-54. On a DST day, a Start or Stop edit lands on the typed wall-clock time; a skipped time becomes the first instant after the change.

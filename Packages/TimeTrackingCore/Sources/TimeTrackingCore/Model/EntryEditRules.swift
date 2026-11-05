@@ -5,9 +5,9 @@ public import Foundation
 
 /// A field edit of the entry editor.
 public enum EntryFieldEdit: Hashable, Sendable {
-    /// Start time of day, seconds after midnight.
+    /// Start as a wall-clock time of day, in seconds (`9 * 3600` is 09:00).
     case start(Int)
-    /// Stop time of day, seconds after midnight.
+    /// Stop as a wall-clock time of day, in seconds.
     case stop(Int)
     /// Duration in seconds.
     case duration(Int)
@@ -76,8 +76,10 @@ public enum EntryEditRules {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = entry.zone
         let midnight = calendar.startOfDay(for: entry.start)
+        // Wall-clock components, not elapsed seconds: a DST day has 23 or
+        // 25 hours. A time the change skips is the first instant after it.
         func time(_ seconds: Int, on day: Date) -> Date {
-            calendar.date(byAdding: .second, value: seconds, to: day) ?? day
+            calendar.date(bySettingHour: seconds / 3600, minute: seconds / 60 % 60, second: seconds % 60, of: day) ?? day
         }
         func keepingSeconds(_ seconds: Int, of stored: Date) -> Int {
             seconds.isMultiple(of: 60) ? seconds + calendar.component(.second, from: stored) : seconds
