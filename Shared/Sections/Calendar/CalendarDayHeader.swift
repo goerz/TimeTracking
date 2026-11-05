@@ -126,8 +126,7 @@ struct CalendarDayHeader: View {
     }
 
     @ViewBuilder private var allDayStrip: some View {
-        let allDay = (model.externalEvents + model.timeBlocks.map(\.event))
-            .filter { $0.isAllDay && model.calendar.interval(of: day).intersects($0.interval) }
+        let allDay = model.allDayEvents(on: day)
         if !allDay.isEmpty, model.showsCalendar {
             HStack(spacing: Design.Spacing.tight) {
                 ForEach(allDay) { event in

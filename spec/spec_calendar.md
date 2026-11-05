@@ -34,7 +34,7 @@ Hour labels appear every two hours below 36 points per hour, every hour up to 12
 
 The day's width is split among its visible columns by weight: Activity 1, Tracked 2, Calendar 1.5. Tracked always shows; Activity and Calendar are toggles, default on. Each column's glyph in the day header is its toggle, and a hidden column leaves its glyph, struck through, at its edge of the Tracked cell ("Show Calendar Column"). View › Show Activity Column (⌥⌘A) and Show Calendar Column (⌥⌘K) do the same.
 
-A day header shows weekday and date, an overlap warning (2.6), and above each visible column its total, led by the column's glyph so every number names its column: "6h 38m", "2h 21m", "1h". A column under 72 points rounds its total to whole hours ("4h"; "45m" below one hour) and draws activity cards without text; one under 50 points shows only the glyph, and the exact total is in the tooltip. Column names follow while the day is at least 240 points wide and the column at least 120. All-day events sit in a strip under the header.
+A day header shows weekday and date, an overlap warning (2.6), and above each visible column its total, led by the column's glyph so every number names its column: "6h 38m", "2h 21m", "1h". A column under 72 points rounds its total to whole hours ("4h"; "45m" below one hour) and draws activity cards without text; one under 50 points shows only the glyph, and the exact total is in the tooltip. Column names follow while the day is at least 240 points wide and the column at least 120. All-day events sit in a strip under the header: a column named D shows the all-day events of date D, whatever Midnight is.
 
 ### 1.5 The now-line
 
@@ -208,3 +208,4 @@ The settings read the calendars without asking for access; like the Calendar col
 32. A reload that finishes after a later one changes nothing, and the days count as loaded only once their data is in.
 33. With Midnight at 04:00, a column starts at 04:00; an entry from 03:00 to 05:00 is in the columns of both days, each total counting its hour; a drag of the later piece down an hour moves the entry to 04:00 to 06:00; a block from the night reaches both columns and counts on the day of its start; a heatmap click at 09:00 scrolls five hours below the column's top.
 34. With Midnight at 04:00, dragging an entry across the real midnight inside a column splits it in the store, and one undo restores the entry and removes the later piece.
+35. With Midnight at 04:00 or at 22:00, an all-day event on March 14 is in the strip of the column named March 14 and no other; an event spanning March 14 and 15 is in both.

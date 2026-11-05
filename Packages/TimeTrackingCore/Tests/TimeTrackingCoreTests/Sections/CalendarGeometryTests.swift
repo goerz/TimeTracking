@@ -260,3 +260,29 @@ struct CalendarGeometryTests {
         #expect(CalendarColumn.drawsBars(width: widths[.activity] ?? 0))
     }
 }
+
+extension CalendarGeometryTests {
+    @Test("PC-35 an all-day event belongs to its calendar dates, whatever the shown days are")
+    func allDayDates() throws {
+        // As EventKit gives it: the last second of the last date ends it.
+        let oneDay = try CalendarEvent(
+            id: "e",
+            calendarID: "c",
+            title: "Holiday",
+            start: Self.time("2026-10-29T00:00"),
+            end: Self.time("2026-10-29T23:59:59"),
+            isAllDay: true
+        )
+        #expect(oneDay.isAllDay(on: Self.thursday, in: Self.zone))
+        #expect(!oneDay.isAllDay(on: Self.thursday.adding(days: -1), in: Self.zone))
+        #expect(!oneDay.isAllDay(on: Self.thursday.adding(days: 1), in: Self.zone))
+        // A store may end it at the next midnight instead.
+        var twoDays = oneDay
+        twoDays.end = try Self.time("2026-10-31T00:00")
+        #expect(twoDays.isAllDay(on: Self.thursday.adding(days: 1), in: Self.zone))
+        #expect(!twoDays.isAllDay(on: Self.thursday.adding(days: 2), in: Self.zone))
+        var timed = oneDay
+        timed.isAllDay = false
+        #expect(!timed.isAllDay(on: Self.thursday, in: Self.zone))
+    }
+}

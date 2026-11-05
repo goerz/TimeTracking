@@ -306,6 +306,33 @@ extension CalendarSectionTests {
         #expect(try moved.end == TestApp.date("2024-03-14T06:00"))
     }
 
+    @Test("PC-35 a column named D shows the all-day events of date D, whatever Midnight is")
+    func allDayStrip() async throws {
+        let world = try await World()
+        let model = world.model
+        let work = CalendarInfo(id: "work", title: "Work", sourceID: "icloud", sourceTitle: "iCloud", color: "#3B5BDB")
+        world.events.addCalendar(work)
+        await model.setShown(work, true)
+        let start = try TestApp.date("2024-03-14T00:00")
+        let lastSecond = try TestApp.date("2024-03-14T23:59:59")
+        let holiday = world.events.add(
+            CalendarEventDraft(calendarID: "work", title: "Holiday", start: start, end: lastSecond),
+            isAllDay: true
+        )
+        let trip = world.events.add(
+            CalendarEventDraft(calendarID: "work", title: "Trip", start: start, end: lastSecond + 86_400),
+            isAllDay: true
+        )
+        for hour in [0, 4, 22] {
+            try await world.test.store.set(.midnightHour, hour)
+            await model.reload()
+            #expect(model.allDayEvents(on: Self.day("2024-03-13")).isEmpty, "\(hour)")
+            #expect(model.allDayEvents(on: Self.day("2024-03-14")).map(\.id) == [holiday.id, trip.id], "\(hour)")
+            #expect(model.allDayEvents(on: Self.day("2024-03-15")).map(\.id) == [trip.id], "\(hour)")
+            #expect(model.allDayEvents(on: Self.day("2024-03-16")).isEmpty, "\(hour)")
+        }
+    }
+
     @Test("PC-34 with Midnight at 04:00 a drag across the real midnight splits the entry, and one undo restores it")
     func midnightDragUndo() async throws {
         let world = try await World()

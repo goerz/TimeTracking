@@ -104,6 +104,14 @@ public struct CalendarEvent: Sendable, Hashable, Identifiable {
         DateInterval(start: start, end: max(start, end))
     }
 
+    /// Whether this all-day event falls on the calendar date `day`. It
+    /// belongs to dates, not to shown days, so Midnight plays no part
+    /// (spec_calendar.md §1.4).
+    public func isAllDay(on day: TrackingDay, in zone: TimeZone) -> Bool {
+        let date = TrackingCalendar(timeZone: zone).interval(of: day)
+        return isAllDay && start < date.end && max(end, start + 1) > date.start
+    }
+
     /// The fields a write sets.
     public var draft: CalendarEventDraft {
         CalendarEventDraft(calendarID: calendarID, title: title, start: start, end: end, url: url, notes: notes)

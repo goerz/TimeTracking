@@ -47,6 +47,11 @@ extension CalendarModel {
         }
     }
 
+    /// The all-day events of the date `day` is named after (§1.4).
+    func allDayEvents(on day: TrackingDay) -> [CalendarEvent] {
+        (externalEvents + timeBlocks.map(\.event)).filter { $0.isAllDay(on: day, in: calendar.timeZone) }
+    }
+
     func editing(_ day: TrackingDay, option: Bool = false, limitToNow: Bool = true) -> CalendarEditing {
         CalendarEditing(
             day: calendar.interval(of: day),
