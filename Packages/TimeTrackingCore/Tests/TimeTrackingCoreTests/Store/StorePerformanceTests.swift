@@ -56,7 +56,7 @@ struct StorePerformanceTests {
         #expect(prefixTime < 20, "distinctTasks with a 2-character prefix: \(prefixTime) ms")
 
         let writeStart = calendar.startOfDay(last) + 20 * 3600
-        let writeTime = try await ReportPerformanceTests.milliseconds(runs: 1) {
+        let writeTime = try await ReportPerformanceTests.milliseconds {
             _ = try await store.create(EntryDraft(projectID: nil, task: "Timing", start: writeStart, end: writeStart + 600))
         }
         #expect(writeTime < 5, "single-entry write: \(writeTime) ms")

@@ -33,6 +33,26 @@ extension XCUIApplication {
 
     /// Window › Mini Timer, chosen from the menu (another app on the test
     /// Mac may hold ⌥⌘R); returns the Mini Timer window once it is key.
+    /// Opens the status item's menu with `open` until `showing` holds, at
+    /// most three times. While a status menu is open the accessibility tree
+    /// sometimes leaves it out for as long as it stays open, though it is on
+    /// screen; closing and opening it again brings it back. A menu that
+    /// never opens still fails.
+    func opensStatusMenu(_ open: () -> Void, showing: @escaping @MainActor () -> Bool) -> Bool {
+        for _ in 0 ..< 3 {
+            open()
+            let shown = NSPredicate { _, _ in
+                MainActor.assumeIsolated { showing() }
+            }
+            let expectation = XCTNSPredicateExpectation(predicate: shown, object: nil)
+            if XCTWaiter.wait(for: [expectation], timeout: 3) == .completed {
+                return true
+            }
+            typeKey(.escape, modifierFlags: [])
+        }
+        return false
+    }
+
     func openMiniTimer() -> XCUIElement {
         let window = menuBars.firstMatch.menuBarItems["Window"]
         window.click()

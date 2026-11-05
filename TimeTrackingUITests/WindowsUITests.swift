@@ -44,9 +44,10 @@ final class WindowsUITests: XCTestCase {
         // Just inside the bottom edge: the resize area, not the desktop below.
         // On the Mac only `click(forDuration:thenDragTo:)` drags; `press` does not.
         let bottom = window.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 1.0)).withOffset(CGVector(dx: 0, dy: -1))
-        // Drag the bottom edge up to a 190 pt tall window: it snaps to the bar.
+        // Drag the bottom edge up to a 150 pt tall window: it snaps to the bar.
+        // Well below the 200 pt threshold: the drag may lose its last mouse event.
         let height = window.frame.height
-        bottom.click(forDuration: 0.2, thenDragTo: bottom.withOffset(CGVector(dx: 0, dy: -(height - 190))))
+        bottom.click(forDuration: 0.2, thenDragTo: bottom.withOffset(CGVector(dx: 0, dy: -(height - 150))))
         XCTAssertEqual(window.frame.height, 106, accuracy: 2)
         XCTAssertFalse(window.descendants(matching: .any)["timer.list"].exists)
         // Dragging to 250 pt snaps to 300 pt and shows the list.
@@ -159,11 +160,9 @@ final class WindowsUITests: XCTestCase {
         let app = launch()
         let item = app.statusItems["statusItem"]
         XCTAssertTrue(item.waitForExistence(timeout: 5))
-        item.click()
-        XCTAssertTrue(app.menuItems["New"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.opensStatusMenu { item.click() } showing: { app.menuItems["New"].exists })
         app.typeKey(.escape, modifierFlags: [])
-        item.rightClick()
-        XCTAssertTrue(app.menuItems["New"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.opensStatusMenu { item.rightClick() } showing: { app.menuItems["New"].exists })
         app.typeKey(.escape, modifierFlags: [])
         app.terminate()
     }
@@ -178,7 +177,10 @@ final class WindowsUITests: XCTestCase {
         // Accessory: the app stays in front and the settings window stays usable.
         XCTAssertTrue(app.windows.firstMatch.exists)
         XCTAssertTrue(app.wait(for: .runningForeground, timeout: 5))
-        XCTAssertTrue(toggle.isHittable)
+        // The switch deactivates the app for a moment; it takes activation
+        // back within 300 ms of the switch (§4).
+        let hittable = XCTNSPredicateExpectation(predicate: NSPredicate(format: "hittable == true"), object: toggle)
+        XCTAssertEqual(XCTWaiter.wait(for: [hittable], timeout: 5), .completed)
         XCTAssertEqual(toggle.value as? Int, 0)
         toggle.click()
         XCTAssertEqual(toggle.value as? Int, 1)

@@ -116,17 +116,13 @@ final class LaunchUITests: XCTestCase {
     private func statusMenuItem(_ app: XCUIApplication, _ predicate: NSPredicate) -> XCUIElement {
         let status = app.statusItems["statusItem"]
         XCTAssertTrue(status.waitForExistence(timeout: 5))
-        status.click()
         let query = app.menuItems.matching(predicate)
         let found = ElementBox()
-        let open = NSPredicate { _, _ in
-            MainActor.assumeIsolated {
-                found.element = query.allElementsBoundByIndex.first(where: \.isHittable)
-                return found.element != nil
-            }
+        let opened = app.opensStatusMenu { status.click() } showing: {
+            found.element = query.allElementsBoundByIndex.first(where: \.isHittable)
+            return found.element != nil
         }
-        let result = XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: open, object: nil)], timeout: 5)
-        XCTAssertEqual(result, .completed, "\(predicate)")
+        XCTAssertTrue(opened, "\(predicate)")
         return found.element ?? query.firstMatch
     }
 
