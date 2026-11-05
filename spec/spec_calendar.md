@@ -64,7 +64,7 @@ Dragging a card's body moves it with its duration, the start snapping like drawi
 
 ### 2.5 Selecting, editing, deleting
 
-A click selects; ⇧-click or ⌘-click extends; Tab and ⇧Tab step through entries by start. Return or a double-click opens the Timer's edit popover ([spec_timer.md](spec_timer.md) §4). Delete or ⌫ deletes the selection, undoable, with the notice "Deleted 'Clarify noise model' (1h 33m). Undo" for 8 seconds. Deleting the running entry asks "Discard the running entry?" first; undo restores it stopped at the deletion time.
+A click selects; ⇧-click or ⌘-click extends, on every kind of card; Tab and ⇧Tab step through entries by start. Return or a double-click opens the Timer's edit popover ([spec_timer.md](spec_timer.md) §4). Delete or ⌫ deletes the selection, undoable, with the notice "Deleted 'Clarify noise model' (1h 33m). Undo" for 8 seconds. Deleting the running entry asks "Discard the running entry?" first; undo restores it stopped at the deletion time.
 
 Duplicate to Next Day (⌘D) copies an entry to the same time next day as a stopped entry, refused unless that interval is entirely past. Split Here splits at the pointer's snapped time, refused within 1 minute of either end; on the running entry the later part keeps running.
 
@@ -91,7 +91,7 @@ With Sleep or Workouts on (section 6), the health periods ([spec_data_and_sync.m
 
 ### 3.2 Block popover
 
-A click selects the block and opens a popover beside it. It shows the time range, duration, and device ("09:10 – 09:44 · 34m · MacBook"; with several devices each with its time; `remote` reads "Other devices (Safari)"), the dominant workspace's share ("paper (tmux), 71% of this time"), "34m, 31m active" when `a` is less than the span, and any reconstructed time ("12m reconstructed from macOS app usage history"). Below come the items in log order, the background items, and "Create Entry…".
+A click selects the block and opens a popover beside it; ⇧-click or ⌘-click extends the selection (2.5) without one. It shows the time range, duration, and device ("09:10 – 09:44 · 34m · MacBook"; with several devices each with its time; `remote` reads "Other devices (Safari)"), the dominant workspace's share ("paper (tmux), 71% of this time"), "34m, 31m active" when `a` is less than the span, and any reconstructed time ("12m reconstructed from macOS app usage history"). Below come the items in log order, the background items, and "Create Entry…".
 
 ### 3.3 Entries from a block
 
@@ -210,3 +210,4 @@ The settings read the calendars without asking for access; like the Calendar col
 34. With Midnight at 04:00, dragging an entry across the real midnight inside a column splits it in the store, and one undo restores the entry and removes the later piece.
 35. With Midnight at 04:00 or at 22:00, an all-day event on March 14 is in the strip of the column named March 14 and no other; an event spanning March 14 and 15 is in both.
 36. With Midnight at 04:00, a block from 03:30 to 04:30 with an entry over 04:10 to 04:20 is dimmed 10 minutes below the top of its card in the later column and not at all in the earlier one.
+37. A click on a card selects it alone; ⇧-click and ⌘-click add a card of any kind to the selection and take a selected one out; ⌥-click selects like a plain click; a block's popover opens on a plain click only.

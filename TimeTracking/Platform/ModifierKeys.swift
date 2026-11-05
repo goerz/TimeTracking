@@ -1,6 +1,6 @@
 // ModifierKeys: the modifier keys held during a click or key press (⌥-click
-// skips the discard alert, spec_timer.md §2.1; the Calendar's ⌥ and ⇧,
-// spec_calendar.md §1.2, §5).
+// skips the discard alert, spec_timer.md §2.1; the Calendar's ⌥, ⇧, and ⌘,
+// spec_calendar.md §1.2, §2.5, §5).
 
 import AppKit
 
@@ -16,6 +16,11 @@ enum ModifierKeys {
 
     static var shiftIsDown: Bool {
         flags.contains(.shift)
+    }
+
+    /// ⇧-click or ⌘-click (spec_calendar.md §2.5).
+    static var extendsSelection: Bool {
+        !flags.isDisjoint(with: [.shift, .command])
     }
 
     private static var flags: NSEvent.ModifierFlags {

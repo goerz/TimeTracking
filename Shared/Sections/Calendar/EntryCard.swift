@@ -80,7 +80,7 @@ struct EntryCard: View {
         .onHover { hovering = $0 }
         .accessibilityAddTraits(.isButton)
         .onTapGesture(count: 2) { model.editingEntry = entry.id }
-        .onTapGesture { model.select(.entry(entry.id), extend: ModifierState.optionDown()) }
+        .onTapGesture { model.click(.entry(entry.id)) }
         .calendarDrag(minimumDistance: 4, onLongPress: longPressed) { drag in
             dragOffset = drag.translation
         } onEnded: { drag in

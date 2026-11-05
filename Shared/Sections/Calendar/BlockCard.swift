@@ -51,8 +51,7 @@ struct BlockCard: View {
         .onHover { hovering = $0 }
         .accessibilityAddTraits(.isButton)
         .onTapGesture {
-            model.select(.block(block.id))
-            showsPopover = true
+            showsPopover = model.click(.block(block.id))
         }
         .draggable("block:\(block.id)")
         .contextMenu { menu }

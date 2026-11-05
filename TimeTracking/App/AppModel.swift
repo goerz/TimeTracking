@@ -121,6 +121,7 @@ final class AppModel {
         sections.copyText = { Pasteboard.copy($0) }
         ModifierState.optionDown = { ModifierKeys.optionIsDown }
         ModifierState.shiftDown = { ModifierKeys.shiftIsDown }
+        ModifierState.extendDown = { ModifierKeys.extendsSelection }
         ModifierState.readsKeyPresses = true
     }
 

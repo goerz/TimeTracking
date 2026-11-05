@@ -281,13 +281,22 @@ extension CalendarModel {
         }
     }
 
-    /// A click (⇧ or ⌘: extend).
+    /// Selects `item`, or with `extend` adds it or takes it out.
     func select(_ item: CalendarItemID, extend: Bool = false) {
         if extend {
             selection.formSymmetricDifference([item])
         } else {
             selection = [item]
         }
+    }
+
+    /// A click on a card: ⇧ or ⌘ extends the selection. True for a plain
+    /// click.
+    @discardableResult
+    func click(_ item: CalendarItemID) -> Bool {
+        let extend = ModifierState.extendDown()
+        select(item, extend: extend)
+        return !extend
     }
 
     /// Tab / ⇧Tab through the visible entries by start.

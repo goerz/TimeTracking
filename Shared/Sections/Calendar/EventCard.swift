@@ -45,7 +45,7 @@ struct EventCard: View {
         .offset(y: dragOffset)
         .accessibilityAddTraits(.isButton)
         .onTapGesture(count: 2) { model.editTimeBlock(block) }
-        .onTapGesture { model.select(.timeBlock(block.id)) }
+        .onTapGesture { model.click(.timeBlock(block.id)) }
         .calendarDrag(minimumDistance: 4, onLongPress: EntryCard.touch ? { showsMenu = true } : nil) { drag in
             dragOffset = drag.translation.height
         } onEnded: { drag in
@@ -88,7 +88,7 @@ struct EventCard: View {
         .clipped()
         .accessibilityAddTraits(.isButton)
         .onTapGesture(count: 2) { model.openEvent(event) }
-        .onTapGesture { model.select(.event(event.id)) }
+        .onTapGesture { model.click(.event(event.id)) }
         .draggable("event:\(event.id)")
         .help("\(event.notes ?? "")\(event.attendeeCount > 0 ? "\n\(event.attendeeCount) attendees" : "")")
         .contextMenu {
