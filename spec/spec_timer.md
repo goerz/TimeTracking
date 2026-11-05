@@ -172,7 +172,7 @@ With "Stop the entry at that moment", a lock or sleep stops the entry at that ti
 
 ## 7. Reminders (Settings > Reminders, device)
 
-"Remind me to track time" is off by default. While on, idle, unlocked, and inside the hours on a selected day, the app sends the `reminder` notification every N minutes, counted from the last stop or reminder. The defaults are every 10 min (1 to 240), between 09:00 and 17:00 (end exclusive), Monday to Friday, snooze for 60 min (5 to 480). The hours and days are clock times and don't follow the Midnight setting.
+"Remind me to track time" is off by default. While on, idle, unlocked, and inside the hours on a selected day, the app sends the `reminder` notification every N minutes, counted from the latest of the last stop, the last reminder, and the app's start. The defaults are every 10 min (1 to 240), between 09:00 and 17:00 (end exclusive), Monday to Friday, snooze for 60 min (5 to 480, in steps of 5). The hours and days are clock times and don't follow the Midnight setting.
 
 A start, on any device, removes a delivered reminder; its Start New and Continue Latest do nothing while an entry runs, so they never stop an entry started since.
 
