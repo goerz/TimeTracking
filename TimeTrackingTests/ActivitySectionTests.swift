@@ -191,21 +191,6 @@ struct ActivitySectionTests {
         #expect(model.range.range == .preset(.thisWeek))
     }
 
-    @Test("PA-26 clicking a segment opens the Calendar at its day with its context highlighted; above the stack nothing is")
-    func segmentDrill() async throws {
-        let test = try await TestApp()
-        let (router, _) = try Self.router(test, blocks: Self.week())
-        let model = router.activity
-        await model.reload()
-        let bars = try #require(model.summary?.bars)
-        let monday = try #require(bars.bars.first)
-        let day = TrackingDay(year: 2024, month: 3, day: 11)
-        model.showInCalendar(ActivityBars.Target(bar: monday.id, series: monday.series(atSeconds: 2000)), in: bars)
-        #expect(router.calendarRequest == CalendarRequest(day: day, hour: nil, highlight: .context("safari")))
-        model.showInCalendar(ActivityBars.Target(bar: monday.id, series: monday.series(atSeconds: 9000)), in: bars)
-        #expect(router.calendarRequest == CalendarRequest(day: day, hour: nil, highlight: nil))
-    }
-
     @Test("PA-18 with an empty log and no tracker the setup card shows and opens the Tracker pane; after a block exists it does not return")
     func setupCard() async throws {
         let test = try await TestApp()

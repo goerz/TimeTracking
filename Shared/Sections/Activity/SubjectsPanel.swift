@@ -38,9 +38,10 @@ struct SubjectsPanel: View {
                     Image(systemName: SymbolName.next).accessibilityHidden(true).foregroundStyle(.secondary)
                 }
             }
-            .contentShape(Rectangle())
-            .accessibilityAddTraits(.isButton)
-            .onTapGesture { model.open(row) }
+            .modifier(ActivityRowAction(
+                identifier: "activity.subject.\(row.id)",
+                action: model.isRecordingMac && row.hasDetails ? { model.open(row) } : nil
+            ))
             .contextMenu {
                 if model.isRecordingMac, let subject = row.subject, row.contexts.contains(where: { ActivityContext($0).kind == .browser }) {
                     Button("Exclude \(ActivityContext.domain(ofSite: subject)) from Tracking…") { model.exclude(site: subject) }

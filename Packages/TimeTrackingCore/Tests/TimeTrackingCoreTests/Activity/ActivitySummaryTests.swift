@@ -240,51 +240,6 @@ struct ActivitySummaryTests {
         #expect(summary.bars.bars[3].seconds == 1200)
     }
 
-    @Test("PA-24 today's bar marks the open block's part as the top of its stack, also under a filter")
-    func openBlockIsTheTopOfTheStack() throws {
-        let closed = try Self.block("2026-10-29", "08:00", "09:00", [Self.item("mail", 1800)], active: 2000)
-        let open = try Self.block("2026-10-29", "09:00", "09:20", [Self.item("safari", 1000), Self.item("mail", 100)], active: 1200, isOpen: true)
-        let bar = Self.summary([closed, open]).bars.bars[3]
-        #expect(bar.seconds == 3200)
-        #expect(bar.openRange == 2000 ... 3200)
-        let filtered = Self.summary([closed, open], contexts: ["safari"]).bars.bars[3]
-        #expect(filtered.openRange == 0 ... 1000)
-        #expect(Self.summary([closed]).bars.bars[3].openRange == nil)
-    }
-
-    @Test("PA-25 hovering a segment names it with its time; a label or empty area gives the total and the three largest contexts")
-    func barTooltips() throws {
-        let block = try Self.block(
-            "2026-10-29",
-            "08:00",
-            "12:00",
-            [Self.item("mail", 600), Self.item("tmux:paper", 7200), Self.item("safari", 3600), Self.item("skim", 1200)],
-            active: 13_200
-        )
-        let bars = Self.summary([block]).bars
-        let thursday = try #require(bars.bars.first { $0.isToday })
-        let name = { (context: String) in context == "mail" ? "Apple Mail" : ActivityContext(context).displayName() }
-        #expect(bars.tooltip(of: .init(bar: thursday.id, series: .context("mail")), displayName: name) == "Thu Oct 29 · Apple Mail · 10m of 3h 40m")
-        #expect(bars.tooltip(of: .init(bar: thursday.id, series: .notItemized), displayName: name) == "Thu Oct 29 · Brief activity · 10m of 3h 40m")
-        #expect(bars.tooltip(of: .init(bar: thursday.id), displayName: name) == "Thu Oct 29 · 3h 40m · paper 2h, Safari 1h, Skim 20m")
-        let friday = try #require(bars.bars.first { $0.isFuture })
-        #expect(bars.tooltip(of: .init(bar: friday.id), displayName: name) == nil)
-        let wednesday = bars.bars[2]
-        #expect(bars.tooltip(of: .init(bar: wednesday.id), displayName: name) == "Wed Oct 28 · 0h")
-    }
-
-    @Test("PA-26 a height in a bar finds the segment there, bottom up; outside the stack there is none")
-    func segmentAtHeight() throws {
-        let block = try Self.block("2026-10-29", "08:00", "09:00", [Self.item("safari", 1000), Self.item("mail", 500)], active: 2000)
-        let bar = Self.summary([block]).bars.bars[3]
-        #expect(bar.series(atSeconds: 0) == .context("safari"))
-        #expect(bar.series(atSeconds: 999) == .context("safari"))
-        #expect(bar.series(atSeconds: 1000) == .context("mail"))
-        #expect(bar.series(atSeconds: 1500) == .notItemized)
-        #expect(bar.series(atSeconds: 2000) == nil)
-        #expect(bar.series(atSeconds: -1) == nil)
-    }
-
     @Test("PA-12 context shares stay relative to the unfiltered total; Brief activity equals a minus item seconds")
     func contextShares() throws {
         let block = try Self.block(

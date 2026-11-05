@@ -91,10 +91,12 @@ On the Mac, one line with the Tracker pane's status dot and line ([spec_activity
 |---|---|
 | Show the section | ⌘5 |
 | Range: previous, next, today, date popover | As in Reports (⌥⌘←, ⌥⌘→, ⌘T, ⇧⌘D) |
-| Move between heatmap cells | Arrow keys |
+| Move between heatmap cells, bars, and a bar's segments | Arrow keys |
 | Show a focused cell's or segment's details; toggle a focused chip or row | Space |
 | Drill into the Calendar from a focused cell, bar, or segment | Return |
 | Leave a subject drill-down, else clear the filter | Escape |
+
+Tab reaches the heatmap, the chart, and the rows of Apps and Subjects that act on a click; a click beside the cells or on the y axis also focuses the panel. Chips are buttons, which take the focus when the system's keyboard navigation is on. The heatmap starts on its first cell and the chart on its first bar. Left and right step between bars, keeping the context where the next bar has it; up and down step through a bar's segments, bottom up, and below the lowest back to the whole bar. The focused cell has an outline, and the rest of the chart dims around the focused bar or segment. Space shows or hides the cell's tooltip text under the heatmap and the tooltip over the chart, which then follow the arrow keys; on a Subjects row with a chevron it opens the details.
 
 The View menu holds the range commands and, under its Activity header ([spec_timer.md](spec_timer.md) §9), Clear Filter or Back (Escape's two steps) and "Exclude from Tracking…" for the selected context or site row.
 
@@ -140,3 +142,6 @@ The Activity tab shows the same panels from the synced block log, without subjec
 24. On the Mac today's bar marks the open block's part, hatched, as the top of its stack, also under a filter; a bar without an open block has none.
 25. Hovering a bar segment shows its day, display name, and time of the bar's total; hovering a label or the empty area above a bar shows the total and the three largest contexts; a future bar shows nothing.
 26. Clicking a bar segment opens the Calendar at its day with that context's blocks highlighted; a click beside the stack or on a gray layer opens the day without a highlight.
+27. The arrow keys move the focused heatmap cell in the order of the columns and rows, the "All" row included, and stop at the edges; Space shows and hides the cell's details; Return opens the Calendar as a click does.
+28. Left and right move between bars, keeping the context where the next bar has it; up and down move through a bar's segments and back to the whole bar; Space shows and hides the tooltip; Return opens the Calendar as a click does.
+29. Space on a focused Apps row toggles it as a click does; on a Subjects row with a chevron it opens the details; a row that acts on no click takes no focus.

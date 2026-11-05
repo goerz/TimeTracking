@@ -11,43 +11,67 @@ struct BarsPanel: View {
     @Environment(\.contextColors) private var colors
     /// The bar or segment under the pointer.
     @State private var hovered: ActivityBars.Target?
+    @FocusState private var isFocused: Bool
 
     var body: some View {
         let bars = summary.bars
         ActivityPanel(title: "Active time by day") {
-            Chart {
-                ForEach(bars.bars) { bar in
-                    marks(bar)
-                }
-            }
-            .chartXAxis {
-                AxisMarks { value in
-                    AxisValueLabel { axisLabel(value.as(String.self).flatMap { id in bars.bars.first { $0.id == id } }) }
-                }
-            }
-            .chartYAxis {
-                AxisMarks(position: .leading, values: Array(stride(from: 0, through: bars.axisHours, by: 2)).map(Double.init)) { value in
-                    AxisGridLine()
-                    AxisValueLabel {
-                        Text("\(Int(value.as(Double.self) ?? 0))h").font(.caption).monospacedDigit()
+            chart(bars)
+                .chartOverlay { proxy in pointerArea(proxy, bars: bars) }
+                .overlay(alignment: .top) {
+                    if let text = shownTarget.flatMap({ bars.tooltip(of: $0, displayName: model.displayName) }) {
+                        tooltip(text)
                     }
                 }
-            }
-            .chartYScale(domain: 0 ... Double(bars.axisHours))
-            .chartOverlay { proxy in pointerArea(proxy, bars: bars) }
-            .overlay(alignment: .top) {
-                if let text = hovered.flatMap({ bars.tooltip(of: $0, displayName: model.displayName) }) {
-                    tooltip(text)
-                }
-            }
-            .frame(height: 220)
-            .accessibilityIdentifier("activity.bars.chart")
+                .frame(height: 220)
+                .activityPanelKeys(isFocused: $isFocused, onFocus: model.barsFocused, perform: handle)
+                .accessibilityIdentifier("activity.bars.chart")
         }
         .accessibilityIdentifier("activity.bars")
     }
 
+    private func chart(_ bars: ActivityBars) -> some View {
+        Chart {
+            ForEach(bars.bars) { bar in
+                marks(bar)
+            }
+        }
+        .chartXAxis {
+            AxisMarks { value in
+                AxisValueLabel { axisLabel(value.as(String.self).flatMap { id in bars.bars.first { $0.id == id } }) }
+            }
+        }
+        .chartYAxis {
+            AxisMarks(position: .leading, values: Array(stride(from: 0, through: bars.axisHours, by: 2)).map(Double.init)) { value in
+                AxisGridLine()
+                AxisValueLabel {
+                    Text("\(Int(value.as(Double.self) ?? 0))h").font(.caption).monospacedDigit()
+                }
+            }
+        }
+        .chartYScale(domain: 0 ... Double(bars.axisHours))
+    }
+
+    /// What the tooltip is about: the pointer's target, else the focused
+    /// one while Space shows it.
+    private var shownTarget: ActivityBars.Target? {
+        hovered ?? (isFocused && model.showsBarDetails ? model.focusedBar : nil)
+    }
+
+    /// The arrows move, Space shows or hides the tooltip, Return drills down (§2).
+    private func handle(_ press: KeyPress) -> KeyPress.Result {
+        if let move = ActivityFocusMove(press.key) {
+            model.moveFocusedBar(move)
+        } else if press.key == .space {
+            model.showsBarDetails.toggle()
+        } else {
+            model.openFocusedBar()
+        }
+        return .handled
+    }
+
     /// The pointer over the chart: hovering shows a tooltip, a click drills
-    /// into the Calendar (§1.5, §3).
+    /// into the Calendar (§1.5, §3), and beside the bars takes the focus.
     private func pointerArea(_ proxy: ChartProxy, bars: ActivityBars) -> some View {
         GeometryReader { geometry in
             Rectangle().fill(.clear).contentShape(Rectangle())
@@ -63,6 +87,8 @@ struct BarsPanel: View {
                 .onTapGesture { location in
                     if let target = target(at: location, proxy, geometry, bars: bars) {
                         model.showInCalendar(target, in: bars)
+                    } else {
+                        isFocused = true
                     }
                 }
         }
@@ -72,6 +98,7 @@ struct BarsPanel: View {
     /// counts from the plot area, which starts after the y axis.
     private func target(at location: CGPoint, _ proxy: ChartProxy, _ geometry: GeometryProxy, bars: ActivityBars) -> ActivityBars.Target? {
         guard let plot = proxy.plotFrame.map({ geometry[$0] }),
+              (plot.minX ... plot.maxX).contains(location.x),
               let id = proxy.value(atX: location.x - plot.minX, as: String.self),
               let bar = bars.bars.first(where: { $0.id == id })
         else {
@@ -97,6 +124,7 @@ struct BarsPanel: View {
         ForEach(bar.segments, id: \.series) { segment in
             BarMark(x: .value("Day", bar.id), y: .value("Hours", Double(segment.seconds) / 3600))
                 .foregroundStyle(color(segment.series))
+                .opacity(opacity(bar, segment.series))
         }
         if let open = bar.openRange {
             BarMark(
@@ -105,6 +133,7 @@ struct BarsPanel: View {
                 yEnd: .value("Hours", Double(open.upperBound) / 3600)
             )
             .foregroundStyle(Hatch.paint(.white.opacity(0.55)))
+            .opacity(opacity(bar, nil))
         }
         if !bar.isFuture, bar.seconds > 0 {
             PointMark(x: .value("Day", bar.id), y: .value("Hours", Double(bar.seconds) / 3600))
@@ -113,6 +142,15 @@ struct BarsPanel: View {
                     Text(ActivityText.duration(bar.seconds)).font(.caption.weight(.semibold)).monospacedDigit()
                 }
         }
+    }
+
+    /// While the chart has the focus, everything but the focused bar or
+    /// segment is dimmed.
+    private func opacity(_ bar: ActivityBars.Bar, _ series: ActivityBars.Series?) -> Double {
+        guard isFocused, let focus = model.focusedBar else {
+            return 1
+        }
+        return focus.bar == bar.id && (focus.series == nil || focus.series == series) ? 1 : 0.35
     }
 
     @ViewBuilder

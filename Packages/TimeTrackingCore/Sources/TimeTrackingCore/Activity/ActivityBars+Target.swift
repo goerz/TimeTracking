@@ -56,7 +56,8 @@ extension ActivityBars.Bar {
     /// "Thu Oct 29 · paper · 4h 12m of 6h 38m".
     public func tooltip(for series: ActivityBars.Series, displayName: (String) -> String) -> String {
         let part = segments.first { $0.series == series }?.seconds ?? 0
-        return "\(title) · \(series.title(displayName: displayName)) · \(ActivityText.duration(part)) of \(ActivityText.duration(self.seconds))"
+        let name = series.title(displayName: displayName)
+        return "\(title) · \(name) · \(ActivityText.duration(part)) of \(ActivityText.duration(seconds))"
     }
 
     /// "Thu Oct 29 · 6h 38m · paper 4h 12m, Mail 1h 10m, Safari 20m": the
@@ -72,6 +73,7 @@ extension ActivityBars.Bar {
             .sorted { ($1.seconds, $0.name) < ($0.seconds, $1.name) }
             .prefix(3)
             .map { "\($0.name) \(ActivityText.duration($0.seconds))" }
-        return ([title, ActivityText.duration(seconds)] + (largest.isEmpty ? [] : [largest.joined(separator: ", ")])).joined(separator: " · ")
+        let total = "\(title) · \(ActivityText.duration(seconds))"
+        return largest.isEmpty ? total : "\(total) · \(largest.joined(separator: ", "))"
     }
 }

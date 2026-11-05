@@ -49,8 +49,14 @@ final class ActivityModel {
     var showsAllSubjects = false
     /// The date popover, also opened by View › Date Range… (⇧⌘D).
     var showsDatePopover = false
-    /// The focused heatmap cell (row id, hour) for the arrow keys.
-    var focusedCell: (row: Int, hour: Int)?
+    /// The heatmap cell the arrow keys stand on.
+    var focusedCell: ActivityHeatmap.Cell?
+    /// The bar or segment the arrow keys stand on.
+    var focusedBar: ActivityBars.Target?
+    /// Space: the focused cell's details under the heatmap.
+    var showsCellDetails = false
+    /// Space: the focused bar's or segment's tooltip over the chart.
+    var showsBarDetails = false
 
     private(set) var summary: ActivitySummary?
     private(set) var health: ActivityHealth?

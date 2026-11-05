@@ -41,13 +41,9 @@ struct ContextsPanel: View {
             Text(ActivityText.duration(row.seconds)).frame(width: 64, alignment: .trailing)
             Text("\(Int((row.share * 100).rounded()))%").foregroundStyle(.secondary).frame(width: 40, alignment: .trailing)
         }
-        .contentShape(Rectangle())
-        .accessibilityAddTraits(.isButton)
-        .onTapGesture {
-            if let context = row.context {
-                Task { await model.toggle(context) }
-            }
-        }
+        .modifier(ActivityRowAction(identifier: "activity.context.\(row.context ?? "brief")", action: row.context.map { context in
+            { Task { await model.toggle(context) } }
+        }))
         .contextMenu {
             if let context = row.context {
                 Button("Show Only \(model.displayName(context))") { Task { await model.showOnly(context) } }
