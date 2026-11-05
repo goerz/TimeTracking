@@ -120,7 +120,7 @@ The focused pane's tty comes from a terminal adapter: WezTerm through `wezterm c
 The pane's foreground program refines the item:
 
 - Editors give `<program> <file>`. The file comes from the pane title matched against `title_patterns`, trusted only while the pane's command is that editor, then Neovim RPC (200 ms timeout), then process arguments. While the title works, RPC cross-checks it every 10 minutes per pane and reports a mismatch to health.
-- Claude Code is recognized by a live session of `~/.claude/sessions/<pid>.json` in the pane's process tree, which gives session name, cwd, tmux target, and busy or idle status; transcripts are never read. Other `agent_processes` give process name plus cwd.
+- Claude Code is recognized by a live session of `~/.claude/sessions/<pid>.json` in the pane's process tree, which gives session name, cwd, tmux target, and busy or idle status; transcripts are never read.
 - Interpreters (Julia, Python, R, Node) give the command as detail. A notebook server's listening port is registered, so a browser tab on it inherits the pane's item.
 - Shells give the file modified below the cwd in the last 30 seconds, if any, as detail.
 - Any other command gives its name as detail.
@@ -256,7 +256,7 @@ All settings live in `settings.toml` in the shared folder, read by the agent and
 
 ### 7.1 Defaults
 
-The default file holds these values, with a comment on every setting. A missing key takes its default. Durations read `"30s"`, `"5m"`, `"3h"`; `~` in a path is the home folder; domains match themselves and their subdomains; apps are named by bundle identifier. The setting `idle_after` governs blocks only; the Timer's idle prompt has its own threshold. The switch `record_commands` has no effect.
+The default file holds these values, with a comment on every setting. A missing key takes its default. Durations read `"30s"`, `"5m"`, `"3h"`; `~` in a path is the home folder; domains match themselves and their subdomains; apps are named by bundle identifier. The setting `idle_after` governs blocks only; the Timer's idle prompt has its own threshold. A key the tracker doesn't know is ignored.
 
 ```toml
 [presence]
@@ -292,14 +292,12 @@ deep_folders = []
 
 [terminal]
 title_patterns = { nvim = '^nvim (/.+)$' }
-agent_processes = ["claude", "codex", "aider"]
 job_commands = ["make", "gmake", "latexmk", "pytest", "cargo", "swift", "npm"]
 
 [devices]
 synced_safari_history = false
 
 [privacy]
-record_commands = false
 private_agent_paths = ["~"]
 name_only_apps = ["com.1password.1password"]
 # The other lists of 7.2 are empty.
@@ -432,3 +430,4 @@ A file that does not decode reads "The settings file has an error on line `<n>`:
 - TRK-53. With `settings.toml` replaced by an iCloud Drive placeholder, the agent and the readers keep the exclusions they had.
 - TRK-54. `delete-block <s> <e>` over two blocks deletes both and their samples.
 - TRK-55. Synced Safari visits arriving after the agent read past their time still form a remote block; the Knowledge backfill likewise reads the last 24 hours again.
+- TRK-56. A settings file with a key the tracker doesn't know, such as `agent_processes` or `record_commands`, decodes like the same file without it, and the default file holds neither.

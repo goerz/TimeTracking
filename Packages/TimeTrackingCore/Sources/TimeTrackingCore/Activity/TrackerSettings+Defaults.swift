@@ -67,8 +67,6 @@ extension TrackerSettings {
     [terminal]
     # Pane title patterns that name the open file; the capture group is the path.
     title_patterns = { nvim = '^nvim (/.+)$' }
-    # Processes recorded as coding agents (process name plus cwd).
-    agent_processes = ["claude", "codex", "aider"]
     # Long-running commands recorded as secondary items.
     job_commands = ["make", "gmake", "latexmk", "pytest", "cargo", "swift", "npm"]
 
@@ -80,8 +78,7 @@ extension TrackerSettings {
     # Exclusions apply to what is recorded from now on, and Calendar and
     # Activity apply them to past activity when they show it. The log files keep what they hold
     # until `tracker-event reapply-exclusions <from> <to>` rewrites them.
-    # Terminal command lines are never recorded; this switch has no effect.
-    record_commands = false
+
     # Files and folders at or below these paths are recorded as "(private)";
     # the time is kept.
     exclude_paths = []           # e.g. "~/Documents/Medical"

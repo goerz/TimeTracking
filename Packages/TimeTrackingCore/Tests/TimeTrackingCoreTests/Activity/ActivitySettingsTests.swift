@@ -20,6 +20,23 @@ struct ActivitySettingsTests {
         #expect(try TrackerSettings(tomlText: "") == TrackerSettings.defaults)
     }
 
+    @Test("TRK-56 a key the tracker doesn't know is ignored, and the default file holds no removed setting")
+    func unknownKeysAreIgnored() throws {
+        let text = """
+        [terminal]
+        agent_processes = ["claude", "codex", "aider"]
+
+        [privacy]
+        record_commands = false
+        exclude_apps = ["com.example.vault"]
+        """
+        var expected = TrackerSettings.defaults
+        expected.privacy.excludeApps = ["com.example.vault"]
+        #expect(try TrackerSettings(tomlText: text) == expected)
+        #expect(!TrackerSettings.defaultFileContents.contains("agent_processes"))
+        #expect(!TrackerSettings.defaultFileContents.contains("record_commands"))
+    }
+
     @Test func aPartialFileKeepsTheOtherDefaults() throws {
         let text = """
         [blocks]

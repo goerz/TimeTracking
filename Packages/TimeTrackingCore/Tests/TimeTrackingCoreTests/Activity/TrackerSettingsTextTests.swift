@@ -87,7 +87,7 @@ struct TrackerSettingsTextTests {
             try TrackerSettingsText.appending("x", to: "no_such_key", in: "privacy", of: text)
         }
         #expect(throws: ActivityError.self) {
-            try TrackerSettingsText.appending("x", to: "record_commands", in: "privacy", of: "[privacy]\nrecord_commands = false\n")
+            try TrackerSettingsText.appending("x", to: "idle_close", in: "blocks", of: "[blocks]\nidle_close = \"5m\"\n")
         }
         #expect(throws: ActivityError.self) {
             try TrackerSettingsText.appending("x", to: "exclude_apps", in: "privacy", of: "[privacy\n")

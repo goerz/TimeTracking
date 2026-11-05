@@ -4,7 +4,6 @@
 /// `[privacy]`: what the tracker hides or never records.
 public struct TrackerPrivacySettings: Sendable, Hashable, Codable {
     enum CodingKeys: String, CodingKey {
-        case recordCommands = "record_commands"
         case excludePaths = "exclude_paths"
         case excludeKeywords = "exclude_keywords"
         case excludeTmuxSessions = "exclude_tmux_sessions"
@@ -16,7 +15,6 @@ public struct TrackerPrivacySettings: Sendable, Hashable, Codable {
         case excludeTitleKeywords = "exclude_title_keywords"
     }
 
-    public var recordCommands = false
     public var excludePaths: [String] = []
     public var excludeKeywords: [String] = []
     public var excludeTmuxSessions: [String] = []
@@ -32,7 +30,6 @@ public struct TrackerPrivacySettings: Sendable, Hashable, Codable {
     public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let fallback = Self()
-        self.recordCommands = try container.value(.recordCommands, default: fallback.recordCommands)
         self.excludePaths = try container.value(.excludePaths, default: fallback.excludePaths)
         self.excludeKeywords = try container.value(.excludeKeywords, default: fallback.excludeKeywords)
         self.excludeTmuxSessions = try container.value(.excludeTmuxSessions, default: fallback.excludeTmuxSessions)
