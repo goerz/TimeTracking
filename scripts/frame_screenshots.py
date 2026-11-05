@@ -8,7 +8,8 @@
     scripts/frame_screenshots.py <raw folder> <output folder> [name...]
 
 The file name picks the treatment: `iphone-*` a phone frame, `ipad-*` a tablet
-frame in the orientation of the image, `mac-desktop` a laptop frame around a
+frame in the orientation of the image, with the wider bezel of the small tablet
+for `ipad-mini-*`, `mac-desktop` a laptop frame around a
 whole screen, and any other `mac-*` no device at all, only the window's shadow.
 Every frame is drawn here; none copies a manufacturer's artwork. The output is
 a PNG with a transparent background, so it works on the site's light and dark
@@ -119,11 +120,11 @@ def phone(shot):
     return fit_width(canvas, MAX_WIDTH["phone"])
 
 
-def tablet(shot):
+def tablet(shot, bezel_points=22):
     """A tablet with an even black bezel and a thin metal edge; the camera
     sits on the long side above a landscape screen, and at the top in portrait."""
     unit = max(shot.size) / 1376
-    bezel, band = round(22 * unit), round(3 * unit)
+    bezel, band = round(bezel_points * unit), round(3 * unit)
     radius = round(22 * unit)
     width = shot.width + 2 * (bezel + band)
     height = shot.height + 2 * (bezel + band)
@@ -137,6 +138,10 @@ def tablet(shot):
     x, y = width // 2, band + bezel // 2
     ImageDraw.Draw(body).ellipse((x - camera, y - camera, x + camera, y + camera), fill=(30, 32, 38, 255))
     return fit_width(pad(body, round(6 * unit)), MAX_WIDTH["tablet"])
+
+
+def small_tablet(shot):
+    return tablet(shot, bezel_points=36)
 
 
 def laptop(shot):
@@ -189,6 +194,8 @@ def window(shot):
 def frame_kind(name):
     if name.startswith("iphone"):
         return "phone"
+    if name.startswith("ipad-mini"):
+        return "small_tablet"
     if name.startswith("ipad"):
         return "tablet"
     if name == "mac-desktop":
@@ -196,7 +203,7 @@ def frame_kind(name):
     return "window"
 
 
-FRAMES = {"phone": phone, "tablet": tablet, "laptop": laptop, "window": window}
+FRAMES = {"phone": phone, "tablet": tablet, "small_tablet": small_tablet, "laptop": laptop, "window": window}
 
 
 def frame_file(source, output):

@@ -55,6 +55,9 @@ DESKTOP_TIMER_HEIGHT = 440
 DESKTOP_CLOCK = "Thu Mar 14  10:00"
 SIM_IPHONE = "TimeTracking iPhone"
 SIM_IPAD = "TimeTracking iPad"
+# Only for the README's image, so it exists only while that image is taken.
+SIM_IPAD_MINI = "TimeTracking iPad mini"
+IPAD_MINI_TYPE = "com.apple.CoreSimulator.SimDeviceType.iPad-mini-A20-Pro"
 WIDGETS = "iphone-widgets"
 
 
@@ -401,13 +404,27 @@ def rotate_to_landscape(udid):
     settle(2)
 
 
-def cover_status_date(path):
+def create_ipad_mini():
+    """A temporary iPad mini in landscape, with the app `make sim` just built."""
+    created = subprocess.run(
+        ["xcrun", "simctl", "create", SIM_IPAD_MINI, IPAD_MINI_TYPE], capture_output=True, text=True, check=True
+    )
+    udid = created.stdout.strip()
+    simctl("boot", udid)
+    prepare_simulator(udid)
+    built = (ROOT / "build.noindex/Build/Products/Debug-iphonesimulator").glob("*.app")
+    simctl("install", udid, str(next(app for app in built if "Runner" not in app.name)))
+    rotate_to_landscape(udid)
+    return udid
+
+
+def cover_status_date(path, left=134, background_at=(600, 30)):
     """Clears the iPad status bar's weekday, date, and app name beside the
     clock: the override's date always reads as a Tuesday, against the Thursday
     the app shows."""
     image = Image.open(path).convert("RGBA")
-    background = image.getpixel((600, 30))
-    ImageDraw.Draw(image).rectangle((134, 8, 560, 58), fill=background)
+    background = image.getpixel(background_at)
+    ImageDraw.Draw(image).rectangle((left, 8, 560, 58), fill=background)
     image.save(path)
 
 
@@ -417,6 +434,7 @@ IOS_SHOTS = {
     "ipad-timer": (SIM_IPAD, ("-PadTab", "timer"), None),
     "ipad-calendar": (SIM_IPAD, ("-PadTab", "calendar"), "planner/calendar?date=2024-03-11"),
     "ipad-reports": (SIM_IPAD, ("-PadTab", "reports"), None),
+    "ipad-mini-reports": (SIM_IPAD_MINI, ("-PadTab", "reports"), None),
 }
 
 
@@ -464,6 +482,9 @@ def capture_simulators(names, raw):
     for udid in devices.values():
         prepare_simulator(udid)
     rotate_to_landscape(devices[SIM_IPAD])
+    mini = None
+    if any(IOS_SHOTS.get(name, (None,))[0] == SIM_IPAD_MINI for name in names):
+        mini = devices[SIM_IPAD_MINI] = create_ipad_mini()
     try:
         for name in names:
             print(name, flush=True)
@@ -479,11 +500,17 @@ def capture_simulators(names, raw):
             simctl("io", devices[device], "screenshot", str(path))
             if device == SIM_IPAD:
                 cover_status_date(path)
+            elif device == SIM_IPAD_MINI:
+                # Landscape shows the sidebar under the status bar's date.
+                cover_status_date(path, left=150, background_at=(20, 30))
     finally:
         subprocess.run(["xcrun", "devicectl", "device", "orientation", "set", "--device", devices[SIM_IPAD], "portrait"])
         for udid in devices.values():
             simctl("status_bar", udid, "clear")
             subprocess.run(["xcrun", "simctl", "terminate", udid, debug_app_id()], stderr=subprocess.DEVNULL)
+        if mini:
+            subprocess.run(["xcrun", "simctl", "shutdown", mini], check=False)
+            simctl("delete", mini)
 
 
 def main():
