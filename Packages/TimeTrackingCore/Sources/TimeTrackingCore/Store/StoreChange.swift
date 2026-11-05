@@ -7,6 +7,9 @@ public enum StoreChange: Hashable, Sendable {
     /// Entries changed; an empty set means "re-read" (another process).
     case entries(Set<EntryID>)
     case runningEntry(TimeEntry?)
+    /// Another device or an intent started or stopped an entry, leaving the
+    /// given one running. Comes before the `.entries` of the same commit.
+    case runningChangedElsewhere(EntryID?)
     /// Clients, areas, projects, or devices changed.
     case structure
     case settings(Set<String>)

@@ -52,10 +52,6 @@ final class TimerModel {
     /// The undo action in flight (tests await it).
     @ObservationIgnored private(set) var pendingUndo: Task<Void, Never>?
     @ObservationIgnored private var askedForNotifications = false
-    /// This model's writes in flight, up to their `onChange`: a change of
-    /// the running entry seen meanwhile is theirs (the store's own event
-    /// can arrive before `onChange`).
-    @ObservationIgnored private(set) var commandsInFlight = 0
 
     /// The task field's debounce interval (§2.2).
     static let taskCommitDelay = Duration.milliseconds(500)
@@ -182,8 +178,6 @@ final class TimerModel {
     /// stopping a running one.
     func startEmpty(on project: ProjectID) async {
         await commitTask()
-        commandsInFlight += 1
-        defer { commandsInFlight -= 1 }
         do {
             _ = try await store.start(projectID: project, task: "", at: clock.now)
         } catch {
@@ -199,8 +193,6 @@ final class TimerModel {
             return
         }
         await commitTask()
-        commandsInFlight += 1
-        defer { commandsInFlight -= 1 }
         do {
             try await store.stop(at: clock.now)
             await clearDraft()
@@ -265,8 +257,6 @@ final class TimerModel {
         }
         pendingTaskCommit?.cancel()
         pendingTaskCommit = nil
-        commandsInFlight += 1
-        defer { commandsInFlight -= 1 }
         do {
             try await store.delete([running.id])
             registerUndo(name: "Discard") { model in
@@ -325,8 +315,6 @@ extension TimerModel {
 
     /// Runs a start-like write, then refreshes and notifies.
     private func perform(_ write: @Sendable () async throws -> TimeEntry) async {
-        commandsInFlight += 1
-        defer { commandsInFlight -= 1 }
         do {
             let entry = try await write()
             taskText = entry.task
@@ -347,8 +335,6 @@ extension TimerModel {
         }
         undoManager.registerUndo(withTarget: self) { model in
             model.pendingUndo = Task { @MainActor in
-                model.commandsInFlight += 1
-                defer { model.commandsInFlight -= 1 }
                 await action(model)
             }
         }

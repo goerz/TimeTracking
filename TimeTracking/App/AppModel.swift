@@ -70,6 +70,9 @@ final class AppModel {
     /// Timer commands in flight on behalf of a source of §8.3: the global
     /// shortcut, the menu bar, or a notification.
     @ObservationIgnored private var sourceCommands = 0
+    /// The running entry another device or an intent left, the other
+    /// sources of §8.3, until `afterChange` has seen that change.
+    @ObservationIgnored private var runningFromElsewhere: EntryID??
 
     init(
         store: TimeStore,
@@ -146,6 +149,8 @@ final class AppModel {
                 await reloadHealthViews()
             }
             await reloadAfterMidnightChange(keys)
+        case let .runningChangedElsewhere(id):
+            runningFromElsewhere = .some(id)
         case .sync, .liveState, .adjusted:
             return
         case .health:
@@ -170,7 +175,7 @@ final class AppModel {
 
     /// Re-reads the timer and lists and reacts to a start or stop: the
     /// Pomodoro ends when nothing runs, the idle prompt closes, and the
-    /// focus settings of §8.3 apply.
+    /// focus settings of §8.3 apply to a change from one of its sources.
     func afterChange() async {
         await timer.refresh()
         await reloadLists()
@@ -182,18 +187,14 @@ final class AppModel {
                 // "Nothing is being tracked" no longer holds.
                 reminders.trackingStarted()
             }
-            if running != nil ? settings.focusOnStart : settings.focusOnStop, !changeIsFromWindow {
+            let fromSource = sourceCommands > 0 || runningFromElsewhere == .some(running?.id)
+            if running != nil ? settings.focusOnStart : settings.focusOnStop, fromSource {
                 router?.showTimer(focusTask: true)
             }
             lastRunningID = running?.id
+            runningFromElsewhere = nil
         }
         revision += 1
-    }
-
-    /// Whether the change just seen is a Timer command from a window or
-    /// the main menu, none of which are sources of §8.3.
-    private var changeIsFromWindow: Bool {
-        timer.commandsInFlight > 0 && sourceCommands == 0
     }
 
     /// Runs a Timer command on behalf of a source of §8.3.

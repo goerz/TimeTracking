@@ -199,7 +199,7 @@ Both apps handle `timetracking` (`timetracking-debug` in Debug). URLs act in the
 | `timetracking://planner/activity?date=2026-10-29` | Activity section | Mac, iPad |
 | `timetracking://project/<uuid>` | The project in Projects (also a time block's link) | Mac, iPad |
 
-A project name that is unknown, archived, or ambiguous starts nothing and shows an alert naming the problem (titled "Couldn't Open the Link" on the Mac, "Can't Open This Link" on iOS); URLs never create projects. Any other host or path shows "This link isn't one the app understands." On the Mac, `start`, `stop`, and `continue` do not activate the app (feedback is the menu bar and, if permitted, a banner "Started Noise paper"); on iOS the app shows the Timer. On the iPhone, `planner/*` and `project/` URLs open the Timer. Values over 1,000 characters are rejected with an alert. Universal links are not used.
+A project name that is unknown, archived, or ambiguous starts nothing and shows an alert naming the problem (titled "Couldn't Open the Link" on the Mac, "Can't Open This Link" on iOS); URLs never create projects. Any other host or path shows "This link isn't one the app understands." On the Mac, `start`, `stop`, and `continue` do not activate the app, whatever the Mini Timer settings say (feedback is the menu bar and, if permitted, a banner "Started Noise paper"); on iOS the app shows the Timer. On the iPhone, `planner/*` and `project/` URLs open the Timer. Values over 1,000 characters are rejected with an alert. Universal links are not used.
 
 ## 7. Read-only access for scripts
 

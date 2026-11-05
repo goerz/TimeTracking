@@ -200,10 +200,10 @@ The two global shortcuts are stored per device; a shortcut already in use is rep
 |---|---|---|
 | Show or hide the Mini Timer | ⌥⌘R | Hides the app if the Mini Timer is the key window of the active app; otherwise activates the app and shows the Mini Timer with the task field focused |
 | Continue or stop the timer | unassigned | Stops the running entry, or continues the most recent entry when nothing runs; shows no window |
-| Show the Mini Timer when an entry starts | off | After a start from the global shortcut, the menu bar, a notification, an intent, or another device, shows the Mini Timer with the task field focused |
+| Show the Mini Timer when an entry starts | off | After a start from the global shortcut, the menu bar, a notification's action, an intent, or another device, shows the Mini Timer with the task field focused |
 | Show the Mini Timer when an entry stops | off | The same after a stop from those sources |
 
-A start or stop through the commands of a Timer, the main menu, Projects, or Reports shows nothing, and neither does midnight, which is no start. Window › Mini Timer and the menu bar's "Show Mini Timer" display the show/hide shortcut (none when unassigned); choosing either only shows the Mini Timer.
+Those are the only sources. A start or stop through the commands of a Timer, the main menu, the Calendar, Projects, or Reports shows nothing, and neither does one from a URL ([spec_automation.md](spec_automation.md) §6) or the tool, idle detection, deleting the running entry, or midnight, which is no start. Window › Mini Timer and the menu bar's "Show Mini Timer" display the show/hide shortcut (none when unassigned); choosing either only shows the Mini Timer.
 
 ## 9. Menus and keyboard
 
@@ -293,7 +293,7 @@ The two Pomodoro categories use bundled sounds with "Play a sound" on and are si
 - TM-45. With Midnight at 04:00, the list's days and their totals are the shown days: an entry across it has a row with its part on each day, a night across real midnight lies on one day, and a row's editor opens the stored entry.
 - TM-46. Choosing Midnight in the General pane moves the Calendar's first hour label to that hour, and 00:00 restores it.
 - TM-47. Real midnight is no change of the running entry: the Mini Timer doesn't show, an open idle prompt stays open, the Pomodoro's phase stays, and a task being typed stays.
-- TM-48. With "Show the Mini Timer when an entry starts" and "when an entry stops" on, a start or stop from a Timer or the main menu shows nothing, and one from the menu bar, a notification, or another device shows the Mini Timer with the task field focused.
+- TM-48. With "Show the Mini Timer when an entry starts" and "when an entry stops" on, a start or stop from the menu bar, a notification, an intent, or another device shows the Mini Timer with the task field focused, and one from a Timer, the main menu, the Calendar, a URL, the tool, idle detection, or deleting the running entry shows nothing.
 - TM-49. With idle from 23:50 and the prompt answered at 00:30, Split, Discard and Continue, and Discard stop the entry at 23:50; Keep changes nothing. A lock stop reaches back the same way, and a stop never reaches before the entry's start.
 - TM-50. Tabbing through an unchanged Start or Stop stores nothing, also for times with seconds; an edit in whole minutes keeps the stored seconds.
 - TM-51. ⌘J in the edit popover opens the popover's own project picker, and closing the picker leaves the popover open.

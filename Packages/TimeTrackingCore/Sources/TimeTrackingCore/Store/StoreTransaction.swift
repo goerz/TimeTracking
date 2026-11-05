@@ -32,6 +32,9 @@ public final class StoreTransaction {
     var liveStateChanged = false
     var healthChanged = false
     var adjustments: [EntryAdjustment] = []
+    /// A change of the running entry here comes from another device or an
+    /// intent (`StoreChange.runningChangedElsewhere`).
+    public var isFromElsewhere = false
 
     init(database: Database, now: Date, deviceID: DeviceID, timeZone: TimeZone) {
         self.database = database

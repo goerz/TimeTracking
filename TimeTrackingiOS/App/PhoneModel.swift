@@ -216,7 +216,7 @@ final class PhoneModel {
             await pad?.storeChanged()
         case let .sync(status):
             await syncStatusChanged(status)
-        case .liveState:
+        case .liveState, .runningChangedElsewhere:
             await refreshLive()
         case let .adjusted(adjustments):
             await showAdjustments(adjustments)

@@ -18,7 +18,7 @@ final class IntentBridge {
     /// The environment registered with `AppDependencyManager` at launch.
     nonisolated static var environment: IntentEnvironment {
         IntentEnvironment(
-            service: { await AutomationService(store: shared.awaitModel().store) },
+            service: { await AutomationService(store: shared.awaitModel().store, isIntent: true) },
             didChange: { await shared.model?.afterChange() },
             showTimer: { await shared.showTimer() }
         )

@@ -73,10 +73,11 @@ struct MidnightRunningTests {
         #expect(test.router.calls.isEmpty)
     }
 
-    @Test("TM-48 Show the Mini Timer follows the menu bar, a notification, and another device")
+    @Test("TM-48 Show the Mini Timer follows the menu bar, a notification, an intent, and another device")
     func miniTimerFollowsSources() async throws {
-        let test = try await TestApp()
+        let test = try await TestApp(observing: true)
         let app = test.app
+        defer { app.stop() }
         try await test.entry("Review", from: "08:00", to: "08:30")
         app.settings.focusOnStart = true
         app.settings.focusOnStop = true
@@ -85,11 +86,47 @@ struct MidnightRunningTests {
         await app.handle(.continueLatest)
         await app.timer.stop()
         #expect(test.router.calls.count == 3)
-        _ = try await test.store.start(projectID: nil, task: "From the iPhone", at: test.clock.now)
+
+        let intent = AutomationService(store: test.store, isIntent: true)
+        _ = try await intent.start(task: "From Siri", projectID: nil)
+        #expect(await eventually { test.router.calls.count == 4 })
+        _ = try await intent.stop()
+        #expect(await eventually { test.router.calls.count == 5 })
+
+        let phone = try await TimeStore.inMemory(clock: test.clock, timeZone: .current)
+        let entry = try await phone.start(projectID: nil, task: "From the iPhone", at: test.clock.now)
+        let ref = SyncRecordRef(.timeEntry, entry.id.rawValue)
+        try await test.store.applyFetched([#require(try await phone.syncRecord(ref))], deletions: [])
+        #expect(await eventually { test.router.calls.count == 6 })
+        test.clock.advance(by: 60)
+        _ = try await phone.stop(at: test.clock.now)
+        try await test.store.applyFetched([#require(try await phone.syncRecord(ref))], deletions: [])
+        #expect(await eventually { test.router.calls.count == 7 })
+        #expect(test.router.calls == Array(repeating: .showTimer(focusTask: true), count: 7))
+    }
+
+    @Test("TM-48 Show the Mini Timer doesn't follow a URL, the tool, the Calendar, idle detection, or deleting the running entry")
+    func miniTimerIgnoresOtherChanges() async throws {
+        let test = try await TestApp(observing: true)
+        let app = test.app
+        defer { app.stop() }
+        try await test.entry("Review", from: "08:00", to: "08:30")
+        app.settings.focusOnStart = true
+        app.settings.focusOnStop = true
+        let router = URLRouter(app: app, scheme: "timetracking-debug")
+        try await router.open(#require(URL(string: "timetracking-debug://start?task=Linked")))
+        try await router.open(#require(URL(string: "timetracking-debug://stop")))
+        // The tool is another process: the store only reports a change.
+        _ = try await test.store.start(projectID: nil, task: "From the tool", at: test.clock.now)
         await app.afterChange()
-        _ = try await test.store.stop(at: test.clock.now)
+        await app.idle.systemEvent(.shutdown, at: test.clock.now)
         await app.afterChange()
-        #expect(test.router.calls == Array(repeating: .showTimer(focusTask: true), count: 5))
+        #expect(try await test.store.runningEntry() == nil)
+        let running = try await test.store.start(projectID: nil, task: "Doomed", at: test.clock.now)
+        await app.afterChange()
+        try await test.store.delete([running.id])
+        await app.afterChange()
+        #expect(test.router.calls.isEmpty)
     }
 
     /// An entry from 23:30, idle since 23:50, and the prompt open at 00:30.

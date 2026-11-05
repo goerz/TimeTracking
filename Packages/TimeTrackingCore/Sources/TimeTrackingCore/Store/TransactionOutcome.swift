@@ -12,6 +12,7 @@ struct TransactionOutcome: Sendable {
     var healthChanged: Bool
     var adjustments: [EntryAdjustment]
     var queuedCount: Int
+    var isFromElsewhere: Bool
 
     init(_ transaction: StoreTransaction) {
         self.changedEntryIDs = transaction.changedEntryIDs
@@ -21,6 +22,7 @@ struct TransactionOutcome: Sendable {
         self.healthChanged = transaction.healthChanged
         self.adjustments = transaction.adjustments
         self.queuedCount = transaction.queued.count
+        self.isFromElsewhere = transaction.isFromElsewhere
     }
 
     var hasChanges: Bool {

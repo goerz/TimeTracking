@@ -243,8 +243,11 @@ public actor TimeStore {
         }
         notifier?.post()
         if !outcome.changedEntryIDs.isEmpty {
-            broadcaster.yield(.entries(outcome.changedEntryIDs))
             let running = try runningEntry()
+            if outcome.isFromElsewhere, running?.id != lastRunning?.id {
+                broadcaster.yield(.runningChangedElsewhere(running?.id))
+            }
+            broadcaster.yield(.entries(outcome.changedEntryIDs))
             if running != lastRunning {
                 lastRunning = running
                 broadcaster.yield(.runningEntry(running))

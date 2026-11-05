@@ -111,7 +111,7 @@ public actor SyncCoordinator {
     /// change is sent at once.
     public func storeChanged(_ change: StoreChange) async {
         switch change {
-        case .sync, .adjusted:
+        case .sync, .adjusted, .runningChangedElsewhere:
             return
         case .entries, .structure, .settings, .health:
             unsent += await drain()

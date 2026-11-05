@@ -10,10 +10,14 @@ public struct AutomationService: Sendable {
     public let store: TimeStore
     /// The zone dates are read and printed in (the system zone).
     public let timeZone: TimeZone
+    /// Writes come from an intent, which `spec_timer.md` §8.3 tells apart
+    /// from URLs and the tool.
+    public let isIntent: Bool
 
-    public init(store: TimeStore, timeZone: TimeZone = .current) {
+    public init(store: TimeStore, timeZone: TimeZone = .current, isIntent: Bool = false) {
         self.store = store
         self.timeZone = timeZone
+        self.isIntent = isIntent
     }
 
     public var calendar: TrackingCalendar {
@@ -70,26 +74,21 @@ public struct AutomationService: Sendable {
         at: Date? = nil,
         force: Bool = false
     ) async throws(AutomationError) -> StartResult {
-        let store = store
-        let outcome = try await run {
-            try await store.transaction { try $0.checkedStart(projectID: projectID, task: task, at: at, force: force) }
-        }
+        let outcome = try await write { try $0.checkedStart(projectID: projectID, task: task, at: at, force: force) }
         return try await result(outcome)
     }
 
     /// Stops the running entry; refuses when nothing runs.
     public func stop(at: Date? = nil) async throws(AutomationError) -> EntryListing {
-        let store = store
-        let stopped = try await run { try await store.transaction { try $0.checkedStop(at: at) } }
+        let stopped = try await write { try $0.checkedStop(at: at) }
         return try await listing(stopped)
     }
 
     /// Stops the running entry only while it is `id`; `nil` when another
     /// entry or none runs.
     public func stop(entry id: EntryID) async throws(AutomationError) -> EntryListing? {
-        let store = store
         let now = store.clock.now
-        let stopped = try await run { try await store.transaction { try $0.stop(entry: id, at: now) } }
+        let stopped = try await write { try $0.stop(entry: id, at: now) }
         guard let stopped else {
             return nil
         }
@@ -134,9 +133,7 @@ public struct AutomationService: Sendable {
         }
         let projectID = template.projectID
         let task = template.task
-        let outcome = try await run {
-            try await store.transaction { try $0.checkedStart(projectID: projectID, task: task, at: nil, force: true) }
-        }
+        let outcome = try await write { try $0.checkedStart(projectID: projectID, task: task, at: nil, force: true) }
         return try await result(outcome)
     }
 
@@ -223,6 +220,17 @@ public struct AutomationService: Sendable {
         let start = max(entry.start, interval.start)
         let end = min(entry.end ?? now, interval.end)
         return max(0, Int(end.timeIntervalSince(start).rounded(.down)))
+    }
+
+    /// One write transaction, marked when it comes from an intent.
+    private func write<R: Sendable>(_ body: @escaping @Sendable (StoreTransaction) throws -> R) async throws(AutomationError) -> R {
+        let (store, isIntent) = (store, isIntent)
+        return try await run {
+            try await store.transaction { transaction in
+                transaction.isFromElsewhere = isIntent
+                return try body(transaction)
+            }
+        }
     }
 
     /// Runs store calls, turning their errors into automation errors.

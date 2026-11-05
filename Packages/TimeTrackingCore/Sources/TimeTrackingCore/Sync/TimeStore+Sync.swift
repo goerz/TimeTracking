@@ -78,6 +78,7 @@ extension TimeStore {
     @discardableResult
     public func applyFetched(_ records: [SyncRecord], deletions: [SyncRecordRef]) throws -> LiveStateSyncEvent? {
         try write { transaction -> LiveStateSyncEvent? in
+            transaction.isFromElsewhere = true
             let before = try transaction.liveState()
             for record in records {
                 try transaction.applyRemote(record)
@@ -99,6 +100,7 @@ extension TimeStore {
     /// fields, so the next send succeeds.
     public func resolveConflict(server: SyncRecord) throws {
         try write { transaction in
+            transaction.isFromElsewhere = true
             try transaction.applyRemote(server)
         }
     }
