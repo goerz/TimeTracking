@@ -23,6 +23,10 @@ The code must build without warnings and pass SwiftLint with no findings.
 
 Nothing personal goes into the repository. Team IDs, bundle IDs, and device names live in the git-ignored `local.mk`. The hooks in `.githooks/` (enabled by `make hooks`) refuse commits containing personal data, and the pre-push hook runs `make lint`. Don't bypass them.
 
+## Branches
+
+Rebase every topic branch on `master` before merging it. Whether the merge then fast-forwards depends on the context, but only a manually created branch may get an explicit merge commit (`git merge --no-ff`). A branch created automatically, such as a Claude session's worktree branch, always fast-forwards.
+
 ## Commit messages
 
 Every commit message follows this template.
