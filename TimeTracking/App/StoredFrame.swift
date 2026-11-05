@@ -1,4 +1,4 @@
-// StoredFrame: a window frame in the device settings (spec_timer.md §1.1).
+// StoredFrame: a window frame in the device settings (timer.md §1.1).
 
 import CoreGraphics
 import Foundation

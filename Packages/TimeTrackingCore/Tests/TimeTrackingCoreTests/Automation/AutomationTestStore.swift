@@ -1,4 +1,4 @@
-// A small store for the automation tests (spec_automation.md §9): now is
+// A small store for the automation tests (automation.md §9): now is
 // 2026-10-29T10:00 in Europe/Berlin.
 
 import Foundation

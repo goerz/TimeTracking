@@ -1,5 +1,5 @@
 // ReportMenuContent: the Report menu's items, on the Mac and the iPad
-// (spec_reports.md §8).
+// (reports.md §8).
 
 import SwiftUI
 import TimeTrackingCore

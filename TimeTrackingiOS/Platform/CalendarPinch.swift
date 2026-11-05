@@ -1,5 +1,5 @@
 // CalendarPinch: the iPad Calendar's pinch by axis, which SwiftUI does not
-// provide (spec_calendar.md §1.2, §1.3; spec_ios.md §10.2).
+// provide (calendar.md §1.2, §1.3; ios.md §10.2).
 
 import Foundation
 import SwiftUI

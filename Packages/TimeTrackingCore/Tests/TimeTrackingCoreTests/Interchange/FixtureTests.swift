@@ -1,5 +1,5 @@
 // Store fixtures, store location, and the change notification
-// (spec_architecture.md §1.5, §3.4; spec_data_and_sync.md §2.2, §9 item 14, §9.1).
+// (architecture.md §1.5, §3.4; data_and_sync.md §2.2, §9 item 14, §9.1).
 
 import Foundation
 import Testing

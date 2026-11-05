@@ -1,5 +1,5 @@
 // CloudKitRecords: SyncRecord to and from CKRecord, field for field
-// (spec_data_and_sync.md §3.1).
+// (data_and_sync.md §3.1).
 
 public import CloudKit
 import Foundation

@@ -1,5 +1,5 @@
 // Tests of the Activity bars' open block, tooltips, and segments, and the
-// keyboard focus on the heatmap and the bars (spec_activity.md §6).
+// keyboard focus on the heatmap and the bars (activity.md §6).
 
 import Foundation
 import Testing

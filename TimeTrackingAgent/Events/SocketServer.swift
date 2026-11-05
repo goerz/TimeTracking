@@ -1,5 +1,5 @@
-// SocketServer: the agent's Unix socket `tracker.sock` (spec_activity_tracking.md
-// §3.1, §7.3; spec_architecture.md §1.5).
+// SocketServer: the agent's Unix socket `tracker.sock` (activity_tracking.md
+// §3.1, §7.3; architecture.md §1.5).
 
 import Foundation
 import os

@@ -1,4 +1,4 @@
-// AutomationStatus: the result of the tool's `status` (spec_automation.md §3.5).
+// AutomationStatus: the result of the tool's `status` (automation.md §3.5).
 
 public import Foundation
 

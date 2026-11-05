@@ -1,5 +1,5 @@
 // SourceHealthBoard: the status of every source of §2.3 for current.json
-// (spec_activity_tracking.md §2.3, §4.4).
+// (activity_tracking.md §2.3, §4.4).
 
 import TimeTrackingCore
 

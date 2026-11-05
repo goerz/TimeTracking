@@ -1,4 +1,4 @@
-// GlobalOptions: the options every subcommand accepts (spec_automation.md §3.1).
+// GlobalOptions: the options every subcommand accepts (automation.md §3.1).
 
 import ArgumentParser
 import Foundation

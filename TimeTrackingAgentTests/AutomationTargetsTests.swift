@@ -1,5 +1,5 @@
 // The apps "Ask for Access" asks for are the ones the agent scripts
-// (spec_activity_tracking.md §3.1, §3.3, §7.4).
+// (activity_tracking.md §3.1, §3.3, §7.4).
 
 import Foundation
 import Testing

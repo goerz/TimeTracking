@@ -1,5 +1,5 @@
 // HealthImport: the iPhone's import of sleep and workouts from Apple Health
-// into the store (spec_data_and_sync.md §1.9, spec_ios.md §7).
+// into the store (data_and_sync.md §1.9, ios.md §7).
 
 public import Foundation
 

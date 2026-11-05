@@ -1,6 +1,6 @@
 // The Debug Mac app's launch: UI-testing mode, the windows a launch opens,
-// and opening windows with none open (spec_architecture.md §3.1, §3.3;
-// spec_timer.md §1.3).
+// and opening windows with none open (architecture.md §3.1, §3.3;
+// timer.md §1.3).
 
 import XCTest
 

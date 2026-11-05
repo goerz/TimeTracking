@@ -1,5 +1,5 @@
 // MiniTimerGeometry: full and compact mode by window height
-// (spec_timer.md §1.1, §1.3).
+// (timer.md §1.1, §1.3).
 
 import CoreGraphics
 

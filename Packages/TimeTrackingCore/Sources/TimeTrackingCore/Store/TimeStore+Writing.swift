@@ -1,4 +1,4 @@
-// The async write API of TimeStore (spec_data_and_sync.md §7.1).
+// The async write API of TimeStore (data_and_sync.md §7.1).
 
 public import Foundation
 import GRDB

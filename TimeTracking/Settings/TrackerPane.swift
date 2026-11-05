@@ -1,5 +1,5 @@
-// TrackerPane: the Tracker settings pane (spec_activity_tracking.md §7.4,
-// spec_timer.md §8.2, spec_design.md §7).
+// TrackerPane: the Tracker settings pane (activity_tracking.md §7.4,
+// timer.md §8.2, design.md §7).
 
 import SwiftUI
 import TimeTrackingCore
@@ -291,7 +291,7 @@ private struct FilesSection: View {
 }
 
 /// The exclusion drafted in the Activity section, focused, until it is
-/// added to the settings file or cancelled (spec_activity.md §4).
+/// added to the settings file or cancelled (activity.md §4).
 private struct PendingExclusionSection: View {
     @Environment(AppModel.self) private var app
     @FocusState private var focused: Bool

@@ -1,5 +1,5 @@
 // AreaFormModel: the area sheet's model: name rules, default color, and
-// undoable rename and recolor (spec_projects.md §4.3, §4.4).
+// undoable rename and recolor (projects.md §4.3, §4.4).
 
 import Foundation
 import Observation

@@ -1,5 +1,5 @@
 // TrackerPresenceSettings: the [presence] table of settings.toml
-// (spec_activity_tracking.md §7.1). A missing key takes its default.
+// (activity_tracking.md §7.1). A missing key takes its default.
 
 public import Foundation
 

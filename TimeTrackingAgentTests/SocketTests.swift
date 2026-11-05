@@ -1,4 +1,4 @@
-// The socket: pushed events and rewrite commands (spec_activity_tracking.md
+// The socket: pushed events and rewrite commands (activity_tracking.md
 // §3.1, §7.3).
 
 import Foundation

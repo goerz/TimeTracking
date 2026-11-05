@@ -1,4 +1,4 @@
-// EntryDraft and EntryChange: inputs of the entry writes (spec_data_and_sync.md §7.1).
+// EntryDraft and EntryChange: inputs of the entry writes (data_and_sync.md §7.1).
 
 public import Foundation
 

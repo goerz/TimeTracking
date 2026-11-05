@@ -1,5 +1,5 @@
 // ActivityPanel: the card every Activity panel sits in
-// (spec_activity.md §1.4 to §1.8; spec_design.md §3).
+// (activity.md §1.4 to §1.8; design.md §3).
 
 import SwiftUI
 

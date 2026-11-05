@@ -1,5 +1,5 @@
 // CloudKitSyncEngine: CKSyncEngine with automatic sync and a database
-// subscription, delegating to SyncCoordinator (spec_data_and_sync.md §3.1).
+// subscription, delegating to SyncCoordinator (data_and_sync.md §3.1).
 
 public import CloudKit
 public import Foundation

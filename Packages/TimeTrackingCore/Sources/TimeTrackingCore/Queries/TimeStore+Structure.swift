@@ -1,4 +1,4 @@
-// Structure queries and the consistency check (spec_data_and_sync.md §1.1 to §1.3, §3.3, §7.2).
+// Structure queries and the consistency check (data_and_sync.md §1.1 to §1.3, §3.3, §7.2).
 
 import Foundation
 import GRDB
@@ -60,7 +60,7 @@ extension TimeStore: StructureReading {
 
     /// The seconds tracked per project in the inclusive `days` (each entry
     /// counts in the days it lies on, the running one to now); projects
-    /// without an entry in the range are absent (spec_projects.md §2.4).
+    /// without an entry in the range are absent (projects.md §2.4).
     public func projectSeconds(days: ClosedRange<TrackingDay>) throws -> [ProjectID: Int] {
         let groups = try shownGroups(
             days: days,

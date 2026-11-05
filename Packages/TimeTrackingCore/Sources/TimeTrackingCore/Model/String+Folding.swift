@@ -1,4 +1,4 @@
-// Name folding: case- and diacritic-insensitive comparison (spec_data_and_sync.md §1).
+// Name folding: case- and diacritic-insensitive comparison (data_and_sync.md §1).
 
 import Foundation
 

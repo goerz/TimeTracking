@@ -1,4 +1,4 @@
-// consistencyIssues(): integrity is reported, never repaired (spec_data_and_sync.md §1.4, §3.2, §3.3).
+// consistencyIssues(): integrity is reported, never repaired (data_and_sync.md §1.4, §3.2, §3.3).
 
 import Foundation
 import GRDB

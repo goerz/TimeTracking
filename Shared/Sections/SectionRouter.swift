@@ -1,5 +1,5 @@
 // SectionRouter: the main window's sections, the requests that switch
-// between them, and their links to the Timer (spec_projects.md §1.3). On
+// between them, and their links to the Timer (projects.md §1.3). On
 // the Mac the router shows the main window; on the iPad it selects tabs.
 
 import Foundation
@@ -37,7 +37,7 @@ nonisolated enum MainSection: String, Codable, CaseIterable, Identifiable, Senda
     }
 }
 
-/// What the Calendar pulses after `showCalendar` (spec_calendar.md §1.2).
+/// What the Calendar pulses after `showCalendar` (calendar.md §1.2).
 nonisolated enum BlockHighlight: Hashable, Sendable {
     /// One hour of the day.
     case hour(Int)

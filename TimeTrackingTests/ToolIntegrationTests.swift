@@ -1,4 +1,4 @@
-// The bundled tool writing while the app runs (spec_automation.md §9 item 40).
+// The bundled tool writing while the app runs (automation.md §9 item 40).
 
 import Foundation
 import Testing

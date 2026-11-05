@@ -1,5 +1,5 @@
 // CollectionLog: what every iOS collector calls to append a line to the
-// collection file (spec_ios.md §9.1, §9.3 to §9.5, §9.7).
+// collection file (ios.md §9.1, §9.3 to §9.5, §9.7).
 
 public import Foundation
 
@@ -33,7 +33,7 @@ public struct CollectionLog: Sendable {
     }
 
     /// The collection folder of `identity`'s App Group: `Activity/` in the
-    /// support directory (spec_data_and_sync.md §6). Never touches iCloud.
+    /// support directory (data_and_sync.md §6). Never touches iCloud.
     public static func folder(identity: AppIdentity) -> URL? {
         identity.groupContainerURL.map { identity.supportDirectory(in: $0).appending(path: "Activity", directoryHint: .isDirectory) }
     }

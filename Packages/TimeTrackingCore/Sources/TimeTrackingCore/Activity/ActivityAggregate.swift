@@ -1,4 +1,4 @@
-// ActivityAggregate: one bucket of an activity aggregate (spec_data_and_sync.md §6).
+// ActivityAggregate: one bucket of an activity aggregate (data_and_sync.md §6).
 
 /// The seconds of one bucket of `ActivityReading.aggregate(in:by:device:)`.
 public struct ActivityAggregate: Sendable, Hashable {

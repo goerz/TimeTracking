@@ -1,4 +1,4 @@
-// entries and entry show|create|edit|delete (spec_automation.md §3.6).
+// entries and entry show|create|edit|delete (automation.md §3.6).
 
 import ArgumentParser
 import Foundation

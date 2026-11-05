@@ -1,5 +1,5 @@
 // DeviceActivityMonitorExtension: the DeviceActivity monitor's principal
-// class (spec_ios.md §9.2). It forwards the callbacks to the library's
+// class (ios.md §9.2). It forwards the callbacks to the library's
 // LadderController and only appends to the collection file.
 
 import DeviceActivity

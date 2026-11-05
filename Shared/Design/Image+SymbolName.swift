@@ -1,5 +1,5 @@
 // Image+SymbolName: one initializer for SF Symbols and the app's own symbols
-// (spec_design.md §5).
+// (design.md §5).
 
 import SwiftUI
 import TimeTrackingCore

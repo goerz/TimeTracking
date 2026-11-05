@@ -1,7 +1,7 @@
 #!/bin/sh
 # Unregisters from LaunchServices every copy of the apps whose bundle
 # identifier starts with BUNDLE_ID, except the installed one
-# (spec_architecture.md §2.5, build-mac). Build products in build.noindex/
+# (architecture.md §2.5, build-mac). Build products in build.noindex/
 # and Xcode's DerivedData otherwise compete with the installed app for URL
 # schemes, login items, and "Open With".
 #

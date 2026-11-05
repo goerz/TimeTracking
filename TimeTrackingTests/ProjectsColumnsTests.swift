@@ -1,4 +1,4 @@
-// The Projects table's columns (spec_projects.md §2.2).
+// The Projects table's columns (projects.md §2.2).
 
 import Foundation
 import SwiftUI

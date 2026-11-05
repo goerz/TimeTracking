@@ -1,5 +1,5 @@
 // ResignWatch: runs an action once if the app resigns active right after
-// switching to the accessory policy (spec_menubar.md §4).
+// switching to the accessory policy (menubar.md §4).
 
 import AppKit
 

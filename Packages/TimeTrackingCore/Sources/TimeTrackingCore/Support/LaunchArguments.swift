@@ -1,6 +1,6 @@
 // LaunchArguments: the launch arguments and environment every process
-// understands (spec_architecture.md §2.5, spec_automation.md §1,
-// spec_activity_tracking.md §5).
+// understands (architecture.md §2.5, automation.md §1,
+// activity_tracking.md §5).
 
 public import Foundation
 

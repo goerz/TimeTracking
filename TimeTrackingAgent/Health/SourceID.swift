@@ -1,5 +1,5 @@
 // SourceID: the sources of §2.3 as current.json names them
-// (spec_activity_tracking.md §2.3, §4.4).
+// (activity_tracking.md §2.3, §4.4).
 
 import TimeTrackingCore
 

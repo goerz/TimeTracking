@@ -1,5 +1,5 @@
 // The timetracking tool as a subprocess: report and the structure commands
-// (spec_automation.md §3.7 to §3.9, §9 items 12 to 18, 31).
+// (automation.md §3.7 to §3.9, §9 items 12 to 18, 31).
 
 import Foundation
 import Testing
@@ -139,7 +139,7 @@ extension ToolTests {
         let fixture = try ToolFixture()
         let created = try fixture.run(["area", "create", "Health", "--client", "Personal", "--json"])
         #expect(created.status == 0, "\(created.standardError)")
-        // The library's default (spec_data_and_sync.md §1.2): the fixture's
+        // The library's default (data_and_sync.md §1.2): the fixture's
         // area hues are 5, 39, 173, 181, 208, 208; the largest circular gap
         // runs from 208 to 365, so hue 208 + 157 / 2 = 286 at saturation
         // 0.65 and brightness 0.80, which is #AD47CC.

@@ -1,4 +1,4 @@
-// Entry writes and reads (spec_data_and_sync.md §1.4, §1.7, §2.2, §7; §9 items 5, 9, 12, 13, 15, 16).
+// Entry writes and reads (data_and_sync.md §1.4, §1.7, §2.2, §7; §9 items 5, 9, 12, 13, 15, 16).
 
 import Foundation
 import Testing

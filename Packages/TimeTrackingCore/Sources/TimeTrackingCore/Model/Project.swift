@@ -1,4 +1,4 @@
-// Project: a unit of work inside one area (spec_data_and_sync.md §1.3).
+// Project: a unit of work inside one area (data_and_sync.md §1.3).
 
 public import Foundation
 

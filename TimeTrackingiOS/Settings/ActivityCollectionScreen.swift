@@ -1,4 +1,4 @@
-// ActivityCollectionScreen: Settings > Activity collection (spec_ios.md
+// ActivityCollectionScreen: Settings > Activity collection (ios.md
 // §2.9, §9, §11 item 3): the master switch, Screen Time and app groups, the
 // setup steps with their check marks, and sending to iCloud.
 

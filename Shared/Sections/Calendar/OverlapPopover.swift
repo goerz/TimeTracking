@@ -1,5 +1,5 @@
 // OverlapPopover: the overlap question, Trim, Overlap, or Cancel
-// (spec_calendar.md §2.6).
+// (calendar.md §2.6).
 
 import SwiftUI
 import TimeTrackingCore

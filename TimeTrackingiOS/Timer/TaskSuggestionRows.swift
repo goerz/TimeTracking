@@ -1,5 +1,5 @@
 // TaskSuggestionRows: the suggestions under a task field, on the card and
-// in the edit sheet (spec_ios.md §2.2, §2.7).
+// in the edit sheet (ios.md §2.2, §2.7).
 
 import SwiftUI
 import TimeTrackingCore

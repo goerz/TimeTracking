@@ -1,4 +1,4 @@
-// Entry queries (spec_data_and_sync.md §7.2).
+// Entry queries (data_and_sync.md §7.2).
 
 public import Foundation
 import GRDB

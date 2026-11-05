@@ -1,5 +1,5 @@
 // TrackerDeviceSettings: the [devices] table of settings.toml
-// (spec_activity_tracking.md §6.1, §7.1). A missing key takes its default.
+// (activity_tracking.md §6.1, §7.1). A missing key takes its default.
 
 /// `[devices]`.
 public struct TrackerDeviceSettings: Sendable, Hashable, Codable {

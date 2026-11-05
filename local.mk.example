@@ -1,4 +1,4 @@
-# Personal build settings (spec_architecture.md §2.1). Copy to local.mk,
+# Personal build settings (architecture.md §2.1). Copy to local.mk,
 # which git ignores, and fill in. Nothing in this file is committed.
 
 # Development team id (10 characters); required to build any app.

@@ -1,5 +1,5 @@
 // TimerToggleControl: the Control Center timer toggle and its value provider
-// (spec_ios.md §5).
+// (ios.md §5).
 
 import AppIntents
 import SwiftUI

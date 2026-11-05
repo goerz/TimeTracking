@@ -1,6 +1,6 @@
 // Tests that the App Group's `UserDefaults` layout stays readable: the keys,
 // value types, and encodings that installed apps already hold
-// (spec_data_and_sync.md §1.6, spec_ios.md §3.1, §9).
+// (data_and_sync.md §1.6, ios.md §3.1, §9).
 
 import Foundation
 import Testing

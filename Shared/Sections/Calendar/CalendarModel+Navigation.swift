@@ -1,6 +1,6 @@
 // The Calendar's navigation: Today, the arrows, sideways scrolling, both
 // zooms, columns, and the router's `showCalendar` request
-// (spec_calendar.md §1.2, §1.3).
+// (calendar.md §1.2, §1.3).
 
 import Foundation
 import TimeTrackingCore

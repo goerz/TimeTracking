@@ -1,4 +1,4 @@
-// ToolProcess: runs a built tool as a subprocess (spec_architecture.md §3.1).
+// ToolProcess: runs a built tool as a subprocess (architecture.md §3.1).
 
 import Darwin
 import Foundation

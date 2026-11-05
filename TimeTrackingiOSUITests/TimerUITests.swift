@@ -1,5 +1,5 @@
-// What only the real iPhone and iPad screens show (spec_ios.md §2, §6.4,
-// §11; spec_architecture.md §3.3).
+// What only the real iPhone and iPad screens show (ios.md §2, §6.4,
+// §11; architecture.md §3.3).
 
 import XCTest
 

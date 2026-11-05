@@ -1,5 +1,5 @@
 // ActivityBackgroundStretch: background work while the user was away
-// (spec_activity_tracking.md §2.7, §4.2).
+// (activity_tracking.md §2.7, §4.2).
 
 public import Foundation
 

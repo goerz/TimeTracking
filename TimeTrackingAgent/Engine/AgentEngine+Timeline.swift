@@ -1,6 +1,6 @@
 // AgentEngine+Timeline: forming a day's blocks and background stretches
 // from everything stored for it and rewriting the day in both logs
-// (spec_activity_tracking.md §2.7, §4.2, §4.3).
+// (activity_tracking.md §2.7, §4.2, §4.3).
 
 import Foundation
 import os

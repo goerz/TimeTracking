@@ -1,5 +1,5 @@
 // DeviceEventSink: where the iOS app and its extensions put device events
-// (spec_data_and_sync.md §6).
+// (data_and_sync.md §6).
 
 /// Collects device events on iOS. Extensions append; only the app flushes.
 public protocol DeviceEventSink: Sendable {

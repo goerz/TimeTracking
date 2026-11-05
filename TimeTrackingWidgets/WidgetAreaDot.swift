@@ -1,6 +1,6 @@
 // WidgetAreaDot and the other pieces the widgets share: the metrics, live
 // timers, the start and stop circles, the Pomodoro line, the empty notices,
-// and the project line (spec_ios.md §3, spec_design.md §6, §7). The extension
+// and the project line (ios.md §3, design.md §6, §7). The extension
 // does not compile `Shared/`, so it keeps its own copy of the start and stop
 // tints.
 
@@ -23,7 +23,7 @@ extension Color {
     static let stopTint = Color.red
 }
 
-/// Widget sizes (spec_design.md §7 at widget scale).
+/// Widget sizes (design.md §7 at widget scale).
 enum WidgetMetrics {
     /// The start and stop circle of the Now widget.
     static let button: CGFloat = 44
@@ -132,7 +132,7 @@ extension WidgetSnapshot {
 }
 
 /// The Pomodoro of this device as the phase glyph and the countdown, or
-/// `+` and the time since the phase ended (spec_design.md §2).
+/// `+` and the time since the phase ended (design.md §2).
 struct PomodoroLine: View {
     var snapshot: WidgetSnapshot
 

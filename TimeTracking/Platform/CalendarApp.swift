@@ -1,5 +1,5 @@
 // CalendarApp: opens an event in Calendar.app and names installed apps
-// (spec_calendar.md §4.3, spec_activity.md §1.3).
+// (calendar.md §4.3, activity.md §1.3).
 
 import AppKit
 import TimeTrackingCore

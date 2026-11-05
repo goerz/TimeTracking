@@ -1,4 +1,4 @@
-// The widget and control buttons' library side (spec_ios.md §4 item 3, §5,
+// The widget and control buttons' library side (ios.md §4 item 3, §5,
 // §6.1, §6.3).
 
 import Foundation

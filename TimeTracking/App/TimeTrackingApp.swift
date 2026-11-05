@@ -1,6 +1,6 @@
 // TimeTrackingApp: the Mac app's entry point and scenes
-// (spec_timer.md §1, §8, §9; spec_menubar.md; spec_projects.md §1;
-// `--unregister`: spec_activity_tracking.md §5).
+// (timer.md §1, §8, §9; menubar.md; projects.md §1;
+// `--unregister`: activity_tracking.md §5).
 
 import SwiftUI
 import TimeTrackingCore

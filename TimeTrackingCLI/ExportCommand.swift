@@ -1,4 +1,4 @@
-// check, import, export (spec_automation.md §3.10, §4).
+// check, import, export (automation.md §3.10, §4).
 
 import ArgumentParser
 import Foundation

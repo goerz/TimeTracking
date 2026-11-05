@@ -1,5 +1,5 @@
 // JSONObjectWriter: JSON objects with keys in a fixed order, for the
-// activity logs (spec_activity_tracking.md §4.2 to §4.4).
+// activity logs (activity_tracking.md §4.2 to §4.4).
 
 import Foundation
 

@@ -1,5 +1,5 @@
 // The edit popover on the running entry, opened from the bar and from the
-// list (spec_timer.md §4).
+// list (timer.md §4).
 
 import XCTest
 

@@ -1,5 +1,5 @@
 // A small catalog with a week of entries for the Reports tests
-// (spec_reports.md §10).
+// (reports.md §10).
 
 import Foundation
 import Testing

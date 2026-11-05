@@ -1,4 +1,4 @@
-// TrackerSettings: the model of settings.toml (spec_activity_tracking.md §7.1).
+// TrackerSettings: the model of settings.toml (activity_tracking.md §7.1).
 
 public import Foundation
 import TOMLKit

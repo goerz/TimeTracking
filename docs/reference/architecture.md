@@ -12,13 +12,13 @@ One Xcode project, `TimeTracking.xcodeproj`, and one local Swift package, `Packa
 
 | Target | Kind and product | Spec |
 |---|---|---|
-| `TimeTrackingCore` | Swift package library (macOS, iOS) | `spec_data_and_sync.md` |
-| `TimeTracking` | Mac app, `<APP_NAME>.app` | `spec_timer.md`, `spec_menubar.md`, `spec_calendar.md`, `spec_reports.md`, `spec_projects.md`, `spec_activity.md` |
-| `TimeTrackingAgent` | Mac login item, `TimeTrackingAgent.app` at `Contents/Library/LoginItems/` | `spec_activity_tracking.md` |
-| `TimeTrackingCLI` | Tool `timetracking` at `Contents/Helpers/` | `spec_automation.md` |
-| `TrackerEvent` | Tool `tracker-event` at `Contents/Helpers/` | `spec_activity_tracking.md` |
-| `TimeTrackingiOS` | iOS app (iPhone and iPad), `<APP_NAME>.app` | `spec_ios.md` |
-| `TimeTrackingWidgets`, `TimeTrackingIntents`, `TimeTrackingMonitor`, `TimeTrackingWebExtension` | iOS extensions: widgets and controls; Focus filter and log-activity-event intent; DeviceActivity monitor; Safari web extension | `spec_ios.md` |
+| `TimeTrackingCore` | Swift package library (macOS, iOS) | [data_and_sync.md](data_and_sync.md) |
+| `TimeTracking` | Mac app, `<APP_NAME>.app` | [timer.md](timer.md), [menubar.md](menubar.md), [calendar.md](calendar.md), [reports.md](reports.md), [projects.md](projects.md), [activity.md](activity.md) |
+| `TimeTrackingAgent` | Mac login item, `TimeTrackingAgent.app` at `Contents/Library/LoginItems/` | [activity_tracking.md](activity_tracking.md) |
+| `TimeTrackingCLI` | Tool `timetracking` at `Contents/Helpers/` | [automation.md](automation.md) |
+| `TrackerEvent` | Tool `tracker-event` at `Contents/Helpers/` | [activity_tracking.md](activity_tracking.md) |
+| `TimeTrackingiOS` | iOS app (iPhone and iPad), `<APP_NAME>.app` | [ios.md](ios.md) |
+| `TimeTrackingWidgets`, `TimeTrackingIntents`, `TimeTrackingMonitor`, `TimeTrackingWebExtension` | iOS extensions: widgets and controls; Focus filter and log-activity-event intent; DeviceActivity monitor; Safari web extension | [ios.md](ios.md) |
 
 Test bundles: `TimeTrackingCoreTests` (package), `TimeTrackingTests`, `TimeTrackingUITests`, `TimeTrackingiOSTests`, `TimeTrackingiOSUITests`, `TimeTrackingAgentTests`, `TimeTrackingCLITests`. There is no Mac widget and no Apple Watch target.
 
@@ -36,7 +36,7 @@ User interface targets hold views, view state, and platform glue only. A view mo
 | `TimeTrackingiOS/` | iOS scenes, Timer tab, iPad tabs, background refresh and silent pushes, widget push token upload, URL handler, the iPhone's Apple Health import |
 | `Shared/` | Views compiled into both apps; platform differences are `#if os(macOS)` around a modifier |
 | `WidgetShared/`, `CollectionShared/` | Code compiled into the iOS app and the widget extension, and into the iOS app and the monitor extension |
-| `AppResources/` | The app icon and `AccentColor` asset, in the Mac app, the agent, and the iOS app (`spec_design.md` §9) |
+| `AppResources/` | The app icon and `AccentColor` asset, in the Mac app, the agent, and the iOS app ([design.md](design.md) §9) |
 | `TimeTrackingAgent/` | The tracker; links the library and GRDB; `LSUIElement`; flags `--record <folder>`, `--replay <file>`, `--unregister` |
 | `TrackerEvent/` | Connects to the agent's socket, writes one line, exits; links only Foundation |
 | `TimeTrackingCLI/` | Argument parsing and output formatting; everything else through the library; never touches CloudKit |
@@ -47,9 +47,9 @@ User interface targets hold views, view state, and platform glue only. A view mo
 
 The agent is embedded at `Contents/Library/LoginItems/TimeTrackingAgent.app` and registered with `SMAppService.agent(plistName: "<APP_ID>.agent.plist")`, which gives it `KeepAlive` and a Mach service. A build phase generates that plist into `Contents/Library/LaunchAgents/`: `Label` and the Mach service are the agent's bundle identifier, `BundleProgram` is the agent's executable, `AssociatedBundleIdentifiers` names the app, `KeepAlive` is true, `ProcessType` is `Background`.
 
-The agent is always signed with the team's development certificate, because TCC keys Accessibility and Full Disk Access grants to the signing identity. As the agent's responsible process, the app holds its Full Disk Access grant, while Accessibility is checked for the agent itself (`spec_activity_tracking.md` §5, §7.4).
+The agent is always signed with the team's development certificate, because TCC keys Accessibility and Full Disk Access grants to the signing identity. As the agent's responsible process, the app holds its Full Disk Access grant, while Accessibility is checked for the agent itself ([activity_tracking.md](activity_tracking.md) §5, §7.4).
 
-The Mac app registers the agent only when the user clicks "Enable Tracker" in the settings window's Tracker pane; the first-launch alert offers to open that pane (`spec_timer.md` §8.2). The Debug app registers the Debug agent, so a development build never replaces the recording agent.
+The Mac app registers the agent only when the user clicks "Enable Tracker" in the settings window's Tracker pane; the first-launch alert offers to open that pane ([timer.md](timer.md) §8.2). The Debug app registers the Debug agent, so a development build never replaces the recording agent.
 
 ### 1.5 Identifiers and containers
 
@@ -68,7 +68,7 @@ Every identifier derives from `TT_APP_ID`, so a Debug build has its own identity
 | WidgetKit push topic | `<APP_ID>.push-type.widgets` |
 | APNs key Keychain service | `<BUNDLE_ID>.apns` (Release and Debug share it) |
 
-Mac targets are unsandboxed so that the app, agent, and tool share one group container. The store is `<group container>/Library/Application Support/TimeTracking/store.sqlite` (WAL), only the app runs the sync engine, and the agent's local files live in the same folder. The block log and `settings.toml` are in `iCloud.<APP_ID>` (`spec_data_and_sync.md` §6). On iOS the app and its four extensions share `group.<APP_ID>`.
+Mac targets are unsandboxed so that the app, agent, and tool share one group container. The store is `<group container>/Library/Application Support/TimeTracking/store.sqlite` (WAL), only the app runs the sync engine, and the agent's local files live in the same folder. The block log and `settings.toml` are in `iCloud.<APP_ID>` ([data_and_sync.md](data_and_sync.md) §6). On iOS the app and its four extensions share `group.<APP_ID>`.
 
 ## 2. Configuration and build
 
@@ -106,7 +106,7 @@ After building, `build-mac` and `build-ios` verify the Release products with `sc
 
 ### 2.4 APNs credentials and transport
 
-The Mac app sends WidgetKit pushes itself with the team's APNs auth key from the Keychain, so no server is needed; `spec_data_and_sync.md` §4.3 defines when and to whom.
+The Mac app sends WidgetKit pushes itself with the team's APNs auth key from the Keychain, so no server is needed; [data_and_sync.md](data_and_sync.md) §4.3 defines when and to whom.
 
 The command `make apns-key P8=<path>/AuthKey_<KEYID>.p8 [KEY_ID=<id>]` validates that the file is a P-256 PEM private key and stores one generic-password item in the login Keychain: service `<BUNDLE_ID>.apns`, account the key id (10 upper-case letters or digits, from the file name unless `KEY_ID` is given), secret the JSON `{"keyID": "…", "teamID": "<TEAM>", "p8": "<file contents>"}`. It replaces an existing item of that service. The access list names `/Applications/<APP_NAME>.app`, so it runs after `make install`. The key is never printed.
 
@@ -128,14 +128,14 @@ The target `help` describes each target under its group. The Makefile sets `DEVE
 | Develop | `sim`, `sim-create`, `stop`, `mac-debug`, `demo`, `mac-debug-unregister`, `logs`, `sim-logs`, `screenshots` |
 | Use | `install`, `mac`, `uninstall`, `apns-key`, `device`, `iphone`, `ipad`, `devices`, `console` |
 | Test | `unit-test`, `agent-test`, `ui-test`, `test`, `test-sync` |
-| Check | `lint`, `check-behaviors`, `check-private`, `check`, `hooks` |
+| Check | `lint`, `check-behaviors`, `check-citations`, `check-private`, `check`, `hooks` |
 | Project | `secrets`, `xcode`, `skills`, `clean`, `distclean`, `help` |
 
 A few rules go beyond the help text. After a Release Mac build, every copy of the app other than the installed one is unregistered from LaunchServices, because build products otherwise compete with it for URL schemes, login items, and "Open With". The target `install` replaces every app in `/Applications` with `BUNDLE_ID`; `uninstall` removes the app and only the symlinks and completions `install` wrote, keeping containers, the Keychain item, and iCloud data. The target `mac-debug` quits any running Debug app, from any checkout, so the new build is the one that runs, and fails if the app does not quit within 10 seconds. The target `mac-debug-unregister` also resets the Debug agent's TCC grants, and `distclean` refuses while the Debug agent is registered.
 
 The target `demo` replaces the Debug store, its block log, and each simulator's store with the store fixture `FIXTURE` (default `small`) moved by whole days so that its 2024-03-14 is the current date: times of day are kept, that date's entries are cut or dropped at now, and a running entry keeps its age. It refuses any store outside a Debug or simulator container.
 
-The variable `ARGS` passes launch arguments. The apps understand `-UITesting YES` (in-memory store and transport, fixture, no animations; a fake agent service unless `-RealAgent YES` is added; `-CalendarAccess YES` grants the fake calendar store access), `-Fixture <name>`, `-ResetState YES`, and under `-UITesting` also `-LoginItemLaunch YES`, which launches the Mac app as if opened as a login item (`spec_timer.md` §1.3). The tool reads `TIMETRACKING_STORE` and `TIMETRACKING_NOW` (`spec_automation.md`).
+The variable `ARGS` passes launch arguments. The apps understand `-UITesting YES` (in-memory store and transport, fixture, no animations; a fake agent service unless `-RealAgent YES` is added; `-CalendarAccess YES` grants the fake calendar store access), `-Fixture <name>`, `-ResetState YES`, and under `-UITesting` also `-LoginItemLaunch YES`, which launches the Mac app as if opened as a login item ([timer.md](timer.md) §1.3). The tool reads `TIMETRACKING_STORE` and `TIMETRACKING_NOW` ([automation.md](automation.md)).
 
 Every worktree of the repository shares the Debug bundle ID, the Debug store and agent, the simulators, and `/Applications`, so `sim`, `mac-debug`, `demo`, `install`, `unit-test`, `agent-test`, `ui-test`, `test`, and `test-sync` hold one runtime lock: `lockf` on `timetracking-runtime.lock` in the shared git directory, taken without waiting. While another process holds it, these targets fail with "another checkout is running ..." (`Error 75`) before running anything; make calls nested inside a target that holds the lock run directly. The kernel releases the lock when make exits.
 
@@ -169,6 +169,8 @@ Each spec except the design language has one "Testable behaviors" list numbered 
 
 A test carries the identifier in its display name, `@Test("TM-1 releasing below 200 pt collapses to the bar")`, in an XCUITest method name, `testTM1_collapseBelowThreshold()`, or in `scripts/test_make.sh`, `behavior "ARCH-2 ..."`. One test may cover several numbers. The script `scripts/check_behaviors.sh` (`make check-behaviors`) fails on a number without a test, a test identifier no spec defines, or a non-continuous list.
 
+Code comments cite a spec by its file name in `docs/reference/` and its section, `timer.md §2.1`. The script `scripts/check_citations.py` (`make check-citations`) fails on a citation of a section that does not exist.
+
 ### 3.3 What runs where
 
 The `test` target needs no network and no permission grant; the Mac UI tests run the Debug app with `-UITesting YES`, which leaves the agent unregistered. View model tests for iOS run on the iPhone simulator only, UI tests on both. A test over 10 seconds is tagged `.slow`; the library's performance suites run only in `make test`, in an optimized build, one test at a time. Tests never sleep: they use `ManualClock`, drive the agent's tick, and fix `TIMETRACKING_NOW`.
@@ -201,7 +203,7 @@ No networking, HTTP/2, JWT, Markdown, logging, or dependency-injection packages.
 
 ## 6. Repository layout
 
-Source folders carry their target's name (1.3); `Packages/TimeTrackingCore/`, `Config/`, `Fixtures/`, `scripts/`, `spec/`, and `.githooks/` sit beside them, and build products go to `build.noindex/`. The `.gitignore` covers build output, `local.mk`, `Config/Local.xcconfig`, `.private-strings`, and key and profile files (`*.p8`, `*.p12`, `*.cer`, `*.mobileprovision`, `*.provisionprofile`).
+Source folders carry their target's name (1.3); `Packages/TimeTrackingCore/`, `Config/`, `Fixtures/`, `scripts/`, `docs/`, and `.githooks/` sit beside them, and build products go to `build.noindex/`. The `.gitignore` covers build output, `local.mk`, `Config/Local.xcconfig`, `.private-strings`, and key and profile files (`*.p8`, `*.p12`, `*.cer`, `*.mobileprovision`, `*.provisionprofile`).
 
 ## 7. Testable behaviors
 

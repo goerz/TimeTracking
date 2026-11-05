@@ -1,6 +1,6 @@
 // LadderPlan: the thresholds of the DeviceActivity ladder, how the event cap
-// is divided among the sets, and the cap measurement (spec_ios.md §9.2,
-// spec_activity_tracking.md §6.2 and phase 7).
+// is divided among the sets, and the cap measurement (ios.md §9.2,
+// activity_tracking.md §6.2 and phase 7).
 
 /// The threshold steps (minutes of daily use) each set registers.
 ///

@@ -1,5 +1,5 @@
 // Settings, devices, and tombstone retention
-// (spec_data_and_sync.md §1.6 to §1.8, §3.2).
+// (data_and_sync.md §1.6 to §1.8, §3.2).
 
 import Foundation
 import GRDB

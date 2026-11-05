@@ -1,10 +1,10 @@
 # Spec: iPhone and iPad App
 
-One iOS target runs on iPhone and iPad. The iPhone gets the Timer in pocket form, widgets, a Control Center control, App Shortcuts, and Siri; the other sections need the width. On the iPad the Timer is the first tab, followed by Calendar, Reports, Projects, and Activity tabs that present the Mac's sections. The target also hosts the device-side activity collection ([spec_activity_tracking.md](spec_activity_tracking.md) §6.2).
+One iOS target runs on iPhone and iPad. The iPhone gets the Timer in pocket form, widgets, a Control Center control, App Shortcuts, and Siri; the other sections need the width. On the iPad the Timer is the first tab, followed by Calendar, Reports, Projects, and Activity tabs that present the Mac's sections. The target also hosts the device-side activity collection ([activity_tracking.md](activity_tracking.md) §6.2).
 
-This spec states only what differs on a touch device. The Timer is that of [spec_timer.md](spec_timer.md), the picker and project dialog those of [spec_projects.md](spec_projects.md), and the intents, entities, and URL scheme those of [spec_automation.md](spec_automation.md). iOS has no Apple Watch app, Live Activities, idle detection, or "remind me to track time" reminders.
+This spec states only what differs on a touch device. The Timer is that of [timer.md](timer.md), the picker and project dialog those of [projects.md](projects.md), and the intents, entities, and URL scheme those of [automation.md](automation.md). iOS has no Apple Watch app, Live Activities, idle detection, or "remind me to track time" reminders.
 
-Days shown here (the Timer list, widget totals, Today's Total, the iPad's sections) run from Midnight to Midnight, the synced setting of [spec_data_and_sync.md](spec_data_and_sync.md) §8; entries are stored whole and cut at that hour when shown.
+Days shown here (the Timer list, widget totals, Today's Total, the iPad's sections) run from Midnight to Midnight, the synced setting of [data_and_sync.md](data_and_sync.md) §8; entries are stored whole and cut at that hour when shown.
 
 ## 1. Processes
 
@@ -24,19 +24,19 @@ Only the app process writes entries. Widget and control buttons run thin wrapper
 
 ### 2.1 Layout
 
-Under the large title "Timer" and a settings button, one list holds the running-entry card, the Mac activity line (2.3) and sync pill as its footer, the Siri tip until dismissed, and the recent list (2.6). The search field in the navigation bar's drawer (pull down, or ⌘F) filters as the Mac Timer's ⌘F does ([spec_timer.md](spec_timer.md) §3). There is no tab bar, calendar view, or manual mode.
+Under the large title "Timer" and a settings button, one list holds the running-entry card, the Mac activity line (2.3) and sync pill as its footer, the Siri tip until dismissed, and the recent list (2.6). The search field in the navigation bar's drawer (pull down, or ⌘F) filters as the Mac Timer's ⌘F does ([timer.md](timer.md) §3). There is no tab bar, calendar view, or manual mode.
 
 ### 2.2 The running-entry card
 
-The Mac Timer's running-entry bar ([spec_timer.md](spec_timer.md) §2) in three rows: the task field; the project chip; and the Pomodoro button (2.8), the elapsed time, Discard while running, and Start or Stop.
+The Mac Timer's running-entry bar ([timer.md](timer.md) §2) in three rows: the task field; the project chip; and the Pomodoro button (2.8), the elapsed time, Discard while running, and Start or Stop.
 
-While nothing runs the time reads `0:00:00`, and Start (or Return in the task field) starts an entry with the field's task and the chip's project. While an entry runs the time counts from its start ([spec_data_and_sync.md](spec_data_and_sync.md) §1.5), also during a Pomodoro, and a tap on it opens the edit sheet (2.7). Stop blanks the field and chip. Discard asks as on the Mac and is undoable until the next change.
+While nothing runs the time reads `0:00:00`, and Start (or Return in the task field) starts an entry with the field's task and the chip's project. While an entry runs the time counts from its start ([data_and_sync.md](data_and_sync.md) §1.5), also during a Pomodoro, and a tap on it opens the edit sheet (2.7). Stop blanks the field and chip. Discard asks as on the Mac and is undoable until the next change.
 
-Starting while another entry runs, from any surface, stops it at the new start. Task field behavior is that of [spec_timer.md](spec_timer.md) §2.2; up to four suggestions appear in the card under the field.
+Starting while another entry runs, from any surface, stops it at the new start. Task field behavior is that of [timer.md](timer.md) §2.2; up to four suggestions appear in the card under the field.
 
 ### 2.3 The Mac's current activity
 
-Each Mac whose `LiveState` part has `agentRunning` true ([spec_data_and_sync.md](spec_data_and_sync.md) §4.1) gets a line under the card, at most two, most recently updated first: the device, the primary item's context and subject, and the presence ("MacBook · paper (tmux) · draft"; the subject alone when the context is a plain app name). The presence is omitted while the Mac is in use with input, else "in use", or "idle", "locked", "asleep", or "another user" with "since 14:02". On the iPad, a tap opens the Activity tab.
+Each Mac whose `LiveState` part has `agentRunning` true ([data_and_sync.md](data_and_sync.md) §4.1) gets a line under the card, at most two, most recently updated first: the device, the primary item's context and subject, and the presence ("MacBook · paper (tmux) · draft"; the subject alone when the context is a plain app name). The presence is omitted while the Mac is in use with input, else "in use", or "idle", "locked", "asleep", or "another user" with "since 14:02". On the iPad, a tap opens the Activity tab.
 
 ### 2.4 Project picker and quick creation
 
@@ -48,17 +48,17 @@ Continuing an entry whose project is archived shows the Mac Timer's alert ("Rest
 
 ### 2.6 The recent list
 
-Grouping, day totals, paging, and row content are those of [spec_timer.md](spec_timer.md) §3. The running entry is the first row of Today, with its live duration in the accent color and no continue button or swipes; its long press offers Edit, Copy Task, and Discard. On other rows a tap opens the edit sheet, ▶ or a full leading swipe continues, a trailing swipe deletes after the Mac's confirmation (undoable until the next change), and a long press offers Continue, Edit, Copy Task, and Delete.
+Grouping, day totals, paging, and row content are those of [timer.md](timer.md) §3. The running entry is the first row of Today, with its live duration in the accent color and no continue button or swipes; its long press offers Edit, Copy Task, and Discard. On other rows a tap opens the edit sheet, ▶ or a full leading swipe continues, a trailing swipe deletes after the Mac's confirmation (undoable until the next change), and a long press offers Continue, Edit, Copy Task, and Delete.
 
 ### 2.7 Entry editing
 
 A sheet with the task field (the card's autocompletion, no `@` trigger; a suggestion fills the task and project, which Done stores), the project chip, Start and End pickers, the duration, Continue and Delete, and "Created on <device name>". It always edits the stored entry, also from a row that shows part of one. For the running entry End reads "Running", Continue is absent, and only Start, task, and project change. Opening it first stores a task still being typed on the card; Done writes only the fields the sheet changed, so a task stored meanwhile is kept.
 
-The rules and messages of [spec_timer.md](spec_timer.md) §4.2 are checked on Done.
+The rules and messages of [timer.md](timer.md) §4.2 are checked on Done.
 
 ### 2.8 Pomodoro
 
-The Pomodoro is that of [spec_timer.md](spec_timer.md) §5; a tap acts as the Mac's click and a long press opens the menu. It is device-local: one started on the Mac is invisible on the phone, and the reverse. iOS adds:
+The Pomodoro is that of [timer.md](timer.md) §5; a tap acts as the Mac's click and a long press opens the menu. It is device-local: one started on the Mac is invisible on the phone, and the reverse. iOS adds:
 
 1. The state is persisted in the device settings at every transition, and a phase's notification (8) is scheduled when it starts.
 2. Whenever the app's process runs, it replays that state: a passed phase end becomes the over-state, and if nothing runs the Pomodoro turns off and its notifications are removed. The replay only moves phases, so it never changes an entry.
@@ -71,7 +71,7 @@ A sheet from the toolbar; longer settings push a screen of their own and show th
 | Section | Setting | Default | Scope |
 |---|---|---|---|
 | iCloud | Status, "Waiting to sync", "Device name", "Sync Now" | | Device |
-| (none) | Midnight: 00:00 to 23:00 ([spec_data_and_sync.md](spec_data_and_sync.md) §8) | 00:00 | Synced |
+| (none) | Midnight: 00:00 to 23:00 ([data_and_sync.md](data_and_sync.md) §8) | 00:00 | Synced |
 | Pomodoro | Focus (1 to 180 min), Break (1 to 60 min) | 25, 5 | Synced |
 | Pomodoro | Play a sound when a focus or break ends | On | Device |
 | Notifications | "Remind me when an entry runs long", "Remind after" N hours (1 to 12) | On, 4 h; iPad off, so two devices do not remind at once | Device |
@@ -79,13 +79,13 @@ A sheet from the toolbar; longer settings push a screen of their own and show th
 | Widgets | "Task for pinned buttons": "The project's last task" or "No task" | Last task | Device |
 | Activity | "Activity collection": the master switch, Screen Time status and request, app groups, setup steps with check marks, "Last sent", "Waiting to send", "Send Now" | Off | Device |
 | Activity | "Privacy": a read-only view of the exclusions in `Activity/settings.toml`, edited in the Mac's Tracker pane | | Shared file |
-| Apple Health (iPhone) | "Sleep" and "Workouts" ([spec_calendar.md](spec_calendar.md) §6); turning one on asks for access and imports (§7 item 6) | Off | Synced |
-| Calendar (iPad) | The Mac's Calendar pane ([spec_calendar.md](spec_calendar.md) §6) | 5 min, no calendars | Synced |
+| Apple Health (iPhone) | "Sleep" and "Workouts" ([calendar.md](calendar.md) §6); turning one on asks for access and imports (§7 item 6) | Off | Synced |
+| Calendar (iPad) | The Mac's Calendar pane ([calendar.md](calendar.md) §6) | 5 min, no calendars | Synced |
 | About | Version and build, the app's Shortcuts link | | |
 
 While notifications are denied, the footer reads "Notifications are off, so focus, break, and reminder alerts won't appear." with "Open Settings".
 
-On screen an app set is an "app group" ([spec_design.md](spec_design.md) §12), with its name and the apps, categories, and sites chosen in the system's picker. Collected activity goes to Activity, so the texts name that, never the log files. A failed send shows "Couldn't send your activity to iCloud. The app will try again." and a refused ladder "Screen Time couldn't start measuring these apps. Try again later."
+On screen an app set is an "app group" ([design.md](design.md) §11), with its name and the apps, categories, and sites chosen in the system's picker. Collected activity goes to Activity, so the texts name that, never the log files. A failed send shows "Couldn't send your activity to iCloud. The app will try again." and a refused ladder "Screen Time couldn't start measuring these apps. Try again later."
 
 ## 3. Widgets
 
@@ -93,7 +93,7 @@ On screen an app set is an "app group" ([spec_design.md](spec_design.md) §12), 
 
 Each timeline is one entry with the policy `.after(date)`: the next Pomodoro phase end when a phase counts down on this device, otherwise the start of the next shown day. Elapsed times are live timers from the entry's start, which `LiveState` carries. "Today" is the shown day: its total sums the day's stopped parts and counts the running entry from the later of its own start and the start of the day.
 
-The look is that of [spec_design.md](spec_design.md) §6 and §7 at widget scale, with start and stop circles of 44 pt in Now, 32 pt in Recent rows, and 24 pt as the Pinned stop mark. Outside full-color rendering the circles become one shape with the glyph cut out. Task text is `privacySensitive()`. A widget without content shows "No Pinned Projects" or "No Recent Entries".
+The look is that of [design.md](design.md) §6 and §7 at widget scale, with start and stop circles of 44 pt in Now, 32 pt in Recent rows, and 24 pt as the Pinned stop mark. Outside full-color rendering the circles become one shape with the glyph cut out. Task text is `privacySensitive()`. A widget without content shows "No Pinned Projects" or "No Recent Entries".
 
 A Pomodoro shows as a secondary line under the elapsed time: the phase glyph and the remaining time, or `+` and the time since the phase ended while its confirmation is pending. Tapping outside a button opens the Timer. Smart Stack relevance is 100 while an entry runs, 60 for one hour after one stops, and 10 otherwise; the app donates `StartTimerIntent` for each entry it starts. Buttons require authentication, so nothing changes on a locked device. Before the first sync has delivered the store, every widget shows "Open <app name> to finish setting up".
 
@@ -122,7 +122,7 @@ Shows the synced `pinnedProjectIDs` by default, or an explicit list of 1 to 12 p
 
 ## 4. Live updates
 
-CloudKit cannot send widget pushes and silent pushes are throttled, so widgets follow WidgetKit pushes sent by the Mac plus a direct fetch of `LiveState` ([spec_data_and_sync.md](spec_data_and_sync.md) §4; transport in [spec_architecture.md](spec_architecture.md) §2.4).
+CloudKit cannot send widget pushes and silent pushes are throttled, so widgets follow WidgetKit pushes sent by the Mac plus a direct fetch of `LiveState` ([data_and_sync.md](data_and_sync.md) §4; transport in [architecture.md](architecture.md) §2.4).
 
 1. Push token. The widgets' push handler stores the token, or nil when no widget is installed, in the App Group. The app records it on this device's `Device` record at every wake and fan-out (7), so a lost write repairs itself.
 2. Reload. Every widget and control provider fetches `LiveState` (at most 5 s) before building its entry. It reuses the last result when the last fetch returned less than 10 s ago (one push reloads several kinds) or the app wrote the running entry less than 5 s ago. When the running entry changed, it reloads the timer control. The running project's names come from the store when it holds the project, else from `LiveState`.
@@ -139,7 +139,7 @@ The "Start Project" control is a button that starts a chosen project with an emp
 
 ### 6.1 Shared and iOS-only intents
 
-The entities and shared intents are those of [spec_automation.md](spec_automation.md) §5; active projects are indexed for Spotlight. iOS adds, hidden from Shortcuts, the wrappers `WidgetStartIntent`, `WidgetStopIntent`, `WidgetContinueIntent`, and `ToggleTimerIntent`, which call the library operations (not a shared intent's `perform()`), send at once, and run the fan-out (7). The App Intents extension holds the Focus filter (9.3) and `LogActivityEventIntent` (9.4), with `label` ("Name") and `kind` ("Type": `appOpened`, `appClosed`, `arrived`, `left`, `chargerConnected`, `chargerDisconnected`, `custom`).
+The entities and shared intents are those of [automation.md](automation.md) §5; active projects are indexed for Spotlight. iOS adds, hidden from Shortcuts, the wrappers `WidgetStartIntent`, `WidgetStopIntent`, `WidgetContinueIntent`, and `ToggleTimerIntent`, which call the library operations (not a shared intent's `perform()`), send at once, and run the fan-out (7). The App Intents extension holds the Focus filter (9.3) and `LogActivityEventIntent` (9.4), with `label` ("Name") and `kind` ("Type": `appOpened`, `appClosed`, `arrived`, `left`, `chargerConnected`, `chargerDisconnected`, `custom`).
 
 Tracking intents performed before the first sync fail with "Open <app name> once to finish setting up."
 
@@ -160,11 +160,11 @@ The app calls `updateAppShortcutParameters()` after every change to the project 
 
 ### 6.3 Siri
 
-Project inference is limited to the Start Timer App Shortcut, which sets `StartTimerIntent`'s hidden `inferProject` ([spec_automation.md](spec_automation.md) §5); Shortcuts actions stay literal. When the phrase names no project, Siri asks "What are you working on?" and the answer becomes the task. A name matching two projects is disambiguated by the subtitle "Client · Area"; one matching nothing fails with "I couldn't find a project called X." Today's Total reports the shown day and names any other ("2 hours on Thursday, March 14", with the year when it differs).
+Project inference is limited to the Start Timer App Shortcut, which sets `StartTimerIntent`'s hidden `inferProject` ([automation.md](automation.md) §5); Shortcuts actions stay literal. When the phrase names no project, Siri asks "What are you working on?" and the answer becomes the task. A name matching two projects is disambiguated by the subtitle "Client · Area"; one matching nothing fails with "I couldn't find a project called X." Today's Total reports the shown day and names any other ("2 hours on Thursday, March 14", with the year when it differs).
 
 ### 6.4 URL scheme
 
-The app handles the URLs of [spec_automation.md](spec_automation.md) §6. On the iPad, `planner/*` and `project/` URLs select the matching tab and its state, and `start`, `stop`, and `continue` select the Timer tab; on the iPhone they all show the Timer.
+The app handles the URLs of [automation.md](automation.md) §6. On the iPad, `planner/*` and `project/` URLs select the matching tab and its state, and `start`, `stop`, and `continue` select the Timer tab; on the iPhone they all show the Timer.
 
 ## 7. Sync behavior
 
@@ -172,12 +172,12 @@ The app handles the URLs of [spec_automation.md](spec_automation.md) §6. On the
 2. Offline. Every change commits locally first, so every surface works offline. While the outbox holds changes, a sync pill under the card shows waiting for the network, sending lasting over 10 s, or an error.
 3. Adjustments. When the library reports an adjustment to an entry this device created, the Timer shows a banner "Another device changed an entry" with "Show", which opens the edit sheet with a one-line explanation ("Stopped at 10:14 because an entry started on MacBook"). The row keeps a badge until its sheet has opened once.
 4. Fan-out. After every applied sync and local write, the app reloads widgets and controls, ends the Pomodoro when nothing runs any more, reschedules the long-running reminder, uploads the push token, updates the App Shortcut parameters when projects changed, and flushes the collection file when due (9.6).
-5. Midnight. While the app runs it looks every minute and runs the fan-out when the shown day has changed ([spec_data_and_sync.md](spec_data_and_sync.md) §8), so the running part moves to the new day. A change of the Midnight setting does the same and reloads the iPad's sections.
-6. Apple Health. The iPhone, never the iPad, imports sleep and workouts while `calendar.showSleep` or `calendar.showWorkouts` are on ([spec_data_and_sync.md](spec_data_and_sync.md) §1.9): at every wake after the fetch and when either setting changes in the foreground, then it sends. Only in the foreground does it first ask HealthKit for read access, Workouts including the distance types, so a refresh task never shows the sheet. A failed read (protected data on a locked device) leaves that kind's periods and import time as they were. An import that read at least one kind records the synced import status, at most hourly unless the device or kinds change, which the Calendar settings report.
+5. Midnight. While the app runs it looks every minute and runs the fan-out when the shown day has changed ([data_and_sync.md](data_and_sync.md) §8), so the running part moves to the new day. A change of the Midnight setting does the same and reloads the iPad's sections.
+6. Apple Health. The iPhone, never the iPad, imports sleep and workouts while `calendar.showSleep` or `calendar.showWorkouts` are on ([data_and_sync.md](data_and_sync.md) §1.9): at every wake after the fetch and when either setting changes in the foreground, then it sends. Only in the foreground does it first ask HealthKit for read access, Workouts including the distance types, so a refresh task never shows the sheet. A failed read (protected data on a locked device) leaves that kind's periods and import time as they were. An import that read at least one kind records the synced import status, at most hourly unless the device or kinds change, which the Calendar settings report.
 
 ## 8. Notifications
 
-Local notifications only. Authorization is requested at the first start of an entry on this device; if denied, the Pomodoro confirmation button still works. The Pomodoro's texts and actions are those of [spec_timer.md](spec_timer.md) §10.
+Local notifications only. Authorization is requested at the first start of an entry on this device; if denied, the Pomodoro confirmation button still works. The Pomodoro's texts and actions are those of [timer.md](timer.md) §10.
 
 | Category | Trigger | Text | Actions | Level |
 |---|---|---|---|---|
@@ -190,11 +190,11 @@ Actions run in the background. Keep Running schedules the next `longRunning` N h
 
 ## 9. Activity collection
 
-Collection is opt-in per device. Collectors record raw, labeled events, never map them to projects, and apply exclusions before writing; the Mac agent merges them into blocks ([spec_activity_tracking.md](spec_activity_tracking.md) §6.2).
+Collection is opt-in per device. Collectors record raw, labeled events, never map them to projects, and apply exclusions before writing; the Mac agent merges them into blocks ([activity_tracking.md](activity_tracking.md) §6.2).
 
 ### 9.1 The collection file
 
-Every collector appends one JSON line to `Activity/events.jsonl` in the App Group ([spec_data_and_sync.md](spec_data_and_sync.md) §6), with appends serialized across processes. A flush uploads the lines as `DeviceEvent` records and then removes those up to the acknowledged `lastFlushedSeq`, so an event appended meanwhile stays and an interrupted flush resumes without duplicates. Times are the device clock with the zone offset.
+Every collector appends one JSON line to `Activity/events.jsonl` in the App Group ([data_and_sync.md](data_and_sync.md) §6), with appends serialized across processes. A flush uploads the lines as `DeviceEvent` records and then removes those up to the acknowledged `lastFlushedSeq`, so an event appended meanwhile stays and an interrupted flush resumes without duplicates. Times are the device clock with the zone offset.
 
 | Source | Label | Kind | Payload |
 |---|---|---|---|
@@ -242,7 +242,7 @@ The iPad presents the sections with their behavior unchanged; this section state
 
 ### 10.1 Tabs
 
-Tabs (collapsible to a sidebar) in the order of the Mac's sidebar: Timer, Calendar, Reports, Projects, Activity. Timer is the iPhone screen, with the picker as a popover and, above 900 points, the card and the list side by side. Section adaptations are in [spec_projects.md](spec_projects.md) §1.4 and [spec_activity.md](spec_activity.md) §5. Toolbars map onto the navigation bar with the Mac's items and order ([spec_design.md](spec_design.md) §4), inspectors onto a trailing column, and dialogs onto sheets.
+Tabs (collapsible to a sidebar) in the order of the Mac's sidebar: Timer, Calendar, Reports, Projects, Activity. Timer is the iPhone screen, with the picker as a popover and, above 900 points, the card and the list side by side. Section adaptations are in [projects.md](projects.md) §1.4 and [activity.md](activity.md) §5. Toolbars map onto the navigation bar with the Mac's items and order ([design.md](design.md) §4), inspectors onto a trailing column, and dialogs onto sheets.
 
 ### 10.2 Touch and Pencil
 
@@ -259,7 +259,7 @@ Only the iPad's Calendar tab requests calendar access; the iPhone never uses Eve
 
 ### 10.3 Hardware keyboard
 
-The iPadOS menu bar has the Mac's menus, items, titles, and keys ([spec_timer.md](spec_timer.md) §9). The tabs are the Mac's sidebar items: an item of the Timer is enabled only in the Timer tab, an item of a section only in its tab, and a disabled item holds no key equivalent. It differs only where the iPad has no counterpart:
+The iPadOS menu bar has the Mac's menus, items, titles, and keys ([timer.md](timer.md) §9). The tabs are the Mac's sidebar items: an item of the Timer is enabled only in the Timer tab, an item of a section only in its tab, and a disabled item holds no key equivalent. It differs only where the iPad has no counterpart:
 
 | Mac | iPad |
 |---|---|

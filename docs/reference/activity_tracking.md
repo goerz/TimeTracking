@@ -2,9 +2,9 @@
 
 ## 1. Scope
 
-The tracker records where the user's attention goes, in detail on the Mac and more coarsely on iPhone and iPad, as activity blocks ("blocks"), which the Calendar and the Activity section show. It records raw identifiers (session names, paths, domains, app names), never assigns a project, area, or client (the user does that when making entries from blocks in the Calendar), and never reads or writes time entries. It runs as the tracker agent, a login item (section 5), with no UI of its own beyond the Mac app's settings pane (7.4). The iOS collectors are in `spec_ios.md`, the `DeviceEvent` record in `spec_data_and_sync.md`.
+The tracker records where the user's attention goes, in detail on the Mac and more coarsely on iPhone and iPad, as activity blocks ("blocks"), which the Calendar and the Activity section show. It records raw identifiers (session names, paths, domains, app names), never assigns a project, area, or client (the user does that when making entries from blocks in the Calendar), and never reads or writes time entries. It runs as the tracker agent, a login item (section 5), with no UI of its own beyond the Mac app's settings pane (7.4). The iOS collectors are in [ios.md](ios.md), the `DeviceEvent` record in [data_and_sync.md](data_and_sync.md).
 
-Collection ignores the setting Midnight (`spec_data_and_sync.md` §8): every day, date, "today", and midnight in this spec is the real local one, blocks close at 00:00, and the logs hold real dates. Only readers place blocks on the days they show (`spec_activity.md` §1.1).
+Collection ignores the setting Midnight ([data_and_sync.md](data_and_sync.md) §8): every day, date, "today", and midnight in this spec is the real local one, blocks close at 00:00, and the logs hold real dates. Only readers place blocks on the days they show ([activity.md](activity.md) §1.1).
 
 ## 2. Design
 
@@ -103,7 +103,7 @@ When a block closes:
 
 Every Mac sample, attentive or not, credits each of its background items with the time up to the next Mac sample, at most 60 seconds, and another device's use during the Mac's attention counts for the time it covers. Time within a block's range goes to that block, including its absorbed idle gaps.
 
-The rest forms *background stretches*, beside the blocks rather than as blocks: a block measures attention, and the time between blocks stays away time (`spec_activity.md` §1.8), while a stretch still tells what went on for a project. A gap of `idle_close` or more without background time, a block, or midnight separates two stretches. A stretch lists its background items with at least 5 minutes and spans their time; without such an item it is not recorded. Today's last stretch is recorded once `idle_close` has passed without background work.
+The rest forms *background stretches*, beside the blocks rather than as blocks: a block measures attention, and the time between blocks stays away time ([activity.md](activity.md) §1.8), while a stretch still tells what went on for a project. A gap of `idle_close` or more without background time, a block, or midnight separates two stretches. A stretch lists its background items with at least 5 minutes and spans their time; without such an item it is not recorded. Today's last stretch is recorded once `idle_close` has passed without background work.
 
 ### 2.8 Forming a day again
 
@@ -216,11 +216,11 @@ The `block` is today's open block as of now, with the keys of 4.2 but without `e
 
 Every reader derives the tracker's liveness from `health.last_tick` by one rule: the tracker is running while the last tick is younger than 2 minutes, and not running when it is 2 minutes old or older or `current.json` is missing. While running, a last tick of 90 seconds or older counts as delayed. The Tracker pane, the Activity footer, the menu bar warning, the Timer's idle detection, and `agentRunning` in `LiveState` all use this rule.
 
-The Timer reads `presence` for its own idle detection (`spec_timer.md`). The Mac app copies the tracker fields into `LiveState` (`spec_data_and_sync.md` §4.1); they are already filtered by the exclusions.
+The Timer reads `presence` for its own idle detection ([timer.md](timer.md)). The Mac app copies the tracker fields into `LiveState` ([data_and_sync.md](data_and_sync.md) §4.1); they are already filtered by the exclusions.
 
 ## 5. Agent
 
-The agent, `TimeTrackingAgent.app`, is a headless login item with `KeepAlive` (`spec_architecture.md`), always team-signed because TCC keys grants to signing identities. Ticks run one at a time, and the requests arriving during a tick share one follow-up tick. A command the agent runs (`ps`, `tmux`, `lsof`) that is still running after 5 seconds is stopped and counts as unreadable, so a hung one cannot stall the ticks.
+The agent, `TimeTrackingAgent.app`, is a headless login item with `KeepAlive` ([architecture.md](architecture.md)), always team-signed because TCC keys grants to signing identities. Ticks run one at a time, and the requests arriving during a tick share one follow-up tick. A command the agent runs (`ps`, `tmux`, `lsof`) that is still running after 5 seconds is stopped and counts as unreadable, so a hung one cannot stall the ticks.
 
 The flag `--record <folder>` writes adapter outputs and samples as fixtures, with home-directory paths, host names, and URL paths replaced by placeholders. The flag `--replay <fixture>` runs block forming over a recorded sample stream, compares with `<fixture>.expected.jsonl`, and exits non-zero on a difference. The flag `--unregister` removes the login item registration and exits.
 
@@ -230,7 +230,7 @@ The flag `--record <folder>` writes adapter outputs and samples as fixtures, wit
 | Automation, per browser and scriptable terminal | The app | The browser's tab and the terminal's front tab; macOS asks at first use, or on "Ask for Access" (7.4) |
 | Full Disk Access (optional) | The app | The Knowledge store, Safari's history and synced tabs |
 
-macOS checks Accessibility for the agent itself, but attributes the agent's file access and Apple Events to its responsible app (`AssociatedBundleIdentifiers`, `spec_architecture.md` §1.4). The app therefore carries the Apple Events entitlement and `NSAppleEventsUsageDescription` as well as the agent; without them macOS refuses the Apple Events with `-1743` and never asks. A new Full Disk Access grant reaches the running agent only after a restart.
+macOS checks Accessibility for the agent itself, but attributes the agent's file access and Apple Events to its responsible app (`AssociatedBundleIdentifiers`, [architecture.md](architecture.md) §1.4). The app therefore carries the Apple Events entitlement and `NSAppleEventsUsageDescription` as well as the agent; without them macOS refuses the Apple Events with `-1743` and never asks. A new Full Disk Access grant reaches the running agent only after a restart.
 
 ## 6. Other Apple devices
 
@@ -240,7 +240,7 @@ With `synced_safari_history` on, the agent stores Safari's `History.db` visits w
 
 ### 6.2 Collected by the iOS app
 
-The iOS app writes raw, labeled `DeviceEvent` records per device, exclusions applied (`spec_ios.md` §9). The agent turns each device-day's events into stretches of the timeline on the device's name:
+The iOS app writes raw, labeled `DeviceEvent` records per device, exclusions applied ([ios.md](ios.md) §9). The agent turns each device-day's events into stretches of the timeline on the device's name:
 
 | Source | Mechanism | Stretch |
 |---|---|---|
@@ -317,7 +317,7 @@ entertainment = ["youtube.com", "netflix.com", "reddit.com"]
 
 ### 7.2 Exclusions
 
-Exclusions apply wherever data enters (sampler, histories, file stream, Knowledge backfill, device merge, iOS web extension), case-insensitively, to what is recorded from then on. Calendar and Activity also apply them to past activity when they show it (`spec_activity.md` §4); the log files keep what they hold until `reapply-exclusions` rewrites them (7.3). A path is checked wherever it appears (editor file, cwd, `AXDocument`, Finder folder, modified file, `file://` URL); an excluded file in an ordinary session hides the file and keeps the session.
+Exclusions apply wherever data enters (sampler, histories, file stream, Knowledge backfill, device merge, iOS web extension), case-insensitively, to what is recorded from then on. Calendar and Activity also apply them to past activity when they show it ([activity.md](activity.md) §4); the log files keep what they hold until `reapply-exclusions` rewrites them (7.3). A path is checked wherever it appears (editor file, cwd, `AXDocument`, Finder folder, modified file, `file://` URL); an excluded file in an ordinary session hides the file and keeps the session.
 
 | Setting | Matches | Effect |
 |---|---|---|
@@ -345,7 +345,7 @@ The reasons are protocol text; the Mac app logs them and shows its own sentence:
 
 ### 7.4 The Tracker settings pane
 
-The last pane of the Mac app's settings window (`spec_timer.md` §8). While visible it re-reads the status every 5 seconds. It has no editors for exclusions or options and no maintenance controls: the file is where settings are changed, and rewriting logs is a command-line task. From top to bottom:
+The last pane of the Mac app's settings window ([timer.md](timer.md) §8). While visible it re-reads the status every 5 seconds. It has no editors for exclusions or options and no maintenance controls: the file is where settings are changed, and rewriting logs is a command-line task. From top to bottom:
 
 Status. A dot and one line by the liveness rule of 4.4: green "Tracker running · checked 12 s ago", yellow "Tracker delayed · last checked 1 min ago", red "Tracker not running", gray "Tracker off" when the agent is not registered; then "Tracker version". One button by `SMAppService` status: "Enable Tracker" (`notRegistered`), "Open Login Items" (`requiresApproval`), "Disable Tracker" (`enabled`, after confirmation). Nothing is recorded until the user clicks "Enable Tracker".
 

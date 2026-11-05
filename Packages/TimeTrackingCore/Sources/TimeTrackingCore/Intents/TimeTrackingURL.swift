@@ -1,4 +1,4 @@
-// TimeTrackingURL: the `timetracking://` URL scheme, parsed (spec_automation.md §6).
+// TimeTrackingURL: the `timetracking://` URL scheme, parsed (automation.md §6).
 // URLs start, stop, continue, and show; nothing destructive.
 
 public import Foundation

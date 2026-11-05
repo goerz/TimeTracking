@@ -1,4 +1,4 @@
-// JSON export and import (spec_data_and_sync.md §5; §9 items 36 to 41).
+// JSON export and import (data_and_sync.md §5; §9 items 36 to 41).
 
 import Foundation
 import Testing

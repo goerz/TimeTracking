@@ -1,5 +1,5 @@
 // The engine callbacks of SyncCoordinator: batches, send results, fetched
-// changes, state, and account changes (spec_data_and_sync.md §3.1).
+// changes, state, and account changes (data_and_sync.md §3.1).
 
 public import Foundation
 import os

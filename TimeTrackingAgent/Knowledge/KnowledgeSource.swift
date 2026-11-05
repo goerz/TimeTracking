@@ -1,5 +1,5 @@
 // KnowledgeSource: the macOS Knowledge store, read from a copy
-// (spec_activity_tracking.md §3.2, phase 5).
+// (activity_tracking.md §3.2, phase 5).
 
 import Foundation
 import GRDB

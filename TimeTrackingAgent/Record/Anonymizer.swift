@@ -1,5 +1,5 @@
 // Anonymizer: placeholders for home-directory paths, host names, and URL
-// paths in `--record` output (spec_activity_tracking.md §5, TRK-30).
+// paths in `--record` output (activity_tracking.md §5, TRK-30).
 
 import Foundation
 

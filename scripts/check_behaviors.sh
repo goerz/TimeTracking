@@ -1,11 +1,11 @@
 #!/bin/sh
 # Checks that every numbered testable behavior has a test and every test
-# identifier names a behavior (spec_architecture.md §3.2).
+# identifier names a behavior (architecture.md §3.2).
 #
 #   scripts/check_behaviors.sh [--root DIR] [--only PREFIX[,PREFIX...]]
 #
-# Specs: every spec/spec_*.md has one "Testable behaviors" section, numbered
-# continuously from 1, either "1. ..." or "- TM-1. ...". Tests carry the
+# Specs: every docs/reference/*.md has one "Testable behaviors" section,
+# numbered continuously from 1, either "1. ..." or "- TM-1. ...". Tests carry the
 # identifier in a Swift Testing display name (@Test("TM-1 ...")), an XCTest
 # method name (func testTM1_...), or a shell test (behavior "ARCH-2 ...").
 # One test may name several identifiers. With --only, missing tests of other
@@ -19,21 +19,21 @@ use warnings;
 use File::Find;
 
 my %PREFIX = (
-    'spec_architecture.md'       => 'ARCH',
-    'spec_data_and_sync.md'      => 'DATA',
-    'spec_timer.md'       => 'TM',
-    'spec_menubar.md'            => 'MB',
-    'spec_projects.md'   => 'PP',
-    'spec_calendar.md'   => 'PC',
-    'spec_reports.md'    => 'PR',
-    'spec_activity.md'   => 'PA',
-    'spec_activity_tracking.md'  => 'TRK',
-    'spec_ios.md'                => 'IOS',
-    'spec_automation.md'         => 'AUTO',
+    'architecture.md'      => 'ARCH',
+    'data_and_sync.md'     => 'DATA',
+    'timer.md'             => 'TM',
+    'menubar.md'           => 'MB',
+    'projects.md'          => 'PP',
+    'calendar.md'          => 'PC',
+    'reports.md'           => 'PR',
+    'activity.md'          => 'PA',
+    'activity_tracking.md' => 'TRK',
+    'ios.md'               => 'IOS',
+    'automation.md'        => 'AUTO',
 );
-# Specs without testable behaviors of their own (the design language is
-# checked through the component specs' behaviors).
-my %NO_BEHAVIORS = ('spec_design.md' => 1);
+# Reference pages without testable behaviors of their own (the design
+# language is checked through the component specs' behaviors).
+my %NO_BEHAVIORS = ('components.md' => 1, 'design.md' => 1, 'index.md' => 1);
 my $PREFIXES = join '|', sort { length($b) <=> length($a) } values %PREFIX;
 
 my $root = '.';
@@ -50,15 +50,16 @@ my %defined;    # id -> spec file
 my %count;      # prefix -> number of behaviors
 
 # --- Specs
-opendir(my $dh, "$root/spec") or die "check_behaviors: no spec/ folder under $root\n";
-for my $file (sort grep { /^spec_.*\.md$/ } readdir $dh) {
+my $specs = "docs/reference";
+opendir(my $dh, "$root/$specs") or die "check_behaviors: no $specs/ folder under $root\n";
+for my $file (sort grep { /\.md$/ } readdir $dh) {
     next if $NO_BEHAVIORS{$file};
     my $prefix = $PREFIX{$file};
     unless ($prefix) {
-        push @errors, "spec/$file: no behavior prefix known for this spec (add it to scripts/check_behaviors.sh)";
+        push @errors, "$specs/$file: no behavior prefix known for this spec (add it to scripts/check_behaviors.sh)";
         next;
     }
-    open(my $fh, '<', "$root/spec/$file") or die "check_behaviors: cannot read spec/$file\n";
+    open(my $fh, '<', "$root/$specs/$file") or die "check_behaviors: cannot read $specs/$file\n";
     my ($in, $seen, $expected) = (0, 0, 1);
     while (my $line = <$fh>) {
         if ($line =~ /^#+\s.*Testable behaviors/i) { $in = 1; $seen = 1; next; }
@@ -69,18 +70,18 @@ for my $file (sort grep { /^spec_.*\.md$/ } readdir $dh) {
         elsif ($line =~ /^(\d+)\.\s/) { ($p, $n) = ($prefix, $1); }
         else { next; }
         if ($p ne $prefix) {
-            push @errors, "spec/$file:$.: item $p-$n has the wrong prefix (expected $prefix)";
+            push @errors, "$specs/$file:$.: item $p-$n has the wrong prefix (expected $prefix)";
             next;
         }
         if ($n != $expected) {
-            push @errors, "spec/$file:$.: behavior list is not continuous: expected $prefix-$expected, found $prefix-$n";
+            push @errors, "$specs/$file:$.: behavior list is not continuous: expected $prefix-$expected, found $prefix-$n";
         }
         $expected = $n + 1;
         $defined{"$prefix-$n"} = $file;
         $count{$prefix}++;
     }
     close $fh;
-    push @errors, "spec/$file: no \"Testable behaviors\" section" unless $seen;
+    push @errors, "$specs/$file: no \"Testable behaviors\" section" unless $seen;
 }
 closedir $dh;
 
@@ -88,7 +89,7 @@ closedir $dh;
 my %tested;     # id -> first location
 my @test_files;
 find({ no_chdir => 1, wanted => sub {
-    if (-d $_ && m{/(?:\.build|\.git|build\.noindex|DerivedData|node_modules|spec)$}) { $File::Find::prune = 1; return; }
+    if (-d $_ && m{/(?:\.build|\.git|build\.noindex|DerivedData|node_modules|docs)$}) { $File::Find::prune = 1; return; }
     push @test_files, $_ if -f $_ && (m{Tests/.*\.swift$} || m{/scripts/test_[^/]*\.sh$});
 } }, $root);
 

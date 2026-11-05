@@ -1,5 +1,5 @@
 // PrivacyScreen: Settings > Privacy, the read-only exclusions of
-// `Activity/settings.toml` (spec_ios.md §2.9).
+// `Activity/settings.toml` (ios.md §2.9).
 
 import SwiftUI
 import TimeTrackingCore

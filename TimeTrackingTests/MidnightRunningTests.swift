@@ -1,6 +1,6 @@
 // A running entry across real midnight: midnight is no change of the entry,
 // and idle time before it stops the entry at the idle start
-// (spec_timer.md §5.3, §6.3, §8.3).
+// (timer.md §5.3, §6.3, §8.3).
 
 import Foundation
 import Testing

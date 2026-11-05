@@ -1,5 +1,5 @@
 // Entries stored whole and cut when shown, and the invariant pass
-// (spec_data_and_sync.md §1.5, §3.3, §8; §9 items 17 to 23, 46, 61).
+// (data_and_sync.md §1.5, §3.3, §8; §9 items 17 to 23, 46, 61).
 
 import Foundation
 import Testing

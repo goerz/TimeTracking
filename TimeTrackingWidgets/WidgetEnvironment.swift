@@ -1,5 +1,5 @@
 // WidgetEnvironment: what every widget and control provider builds from
-// (spec_ios.md §3.1, §4 item 2): the store opened read-only, the resolved
+// (ios.md §3.1, §4 item 2): the store opened read-only, the resolved
 // LiveState, and this device's Pomodoro. The extension never writes the store.
 
 import Foundation
@@ -44,7 +44,7 @@ nonisolated struct WidgetEnvironment {
         )
     }
 
-    /// The resolver of spec_ios.md §4 item 2.
+    /// The resolver of ios.md §4 item 2.
     var resolver: WidgetLiveResolver {
         let reader = identity.map { LiveStateReader(transport: CloudKitTransport(containerIdentifier: $0.cloudKitContainer)) }
         return WidgetLiveResolver(shared: shared, reader: reader, clock: SystemClock())

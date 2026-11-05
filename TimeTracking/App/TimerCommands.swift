@@ -1,5 +1,5 @@
-// TimerCommands: the main menu's Timer menu (spec_timer.md §9,
-// spec_menubar.md §2.2).
+// TimerCommands: the main menu's Timer menu (timer.md §9,
+// menubar.md §2.2).
 
 import SwiftUI
 import TimeTrackingCore

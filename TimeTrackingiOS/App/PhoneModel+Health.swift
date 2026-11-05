@@ -1,5 +1,5 @@
 // The iPhone's import of sleep and workouts from Apple Health while the
-// synced Calendar settings ask for them (spec_ios.md §7 item 6).
+// synced Calendar settings ask for them (ios.md §7 item 6).
 
 import Foundation
 import os

@@ -1,5 +1,5 @@
 // AppHost: opens the store and creates the AppModel at launch
-// (spec_architecture.md §2.5, §3.3; spec_data_and_sync.md §7).
+// (architecture.md §2.5, §3.3; data_and_sync.md §7).
 
 import Foundation
 import Observation

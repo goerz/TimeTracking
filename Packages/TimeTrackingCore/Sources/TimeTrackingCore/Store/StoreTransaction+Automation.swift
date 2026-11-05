@@ -1,6 +1,6 @@
 // The checked entry writes of the scripting surfaces: the refusals of the
 // tool's start, stop, continue, entry create, and entry edit
-// (spec_automation.md §3.5, §3.6).
+// (automation.md §3.5, §3.6).
 
 public import Foundation
 import GRDB

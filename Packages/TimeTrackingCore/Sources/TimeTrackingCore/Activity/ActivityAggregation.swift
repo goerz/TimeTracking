@@ -1,4 +1,4 @@
-// ActivityAggregation: grouping blocks into aggregates (spec_data_and_sync.md §6).
+// ActivityAggregation: grouping blocks into aggregates (data_and_sync.md §6).
 
 import Foundation
 

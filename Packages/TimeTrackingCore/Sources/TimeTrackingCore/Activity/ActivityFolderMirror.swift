@@ -1,5 +1,5 @@
 // ActivityFolderMirror: the Mac app's copy of the agent's fallback block log
-// into the iCloud Drive container (spec_activity_tracking.md §4.1).
+// into the iCloud Drive container (activity_tracking.md §4.1).
 
 public import Foundation
 

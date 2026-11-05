@@ -1,5 +1,5 @@
 // The widget and control buttons as the widget views map them, the live
-// elapsed time, and the control's value (spec_ios.md §3.4, §3.5, §5).
+// elapsed time, and the control's value (ios.md §3.4, §3.5, §5).
 
 import AppIntents
 import Foundation

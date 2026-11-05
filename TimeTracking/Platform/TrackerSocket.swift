@@ -1,5 +1,5 @@
 // TrackerSocket: rewrite commands to the agent over its Unix socket
-// (spec_activity_tracking.md §7.3).
+// (activity_tracking.md §7.3).
 
 import Darwin
 import Foundation
@@ -13,7 +13,7 @@ protocol TrackerCommandSending: Sendable {
 }
 
 /// The agent's answer; a rejection carries the sentence the user reads
-/// (spec_design.md §12), the raw reply goes to the log.
+/// (design.md §11), the raw reply goes to the log.
 nonisolated enum TrackerCommandResult: Equatable, Sendable {
     case accepted
     case rejected(String)

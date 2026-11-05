@@ -1,4 +1,4 @@
-// TickSchedule: when the regular ticks fire (spec_activity_tracking.md §2.1).
+// TickSchedule: when the regular ticks fire (activity_tracking.md §2.1).
 
 import Foundation
 

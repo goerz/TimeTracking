@@ -1,5 +1,5 @@
 // APNsCredentials: the team's APNs auth key from the Keychain item that
-// `make apns-key` stores (spec_architecture.md §2.4).
+// `make apns-key` stores (architecture.md §2.4).
 
 public import Foundation
 import Security

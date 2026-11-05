@@ -1,4 +1,4 @@
-// The invariant pass (spec_data_and_sync.md §3.3).
+// The invariant pass (data_and_sync.md §3.3).
 
 import Foundation
 import GRDB

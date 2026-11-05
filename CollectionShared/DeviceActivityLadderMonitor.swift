@@ -1,6 +1,6 @@
 // DeviceActivityLadderMonitor: the ladder's registrations through
 // DeviceActivityCenter, shared by the app and the monitor extension
-// (spec_ios.md §9.2). Cannot run in the simulator or in tests; the logic
+// (ios.md §9.2). Cannot run in the simulator or in tests; the logic
 // is the library's LadderController.
 
 import DeviceActivity

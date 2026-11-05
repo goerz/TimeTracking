@@ -1,5 +1,5 @@
 // ActivityBlock: a closed (or today's open) block of activity
-// (spec_data_and_sync.md §6, spec_activity_tracking.md §2.6 to §2.8, §4.2).
+// (data_and_sync.md §6, activity_tracking.md §2.6 to §2.8, §4.2).
 
 public import Foundation
 

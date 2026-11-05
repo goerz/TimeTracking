@@ -1,5 +1,5 @@
 // RunningDurationText: the running row's live duration on the Mac and iOS
-// (spec_timer.md §3; spec_ios.md §2.6; spec_design.md §7.1).
+// (timer.md §3; ios.md §2.6; design.md §7.1).
 
 import SwiftUI
 import TimeTrackingCore

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Tests of the Makefile, the scripts, and the hooks (spec_architecture.md §3.1, §7).
+# Tests of the Makefile, the scripts, and the hooks (architecture.md §3.1, §7).
 #
 #   scripts/test_make.sh [--build] [--products] [--sim] [--install] [--all]
 #
@@ -79,7 +79,7 @@ sandbox() {
     local dir
     dir=$(mktemp -d "$scratch/sandbox.XXXXXX")
     cp "$root/Makefile" "$root/.gitignore" "$dir/"
-    mkdir -p "$dir/Config" "$dir/spec"
+    mkdir -p "$dir/Config" "$dir/docs/reference"
     cp "$root"/Config/*.entitlements "$root"/Config/*.plist "$root/Config/Project.xcconfig" "$dir/Config/"
     cp -R "$root/scripts" "$root/.githooks" "$dir/"
     rm "$dir/scripts/test_make.sh"
@@ -312,7 +312,7 @@ write_spec() {
         printf '# Spec: Timer\n\n## 9. Testable behaviors\n\n'
         for n in "$@"; do printf -- '- TM-%s. Behavior %s.\n' "$n" "$n"; done
         printf '\n## 10. Decisions\n\n1. Not a behavior.\n'
-    } > "$sb/spec/spec_timer.md"
+    } > "$sb/docs/reference/timer.md"
 }
 
 write_tests() {
@@ -368,7 +368,7 @@ test_help() {
 Develop:sim sim-create stop mac-debug demo mac-debug-unregister logs sim-logs screenshots
 Use:install mac uninstall apns-key device iphone ipad devices console
 Test:unit-test agent-test ui-test test test-sync
-Check:lint check-behaviors check-private check hooks
+Check:lint check-behaviors check-citations check-private check hooks
 Project:secrets xcode skills clean distclean help"
     while IFS=: read -r group targets; do
         for target in $targets; do

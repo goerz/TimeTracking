@@ -1,4 +1,4 @@
-// ContextsPanel: the contexts by active time (spec_activity.md §1.6).
+// ContextsPanel: the contexts by active time (activity.md §1.6).
 
 import SwiftUI
 import TimeTrackingCore

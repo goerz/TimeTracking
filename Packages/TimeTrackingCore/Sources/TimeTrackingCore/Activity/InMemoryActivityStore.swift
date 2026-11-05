@@ -1,5 +1,5 @@
 // InMemoryActivityStore: an ActivityReading over blocks in memory, for
-// tests, `-UITesting`, and devices without a log (spec_data_and_sync.md §6).
+// tests, `-UITesting`, and devices without a log (data_and_sync.md §6).
 
 public import Foundation
 import Synchronization

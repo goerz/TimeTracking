@@ -1,5 +1,5 @@
 // ExclusionRules: the exclusion lists of [privacy] and their matching
-// (spec_activity_tracking.md §7.2).
+// (activity_tracking.md §7.2).
 
 public import Foundation
 

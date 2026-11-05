@@ -1,6 +1,6 @@
 // The Midnight setting: the days the app shows and reports, over entries
-// stored at real midnights (spec_data_and_sync.md §8; spec_reports.md §1.1;
-// spec_timer.md §3; spec_activity.md §1; spec_automation.md §3.2; spec_ios.md §3).
+// stored at real midnights (data_and_sync.md §8; reports.md §1.1;
+// timer.md §3; activity.md §1; automation.md §3.2; ios.md §3).
 
 import Foundation
 import Testing

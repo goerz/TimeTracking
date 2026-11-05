@@ -1,5 +1,5 @@
 // projects, clients, areas, and the project, area, and client writes
-// (spec_automation.md §3.8, §3.9). There is no command to delete them.
+// (automation.md §3.8, §3.9). There is no command to delete them.
 
 import ArgumentParser
 import Foundation

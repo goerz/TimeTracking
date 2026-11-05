@@ -1,4 +1,4 @@
-// The two tools as subprocesses (spec_architecture.md §7, spec_automation.md §1).
+// The two tools as subprocesses (architecture.md §7, automation.md §1).
 
 import Foundation
 import Testing

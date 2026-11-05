@@ -1,4 +1,4 @@
-// PathText: path arithmetic on strings (spec_activity_tracking.md §2.2).
+// PathText: path arithmetic on strings (activity_tracking.md §2.2).
 
 /// The few path operations the resolvers need, on plain strings.
 nonisolated enum PathText {

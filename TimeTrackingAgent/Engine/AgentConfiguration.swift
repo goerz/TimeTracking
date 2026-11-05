@@ -1,5 +1,5 @@
 // AgentConfiguration: the agent's folders, device name, and version
-// (spec_activity_tracking.md §4.1, §4.4; spec_architecture.md §1.5).
+// (activity_tracking.md §4.1, §4.4; architecture.md §1.5).
 
 import Foundation
 import IOKit

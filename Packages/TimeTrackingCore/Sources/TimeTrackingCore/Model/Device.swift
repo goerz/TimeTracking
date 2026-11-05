@@ -1,4 +1,4 @@
-// Device: one record per device that runs the app (spec_data_and_sync.md §1.8).
+// Device: one record per device that runs the app (data_and_sync.md §1.8).
 
 public import Foundation
 

@@ -1,4 +1,4 @@
-// The reading protocols of the query layer (spec_data_and_sync.md §7.2 to §7.4).
+// The reading protocols of the query layer (data_and_sync.md §7.2 to §7.4).
 
 public import Foundation
 

@@ -1,4 +1,4 @@
-// The tick and presence (spec_activity_tracking.md §2.1, §2.4 step 1, §2.5,
+// The tick and presence (activity_tracking.md §2.1, §2.4 step 1, §2.5,
 // §3.4, §4.4, §7).
 
 import Foundation

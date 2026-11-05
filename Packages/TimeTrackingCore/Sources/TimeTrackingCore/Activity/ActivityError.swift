@@ -1,5 +1,5 @@
-// ActivityError: the errors of the Activity module (spec_data_and_sync.md §6,
-// spec_architecture.md §4.1).
+// ActivityError: the errors of the Activity module (data_and_sync.md §6,
+// architecture.md §4.1).
 
 public import Foundation
 

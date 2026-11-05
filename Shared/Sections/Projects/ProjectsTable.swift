@@ -1,5 +1,5 @@
 // ProjectsTable: the projects `Table` with client, area, and group rows,
-// column customization, and the hover ⋯ button (spec_projects.md
+// column customization, and the hover ⋯ button (projects.md
 // §2.1 to §2.5, §4).
 
 import SwiftUI

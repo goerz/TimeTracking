@@ -1,6 +1,6 @@
 // The Timer views' pointer and key inputs: the task field's Return and
 // the list rows' click, double-click, and context menu
-// (spec_timer.md §2.3, §3).
+// (timer.md §2.3, §3).
 
 import Foundation
 import TimeTrackingCore

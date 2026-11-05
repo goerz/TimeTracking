@@ -1,11 +1,11 @@
 // PhoneModel+Pad: the iPad's tab selection, its hardware-keyboard commands,
-// and the sections' links to the Timer (spec_ios.md §2.3, §6.4, §10.1, §10.3).
+// and the sections' links to the Timer (ios.md §2.3, §6.4, §10.1, §10.3).
 
 import Foundation
 import TimeTrackingCore
 
 /// A hardware-keyboard command of the iPad outside the section tabs' own
-/// keys (spec_ios.md §10.3).
+/// keys (ios.md §10.3).
 enum PadCommand: Hashable, CaseIterable {
     /// ⌘1: the Timer tab with the task field focused.
     case timerTab
@@ -23,7 +23,7 @@ enum PadCommand: Hashable, CaseIterable {
     case settings
 
     /// The commands that act only in some tabs; their menu items hold their
-    /// keys only while enabled (spec_timer.md §9).
+    /// keys only while enabled (timer.md §9).
     var isTimerTabOnly: Bool {
         switch self {
         case .setProject, .edit, .delete, .find, .scrollToToday: true

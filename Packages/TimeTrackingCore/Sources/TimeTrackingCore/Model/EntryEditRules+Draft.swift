@@ -1,6 +1,6 @@
 // EntryEditRules+Draft: the rules for an edited start and end that are
-// saved together, as the iPhone's edit sheet does (spec_ios.md §2.7;
-// spec_timer.md §4.2).
+// saved together, as the iPhone's edit sheet does (ios.md §2.7;
+// timer.md §4.2).
 
 public import Foundation
 

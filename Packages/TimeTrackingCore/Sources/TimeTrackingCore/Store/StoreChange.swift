@@ -1,4 +1,4 @@
-// Observation events and entry adjustments (spec_data_and_sync.md §3.3, §7.4).
+// Observation events and entry adjustments (data_and_sync.md §3.3, §7.4).
 
 public import Foundation
 

@@ -1,6 +1,6 @@
 // What only real windows show: the main window's Timer, the Mini Timer, the
-// menu bar item, the settings window (spec_timer.md, spec_menubar.md,
-// spec_architecture.md §7).
+// menu bar item, the settings window (timer.md, menubar.md,
+// architecture.md §7).
 
 import XCTest
 
@@ -255,7 +255,7 @@ final class WindowsUITests: XCTestCase {
     }
 
     /// The Debug agent embedded in the Debug app next to the test runner:
-    /// the one bundle in its `Contents/Library/LoginItems` (spec_architecture.md §2.2).
+    /// the one bundle in its `Contents/Library/LoginItems` (architecture.md §2.2).
     private static func debugAgentExecutable() throws -> URL {
         let files = FileManager.default
         let products = Bundle.main.bundleURL.deletingLastPathComponent()

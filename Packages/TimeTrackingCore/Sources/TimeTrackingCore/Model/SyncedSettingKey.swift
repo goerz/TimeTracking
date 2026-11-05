@@ -1,4 +1,4 @@
-// Synced and device setting keys (spec_data_and_sync.md §1.6).
+// Synced and device setting keys (data_and_sync.md §1.6).
 
 /// A synced setting: a `setting` record whose value is JSON. Other specs
 /// declare their keys in constrained extensions, as below.
@@ -50,18 +50,18 @@ extension SyncedSettingKey<Int> {
         Self("pomodoro.breakMinutes", default: 5)
     }
 
-    /// The Calendar's snapping: 1, 5, 10, or 15 (spec_calendar.md §6).
+    /// The Calendar's snapping: 1, 5, 10, or 15 (calendar.md §6).
     public static var calendarSnapMinutes: Self {
         Self("calendar.snapMinutes", default: 5)
     }
 
     /// The hour of the local clock at which the app's days start, 0 to 23
-    /// (spec_data_and_sync.md §8). Only display and reports follow it.
+    /// (data_and_sync.md §8). Only display and reports follow it.
     public static var midnightHour: Self {
         Self("day.midnightHour", default: 0)
     }
 
-    /// The values the setting allows (spec_timer.md §5.2): 1 to 180
+    /// The values the setting allows (timer.md §5.2): 1 to 180
     /// focus minutes, 1 to 60 break minutes, hours 0 to 23; any value for
     /// other keys.
     public var range: ClosedRange<Int> {
@@ -94,7 +94,7 @@ extension SyncedSettingKey<[String: Int]> {
 
 extension SyncedSettingKey<[CalendarChoice]> {
     /// The external calendars the Calendar shows, as (account, calendar)
-    /// titles, which name the same calendar on every device (spec_calendar.md §4.3, §6).
+    /// titles, which name the same calendar on every device (calendar.md §4.3, §6).
     public static var calendarShownCalendars: Self {
         Self("calendar.shownCalendars", default: [])
     }
@@ -102,7 +102,7 @@ extension SyncedSettingKey<[CalendarChoice]> {
 
 extension SyncedSettingKey<Bool> {
     /// Sleep from Apple Health as lines in the Calendar's Activity column
-    /// (spec_calendar.md §3.1, §6); the iPhone imports while it is on.
+    /// (calendar.md §3.1, §6); the iPhone imports while it is on.
     public static var calendarShowSleep: Self {
         Self("calendar.showSleep", default: false)
     }
@@ -115,7 +115,7 @@ extension SyncedSettingKey<Bool> {
 
 extension SyncedSettingKey<AreaID?> {
     /// The area whose reports count sleep, as the project "Sleep"
-    /// (spec_reports.md §1.1); nil counts it nowhere.
+    /// (reports.md §1.1); nil counts it nowhere.
     public static var calendarSleepAreaID: Self {
         Self("calendar.sleepAreaID", default: nil)
     }
@@ -132,7 +132,7 @@ extension SyncedSettingKey<String?> {
     }
 
     /// The time-block calendar's title, which finds it on a device whose
-    /// identifier differs (spec_calendar.md §4.1); nil means "Time Blocks".
+    /// identifier differs (calendar.md §4.1); nil means "Time Blocks".
     public static var timeBlockCalendarTitle: Self {
         Self("calendar.timeBlockCalendarTitle", default: nil)
     }

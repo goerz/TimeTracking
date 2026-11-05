@@ -1,5 +1,5 @@
 // TimerModel+Commands: the timer label's text and the commands built from
-// the others (spec_timer.md §2.1, §10; spec_ios.md §8).
+// the others (timer.md §2.1, §10; ios.md §8).
 
 import Foundation
 import TimeTrackingCore

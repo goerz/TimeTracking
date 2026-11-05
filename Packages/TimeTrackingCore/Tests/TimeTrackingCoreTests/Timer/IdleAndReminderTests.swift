@@ -1,5 +1,5 @@
-// Idle detection and reminders (spec_timer.md §6, §7), and the tracker
-// warning rule (spec_menubar.md §3).
+// Idle detection and reminders (timer.md §6, §7), and the tracker
+// warning rule (menubar.md §3).
 
 import Foundation
 import Testing

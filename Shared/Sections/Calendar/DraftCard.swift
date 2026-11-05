@@ -1,5 +1,5 @@
 // DraftCard: the provisional entry and its popovers
-// (spec_calendar.md §2.3, §2.6).
+// (calendar.md §2.3, §2.6).
 
 import SwiftUI
 import TimeTrackingCore

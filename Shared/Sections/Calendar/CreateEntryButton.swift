@@ -1,4 +1,4 @@
-// CreateEntryButton: the "+" a card shows on hover (spec_calendar.md §3.3,
+// CreateEntryButton: the "+" a card shows on hover (calendar.md §3.3,
 // §4.4).
 
 import SwiftUI

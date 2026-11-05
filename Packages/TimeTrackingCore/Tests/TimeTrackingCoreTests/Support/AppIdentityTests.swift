@@ -1,4 +1,4 @@
-// Tests for AppIdentity (spec_architecture.md §1.5).
+// Tests for AppIdentity (architecture.md §1.5).
 
 import Foundation
 import Testing

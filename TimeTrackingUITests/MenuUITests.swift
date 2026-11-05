@@ -1,6 +1,6 @@
 // The main menu in the real app: one fixed set of object menus in every
 // window, each item enabled by what it acts on, the Mini Timer listed once
-// in Window (spec_timer.md §9).
+// in Window (timer.md §9).
 
 import XCTest
 

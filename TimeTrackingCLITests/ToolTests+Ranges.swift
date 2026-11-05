@@ -1,6 +1,6 @@
 // The timetracking tool as a subprocess: instant bounds, dash-led date
 // values, report health time, the strict check, and `tomorrow`
-// (spec_automation.md §3.2, §3.7, §4.2, §9 items 41 to 45).
+// (automation.md §3.2, §3.7, §4.2, §9 items 41 to 45).
 
 import Foundation
 import Testing

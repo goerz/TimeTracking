@@ -1,18 +1,18 @@
 # Spec: Activity Section
 
-The Activity section of the main window (fifth sidebar item, ⌘5; on the iPad a tab, section 5; the iPhone has none) shows what the tracker recorded over a date range: how much of each day was active, at which hours, in which apps, terminal sessions, and browsers, and where inside them the time went. It reads the logs through the shared library ([spec_data_and_sync.md](spec_data_and_sync.md) §6) and never writes them; collection and formats belong to [spec_activity_tracking.md](spec_activity_tracking.md). It does not change blocks, assign projects, create entries, or export.
+The Activity section of the main window (fifth sidebar item, ⌘5; on the iPad a tab, section 5; the iPhone has none) shows what the tracker recorded over a date range: how much of each day was active, at which hours, in which apps, terminal sessions, and browsers, and where inside them the time went. It reads the logs through the shared library ([data_and_sync.md](data_and_sync.md) §6) and never writes them; collection and formats belong to [activity_tracking.md](activity_tracking.md). It does not change blocks, assign projects, create entries, or export.
 
 An item has a context (an app, a terminal session such as `tmux:paper`, a browser), a subject (a site, a folder, a window), and a detail (a file, a page). A block has items with seconds, active seconds `a` (all item seconds before the tracker's summary cut), and background items (`bg`: busy coding agents, builds), which are not attention. A background stretch is background work while the user was away, between blocks. The tracker closes both at real midnight, but either may cross the setting Midnight.
 
 ## 1. Layout
 
-The window title is "Activity" and its subtitle the range label. The toolbar follows [spec_design.md](spec_design.md) §4: the period arrows and the range menu, then the device popup (1.2). Below it come the header (1.2), the context chips (1.3), the panels, and a fixed health footer (1.10). Panels are cards in two columns above 1100 points of content width and one column below, in the order heatmap, by-day chart, Apps, Subjects, In the background, Away.
+The window title is "Activity" and its subtitle the range label. The toolbar follows [design.md](design.md) §4: the period arrows and the range menu, then the device popup (1.2). Below it come the header (1.2), the context chips (1.3), the panels, and a fixed health footer (1.10). Panels are cards in two columns above 1100 points of content width and one column below, in the order heatmap, by-day chart, Apps, Subjects, In the background, Away.
 
 ### 1.1 Date range
 
-The range control, its presets, and its shortcuts are those of Reports ([spec_reports.md](spec_reports.md) §2), and the selected range is one state shared by both sections, since comparing tracked and recorded time for one week is the main use. A range over 366 days is clipped to the 366 days ending on its last day, and the header says "Showing the last 366 days of the selection".
+The range control, its presets, and its shortcuts are those of Reports ([reports.md](reports.md) §2), and the selected range is one state shared by both sections, since comparing tracked and recorded time for one week is the main use. A range over 366 days is clipped to the 366 days ending on its last day, and the header says "Showing the last 366 days of the selection".
 
-Days run from Midnight to Midnight ([spec_data_and_sync.md](spec_data_and_sync.md) §8), today included. A block or stretch counts whole on the day of its start, because its items cannot be divided, and keeps its recorded date and clock hours. Future days of the range appear as empty rows and bars and are left out of every average.
+Days run from Midnight to Midnight ([data_and_sync.md](data_and_sync.md) §8), today included. A block or stretch counts whole on the day of its start, because its items cannot be divided, and keeps its recorded date and clock hours. Future days of the range appear as empty rows and bars and are left out of every average.
 
 ### 1.2 Header
 
@@ -83,7 +83,7 @@ With no blocks, the panels give way to "No activity recorded between Oct 20 and 
 
 ### 1.10 Health footer
 
-On the Mac, one line with the Tracker pane's status dot and line ([spec_activity_tracking.md](spec_activity_tracking.md) §7.4), refreshed every 10 seconds while visible; then, in the warning color, only the sources that are limited or off, by name and reason; and "Tracker Settings…". Hovering shows "Tracker version 1.0", the primary item ("Now: paper (tmux) · draft · nvim notes.tex"), and the presence ("In use", "In use without typing", "Idle", "Locked", "Asleep", "Another user is logged in").
+On the Mac, one line with the Tracker pane's status dot and line ([activity_tracking.md](activity_tracking.md) §7.4), refreshed every 10 seconds while visible; then, in the warning color, only the sources that are limited or off, by name and reason; and "Tracker Settings…". Hovering shows "Tracker version 1.0", the primary item ("Now: paper (tmux) · draft · nvim notes.tex"), and the presence ("In use", "In use without typing", "Idle", "Locked", "Asleep", "Another user is logged in").
 
 ## 2. Keyboard and menu
 
@@ -98,21 +98,21 @@ On the Mac, one line with the Tracker pane's status dot and line ([spec_activity
 
 Tab reaches the heatmap, the chart, and the rows of Apps and Subjects that act on a click; a click beside the cells or on the y axis also focuses the panel. Chips are buttons, which take the focus when the system's keyboard navigation is on. The heatmap starts on its first cell and the chart on its first bar. Left and right step between bars, keeping the context where the next bar has it; up and down step through a bar's segments, bottom up, and below the lowest back to the whole bar. The focused cell has an outline, and the rest of the chart dims around the focused bar or segment. Space shows or hides the cell's tooltip text under the heatmap and the tooltip over the chart, which then follow the arrow keys; on a Subjects row with a chevron it opens the details.
 
-The View menu holds the range commands and, under its Activity header ([spec_timer.md](spec_timer.md) §9), Clear Filter or Back (Escape's two steps) and "Exclude from Tracking…" for the selected context or site row.
+The View menu holds the range commands and, under its Activity header ([timer.md](timer.md) §9), Clear Filter or Back (Escape's two steps) and "Exclude from Tracking…" for the selected context or site row.
 
 ## 3. Drill-down into the Calendar
 
-A heatmap cell, bar, or segment opens the Calendar ([spec_calendar.md](spec_calendar.md) §1.2) at the shown day (a week or month row's first day) and the cell's hour, highlighting the cell's hour or the segment's context. Range, filter, and scroll position here stay unchanged, and ⌘5 returns to them.
+A heatmap cell, bar, or segment opens the Calendar ([calendar.md](calendar.md) §1.2) at the shown day (a week or month row's first day) and the cell's hour, highlighting the cell's hour or the segment's context. Range, filter, and scroll position here stay unchanged, and ⌘5 returns to them.
 
 ## 4. Exclusions
 
-"Exclude <name> from Tracking…" (Mac only) opens the Tracker pane with an unsaved draft ([spec_activity_tracking.md](spec_activity_tracking.md) §7.4): the bundle identifier under `exclude_apps` for an app (left for the user to pick when the `contexts` map has none), the session name under `exclude_tmux_sessions`, or the bare domain under `exclude_domains` for a site. This view saves nothing.
+"Exclude <name> from Tracking…" (Mac only) opens the Tracker pane with an unsaved draft ([activity_tracking.md](activity_tracking.md) §7.4): the bundle identifier under `exclude_apps` for an app (left for the user to pick when the `contexts` map has none), the session name under `exclude_tmux_sessions`, or the bare domain under `exclude_domains` for a site. This view saves nothing.
 
 The reader applies the current rules to past data at read time on every device, without rewriting the logs; time removed by a rule leaves every total, and a block left empty is not shown. Items written as `(private)` show as one gray row per context with their time kept. Rewriting past logs is the tracker's command `reapply-exclusions` (§7.3 there).
 
 ## 5. iPad
 
-The Activity tab shows the same panels from the synced block log, without subject drill-down, away classification, exclusion shortcut, or open block. Its footer shows the most recently updated Mac's tracker from `LiveState` ([spec_data_and_sync.md](spec_data_and_sync.md) §4.1): "Mac tracker: checked 2 min ago", the presence in the tooltip ("Idle for 5 min"), and the sources with a problem ("iCloud Drive needs attention on the Mac"). The dot is green while `agentRunning` is true, else gray with "Mac tracker: last checked 2 h ago" or "Mac tracker: not checked yet". "Waiting for iCloud · activity up to 14:02" shows while the current month has not arrived. With no blocks the empty state reads "The tracker runs on your Mac. Set it up in the Mac app's Settings, Tracker pane."
+The Activity tab shows the same panels from the synced block log, without subject drill-down, away classification, exclusion shortcut, or open block. Its footer shows the most recently updated Mac's tracker from `LiveState` ([data_and_sync.md](data_and_sync.md) §4.1): "Mac tracker: checked 2 min ago", the presence in the tooltip ("Idle for 5 min"), and the sources with a problem ("iCloud Drive needs attention on the Mac"). The dot is green while `agentRunning` is true, else gray with "Mac tracker: last checked 2 h ago" or "Mac tracker: not checked yet". "Waiting for iCloud · activity up to 14:02" shows while the current month has not arrived. With no blocks the empty state reads "The tracker runs on your Mac. Set it up in the Mac app's Settings, Tracker pane."
 
 ## 6. Testable behaviors
 

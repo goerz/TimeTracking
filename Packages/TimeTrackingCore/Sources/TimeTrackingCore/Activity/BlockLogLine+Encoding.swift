@@ -1,5 +1,5 @@
 // BlockLogLine+Encoding: writing block-log and detail-log lines
-// (spec_activity_tracking.md §4.2, §4.3).
+// (activity_tracking.md §4.2, §4.3).
 
 import Foundation
 

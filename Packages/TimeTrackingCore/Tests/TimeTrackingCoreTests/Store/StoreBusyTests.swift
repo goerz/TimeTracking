@@ -1,5 +1,5 @@
-// The busy timeout between writers (spec_data_and_sync.md §2.2;
-// spec_automation.md §9 item 32).
+// The busy timeout between writers (data_and_sync.md §2.2;
+// automation.md §9 item 32).
 
 import Foundation
 import SQLite3

@@ -1,4 +1,4 @@
-// The background script of the Safari web extension (spec_ios.md §9.5).
+// The background script of the Safari web extension (ios.md §9.5).
 // Non-persistent: it forwards tab activations and completed loads or URL
 // changes to the native handler as {url, time}; the handler applies the
 // exclusions. Titles are never sent.

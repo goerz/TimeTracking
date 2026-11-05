@@ -1,5 +1,5 @@
-// ActivityFolders: where the activity files live (spec_data_and_sync.md §6,
-// spec_activity_tracking.md §4.1).
+// ActivityFolders: where the activity files live (data_and_sync.md §6,
+// activity_tracking.md §4.1).
 
 public import Foundation
 

@@ -1,5 +1,5 @@
 // StatusItemController+Dial: the status item's dial icon, drawn from the app
-// icon's ring and knob (spec_menubar.md §1.1, spec_design.md §9).
+// icon's ring and knob (menubar.md §1.1, design.md §9).
 
 import AppKit
 import TimeTrackingCore

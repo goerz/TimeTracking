@@ -1,11 +1,11 @@
 // EntryMenu: the calendar cards' context menu, a popover on the iPad
-// (spec_calendar.md §5; spec_ios.md §10.2).
+// (calendar.md §5; ios.md §10.2).
 
 import SwiftUI
 
 /// The context menu on the Mac; on the iPad, where a long press lifts the
 /// item, the same buttons in a popover that a long press without a drag
-/// opens (spec_ios.md §10.2).
+/// opens (ios.md §10.2).
 struct EntryMenu<Items: View>: ViewModifier {
     @Binding var showsMenu: Bool
     @ViewBuilder var items: () -> Items

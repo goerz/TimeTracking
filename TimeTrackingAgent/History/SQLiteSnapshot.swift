@@ -1,5 +1,5 @@
 // SQLiteSnapshot: a copy of a live SQLite database with its WAL
-// (spec_activity_tracking.md §3.2, §3.3).
+// (activity_tracking.md §3.2, §3.3).
 
 import Foundation
 

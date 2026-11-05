@@ -1,5 +1,5 @@
 // DeviceSettings: device settings in the App Group's `UserDefaults` suite
-// (spec_data_and_sync.md §1.6).
+// (data_and_sync.md §1.6).
 
 public import Foundation
 

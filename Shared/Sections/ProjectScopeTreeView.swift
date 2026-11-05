@@ -1,6 +1,6 @@
 // ProjectScopeTreeView: the clients, areas, and projects of a Filters
 // popover as a searchable tree of tri-state check boxes, shared by Projects
-// and Reports (spec_projects.md §2.4, spec_reports.md §3).
+// and Reports (projects.md §2.4, reports.md §3).
 
 import SwiftUI
 import TimeTrackingCore

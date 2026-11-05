@@ -1,6 +1,6 @@
 // AppGroupDefaults: the App Group's `UserDefaults` suite, held by the
-// device settings and the shared-state wrappers (spec_architecture.md §1.5,
-// spec_data_and_sync.md §1.6).
+// device settings and the shared-state wrappers (architecture.md §1.5,
+// data_and_sync.md §1.6).
 
 import Foundation
 

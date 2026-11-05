@@ -1,6 +1,6 @@
-// RecentListSections: the day-grouped recent list (spec_ios.md §2.6): one
+// RecentListSections: the day-grouped recent list (ios.md §2.6): one
 // section per day with its live total, rows with a play button, swipes, and
-// a context menu; the 14-day paging of spec_timer.md §3.
+// a context menu; the 14-day paging of timer.md §3.
 
 import SwiftUI
 import TimeTrackingCore

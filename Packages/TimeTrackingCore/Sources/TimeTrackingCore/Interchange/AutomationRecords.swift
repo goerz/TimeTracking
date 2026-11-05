@@ -1,4 +1,4 @@
-// The JSON records of the tool's listings (spec_automation.md §3.5 to §3.8,
+// The JSON records of the tool's listings (automation.md §3.5 to §3.8,
 // §3.10, §8.1). Their shapes change only with a format version bump.
 
 public import Foundation

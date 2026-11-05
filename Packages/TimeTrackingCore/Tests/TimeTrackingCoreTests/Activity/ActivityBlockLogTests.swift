@@ -1,5 +1,5 @@
-// Tests for the block-log format and BlockLogWriter (spec_activity_tracking.md
-// §4.2, §4.3; spec_data_and_sync.md §6).
+// Tests for the block-log format and BlockLogWriter (activity_tracking.md
+// §4.2, §4.3; data_and_sync.md §6).
 
 import Foundation
 import Testing

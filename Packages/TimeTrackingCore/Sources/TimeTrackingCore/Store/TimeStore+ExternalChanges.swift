@@ -1,5 +1,5 @@
 // TimeStore+ExternalChanges: other processes' commits, signaled by the
-// Darwin notification `<APP_ID>.changed` (spec_data_and_sync.md §2.2, §7).
+// Darwin notification `<APP_ID>.changed` (data_and_sync.md §2.2, §7).
 
 import Foundation
 import GRDB

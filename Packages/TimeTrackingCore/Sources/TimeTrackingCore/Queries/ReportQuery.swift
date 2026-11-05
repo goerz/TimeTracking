@@ -1,4 +1,4 @@
-// Report queries and results (spec_data_and_sync.md §7.3).
+// Report queries and results (data_and_sync.md §7.3).
 
 import Foundation
 
@@ -83,7 +83,7 @@ public struct ReportQuery: Hashable, Sendable {
     /// time of day): only entries starting inside count, and health time
     /// is cut at them; `nil` for whole days.
     public var bounds: DateInterval?
-    /// Whether mapped health periods count (spec_reports.md §1.1); the
+    /// Whether mapped health periods count (reports.md §1.1); the
     /// tool's `report` sets it only with `--health`.
     public var includeHealth = true
 

@@ -1,5 +1,5 @@
 // HealthPeriod: a stretch of sleep or a workout from Apple Health, imported
-// on the iPhone and synced (spec_data_and_sync.md §1.9).
+// on the iPhone and synced (data_and_sync.md §1.9).
 
 public import Foundation
 

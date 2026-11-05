@@ -1,5 +1,5 @@
 // AutomationPermission: asks macOS for Automation of running apps with
-// AEDeterminePermissionToAutomateTarget (spec_activity_tracking.md §7.4).
+// AEDeterminePermissionToAutomateTarget (activity_tracking.md §7.4).
 
 import AppKit
 import CoreServices

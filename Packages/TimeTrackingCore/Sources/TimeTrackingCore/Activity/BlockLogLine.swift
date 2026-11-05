@@ -1,5 +1,5 @@
 // BlockLogLine: one line of the block log or the detail log
-// (spec_activity_tracking.md §4.2, §4.3).
+// (activity_tracking.md §4.2, §4.3).
 
 public import Foundation
 

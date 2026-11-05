@@ -1,10 +1,10 @@
 // MacActivityLine: the Mac activity line under the Timer card and in the
-// medium widget's footer (spec_ios.md §2.3).
+// medium widget's footer (ios.md §2.3).
 
 public import Foundation
 
 /// The Mac activity line under the Timer card and in the medium widget's
-/// footer (spec_ios.md §2.3).
+/// footer (ios.md §2.3).
 public enum MacActivityLine {
     /// One line per Mac whose tracker runs, most recently updated first, at
     /// most two: "MacBook · paper (tmux) · draft", "iMac · notes.pdf · idle since 14:02".

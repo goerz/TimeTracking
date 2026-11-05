@@ -1,5 +1,5 @@
 // The Calendar's subscriptions while it is visible: the block log and
-// EventKit (spec_calendar.md §3.4, §4.1).
+// EventKit (calendar.md §3.4, §4.1).
 
 import Foundation
 import TimeTrackingCore

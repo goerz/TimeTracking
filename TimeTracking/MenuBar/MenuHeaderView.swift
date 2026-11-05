@@ -1,6 +1,6 @@
 // MenuHeaderView: the status menu's disabled header lines as one view, so
-// the task, details, and glyphs keep their styles (spec_menubar.md §2.1,
-// spec_design.md §8).
+// the task, details, and glyphs keep their styles (menubar.md §2.1,
+// design.md §8).
 
 import SwiftUI
 

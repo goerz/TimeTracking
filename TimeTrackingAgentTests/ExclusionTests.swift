@@ -1,4 +1,4 @@
-// Exclusions applied before anything is written (spec_activity_tracking.md
+// Exclusions applied before anything is written (activity_tracking.md
 // §2.1 principle 5, §7.2).
 
 import Foundation

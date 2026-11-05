@@ -1,4 +1,4 @@
-// BrowserItemRules: how a browser URL becomes an item (spec_activity_tracking.md
+// BrowserItemRules: how a browser URL becomes an item (activity_tracking.md
 // §2.2 rule 4, §3.3, §7.2). Shared by the Mac agent and the iOS web extension.
 
 import Foundation

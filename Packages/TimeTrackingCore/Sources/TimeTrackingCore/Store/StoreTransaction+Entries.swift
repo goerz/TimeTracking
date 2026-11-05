@@ -1,4 +1,4 @@
-// Entry writes (spec_data_and_sync.md §1.4, §7.1).
+// Entry writes (data_and_sync.md §1.4, §7.1).
 
 public import Foundation
 import GRDB

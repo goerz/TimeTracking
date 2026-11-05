@@ -1,5 +1,5 @@
 // UserMessage: what the user reads when a change fails, instead of the
-// library's error text, which is written for logs (spec_design.md §12).
+// library's error text, which is written for logs (design.md §11).
 
 import Foundation
 import os

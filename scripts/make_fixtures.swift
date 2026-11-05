@@ -1,7 +1,7 @@
 #!/usr/bin/env swift
-// make_fixtures.swift: writes the store fixtures of spec_architecture.md §3.4
+// make_fixtures.swift: writes the store fixtures of architecture.md §3.4
 // (Fixtures/Store/empty.json, small.json, large.json, running.json) in the
-// JSON export format of spec_data_and_sync.md §5.1, and the block-log
+// JSON export format of data_and_sync.md §5.1, and the block-log
 // fixture Fixtures/Activity/blocks/, by running the package's MakeFixtures
 // tool over TimeTrackingCore's SyntheticDataset. Deterministic: running it
 // twice gives identical files (TimeTrackingCoreTests checks the committed ones).

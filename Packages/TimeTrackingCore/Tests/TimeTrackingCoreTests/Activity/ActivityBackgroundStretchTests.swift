@@ -1,5 +1,5 @@
-// Background stretches in the block log (spec_activity_tracking.md §4.2,
-// spec_data_and_sync.md §6, TRK-43, DATA-53).
+// Background stretches in the block log (activity_tracking.md §4.2,
+// data_and_sync.md §6, TRK-43, DATA-53).
 
 import Foundation
 import Testing

@@ -1,6 +1,6 @@
 // TrackerLiveness: the tracker's status by the liveness rule, as the Tracker
-// pane and the menu bar warning show it (spec_activity_tracking.md §4.4, §7.4;
-// spec_menubar.md §3).
+// pane and the menu bar warning show it (activity_tracking.md §4.4, §7.4;
+// menubar.md §3).
 
 public import Foundation
 
@@ -63,7 +63,7 @@ public enum TrackerLiveness: Hashable, Sendable {
     }
 }
 
-/// The menu bar's tracker warning (`spec_menubar.md` §3).
+/// The menu bar's tracker warning (`menubar.md` §3).
 public enum TrackerWarning {
     /// How long the Mac must have been awake, unlocked, and in the session.
     public static let presenceRequired: TimeInterval = 120

@@ -1,10 +1,10 @@
-// CopyButton: a button that copies text and says so (spec_design.md §7.1).
+// CopyButton: a button that copies text and says so (design.md §7.1).
 
 import SwiftUI
 import TimeTrackingCore
 
 /// A button that copies `text` and says so for two seconds, at the width of
-/// its longer title so nothing beside it moves (spec_design.md §7.1).
+/// its longer title so nothing beside it moves (design.md §7.1).
 struct CopyButton: View {
     var title: String
     var text: String

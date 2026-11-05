@@ -1,5 +1,5 @@
 // The timetracking tool as a subprocess: status, start, stop, continue,
-// concurrency, notifications (spec_automation.md §3.5, §9 items 1 to 6, 32, 33, 36).
+// concurrency, notifications (automation.md §3.5, §9 items 1 to 6, 32, 33, 36).
 
 import Darwin
 import Foundation

@@ -1,4 +1,4 @@
-// The Timer list's query (spec_timer.md §3).
+// The Timer list's query (timer.md §3).
 
 import Foundation
 import Testing

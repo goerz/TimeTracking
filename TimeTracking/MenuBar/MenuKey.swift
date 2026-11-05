@@ -1,4 +1,4 @@
-// MenuKey: a key equivalent in the status item's menu (spec_menubar.md §2).
+// MenuKey: a key equivalent in the status item's menu (menubar.md §2).
 
 /// A key equivalent of a menu item.
 struct MenuKey: Equatable {

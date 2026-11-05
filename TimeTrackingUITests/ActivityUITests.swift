@@ -1,5 +1,5 @@
 // The pointer and the keyboard on the Activity section's panels, in the
-// week of 2024-03-14 with the fixture's block log (spec_activity.md §1.5,
+// week of 2024-03-14 with the fixture's block log (activity.md §1.5,
 // §2, §3).
 
 import XCTest

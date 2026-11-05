@@ -1,5 +1,5 @@
 // ReportFilters: the Reports section's filters, their chips and badge
-// (spec_reports.md §3).
+// (reports.md §3).
 
 import Foundation
 

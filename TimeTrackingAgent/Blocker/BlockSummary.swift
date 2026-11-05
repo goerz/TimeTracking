@@ -1,5 +1,5 @@
 // BlockSummary: the summary of a closed or open block
-// (spec_activity_tracking.md §2.6).
+// (activity_tracking.md §2.6).
 
 import Foundation
 import TimeTrackingCore

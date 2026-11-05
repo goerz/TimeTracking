@@ -1,5 +1,5 @@
 // The tool's health listing: sleep and workout periods with the iPhone's
-// last import (spec_automation.md §3.8, spec_data_and_sync.md §1.9).
+// last import (automation.md §3.8, data_and_sync.md §1.9).
 
 public import Foundation
 

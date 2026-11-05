@@ -1,5 +1,5 @@
 // TextTable: the human-readable tables, which may change between versions
-// (spec_automation.md §1).
+// (automation.md §1).
 
 import Foundation
 

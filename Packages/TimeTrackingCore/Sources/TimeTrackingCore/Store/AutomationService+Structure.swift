@@ -1,4 +1,4 @@
-// The structure listings and writes of the tool (spec_automation.md §3.8, §3.9).
+// The structure listings and writes of the tool (automation.md §3.8, §3.9).
 
 import Foundation
 

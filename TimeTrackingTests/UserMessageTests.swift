@@ -1,5 +1,5 @@
 // What a failed change shows: UserMessage's sentences, never the library's
-// error text (spec_design.md §12).
+// error text (design.md §11).
 
 import Foundation
 import Testing

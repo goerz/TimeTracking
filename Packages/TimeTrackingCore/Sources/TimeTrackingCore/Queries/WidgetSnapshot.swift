@@ -1,5 +1,5 @@
 // WidgetSnapshot: what the Now, Recent, Pinned, and Lock Screen widgets show,
-// and when their timeline ends (spec_ios.md §3). The widget extension's
+// and when their timeline ends (ios.md §3). The widget extension's
 // providers only wrap a snapshot in a WidgetKit entry.
 
 public import Foundation
@@ -75,7 +75,7 @@ public struct WidgetSnapshot: Hashable, Sendable {
     public var todayTimerStart: Date?
     /// This device's Pomodoro.
     public var pomodoro: PomodoroState
-    /// The Mac activity lines (spec_ios.md §2.3).
+    /// The Mac activity lines (ios.md §2.3).
     public var macLines: [String]
     /// Recent distinct (task, project) pairs without the running pair.
     public var recent: [Row]
@@ -120,7 +120,7 @@ public struct WidgetSnapshot: Hashable, Sendable {
     }
 }
 
-/// Which task a pinned button starts with (spec_ios.md §2.9, §3.4).
+/// Which task a pinned button starts with (ios.md §2.9, §3.4).
 public enum PinnedTaskMode: String, Codable, Sendable, CaseIterable {
     /// The project's most recent task.
     case latest

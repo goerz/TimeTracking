@@ -1,5 +1,5 @@
 // PomodoroNotificationText: the phase-end notifications' text
-// (spec_timer.md §10, spec_ios.md §8).
+// (timer.md §10, ios.md §8).
 
 /// The title and body of a Pomodoro notification, the same on both platforms.
 struct PomodoroNotificationText: Equatable {

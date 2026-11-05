@@ -1,6 +1,6 @@
 // What only the real main window shows: its sidebar, the sections,
-// and the frame across launches (spec_projects.md §1,
-// spec_reports.md §8).
+// and the frame across launches (projects.md §1,
+// reports.md §8).
 
 import XCTest
 

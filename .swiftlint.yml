@@ -1,4 +1,4 @@
-# SwiftLint configuration (spec_architecture.md §4.3): all rules on, the
+# SwiftLint configuration (architecture.md §4.3): all rules on, the
 # disabled ones listed with a reason. `make lint` runs `lint --strict`, so
 # every finding fails; the Debug build phase fixes what it can first.
 
@@ -82,5 +82,5 @@ custom_rules:
   no_availability_checks:
     name: No availability checks
     regex: '(#available|#unavailable|@available)\b'
-    message: "Current platforms only: no #available, #unavailable, or @available (spec_architecture.md §4.1)."
+    message: "Current platforms only: no #available, #unavailable, or @available (architecture.md §4.1)."
     severity: error

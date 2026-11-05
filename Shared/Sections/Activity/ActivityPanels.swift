@@ -1,6 +1,6 @@
 // ActivityPanels: the heatmap, bars by day, Contexts, Subjects, In the
 // background, and Away panels in one or two columns
-// (spec_activity.md §1.4 to §1.8).
+// (activity.md §1.4 to §1.8).
 
 import SwiftUI
 import TimeTrackingCore

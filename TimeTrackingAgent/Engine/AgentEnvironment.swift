@@ -1,6 +1,6 @@
 // AgentEnvironment: everything the agent reads from the system, behind
-// protocols so tests use fakes and fixtures (spec_activity_tracking.md §5,
-// spec_architecture.md §3.1).
+// protocols so tests use fakes and fixtures (activity_tracking.md §5,
+// architecture.md §3.1).
 
 // The seams answer nil for "cannot read", which differs from an empty answer.
 // swiftlint:disable discouraged_optional_collection

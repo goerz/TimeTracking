@@ -1,5 +1,5 @@
 // DateArgument and DayRange: the date and range arguments of the tool
-// (spec_automation.md §3.2).
+// (automation.md §3.2).
 
 public import Foundation
 

@@ -1,7 +1,7 @@
 // CollectionModel+Factory: the live collection (App Group staging file,
 // CloudKit upload, DeviceActivity, Family Controls) and the one for tests
 // and UI testing (a temporary folder, an in-memory server, fakes)
-// (spec_ios.md §9; spec_architecture.md §3.3).
+// (ios.md §9; architecture.md §3.3).
 
 import Foundation
 import Synchronization

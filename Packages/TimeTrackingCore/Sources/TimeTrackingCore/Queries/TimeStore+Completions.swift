@@ -1,4 +1,4 @@
-// Task autocompletion of the task field (spec_timer.md §2.2).
+// Task autocompletion of the task field (timer.md §2.2).
 
 import Foundation
 import GRDB

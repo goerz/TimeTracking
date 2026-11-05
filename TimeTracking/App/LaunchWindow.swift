@@ -1,4 +1,4 @@
-// LaunchWindow: the windows the app opens at launch (spec_timer.md §1.3, §8.1).
+// LaunchWindow: the windows the app opens at launch (timer.md §1.3, §8.1).
 
 import Foundation
 

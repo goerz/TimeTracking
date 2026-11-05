@@ -1,5 +1,5 @@
 // One timeline of the user: the Mac, iPhones and iPads, and synced Safari
-// history merged into one stream of blocks (spec_activity_tracking.md §2.8,
+// history merged into one stream of blocks (activity_tracking.md §2.8,
 // TRK-40).
 
 import Foundation

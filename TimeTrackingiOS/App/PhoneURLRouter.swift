@@ -1,5 +1,5 @@
 // PhoneURLRouter: what the iOS app does with a `timetracking://` URL from
-// `onOpenURL` (spec_ios.md §6.4; spec_automation.md §6).
+// `onOpenURL` (ios.md §6.4; automation.md §6).
 
 import Foundation
 import TimeTrackingCore

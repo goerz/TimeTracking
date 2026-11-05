@@ -1,5 +1,5 @@
 // TestSeed: projects seeded into a test store for the hosted view-model
-// tests of both apps (spec_architecture.md §3).
+// tests of both apps (architecture.md §3).
 
 import Foundation
 import TimeTrackingCore

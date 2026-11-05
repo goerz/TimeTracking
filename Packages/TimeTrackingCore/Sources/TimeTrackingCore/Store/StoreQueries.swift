@@ -1,5 +1,5 @@
 // StoreQueries: the lookups shared by the read side (`TimeStore`) and the
-// write side (`StoreTransaction`) of the store (spec_data_and_sync.md §2.1, §7).
+// write side (`StoreTransaction`) of the store (data_and_sync.md §2.1, §7).
 
 import Foundation
 import GRDB

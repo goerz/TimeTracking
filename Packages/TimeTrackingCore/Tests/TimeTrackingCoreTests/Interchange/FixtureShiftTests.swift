@@ -1,4 +1,4 @@
-// The fixture moved to today for `make demo` (spec_architecture.md §2.5, §7 item 23).
+// The fixture moved to today for `make demo` (architecture.md §2.5, §7 item 23).
 
 import Foundation
 import Testing

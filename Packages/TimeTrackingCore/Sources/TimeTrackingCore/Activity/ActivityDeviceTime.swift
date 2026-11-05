@@ -1,5 +1,5 @@
-// ActivityDeviceTime: a device's share of a block (spec_data_and_sync.md §6,
-// spec_activity_tracking.md §2.8, §4.2).
+// ActivityDeviceTime: a device's share of a block (data_and_sync.md §6,
+// activity_tracking.md §2.8, §4.2).
 
 /// The active seconds a block spent on one device.
 ///

@@ -1,5 +1,5 @@
 // Logging: one unified-log subsystem per process, one category per module
-// (spec_architecture.md §4.1).
+// (architecture.md §4.1).
 
 import Foundation
 public import os

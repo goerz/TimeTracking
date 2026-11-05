@@ -1,4 +1,4 @@
-// Fakes for the agent's system seams (spec_architecture.md §3.1: resolvers
+// Fakes for the agent's system seams (architecture.md §3.1: resolvers
 // against fixtures, no TCC grant needed).
 
 // Fakes conform to the agent seams: async and throwing signatures, optional answers.

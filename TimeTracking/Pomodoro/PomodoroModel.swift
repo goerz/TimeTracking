@@ -1,5 +1,5 @@
 // PomodoroModel: the Pomodoro over the running entry, with its notifications
-// (spec_timer.md §5, §10).
+// (timer.md §5, §10).
 
 import Foundation
 import TimeTrackingCore

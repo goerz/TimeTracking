@@ -1,5 +1,5 @@
 // The library side of the tool: ranges, names, refusals, report, check
-// (spec_automation.md §3, §4, §9).
+// (automation.md §3, §4, §9).
 
 import Foundation
 import Testing

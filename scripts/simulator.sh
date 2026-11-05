@@ -1,5 +1,5 @@
 #!/bin/bash
-# The simulators by name, for the Makefile and scripts/demo.sh (spec_architecture.md §2.6).
+# The simulators by name, for the Makefile and scripts/demo.sh (architecture.md §2.6).
 #
 #   scripts/simulator.sh udid <name>       prints the UDID of the available simulator <name>
 #   scripts/simulator.sh show <name>...    shows each simulator in Device Hub

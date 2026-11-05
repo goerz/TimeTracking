@@ -1,5 +1,5 @@
 // Editing the running entry from the Timer: the card's elapsed time, the
-// running row, and its context menu (spec_ios.md §2.2, §2.6, §2.7).
+// running row, and its context menu (ios.md §2.2, §2.6, §2.7).
 
 import XCTest
 

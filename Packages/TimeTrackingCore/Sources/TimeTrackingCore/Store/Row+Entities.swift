@@ -1,4 +1,4 @@
-// Row coding: entities to and from rows of the schema (spec_data_and_sync.md §2.1).
+// Row coding: entities to and from rows of the schema (data_and_sync.md §2.1).
 // Timestamps are Unix seconds except `modified_at` (milliseconds); booleans 0/1.
 
 import Foundation

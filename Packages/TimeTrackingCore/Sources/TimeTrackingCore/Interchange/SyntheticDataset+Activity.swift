@@ -1,5 +1,5 @@
 // SyntheticDataset.activityLog(to:): block-log files that overlap the
-// entries 70 percent of the time, with one time zone change (spec_data_and_sync.md §9.1).
+// entries 70 percent of the time, with one time zone change (data_and_sync.md §9.1).
 
 public import Foundation
 

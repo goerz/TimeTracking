@@ -1,5 +1,5 @@
 // ActivityView: the Activity section's range bar, header, chips, panels,
-// and health footer (spec_activity.md §1).
+// and health footer (activity.md §1).
 
 import SwiftUI
 import TimeTrackingCore

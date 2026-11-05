@@ -1,11 +1,11 @@
-// AreaDot: an area color as a dot or swatch (spec_projects.md §4.4,
-// spec_design.md §7).
+// AreaDot: an area color as a dot or swatch (projects.md §4.4,
+// design.md §7).
 
 import SwiftUI
 import TimeTrackingCore
 
 /// An 8 pt solid circle in the area color, or a hollow one (1 pt secondary
-/// stroke) for "No project" (spec_design.md §7).
+/// stroke) for "No project" (design.md §7).
 struct AreaDot: View {
     var color: String?
     var size: CGFloat = 8

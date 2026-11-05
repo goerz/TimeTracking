@@ -1,4 +1,4 @@
-// importDocument on the store, with dry runs (spec_data_and_sync.md §5.2).
+// importDocument on the store, with dry runs (data_and_sync.md §5.2).
 
 public import Foundation
 import GRDB

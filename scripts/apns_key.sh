@@ -1,6 +1,6 @@
 #!/bin/sh
 # `make apns-key`: stores the team's APNs auth key in the login Keychain
-# (spec_architecture.md §2.4, ARCH-9, ARCH-10).
+# (architecture.md §2.4, ARCH-9, ARCH-10).
 #
 #   scripts/apns_key.sh <P8 file> <KEY_ID or ""> <TEAM> <BUNDLE_ID> <app path> [<keychain>]
 #

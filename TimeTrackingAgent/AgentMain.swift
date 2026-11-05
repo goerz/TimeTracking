@@ -1,5 +1,5 @@
 // AgentMain: the tracker agent's entry point and flags
-// (spec_activity_tracking.md §5, spec_architecture.md §1.4).
+// (activity_tracking.md §5, architecture.md §1.4).
 
 import AppKit
 import os

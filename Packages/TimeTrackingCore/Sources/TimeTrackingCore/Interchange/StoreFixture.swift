@@ -1,4 +1,4 @@
-// StoreFixture: the files `Fixtures/Store/<name>.json` (spec_architecture.md §3.4).
+// StoreFixture: the files `Fixtures/Store/<name>.json` (architecture.md §3.4).
 
 public import Foundation
 

@@ -1,6 +1,6 @@
 #!/bin/sh
 # Verifies Release products after `make build-mac` / `make build-ios`
-# (spec_architecture.md §1.4, §2.2, §2.3, ARCH-4, ARCH-5, ARCH-24). Exits
+# (architecture.md §1.4, §2.2, §2.3, ARCH-4, ARCH-5, ARCH-24). Exits
 # non-zero on any violation and lists them all.
 #
 #   scripts/check_products.sh mac <APP_NAME>.app <BUNDLE_ID> <TEAM>

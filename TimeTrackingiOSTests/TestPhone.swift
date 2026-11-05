@@ -1,5 +1,5 @@
 // TestPhone: a PhoneModel over an in-memory store at a fixed time, with
-// recording services, for the iOS view-model tests (spec_architecture.md §3).
+// recording services, for the iOS view-model tests (architecture.md §3).
 
 import Foundation
 import Testing

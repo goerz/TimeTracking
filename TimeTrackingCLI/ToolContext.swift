@@ -1,5 +1,5 @@
 // ToolContext: opening the store and writing output for one command
-// (spec_automation.md §2, §3.1, §3.3, §3.11).
+// (automation.md §2, §3.1, §3.3, §3.11).
 
 import Darwin
 import Foundation

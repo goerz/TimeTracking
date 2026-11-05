@@ -1,6 +1,6 @@
 // Files the agent reads while their owners write them: another app's SQLite
 // database, settings.toml, and iCloud Drive placeholders
-// (spec_activity_tracking.md §3.2, §3.3, §4.1, §7).
+// (activity_tracking.md §3.2, §3.3, §4.1, §7).
 
 import Foundation
 import Testing

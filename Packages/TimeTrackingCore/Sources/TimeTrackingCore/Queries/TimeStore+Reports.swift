@@ -1,4 +1,4 @@
-// Report aggregation (spec_data_and_sync.md §7.3, §7.5; spec_reports.md §5).
+// Report aggregation (data_and_sync.md §7.3, §7.5; reports.md §5).
 // Each entry counts in the days it lies on, the running one up to the query
 // time, its part on each day as one entry there; grouping uses the project's
 // current area. One scan cuts the entries and sums them per project, task,

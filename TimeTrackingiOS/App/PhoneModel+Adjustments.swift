@@ -1,5 +1,5 @@
 // PhoneModel+Adjustments: the adjustment banner and badges, and the picker
-// sheet with its project dialog (spec_ios.md §2.4, §7 item 3).
+// sheet with its project dialog (ios.md §2.4, §7 item 3).
 
 import Foundation
 import TimeTrackingCore

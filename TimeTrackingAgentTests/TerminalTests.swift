@@ -1,5 +1,5 @@
 // Terminal sources against the recorded fixtures of Fixtures/Agent/
-// (spec_activity_tracking.md §2.2, §3.1).
+// (activity_tracking.md §2.2, §3.1).
 
 import Foundation
 import Testing

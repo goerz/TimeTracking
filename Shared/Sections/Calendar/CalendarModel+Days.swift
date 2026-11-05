@@ -1,5 +1,5 @@
 // CalendarModel+Days: today, the visible columns, and each day's axis and
-// editing rules (spec_calendar.md §1, §2).
+// editing rules (calendar.md §1, §2).
 
 import Foundation
 import TimeTrackingCore

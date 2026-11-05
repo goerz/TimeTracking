@@ -1,5 +1,5 @@
 // ProjectDialogModel: the shared project dialog for creating and editing
-// projects (spec_projects.md §3).
+// projects (projects.md §3).
 
 import Foundation
 import Observation

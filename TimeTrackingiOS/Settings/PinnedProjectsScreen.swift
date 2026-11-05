@@ -1,5 +1,5 @@
 // PinnedProjectsScreen: the ordered pinned list of Settings > Widgets
-// (spec_ios.md §2.9, §3.4): add from the picker, reorder, remove.
+// (ios.md §2.9, §3.4): add from the picker, reorder, remove.
 
 import SwiftUI
 import TimeTrackingCore

@@ -1,5 +1,5 @@
 // TrackerEvent: `tracker-event`, which writes one line to the tracker
-// agent's socket, waits for its answer, and exits (spec_activity_tracking.md
+// agent's socket, waits for its answer, and exits (activity_tracking.md
 // §3.1, §7.3).
 //
 // Links only Foundation. The socket is

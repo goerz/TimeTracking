@@ -1,5 +1,5 @@
 // AppShortcutsUpdater: App Shortcut parameters, Spotlight, and intent
-// donations (spec_ios.md §6.1, §6.2).
+// donations (ios.md §6.1, §6.2).
 
 import AppIntents
 import CoreSpotlight

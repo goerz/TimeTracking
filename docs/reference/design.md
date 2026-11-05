@@ -31,7 +31,7 @@ Every duration that changes while visible, and every column of durations, uses m
 | Reports breakdown, entry list, and bar tooltips | `XhYYmZZs` | `6h 24m 23s` |
 | Projects table totals | `XhYYm`, unbounded hours | `432h 21m` |
 
-Reports tables and tooltips keep seconds because rows must add up to the footer and to the CSV export exactly, and the running row visibly counts up ([spec_reports.md](spec_reports.md) §5.2, §6).
+Reports tables and tooltips keep seconds because rows must add up to the footer and to the CSV export exactly, and the running row visibly counts up ([reports.md](reports.md) §5.2, §6).
 
 Wherever a Pomodoro shows, the elapsed time stays the primary text and the countdown is secondary: on the Pomodoro button in the Timer, or a segment behind the phase glyph in the menu bar and widgets. The running entry's duration is never hidden.
 
@@ -73,7 +73,7 @@ The one exception to SF Symbols is the Pomodoro's apple: SF Symbols has no fruit
 - Saturdays and Sundays in the Calendar have `Color.weekendTint` (the primary color at 3.5%) behind their header and columns; today's accent tint wins.
 - Errors use `Color.errorText` (system red). `ErrorLine` shows the message under a control with the warning symbol, in `.caption` on the Mac and `.footnote` on iOS; a dialog's inline field error is plain text in the same color.
 - Area colors (user-chosen RGB) are data: they fill calendar cards, chart segments, and the area dot. A malformed value shows gray. Text on an area color picks black or white by contrast.
-- The tracker's block cards in the Calendar use `Color.activityBlock` (the secondary label color) for every context, the left border only on hover; context colors appear only in the Activity section (`spec_activity.md` §1.3). Sleep and workout lines are dark blue and dark green.
+- The tracker's block cards in the Calendar use `Color.activityBlock` (the secondary label color) for every context, the left border only on hover; context colors appear only in the Activity section ([activity.md](activity.md) §1.3). Sleep and workout lines are dark blue and dark green.
 - Everything else uses semantic colors and works in light and dark appearance and with Increase Contrast.
 
 ## 7. Components
@@ -82,7 +82,7 @@ The one exception to SF Symbols is the Pomodoro's apple: SF Symbols has no fruit
 |---|---|
 | Start, stop, continue buttons | `CircleButtonStyle`: a filled circle with a white glyph at 40% of the diameter, no halo. Timer bar: 32 pt on the Mac, 44 pt on iOS. List rows: 24 pt on the Mac (shown on hover and selection), 32 pt on iOS. |
 | Discard button | A borderless `xmark` glyph in `.secondary` with the circle's hit area: a rare, destructive action does not get the weight of Stop. |
-| Pomodoro button | A circle the size of the start button with a light fill (`.quaternary` on the Mac, `.fill.tertiary` on iOS), the apple in `.primary` while off (a `.secondary` glyph on the light fill reads as disabled). While on, it widens once to a capsule of the same height and a fixed width that fits `+88:88` (`8:88:88` when a phase lasts an hour or more), holding a small progress ring in the accent color (break: `.secondary`) and the remaining time in `.subheadline.monospacedDigit()`. A pending confirmation keeps that capsule, tinted with the accent color at 18%: the next phase's glyph and its name ("Break", "Focus") in `.subheadline.weight(.semibold)`, tooltip and accessibility label "Start Break (⌘↩)". Neighbors therefore move only when the Pomodoro turns on or off. Click: off, Start Pomodoro; pending, the confirmation; otherwise the menu, which holds every action of `spec_timer.md` §5. |
+| Pomodoro button | A circle the size of the start button with a light fill (`.quaternary` on the Mac, `.fill.tertiary` on iOS), the apple in `.primary` while off (a `.secondary` glyph on the light fill reads as disabled). While on, it widens once to a capsule of the same height and a fixed width that fits `+88:88` (`8:88:88` when a phase lasts an hour or more), holding a small progress ring in the accent color (break: `.secondary`) and the remaining time in `.subheadline.monospacedDigit()`. A pending confirmation keeps that capsule, tinted with the accent color at 18%: the next phase's glyph and its name ("Break", "Focus") in `.subheadline.weight(.semibold)`, tooltip and accessibility label "Start Break (⌘↩)". Neighbors therefore move only when the Pomodoro turns on or off. Click: off, Start Pomodoro; pending, the confirmation; otherwise the menu, which holds every action of [timer.md](timer.md) §5. |
 | Project chip | `.bordered` capsule button, `.small` on the Mac; on iOS a capsule with the Pomodoro button's light fill: area dot, project, " · client" in `.secondary`, the pop-up chevron in `.secondary`. "No project" has a hollow dot. |
 | Area dot | 8 pt circle in the area color; hollow (1 pt `.secondary` stroke) for no project. |
 | Lists | `List` (`.inset` on the Mac, `.insetGrouped` on iOS) with section headers in `.headline`; row padding `small` vertically. |
@@ -101,10 +101,10 @@ Nothing moves or resizes on its own once it is on screen; only the viewer's acti
 
 ## 8. Mac windows
 
-- Mini Timer: hidden title bar whose row holds only the traffic lights and, at the far right, the pin button; the running-entry bar starts below it (`spec_timer.md` §2).
+- Mini Timer: hidden title bar whose row holds only the traffic lights and, at the far right, the pin button; the running-entry bar starts below it ([timer.md](timer.md) §2).
 - Main window: the iPad's adaptable `TabView` (`.sidebarAdaptable`), shown on the Mac as a sidebar of the Timer and the four sections; each section owns the toolbar of §4.
 - Settings: `TabView` panes with a symbol per tab, each a grouped `Form`. The window is 520 pt wide and as tall as the current pane up to 720 pt, beyond which the form scrolls, and can't be resized. A list that can grow without bound is a short scrolling list inside its section. Numbers are a trailing value with a stepper after it; a dependent setting is disabled, not indented.
-- Menu bar item: the dial icon, the elapsed time as text, and during a Pomodoro the segment of §2. A running entry shows in the menu as a header view, never as grayed-out disabled items (`spec_menubar.md` §2.1).
+- Menu bar item: the dial icon, the elapsed time as text, and during a Pomodoro the segment of §2. A running entry shows in the menu as a header view, never as grayed-out disabled items ([menubar.md](menubar.md) §2.1).
 - Menus: items set the symbols of §5 as images and leave `preferredImageVisibility` automatic; macOS 27 hides menu item images by default, so no menu relies on them.
 
 ## 9. App icon and identity
@@ -119,7 +119,7 @@ The accent color is `#2F7FE0` (dark appearance `#6FB2FF`), the blue of the first
 
 The design holds in light and dark appearance, on the Mac at the default and minimum window sizes, on the iPhone at the default and the largest non-accessibility Dynamic Type size, and on the iPad in landscape and in a narrow split view.
 
-## 12. Words
+## 11. Words
 
 User-visible text names what the user sees and gets, never how the code works. Text a user reads never contains a case name, a raw value, a setting key, a file the user did not open, or an error's `errorDescription` from the library, which is written for logs; `UserMessage` turns store errors into sentences, and the log keeps the details.
 

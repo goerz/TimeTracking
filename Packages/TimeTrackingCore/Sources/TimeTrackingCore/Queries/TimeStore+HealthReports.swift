@@ -1,6 +1,6 @@
 // Sleep and workouts in reports: the health periods of a kind the Calendar
 // shows and maps to an area count as the project "Sleep" or "Workouts" of
-// that area (spec_reports.md §1.1, spec_data_and_sync.md §7.3).
+// that area (reports.md §1.1, data_and_sync.md §7.3).
 
 import Foundation
 import GRDB

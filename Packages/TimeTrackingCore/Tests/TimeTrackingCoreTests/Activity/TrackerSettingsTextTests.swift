@@ -1,5 +1,5 @@
 // Tests for TrackerSettingsText: adding an exclusion to settings.toml in
-// place (spec_activity_tracking.md §7.4).
+// place (activity_tracking.md §7.4).
 
 import Foundation
 import Testing

@@ -1,6 +1,6 @@
 // TrackerSnippets: the text the Tracker pane's optional setup rows copy:
 // Neovim's title, the tmux hooks, and the Claude Code hooks
-// (spec_activity_tracking.md §3.1, §7.4).
+// (activity_tracking.md §3.1, §7.4).
 
 /// The snippets of the setup steps. Each event names its hook, and errors
 /// stay silent: the row's mark shows whether events arrive. Every call runs

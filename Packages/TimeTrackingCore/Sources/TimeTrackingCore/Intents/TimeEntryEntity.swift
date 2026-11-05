@@ -1,4 +1,4 @@
-// TimeEntryEntity: a time entry as an intent result (spec_automation.md §5).
+// TimeEntryEntity: a time entry as an intent result (automation.md §5).
 
 public import AppIntents
 public import Foundation

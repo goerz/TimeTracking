@@ -1,4 +1,4 @@
-// Import and export for the tool (spec_automation.md §3.10, §8.2).
+// Import and export for the tool (automation.md §3.10, §8.2).
 
 public import Foundation
 
@@ -23,7 +23,7 @@ extension AutomationService {
         }
     }
 
-    /// The JSON export (`spec_data_and_sync.md` §5.1).
+    /// The JSON export (`data_and_sync.md` §5.1).
     public func exportDocument(includeDeleted: Bool) async throws(AutomationError) -> Data {
         let store = store
         return try await run {

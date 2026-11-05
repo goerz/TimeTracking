@@ -1,5 +1,5 @@
 // AgentRunner: assembles the live agent and runs its tick loop
-// (spec_activity_tracking.md §5).
+// (activity_tracking.md §5).
 
 import AppKit
 import os

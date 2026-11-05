@@ -1,5 +1,5 @@
 #!/bin/sh
-# Refuses personal data in what git would publish (spec_architecture.md §2.5,
+# Refuses personal data in what git would publish (architecture.md §2.5,
 # ARCH-22).
 #
 #   .githooks/check-private tree             tracked files in the work tree

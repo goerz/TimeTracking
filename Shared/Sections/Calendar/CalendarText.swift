@@ -1,5 +1,5 @@
 // CalendarText: times of day and ranges in the Calendar's zone
-// (spec_calendar.md §1.5, §2.3, §3.2, §4.3).
+// (calendar.md §1.5, §2.3, §3.2, §4.3).
 
 import Foundation
 import TimeTrackingCore

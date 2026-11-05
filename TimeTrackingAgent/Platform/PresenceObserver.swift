@@ -1,5 +1,5 @@
 // PresenceObserver: lock, sleep, display, user-switch, and app-activation
-// notifications (spec_activity_tracking.md §2.1, §3.4).
+// notifications (activity_tracking.md §2.1, §3.4).
 
 import AppKit
 

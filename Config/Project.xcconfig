@@ -1,5 +1,5 @@
 // Project.xcconfig: identifiers, signing, and shared build settings
-// (spec_architecture.md §1.5, §2.2, §2.3).
+// (architecture.md §1.5, §2.2, §2.3).
 //
 // This file is the only place for identifiers and signing. No target in
 // TimeTracking.xcodeproj sets PRODUCT_BUNDLE_IDENTIFIER, DEVELOPMENT_TEAM,
@@ -81,7 +81,7 @@ EXECUTABLE_NAME = $(EXECUTABLE_PREFIX)$(TT_EXECUTABLE_NAME_$(TARGET_NAME):defaul
 PRODUCT_MODULE_NAME = $(TARGET_NAME:c99extidentifier)
 
 // App icon (AppResources/AppIcon.icon) and accent color (an AccentColor
-// asset in AppResources, and a copy in TimeTrackingWidgets), spec_design.md §6, §9.
+// asset in AppResources, and a copy in TimeTrackingWidgets), design.md §6, §9.
 TT_APPICON_TimeTracking = AppIcon
 TT_APPICON_TimeTrackingAgent = AppIcon
 TT_APPICON_TimeTrackingiOS = AppIcon

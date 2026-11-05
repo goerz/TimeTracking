@@ -1,5 +1,5 @@
 // StatusItemState: the inputs of the status item and its menu
-// (spec_menubar.md §1, §2).
+// (menubar.md §1, §2).
 
 import Foundation
 import TimeTrackingCore

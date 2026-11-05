@@ -1,11 +1,11 @@
 // TimeTrackingShortcuts: the App Shortcut phrase table both apps use
-// (spec_ios.md §6.2). Every "in" phrase also exists with "with". It lives in
+// (ios.md §6.2). Every "in" phrase also exists with "with". It lives in
 // Shared/ because App Shortcuts are extracted only from an app target, not
 // from the library; the intents it names come from the library.
 //
 // The symbol names are literals because App Shortcuts are extracted at build
 // time; they are SymbolName.start, .stop, .restore, .startTime, .total, and
-// .pomodoroSystem (spec_design.md §5).
+// .pomodoroSystem (design.md §5).
 
 import AppIntents
 import TimeTrackingCore

@@ -1,4 +1,4 @@
-// DemoStore: the seeding step of `make demo` (spec_architecture.md §2.5).
+// DemoStore: the seeding step of `make demo` (architecture.md §2.5).
 // Development only; not linked by any app.
 //
 //   swift run --package-path Packages/TimeTrackingCore DemoStore <fixture> <store.sqlite> [<Activity folder>]

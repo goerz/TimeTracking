@@ -1,5 +1,5 @@
 // The agent's flags `--replay`, `--record`, and `--unregister`
-// (spec_activity_tracking.md §5, spec_architecture.md ARCH-16).
+// (activity_tracking.md §5, architecture.md ARCH-16).
 
 import Foundation
 import Testing
@@ -117,7 +117,7 @@ struct FlagTests {
     private static func fakeHostApp(status: Int32) throws -> (root: URL, agent: URL) {
         let manager = FileManager.default
         let root = try TemporaryFolder.make("host")
-        // The Debug layout: both bundle names contain a space (spec_architecture.md §2.2).
+        // The Debug layout: both bundle names contain a space (architecture.md §2.2).
         let contents = root.appending(path: "Host Debug.app/Contents", directoryHint: .isDirectory)
         let agent = contents.appending(path: "Library/LoginItems/TimeTrackingAgent Debug.app", directoryHint: .isDirectory)
         try manager.createDirectory(at: agent, withIntermediateDirectories: true)

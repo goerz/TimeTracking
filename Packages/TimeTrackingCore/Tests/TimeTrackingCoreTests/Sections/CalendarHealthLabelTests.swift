@@ -1,5 +1,5 @@
 // Tests of the sleep and workout labels in the Calendar's Activity column
-// (spec_calendar.md §3.1, §7).
+// (calendar.md §3.1, §7).
 
 import Foundation
 import Testing

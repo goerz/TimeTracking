@@ -1,6 +1,6 @@
 // The Calendar section's view model: Today, scrolling, deleting, splitting,
 // Delete This Activity, time blocks, calendar access, the settings, the
-// router request, and the key commands (spec_calendar.md §7).
+// router request, and the key commands (calendar.md §7).
 
 import Foundation
 import Testing

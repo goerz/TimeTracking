@@ -1,5 +1,5 @@
 // LocalTimestamp: the offset-free wall-clock times of the activity logs
-// (spec_activity_tracking.md §4.2, §4.4).
+// (activity_tracking.md §4.2, §4.4).
 
 import Foundation
 

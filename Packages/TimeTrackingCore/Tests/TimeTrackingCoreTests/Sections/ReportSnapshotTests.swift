@@ -1,5 +1,5 @@
 // Tiles, chart, breakdown, entry list, filters, and exports of Reports
-// (spec_reports.md §3 to §7).
+// (reports.md §3 to §7).
 
 import Foundation
 import Testing

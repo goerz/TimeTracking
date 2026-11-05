@@ -1,4 +1,4 @@
-// The sound of a notification (spec_timer.md §5.2, §10).
+// The sound of a notification (timer.md §5.2, §10).
 
 import Foundation
 import Testing

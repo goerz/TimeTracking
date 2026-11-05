@@ -1,4 +1,4 @@
-// StoreTransaction: one write transaction of the store (spec_data_and_sync.md §2.2, §7.1).
+// StoreTransaction: one write transaction of the store (data_and_sync.md §2.2, §7.1).
 
 public import Foundation
 import GRDB

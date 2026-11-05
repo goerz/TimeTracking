@@ -1,6 +1,6 @@
 // Tests for the app's side of the activity collection: the flush from the
 // wrapper intents, Screen Time denied, the app's own lines, and the iPad
-// never writing the block log (spec_ios.md §6.1, §9, §10.4).
+// never writing the block log (ios.md §6.1, §9, §10.4).
 
 import Foundation
 import Testing

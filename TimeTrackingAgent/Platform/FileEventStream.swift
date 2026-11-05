@@ -1,5 +1,5 @@
 // FileEventStream: an FSEvents stream on the watched roots
-// (spec_activity_tracking.md §3.4). FSEvents delivers on a dispatch queue,
+// (activity_tracking.md §3.4). FSEvents delivers on a dispatch queue,
 // so this glue file uses the main queue.
 
 import CoreServices

@@ -1,5 +1,5 @@
 // URLEventHandler: receives `timetracking://` URLs as Apple events, so a
-// start, stop, or continue does not bring the app forward (spec_automation.md §6).
+// start, stop, or continue does not bring the app forward (automation.md §6).
 
 import AppKit
 import TimeTrackingCore

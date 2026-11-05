@@ -1,5 +1,5 @@
 // AutomationError: the failures of the scripting surfaces and their exit
-// codes (spec_automation.md §3.11, §5).
+// codes (automation.md §3.11, §5).
 
 import Foundation
 

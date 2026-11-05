@@ -1,6 +1,6 @@
 // Recorder: `--record <folder>` writes adapter outputs and the run's samples
-// as fixtures, anonymized (spec_activity_tracking.md §5,
-// spec_architecture.md §3.4).
+// as fixtures, anonymized (activity_tracking.md §5,
+// architecture.md §3.4).
 
 import Foundation
 import TimeTrackingCore

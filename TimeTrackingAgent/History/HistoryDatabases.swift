@@ -1,5 +1,5 @@
 // HistoryDatabases: Safari's History.db and CloudTabs.db and Chromium's
-// History files, read from copies (spec_activity_tracking.md §3.3, §6.1).
+// History files, read from copies (activity_tracking.md §3.3, §6.1).
 
 // The seams answer nil for "cannot read", which differs from an empty answer.
 // swiftlint:disable discouraged_optional_collection discouraged_optional_boolean

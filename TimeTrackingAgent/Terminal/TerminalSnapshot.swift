@@ -1,5 +1,5 @@
 // TerminalSnapshot: the process table, tmux, and agent sessions read once
-// per tick (spec_activity_tracking.md §2.4 steps 3 and 4, §3.1).
+// per tick (activity_tracking.md §2.4 steps 3 and 4, §3.1).
 
 // nil means "cannot read", which differs from an empty answer.
 // swiftlint:disable discouraged_optional_collection

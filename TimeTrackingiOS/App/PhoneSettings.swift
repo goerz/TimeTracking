@@ -1,5 +1,5 @@
 // PhoneSettings: the iOS app's device settings as observable state
-// (spec_ios.md §2.8, §2.9, §8, §11).
+// (ios.md §2.8, §2.9, §8, §11).
 
 import Foundation
 import Observation
@@ -10,12 +10,12 @@ extension DeviceSettingKey where Value == Bool {
         Self("pomodoro.sounds", default: true)
     }
 
-    /// Whether the device name and first sync are done (spec_ios.md §11).
+    /// Whether the device name and first sync are done (ios.md §11).
     static var onboarded: Self {
         Self("onboarded", default: false)
     }
 
-    /// Whether the Siri tip on the Timer screen was dismissed (spec_ios.md §6.2).
+    /// Whether the Siri tip on the Timer screen was dismissed (ios.md §6.2).
     static var siriTipDismissed: Self {
         Self("siriTipDismissed", default: false)
     }
@@ -42,7 +42,7 @@ extension DeviceSettingKey where Value == String {
 }
 
 extension DeviceSettingKey where Value == [String] {
-    /// Entries badged by an adjustment until their sheet opens (spec_ios.md §7 item 3).
+    /// Entries badged by an adjustment until their sheet opens (ios.md §7 item 3).
     static var badgedEntries: Self {
         Self("badgedEntries", default: [])
     }

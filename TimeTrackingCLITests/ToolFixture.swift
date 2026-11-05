@@ -1,5 +1,5 @@
 // ToolFixture: a synthetic store for the tool tests, built from a JSON
-// export (spec_automation.md §9): "now" is 2026-10-29T10:00:00 in
+// export (automation.md §9): "now" is 2026-10-29T10:00:00 in
 // Europe/Berlin, a Thursday.
 
 import Foundation

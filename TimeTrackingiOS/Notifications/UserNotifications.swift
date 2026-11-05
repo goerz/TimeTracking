@@ -1,5 +1,5 @@
 // UserNotifications: the iOS app's notifications through
-// UNUserNotificationCenter (spec_ios.md §8). Actions run in the background.
+// UNUserNotificationCenter (ios.md §8). Actions run in the background.
 
 import Foundation
 import UserNotifications

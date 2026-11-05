@@ -1,5 +1,5 @@
 // EventKitCalendarStore: the live CalendarEventStore over EventKit (Mac and
-// iPad; the iPhone never creates one) (spec_calendar.md §4).
+// iPad; the iPhone never creates one) (calendar.md §4).
 
 import CoreGraphics
 import EventKit

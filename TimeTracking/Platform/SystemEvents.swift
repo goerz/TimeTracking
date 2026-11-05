@@ -1,6 +1,6 @@
 // SystemEvents: input idle time, sleep, wake, lock, session, and power-off
 // events for idle detection, the tracker warning, the Pomodoro, and
-// reminders (spec_timer.md §5.2, §6.1, §7; spec_menubar.md §3, §5).
+// reminders (timer.md §5.2, §6.1, §7; menubar.md §3, §5).
 
 import AppKit
 import CoreGraphics

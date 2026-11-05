@@ -1,5 +1,5 @@
 // TimeBlockCard: a time block's piece with its gestures and menu
-// (spec_calendar.md §4.2, §4.4).
+// (calendar.md §4.2, §4.4).
 
 import SwiftUI
 import TimeTrackingCore

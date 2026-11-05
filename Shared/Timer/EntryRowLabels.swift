@@ -1,5 +1,5 @@
 // EntryRowLabels: the text of a Timer list row on the Mac and iOS
-// (spec_timer.md §3, spec_design.md §1).
+// (timer.md §3, design.md §1).
 
 import SwiftUI
 import TimeTrackingCore

@@ -1,6 +1,6 @@
 // The first-launch alert's "Open at login" checkbox and the Tracker pane's
-// setup rows in real windows (spec_timer.md §8.2,
-// spec_activity_tracking.md §7.4).
+// setup rows in real windows (timer.md §8.2,
+// activity_tracking.md §7.4).
 
 import XCTest
 

@@ -1,5 +1,5 @@
 // PomodoroDriver: the Pomodoro over the running entry, shared by the Mac and
-// iOS models (spec_timer.md §5, spec_ios.md §2.8).
+// iOS models (timer.md §5, ios.md §2.8).
 
 import Foundation
 import Observation

@@ -1,5 +1,5 @@
 // FilterOptions: the name filter options of entries, report, and export
-// (spec_automation.md §3.6, §3.7).
+// (automation.md §3.6, §3.7).
 
 import ArgumentParser
 import Foundation

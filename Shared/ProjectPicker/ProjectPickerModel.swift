@@ -1,5 +1,5 @@
 // ProjectPickerModel: the shared project picker's state
-// (spec_projects.md §5).
+// (projects.md §5).
 
 import Foundation
 import Observation

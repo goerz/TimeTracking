@@ -1,6 +1,6 @@
 // The sections' per-device view state (the keys keep their former
-// "planner." prefix, so stored state carries over) (spec_projects.md §1.1,
-// spec_reports.md §9).
+// "planner." prefix, so stored state carries over) (projects.md §1.1,
+// reports.md §9).
 
 import Foundation
 import TimeTrackingCore

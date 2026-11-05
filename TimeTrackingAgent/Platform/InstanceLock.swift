@@ -1,4 +1,4 @@
-// InstanceLock: one tracker agent per user (spec_activity_tracking.md §5).
+// InstanceLock: one tracker agent per user (activity_tracking.md §5).
 
 import Foundation
 

@@ -1,5 +1,5 @@
 // The widget snapshot, its timeline end, the resolver, and the Mac activity
-// line (spec_ios.md §2.3, §3, §4).
+// line (ios.md §2.3, §3, §4).
 
 import Foundation
 import Synchronization

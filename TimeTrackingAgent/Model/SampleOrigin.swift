@@ -1,5 +1,5 @@
 // SampleOrigin: where a sample of the user's timeline was observed
-// (spec_activity_tracking.md §2.4).
+// (activity_tracking.md §2.4).
 
 import Foundation
 

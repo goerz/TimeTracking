@@ -1,5 +1,5 @@
 // URLRouter: what the Mac app does with a `timetracking://` URL
-// (spec_automation.md §6). Start, stop, and continue run in the
+// (automation.md §6). Start, stop, and continue run in the
 // background with a banner; nothing destructive.
 
 import Foundation

@@ -1,6 +1,6 @@
 #!/bin/sh
 # Build phase of the Mac app: writes the agent's launchd plist into
-# Contents/Library/LaunchAgents/<APP_ID>.agent.plist (spec_architecture.md §1.4).
+# Contents/Library/LaunchAgents/<APP_ID>.agent.plist (architecture.md §1.4).
 # Runs before the app is signed, so the plist is sealed in the signature.
 set -eu
 

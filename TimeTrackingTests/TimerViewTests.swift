@@ -1,4 +1,4 @@
-// Full and compact mode, restoration, and the list (spec_timer.md §1, §3).
+// Full and compact mode, restoration, and the list (timer.md §1, §3).
 
 import AppKit
 import CoreGraphics

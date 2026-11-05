@@ -1,5 +1,5 @@
 // ClientFormModel: the client sheet's model: name rule, default color, and
-// undoable rename (spec_projects.md §4.2, §4.4).
+// undoable rename (projects.md §4.2, §4.4).
 
 import Foundation
 import Observation

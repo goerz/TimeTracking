@@ -1,5 +1,5 @@
 // TrackerPrivacySettings: the [privacy] table of settings.toml
-// (spec_activity_tracking.md §7.1, §7.2).
+// (activity_tracking.md §7.1, §7.2).
 
 /// `[privacy]`: what the tracker hides or never records.
 public struct TrackerPrivacySettings: Sendable, Hashable, Codable {

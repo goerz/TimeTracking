@@ -1,5 +1,5 @@
 // ProjectsView: the Projects section's toolbar, table, and status row
-// (spec_projects.md §2).
+// (projects.md §2).
 
 import SwiftUI
 import TimeTrackingCore
@@ -175,7 +175,7 @@ private struct ProjectsTableView: View {
 
 /// Leading the period items; trailing Filters (on iOS also Sort, for want
 /// of column headers), then the search field, as in Reports
-/// (spec_design.md §4). New and Group by are in the bar below the table.
+/// (design.md §4). New and Group by are in the bar below the table.
 private struct ProjectsToolbar: ToolbarContent {
     @Bindable var model: ProjectsModel
     @State private var showsFilters = false
@@ -191,7 +191,7 @@ private struct ProjectsToolbar: ToolbarContent {
         }
         .visibilityPriority(.high)
         #if os(iOS)
-            // Without column headers, a menu sorts (spec_ios.md §10).
+            // Without column headers, a menu sorts (ios.md §10).
             ToolbarItem(placement: .primaryAction) {
                 Menu {
                     Picker("Sort By", selection: sortKey) {

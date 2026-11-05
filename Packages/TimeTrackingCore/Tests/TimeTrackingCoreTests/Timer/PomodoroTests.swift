@@ -1,4 +1,4 @@
-// The Pomodoro state machine (spec_timer.md §5.3).
+// The Pomodoro state machine (timer.md §5.3).
 
 import Foundation
 import Testing

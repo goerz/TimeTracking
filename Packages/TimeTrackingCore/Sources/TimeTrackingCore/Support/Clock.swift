@@ -1,4 +1,4 @@
-// Clock: the source of the current instant (spec_architecture.md §3.3).
+// Clock: the source of the current instant (architecture.md §3.3).
 
 public import Foundation
 

@@ -1,4 +1,4 @@
-// Times and zones from text for the tests (spec_architecture.md §3.3, §3.4).
+// Times and zones from text for the tests (architecture.md §3.3, §3.4).
 // A typo in a test date fails the test instead of passing as another instant.
 
 import Foundation

@@ -1,5 +1,5 @@
 // LiveFocusProbe: the frontmost app and its focused window through
-// Accessibility (spec_activity_tracking.md §2.4 step 2; no Screen Recording).
+// Accessibility (activity_tracking.md §2.4 step 2; no Screen Recording).
 
 import AppKit
 import ApplicationServices

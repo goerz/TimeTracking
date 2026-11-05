@@ -1,5 +1,5 @@
 // MidnightSection: the Midnight setting, in the Mac's General pane and the
-// iOS Settings (spec_data_and_sync.md §8).
+// iOS Settings (data_and_sync.md §8).
 
 import SwiftUI
 import TimeTrackingCore

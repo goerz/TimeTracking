@@ -1,5 +1,5 @@
 // The timetracking tool as a subprocess: the description file and check
-// (spec_automation.md §4, §9 items 19 to 23).
+// (automation.md §4, §9 items 19 to 23).
 
 import Foundation
 import Testing

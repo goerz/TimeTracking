@@ -1,5 +1,5 @@
 // Tests of the Apple Health periods: merging, the import, and sync
-// (spec_data_and_sync.md §1.9; §9 items 50 and 51).
+// (data_and_sync.md §1.9; §9 items 50 and 51).
 
 import Foundation
 import Testing

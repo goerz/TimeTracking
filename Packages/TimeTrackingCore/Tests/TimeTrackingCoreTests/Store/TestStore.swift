@@ -1,4 +1,4 @@
-// Helpers for the store tests (spec_data_and_sync.md §9).
+// Helpers for the store tests (data_and_sync.md §9).
 
 import Foundation
 import Testing

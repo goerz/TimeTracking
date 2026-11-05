@@ -1,5 +1,5 @@
 // Timeline: one stream of samples for the user from the Mac, iPhone and
-// iPad, and synced Safari history, cut into blocks (spec_activity_tracking.md
+// iPad, and synced Safari history, cut into blocks (activity_tracking.md
 // §2.4 to §2.7).
 
 import Foundation

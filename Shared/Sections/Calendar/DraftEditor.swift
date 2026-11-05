@@ -1,5 +1,5 @@
 // DraftEditor: the edit popover on a provisional entry
-// (spec_calendar.md §2.3).
+// (calendar.md §2.3).
 
 import SwiftUI
 import TimeTrackingCore

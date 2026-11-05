@@ -1,5 +1,5 @@
 // Blocker+ShortBlocks: holding, merging, and dropping blocks shorter than
-// min_block (spec_activity_tracking.md §2.5).
+// min_block (activity_tracking.md §2.5).
 
 import Foundation
 import TimeTrackingCore

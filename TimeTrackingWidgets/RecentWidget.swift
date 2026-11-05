@@ -1,5 +1,5 @@
 // RecentWidget: the running entry and recent (task, project) pairs with
-// Continue buttons (spec_ios.md §3.3).
+// Continue buttons (ios.md §3.3).
 
 import SwiftUI
 import TimeTrackingCore

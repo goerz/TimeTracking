@@ -1,6 +1,6 @@
 // The iPad's tabs, keyboard commands, calendar access, drawing, and the
-// The sections' iPad wiring on the view models (spec_ios.md §2.3, §6.4, §10;
-// spec_calendar.md §3.3; spec_activity.md §5). The idiom is
+// The sections' iPad wiring on the view models (ios.md §2.3, §6.4, §10;
+// calendar.md §3.3; activity.md §5). The idiom is
 // injected, so these run on the iPhone simulator.
 
 import Foundation

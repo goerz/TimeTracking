@@ -1,5 +1,5 @@
 // The Projects section's own date range and the View commands on it
-// (spec_projects.md §2.4).
+// (projects.md §2.4).
 
 import Foundation
 import Testing

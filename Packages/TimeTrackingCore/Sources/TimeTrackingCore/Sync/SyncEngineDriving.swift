@@ -1,5 +1,5 @@
 // The engine side of SyncCoordinator: CKSyncEngine in the apps, a simulation
-// in tests (spec_data_and_sync.md §3.1).
+// in tests (data_and_sync.md §3.1).
 
 public import Foundation
 

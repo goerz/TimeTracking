@@ -1,4 +1,4 @@
-// ClosedBlock: what the Blocker hands to the logs (spec_activity_tracking.md
+// ClosedBlock: what the Blocker hands to the logs (activity_tracking.md
 // §2.6, §2.7, §4.2, §4.3).
 
 import TimeTrackingCore

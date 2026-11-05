@@ -1,5 +1,5 @@
 // HealthPeriodDraft: a sleep stretch or a workout as the Apple Health import
-// reads it, before it becomes a health period (spec_data_and_sync.md §1.9).
+// reads it, before it becomes a health period (data_and_sync.md §1.9).
 
 public import Foundation
 

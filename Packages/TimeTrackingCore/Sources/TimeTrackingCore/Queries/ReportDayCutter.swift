@@ -1,5 +1,5 @@
 // ReportDayCutter: the parts of stored entries on the days the app shows
-// (spec_data_and_sync.md §8).
+// (data_and_sync.md §8).
 
 import Foundation
 import GRDB

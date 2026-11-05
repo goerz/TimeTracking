@@ -1,4 +1,4 @@
-// PadTabs: the iPad's tab bar (spec_ios.md §10.1): the Timer, then the
+// PadTabs: the iPad's tab bar (ios.md §10.1): the Timer, then the
 // Calendar, Reports, Projects, and Activity sections, as in the
 // Mac's sidebar.
 
@@ -23,7 +23,7 @@ enum PadTab: String, Hashable, CaseIterable {
         }
     }
 
-    /// The tab a section URL selects (spec_ios.md §6.4).
+    /// The tab a section URL selects (ios.md §6.4).
     init(url: TimeTrackingURL) {
         switch url {
         case .calendar: self = .calendar
@@ -70,7 +70,7 @@ struct PadTabsView: View {
     }
 
     /// A section tab's view exists only once the tab has opened, so the
-    /// Calendar asks for calendar access when it first shows (spec_ios.md §11).
+    /// Calendar asks for calendar access when it first shows (ios.md §11).
     @ViewBuilder
     private func content(_ tab: PadTab) -> some View {
         if tab == .timer {

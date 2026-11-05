@@ -1,6 +1,6 @@
 // InMemoryDeviceEventServer: the zone `ActivityEvents` in memory, for tests and
 // UI testing: an uploader for the iOS flush and a DeviceEventSource for the
-// Mac agent (spec_data_and_sync.md §6, spec_architecture.md §3.3).
+// Mac agent (data_and_sync.md §6, architecture.md §3.3).
 
 public import Foundation
 

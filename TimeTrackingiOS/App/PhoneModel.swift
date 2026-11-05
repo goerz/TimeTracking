@@ -1,6 +1,6 @@
 // PhoneModel: the iOS app's state and commands, shared by the Timer screen,
 // Settings, intents, widget buttons, notifications, and the background
-// handlers (spec_ios.md §2, §4, §7, §8).
+// handlers (ios.md §2, §4, §7, §8).
 
 import Foundation
 import Observation
@@ -21,14 +21,14 @@ enum PhoneSheet: Identifiable {
     }
 }
 
-/// The banner of an adjustment after syncing (spec_ios.md §7 item 3).
+/// The banner of an adjustment after syncing (ios.md §7 item 3).
 struct AdjustmentBanner: Equatable {
     var entryID: EntryID
     var explanation: String
 }
 
 /// Owns the store and every model; reacts to store changes with the
-/// fan-out of spec_ios.md §7 item 4.
+/// fan-out of ios.md §7 item 4.
 @Observable
 final class PhoneModel {
     @ObservationIgnored let store: TimeStore
@@ -44,7 +44,7 @@ final class PhoneModel {
     @ObservationIgnored var sync: SyncDriving?
     /// Apple Health on the iPhone; `nil` on the iPad, without HealthKit, and in tests.
     @ObservationIgnored var health: (any HealthAccess)?
-    /// Bounds a wrapper intent's fetch (spec_ios.md §4 item 3); tests replace it.
+    /// Bounds a wrapper intent's fetch (ios.md §4 item 3); tests replace it.
     @ObservationIgnored var boundedFetch: @Sendable (@escaping @Sendable () async -> Void) async -> Void = { fetch in
         await Bounded.run(seconds: WidgetIntentActions.fetchTimeout, fetch)
     }
@@ -145,7 +145,7 @@ final class PhoneModel {
     }
 
     /// Looks every minute and fans out when the shown day has changed
-    /// (spec_ios.md §7 item 5): no store change marks a new day, and the
+    /// (ios.md §7 item 5): no store change marks a new day, and the
     /// running entry's part moves to it.
     private func watchShownDay() async {
         var watcher = ShownDayWatcher(calendar: store.displayCalendar(), now: clock.now)
@@ -167,7 +167,7 @@ final class PhoneModel {
     }
 
     /// The scene came to the foreground (and at launch): the app's own
-    /// `foreground` line and flush (spec_ios.md §9.6, §9.7), then as a wake.
+    /// `foreground` line and flush (ios.md §9.6, §9.7), then as a wake.
     func foreground() async {
         await collection.appMoved(toForeground: true)
         await wake(interactive: true)
@@ -245,7 +245,7 @@ final class PhoneModel {
 
     @ObservationIgnored private var donatedID: EntryID?
 
-    /// The fan-out of spec_ios.md §7 item 4.
+    /// The fan-out of ios.md §7 item 4.
     func fanOut(structureChanged: Bool) async {
         await timer.refresh()
         await list.reload()
@@ -289,7 +289,7 @@ final class PhoneModel {
         outboxCount = await (try? store.outboxCount()) ?? 0
     }
 
-    /// The pill under the card (spec_ios.md §7 item 2): waiting, sending for
+    /// The pill under the card (ios.md §7 item 2): waiting, sending for
     /// over 10 s, or an error, while the outbox holds changes.
     func syncPill(at now: Date) -> String? {
         guard outboxCount > 0 else {

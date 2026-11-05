@@ -1,5 +1,5 @@
 // PhoneModel+Notifications: the Device record, the widget push token, the
-// long-running reminder, and notification actions (spec_ios.md §4 item 1, §8).
+// long-running reminder, and notification actions (ios.md §4 item 1, §8).
 
 import Foundation
 import TimeTrackingCore
@@ -18,7 +18,7 @@ extension PhoneModel {
     }
 
     /// Records the stored widget push token on this device's `Device` record
-    /// (spec_ios.md §4 item 1); repeated, so a lost write repairs itself.
+    /// (ios.md §4 item 1); repeated, so a lost write repairs itself.
     func uploadPushToken() async {
         guard let token = shared.pushToken else {
             return
@@ -66,7 +66,7 @@ extension PhoneModel {
         ))
     }
 
-    /// A notification action or a tap (spec_ios.md §8).
+    /// A notification action or a tap (ios.md §8).
     func handleNotification(_ category: NotificationCategory?, _ action: NotificationAction?, entryID: String?) async {
         await timer.refresh()
         pomodoro.replay(isRunning: timer.isRunning)

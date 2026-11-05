@@ -1,5 +1,5 @@
-// The Mac app's device settings (spec_timer.md §1, §6.2, §7, §8;
-// spec_menubar.md §6).
+// The Mac app's device settings (timer.md §1, §6.2, §7, §8;
+// menubar.md §6).
 
 import Foundation
 import TimeTrackingCore

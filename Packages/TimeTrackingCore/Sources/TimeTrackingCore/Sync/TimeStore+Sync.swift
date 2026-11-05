@@ -1,5 +1,5 @@
 // The store's side of sync: the outbox, applying fetched batches, conflicts
-// (spec_data_and_sync.md §2.2, §3.1, §3.2). Only the app's sync engine calls
+// (data_and_sync.md §2.2, §3.1, §3.2). Only the app's sync engine calls
 // these; the command-line tool only appends outbox rows.
 
 public import Foundation

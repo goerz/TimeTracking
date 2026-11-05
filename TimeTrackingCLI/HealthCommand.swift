@@ -1,5 +1,5 @@
 // health: the sleep and workout periods the iPhone imports from Apple Health
-// (spec_automation.md §3.8).
+// (automation.md §3.8).
 
 import ArgumentParser
 import Foundation

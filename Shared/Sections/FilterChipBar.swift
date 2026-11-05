@@ -1,6 +1,6 @@
 // FilterChipBar: the active filters as removable tokens at the top of the
-// content, with Clear All, in Reports and the Calendar (spec_design.md §4;
-// spec_reports.md §3; spec_calendar.md §1.6).
+// content, with Clear All, in Reports and the Calendar (design.md §4;
+// reports.md §3; calendar.md §1.6).
 
 import SwiftUI
 import TimeTrackingCore

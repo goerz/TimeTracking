@@ -1,5 +1,5 @@
 // ActivityModel+Keyboard: the keyboard focus inside the heatmap and the bars
-// (spec_activity.md §2).
+// (activity.md §2).
 
 import TimeTrackingCore
 

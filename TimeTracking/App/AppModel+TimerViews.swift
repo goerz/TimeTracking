@@ -1,6 +1,6 @@
 // AppModel+TimerViews: the commands of the two Timer views, the Mini
 // Timer's and the main window's, each acting on its own state
-// (spec_timer.md §1, §2.3, §3).
+// (timer.md §1, §2.3, §3).
 
 import Foundation
 import TimeTrackingCore
@@ -26,14 +26,14 @@ extension AppModel {
     }
 
     /// The Mini Timer closed. Its window only hides, with its list as it
-    /// was: it opens again at the top, without the filter (spec_timer.md §1.3).
+    /// was: it opens again at the top, without the filter (timer.md §1.3).
     func miniTimerClosed() async {
         openWindows.closed(.miniTimer)
         miniTimer.list.scrollToTop()
         await miniTimer.list.hideFilter()
     }
 
-    /// The chip's picker in `view`, with task matching (spec_timer.md §2.3).
+    /// The chip's picker in `view`, with task matching (timer.md §2.3).
     func openChipPicker(in view: TimerUIState) {
         view.pickerModel = ProjectPickerModel(store: store, currentProject: timer.chipProjectID, taskMatching: true)
     }
@@ -69,7 +69,7 @@ extension AppModel {
     }
 
     /// The timer label, ⌘E, or the running row: stores the task typed in the
-    /// bar first, so the popover opens on it (spec_timer.md §4).
+    /// bar first, so the popover opens on it (timer.md §4).
     @discardableResult
     func editRunningEntry(in view: TimerUIState) -> Task<Void, Never> {
         Task {

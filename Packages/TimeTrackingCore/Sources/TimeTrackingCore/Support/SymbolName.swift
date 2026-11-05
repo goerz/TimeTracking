@@ -1,5 +1,5 @@
 // SymbolName: the one symbol per concept of the design language, for every
-// target: both apps, the widgets, and the intents (spec_design.md §5).
+// target: both apps, the widgets, and the intents (design.md §5).
 
 /// Symbol names by concept. Views name a concept here instead of writing an
 /// SF Symbol's name, so a concept has one symbol everywhere. `pomodoro` is

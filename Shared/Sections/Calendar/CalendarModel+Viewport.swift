@@ -1,6 +1,6 @@
 // The Calendar's strip of days: the days it shows and their labels,
 // sideways scrolling, the day width, and loading the data around the days
-// in view (spec_calendar.md §1.1, §1.2).
+// in view (calendar.md §1.1, §1.2).
 
 import Foundation
 import TimeTrackingCore

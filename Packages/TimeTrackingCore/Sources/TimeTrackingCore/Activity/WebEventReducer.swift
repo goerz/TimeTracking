@@ -1,5 +1,5 @@
 // WebEventReducer: what the Safari web extension keeps of a URL
-// (spec_ios.md §9.5, spec_activity_tracking.md §7.2).
+// (ios.md §9.5, activity_tracking.md §7.2).
 
 public import Foundation
 

@@ -1,5 +1,5 @@
 // AgentHarness: an engine over fakes, folders in a temporary directory, and
-// a ManualClock at the fixture time (spec_architecture.md §3.3: tests drive
+// a ManualClock at the fixture time (architecture.md §3.3: tests drive
 // the tick, never sleep).
 
 import Foundation

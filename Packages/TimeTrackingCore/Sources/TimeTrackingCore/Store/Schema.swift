@@ -1,4 +1,4 @@
-// Schema: the documented SQLite schema and its migrations (spec_data_and_sync.md §2.1).
+// Schema: the documented SQLite schema and its migrations (data_and_sync.md §2.1).
 
 import Foundation
 import GRDB

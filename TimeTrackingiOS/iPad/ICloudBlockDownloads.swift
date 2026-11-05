@@ -1,7 +1,7 @@
 // ICloudBlockDownloads: asks iCloud Drive for the block log's month files
 // on the iPad, which `FileActivityStore` reads only once downloaded
-// (spec_data_and_sync.md §6; spec_activity.md §5;
-// spec_activity_tracking.md §4.1).
+// (data_and_sync.md §6; activity.md §5;
+// activity_tracking.md §4.1).
 
 import Foundation
 import TimeTrackingCore

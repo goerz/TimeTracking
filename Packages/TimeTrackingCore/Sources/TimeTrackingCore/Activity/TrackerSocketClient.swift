@@ -1,5 +1,5 @@
 // TrackerSocketClient: sending one command to the agent's socket and reading
-// the reply (spec_activity_tracking.md §7.3).
+// the reply (activity_tracking.md §7.3).
 
 public import Foundation
 

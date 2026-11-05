@@ -1,5 +1,5 @@
 // SampleCodec: samples as JSON Lines, for samples.sqlite, `--record`, and
-// `--replay` (spec_activity_tracking.md §4.1, §5; spec_architecture.md §3.4).
+// `--replay` (activity_tracking.md §4.1, §5; architecture.md §3.4).
 
 import Foundation
 import TimeTrackingCore

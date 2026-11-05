@@ -1,6 +1,6 @@
 // HorizontalScrollMonitor: sideways trackpad and mouse scrolling over the
 // Calendar, which SwiftUI's vertical scroll view ignores
-// (spec_calendar.md §1.2).
+// (calendar.md §1.2).
 
 import AppKit
 import SwiftUI

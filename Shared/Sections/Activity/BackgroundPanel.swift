@@ -1,4 +1,4 @@
-// BackgroundPanel: in the background (spec_activity.md §1.7).
+// BackgroundPanel: in the background (activity.md §1.7).
 
 import SwiftUI
 import TimeTrackingCore

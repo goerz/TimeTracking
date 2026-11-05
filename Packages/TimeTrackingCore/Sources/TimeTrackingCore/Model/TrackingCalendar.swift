@@ -1,4 +1,4 @@
-// TrackingCalendar: days, weeks, and pieces in a zone (spec_data_and_sync.md §1.5, §8).
+// TrackingCalendar: days, weeks, and pieces in a zone (data_and_sync.md §1.5, §8).
 
 public import Foundation
 

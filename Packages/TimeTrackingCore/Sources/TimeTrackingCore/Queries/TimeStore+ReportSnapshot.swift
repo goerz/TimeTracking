@@ -1,5 +1,5 @@
 // Building a ReportSnapshot from one scan of the matching entries
-// (spec_reports.md §4, §5, §6; spec_data_and_sync.md §7.3).
+// (reports.md §4, §5, §6; data_and_sync.md §7.3).
 
 import Foundation
 import GRDB
@@ -195,7 +195,7 @@ private struct StepProject {
     var name: String
 }
 
-/// Stack keys, colors, and order of the chart (spec_reports.md §4.4).
+/// Stack keys, colors, and order of the chart (reports.md §4.4).
 struct StackKeyBuilder {
     var kind: StackKind
     var steps: [ProjectID: Int]

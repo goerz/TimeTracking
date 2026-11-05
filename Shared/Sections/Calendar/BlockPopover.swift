@@ -1,5 +1,5 @@
 // BlockPopover: an activity block's range, items, secondaries, and
-// Create Entry… (spec_calendar.md §3.2).
+// Create Entry… (calendar.md §3.2).
 
 import SwiftUI
 import TimeTrackingCore

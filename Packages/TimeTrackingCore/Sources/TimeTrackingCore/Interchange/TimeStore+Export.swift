@@ -1,4 +1,4 @@
-// JSON export, the backup and interchange format (spec_data_and_sync.md §5.1).
+// JSON export, the backup and interchange format (data_and_sync.md §5.1).
 
 public import Foundation
 import GRDB

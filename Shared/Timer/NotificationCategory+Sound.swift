@@ -1,5 +1,5 @@
 // NotificationCategory+Sound: what a notification plays on the Mac and iOS
-// (spec_timer.md §5.2, §10; spec_ios.md §2.8).
+// (timer.md §5.2, §10; ios.md §2.8).
 
 import UserNotifications
 

@@ -1,4 +1,4 @@
-// The iOS Pomodoro and the notifications (spec_ios.md §2.8, §8).
+// The iOS Pomodoro and the notifications (ios.md §2.8, §8).
 
 import Foundation
 import Testing

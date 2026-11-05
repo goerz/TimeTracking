@@ -4,17 +4,17 @@ The Reports section of the main window shows where the time went in a date range
 
 ## 1. Layout
 
-From top to bottom: the filter bar while filters are active, four tiles, the chart card (280 pt high), and a card holding either the breakdown table or the entry list, chosen by a segmented control, which fills the rest. Below 700 pt of content height the tiles collapse into one line and the chart shrinks to 180 pt. The subtitle is the range label ("This week · W44"). The toolbar ([spec_design.md](spec_design.md) §4) has the period arrows and the range menu, then Filters and the search field.
+From top to bottom: the filter bar while filters are active, four tiles, the chart card (280 pt high), and a card holding either the breakdown table or the entry list, chosen by a segmented control, which fills the rest. Below 700 pt of content height the tiles collapse into one line and the chart shrinks to 180 pt. The subtitle is the range label ("This week · W44"). The toolbar ([design.md](design.md) §4) has the period arrows and the range menu, then Filters and the search field.
 
 ### 1.1 Sleep and workouts
 
-With Sleep or Workouts on and an area chosen under "In Reports" in the Calendar settings ([spec_calendar.md](spec_calendar.md) §6), Reports count that kind's health periods ([spec_data_and_sync.md](spec_data_and_sync.md) §1.9) as a project "Sleep" or "Workouts" of that area, without a task: in the tiles, the chart, the breakdown, and the Breakdown CSV, and in the tool's `report` with `--health` ([spec_automation.md](spec_automation.md) §3.7). A period counts on each day it touches with its part of that day, as one entry per day. The project has no record, so the Projects section and the filter tree do not list it: a checked area or client covers it, while a checked project, "No project", and a task filter leave it out; the search finds it by "Sleep" or "Workouts" and by its area and client names. The entry list and the Entries CSV hold only entries, so double-clicking its breakdown row shows an empty list.
+With Sleep or Workouts on and an area chosen under "In Reports" in the Calendar settings ([calendar.md](calendar.md) §6), Reports count that kind's health periods ([data_and_sync.md](data_and_sync.md) §1.9) as a project "Sleep" or "Workouts" of that area, without a task: in the tiles, the chart, the breakdown, and the Breakdown CSV, and in the tool's `report` with `--health` ([automation.md](automation.md) §3.7). A period counts on each day it touches with its part of that day, as one entry per day. The project has no record, so the Projects section and the filter tree do not list it: a checked area or client covers it, while a checked project, "No project", and a task filter leave it out; the search finds it by "Sleep" or "Workouts" and by its area and client names. The entry list and the Entries CSV hold only entries, so double-clicking its breakdown row shows an empty list.
 
 ## 2. Date range
 
 ### 2.1 Days
 
-Days run from Midnight to Midnight ([spec_data_and_sync.md](spec_data_and_sync.md) §8), 00:00 by default, and today is the shown day that contains now. Each entry counts for the days it lies on, the running entry up to now; an entry across the day change counts its part on each day and as one entry on each. The entry list shows those parts as rows with their times, and editing a row edits the stored entry; the first row of an entry in the list anchors the popover. Weeks run Monday to Sunday, numbered per ISO 8601; weeks, months, and years are whole shown days, so with Midnight at 04:00 a week starts on Monday at 04:00.
+Days run from Midnight to Midnight ([data_and_sync.md](data_and_sync.md) §8), 00:00 by default, and today is the shown day that contains now. Each entry counts for the days it lies on, the running entry up to now; an entry across the day change counts its part on each day and as one entry on each. The entry list shows those parts as rows with their times, and editing a row edits the stored entry; the first row of an entry in the list anchors the popover. Weeks run Monday to Sunday, numbered per ISO 8601; weeks, months, and years are whole shown days, so with Midnight at 04:00 a week starts on Monday at 04:00.
 
 ### 2.2 Presets and the date popover
 
@@ -22,7 +22,7 @@ The presets are Today, Yesterday, This week, Last week, This month, Last month, 
 
 This week, This month, and This year include future days: the chart draws them as empty slots, and every per-day figure counts only days up to today.
 
-The range menu's title is the preset's name while the range equals a preset, else the range by kind ("Wed 10/28", "Week 43", "August 2026", "2025", "Oct 5 – 18"). "Choose Dates…" (or ⇧⌘D) opens the date popover: the presets and a two-month calendar ending with the month of the range's last day. A click sets the first day, a second click the last day (swapped if earlier), and the range applies at once. The range is shared with the Activity section ([spec_activity.md](spec_activity.md) adds its 366-day cap), stored per device, default This week.
+The range menu's title is the preset's name while the range equals a preset, else the range by kind ("Wed 10/28", "Week 43", "August 2026", "2025", "Oct 5 – 18"). "Choose Dates…" (or ⇧⌘D) opens the date popover: the presets and a two-month calendar ending with the month of the range's last day. A click sets the first day, a second click the last day (swapped if earlier), and the range applies at once. The range is shared with the Activity section ([activity.md](activity.md) adds its 366-day cap), stored per device, default This week.
 
 ### 2.3 Previous and next period
 
@@ -30,7 +30,7 @@ The arrows shift the range by its own unit and keep its kind: a single day, week
 
 ## 3. Filters
 
-Clients, areas, and projects are checked in the filter tree of [spec_projects.md](spec_projects.md) §2.4, with the areas' projects folded below them; an entry matches when its project, area, or client is checked. "No project" matches entries without a project. "Include archived projects", on by default, excludes archived projects' entries when off and removes them, with their checks, from the tree. A check that leaves the tree (deleted, or archived while excluded) is cleared.
+Clients, areas, and projects are checked in the filter tree of [projects.md](projects.md) §2.4, with the areas' projects folded below them; an entry matches when its project, area, or client is checked. "No project" matches entries without a project. "Include archived projects", on by default, excludes archived projects' entries when off and removes them, with their checks, from the tree. A check that leaves the tree (deleted, or archived while excluded) is cleared.
 
 The Filters button's title counts the active kinds ("Filters (2)"). Each check, "No project", and "Archived excluded" is a removable token in the filter bar, named by its path ("University · Research · Grant"), followed by "Clear All", which resets every kind and turns "Include archived projects" on. The kinds and the search combine with AND and apply to tiles, chart, table, list, and exports.
 
@@ -61,7 +61,7 @@ Granularity is automatic: Day up to 31 days, Week up to 182, Month up to 1,096, 
 | None | Accent color; no legend | |
 | Client | Eight system colors (blue, orange, green, pink, purple, teal, yellow, brown) by alphabetical client order, cycling | Alphabetical |
 | Area | The area's color | Client name, then area order |
-| Project | The area's color at the project's lightness step ([spec_projects.md](spec_projects.md) §4.4) by its position in the area; from the seventh project with a diagonal hatch | Area order, then project name |
+| Project | The area's color at the project's lightness step ([projects.md](projects.md) §4.4) by its position in the area; from the seventh project with a diagonal hatch | Area order, then project name |
 
 "No client", "No area", and "No project" sort last in gray.
 
@@ -97,17 +97,17 @@ Double-click or ↩ on a node switches to the entry list filtered to that node's
 
 ## 6. Entry list
 
-One row per matching entry, with Date ("Thu 10/29"), Start, Stop ("running" for the running entry), Duration to the second (counting up on the running entry), Client, Project ("–" without a project for both), and Task, and a footer "Total 18h 50m 14s · 22 entries". Default sort: start descending; every column sorts, Date by start instant. ↩ or double-click opens the Timer's edit popover anchored to the row ([spec_timer.md](spec_timer.md) §4). The context menu offers "Edit…", "Continue", and "Show in Calendar". There is no delete or bulk action.
+One row per matching entry, with Date ("Thu 10/29"), Start, Stop ("running" for the running entry), Duration to the second (counting up on the running entry), Client, Project ("–" without a project for both), and Task, and a footer "Total 18h 50m 14s · 22 entries". Default sort: start descending; every column sorts, Date by start instant. ↩ or double-click opens the Timer's edit popover anchored to the row ([timer.md](timer.md) §4). The context menu offers "Edit…", "Continue", and "Show in Calendar". There is no delete or bulk action.
 
 ## 7. Export
 
-The lower card's Export button and File › Export… (⇧⌘E) open a save panel for the card shown: the Breakdown CSV has one row per leaf of the fully expanded tree ("Report 2026-10-26 to 2026-11-01.csv"), the Entries CSV one row per listed entry ("Entries 2026-10-26 to 2026-11-01.csv"). Both have the columns and encoding of [spec_automation.md](spec_automation.md) §8.2, so the output is byte-identical to the tool's for the same range, filters, and levels. There is no printing.
+The lower card's Export button and File › Export… (⇧⌘E) open a save panel for the card shown: the Breakdown CSV has one row per leaf of the fully expanded tree ("Report 2026-10-26 to 2026-11-01.csv"), the Entries CSV one row per listed entry ("Entries 2026-10-26 to 2026-11-01.csv"). Both have the columns and encoding of [automation.md](automation.md) §8.2, so the output is byte-identical to the tool's for the same range, filters, and levels. There is no printing.
 
 ⌘C on selected table or list rows copies the visible columns as tab-separated text, tree levels flattened into separate columns.
 
 ## 8. Commands and keyboard
 
-The commands are under the View menu's Report header ([spec_timer.md](spec_timer.md) §9), enabled while Reports is shown in the key main window: Back to Previous Range (⌘[), Filters… (⌥⌘F), Clear Filters (⌥⇧⌘F), Show Breakdown and Show Entries (⌃⌘1, ⌃⌘2, because ⌘1 to ⌘5 switch the sidebar items), Stack By, and Expand All and Collapse All (⇧⌘→, ⇧⌘←). Go to Today (⌘T), Previous and Next Period (⌥⌘← ⌥⌘→), and Date Range… (⇧⌘D) are the View menu's own items, shared with the Calendar and Activity. Edit Entry… and Timer › Continue (⌘O) act on the one selected row of the entry list.
+The commands are under the View menu's Report header ([timer.md](timer.md) §9), enabled while Reports is shown in the key main window: Back to Previous Range (⌘[), Filters… (⌥⌘F), Clear Filters (⌥⇧⌘F), Show Breakdown and Show Entries (⌃⌘1, ⌃⌘2, because ⌘1 to ⌘5 switch the sidebar items), Stack By, and Expand All and Collapse All (⇧⌘→, ⇧⌘←). Go to Today (⌘T), Previous and Next Period (⌥⌘← ⌥⌘→), and Date Range… (⇧⌘D) are the View menu's own items, shared with the Calendar and Activity. Edit Entry… and Timer › Continue (⌘O) act on the one selected row of the entry list.
 
 In the table: → expands, ← collapses, ⌥→ expands the subtree, Space toggles. Each bar is an accessibility element labeled with its tooltip text.
 

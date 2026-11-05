@@ -1,5 +1,5 @@
 // ProjectsModel+Actions: the Projects section's commands and the project
-// dialog's defaults (spec_projects.md §2.5, §3.2).
+// dialog's defaults (projects.md §2.5, §3.2).
 
 import Foundation
 import TimeTrackingCore

@@ -1,5 +1,5 @@
 // LiveStatePublisher: this Mac's activity entry of LiveState, from the
-// tracker's current.json (spec_data_and_sync.md §4.2). Mac app only.
+// tracker's current.json (data_and_sync.md §4.2). Mac app only.
 
 import Foundation
 

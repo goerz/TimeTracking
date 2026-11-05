@@ -1,6 +1,6 @@
 // PhoneIntentBridge: hands the library's App Intents and the widget wrapper
-// intents the iOS app's store, its fan-out, and the Timer (spec_ios.md §6.1;
-// spec_automation.md §5).
+// intents the iOS app's store, its fan-out, and the Timer (ios.md §6.1;
+// automation.md §5).
 
 import AppIntents
 import Foundation
@@ -66,7 +66,7 @@ final class PhoneIntentBridge {
     }
 
     /// A widget or control button: the library operation, an immediate
-    /// send, and the reloads (spec_ios.md §6.1).
+    /// send, and the reloads (ios.md §6.1).
     func perform(_ action: WidgetAction) async throws {
         let service = try await service()
         let model = await awaitModel()

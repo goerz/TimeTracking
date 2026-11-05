@@ -1,5 +1,5 @@
 // AppModel+Onboarding: the first-launch tracker alert and its "Open at
-// login" checkbox (spec_timer.md §8.2).
+// login" checkbox (timer.md §8.2).
 
 import Foundation
 

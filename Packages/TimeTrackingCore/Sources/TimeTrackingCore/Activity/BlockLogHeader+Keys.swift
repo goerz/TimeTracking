@@ -1,5 +1,5 @@
 // BlockLogHeader+Keys: the legend of the line keys in a log file's first
-// header (spec_activity_tracking.md §4.2, §4.3).
+// header (activity_tracking.md §4.2, §4.3).
 
 import Foundation
 

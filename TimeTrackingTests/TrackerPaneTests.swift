@@ -1,5 +1,5 @@
-// The Tracker pane and the agent's registration (spec_activity_tracking.md
-// §7.4, spec_architecture.md §1.4).
+// The Tracker pane and the agent's registration (activity_tracking.md
+// §7.4, architecture.md §1.4).
 
 import Foundation
 import ServiceManagement

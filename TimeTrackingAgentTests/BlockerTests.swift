@@ -1,5 +1,5 @@
 // The Blocker: closing, splitting, and summarizing blocks
-// (spec_activity_tracking.md §2.6, §2.7).
+// (activity_tracking.md §2.6, §2.7).
 
 import Foundation
 import Testing

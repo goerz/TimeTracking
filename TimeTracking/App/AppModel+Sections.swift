@@ -1,5 +1,5 @@
 // The Mac's main window and its wiring of the Calendar and Activity sections
-// (spec_calendar.md §3.4, spec_activity.md §1.10).
+// (calendar.md §3.4, activity.md §1.10).
 
 import Foundation
 import TimeTrackingCore

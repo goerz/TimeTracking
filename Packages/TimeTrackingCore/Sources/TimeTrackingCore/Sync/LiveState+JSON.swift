@@ -1,4 +1,4 @@
-// The JSON fields of the LiveState record (spec_data_and_sync.md §4.1).
+// The JSON fields of the LiveState record (data_and_sync.md §4.1).
 
 import Foundation
 

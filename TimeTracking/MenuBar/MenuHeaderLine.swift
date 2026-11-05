@@ -1,6 +1,6 @@
-// MenuHeaderLine: a header line of the status item's menu (spec_menubar.md §2.1).
+// MenuHeaderLine: a header line of the status item's menu (menubar.md §2.1).
 
-/// A disabled line at the top of the menu (spec_menubar.md §2.1).
+/// A disabled line at the top of the menu (menubar.md §2.1).
 struct MenuHeaderLine: Equatable {
     enum Style: Equatable {
         /// The running task or "Not tracking": the menu font, semibold.

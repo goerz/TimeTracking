@@ -1,5 +1,5 @@
 // UUID version 5 (RFC 9562), used for midnight-split pieces and imported
-// general areas (spec_data_and_sync.md §1.5, §5.2).
+// general areas (data_and_sync.md §1.5, §5.2).
 
 import CryptoKit
 public import Foundation

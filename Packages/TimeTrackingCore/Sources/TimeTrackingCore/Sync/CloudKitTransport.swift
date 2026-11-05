@@ -1,5 +1,5 @@
 // CloudKitTransport: the private database zone `TimeTracking` of
-// `iCloud.<APP_ID>` as a SyncTransport (spec_data_and_sync.md §3.1, §3.3).
+// `iCloud.<APP_ID>` as a SyncTransport (data_and_sync.md §3.1, §3.3).
 
 public import CloudKit
 public import Foundation

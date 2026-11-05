@@ -1,4 +1,4 @@
-// SystemClock: the wall clock (spec_architecture.md §3.3).
+// SystemClock: the wall clock (architecture.md §3.3).
 
 public import Foundation
 

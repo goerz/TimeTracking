@@ -1,6 +1,6 @@
 // CloudKitTransport and the LiveState fetch against the Debug container, in
-// a zone each test creates and deletes (spec_data_and_sync.md §3.3;
-// spec_architecture.md §3.1). Runs only with TIMETRACKING_TEST_SYNC=1
+// a zone each test creates and deletes (data_and_sync.md §3.3;
+// architecture.md §3.1). Runs only with TIMETRACKING_TEST_SYNC=1
 // (`make test-sync`): it needs the signed Debug build and an iCloud account.
 
 import Foundation

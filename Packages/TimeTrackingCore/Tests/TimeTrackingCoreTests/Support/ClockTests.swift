@@ -1,4 +1,4 @@
-// Tests for Clock and ManualClock (spec_architecture.md §3.3).
+// Tests for Clock and ManualClock (architecture.md §3.3).
 
 import Foundation
 import Testing

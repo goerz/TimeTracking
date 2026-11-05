@@ -1,5 +1,5 @@
 // The tool's report and the name filters of entries and report
-// (spec_automation.md §3.6, §3.7).
+// (automation.md §3.6, §3.7).
 
 import Foundation
 

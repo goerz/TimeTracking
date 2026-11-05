@@ -1,5 +1,5 @@
 // The timetracking tool as a subprocess: entries and single-entry commands,
-// read-only access, errors (spec_automation.md §3.6, §3.11, §9 items 7 to 11, 34, 36).
+// read-only access, errors (automation.md §3.6, §3.11, §9 items 7 to 11, 34, 36).
 
 import Foundation
 import Testing

@@ -1,5 +1,5 @@
 // AgentEngine+Events: presence events and socket commands
-// (spec_activity_tracking.md §2.6, §3.1, §3.4, §7.3).
+// (activity_tracking.md §2.6, §3.1, §3.4, §7.3).
 
 import Foundation
 import TimeTrackingCore

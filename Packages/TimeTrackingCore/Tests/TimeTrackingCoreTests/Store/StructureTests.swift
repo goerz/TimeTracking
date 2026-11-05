@@ -1,4 +1,4 @@
-// Clients, areas, projects (spec_data_and_sync.md §1.1 to §1.3, §9 items 1 to 4, 6 to 8, 10, 11).
+// Clients, areas, projects (data_and_sync.md §1.1 to §1.3, §9 items 1 to 4, 6 to 8, 10, 11).
 
 import Foundation
 import Testing

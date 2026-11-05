@@ -1,4 +1,4 @@
-// Client, area, and project writes (spec_data_and_sync.md §1.1 to §1.3, §7.1).
+// Client, area, and project writes (data_and_sync.md §1.1 to §1.3, §7.1).
 
 import Foundation
 import GRDB

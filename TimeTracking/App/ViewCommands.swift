@@ -1,4 +1,4 @@
-// ViewCommands: the View menu (spec_timer.md §9).
+// ViewCommands: the View menu (timer.md §9).
 
 import SwiftUI
 import TimeTrackingCore

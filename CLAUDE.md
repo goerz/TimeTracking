@@ -1,6 +1,6 @@
 # TimeTracking
 
-A personal time tracker for the Mac, iPhone, and iPad. Start with `spec/components.md` (components, vocabulary, cross-cutting rules), then the component spec for the area you work on. This file condenses the conventions of `spec/spec_architecture.md`; the spec wins where they differ.
+A personal time tracker for the Mac, iPhone, and iPad. Start with `docs/reference/components.md` (components, vocabulary, cross-cutting rules), then the component spec for the area you work on. This file condenses the conventions of `docs/reference/architecture.md`; the spec wins where they differ.
 
 ## Layout and what each target holds
 
@@ -13,7 +13,7 @@ One Xcode project (`TimeTracking.xcodeproj`, hand-authored, file-system-synchron
 | `TimeTrackingiOS/` | iOS app: scenes, Timer tab, iPad tabs, background refresh and silent pushes, widget push token upload, URL handler, the iPhone's Apple Health import (`Health/`) |
 | `Shared/` | Views compiled into both apps; platform differences are `#if os(macOS)` around a modifier |
 | `WidgetShared/`, `CollectionShared/` | Code compiled into the iOS app and the widget extension, and into the iOS app and the monitor extension |
-| `AppResources/` | The app icon (`AppIcon.icon`) and the `AccentColor` asset, in the Mac app, the agent, and the iOS app (`spec_design.md` §9) |
+| `AppResources/` | The app icon (`AppIcon.icon`) and the `AccentColor` asset, in the Mac app, the agent, and the iOS app (`design.md` §9) |
 | `TimeTrackingAgent/` | The tracker login item (`LSUIElement`; flags `--record`, `--replay`, `--unregister`) |
 | `TrackerEvent/` | `tracker-event`: one line to the agent's socket; links only Foundation |
 | `TimeTrackingCLI/` | `timetracking`: argument parsing and output only; never touches CloudKit |
@@ -22,11 +22,12 @@ One Xcode project (`TimeTracking.xcodeproj`, hand-authored, file-system-synchron
 | `AppTestSupport/` | Test helpers compiled into both hosted test bundles (`TimeTrackingTests`, `TimeTrackingiOSTests`) |
 | `Config/` | `Project.xcconfig`, `<target>.entitlements`, `<target>-Info.plist` |
 | `Fixtures/` | `Store/<name>.json` (export format), `Activity/`, `Agent/`; synthetic, dates in 2024 |
-| `scripts/` | `check_behaviors.sh`, `test_make.sh`, `check_products.sh`, `install.sh`, `apns_key.sh`, `debug_unregister.sh`, `simulator.sh` (simulator UDID by name, Device Hub), `relaunch_mac_app.sh` (mac-debug's quit and reopen), `common.sh` (shared by the install and unregister scripts), lint helpers |
+| `docs/reference/` | The specs: `components.md` and one file per component |
+| `scripts/` | `check_behaviors.sh`, `check_citations.py`, `test_make.sh`, `check_products.sh`, `install.sh`, `apns_key.sh`, `debug_unregister.sh`, `simulator.sh` (simulator UDID by name, Device Hub), `relaunch_mac_app.sh` (mac-debug's quit and reopen), `common.sh` (shared by the install and unregister scripts), lint helpers |
 
 A view model may hold selection, drafts, sort order, and presentation state and call the library. It may not compute totals, overlaps, or export formats. If a view model test needs a store fixture, the logic belongs in the library.
 
-## Identifiers (spec_architecture.md §1.5)
+## Identifiers (architecture.md §1.5)
 
 Everything derives from `TT_APP_ID`: `<BUNDLE_ID>` in Release, `<BUNDLE_ID>.debug` in Debug, on both platforms. Debug has its own containers, so development never touches real data.
 
@@ -89,7 +90,7 @@ Simulator destinations are UDIDs looked up by name (`scripts/simulator.sh udid "
 | Makefile, scripts, hooks | shell | `scripts/test_make.sh` (`--build`, `--products`, `--sim`, `--install`) | `scripts/test_make.sh` |
 | CloudKit integration | Swift Testing, `.tags(.sync)` | enabled only by `TIMETRACKING_TEST_SYNC=1` | `make test-sync`, never part of `make test` |
 
-Every numbered item in a spec's "Testable behaviors" is backed by a test carrying its identifier (`ARCH`, `DATA`, `TM`, `MB`, `PP`, `PC`, `PR`, `PA`, `TRK`, `IOS`, `AUTO`): in a Swift Testing display name, `@Test("TM-1 releasing below 200 pt collapses to the bar")`; in an XCUITest method name, `testTM1_collapseBelowThreshold()`; in `scripts/test_make.sh`, `behavior "ARCH-2 ..."`. One test may name several. `make check-behaviors` (optionally `ONLY=TM,MB`) fails on a behavior without a test, an identifier no spec defines, or a non-continuous list.
+Every numbered item in a spec's "Testable behaviors" is backed by a test carrying its identifier (`ARCH`, `DATA`, `TM`, `MB`, `PP`, `PC`, `PR`, `PA`, `TRK`, `IOS`, `AUTO`): in a Swift Testing display name, `@Test("TM-1 releasing below 200 pt collapses to the bar")`; in an XCUITest method name, `testTM1_collapseBelowThreshold()`; in `scripts/test_make.sh`, `behavior "ARCH-2 ..."`. One test may name several. `make check-behaviors` (optionally `ONLY=TM,MB`) fails on a behavior without a test, an identifier no spec defines, or a non-continuous list. Comments cite a spec by its file name in `docs/reference/` (`timer.md §2.1`); `make check-citations` fails on a section that does not exist.
 
 Rules: `make test` needs no network and no permission grant; it uses the in-memory store and transport only. UI tests find controls by accessibility identifier (`timer.startButton`), never by visible text, and launch with `-UITesting YES` (in-memory store and transport, a fake agent service, `-Fixture <name>`, no animations), which may not change what a control does. Only the ARCH-8 UI tests add `-RealAgent YES` to register the real Debug agent, and they unregister it again. Tests never sleep: use `ManualClock`, drive the agent's tick, fix `TIMETRACKING_NOW`. The test clock is `ManualClock.fixture()`, 2024-03-14T10:00:00 local time. A test over 10 seconds is tagged `.slow`.
 

@@ -1,4 +1,4 @@
-// Value types returned by the reading queries (spec_data_and_sync.md §7.2).
+// Value types returned by the reading queries (data_and_sync.md §7.2).
 
 public import Foundation
 

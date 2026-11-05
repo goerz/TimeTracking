@@ -1,6 +1,6 @@
 // PadCommands: the iPad's menu bar, also shown in the ⌘-hold overlay
-// (spec_ios.md §10.3): the Mac's object menus, built from the same shared
-// items (spec_timer.md §9). The tabs are the Mac's sidebar items.
+// (ios.md §10.3): the Mac's object menus, built from the same shared
+// items (timer.md §9). The tabs are the Mac's sidebar items.
 
 import SwiftUI
 import TimeTrackingCore

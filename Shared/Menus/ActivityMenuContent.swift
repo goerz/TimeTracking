@@ -1,12 +1,12 @@
 // ActivityMenuContent: the Activity menu's items, on the Mac and the iPad
-// (spec_activity.md §2, §5).
+// (activity.md §2, §5).
 
 import SwiftUI
 import TimeTrackingCore
 
 /// The Activity menu; its range commands are View › Go to Today, Previous
 /// Period, Next Period, and Date Range…. The iPad has no subject drill-down
-/// and no exclusion shortcut (spec_activity.md §5).
+/// and no exclusion shortcut (activity.md §5).
 struct ActivityMenuContent: View {
     var model: ActivityModel
     var enabled: Bool

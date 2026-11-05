@@ -1,6 +1,6 @@
 // HealthImportStatus: the iPhone's last import from Apple Health, a synced
-// setting the Calendar settings report on (spec_data_and_sync.md §1.9,
-// spec_calendar.md §6).
+// setting the Calendar settings report on (data_and_sync.md §1.9,
+// calendar.md §6).
 
 public import Foundation
 

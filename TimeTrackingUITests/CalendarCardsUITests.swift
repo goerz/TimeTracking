@@ -1,5 +1,5 @@
 // Clicking, dragging, and resizing the Calendar's cards in the real main
-// window (spec_calendar.md §2.4, §2.5, §4.2, §4.4). A drag cannot be held
+// window (calendar.md §2.4, §2.5, §4.2, §4.4). A drag cannot be held
 // open from a test, so its time label and Escape are the view model tests'
 // (PC-38).
 

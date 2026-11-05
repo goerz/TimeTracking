@@ -1,5 +1,5 @@
 // EventCard: a time block or external event piece; the external event's
-// hover button, gestures, and menu (spec_calendar.md §4.3, §4.4).
+// hover button, gestures, and menu (calendar.md §4.3, §4.4).
 
 import SwiftUI
 import TimeTrackingCore

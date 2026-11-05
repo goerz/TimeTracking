@@ -1,5 +1,5 @@
 // ActivityLogs: where the agent writes the block log, the detail log, and
-// current.json (spec_activity_tracking.md §4.1 to §4.4, §7.3).
+// current.json (activity_tracking.md §4.1 to §4.4, §7.3).
 
 import Foundation
 import TimeTrackingCore

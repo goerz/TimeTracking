@@ -1,5 +1,5 @@
 // The Mac app's URL scheme and the store path it opens
-// (spec_automation.md §6, §9 item 38; spec_architecture.md ARCH-19).
+// (automation.md §6, §9 item 38; architecture.md ARCH-19).
 
 import Foundation
 import Testing

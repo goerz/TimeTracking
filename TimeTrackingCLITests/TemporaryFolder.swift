@@ -1,5 +1,5 @@
 // TemporaryFolder: a fresh folder for one test, removed with its contents
-// when the last reference to it goes away (spec_architecture.md §3).
+// when the last reference to it goes away (architecture.md §3).
 
 import Foundation
 

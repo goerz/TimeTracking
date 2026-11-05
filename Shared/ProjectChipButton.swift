@@ -1,5 +1,5 @@
 // ProjectChipButton: the project chip of the Timer bar, the iOS Timer card,
-// and the entry editor (spec_design.md §7).
+// and the entry editor (design.md §7).
 
 import SwiftUI
 import TimeTrackingCore

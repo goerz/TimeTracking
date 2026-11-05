@@ -1,5 +1,5 @@
 // Bounded: runs work for at most a number of seconds without waiting for it
-// to notice cancellation (spec_ios.md §4 item 3, §7 item 1).
+// to notice cancellation (ios.md §4 item 3, §7 item 1).
 
 import Foundation
 import Synchronization

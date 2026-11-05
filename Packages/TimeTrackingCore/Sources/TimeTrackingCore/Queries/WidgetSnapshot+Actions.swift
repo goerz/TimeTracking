@@ -1,6 +1,6 @@
 // WidgetSnapshot+Actions: what the widgets' buttons do, the live elapsed
 // time every family shows, and the Control Center toggle's value
-// (spec_ios.md §3.4, §3.5, §5). The widget views only map these onto
+// (ios.md §3.4, §3.5, §5). The widget views only map these onto
 // WidgetKit.
 
 public import Foundation

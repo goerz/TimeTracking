@@ -1,5 +1,5 @@
 // ClientAreaContextMenu: the context menu of a client or area row in the
-// projects table (spec_projects.md §4.2, §4.3).
+// projects table (projects.md §4.2, §4.3).
 
 import SwiftUI
 import TimeTrackingCore

@@ -4,7 +4,7 @@ The Timer is the Mac app's everyday surface: the running entry on top, recent en
 
 ## 1. Windows
 
-The main window (`<APP_NAME>`, default 1100 × 760 pt) holds every view, as on the iPad, so the main menu is the same everywhere. Its sidebar is the iPad's adaptable tab view ([spec_ios.md](spec_ios.md) §10.1): the Timer, then the four sections ([spec_projects.md](spec_projects.md) §1). It opens on the Timer. Above 900 pt of width the Timer item puts the running-entry bar (§2) in a column 40% wide (400 to 480 pt) beside the list (§3), otherwise above it; its minimum is 400 × 300 pt.
+The main window (`<APP_NAME>`, default 1100 × 760 pt) holds every view, as on the iPad, so the main menu is the same everywhere. Its sidebar is the iPad's adaptable tab view ([ios.md](ios.md) §10.1): the Timer, then the four sections ([projects.md](projects.md) §1). It opens on the Timer. Above 900 pt of width the Timer item puts the running-entry bar (§2) in a column 40% wide (400 to 480 pt) beside the list (§3), otherwise above it; its minimum is 400 × 300 pt.
 
 The Mini Timer is a small second window for keeping the Timer beside other apps, like Music's MiniPlayer. Its title-bar row holds the traffic lights and the pin (1.2) and drags the window. Sections 1.1 to 1.3 are the Mini Timer's; the bar, list, and popover are the same in both places.
 
@@ -30,9 +30,9 @@ The Dock tile, the menus, the show/hide shortcut, notifications, and URLs open t
 
 ## 2. The running-entry bar
 
-From left: the Pomodoro button (5.1); the task field (placeholder "What are you working on?"); the timer label (`h:mm:ss`, `0:00:00` when idle); the start button, which becomes the stop button while an entry runs; and, only while running, the discard button. Below them is the project chip ("No project" with a hollow dot). Their look is in `spec_design.md` §7.
+From left: the Pomodoro button (5.1); the task field (placeholder "What are you working on?"); the timer label (`h:mm:ss`, `0:00:00` when idle); the start button, which becomes the stop button while an entry runs; and, only while running, the discard button. Below them is the project chip ("No project" with a hollow dot). Their look is in [design.md](design.md) §7.
 
-The timer label always shows the elapsed time, also during a Pomodoro, and counts from the running entry's start (`spec_data_and_sync.md` 1.5), so it does not reset at midnight. Day totals count each day's part instead (3).
+The timer label always shows the elapsed time, also during a Pomodoro, and counts from the running entry's start ([data_and_sync.md](data_and_sync.md) 1.5), so it does not reset at midnight. Day totals count each day's part instead (3).
 
 ### 2.1 Start, stop, continue, discard
 
@@ -56,11 +56,11 @@ An `@` at the start of the field or after a space opens the picker (2.3) while f
 
 ### 2.3 Project chip, picker, and quick creation
 
-Clicking the chip, ⌘J, Space on the chip (Tab reaches it from the task field), or `@` opens the shared project picker (`spec_projects.md` §5) with task matching on. A choice sets the running entry's project at once, or the draft's. "Create Project" opens the project dialog (`spec_projects.md` §3) as a sheet; Create assigns the new project the same way.
+Clicking the chip, ⌘J, Space on the chip (Tab reaches it from the task field), or `@` opens the shared project picker ([projects.md](projects.md) §5) with task matching on. A choice sets the running entry's project at once, or the draft's. "Create Project" opens the project dialog ([projects.md](projects.md) §3) as a sheet; Create assigns the new project the same way.
 
 ## 3. The list
 
-Entries are grouped by the days of the Midnight setting (`spec_data_and_sync.md` §8). An entry across the day change has a row on each of its days with that part's times, and its editor opens the stored entry. Headers read "Today", "Yesterday", then "EEE, MMM d" ("Tue, Oct 27"), with the year for other years, and show the day total `h:mm:ss`. Each entry is its own row, and empty days are omitted. The list loads the 14 most recent days with entries; "Load Earlier Entries" appends 14 more.
+Entries are grouped by the days of the Midnight setting ([data_and_sync.md](data_and_sync.md) §8). An entry across the day change has a row on each of its days with that part's times, and its editor opens the stored entry. Headers read "Today", "Yesterday", then "EEE, MMM d" ("Tue, Oct 27"), with the year for other years, and show the day total `h:mm:ss`. Each entry is its own row, and empty days are omitted. The list loads the 14 most recent days with entries; "Load Earlier Entries" appends 14 more.
 
 The running entry is the first row of its day, with its live duration in the accent color and no continue button; it is not selectable, and a click opens its edit popover. It counts toward today's total, which ticks every second; a filter it does not match hides its row and its seconds.
 
@@ -90,13 +90,13 @@ For the running entry, Stop shows "running", Duration shows the live time, and S
 
 ### 4.3 Entries across midnight
 
-An entry can span any number of dates and is stored whole (`spec_data_and_sync.md` 1.5), so a commit that makes it cross midnight changes that entry alone. Every field and Delete act on the whole entry, from any of its rows.
+An entry can span any number of dates and is stored whole ([data_and_sync.md](data_and_sync.md) 1.5), so a commit that makes it cross midnight changes that entry alone. Every field and Delete act on the whole entry, from any of its rows.
 
 The Timer creates entries only by starting them; past intervals are created in the Calendar.
 
 ## 5. Pomodoro
 
-The Pomodoro lays focus and break phases over the running entry and notifies at phase ends. It never starts, stops, or splits entries; idle detection handles real absence. On the Mac its state is in memory, so quitting ends it; iOS runs the same state machine with persisted state (`spec_ios.md` §2.8). The state is device-local on both.
+The Pomodoro lays focus and break phases over the running entry and notifies at phase ends. It never starts, stops, or splits entries; idle detection handles real absence. On the Mac its state is in memory, so quitting ends it; iOS runs the same state machine with persisted state ([ios.md](ios.md) §2.8). The state is device-local on both.
 
 ### 5.1 Controls and display
 
@@ -142,7 +142,7 @@ The Pomodoro belongs to the person, not the entry. A new or continued entry from
 
 ### 6.1 Signal
 
-Every 10 s the app reads the seconds since the last input event, and it records sleep, wake, power-off, session switches, and screen lock and unlock. While the tracker is running (`spec_activity_tracking.md` §4.4), its `presence` adds to this: `passive` (a video, a call) suppresses the prompt while it lasts, and `locked`, `asleep`, and `other_user` supply their exact `since`. The idle start is the earliest of now minus the idle seconds and the time of a lock, sleep, or user switch within the current absence.
+Every 10 s the app reads the seconds since the last input event, and it records sleep, wake, power-off, session switches, and screen lock and unlock. While the tracker is running ([activity_tracking.md](activity_tracking.md) §4.4), its `presence` adds to this: `passive` (a video, a call) suppresses the prompt while it lasts, and `locked`, `asleep`, and `other_user` supply their exact `since`. The idle start is the earliest of now minus the idle seconds and the time of a lock, sleep, or user switch within the current absence.
 
 ### 6.2 Settings (Settings > Idle, device)
 
@@ -176,19 +176,19 @@ A start, on any device, removes a delivered reminder; its Start New and Continue
 
 ## 8. Settings window
 
-Settings… (⌘,) has seven toolbar panes: General, Pomodoro, Idle, Reminders, Calendar, Shortcuts, Tracker. It reopens on the last pane shown, and changes apply immediately. As the macOS HIG describes, the window has the size of the current pane: 520 pt wide and as tall as its content, up to 720 pt, beyond which it scrolls; it can't be resized. A dependent setting is disabled, not indented, while the setting it depends on is off (`spec_design.md` §8).
+Settings… (⌘,) has seven toolbar panes: General, Pomodoro, Idle, Reminders, Calendar, Shortcuts, Tracker. It reopens on the last pane shown, and changes apply immediately. As the macOS HIG describes, the window has the size of the current pane: 520 pt wide and as tall as its content, up to 720 pt, beyond which it scrolls; it can't be resized. A dependent setting is disabled, not indented, while the setting it depends on is off ([design.md](design.md) §8).
 
 ### 8.1 General
 
-The pane holds "Open at login" (off; the first-launch sheet proposes it), "At launch, show" (Main window or Mini Timer; default Main window, 1.3), the synced Midnight setting (00:00 to 23:00, default 00:00; `spec_data_and_sync.md` §8), and the section "Menu bar and Dock" (`spec_menubar.md` §6).
+The pane holds "Open at login" (off; the first-launch sheet proposes it), "At launch, show" (Main window or Mini Timer; default Main window, 1.3), the synced Midnight setting (00:00 to 23:00, default 00:00; [data_and_sync.md](data_and_sync.md) §8), and the section "Menu bar and Dock" ([menubar.md](menubar.md) §6).
 
-The section "iCloud" shows the status lines "Sync" and "Widget updates" (`spec_data_and_sync.md` §3.1, §4.3). An info button on the latter explains the widget pushes and how to install the APNs key (`make apns-key P8=…`).
+The section "iCloud" shows the status lines "Sync" and "Widget updates" ([data_and_sync.md](data_and_sync.md) §3.1, §4.3). An info button on the latter explains the widget pushes and how to install the APNs key (`make apns-key P8=…`).
 
-Without notification authorization, a last section shows "Notifications are off for this app." and a button to the app's Notifications settings. The Calendar pane holds the settings of [spec_calendar.md](spec_calendar.md) §6, the same as on the iPad.
+Without notification authorization, a last section shows "Notifications are off for this app." and a button to the app's Notifications settings. The Calendar pane holds the settings of [calendar.md](calendar.md) §6, the same as on the iPad.
 
 ### 8.2 Tracker
 
-The pane is specified in `spec_activity_tracking.md` §7.4. The tracker is registered only from its "Enable Tracker" button.
+The pane is specified in [activity_tracking.md](activity_tracking.md) §7.4. The tracker is registered only from its "Enable Tracker" button.
 
 At the first launch on a Mac, a sheet on the main window asks "Set up activity tracking?" with the text "The tracker records which apps, sites, and terminal sessions you work in, for Activity and the Calendar. It needs a few permissions.", the buttons "Open Tracker Settings" (opens this pane) and "Later", and the checkbox "Open `<APP_NAME>` at login", on by default. Either button sets the device setting `trackerOnboardingPrompted`, so the sheet appears once per Mac, and, with the checkbox on, turns on "Open at login". Under `-UITesting` the app never registers its real login item.
 
@@ -203,15 +203,15 @@ The two global shortcuts are stored per device; a shortcut already in use is rep
 | Show the Mini Timer when an entry starts | off | After a start from the global shortcut, the menu bar, a notification's action, an intent, or another device, shows the Mini Timer with the task field focused |
 | Show the Mini Timer when an entry stops | off | The same after a stop from those sources |
 
-Those are the only sources. A start or stop through the commands of a Timer, the main menu, the Calendar, Projects, or Reports shows nothing, and neither does one from a URL ([spec_automation.md](spec_automation.md) §6) or the tool, idle detection, deleting the running entry, or midnight, which is no start. Window › Mini Timer and the menu bar's "Show Mini Timer" display the show/hide shortcut (none when unassigned); choosing either only shows the Mini Timer.
+Those are the only sources. A start or stop through the commands of a Timer, the main menu, the Calendar, Projects, or Reports shows nothing, and neither does one from a URL ([automation.md](automation.md) §6) or the tool, idle detection, deleting the running entry, or midnight, which is no start. Window › Mini Timer and the menu bar's "Show Mini Timer" display the show/hide shortcut (none when unassigned); choosing either only shows the Mini Timer.
 
 ## 9. Menus and keyboard
 
-The main menu is the same in every window, on the Mac and, with the differences of [spec_ios.md](spec_ios.md) §10.3, on the iPad; the section specs list their sections' commands. As in Music or Mail, these are object menus: File, Edit, View, Timer, Entry, Project, and Window, with Entry and Project acting on what is selected in the view shown.
+The main menu is the same in every window, on the Mac and, with the differences of [ios.md](ios.md) §10.3, on the iPad; the section specs list their sections' commands. As in Music or Mail, these are object menus: File, Edit, View, Timer, Entry, Project, and Window, with Entry and Project acting on what is selected in the view shown.
 
 Every item is always listed; one that applies to a single view is disabled elsewhere, and holds its key equivalent only while enabled, because AppKit sends a key equivalent to the first item that has it, even a disabled one. So one key can serve several views (⌘⌫ deletes a Timer row and a project), and a disabled item never takes a key from a text field. A command several views share is one item acting on the view shown: Find, Continue, Edit Entry…, Delete, Go to Today, Previous and Next Period, and Date Range…. Keys a view handles itself (arrows, Tab, Escape) are not menu items.
 
-File holds New Project…, New Area…, and New Client… ([spec_projects.md](spec_projects.md) §2.5) and Reports' Export…. View holds the sidebar's items, the sidebar toggle, the shown range's navigation, then each view's display options under its own header (Timer, Calendar, Report, Activity), then the Mini Timer's. Undo covers delete, discard, and popover edits. The Project menu is specified in [spec_projects.md](spec_projects.md) §2.5, the Calendar's Entry commands in [spec_calendar.md](spec_calendar.md) §5.
+File holds New Project…, New Area…, and New Client… ([projects.md](projects.md) §2.5) and Reports' Export…. View holds the sidebar's items, the sidebar toggle, the shown range's navigation, then each view's display options under its own header (Timer, Calendar, Report, Activity), then the Mini Timer's. Undo covers delete, discard, and popover edits. The Project menu is specified in [projects.md](projects.md) §2.5, the Calendar's Entry commands in [calendar.md](calendar.md) §5.
 
 | Menu | Command | Shortcut | Enabled |
 |---|---|---|---|
@@ -242,7 +242,7 @@ The Mac app requests authorization at the first start of an entry. Without it, t
 | `idle` | "You have been away" / "Idle since 14:02 while tracking Clarify noise model." | Keep, Discard, Discard and Continue, Split |
 | `reminder` | "Nothing is being tracked" / "Last entry stopped at 13:40." | Start New, Continue Latest, Snooze |
 
-The two Pomodoro categories use bundled sounds with "Play a sound" on and are silent with it off; all others use the default sound. Clicking a notification shows the Mini Timer (with the idle prompt for `idle`). Pending Pomodoro and idle notifications are removed when their state resolves elsewhere. A URL's banner is the category `tracking` ([spec_automation.md](spec_automation.md) §6).
+The two Pomodoro categories use bundled sounds with "Play a sound" on and are silent with it off; all others use the default sound. Clicking a notification shows the Mini Timer (with the idle prompt for `idle`). Pending Pomodoro and idle notifications are removed when their state resolves elsewhere. A URL's banner is the category `tracking` ([automation.md](automation.md) §6).
 
 ## 11. Testable behaviors
 

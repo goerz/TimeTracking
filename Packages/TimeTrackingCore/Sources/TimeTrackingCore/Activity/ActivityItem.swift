@@ -1,5 +1,5 @@
-// ActivityItem: one line of a block summary (spec_data_and_sync.md §6,
-// spec_activity_tracking.md §2.2, §4.2).
+// ActivityItem: one line of a block summary (data_and_sync.md §6,
+// activity_tracking.md §2.2, §4.2).
 
 /// An item of a block: context, subject, and detail with the seconds spent
 /// and the device they were spent on.

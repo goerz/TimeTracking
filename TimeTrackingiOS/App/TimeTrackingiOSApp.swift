@@ -1,4 +1,4 @@
-// TimeTrackingiOSApp: the iPhone and iPad app's entry point (spec_ios.md
+// TimeTrackingiOSApp: the iPhone and iPad app's entry point (ios.md
 // §1, §2, §6.4, §7, §10, §11).
 
 import AppIntents

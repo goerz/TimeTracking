@@ -1,5 +1,5 @@
 // AgentEngine+Detail: the detail-log record of a closed block
-// (spec_activity_tracking.md §3.2, §3.3, §3.4, §4.3).
+// (activity_tracking.md §3.2, §3.3, §3.4, §4.3).
 
 import Foundation
 import TimeTrackingCore

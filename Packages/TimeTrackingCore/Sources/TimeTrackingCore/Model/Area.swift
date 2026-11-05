@@ -1,4 +1,4 @@
-// Area: a line of work inside one client, carrying the color (spec_data_and_sync.md §1.2).
+// Area: a line of work inside one client, carrying the color (data_and_sync.md §1.2).
 
 public import Foundation
 

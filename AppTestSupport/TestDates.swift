@@ -1,5 +1,5 @@
 // TestDates: local times for the hosted view-model tests of both apps
-// (spec_architecture.md §3).
+// (architecture.md §3).
 
 import Foundation
 import Testing

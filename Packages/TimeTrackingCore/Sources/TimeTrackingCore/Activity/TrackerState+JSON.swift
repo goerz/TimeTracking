@@ -1,4 +1,4 @@
-// TrackerState+JSON: reading and writing current.json (spec_activity_tracking.md §4.4).
+// TrackerState+JSON: reading and writing current.json (activity_tracking.md §4.4).
 
 public import Foundation
 

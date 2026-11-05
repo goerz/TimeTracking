@@ -1,5 +1,5 @@
 // AgentEngine+Maintenance: retention, the Knowledge backfill, and synced
-// Safari history (spec_activity_tracking.md §3.2, §4.1, §6.1, §6.2).
+// Safari history (activity_tracking.md §3.2, §4.1, §6.1, §6.2).
 
 import Foundation
 import os

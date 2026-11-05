@@ -1,10 +1,10 @@
 // CollectionFlushing: the activity collection flush the iOS app model
-// drives, with a recording stand-in for tests (spec_ios.md §9.6, §9.7).
+// drives, with a recording stand-in for tests (ios.md §9.6, §9.7).
 
 import Foundation
 
 /// The flush of the activity collection file and the app's own lines
-/// (spec_ios.md §9.6, §9.7); `CollectionModel` is the real one.
+/// (ios.md §9.6, §9.7); `CollectionModel` is the real one.
 @MainActor
 protocol CollectionFlushing: AnyObject, Sendable {
     /// Flushes when the last flush is more than 5 minutes old (wrapper

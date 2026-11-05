@@ -1,4 +1,4 @@
-// Launching under -UITesting (spec_architecture.md §2.5, §3.3).
+// Launching under -UITesting (architecture.md §2.5, §3.3).
 
 import Foundation
 import Testing

@@ -1,4 +1,4 @@
-// TrackingDay: a calendar date without a zone (spec_data_and_sync.md §8).
+// TrackingDay: a calendar date without a zone (data_and_sync.md §8).
 
 import Foundation
 
@@ -64,7 +64,7 @@ public struct TrackingDay: Hashable, Comparable, Codable, Sendable, CustomString
         (dayNumber % 7 + 7 + 3) % 7 + 1
     }
 
-    /// Saturday or Sunday (the Calendar shades them, spec_calendar.md §1.2).
+    /// Saturday or Sunday (the Calendar shades them, calendar.md §1.2).
     public var isWeekend: Bool {
         isoWeekday >= 6
     }

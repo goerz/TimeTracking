@@ -1,5 +1,5 @@
 // ActivityBlockDetail+Including: the detail of a block with a short block
-// merged into it (spec_activity_tracking.md §2.6, §4.3).
+// merged into it (activity_tracking.md §2.6, §4.3).
 
 import Foundation
 import TimeTrackingCore

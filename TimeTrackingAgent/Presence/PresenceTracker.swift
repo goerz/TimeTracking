@@ -1,5 +1,5 @@
 // PresenceTracker: the presence verdict of each tick and event
-// (spec_activity_tracking.md §2.4 step 1, §2.5, §3.4, §4.4).
+// (activity_tracking.md §2.4 step 1, §2.5, §3.4, §4.4).
 
 import Foundation
 import TimeTrackingCore

@@ -1,4 +1,4 @@
-// Drafts and changes of clients, areas, and projects (spec_data_and_sync.md §1.1 to §1.3, §7.1).
+// Drafts and changes of clients, areas, and projects (data_and_sync.md §1.1 to §1.3, §7.1).
 
 import Foundation
 

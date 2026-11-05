@@ -1,4 +1,4 @@
-// Sleep and workouts mapped to an area in reports (spec_reports.md §1.1).
+// Sleep and workouts mapped to an area in reports (reports.md §1.1).
 
 import Foundation
 import Testing

@@ -1,4 +1,4 @@
-// Tests of the Activity section's figures (spec_activity.md §6).
+// Tests of the Activity section's figures (activity.md §6).
 
 import Foundation
 import Testing

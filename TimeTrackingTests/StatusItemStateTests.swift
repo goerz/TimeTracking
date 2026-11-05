@@ -1,5 +1,5 @@
 // The menu bar's Pomodoro lines and items, the Dock icon policy, and
-// sleep and wake (spec_menubar.md §2.1, §2.3, §4, §5).
+// sleep and wake (menubar.md §2.1, §2.3, §4, §5).
 
 import AppKit
 import Foundation

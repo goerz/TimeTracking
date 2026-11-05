@@ -1,4 +1,4 @@
-// SyntheticDataset generation: names, colors, and the day schedule (spec_data_and_sync.md §9.1).
+// SyntheticDataset generation: names, colors, and the day schedule (data_and_sync.md §9.1).
 
 import Foundation
 

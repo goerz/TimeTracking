@@ -1,5 +1,5 @@
 // ActivityBars: active time by day, week, or month, stacked by context
-// (spec_activity.md §1.5).
+// (activity.md §1.5).
 
 /// The stacked bar chart.
 public struct ActivityBars: Sendable {

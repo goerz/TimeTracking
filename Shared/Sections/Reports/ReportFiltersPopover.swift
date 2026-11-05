@@ -1,4 +1,4 @@
-// The Reports Filters button and its popover (spec_reports.md §3).
+// The Reports Filters button and its popover (reports.md §3).
 // The active filters show in the filter bar above the tiles (ReportsView).
 
 import SwiftUI

@@ -1,5 +1,5 @@
 // HealthPeriod+Label: the duration label on a sleep or workout line in the
-// Calendar's Activity column (spec_calendar.md §3.1).
+// Calendar's Activity column (calendar.md §3.1).
 
 import Foundation
 

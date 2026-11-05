@@ -1,5 +1,5 @@
 // Time blocks: drawing, editing, moving, deleting with undo, and the
-// Calendar settings (spec_calendar.md §4.1, §4.2, §6).
+// Calendar settings (calendar.md §4.1, §4.2, §6).
 
 import Foundation
 import TimeTrackingCore

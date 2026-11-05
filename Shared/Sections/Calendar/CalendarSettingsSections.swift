@@ -1,5 +1,5 @@
 // CalendarSettingsSections: the Calendar settings, in the Mac settings
-// window's Calendar pane and the iPad's Settings (spec_calendar.md §6).
+// window's Calendar pane and the iPad's Settings (calendar.md §6).
 
 import SwiftUI
 import TimeTrackingCore

@@ -1,5 +1,5 @@
 // ProjectsModel+Structure: the Project menu's commands on the selected row of
-// any kind, a project, an area, or a client (spec_projects.md §2.5).
+// any kind, a project, an area, or a client (projects.md §2.5).
 
 import Foundation
 import TimeTrackingCore

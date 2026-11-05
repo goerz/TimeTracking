@@ -1,5 +1,5 @@
 // ProjectColumnSort: the column headers' sort indicators and clicks
-// (spec_projects.md §2.2).
+// (projects.md §2.2).
 
 import SwiftUI
 import TimeTrackingCore

@@ -1,4 +1,4 @@
-// SampleStore: the raw samples in `samples.sqlite` (spec_activity_tracking.md
+// SampleStore: the raw samples in `samples.sqlite` (activity_tracking.md
 // §4.1: one row per tick, kept 90 days, never leaves the Mac).
 
 import Foundation

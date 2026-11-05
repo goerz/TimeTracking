@@ -1,5 +1,5 @@
 // TerminalApp: the terminals the agent knows and their adapters
-// (spec_activity_tracking.md §3.1).
+// (activity_tracking.md §3.1).
 
 import Foundation
 

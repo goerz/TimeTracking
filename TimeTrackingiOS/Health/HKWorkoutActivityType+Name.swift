@@ -1,5 +1,5 @@
 // The stable name a workout's activity type is stored under
-// (spec_data_and_sync.md §1.9).
+// (data_and_sync.md §1.9).
 
 import HealthKit
 

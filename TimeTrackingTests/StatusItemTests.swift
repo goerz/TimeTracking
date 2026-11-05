@@ -1,4 +1,4 @@
-// The menu bar item, its menu, and the Dock menu (spec_menubar.md).
+// The menu bar item, its menu, and the Dock menu (menubar.md).
 
 import Foundation
 import Testing

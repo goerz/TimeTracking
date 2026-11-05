@@ -1,5 +1,5 @@
 // ReportQuery+AllTime: the query over every day an entry can have, behind
-// the tool's `entries` and `continue` (spec_automation.md §3.5, §3.6).
+// the tool's `entries` and `continue` (automation.md §3.5, §3.6).
 
 import Foundation
 

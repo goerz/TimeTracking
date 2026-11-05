@@ -1,4 +1,4 @@
-// TimeTrackingCoreIntents: the library's AppIntentsPackage (spec_automation.md §5).
+// TimeTrackingCoreIntents: the library's AppIntentsPackage (automation.md §5).
 
 public import AppIntents
 

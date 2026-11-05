@@ -1,5 +1,5 @@
 // ReportEntryList: one row per matching entry, sortable, with the Timer
-// window's edit popover (spec_reports.md §6).
+// window's edit popover (reports.md §6).
 
 import SwiftUI
 import TimeTrackingCore

@@ -1,5 +1,5 @@
 // Schema version 4: midnight chains become whole entries on every device
-// (spec_data_and_sync.md §2.1; §9 items 62 to 65).
+// (data_and_sync.md §2.1; §9 items 62 to 65).
 
 import Foundation
 import GRDB

@@ -1,5 +1,5 @@
 // PickerSheet: the project picker as a sheet, medium detent resizable to
-// large, with the project dialog pushed inside it (spec_ios.md §2.4).
+// large, with the project dialog pushed inside it (ios.md §2.4).
 
 import SwiftUI
 import TimeTrackingCore

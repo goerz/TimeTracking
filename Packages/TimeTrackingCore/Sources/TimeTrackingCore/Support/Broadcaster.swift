@@ -1,5 +1,5 @@
 // Broadcaster: fans changes out to every subscriber of a change stream
-// (spec_data_and_sync.md §7.4).
+// (data_and_sync.md §7.4).
 
 import Foundation
 import Synchronization

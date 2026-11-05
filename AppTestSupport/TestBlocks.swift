@@ -1,5 +1,5 @@
 // TestBlocks: activity blocks for the Calendar tests on the Mac
-// and the iPad (spec_calendar.md §3.3).
+// and the iPad (calendar.md §3.3).
 
 import Foundation
 import TimeTrackingCore

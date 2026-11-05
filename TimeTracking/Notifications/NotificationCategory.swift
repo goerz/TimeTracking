@@ -1,5 +1,5 @@
 // NotificationCategory: the Mac app's notification categories, actions,
-// sounds, and requests (spec_timer.md §10).
+// sounds, and requests (timer.md §10).
 
 import Foundation
 
@@ -10,7 +10,7 @@ enum NotificationCategory: String, CaseIterable, Sendable {
     case pomodoroBreakDone
     case idle
     case reminder
-    /// The banner of a start, stop, or continue from a URL (spec_automation.md §6).
+    /// The banner of a start, stop, or continue from a URL (automation.md §6).
     case tracking
 
     /// Exactly the actions of §10, in order.

@@ -1,5 +1,5 @@
 // ActivityBars+Target: what a pointer points at in the bar chart, and what
-// the chart says about it (spec_activity.md §1.5, §3).
+// the chart says about it (activity.md §1.5, §3).
 
 extension ActivityBars {
     /// A bar or, with `series`, one of its segments.

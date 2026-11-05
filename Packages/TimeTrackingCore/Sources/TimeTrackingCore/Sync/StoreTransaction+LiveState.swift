@@ -1,6 +1,6 @@
 // The live_state row: the running snapshot written in every write
 // transaction, this Mac's activity, and the merge of a remote copy
-// (spec_data_and_sync.md §4.1, §4.2).
+// (data_and_sync.md §4.1, §4.2).
 
 import Foundation
 import GRDB

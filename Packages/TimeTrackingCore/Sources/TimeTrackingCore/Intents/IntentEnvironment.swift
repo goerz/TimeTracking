@@ -1,5 +1,5 @@
 // IntentEnvironment: what an app hands its intents and queries
-// (spec_automation.md §2, §5).
+// (automation.md §2, §5).
 
 import AppIntents
 public import Foundation

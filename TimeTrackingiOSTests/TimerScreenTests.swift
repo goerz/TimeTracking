@@ -1,5 +1,5 @@
 // The iPhone Timer: card, picker, project dialog, list, and edit sheet
-// (spec_ios.md §2).
+// (ios.md §2).
 
 import Foundation
 import Testing

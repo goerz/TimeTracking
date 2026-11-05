@@ -1,5 +1,5 @@
 // TimerView: the Timer's content, in the main window and in the Mini
-// Timer (spec_timer.md §1 to §3, §6.3).
+// Timer (timer.md §1 to §3, §6.3).
 
 import SwiftUI
 import TimeTrackingCore
@@ -161,7 +161,7 @@ struct IdlePromptItem: Identifiable {
     }
 }
 
-/// "You have been away" (spec_timer.md §6.3).
+/// "You have been away" (timer.md §6.3).
 struct IdlePromptView: View {
     @Environment(AppModel.self) private var app
 

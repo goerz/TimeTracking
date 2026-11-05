@@ -1,6 +1,6 @@
 // CalendarViewport: the Calendar's horizontal strip of days, with the day
 // width as horizontal zoom, a free scroll position, the arrows' snapping,
-// and the days it shows (spec_calendar.md §1.2).
+// and the days it shows (calendar.md §1.2).
 
 import Foundation
 

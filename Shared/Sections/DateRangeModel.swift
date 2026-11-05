@@ -1,7 +1,7 @@
 // DateRangeModel: a section's date range with its presets, arrows, Go to
 // Today, and the popover's calendar clicks: one shared by Reports and
-// Activity, one of Projects (spec_reports.md §2,
-// spec_activity.md §1.1, spec_projects.md §2.4).
+// Activity, one of Projects (reports.md §2,
+// activity.md §1.1, projects.md §2.4).
 
 import Foundation
 import Observation

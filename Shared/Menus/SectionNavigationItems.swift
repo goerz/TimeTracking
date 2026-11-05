@@ -1,5 +1,5 @@
 // SectionNavigationItems: the View menu's commands for the shown range, on
-// the Mac and the iPad (spec_projects.md §1.2).
+// the Mac and the iPad (projects.md §1.2).
 
 import SwiftUI
 import TimeTrackingCore

@@ -1,5 +1,5 @@
 // The Calendar's Filters and search, those of Reports: entries they leave
-// out are faded and leave the tracked totals (spec_calendar.md §1.6).
+// out are faded and leave the tracked totals (calendar.md §1.6).
 
 import Foundation
 import TimeTrackingCore

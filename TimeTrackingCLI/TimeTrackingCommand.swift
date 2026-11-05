@@ -1,5 +1,5 @@
 // TimeTrackingCommand: the `timetracking` tool's root command, argument
-// order, and exit codes (spec_automation.md §3.1, §3.4, §3.11).
+// order, and exit codes (automation.md §3.1, §3.4, §3.11).
 
 import ArgumentParser
 import Darwin

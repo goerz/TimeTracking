@@ -1,18 +1,18 @@
 # Spec: Calendar Section
 
-The Calendar section shows days side by side on one time axis, so activity, entries, and plans compare at a glance. Each day has up to three columns: Activity (the tracker's blocks), Tracked (time entries), and Calendar (time blocks and events from system calendars the user selects). Entries are drawn, moved, and resized here, and made from activity blocks, time blocks, and calendar events. The iPad's Calendar tab is the same view with the touch equivalents of [spec_ios.md](spec_ios.md) §10.2, without the open activity block, gap labels, or "Delete This Activity…"; the iPhone has no calendar view and never requests calendar access.
+The Calendar section shows days side by side on one time axis, so activity, entries, and plans compare at a glance. Each day has up to three columns: Activity (the tracker's blocks), Tracked (time entries), and Calendar (time blocks and events from system calendars the user selects). Entries are drawn, moved, and resized here, and made from activity blocks, time blocks, and calendar events. The iPad's Calendar tab is the same view with the touch equivalents of [ios.md](ios.md) §10.2, without the open activity block, gap labels, or "Delete This Activity…"; the iPhone has no calendar view and never requests calendar access.
 
 ## 1. Layout
 
 ### 1.1 Toolbar and summary strip
 
-The subtitle names the shown days with their ISO 8601 week, "Mon, Oct 26 – Fri, Oct 30 · W44"; a day counts as shown while at least half of it is in view. The toolbar ([spec_design.md](spec_design.md) §4) has ‹ › (one day back or forward, snapped so that a day starts at the left edge; with ⌥ by the whole days in view), a date menu, and the Filters and search of Reports (1.6). The date menu reads "Today" while today is shown, else the shown days ("Oct 19 – 23", "Oct 30 – Nov 3", "Oct 19"), and holds Go to Today and Go to Date…, a month picker whose chosen day goes to the left edge.
+The subtitle names the shown days with their ISO 8601 week, "Mon, Oct 26 – Fri, Oct 30 · W44"; a day counts as shown while at least half of it is in view. The toolbar ([design.md](design.md) §4) has ‹ › (one day back or forward, snapped so that a day starts at the left edge; with ⌥ by the whole days in view), a date menu, and the Filters and search of Reports (1.6). The date menu reads "Today" while today is shown, else the shown days ("Oct 19 – 23", "Oct 30 – Nov 3", "Oct 19"), and holds Go to Today and Go to Date…, a month picker whose chosen day goes to the left edge.
 
 Below the filter bar, a summary strip covers the shown days: "Tracked" with its total and a bar stacked by project in area colors, "Time blocks 6h 20m", "Activity 34h 10m" (the tracker's active time), and at the trailing end the day width slider.
 
 ### 1.2 Days and scrolling
 
-A day column runs from Midnight to Midnight ([spec_data_and_sync.md](spec_data_and_sync.md) §8), 00:00 by default, in the device's current time zone, so it is 23 or 25 hours tall on daylight-saving days. The hour labels start at that hour, and today is the shown day that contains now: with Midnight at 04:00, 02:00 on Tuesday still belongs to Monday. Weeks run Monday to Sunday.
+A day column runs from Midnight to Midnight ([data_and_sync.md](data_and_sync.md) §8), 00:00 by default, in the device's current time zone, so it is 23 or 25 hours tall on daylight-saving days. The hour labels start at that hour, and today is the shown day that contains now: with Midnight at 04:00, 02:00 on Tuesday still belongs to Monday. Weeks run Monday to Sunday.
 
 Anything that crosses the day change (an entry, an activity block when Midnight is not 00:00, an external event, a time block) is drawn as one piece per day. Dragging a piece of an entry or time block moves the whole; an entry's edges resize it within the piece's column, and its totals count each piece on its own day. An activity block counts whole on the day of its start.
 
@@ -22,7 +22,7 @@ A trackpad's sideways swipe, ⇧ with a mouse wheel, a drag on the day headers, 
 
 Today (⌘T), and every launch, puts today at position ⌈n / 2⌉ from the left of the `n` whole days in view, with a day starting at the left edge. A new window width keeps the left edge. A click on a day header's weekday and date slides that day to the left edge, and ⌥-click shows it alone, as wide as the viewport. The URL `timetracking://planner/calendar?date=YYYY-MM-DD` moves that day to the left edge. Today has a highlighted header and a tint; Saturday and Sunday are shaded. All days share one vertical scroll position; on opening, the current time sits one third down the viewport from the first frame, so nothing scrolls when the data arrives.
 
-The router's `showCalendar(day:hour:highlight:)` ([spec_projects.md](spec_projects.md) §1.3) moves `day` to the left edge, scrolls `hour` to the top (the day's first activity block when nil, else 08:00), turns the Activity column on, and pulses the block cards of `highlight` (one hour of that day, or one context on that day) for 1.5 s. Both zooms stay as they are.
+The router's `showCalendar(day:hour:highlight:)` ([projects.md](projects.md) §1.3) moves `day` to the left edge, scrolls `hour` to the top (the day's first activity block when nil, else 08:00), turns the Activity column on, and pulses the block cards of `highlight` (one hour of that day, or one context on that day) for 1.5 s. Both zooms stay as they are.
 
 ### 1.3 Vertical zoom
 
@@ -42,13 +42,13 @@ Today's columns carry an accent line at the current time, with the time in a bub
 
 ### 1.6 Filters and search
 
-The Filters, the filter bar, and the search field are those of Reports ([spec_reports.md](spec_reports.md) §3, §3.1). The Calendar keeps its own filters (per device; the search is not stored). An entry they leave out stays in place, faded to 25% opacity, and still selectable, editable, and in the overlap checks; the tracked totals count only the entries they let through. Activity blocks, time blocks, and events are unaffected. While the search field has the focus, the view's plain keys are off.
+The Filters, the filter bar, and the search field are those of Reports ([reports.md](reports.md) §3, §3.1). The Calendar keeps its own filters (per device; the search is not stored). An entry they leave out stays in place, faded to 25% opacity, and still selectable, editable, and in the overlap checks; the tracked totals count only the entries they let through. Activity blocks, time blocks, and events are unaffected. While the search field has the focus, the view's plain keys are off.
 
 ## 2. Tracked column
 
 ### 2.1 Cards
 
-An entry card is filled with its area color, text in the contrasting color of [spec_projects.md](spec_projects.md) §4.4, and has three lines: task, "Project · Client", and a stopwatch glyph with the duration ("1h 33m"; the running entry "1:35:00"). Without a project the card is neutral gray with "No project"; an empty task reads "No task" in placeholder style. Hovering shows continue (▶) and edit (…), space permitting. The running entry has a border in its text color and stop (■) instead of continue, and its time updates every second.
+An entry card is filled with its area color, text in the contrasting color of [projects.md](projects.md) §4.4, and has three lines: task, "Project · Client", and a stopwatch glyph with the duration ("1h 33m"; the running entry "1:35:00"). Without a project the card is neutral gray with "No project"; an empty task reads "No task" in placeholder style. Hovering shows continue (▶) and edit (…), space permitting. The running entry has a border in its text color and stop (■) instead of continue, and its time updates every second.
 
 ### 2.2 No entries in the future
 
@@ -64,7 +64,7 @@ Dragging a card's body moves it with its duration, the start snapping like drawi
 
 ### 2.5 Selecting, editing, deleting
 
-A click selects at once, by the keys held for that click; ⇧-click or ⌘-click extends, on every kind of card; Tab and ⇧Tab step through entries by start. Return or a double-click opens the Timer's edit popover ([spec_timer.md](spec_timer.md) §4). Delete or ⌫ deletes the selection, undoable, with the notice "Deleted 'Clarify noise model' (1h 33m). Undo" for 8 seconds. Deleting the running entry asks "Discard the running entry?" first; undo restores it stopped at the deletion time.
+A click selects at once, by the keys held for that click; ⇧-click or ⌘-click extends, on every kind of card; Tab and ⇧Tab step through entries by start. Return or a double-click opens the Timer's edit popover ([timer.md](timer.md) §4). Delete or ⌫ deletes the selection, undoable, with the notice "Deleted 'Clarify noise model' (1h 33m). Undo" for 8 seconds. Deleting the running entry asks "Discard the running entry?" first; undo restores it stopped at the deletion time.
 
 Duplicate to Next Day (⌘D) copies an entry to the same time next day as a stopped entry, refused unless that interval is entirely past. Split Here splits at the entry's snapped midpoint, refused within 1 minute of either end; on the running entry the later part keeps running.
 
@@ -83,11 +83,11 @@ Trim (default) shortens the changed entry to abut the neighbor; Overlap forces t
 
 ### 3.1 Blocks
 
-The column shows the day's blocks, plus on the Mac today's open block. A card is a light neutral tint, the same for every context: context colors ([spec_activity.md](spec_activity.md) §1.3) would mostly repeat the terminal's or the browser's color and compete with the entries' area colors beside them. Line 1 is the dominant workspace as the Activity section names it ("paper (tmux)"), line 2 the dominant item's subject and detail. Background items add a "+1" badge. A block mostly reconstructed from macOS app usage history (`rec` over half of `a`) is hatched, one with time on an iPhone or iPad carries a phone glyph, and one with `remote` time a cloud glyph. Parts covered by entries are dimmed to 50% opacity. On the Mac, a gap over 15 minutes between blocks of any device shows its duration as a faint label ("22m").
+The column shows the day's blocks, plus on the Mac today's open block. A card is a light neutral tint, the same for every context: context colors ([activity.md](activity.md) §1.3) would mostly repeat the terminal's or the browser's color and compete with the entries' area colors beside them. Line 1 is the dominant workspace as the Activity section names it ("paper (tmux)"), line 2 the dominant item's subject and detail. Background items add a "+1" badge. A block mostly reconstructed from macOS app usage history (`rec` over half of `a`) is hatched, one with time on an iPhone or iPad carries a phone glyph, and one with `remote` time a cloud glyph. Parts covered by entries are dimmed to 50% opacity. On the Mac, a gap over 15 minutes between blocks of any device shows its duration as a faint label ("22m").
 
-Background stretches ([spec_activity_tracking.md](spec_activity_tracking.md) §2.7) are thin strips at the column's trailing edge over their time, in a gap and never on a block. The tooltip names their items ("In the background while away: Claude refactor-parser 38m"); they have no popover and make no entry.
+Background stretches ([activity_tracking.md](activity_tracking.md) §2.7) are thin strips at the column's trailing edge over their time, in a gap and never on a block. The tooltip names their items ("In the background while away: Claude refactor-parser 38m"); they have no popover and make no entry.
 
-With Sleep or Workouts on (section 6), the health periods ([spec_data_and_sync.md](spec_data_and_sync.md) §1.9) are thin lines centered in the column over their time, sleep dark blue and workouts dark green. A period that crosses Midnight shows on both days. A line lies under the blocks and over a gap's thin lines. A period's whole duration is a label ("7h 10m") centered on its line on the day it ends, so a night is labeled on the morning it ends; a gap label within 16 points of it is left out. The tooltip reads "Sleep 7h 10m" or "Workout 45m".
+With Sleep or Workouts on (section 6), the health periods ([data_and_sync.md](data_and_sync.md) §1.9) are thin lines centered in the column over their time, sleep dark blue and workouts dark green. A period that crosses Midnight shows on both days. A line lies under the blocks and over a gap's thin lines. A period's whole duration is a label ("7h 10m") centered on its line on the day it ends, so a night is labeled on the morning it ends; a gap label within 16 points of it is left out. The tooltip reads "Sleep 7h 10m" or "Workout 45m".
 
 ### 3.2 Block popover
 
@@ -99,7 +99,7 @@ The hover "+" button, a drag into the Tracked column (vertical position ignored)
 
 ### 3.4 Delete This Activity
 
-Blocks are shown as recorded, and deleting one goes through the agent, the log's only writer. On the Mac, a closed block's context menu has "Delete This Activity…". It asks "Delete this activity?" with the block's range and workspace name and "This removes it on every device and cannot be undone.", with Cancel as the default. Delete sends `delete-block <s> <e>` with the shown range to the tracker agent ([spec_activity_tracking.md](spec_activity_tracking.md) §7.3); the card disappears when the rewritten month file arrives, and an `error` answer shows in an alert titled "Couldn't Delete This Activity" with the app's sentence for the reply, never the reply itself. Entries are untouched.
+Blocks are shown as recorded, and deleting one goes through the agent, the log's only writer. On the Mac, a closed block's context menu has "Delete This Activity…". It asks "Delete this activity?" with the block's range and workspace name and "This removes it on every device and cannot be undone.", with Cancel as the default. Delete sends `delete-block <s> <e>` with the shown range to the tracker agent ([activity_tracking.md](activity_tracking.md) §7.3); the card disappears when the rewritten month file arrives, and an `error` answer shows in an alert titled "Couldn't Delete This Activity" with the app's sentence for the reply, never the reply itself. Entries are untouched.
 
 ## 4. Calendar column
 
@@ -134,7 +134,7 @@ Dragging a time block or event into the Tracked column, or its hover "+", create
 | Time block | Create Entry…, Edit…, Delete |
 | External event | Create Entry…, Open in Calendar, Hide This Calendar |
 
-The navigation keys (← → ⇧← ⇧→, Tab and ⇧Tab, Escape) are the view's own, as on every Mac, and are off while a popover, editor, or sheet takes text input. Every other key is an item of the Entry menu, of the View menu's Calendar header, or of its shared period commands ([spec_timer.md](spec_timer.md) §9), enabled while the Calendar is shown.
+The navigation keys (← → ⇧← ⇧→, Tab and ⇧Tab, Escape) are the view's own, as on every Mac, and are off while a popover, editor, or sheet takes text input. Every other key is an item of the Entry menu, of the View menu's Calendar header, or of its shared period commands ([timer.md](timer.md) §9), enabled while the Calendar is shown.
 
 | Key | Effect |
 |---|---|
@@ -161,14 +161,14 @@ The navigation keys (← → ⇧← ⇧→, Tab and ⇧Tab, Escape) are the view
 
 ## 6. Settings and view state
 
-The Calendar's settings are synced ([spec_data_and_sync.md](spec_data_and_sync.md) §1.6), so the Mac and the iPad show the same calendars without a per-device setup. They are the Calendar pane of the Mac's settings window ([spec_timer.md](spec_timer.md) §8) and the Calendar screen of the iPad's Settings ([spec_ios.md](spec_ios.md) §2.9), with four sections:
+The Calendar's settings are synced ([data_and_sync.md](data_and_sync.md) §1.6), so the Mac and the iPad show the same calendars without a per-device setup. They are the Calendar pane of the Mac's settings window ([timer.md](timer.md) §8) and the Calendar screen of the iPad's Settings ([ios.md](ios.md) §2.9), with four sections:
 
 - Snap to: 1, 5, 10, or 15 minutes.
 - Time blocks: a Calendar menu of the iCloud account's writable calendars, then "New Calendar…" ("Time Blocks", or "Time Blocks 2" and so on when the title is taken). Choosing a calendar moves every device's time blocks to it, and events already in it become time blocks. Without an iCloud account or access the row says so.
-- Apple Health: toggles "Sleep" and "Workouts", each with an "In Reports" menu ("Not counted", then every area, retired ones included) that makes Reports count that kind as a project of the area ([spec_reports.md](spec_reports.md) §1.1). The iPhone has the same toggles and imports while either is on ([spec_ios.md](spec_ios.md) §7 item 6).
+- Apple Health: toggles "Sleep" and "Workouts", each with an "In Reports" menu ("Not counted", then every area, retired ones included) that makes Reports count that kind as a project of the area ([reports.md](reports.md) §1.1). The iPhone has the same toggles and imports while either is on ([ios.md](ios.md) §7 item 6).
 - Calendars to show (4.3): every event calendar except the time-block calendar, with its account, none checked by default.
 
-While either health toggle is on, a line reports the iPhone's last import from `calendar.healthImport` ([spec_data_and_sync.md](spec_data_and_sync.md) §1.9): that no iPhone has read Apple Health yet; "Waiting for Alex's iPhone to read workouts. Open the app there." for a shown kind the last import did not read; "Alex's iPhone found no workouts in Apple Health (today at 7:12). If you have some, allow access on the iPhone in Settings › Privacy & Security › Health." for a read kind with no periods in the store, since HealthKit reports a denied read as no data; otherwise "Read from Alex's iPhone today at 7:12."
+While either health toggle is on, a line reports the iPhone's last import from `calendar.healthImport` ([data_and_sync.md](data_and_sync.md) §1.9): that no iPhone has read Apple Health yet; "Waiting for Alex's iPhone to read workouts. Open the app there." for a shown kind the last import did not read; "Alex's iPhone found no workouts in Apple Health (today at 7:12). If you have some, allow access on the iPhone in Settings › Privacy & Security › Health." for a read kind with no periods in the store, since HealthKit reports a denied read as no data; otherwise "Read from Alex's iPhone today at 7:12."
 
 The settings read the calendars without asking for access; like the Calendar column, they resolve the time-block calendar (4.1), creating it when no device has. Per device the view keeps `pointsPerHour`, `dayWidth`, the column toggles, the Filters, and the resolved time-block calendar.
 

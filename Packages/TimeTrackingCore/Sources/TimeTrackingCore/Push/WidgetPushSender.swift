@@ -1,5 +1,5 @@
 // WidgetPushSender: when and to whom the Mac app sends WidgetKit pushes
-// (spec_data_and_sync.md §4.3). Runs only in the Mac app.
+// (data_and_sync.md §4.3). Runs only in the Mac app.
 
 public import Foundation
 import os

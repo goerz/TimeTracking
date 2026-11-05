@@ -1,5 +1,5 @@
 // PinnedWidget: buttons that start pinned projects; the running project's
-// button stops it (spec_ios.md §3.4).
+// button stops it (ios.md §3.4).
 
 import AppIntents
 import SwiftUI

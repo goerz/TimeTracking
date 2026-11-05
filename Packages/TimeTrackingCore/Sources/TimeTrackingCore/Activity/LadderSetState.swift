@@ -1,5 +1,5 @@
 // LadderSetState: the per-set ledger of the DeviceActivity ladder
-// (spec_ios.md §9.2, "Early callbacks").
+// (ios.md §9.2, "Early callbacks").
 
 public import Foundation
 

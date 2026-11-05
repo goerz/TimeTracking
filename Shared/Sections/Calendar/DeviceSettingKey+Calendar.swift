@@ -1,5 +1,5 @@
 // The Calendar's and Activity's per-device view state
-// (spec_calendar.md §6, spec_activity.md §1.9).
+// (calendar.md §6, activity.md §1.9).
 
 import Foundation
 import TimeTrackingCore

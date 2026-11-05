@@ -1,5 +1,5 @@
 // The Calendar section: time blocks, events, calendar access, the router
-// request, and the key commands (spec_calendar.md §7).
+// request, and the key commands (calendar.md §7).
 
 import Foundation
 import SwiftUI

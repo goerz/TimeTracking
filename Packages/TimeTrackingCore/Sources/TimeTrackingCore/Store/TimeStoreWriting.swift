@@ -1,4 +1,4 @@
-// TimeStoreWriting: every write of the store (spec_data_and_sync.md §7.1).
+// TimeStoreWriting: every write of the store (data_and_sync.md §7.1).
 
 public import Foundation
 

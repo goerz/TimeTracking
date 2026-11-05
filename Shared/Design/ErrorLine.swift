@@ -1,5 +1,5 @@
 // ErrorLine: an error under a control, the warning symbol and the message
-// in the error color (spec_design.md §6, §7).
+// in the error color (design.md §6, §7).
 
 import SwiftUI
 import TimeTrackingCore

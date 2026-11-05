@@ -1,5 +1,5 @@
 // The configuration of the Pinned widget and of the project control
-// (spec_ios.md §3.4, §5). Parameters only; the providers read them.
+// (ios.md §3.4, §5). Parameters only; the providers read them.
 
 import AppIntents
 import TimeTrackingCore

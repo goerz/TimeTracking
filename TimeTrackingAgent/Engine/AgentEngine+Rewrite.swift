@@ -1,5 +1,5 @@
 // AgentEngine+Rewrite: the socket's rewrite commands `delete-block`,
-// `forget-day`, and `reapply-exclusions` (spec_activity_tracking.md §7.3).
+// `forget-day`, and `reapply-exclusions` (activity_tracking.md §7.3).
 
 import Foundation
 import TimeTrackingCore

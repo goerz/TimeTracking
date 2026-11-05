@@ -1,10 +1,10 @@
 // ProjectEntity: a project for Shortcuts, Siri, and Spotlight
-// (spec_automation.md §5).
+// (automation.md §5).
 
 public import AppIntents
 public import Foundation
 
-/// A project, identified by its UUID; indexed for Spotlight (spec_ios.md §6.1).
+/// A project, identified by its UUID; indexed for Spotlight (ios.md §6.1).
 public struct ProjectEntity: AppEntity, IndexedEntity {
     public static let typeDisplayRepresentation: TypeDisplayRepresentation = "Project"
     public static let defaultQuery = ProjectEntityQuery()
@@ -147,7 +147,7 @@ public struct ProjectEntityQuery: EntityStringQuery, EntityPropertyQuery {
     }
 
     /// `matching(_:in:)` for Siri: a name matching nothing fails with "I
-    /// couldn't find a project called X." (spec_ios.md §6.3);
+    /// couldn't find a project called X." (ios.md §6.3);
     /// several matches are returned for Siri to disambiguate by subtitle.
     public static func resolve(_ string: String, in rows: [ProjectRow]) throws(AutomationError) -> [ProjectRow] {
         let found = matching(string, in: rows)

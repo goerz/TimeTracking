@@ -1,4 +1,4 @@
-// Reading and importing sleep and workout periods (spec_data_and_sync.md §1.9, §7).
+// Reading and importing sleep and workout periods (data_and_sync.md §1.9, §7).
 
 public import Foundation
 import GRDB

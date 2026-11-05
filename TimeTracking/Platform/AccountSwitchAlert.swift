@@ -1,5 +1,5 @@
 // AccountSwitchAlert: the confirmation before a switch to another iCloud
-// account empties the store (spec_data_and_sync.md §3.1 item 5).
+// account empties the store (data_and_sync.md §3.1 item 5).
 
 import AppKit
 

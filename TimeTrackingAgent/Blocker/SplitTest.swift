@@ -1,4 +1,4 @@
-// SplitTest: where an open block splits (spec_activity_tracking.md §2.6).
+// SplitTest: where an open block splits (activity_tracking.md §2.6).
 
 import Foundation
 

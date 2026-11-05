@@ -1,5 +1,5 @@
 // SampleItem: one item of a sample, with its derived group key
-// (spec_activity_tracking.md §2.2, §2.4).
+// (activity_tracking.md §2.2, §2.4).
 
 /// What attention is on: context, subject, detail, and the derived group key.
 ///

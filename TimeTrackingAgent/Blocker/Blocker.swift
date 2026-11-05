@@ -1,4 +1,4 @@
-// Blocker: forming blocks from samples (spec_activity_tracking.md §2.5).
+// Blocker: forming blocks from samples (activity_tracking.md §2.5).
 
 import Foundation
 import TimeTrackingCore

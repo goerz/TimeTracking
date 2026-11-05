@@ -1,5 +1,5 @@
 // TimeTrackingWidgetPushHandler: stores the widget push token for the app to
-// put on this device's Device record (spec_ios.md §4 item 1).
+// put on this device's Device record (ios.md §4 item 1).
 
 import Foundation
 import TimeTrackingCore

@@ -1,5 +1,5 @@
 // The store, query, activity, and interchange targets of
-// spec_data_and_sync.md §7.5 on the large dataset (§9.1: ten years, about
+// data_and_sync.md §7.5 on the large dataset (§9.1: ten years, about
 // 24,000 entries; the import target's 300,000 entries become its rate).
 // Slow: only with TIMETRACKING_TEST_SLOW=1 (make test).
 

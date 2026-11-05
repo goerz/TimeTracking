@@ -1,6 +1,6 @@
 // CalendarSidewaysPan: the iPad Calendar's sideways swipe through time, with
 // one finger or two, which SwiftUI's vertical scroll view does not provide
-// (spec_calendar.md §1.2; spec_ios.md §10.2).
+// (calendar.md §1.2; ios.md §10.2).
 
 import SwiftUI
 import UIKit

@@ -1,5 +1,5 @@
 // Smoke test: the Debug iOS app launches in UI-testing mode
-// (spec_architecture.md §3.1, §3.3).
+// (architecture.md §3.1, §3.3).
 
 import XCTest
 

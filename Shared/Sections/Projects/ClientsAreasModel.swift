@@ -1,5 +1,5 @@
 // ClientsAreasModel: the client and area rows of the projects table, their
-// sheets, and their actions (spec_projects.md §2.5, §4). Counts and
+// sheets, and their actions (projects.md §2.5, §4). Counts and
 // the rules for which action applies come from the library's
 // `ClientAreaOutline`.
 

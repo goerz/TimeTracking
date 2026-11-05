@@ -1,5 +1,5 @@
 // StartProjectControl: the control that starts a chosen project, for example
-// on the Action button (spec_ios.md §5).
+// on the Action button (ios.md §5).
 
 import AppIntents
 import SwiftUI

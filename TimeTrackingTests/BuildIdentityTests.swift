@@ -1,4 +1,4 @@
-// The Debug Mac app's identity and names as built (spec_architecture.md §1.4,
+// The Debug Mac app's identity and names as built (architecture.md §1.4,
 // §1.5, §2.2).
 
 import Foundation

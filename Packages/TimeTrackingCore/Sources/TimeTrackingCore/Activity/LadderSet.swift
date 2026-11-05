@@ -1,5 +1,5 @@
 // LadderSet: a user-labeled set of apps, categories, or domains whose daily
-// use the DeviceActivity ladder measures (spec_ios.md §9.2).
+// use the DeviceActivity ladder measures (ios.md §9.2).
 
 public import Foundation
 

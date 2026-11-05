@@ -1,5 +1,5 @@
 // Sleep and workouts from Apple Health in the Calendar's Activity column
-// (spec_calendar.md §3.1).
+// (calendar.md §3.1).
 
 import Foundation
 import TimeTrackingCore

@@ -1,5 +1,5 @@
 // RangeOptions: the range options of entries, report, and export
-// (spec_automation.md §3.2).
+// (automation.md §3.2).
 
 import ArgumentParser
 import Foundation

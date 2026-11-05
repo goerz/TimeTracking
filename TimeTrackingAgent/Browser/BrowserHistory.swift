@@ -1,5 +1,5 @@
 // BrowserHistory: Safari's and Chromium's history databases, read from
-// copies (spec_activity_tracking.md §2.3 `history`, §3.3, §6.1).
+// copies (activity_tracking.md §2.3 `history`, §3.3, §6.1).
 
 // The seams answer nil for "cannot read", which differs from an empty answer.
 // swiftlint:disable discouraged_optional_collection discouraged_optional_boolean

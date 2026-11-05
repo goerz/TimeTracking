@@ -1,4 +1,4 @@
-// The LiveState snapshot, its batch, and its merge (spec_data_and_sync.md
+// The LiveState snapshot, its batch, and its merge (data_and_sync.md
 // §4.1, §4.2; §9 items 32 and 33).
 
 import Foundation

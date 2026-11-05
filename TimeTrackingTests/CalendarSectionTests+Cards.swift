@@ -1,5 +1,5 @@
 // The Calendar's cards: selecting, dragging, and resizing them
-// (spec_calendar.md §2.4, §2.5, §4.2, §4.4).
+// (calendar.md §2.4, §2.5, §4.2, §4.4).
 
 import Foundation
 import Testing

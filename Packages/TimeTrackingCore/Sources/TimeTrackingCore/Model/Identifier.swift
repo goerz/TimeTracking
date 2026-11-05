@@ -1,4 +1,4 @@
-// Identifier: typed record ids, lowercase UUIDs (spec_data_and_sync.md §1).
+// Identifier: typed record ids, lowercase UUIDs (data_and_sync.md §1).
 
 public import Foundation
 

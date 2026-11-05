@@ -1,5 +1,5 @@
 // ActivitySummary: every figure of the Activity section for a range, a
-// device, and a context filter (spec_activity.md §1). Pure: built
+// device, and a context filter (activity.md §1). Pure: built
 // from blocks the reader returned (exclusions applied) and, on the
 // recording Mac, their details.
 

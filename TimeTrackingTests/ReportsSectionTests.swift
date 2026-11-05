@@ -1,6 +1,6 @@
 // The Reports section's view model: shared range, drill-down, levels,
 // entry list, commands, refresh, and the router request
-// (spec_reports.md §2, §4.5, §5, §6, §8, §9).
+// (reports.md §2, §4.5, §5, §6, §8, §9).
 
 import Foundation
 import Testing
@@ -137,7 +137,7 @@ struct ReportsSectionTests {
         #expect(sections.section == .reports)
     }
 
-    @Test("spec_reports.md §7: ⌘C copies the selected table or list rows as tab-separated text, levels in separate columns")
+    @Test("reports.md §7: ⌘C copies the selected table or list rows as tab-separated text, levels in separate columns")
     func copyRows() async throws {
         let test = try await TestApp()
         let projects = try await week(test)

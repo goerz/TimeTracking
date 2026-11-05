@@ -1,6 +1,6 @@
 // The library parts the agent shares with the app: the socket grammar,
 // browser items, recorded-item exclusions, the detail log's dwell times,
-// and the container mirror (spec_activity_tracking.md §3.3, §4.1, §7.2, §7.3).
+// and the container mirror (activity_tracking.md §3.3, §4.1, §7.2, §7.3).
 
 import Foundation
 import Testing

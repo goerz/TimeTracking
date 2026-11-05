@@ -1,4 +1,4 @@
-// SilentPushHandler: a CloudKit silent push wakes the app (spec_ios.md §7
+// SilentPushHandler: a CloudKit silent push wakes the app (ios.md §7
 // item 1): pass it to the engine, wait at most 25 s, run the fan-out, and
 // call the completion handler exactly once.
 

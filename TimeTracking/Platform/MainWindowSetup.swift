@@ -1,5 +1,5 @@
 // MainWindowSetup: the main window's scene id, frame autosave, and
-// identifier (spec_projects.md §1.1).
+// identifier (projects.md §1.1).
 
 import AppKit
 

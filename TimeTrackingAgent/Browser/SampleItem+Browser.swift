@@ -1,5 +1,5 @@
 // SampleItem+Browser: the item of a web page under the browser rules
-// (spec_activity_tracking.md §3.3, §6.1, §6.2).
+// (activity_tracking.md §3.3, §6.1, §6.2).
 
 import TimeTrackingCore
 

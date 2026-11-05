@@ -1,5 +1,5 @@
 // Tests for the Devices module: iPhone and iPad events merged into `device`
-// blocks (spec_activity_tracking.md §2.3, §6.2, §7.2; TRK-8, 11, 26, 28).
+// blocks (activity_tracking.md §2.3, §6.2, §7.2; TRK-8, 11, 26, 28).
 
 import Foundation
 import Testing

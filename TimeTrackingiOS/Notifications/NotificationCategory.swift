@@ -1,6 +1,6 @@
 // NotificationCategory: the iOS app's local notification categories,
 // actions, sounds, and the notifications scheduled ahead of time because
-// the app is not running when they fire (spec_ios.md §8).
+// the app is not running when they fire (ios.md §8).
 
 import Foundation
 

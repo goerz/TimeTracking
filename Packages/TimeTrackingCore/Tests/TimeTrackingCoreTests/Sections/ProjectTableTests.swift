@@ -1,5 +1,5 @@
 // The projects table, Clients & Areas outline, and area colors
-// (spec_projects.md §2, §4).
+// (projects.md §2, §4).
 
 import Foundation
 import Testing

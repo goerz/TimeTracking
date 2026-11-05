@@ -1,4 +1,4 @@
-// The client and area rows of the projects table (spec_projects.md
+// The client and area rows of the projects table (projects.md
 // §2.5, §4).
 
 import Foundation

@@ -1,5 +1,5 @@
 // SyncCoordinator: the delegate side of the sync engine in the app process
-// (spec_data_and_sync.md §3.1). It drains the outbox into the engine's
+// (data_and_sync.md §3.1). It drains the outbox into the engine's
 // pending changes, builds the batches from the store's rows, and applies
 // what the engine reports, through the store calls StoreSynchronizer uses.
 

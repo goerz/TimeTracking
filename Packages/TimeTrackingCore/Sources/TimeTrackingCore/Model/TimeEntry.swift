@@ -1,4 +1,4 @@
-// TimeEntry: a tracked interval (spec_data_and_sync.md §1.4, §1.5).
+// TimeEntry: a tracked interval (data_and_sync.md §1.4, §1.5).
 
 public import Foundation
 

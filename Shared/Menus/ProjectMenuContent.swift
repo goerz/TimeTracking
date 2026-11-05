@@ -1,5 +1,5 @@
 // ProjectMenuContent: the Project menu, on the Mac and the iPad
-// (spec_timer.md §9; spec_projects.md §2.5, §4).
+// (timer.md §9; projects.md §2.5, §4).
 
 import SwiftUI
 import TimeTrackingCore

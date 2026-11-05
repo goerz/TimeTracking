@@ -1,7 +1,7 @@
 // DurationText: durations and times of day as the Timer, menu bar, and
-// entry editor write and read them (spec_timer.md §2, §4.1, §5.1;
-// spec_menubar.md §1.1), and the `HH:mm` of the tool's refusals and the Mac
-// activity line (spec_automation.md §3.5, spec_ios.md §2.3).
+// entry editor write and read them (timer.md §2, §4.1, §5.1;
+// menubar.md §1.1), and the `HH:mm` of the tool's refusals and the Mac
+// activity line (automation.md §3.5, ios.md §2.3).
 
 public import Foundation
 

@@ -1,4 +1,4 @@
-// ActivityReading: the read interface of the activity logs (spec_data_and_sync.md §6).
+// ActivityReading: the read interface of the activity logs (data_and_sync.md §6).
 
 public import Foundation
 

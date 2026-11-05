@@ -1,5 +1,5 @@
 // Entries from activity blocks, time blocks, and events, and Delete This
-// Activity (spec_calendar.md §3.3, §3.4, §4.4).
+// Activity (calendar.md §3.3, §3.4, §4.4).
 
 import Foundation
 import TimeTrackingCore

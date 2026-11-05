@@ -1,4 +1,4 @@
-// StoreObserver: store changes as observable state for views (spec_data_and_sync.md §7.4).
+// StoreObserver: store changes as observable state for views (data_and_sync.md §7.4).
 
 import Foundation
 import Observation

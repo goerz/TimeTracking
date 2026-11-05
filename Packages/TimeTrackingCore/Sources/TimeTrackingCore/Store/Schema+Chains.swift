@@ -1,5 +1,5 @@
 // Schema+Chains: the merge of schema version 4, which turns the midnight
-// chains of earlier versions into whole entries (spec_data_and_sync.md §2.1).
+// chains of earlier versions into whole entries (data_and_sync.md §2.1).
 
 import Foundation
 import GRDB

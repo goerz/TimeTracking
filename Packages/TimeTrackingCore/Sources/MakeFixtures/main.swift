@@ -1,5 +1,5 @@
 // MakeFixtures: writes the deterministic, synthetic fixtures of
-// spec_architecture.md §3.4 (dates in 2024).
+// architecture.md §3.4 (dates in 2024).
 //
 //   swift run --package-path Packages/TimeTrackingCore MakeFixtures <Fixtures folder>
 //

@@ -1,5 +1,5 @@
 // TrackerBundles: the app and agent bundles the privacy grants belong to
-// (spec_activity_tracking.md §7.4, spec_architecture.md §1.4, §2.2).
+// (activity_tracking.md §7.4, architecture.md §1.4, §2.2).
 
 import Foundation
 

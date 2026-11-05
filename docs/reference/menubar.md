@@ -1,12 +1,12 @@
 # Spec: Menu Bar Item
 
-The Mac app's status item shows the running entry's elapsed time and, during a Pomodoro, the countdown. Its menu drives the Timer's commands ([spec_timer.md](spec_timer.md)) and opens the app's windows. This spec also covers the Dock icon setting, the Dock menu, and the warning when the activity tracker has stopped.
+The Mac app's status item shows the running entry's elapsed time and, during a Pomodoro, the countdown. Its menu drives the Timer's commands ([timer.md](timer.md)) and opens the app's windows. This spec also covers the Dock icon setting, the Dock menu, and the warning when the activity tracker has stopped.
 
 ## 1. The status item
 
 ### 1.1 Content
 
-The item is an `NSStatusItem`, for control of its text, clicks, and removal: an icon, then optional text in the menu bar font with monospaced digits. The icon is the dial, a template image drawn from the app icon's ring and knob (`spec_design.md` §9): a faint track, an opaque arc clockwise from 12 o'clock, and a knob at its end. The dial carries information of its own when the text is off.
+The item is an `NSStatusItem`, for control of its text, clicks, and removal: an icon, then optional text in the menu bar font with monospaced digits. The icon is the dial, a template image drawn from the app icon's ring and knob ([design.md](design.md) §9): a faint track, an opaque arc clockwise from 12 o'clock, and a knob at its end. The dial carries information of its own when the text is off.
 
 | State | Icon | Text |
 |---|---|---|
@@ -15,7 +15,7 @@ The item is an `NSStatusItem`, for control of its text, clicks, and removal: an 
 | Pomodoro focus or break | The elapsed fraction of the phase | Elapsed time, then the phase glyph (`pomodoro`, `cup.and.saucer`) and the remaining time |
 | Phase ended, confirmation pending | The full ring with the knob at 12 o'clock | Elapsed time, then the ended phase's glyph and `+m:ss`, counting up from the phase end |
 
-The elapsed time is `h:mm` (`0:04`, `13:05`), or `h:mm:ss` with "Show seconds"; hours grow past 24. It counts from the running entry's start (`spec_data_and_sync.md` 1.5), so it does not reset at midnight.
+The elapsed time is `h:mm` (`0:04`, `13:05`), or `h:mm:ss` with "Show seconds"; hours grow past 24. It counts from the running entry's start ([data_and_sync.md](data_and_sync.md) 1.5), so it does not reset at midnight.
 
 With "Show project" on and a project set, the project name follows the time after " · " (`0:40 · Thesis`), truncated with an ellipsis at 24 characters. With "Show timer" off the name stands alone; with both off the item is the icon alone. The task never appears in the menu bar.
 
@@ -60,7 +60,7 @@ The header lines form one disabled item with a hosted view, because AppKit grays
 
 ### 2.3 Pomodoro items
 
-The group offers what the state machine (`spec_timer.md` 5.3) allows and performs it directly.
+The group offers what the state machine ([timer.md](timer.md) 5.3) allows and performs it directly.
 
 | Pomodoro state | Items |
 |---|---|
@@ -72,7 +72,7 @@ The group offers what the state machine (`spec_timer.md` 5.3) allows and perform
 
 ## 3. Tracker warning
 
-The menu bar warns only about a stopped tracker, which loses data; problems of individual sources appear only in the Tracker pane. The app checks every 30 seconds and at wake, unlock, and launch. The warning is active when the tracker's login item is enabled, the tracker is not running (`spec_activity_tracking.md` §4.4), and the Mac has been awake, unlocked, and in the user's session for at least 2 minutes.
+The menu bar warns only about a stopped tracker, which loses data; problems of individual sources appear only in the Tracker pane. The app checks every 30 seconds and at wake, unlock, and launch. The warning is active when the tracker's login item is enabled, the tracker is not running ([activity_tracking.md](activity_tracking.md) §4.4), and the Mac has been awake, unlocked, and in the user's session for at least 2 minutes.
 
 While active, the icon carries the badge and the menu starts with "Tracker not running since HH:MM" (the `last_tick` time of `current.json`, or "Tracker not running" without a file) and "Open Tracker Settings…". The first check that finds the tracker running clears the warning.
 

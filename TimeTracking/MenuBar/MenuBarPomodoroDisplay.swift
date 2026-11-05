@@ -1,5 +1,5 @@
 // MenuBarPomodoroDisplay: what the status item shows during a Pomodoro
-// (spec_menubar.md §1.1, §6).
+// (menubar.md §1.1, §6).
 
 import Foundation
 

@@ -1,5 +1,5 @@
 // ReportViewState: what the Reports section stores per device
-// (spec_reports.md §9).
+// (reports.md §9).
 
 import Foundation
 import TimeTrackingCore

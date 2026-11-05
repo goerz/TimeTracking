@@ -1,4 +1,4 @@
-// Tests of time blocks and calendar access (spec_calendar.md §7).
+// Tests of time blocks and calendar access (calendar.md §7).
 
 import Foundation
 import Testing

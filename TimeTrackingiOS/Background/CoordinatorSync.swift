@@ -1,5 +1,5 @@
 // CoordinatorSync: the library's SyncCoordinator with the CloudKit engine,
-// as the iOS app drives it (spec_ios.md §7; spec_data_and_sync.md §3.1).
+// as the iOS app drives it (ios.md §7; data_and_sync.md §3.1).
 
 import Foundation
 import TimeTrackingCore

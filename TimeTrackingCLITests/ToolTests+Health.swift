@@ -1,5 +1,5 @@
 // The timetracking tool as a subprocess: the health listing
-// (spec_automation.md §3.8, §9 item 46).
+// (automation.md §3.8, §9 item 46).
 
 import Foundation
 import Testing

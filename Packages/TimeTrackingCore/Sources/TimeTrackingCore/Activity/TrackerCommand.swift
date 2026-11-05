@@ -1,4 +1,4 @@
-// TrackerCommand: the lines of the agent's socket (spec_activity_tracking.md
+// TrackerCommand: the lines of the agent's socket (activity_tracking.md
 // §3.1, §7.3).
 
 import Foundation

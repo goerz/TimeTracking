@@ -1,5 +1,5 @@
 // AgentEngine: the tick, from presence through resolvers to samples,
-// blocks, and current.json (spec_activity_tracking.md §2.4, §5).
+// blocks, and current.json (activity_tracking.md §2.4, §5).
 
 import Foundation
 import os

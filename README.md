@@ -22,4 +22,4 @@ timetracking --version         # the tool, linked into $(PREFIX)/bin
 
 ## Documentation
 
-The specifications in `spec/` describe the product: start with `spec/components.md`. `CLAUDE.md` summarizes the project conventions.
+The specifications in `docs/reference/` describe the product: start with `docs/reference/components.md`. `CLAUDE.md` summarizes the project conventions.

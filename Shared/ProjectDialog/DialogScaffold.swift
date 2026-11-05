@@ -1,5 +1,5 @@
 // DialogScaffold: title, grouped form, Cancel, and the confirming action of
-// the project, client, and area dialogs (spec_design.md §7).
+// the project, client, and area dialogs (design.md §7).
 
 import SwiftUI
 

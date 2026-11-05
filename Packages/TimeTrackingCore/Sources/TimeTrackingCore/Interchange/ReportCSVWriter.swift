@@ -1,5 +1,5 @@
 // ReportCSVWriter: the Entries and Breakdown CSV and the tool's structure
-// tables (spec_automation.md §8.1, §8.2). RFC 4180: comma, doubled quotes,
+// tables (automation.md §8.1, §8.2). RFC 4180: comma, doubled quotes,
 // header row, UTF-8 without BOM, LF.
 
 public import Foundation

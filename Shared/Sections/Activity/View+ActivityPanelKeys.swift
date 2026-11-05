@@ -1,5 +1,5 @@
 // View+ActivityPanelKeys: the heatmap or chart as one stop of the keyboard
-// focus (spec_activity.md §2).
+// focus (activity.md §2).
 
 import SwiftUI
 import TimeTrackingCore

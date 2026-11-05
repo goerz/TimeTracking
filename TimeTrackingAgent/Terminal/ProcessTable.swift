@@ -1,5 +1,5 @@
 // ProcessTable: the `ps` table the terminal sources walk
-// (spec_activity_tracking.md §3.1).
+// (activity_tracking.md §3.1).
 
 import Foundation
 

@@ -1,4 +1,4 @@
-// Temporary folders for the tests (spec_architecture.md §3.3). Tests never
+// Temporary folders for the tests (architecture.md §3.3). Tests never
 // touch the real containers.
 
 import Foundation

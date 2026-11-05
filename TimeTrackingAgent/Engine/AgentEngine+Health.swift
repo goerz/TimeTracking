@@ -1,5 +1,5 @@
 // AgentEngine+Health: the health of the sources checked at every tick
-// (spec_activity_tracking.md §2.3, §4.4, §7.2).
+// (activity_tracking.md §2.3, §4.4, §7.2).
 
 import Foundation
 import TimeTrackingCore

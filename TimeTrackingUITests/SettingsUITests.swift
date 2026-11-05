@@ -1,5 +1,5 @@
 // The settings window's size: each pane's width and height, the window
-// following the pane (spec_timer.md §8, TM-39).
+// following the pane (timer.md §8, TM-39).
 
 import XCTest
 

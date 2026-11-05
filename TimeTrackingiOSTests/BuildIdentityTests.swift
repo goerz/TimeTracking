@@ -1,4 +1,4 @@
-// The Debug iOS app's identity as built (spec_architecture.md §1.5).
+// The Debug iOS app's identity as built (architecture.md §1.5).
 
 import Foundation
 import Testing

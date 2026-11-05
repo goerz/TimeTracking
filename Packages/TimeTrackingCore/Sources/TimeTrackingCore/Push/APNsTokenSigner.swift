@@ -1,5 +1,5 @@
 // APNsTokenSigner: the ES256 provider token, reused for 50 minutes
-// (spec_architecture.md §2.4).
+// (architecture.md §2.4).
 
 import CryptoKit
 public import Foundation

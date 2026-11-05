@@ -1,5 +1,5 @@
 // EntryMenuItems: the Entry menu, on the Mac and the iPad
-// (spec_timer.md §9).
+// (timer.md §9).
 
 import SwiftUI
 import TimeTrackingCore

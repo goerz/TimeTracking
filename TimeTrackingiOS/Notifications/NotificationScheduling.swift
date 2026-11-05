@@ -1,5 +1,5 @@
 // NotificationScheduling: scheduling and removing the iOS app's local
-// notifications, with a recorder for tests and UI testing (spec_ios.md §8).
+// notifications, with a recorder for tests and UI testing (ios.md §8).
 
 import Foundation
 

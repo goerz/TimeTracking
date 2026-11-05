@@ -1,5 +1,5 @@
 // Background work: background items while the user is away, assigned to
-// blocks and background stretches (spec_activity_tracking.md §2.3, §2.7,
+// blocks and background stretches (activity_tracking.md §2.3, §2.7,
 // TRK-41, TRK-42).
 
 import Foundation

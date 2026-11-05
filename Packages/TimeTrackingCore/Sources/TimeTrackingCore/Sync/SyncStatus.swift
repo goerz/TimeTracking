@@ -1,4 +1,4 @@
-// SyncStatus: what the sync engine is doing (spec_data_and_sync.md §3.1).
+// SyncStatus: what the sync engine is doing (data_and_sync.md §3.1).
 
 import Foundation
 

@@ -1,5 +1,5 @@
 // PomodoroButton: the Pomodoro button of the Timer bar and the iOS Timer
-// card (spec_design.md §7, spec_timer.md §5.1, spec_ios.md §2.8).
+// card (design.md §7, timer.md §5.1, ios.md §2.8).
 
 import SwiftUI
 import TimeTrackingCore

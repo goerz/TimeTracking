@@ -1,5 +1,5 @@
 // CalendarDragTime: the time label over a card while it is dragged
-// (spec_calendar.md §2.4, §4.2).
+// (calendar.md §2.4, §4.2).
 
 import SwiftUI
 import TimeTrackingCore

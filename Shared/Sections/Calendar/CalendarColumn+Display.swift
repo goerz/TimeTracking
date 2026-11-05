@@ -1,4 +1,4 @@
-// The Calendar columns' glyphs and titles (spec_calendar.md §1.4).
+// The Calendar columns' glyphs and titles (calendar.md §1.4).
 
 import TimeTrackingCore
 

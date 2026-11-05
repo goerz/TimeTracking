@@ -1,12 +1,12 @@
 # Spec: Sections and Projects
 
-This spec covers the four sections of the main window after the Timer (Calendar, Reports, Projects, Activity) and their router, and the Projects section: the projects table with its clients and areas, the project dialog, the area colors, and the shared project picker. Entities and their store rules are in [spec_data_and_sync.md](spec_data_and_sync.md) §1.
+This spec covers the four sections of the main window after the Timer (Calendar, Reports, Projects, Activity) and their router, and the Projects section: the projects table with its clients and areas, the project dialog, the area colors, and the shared project picker. Entities and their store rules are in [data_and_sync.md](data_and_sync.md) §1.
 
 ## 1. The sections
 
 ### 1.1 Layout
 
-The sections are the main window's sidebar items after the Timer ([spec_timer.md](spec_timer.md) §1), in the order Calendar, Reports, Projects, Activity: the views used daily first, then the rarely edited projects, clients, and areas, then the tracker's log. Each section owns its toolbar items, placed by the scheme of [spec_design.md](spec_design.md) §4, so the period arrows keep their place when the section changes. The sections have no running-timer controls, and a section's minimum size is 620 × 560 pt.
+The sections are the main window's sidebar items after the Timer ([timer.md](timer.md) §1), in the order Calendar, Reports, Projects, Activity: the views used daily first, then the rarely edited projects, clients, and areas, then the tracker's log. Each section owns its toolbar items, placed by the scheme of [design.md](design.md) §4, so the period arrows keep their place when the section changes. The sections have no running-timer controls, and a section's minimum size is 620 × 560 pt.
 
 At launch the main window shows the Timer. Per device the app remembers the window's frame, the last selected section, and each section's view state: for Projects its date range, filters, grouping, sort, columns, and collapsed groups, but not the search text.
 
@@ -14,7 +14,7 @@ At launch the main window shows the Timer. Per device the app remembers the wind
 
 View has the sidebar's items (⌘1 to ⌘5, always available), Show/Hide Sidebar (⌃⌘S), and each section's display options under its header. Go to Today (⌘T), Previous and Next Period (⌥⌘← ⌥⌘→; in the Calendar by the visible span), and Date Range… (⇧⌘D; in the Calendar Go to Date…) apply in the Calendar, Reports, and Activity, and on the Mac in Projects. Edit › Find (⌘F) focuses the search field of the Calendar, Reports, or Projects. The Entry menu acts on the selected entry in the Calendar and the Reports entry list, the Project menu on the selected row in Projects (2.5).
 
-The menus are the same in every window and view ([spec_timer.md](spec_timer.md) §9): a section's command is listed while another view is shown, disabled and without its key equivalent, so the Timer's commands on the same keys (⌘E, ⌘⌫, ⌘F) reach the Timer, and the reverse.
+The menus are the same in every window and view ([timer.md](timer.md) §9): a section's command is listed while another view is shown, disabled and without its key equivalent, so the Timer's commands on the same keys (⌘E, ⌘⌫, ⌘F) reach the Timer, and the reverse.
 
 ### 1.3 Router
 
@@ -24,14 +24,14 @@ The `SectionRouter` shows the main window if needed, selects a section, and pass
 |---|---|
 | `showProjects()` | Selects Projects with its current view state. Target of `timetracking://planner/projects` |
 | `showProject(id)` | Selects Projects, clears the search, turns "Include archived projects" on for an archived project, clears filters that hide it, selects All time when the range hides it, selects and scrolls to its row. Target of `timetracking://project/<uuid>` |
-| `showCalendar(day:hour:highlight:)` | [spec_calendar.md](spec_calendar.md) §1.2 |
-| `showReports(range:filter:)` | [spec_reports.md](spec_reports.md) §9 |
+| `showCalendar(day:hour:highlight:)` | [calendar.md](calendar.md) §1.2 |
+| `showReports(range:filter:)` | [reports.md](reports.md) §9 |
 | `showActivity(range:)` | Selects Activity with the shared Reports/Activity range |
 | `showTrackerSettings(exclusion:)` | Opens Settings on the Tracker pane, with an exclusion prefilled if given |
 
 ### 1.4 iPad
 
-The sections are tabs ([spec_ios.md](spec_ios.md) §10). In Projects, a Sort menu after Filters replaces header clicks, and long press opens context menus.
+The sections are tabs ([ios.md](ios.md) §10). In Projects, a Sort menu after Filters replaces header clicks, and long press opens context menus.
 
 ## 2. The projects table
 
@@ -41,7 +41,7 @@ The subtitle is the range label ("All time · since Mar 4, 2019"), and the toolb
 
 Project shows a dot in the area's color and the name; an archived project is in secondary label color with its dot at 50% opacity. Client and Area follow, a general area (4.1) showing the client's name in secondary label color. State ("Active" or "Archived") shows only while archived projects are included. Created is `createdAt`. Last tracked is the start of the most recent entry, running entry included, or "Never". Total tracked sums the entries in the range in unbounded hours ("432h 21m"; on a client, area, or group row, of its projects shown), the running entry counting to now, refreshed once a minute.
 
-A client row shows the client's name in semibold, an area row a swatch, the name, and a "general" or "retired" tag. Dates read "Today", "Yesterday", the weekday within the last 7 days, "Oct 27" within the current year, "2024" otherwise, by the shown days of the Midnight setting ([spec_data_and_sync.md](spec_data_and_sync.md) §8); the tooltip shows the full date. The header's context menu toggles every column but Project; column order is fixed.
+A client row shows the client's name in semibold, an area row a swatch, the name, and a "general" or "retired" tag. Dates read "Today", "Yesterday", the weekday within the last 7 days, "Oct 27" within the current year, "2024" otherwise, by the shown days of the Midnight setting ([data_and_sync.md](data_and_sync.md) §8); the tooltip shows the full date. The header's context menu toggles every column but Project; column order is fixed.
 
 ### 2.2 Sorting
 
@@ -59,9 +59,9 @@ Client, area, and group rows collapse with their triangle, with ← and → on a
 
 The date range, the Filters popover, and the search combine with AND.
 
-The range has the presets, arrows, date popover, View commands, and shown days of Reports ([spec_reports.md](spec_reports.md) §2) but is the section's own, stored per device, default All time. All time lists every project, also those never tracked; any other range lists only the projects with an entry in it, and Total tracked sums those entries. Created and Last tracked stay whole-history dates, so sorting by Last tracked finds the projects tracked longest ago.
+The range has the presets, arrows, date popover, View commands, and shown days of Reports ([reports.md](reports.md) §2) but is the section's own, stored per device, default All time. All time lists every project, also those never tracked; any other range lists only the projects with an entry in it, and Total tracked sums those entries. Created and Last tracked stay whole-history dates, so sorting by Last tracked finds the projects tracked longest ago.
 
-The Filters popover has the tree, the "Include archived projects" check box, and "Clear All", as in Reports ([spec_reports.md](spec_reports.md) §3). Here "Include archived projects" is off by default and, since it only widens the table, does not count in the title ("Filters (1)").
+The Filters popover has the tree, the "Include archived projects" check box, and "Clear All", as in Reports ([reports.md](reports.md) §3). Here "Include archived projects" is off by default and, since it only widens the table, does not count in the title ("Filters (1)").
 
 The filter tree lists clients by name, each with its areas in order (general first, named after the client); Reports adds the projects. Each row is checked, partly checked (some descendants checked), or unchecked. A project passes if its area or its client is checked; nothing checked means no restriction. Checking a client or a partly checked row checks it with everything below it; when that completes its parent's children, the parent is checked instead. Unchecking a row under a checked client or area leaves its siblings checked and the parent partly checked. A checked client or area also covers areas and projects added later. The tree's search matches every word against a row's name and its ancestors' names ("research university" finds University's Research and not Consulting's) and shows the matching rows with their ancestors and descendants. The popover opens with clients unfolded and areas with projects folded, except a partly checked one; a search unfolds the rows it shows, and ⌥-click on a triangle folds or unfolds every row.
 
@@ -96,7 +96,7 @@ Two live projects of one client with the same name (created offline on two devic
 
 ## 3. The project dialog
 
-One dialog serves creation (from Projects or the picker's "Create Project" row) and editing, as a sheet on the invoking window (on iOS also a page pushed inside the picker's sheet), in the dialog layout of [spec_design.md](spec_design.md) §7.
+One dialog serves creation (from Projects or the picker's "Create Project" row) and editing, as a sheet on the invoking window (on iOS also a page pushed inside the picker's sheet), in the dialog layout of [design.md](design.md) §7.
 
 ### 3.1 Fields
 
@@ -118,7 +118,7 @@ Clients and areas are rows of the projects table under Group by Client and Area 
 
 ### 4.1 The general area
 
-Every client has one general area, named after the client, first in order, and not renamable, retirable, or deletable on its own ([spec_data_and_sync.md](spec_data_and_sync.md) §1.2); its color can change. Views display it as the client's name.
+Every client has one general area, named after the client, first in order, and not renamable, retirable, or deletable on its own ([data_and_sync.md](data_and_sync.md) §1.2); its color can change. Views display it as the client's name.
 
 ### 4.2 Clients
 
@@ -134,7 +134,7 @@ Move Up and Move Down reorder areas, the general area staying first; the order a
 
 ### 4.4 Area colors
 
-The Color field is a system color well without opacity. A chosen color is converted to sRGB, clamped to 0 to 1 per component, rounded to 8 bits, and stored as uppercase `#RRGGBB`. The default color of a new area is the library's rule ([spec_data_and_sync.md](spec_data_and_sync.md) §1.2), shared with the tool and `check --fix`. Colors may repeat; the client is always shown beside the area.
+The Color field is a system color well without opacity. A chosen color is converted to sRGB, clamped to 0 to 1 per component, rounded to 8 bits, and stored as uppercase `#RRGGBB`. The default color of a new area is the library's rule ([data_and_sync.md](data_and_sync.md) §1.2), shared with the tool and `check --fix`. Colors may repeat; the client is always shown beside the area.
 
 The display forms are an 8 pt dot ("No project" is a hollow circle), a 16 pt swatch, and a background for text: the color at 22% opacity (30% in dark mode) with a solid leading bar. Text on the solid color is black or white, whichever has the higher WCAG contrast ratio. Lightness step i (0-based) adds the i-th value of [0, +0.12, −0.12, +0.24, −0.24, +0.36] to the HSL lightness, clamped to 0.15 to 0.90; from the seventh step the values repeat, and Reports adds a hatch.
 
@@ -148,7 +148,7 @@ Every place that assigns a project to an entry or a time block uses this picker;
 4. One group per client with an active project, alphabetically; projects by area order, then name, with the area name trailing (omitted for the general area). Recent projects appear here too.
 5. When the search is non-empty and equals no active project's name (case- and diacritic-insensitively, trimmed), "+ Create Project “<search text>”", opening the dialog (3) with the name prefilled.
 
-Archived projects and retired areas never appear. The entry's current project has a check mark; with an empty search its row is highlighted on open, otherwise the first Recent row. Searching uses the word match of 2.4, hides Recent, drops empty client groups, and highlights the first match. An owner may add task matching (tasks tracked under a project in the last 90 days) and its own placeholder; the Mac Timer and the iOS Timer do ([spec_timer.md](spec_timer.md) §2.3). ↑ ↓ move the highlight, ↩ chooses, Escape closes, ⌘↩ creates from the search text.
+Archived projects and retired areas never appear. The entry's current project has a check mark; with an empty search its row is highlighted on open, otherwise the first Recent row. Searching uses the word match of 2.4, hides Recent, drops empty client groups, and highlights the first match. An owner may add task matching (tasks tracked under a project in the last 90 days) and its own placeholder; the Mac Timer and the iOS Timer do ([timer.md](timer.md) §2.3). ↑ ↓ move the highlight, ↩ chooses, Escape closes, ⌘↩ creates from the search text.
 
 ## 6. Testable behaviors
 

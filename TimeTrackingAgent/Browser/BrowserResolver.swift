@@ -1,5 +1,5 @@
 // BrowserResolver: the item of a frontmost browser's active tab, with the
-// private-window test (spec_activity_tracking.md §2.2 rule 2 and 4, §3.3, §7.2).
+// private-window test (activity_tracking.md §2.2 rule 2 and 4, §3.3, §7.2).
 
 import Foundation
 import TimeTrackingCore

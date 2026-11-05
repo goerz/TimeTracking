@@ -1,4 +1,4 @@
-// Reports and CSV (spec_data_and_sync.md §7.3; §9 items 47, 48; spec_automation.md §8.2).
+// Reports and CSV (data_and_sync.md §7.3; §9 items 47, 48; automation.md §8.2).
 
 import Foundation
 import Testing

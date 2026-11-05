@@ -1,5 +1,5 @@
 // The text color of a Calendar card on its area color
-// (spec_calendar.md §2.1; spec_projects.md §4.4).
+// (calendar.md §2.1; projects.md §4.4).
 
 import SwiftUI
 import TimeTrackingCore

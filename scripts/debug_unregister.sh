@@ -1,5 +1,5 @@
 #!/bin/sh
-# `make mac-debug-unregister` (spec_architecture.md §2.5): quits the Debug app
+# `make mac-debug-unregister` (architecture.md §2.5): quits the Debug app
 # and agent, runs the Debug agent's --unregister, resets its TCC grants, and
 # unregisters the Debug agent bundles from LaunchServices.
 #

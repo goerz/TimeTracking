@@ -1,5 +1,5 @@
 // WindowRouter: showing the Mini Timer, the main window, and Settings
-// (spec_timer.md §1.3, §8.3; spec_menubar.md §2.2, §4).
+// (timer.md §1.3, §8.3; menubar.md §2.2, §4).
 
 import AppKit
 import SwiftUI
@@ -131,7 +131,7 @@ extension NSApplication: ActivationTarget {
 
 extension NSWindow: KeyWindowTarget {}
 
-/// Applies "Show Dock icon" (spec_menubar.md §4).
+/// Applies "Show Dock icon" (menubar.md §4).
 enum ActivationPolicy {
     static func apply(showDockIcon: Bool, keyWindow: (any KeyWindowTarget)?, application: any ActivationTarget = NSApp) {
         let policy: NSApplication.ActivationPolicy = showDockIcon ? .regular : .accessory

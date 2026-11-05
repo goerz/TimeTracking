@@ -1,4 +1,4 @@
-// ManualClock: a clock that moves only when told to (spec_architecture.md §3.3, §3.4).
+// ManualClock: a clock that moves only when told to (architecture.md §3.3, §3.4).
 
 public import Foundation
 import Synchronization

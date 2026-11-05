@@ -1,5 +1,5 @@
 // TimerAlertPresentation: the Timer's confirmation alerts on the Mac and iOS
-// (spec_timer.md §2.1, §3; spec_ios.md §2.2, §2.5).
+// (timer.md §2.1, §3; ios.md §2.2, §2.5).
 
 import SwiftUI
 import TimeTrackingCore

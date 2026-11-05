@@ -1,4 +1,4 @@
-// TimerListView: recent entries by day (spec_timer.md §3).
+// TimerListView: recent entries by day (timer.md §3).
 
 import SwiftUI
 import TimeTrackingCore

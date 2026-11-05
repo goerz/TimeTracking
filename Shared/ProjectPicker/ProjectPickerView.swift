@@ -1,4 +1,4 @@
-// ProjectPickerView: the shared project picker (spec_projects.md §5).
+// ProjectPickerView: the shared project picker (projects.md §5).
 
 import SwiftUI
 import TimeTrackingCore

@@ -1,5 +1,5 @@
 // ShownDayWatcher: notices that the day the app shows has changed
-// (spec_data_and_sync.md §8).
+// (data_and_sync.md §8).
 
 public import Foundation
 

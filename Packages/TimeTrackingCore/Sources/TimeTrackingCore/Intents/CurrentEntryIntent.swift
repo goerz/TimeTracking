@@ -1,4 +1,4 @@
-// The shared App Intents (spec_automation.md §5, spec_ios.md §6). Each
+// The shared App Intents (automation.md §5, ios.md §6). Each
 // resolves its parameters and calls IntentActions; none deletes, archives,
 // or edits.
 

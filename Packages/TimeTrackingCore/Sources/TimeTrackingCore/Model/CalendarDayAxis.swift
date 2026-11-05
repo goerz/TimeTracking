@@ -1,5 +1,5 @@
 // CalendarDayAxis: the Calendar section's time axis, with its zoom, the
-// strip's labels, columns, and snapping (spec_calendar.md §1).
+// strip's labels, columns, and snapping (calendar.md §1).
 
 public import Foundation
 

@@ -1,5 +1,5 @@
 // Tests of the Calendar's strip of days: sideways scrolling, the arrows'
-// snapping, and the day width (spec_calendar.md §1.2, §7).
+// snapping, and the day width (calendar.md §1.2, §7).
 
 import Foundation
 import Testing

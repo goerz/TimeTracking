@@ -1,5 +1,5 @@
 // LivePresenceProbe: idle time, lock, console owner, and display state from
-// Core Graphics (spec_activity_tracking.md §3.4; no permission needed).
+// Core Graphics (activity_tracking.md §3.4; no permission needed).
 
 import CoreGraphics
 

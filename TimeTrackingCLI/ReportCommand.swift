@@ -1,4 +1,4 @@
-// report (spec_automation.md §3.7).
+// report (automation.md §3.7).
 
 import ArgumentParser
 import Foundation

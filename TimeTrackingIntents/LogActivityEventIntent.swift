@@ -1,5 +1,5 @@
 // LogActivityEventIntent: the "Log Activity Event" action for Shortcuts
-// personal automations (spec_ios.md §6.1, §9.4). It forwards to the
+// personal automations (ios.md §6.1, §9.4). It forwards to the
 // library's CollectionLog; the collection file is the only thing it writes.
 
 import AppIntents

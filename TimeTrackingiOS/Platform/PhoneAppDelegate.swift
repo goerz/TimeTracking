@@ -1,6 +1,6 @@
 // PhoneAppDelegate: the UIKit glue SwiftUI has no equivalent for: remote
-// notification registration and the silent-push callback (spec_ios.md §7
-// item 1), and the device's name and idiom (spec_ios.md §11, §10).
+// notification registration and the silent-push callback (ios.md §7
+// item 1), and the device's name and idiom (ios.md §11, §10).
 
 import TimeTrackingCore
 import UIKit
@@ -36,7 +36,7 @@ final class PhoneAppDelegate: NSObject, UIApplicationDelegate {
                 fanOut: {
                     await model.uploadPushToken()
                     await model.fanOut(structureChanged: true)
-                    // Every CloudKit push flushes the collection (spec_ios.md §9.6).
+                    // Every CloudKit push flushes the collection (ios.md §9.6).
                     await model.collection.flush()
                 }
             )

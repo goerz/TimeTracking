@@ -1,5 +1,5 @@
 // StartResult: the result of the tool's `start` and `continue`
-// (spec_automation.md §3.5).
+// (automation.md §3.5).
 
 import Foundation
 

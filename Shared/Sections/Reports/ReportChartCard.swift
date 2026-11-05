@@ -1,6 +1,6 @@
 // ReportChartCard: the stacked bar chart in area colors with totals, the
 // average rule, hover tooltips, the legend, and drill-down
-// (spec_reports.md §4).
+// (reports.md §4).
 
 import Charts
 import SwiftUI

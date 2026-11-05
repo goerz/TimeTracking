@@ -1,5 +1,5 @@
 // EntryEditRules: how the entry editor turns a field edit into a change
-// (spec_timer.md §4.1, §4.2).
+// (timer.md §4.1, §4.2).
 
 public import Foundation
 

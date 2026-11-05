@@ -1,5 +1,5 @@
 // StatusItemController: the menu bar item and the Dock menu
-// (spec_menubar.md §1, §2, §4, §5; spec_architecture.md §4.2).
+// (menubar.md §1, §2, §4, §5; architecture.md §4.2).
 
 import AppKit
 import Observation
@@ -186,7 +186,7 @@ final class StatusItemController: NSObject, NSMenuDelegate {
         }
     }
 
-    /// A disabled item showing header lines in their styles (spec_menubar.md §2.1).
+    /// A disabled item showing header lines in their styles (menubar.md §2.1).
     private func headerItem(_ lines: [MenuHeaderLine]) -> NSMenuItem {
         let host = NSHostingView(rootView: MenuHeaderView(lines: lines))
         host.autoresizingMask = [.width]

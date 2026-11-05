@@ -1,5 +1,5 @@
 // TrackerSettings+Defaults: the default settings.toml, with a comment on
-// every setting (spec_activity_tracking.md §7.1).
+// every setting (activity_tracking.md §7.1).
 
 extension TrackerSettings {
     /// The default `settings.toml`, written when the shared folder has none.

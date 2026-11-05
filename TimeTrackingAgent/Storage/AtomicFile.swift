@@ -1,5 +1,5 @@
 // AtomicFile: replacing a file by writing a temporary file and renaming it
-// (spec_activity_tracking.md §4.4, §7.3).
+// (activity_tracking.md §4.4, §7.3).
 
 import Foundation
 

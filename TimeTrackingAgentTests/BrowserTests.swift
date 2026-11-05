@@ -1,4 +1,4 @@
-// Browsers and the private-window test (spec_activity_tracking.md §3.3).
+// Browsers and the private-window test (activity_tracking.md §3.3).
 
 import Foundation
 import Testing

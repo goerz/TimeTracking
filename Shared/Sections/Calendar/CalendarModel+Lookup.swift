@@ -1,5 +1,5 @@
 // The Calendar model's lookups: entries, projects, labels, and calendar
-// colors by identifier (spec_calendar.md §2, §4.3).
+// colors by identifier (calendar.md §2, §4.3).
 
 import Foundation
 import TimeTrackingCore

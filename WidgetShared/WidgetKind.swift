@@ -1,4 +1,4 @@
-// WidgetKind: the kinds of the widgets and controls (spec_ios.md §3, §5).
+// WidgetKind: the kinds of the widgets and controls (ios.md §3, §5).
 // Compiled into the app and the widget extension.
 
 /// The widget kinds and control kinds.

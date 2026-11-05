@@ -1,5 +1,5 @@
 // Unregistration: `--unregister` removes the login item registration and
-// exits (spec_activity_tracking.md §5, spec_architecture.md §2.5).
+// exits (activity_tracking.md §5, architecture.md §2.5).
 
 import Foundation
 import os

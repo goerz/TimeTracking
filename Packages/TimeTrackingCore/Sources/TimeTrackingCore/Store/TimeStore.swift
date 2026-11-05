@@ -1,4 +1,4 @@
-// TimeStore: the store actor (spec_data_and_sync.md §2, §7).
+// TimeStore: the store actor (data_and_sync.md §2, §7).
 
 public import Foundation
 import GRDB
@@ -31,7 +31,7 @@ public actor TimeStore {
         /// Opens the file read-only (`?mode=ro` semantics); writes fail.
         public var readOnly: Bool
         /// How long a write waits for another process's write lock before
-        /// failing with `StoreError.busy` (spec_data_and_sync.md §2.2).
+        /// failing with `StoreError.busy` (data_and_sync.md §2.2).
         public var busyTimeout: TimeInterval
         /// Called once when a write starts waiting for another process's
         /// lock (the tool's test seam); `nil` for none.

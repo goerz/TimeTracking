@@ -1,4 +1,4 @@
-// The entry editor's handling of stored seconds (spec_timer.md §4.1).
+// The entry editor's handling of stored seconds (timer.md §4.1).
 
 import Foundation
 import Testing

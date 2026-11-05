@@ -1,5 +1,5 @@
 // The projects table's column headers and the stored sort
-// (spec_projects.md §2.2).
+// (projects.md §2.2).
 
 import Foundation
 import SwiftUI

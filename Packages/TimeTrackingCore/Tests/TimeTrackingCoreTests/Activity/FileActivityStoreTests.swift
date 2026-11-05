@@ -1,4 +1,4 @@
-// Tests for FileActivityStore (spec_data_and_sync.md §6, §9 DATA-43 to DATA-45).
+// Tests for FileActivityStore (data_and_sync.md §6, §9 DATA-43 to DATA-45).
 
 import Foundation
 import Testing

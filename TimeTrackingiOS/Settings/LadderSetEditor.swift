@@ -1,5 +1,5 @@
 // LadderSetEditor: one app group's name and FamilyActivityPicker selection
-// (spec_ios.md §9.2). "Everything" keeps its label and selects nothing.
+// (ios.md §9.2). "Everything" keeps its label and selects nothing.
 
 import FamilyControls
 import SwiftUI

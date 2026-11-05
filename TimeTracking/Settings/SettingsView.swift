@@ -1,5 +1,5 @@
-// SettingsView: the settings window with seven panes (spec_timer.md §8,
-// spec_design.md §7, §8).
+// SettingsView: the settings window with seven panes (timer.md §8,
+// design.md §7, §8).
 
 import KeyboardShortcuts
 import SwiftUI
@@ -9,7 +9,7 @@ import TimeTrackingCore
 struct SettingsView: View {
     @AppStorage(SettingsPane.storageKey) private var pane = SettingsPane.general.rawValue
 
-    /// Every pane's width (spec_design.md §8).
+    /// Every pane's width (design.md §8).
     static let width: CGFloat = 520
 
     var body: some View {
@@ -293,7 +293,7 @@ struct RemindersPane: View {
     }
 }
 
-/// Calendar (spec_calendar.md §6): the settings shared with the iPad.
+/// Calendar (calendar.md §6): the settings shared with the iPad.
 struct CalendarPane: View {
     @Environment(AppModel.self) private var app
 

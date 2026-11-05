@@ -1,5 +1,5 @@
 // The status item's Pomodoro display setting and the open menu's refresh
-// (spec_menubar.md §1.1, §2.1, §6).
+// (menubar.md §1.1, §2.1, §6).
 
 import AppKit
 import Foundation

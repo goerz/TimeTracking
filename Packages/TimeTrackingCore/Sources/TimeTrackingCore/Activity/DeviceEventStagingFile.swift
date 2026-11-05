@@ -1,5 +1,5 @@
 // DeviceEventStagingFile: the append-only events.jsonl of the iOS App Group
-// (spec_data_and_sync.md §6, spec_activity_tracking.md §6.2, spec_ios.md
+// (data_and_sync.md §6, activity_tracking.md §6.2, ios.md
 // §9.1, §9.6).
 
 public import Foundation

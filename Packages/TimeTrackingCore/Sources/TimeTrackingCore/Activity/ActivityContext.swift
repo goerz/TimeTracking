@@ -1,5 +1,5 @@
 // ActivityContext: context kinds, display names, and the context color
-// sequence of the Activity section (spec_activity.md §1.2, §1.3).
+// sequence of the Activity section (activity.md §1.2, §1.3).
 
 /// What kind of place a context is.
 public enum ActivityContextKind: String, Sendable, Hashable {

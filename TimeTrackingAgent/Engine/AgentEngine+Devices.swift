@@ -1,5 +1,5 @@
 // AgentEngine+Devices: the Devices module: fetching iPhone and iPad events
-// into the user's timeline (spec_activity_tracking.md §2.3, §2.8, §6.2,
+// into the user's timeline (activity_tracking.md §2.3, §2.8, §6.2,
 // TRK-26, TRK-28).
 
 import Foundation

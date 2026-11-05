@@ -1,5 +1,5 @@
 // InMemoryTransport: a simulated CloudKit zone for tests and -UITesting
-// (spec_data_and_sync.md §3.3), with change tags, delays, partitions, and
+// (data_and_sync.md §3.3), with change tags, delays, partitions, and
 // serverRecordChanged.
 
 public import Foundation

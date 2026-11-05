@@ -1,4 +1,4 @@
-// Tests of the iPhone's import from Apple Health (spec_ios.md §7 item 6).
+// Tests of the iPhone's import from Apple Health (ios.md §7 item 6).
 
 import Foundation
 import Synchronization

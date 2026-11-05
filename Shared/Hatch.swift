@@ -1,6 +1,6 @@
 // Hatch: the diagonal hatch of Reports' repeated project colors, the
 // Calendar's knowledge blocks and the time after now, and Activity's open
-// block (spec_reports.md §4, spec_calendar.md §1.2, §3.1, spec_activity.md §1.5).
+// block (reports.md §4, calendar.md §1.2, §3.1, activity.md §1.5).
 
 import SwiftUI
 

@@ -1,5 +1,5 @@
 // SimulatedSyncEngine: CKSyncEngine's contract over InMemoryTransport, so
-// SyncCoordinator runs in tests without CloudKit (spec_data_and_sync.md §3.3).
+// SyncCoordinator runs in tests without CloudKit (data_and_sync.md §3.3).
 
 import Foundation
 import Synchronization

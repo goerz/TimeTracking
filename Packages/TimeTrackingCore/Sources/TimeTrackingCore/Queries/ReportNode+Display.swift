@@ -1,5 +1,5 @@
 // Breakdown display: node names, sorting, and duration texts
-// (spec_reports.md §4.1, §5).
+// (reports.md §4.1, §5).
 
 import Foundation
 

@@ -1,4 +1,4 @@
-// Time: the timestamp encoding of the schema (spec_data_and_sync.md §2.1).
+// Time: the timestamp encoding of the schema (data_and_sync.md §2.1).
 // Timestamps are Unix seconds except `modified_at` (milliseconds).
 
 import Foundation

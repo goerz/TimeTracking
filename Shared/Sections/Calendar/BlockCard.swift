@@ -1,5 +1,5 @@
 // BlockCard: an activity block with its hover button, menu, and popover
-// (spec_calendar.md §3.1, §3.2, §3.3, §3.4).
+// (calendar.md §3.1, §3.2, §3.3, §3.4).
 
 import SwiftUI
 import TimeTrackingCore

@@ -1,6 +1,6 @@
 // CollectionModel: the iOS app's side of the activity collection: the
 // master switch, Screen Time authorization, app sets, the flush, and the
-// app's own lines (spec_ios.md §2.9, §9, §11 item 3).
+// app's own lines (ios.md §2.9, §9, §11 item 3).
 
 import Foundation
 import Observation

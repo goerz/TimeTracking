@@ -1,5 +1,5 @@
 // ExclusionRules+Items: applying the exclusions to items, blocks, and detail
-// lines already recorded (spec_activity_tracking.md §7.2, §7.3).
+// lines already recorded (activity_tracking.md §7.2, §7.3).
 
 import Foundation
 

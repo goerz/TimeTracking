@@ -1,6 +1,6 @@
 // PhoneHost: opens the store and builds the PhoneModel with the live
 // services at launch, or with recording stand-ins under `-UITesting YES`
-// (spec_ios.md §1, §11; spec_architecture.md §3.3).
+// (ios.md §1, §11; architecture.md §3.3).
 
 import CloudKit
 import Foundation
@@ -156,7 +156,7 @@ final class PhoneHost {
         shared: WidgetSharedState,
         identity: AppIdentity?
     ) async -> PhoneModel {
-        // Only the iPad creates a calendar store (spec_ios.md §10.2).
+        // Only the iPad creates a calendar store (ios.md §10.2).
         let pad = settings.isPad ? await PadSections.live(store: store, clock: clock, device: settings.device, identity: identity) : nil
         let notifications = UserNotifications.shared
         let widgets = WidgetCenterReloader()
@@ -172,7 +172,7 @@ final class PhoneHost {
             collection: collection ?? NoCollection(),
             pad: pad
         )
-        // Only the iPhone imports from Apple Health (spec_ios.md §7 item 6).
+        // Only the iPhone imports from Apple Health (ios.md §7 item 6).
         model.health = settings.isPad ? nil : HealthKitAccess.available()
         if let container = identity?.cloudKitContainer {
             model.sync = CoordinatorSync(store: store, containerIdentifier: container) {
@@ -203,7 +203,7 @@ enum UITestingOptions {
     }
 }
 
-/// The iCloud account status (spec_ios.md §11 item 1).
+/// The iCloud account status (ios.md §11 item 1).
 enum AccountStatus {
     /// `nil` container: UI testing, where only `-iCloudAccount none` says no.
     static func check(containerIdentifier: String?) async -> AccountState {

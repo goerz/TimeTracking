@@ -1,4 +1,4 @@
-// ActivityFocusMove+Key: the arrow keys as focus moves (spec_activity.md §2).
+// ActivityFocusMove+Key: the arrow keys as focus moves (activity.md §2).
 
 import SwiftUI
 import TimeTrackingCore

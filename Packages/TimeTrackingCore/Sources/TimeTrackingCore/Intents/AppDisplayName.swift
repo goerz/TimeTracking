@@ -1,5 +1,5 @@
 // AppDisplayName: the app's name as the Home Screen shows it, for texts
-// that name the app (spec_ios.md §3.1, §6.1). The name is personal (from
+// that name the app (ios.md §3.1, §6.1). The name is personal (from
 // local.mk), so no text hard-codes it.
 
 import Foundation

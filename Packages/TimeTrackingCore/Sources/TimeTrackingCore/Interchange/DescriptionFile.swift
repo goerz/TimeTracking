@@ -1,5 +1,5 @@
 // DescriptionFile: the TOML (or JSON) file stating the clients, areas,
-// colors, and standing projects a store should have (spec_automation.md §4.1).
+// colors, and standing projects a store should have (automation.md §4.1).
 
 public import Foundation
 import TOMLKit

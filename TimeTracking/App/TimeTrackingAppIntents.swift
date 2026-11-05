@@ -1,5 +1,5 @@
 // TimeTrackingAppIntents: the Mac app's App Intents, the library's
-// package (spec_automation.md §5).
+// package (automation.md §5).
 
 import AppIntents
 import TimeTrackingCore

@@ -1,5 +1,5 @@
 // TrackerFileSettings: the [files] table of settings.toml
-// (spec_activity_tracking.md §2.2, §7.1). A missing key takes its default.
+// (activity_tracking.md §2.2, §7.1). A missing key takes its default.
 
 /// `[files]`: the watched roots and how files group into work folders.
 public struct TrackerFileSettings: Sendable, Hashable, Codable {

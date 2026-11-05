@@ -1,4 +1,4 @@
-// LiveStatePublisher fed current.json files (spec_data_and_sync.md §4.2, §9 item 34).
+// LiveStatePublisher fed current.json files (data_and_sync.md §4.2, §9 item 34).
 
 import Foundation
 import Testing

@@ -1,5 +1,5 @@
 // ChangeNotifier: the cross-process change signal `<APP_ID>.changed`
-// (spec_data_and_sync.md §2.2, spec_architecture.md §1.5).
+// (data_and_sync.md §2.2, architecture.md §1.5).
 
 import Darwin
 import Foundation

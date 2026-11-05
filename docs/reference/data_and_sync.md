@@ -27,7 +27,7 @@ Renaming a client renames its general area in the same transaction. The general 
 
 Default color of a new area (including a new client's general area): take the HSB hues (whole degrees) of all live areas with saturation at least 0.1. With none, use hue 210. Otherwise take the midpoint, rounded down, of the largest circular gap between sorted hues (on equal gaps, the one starting at the smallest hue). The color is that hue at saturation 0.65 and brightness 0.80, rounded per sRGB channel.
 
-Text on an area color is black or white, whichever has the higher WCAG contrast; [spec_projects.md](spec_projects.md) §4.4 defines tints and lightness steps.
+Text on an area color is black or white, whichever has the higher WCAG contrast; [projects.md](projects.md) §4.4 defines tints and lightness steps.
 
 ### 1.3 Project
 
@@ -65,7 +65,7 @@ Display and reports cut an entry into pieces, one per shown day it lies on (sect
 
 ### 1.6 Settings
 
-Synced settings are records; device settings live in the App Group's `UserDefaults` suite. The feature specs describe what each setting does ([spec_timer.md](spec_timer.md) §5.2, [spec_calendar.md](spec_calendar.md) §6, [spec_ios.md](spec_ios.md)).
+Synced settings are records; device settings live in the App Group's `UserDefaults` suite. The feature specs describe what each setting does ([timer.md](timer.md) §5.2, [calendar.md](calendar.md) §6, [ios.md](ios.md)).
 
 | Key | Scope | Default |
 |---|---|---|
@@ -102,7 +102,7 @@ A device record has the `deviceID` setting as id, a user-visible `name`, a `plat
 | activity | A workout's `HKWorkoutActivityType` case name (`running`), or `other-` and the raw value for a type the iPhone's table doesn't name. Nil for sleep and for workouts imported before schema version 3. |
 | distance | A workout's distance in whole meters, summed over what it records (a swim-bike-run has three); otherwise nil. |
 
-Sleep and workouts from Apple Health, for the Calendar ([spec_calendar.md](spec_calendar.md) §3.1). Only the iPhone imports and writes them ([spec_ios.md](spec_ios.md) §7 item 6); they sync to the Mac and iPad and are not part of the JSON export.
+Sleep and workouts from Apple Health, for the Calendar ([calendar.md](calendar.md) §3.1). Only the iPhone imports and writes them ([ios.md](ios.md) §7 item 6); they sync to the Mac and iPad and are not part of the JSON export.
 
 A sleep period is the asleep samples of any stage merged where they overlap or lie at most 30 minutes apart, plus each in-bed period holding no asleep sample (a night recorded by the sleep schedule alone). A workout period runs from a workout's start to its end; overlapping workouts (one workout recorded by two apps) merge, while workouts that only touch stay apart. A merged period takes the activity and distance of its longest workout, since a sum would count the same exercise twice.
 
@@ -114,7 +114,7 @@ After an import in which at least one kind succeeded, the iPhone writes `calenda
 
 ### 2.1 Store and schema
 
-The store is the product's own SQLite schema rather than SwiftData, because the running-entry rule needs a custom merge, reports need SQL, and scripts need a stable format. It is one database in WAL mode at `<App Group container>/Library/Application Support/TimeTracking/store.sqlite` (spec_architecture.md §1.5; Debug builds have their own). The tracker agent does not open it. Timestamps are Unix seconds except `modified_at` (milliseconds); booleans are 0/1.
+The store is the product's own SQLite schema rather than SwiftData, because the running-entry rule needs a custom merge, reports need SQL, and scripts need a stable format. It is one database in WAL mode at `<App Group container>/Library/Application Support/TimeTracking/store.sqlite` (architecture.md §1.5; Debug builds have their own). The tracker agent does not open it. Timestamps are Unix seconds except `modified_at` (milliseconds); booleans are 0/1.
 
 Entity tables (`client`, `area`, `project`, `time_entry`, `setting`, `device`, `health_period`) hold the fields of section 1 in snake case, with `setting` as `key` and JSON `value`. The `time_entry` table adds the computed `day` (`YYYY-MM-DD`, the local date of `start` in `time_zone`) and `task_key` (the folded task). The tables `meta` (`schema_version`, currently 4, and `store_id`), `live_state`, `outbox`, `sync_state`, and `purged_record` (hard-deleted ids, so `restore` can report `retentionExpired`) are internal. Scripts read entries through this view, whose `day` is the date of the entry's start in its own zone, whatever Midnight says; an entry can span dates, so its `seconds` can exceed a day:
 
@@ -174,7 +174,7 @@ Changed rows get `modifiedAt = now` and are queued; the pass never reopens an en
 
 The pass repairs nothing else. The query `consistencyIssues()` reports a running entry starting more than 5 minutes ahead of this device's clock, dangling references, and duplicate names.
 
-Every change the pass or conflict resolution makes to an entry is an adjustment, kept in a ring of 100 and the `os` log, with reason `stoppedByLaterStart`, `removedByLaterStart`, `replacedByRemoteEdit`, `deletedRemotely`, or `restoredRemotely`. Adjustments to entries created on this device are emitted as `.adjusted`, which the iOS app shows as a banner ([spec_ios.md](spec_ios.md) §7).
+Every change the pass or conflict resolution makes to an entry is an adjustment, kept in a ring of 100 and the `os` log, with reason `stoppedByLaterStart`, `removedByLaterStart`, `replacedByRemoteEdit`, `deletedRemotely`, or `restoredRemotely`. Adjustments to entries created on this device are emitted as `.adjusted`, which the iOS app shows as a banner ([ios.md](ios.md) §7).
 
 ## 4. Live updates
 
@@ -202,7 +202,7 @@ Activity part, Mac app only: the app watches the local `current.json` and writes
 
 ### 4.3 Widget pushes
 
-The iOS app stores its widget push token on its `Device` record (iOS spec §4, item 1). Only the Mac app sends pushes (spec_architecture.md §2.4), to every `iphone` or `ipad` device with a token, when the engine confirms the Mac's own `LiveState` save and when it applies a fetched `LiveState` whose running part changed. Another Mac's activity change sends nothing, since that Mac sends its own.
+The iOS app stores its widget push token on its `Device` record (iOS spec §4, item 1). Only the Mac app sends pushes (architecture.md §2.4), to every `iphone` or `ipad` device with a token, when the engine confirms the Mac's own `LiveState` save and when it applies a fetched `LiveState` whose running part changed. Another Mac's activity change sends nothing, since that Mac sends its own.
 
 Running-part pushes go out at once; activity-only pushes at most once per 60 seconds per token, a later one being sent at the window's end. With two Macs, duplicates only cause an extra reload. The push status is `noKey` (no pushes), `idle(lastSentAt)`, or `failing(message)`.
 
@@ -232,7 +232,7 @@ Timestamps are RFC 3339 UTC; a running entry has `"end": null`. Only synced sett
 
 ### 5.2 Import
 
-The command `timetracking import` reads the same format and upserts by id. Import is the inverse of export, so converters for other products stay outside the app (spec_automation.md).
+The command `timetracking import` reads the same format and upserts by id. Import is the inverse of export, so converters for other products stay outside the app (automation.md).
 
 Required: `format` 1; clients `id`, `name`; areas `id`, `clientID`, `name`, `color`; projects `id`, `areaID`, `name`; entries `id`, `start`, `end`. Missing optional fields default to `sortOrder` 0, false flags, null `archivedAt` and `projectID`, empty `task`, `createdAt` now, `timeZone` `options.defaultTimeZone` (else the device's zone), and `deviceID` the importing device. The import ignores `generatedAt`, `storeID`, and `devices`, and applies `settings` only with `options.includeSettings`. An export from before schema version 4 carries `splitRootID`: contiguous pieces of a chain become one entry, as in 2.1, and the field is otherwise ignored.
 
@@ -247,7 +247,7 @@ The report counts `created`, `updated`, `unchanged`, and `skippedDeleted` per en
 
 ## 6. Activity logs
 
-The tracker spec defines the formats and folders ([spec_activity_tracking.md](spec_activity_tracking.md) §4.1).
+The tracker spec defines the formats and folders ([activity_tracking.md](activity_tracking.md) §4.1).
 
 | Artifact | Location | Writer | Readers |
 |---|---|---|---|
@@ -280,7 +280,7 @@ Task autocompletion matches the folded prefix against `task_key`, skips archived
 
 A report takes a range of shown days, up to four grouping levels (client, area, project, task, day), a granularity (day, week, month, year, total), and a filter.
 
-It counts each entry's piece on each shown day as one entry of that day (section 8), the running one up to the query time, so the Timer list and Reports agree. Client and area grouping use the project's current area. A health kind that is shown and mapped to a live area adds one row per day it touches, its part of that day, under a fixed project id named "Sleep" or "Workouts" in that area, with an empty task ([spec_reports.md](spec_reports.md) §1.1). The tool's `report` includes health rows only with `--health`. A query's optional instant bounds keep only the entries starting inside them and cut health time at them (spec_automation.md §3.2). The query `entries(matching:)` selects stored entries by their `day`.
+It counts each entry's piece on each shown day as one entry of that day (section 8), the running one up to the query time, so the Timer list and Reports agree. Client and area grouping use the project's current area. A health kind that is shown and mapped to a live area adds one row per day it touches, its part of that day, under a fixed project id named "Sleep" or "Workouts" in that area, with an empty task ([reports.md](reports.md) §1.1). The tool's `report` includes health rows only with `--health`. A query's optional instant bounds keep only the entries starting inside them and cut health time at them (automation.md §3.2). The query `entries(matching:)` selects stored entries by their `day`.
 
 ### 7.4 Observation
 
@@ -310,7 +310,7 @@ The synced setting Midnight (`day.midnightHour`, whole hours, default 00:00) set
 
 A shown day that starts before noon is named after the date it starts on; one that starts at noon or later after the date it ends on, so with Midnight at 04:00 "Tuesday" runs Tuesday 04:00 to Wednesday 04:00, and with 22:00 Monday 22:00 to Tuesday 22:00. Each local date holds one day change. Days last 23 or 25 hours across DST changes. An hour a DST change skips is replaced by the first instant after it; of an hour it repeats, the first counts. Weeks are Monday to Sunday of shown days, with ISO 8601 numbers.
 
-Shown, an entry is one *piece* per day it lies on in its own zone (`TrackingCalendar.pieces(of:at:)`), with the entry's id: each has its part of the interval and its day, only the last one runs, and each counts as an entry of its day, so sums over days stay plain sums. Editing always acts on the stored entry, and in a list the first row of an entry presents its editor. The apps look every minute and reload when the shown day has changed, so the running entry's part moves to the new day. The tool's `entries` lists stored entries by their start (`spec_automation.md` §3.2). Activity blocks and background stretches keep one shown day, that of their start, because their items cannot be divided; the Calendar draws them in every column they reach.
+Shown, an entry is one *piece* per day it lies on in its own zone (`TrackingCalendar.pieces(of:at:)`), with the entry's id: each has its part of the interval and its day, only the last one runs, and each counts as an entry of its day, so sums over days stay plain sums. Editing always acts on the stored entry, and in a list the first row of an entry presents its editor. The apps look every minute and reload when the shown day has changed, so the running entry's part moves to the new day. The tool's `entries` lists stored entries by their start ([automation.md](automation.md) §3.2). Activity blocks and background stretches keep one shown day, that of their start, because their items cannot be divided; the Calendar draws them in every column they reach.
 
 Durations are integer seconds throughout; rounding happens only in formatting.
 

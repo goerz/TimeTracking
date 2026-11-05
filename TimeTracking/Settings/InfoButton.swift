@@ -1,5 +1,5 @@
-// InfoButton: the info button of a settings row (spec_activity_tracking.md
-// §7.4, spec_timer.md §8.1).
+// InfoButton: the info button of a settings row (activity_tracking.md
+// §7.4, timer.md §8.1).
 
 import SwiftUI
 import TimeTrackingCore

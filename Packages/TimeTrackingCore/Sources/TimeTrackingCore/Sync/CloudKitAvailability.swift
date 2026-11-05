@@ -1,5 +1,5 @@
 // CloudKitAvailability: whether this process may use its CloudKit container
-// (spec_data_and_sync.md §3.1 item 5).
+// (data_and_sync.md §3.1 item 5).
 
 import Foundation
 #if os(macOS)

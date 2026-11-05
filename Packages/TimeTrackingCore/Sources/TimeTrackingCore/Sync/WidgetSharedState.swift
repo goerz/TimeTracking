@@ -1,7 +1,7 @@
 // WidgetSharedState: what the iOS app and its widget extension share in the
 // App Group besides the store: the last resolved LiveState, the fetch and
 // write times of the resolver, the widget push token, and whether the first
-// sync has delivered the store (spec_ios.md §3.1, §4).
+// sync has delivered the store (ios.md §3.1, §4).
 
 public import Foundation
 
@@ -115,13 +115,13 @@ public struct WidgetSharedState: Sendable {
         pushToken = .some(widgetCount == 0 ? nil : token.hexString)
     }
 
-    /// Whether the first sync has delivered the store (spec_ios.md §11).
+    /// Whether the first sync has delivered the store (ios.md §11).
     public var setupComplete: Bool {
         get { defaults.bool(forKey: Key.setupComplete) }
         nonmutating set { defaults.set(newValue, forKey: Key.setupComplete) }
     }
 
-    /// When the app last flushed the collection file (spec_ios.md §9.6).
+    /// When the app last flushed the collection file (ios.md §9.6).
     public var lastFlushAt: Date? {
         get { defaults.object(forKey: Key.lastFlushAt) as? Date }
         nonmutating set { defaults.set(newValue, forKey: Key.lastFlushAt) }

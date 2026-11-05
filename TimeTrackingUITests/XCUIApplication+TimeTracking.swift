@@ -1,5 +1,5 @@
 // XCUIApplication+TimeTracking: the Debug Mac app as the UI tests launch it
-// (spec_architecture.md §3.3).
+// (architecture.md §3.3).
 
 import XCTest
 

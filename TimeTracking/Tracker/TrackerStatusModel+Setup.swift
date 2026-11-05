@@ -1,5 +1,5 @@
 // TrackerStatusModel+Setup: the setup checklist of the Tracker pane, with
-// each row's on and off line and info (spec_activity_tracking.md §7.4).
+// each row's on and off line and info (activity_tracking.md §7.4).
 
 import Foundation
 import TimeTrackingCore

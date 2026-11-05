@@ -1,5 +1,5 @@
 // The tool's instant bounds, `tomorrow`, report health time, and the strict
-// check (spec_automation.md §3.2, §3.7, §4.2, §9 items 41 and 43 to 45).
+// check (automation.md §3.2, §3.7, §4.2, §9 items 41 and 43 to 45).
 
 import Foundation
 import Testing

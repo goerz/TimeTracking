@@ -1,4 +1,4 @@
-// When and to whom the Mac sends widget pushes (spec_data_and_sync.md §4.3, §9 item 35).
+// When and to whom the Mac sends widget pushes (data_and_sync.md §4.3, §9 item 35).
 
 import CryptoKit
 import Foundation

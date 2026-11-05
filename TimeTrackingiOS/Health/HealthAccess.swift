@@ -1,5 +1,5 @@
 // HealthAccess: Apple Health as the iPhone's import uses it, so tests can
-// replace HealthKit (spec_ios.md §7 item 6).
+// replace HealthKit (ios.md §7 item 6).
 
 import Foundation
 import TimeTrackingCore

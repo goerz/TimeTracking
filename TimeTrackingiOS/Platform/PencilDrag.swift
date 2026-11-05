@@ -1,5 +1,5 @@
 // PencilDrag: the iPad Calendar's Apple Pencil pan, which SwiftUI does not
-// provide (spec_calendar.md §2.3, §2.4; spec_ios.md §10.2).
+// provide (calendar.md §2.3, §2.4; ios.md §10.2).
 
 import SwiftUI
 import UIKit

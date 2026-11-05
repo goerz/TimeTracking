@@ -1,5 +1,5 @@
 // ReportsView: toolbar, filter bar, tiles, chart card, and the breakdown or
-// entry list (spec_reports.md §1; spec_design.md §4).
+// entry list (reports.md §1; design.md §4).
 
 import SwiftUI
 import TimeTrackingCore
@@ -83,7 +83,7 @@ struct ReportsView: View {
     }
 
     /// Leading: the period items; trailing: Filters. The search field
-    /// follows at the far end (spec_design.md §4).
+    /// follows at the far end (design.md §4).
     @ToolbarContentBuilder private var toolbar: some ToolbarContent {
         DateRangeToolbar(range: model.range, showsPopover: $model.showsDatePopover) {
             Task { await model.reload() }

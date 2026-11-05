@@ -1,5 +1,5 @@
 // TrackerDuration: the duration strings of settings.toml ("30s", "5m", "3h")
-// (spec_activity_tracking.md §7.1).
+// (activity_tracking.md §7.1).
 
 public import Foundation
 

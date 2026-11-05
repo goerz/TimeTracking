@@ -1,4 +1,4 @@
-// ImportDocument: parsing and field validation of an import (spec_data_and_sync.md §5.2, step 1).
+// ImportDocument: parsing and field validation of an import (data_and_sync.md §5.2, step 1).
 
 import Foundation
 

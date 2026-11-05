@@ -1,4 +1,4 @@
-// DemoSeedError: why `make demo` refused a store (spec_architecture.md §2.5).
+// DemoSeedError: why `make demo` refused a store (architecture.md §2.5).
 
 import Foundation
 

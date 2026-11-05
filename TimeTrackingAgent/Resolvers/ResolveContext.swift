@@ -1,5 +1,5 @@
 // ResolveContext: settings, exclusions, and path rules shared by the
-// resolvers (spec_activity_tracking.md §2.2 rule 3, §7.2).
+// resolvers (activity_tracking.md §2.2 rule 3, §7.2).
 
 // nil means "cannot read", which differs from an empty answer.
 // swiftlint:disable discouraged_optional_collection

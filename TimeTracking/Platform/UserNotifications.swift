@@ -1,5 +1,5 @@
 // UserNotifications: the Mac app's notifications through
-// UNUserNotificationCenter (spec_timer.md §10).
+// UNUserNotificationCenter (timer.md §10).
 
 import Foundation
 import UserNotifications

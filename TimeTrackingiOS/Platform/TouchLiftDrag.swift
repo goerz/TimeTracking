@@ -1,5 +1,5 @@
 // TouchLiftDrag: the iPad Calendar's long press, then drag, by finger
-// (spec_calendar.md §2.3, §2.4; spec_ios.md §10.2). A UIKit long press
+// (calendar.md §2.3, §2.4; ios.md §10.2). A UIKit long press
 // takes the touch only once the press is held, so a quick drag still
 // scrolls; SwiftUI's long press sequenced before a drag took every touch,
 // and the Calendar did not scroll by finger.

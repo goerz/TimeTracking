@@ -1,4 +1,4 @@
-// The Calendar's overlapping loads and commits (spec_calendar.md §1.2,
+// The Calendar's overlapping loads and commits (calendar.md §1.2,
 // §2.3).
 
 import Foundation

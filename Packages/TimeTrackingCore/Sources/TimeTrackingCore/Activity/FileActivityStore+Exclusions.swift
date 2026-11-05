@@ -1,5 +1,5 @@
 // FileActivityStore+Exclusions: applying settings.toml's exclusions to blocks
-// already in the logs (spec_activity_tracking.md §7.2, spec_data_and_sync.md §6).
+// already in the logs (activity_tracking.md §7.2, data_and_sync.md §6).
 
 import Foundation
 

@@ -1,4 +1,4 @@
-// The Debug agent's identity and folders as built (spec_architecture.md
+// The Debug agent's identity and folders as built (architecture.md
 // §1.4, §1.5).
 
 import Foundation

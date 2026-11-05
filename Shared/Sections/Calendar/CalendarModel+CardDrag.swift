@@ -1,5 +1,5 @@
 // CalendarModel+CardDrag: a card's drag under way, Escape during it, and what
-// lies under its pointer (spec_calendar.md §2.4, §4.2).
+// lies under its pointer (calendar.md §2.4, §4.2).
 
 import Foundation
 import TimeTrackingCore

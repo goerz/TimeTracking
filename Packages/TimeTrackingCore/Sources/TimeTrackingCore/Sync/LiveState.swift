@@ -1,6 +1,6 @@
 // LiveState: the running entry and each Mac's current activity, mirrored in
 // the `live_state` row and the CloudKit record `LiveState`
-// (spec_data_and_sync.md §4.1).
+// (data_and_sync.md §4.1).
 
 public import Foundation
 
@@ -60,7 +60,7 @@ public struct LiveState: Hashable, Sendable {
         /// The presence state (`active`, `passive`, `idle`, …), or `nil` without `current.json`.
         public var presence: String?
         public var since: Date?
-        /// Whether the tracker runs by the rule of the tracker spec §4.4.
+        /// Whether the tracker runs by the rule of activity_tracking.md §4.4.
         public var agentRunning: Bool
         public var lastTick: Date?
         /// The ids of the sources whose status is not `active`.

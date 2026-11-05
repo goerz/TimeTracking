@@ -1,5 +1,5 @@
 // The Tracked column's commands: drawing, moving, resizing, overlaps,
-// deleting, splitting, duplicating (spec_calendar.md §2).
+// deleting, splitting, duplicating (calendar.md §2).
 
 import Foundation
 import TimeTrackingCore

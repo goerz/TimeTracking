@@ -1,4 +1,4 @@
-// Record types and references of the sync layer (spec_data_and_sync.md §3.1).
+// Record types and references of the sync layer (data_and_sync.md §3.1).
 
 import Foundation
 

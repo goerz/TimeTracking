@@ -1,5 +1,5 @@
 // TimeStore+ContextColors: the synced context color assignments of the
-// Activity view and the Calendar's blocks (spec_activity.md §1.3).
+// Activity view and the Calendar's blocks (activity.md §1.3).
 
 import Foundation
 

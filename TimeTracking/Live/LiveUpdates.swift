@@ -1,8 +1,8 @@
 // LiveUpdates: the Mac app's live-update side: the sync coordinator and
 // its fetches on activation and every 30 seconds, LiveStatePublisher,
 // WidgetPushSender, the Device record, daily maintenance, and the copy of the agent's fallback block log
-// (spec_data_and_sync.md §3.1, §4; spec_activity_tracking.md §4.1;
-// spec_architecture.md §1.3).
+// (data_and_sync.md §3.1, §4; activity_tracking.md §4.1;
+// architecture.md §1.3).
 
 import Foundation
 import Observation
@@ -17,7 +17,7 @@ final class LiveUpdates {
     /// The period of the publisher, push, and folder-copy pass.
     static let interval: Duration = .seconds(2)
     /// The period of the fetch that backs up CloudKit's throttled silent
-    /// pushes (spec_data_and_sync.md §3.1).
+    /// pushes (data_and_sync.md §3.1).
     static let fetchInterval: TimeInterval = 30
 
     @ObservationIgnored let store: TimeStore
@@ -186,7 +186,7 @@ final class LiveUpdates {
         }
     }
 
-    /// The settings window's widget updates line (spec_data_and_sync.md
+    /// The settings window's widget updates line (data_and_sync.md
     /// §4.3); a failure's detail goes to the log.
     var pushStatusText: String {
         switch pushStatus {

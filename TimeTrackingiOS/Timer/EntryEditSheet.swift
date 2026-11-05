@@ -1,4 +1,4 @@
-// EntryEditSheet: the iPhone's edit sheet (spec_ios.md §2.7): task, project,
+// EntryEditSheet: the iPhone's edit sheet (ios.md §2.7): task, project,
 // Start and End pickers, the duration, "Created on", Continue and Delete;
 // Done saves, Cancel discards.
 

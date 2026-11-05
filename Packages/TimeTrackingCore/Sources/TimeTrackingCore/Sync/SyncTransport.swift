@@ -1,4 +1,4 @@
-// SyncTransport: the server side of sync, CloudKit or in memory (spec_data_and_sync.md §3.1, §3.3).
+// SyncTransport: the server side of sync, CloudKit or in memory (data_and_sync.md §3.1, §3.3).
 
 public import Foundation
 
@@ -44,7 +44,7 @@ public enum SyncTransportError: Error, Hashable, Sendable, LocalizedError {
     /// Any other failure; the message (CloudKit's) is for logs.
     case other(String)
 
-    /// The settings window's iCloud line (spec_design.md §12); logs use
+    /// The settings window's iCloud line (design.md §11); logs use
     /// `String(describing:)`, which keeps CloudKit's message.
     public var errorDescription: String? {
         switch self {

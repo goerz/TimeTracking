@@ -1,5 +1,5 @@
 // TrackerBrowserSettings: the [browser] table of settings.toml with
-// [browser.categories] (spec_activity_tracking.md §3.3, §7.1). A missing key
+// [browser.categories] (activity_tracking.md §3.3, §7.1). A missing key
 // takes its default.
 
 /// `[browser]`: domain categories and which of them summarize to the domain.

@@ -1,5 +1,5 @@
 // ActivityHeatmap+Focus: the arrow keys on the heatmap's cells
-// (spec_activity.md §2).
+// (activity.md §2).
 
 extension ActivityHeatmap {
     /// A cell: its row and clock hour.

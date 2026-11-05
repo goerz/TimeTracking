@@ -1,4 +1,4 @@
-// StoreObserver (spec_data_and_sync.md §7.4).
+// StoreObserver (data_and_sync.md §7.4).
 
 import Foundation
 import Testing

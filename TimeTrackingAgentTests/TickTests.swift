@@ -1,4 +1,4 @@
-// Ticks requested by several sources at once (spec_activity_tracking.md §5).
+// Ticks requested by several sources at once (activity_tracking.md §5).
 
 import Foundation
 import Testing

@@ -1,5 +1,5 @@
 // SyntheticDataset: deterministic synthetic data for fixtures, tests, and
-// performance checks (spec_data_and_sync.md §9.1, spec_architecture.md §3.4).
+// performance checks (data_and_sync.md §9.1, architecture.md §3.4).
 
 public import Foundation
 
@@ -70,7 +70,7 @@ public struct SyntheticDataset: Sendable {
         Self(clients: 10, areas: 40, projects: 120, days: ending(days: 10 * 365), seed: seed)
     }
 
-    /// The store fixtures of spec_architecture.md §3.4 by name: `empty`,
+    /// The store fixtures of architecture.md §3.4 by name: `empty`,
     /// `small` (3 clients, 5 areas, 12 projects, two weeks), `large` (two
     /// years), `running` (`small` with an entry running for 25 minutes).
     public static func fixture(named name: String) -> Self? {

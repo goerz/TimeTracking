@@ -1,5 +1,5 @@
 // WidgetIntentActions: what the iOS widget and control buttons do, behind
-// the wrapper intents that run in the app process (spec_ios.md §4 item 3,
+// the wrapper intents that run in the app process (ios.md §4 item 3,
 // §5, §6.1). The intents only build a `WidgetAction` and hand it to the
 // app's `WidgetActionEnvironment`.
 
@@ -33,9 +33,9 @@ public enum WidgetIntentActions {
     /// How long a button waits for the entry it acts on to arrive.
     public static let fetchTimeout: TimeInterval = 10
 
-    /// Tracking from any surface before the first sync (spec_ios.md §6.1).
+    /// Tracking from any surface before the first sync (ios.md §6.1).
     public static let setupMessage = "Open \(AppDisplayName.orGeneric) once to finish setting up."
-    /// An entry known only from `LiveState` did not arrive (spec_ios.md §4 item 3).
+    /// An entry known only from `LiveState` did not arrive (ios.md §4 item 3).
     public static let unreachableMessage = "Couldn't reach iCloud. Try again in a moment."
 
     /// Performs `action`. A stop of an entry the store does not hold yet

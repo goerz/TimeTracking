@@ -1,5 +1,5 @@
 // IntentActions: what the App Intents do, on an AutomationService, with
-// their dialogs (spec_automation.md §5, spec_ios.md §6.3). The intents'
+// their dialogs (automation.md §5, ios.md §6.3). The intents'
 // `perform()` only resolves parameters and calls these.
 
 public import Foundation

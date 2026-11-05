@@ -1,5 +1,5 @@
 // ActivityRowAction: a row of the Apps or Subjects list that a click and
-// Space act on (spec_activity.md §1.6, §2).
+// Space act on (activity.md §1.6, §2).
 
 import SwiftUI
 

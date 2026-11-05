@@ -1,6 +1,6 @@
 // SampleStore+DeviceEvents: the fetched DeviceEvents, kept with the
 // samples so a device-day can be merged again when late events arrive
-// (spec_activity_tracking.md §6.2; kept 90 days, never leaves the Mac).
+// (activity_tracking.md §6.2; kept 90 days, never leaves the Mac).
 
 import Foundation
 import GRDB

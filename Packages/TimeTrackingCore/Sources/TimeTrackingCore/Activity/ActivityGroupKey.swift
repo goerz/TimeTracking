@@ -1,4 +1,4 @@
-// ActivityGroupKey: the dimensions of an activity aggregate (spec_data_and_sync.md §6).
+// ActivityGroupKey: the dimensions of an activity aggregate (data_and_sync.md §6).
 
 /// What `ActivityReading.aggregate(in:by:device:)` groups by.
 public enum ActivityGroupKey: String, Sendable, Hashable, CaseIterable {

@@ -1,5 +1,5 @@
 // Resolving the names scripts use for projects, areas, and clients
-// (spec_automation.md §3.3).
+// (automation.md §3.3).
 
 import Foundation
 

@@ -1,5 +1,5 @@
 // AreaFormView: the area sheet with the system color well
-// (spec_projects.md §4.3, §4.4).
+// (projects.md §4.3, §4.4).
 
 import SwiftUI
 import TimeTrackingCore

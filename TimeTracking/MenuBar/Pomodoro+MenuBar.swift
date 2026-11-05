@@ -1,5 +1,5 @@
 // Pomodoro+MenuBar: the Pomodoro countdown of the status item and its menu
-// (spec_menubar.md §1.1, §2.1).
+// (menubar.md §1.1, §2.1).
 
 import Foundation
 import TimeTrackingCore

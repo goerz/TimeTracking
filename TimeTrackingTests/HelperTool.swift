@@ -1,6 +1,6 @@
 // HelperTool: the Debug app's bundled `timetracking` run against a store
-// file, and an event-driven wait for the models (spec_automation.md §1,
-// spec_architecture.md §3).
+// file, and an event-driven wait for the models (automation.md §1,
+// architecture.md §3).
 
 import Foundation
 import Observation

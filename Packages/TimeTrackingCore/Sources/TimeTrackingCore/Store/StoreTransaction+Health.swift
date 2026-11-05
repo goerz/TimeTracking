@@ -1,5 +1,5 @@
 // The Apple Health import's write: replacing the sleep or workout periods
-// from a time on (spec_data_and_sync.md §1.9, §7.1).
+// from a time on (data_and_sync.md §1.9, §7.1).
 
 public import Foundation
 import GRDB

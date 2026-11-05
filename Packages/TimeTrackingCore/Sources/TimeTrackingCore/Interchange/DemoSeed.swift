@@ -1,5 +1,5 @@
 // DemoSeed: `make demo` replaces a development store with a store fixture
-// moved to today (spec_architecture.md §2.5, §7 item 23).
+// moved to today (architecture.md §2.5, §7 item 23).
 
 public import Foundation
 

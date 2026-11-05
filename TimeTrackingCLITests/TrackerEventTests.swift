@@ -1,5 +1,5 @@
 // tracker-event against a stand-in for the agent's socket
-// (spec_activity_tracking.md §3.1, §7.3).
+// (activity_tracking.md §3.1, §7.3).
 
 import Darwin
 import Foundation

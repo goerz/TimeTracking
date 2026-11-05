@@ -1,4 +1,4 @@
-// The store's LiveState API (spec_data_and_sync.md §4.1, §4.2).
+// The store's LiveState API (data_and_sync.md §4.1, §4.2).
 
 import Foundation
 

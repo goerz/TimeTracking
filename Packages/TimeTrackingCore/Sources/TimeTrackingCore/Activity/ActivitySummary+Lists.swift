@@ -1,5 +1,5 @@
 // ActivitySummary+Lists: the Contexts, Subjects, and In the background panels
-// (spec_activity.md §1.6, §1.7).
+// (activity.md §1.6, §1.7).
 
 /// A row of the Contexts panel.
 public struct ActivityContextRow: Sendable, Hashable, Identifiable {

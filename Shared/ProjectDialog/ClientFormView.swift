@@ -1,4 +1,4 @@
-// ClientFormView: the client sheet (spec_projects.md §4.2).
+// ClientFormView: the client sheet (projects.md §4.2).
 
 import SwiftUI
 import TimeTrackingCore

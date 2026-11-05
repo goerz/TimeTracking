@@ -1,4 +1,4 @@
-// Entities to and from sync records; field names are those of spec_data_and_sync.md §1.
+// Entities to and from sync records; field names are those of data_and_sync.md §1.
 
 import Foundation
 import GRDB

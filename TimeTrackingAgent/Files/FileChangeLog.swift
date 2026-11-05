@@ -1,5 +1,5 @@
 // FileChangeLog: files modified under the watched roots, for the detail log
-// (spec_activity_tracking.md §3.4, §7.2).
+// (activity_tracking.md §3.4, §7.2).
 
 import Foundation
 import TimeTrackingCore

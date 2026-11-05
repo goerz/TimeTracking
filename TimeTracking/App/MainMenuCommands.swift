@@ -1,4 +1,4 @@
-// MainMenuCommands: the Mac app's main menu (spec_timer.md §9).
+// MainMenuCommands: the Mac app's main menu (timer.md §9).
 // File, Edit, View, Timer, Entry, Project, Window: a fixed set, as
 // in Music or Mail; Entry and Project act on what is selected in the view
 // shown, and are enabled by that selection.

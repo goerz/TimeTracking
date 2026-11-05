@@ -1,5 +1,5 @@
 // TerminalResolver+Editor: the editor chain of a pane: title, Neovim RPC,
-// arguments, cwd (spec_activity_tracking.md §3.1).
+// arguments, cwd (activity_tracking.md §3.1).
 
 import Foundation
 import TimeTrackingCore

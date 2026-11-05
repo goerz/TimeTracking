@@ -1,5 +1,5 @@
 // TerminationSignal: stopping the agent cleanly when launchd sends SIGTERM
-// at logout, shutdown, or unregistration (spec_activity_tracking.md §2.8, §5).
+// at logout, shutdown, or unregistration (activity_tracking.md §2.8, §5).
 
 import Foundation
 

@@ -1,5 +1,5 @@
 #!/bin/sh
-# `make install` and `make uninstall` (spec_architecture.md §2.5, ARCH-20).
+# `make install` and `make uninstall` (architecture.md §2.5, ARCH-20).
 #
 #   scripts/install.sh install   <built app> <BUNDLE_ID> <APP_NAME> <PREFIX> [<ALIAS>]
 #   scripts/install.sh uninstall <BUNDLE_ID> <APP_NAME> <PREFIX> [<ALIAS>]

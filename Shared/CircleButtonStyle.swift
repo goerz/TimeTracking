@@ -1,5 +1,5 @@
 // CircleButtonStyle: start, stop, continue, and discard buttons
-// (spec_design.md §7).
+// (design.md §7).
 
 import SwiftUI
 

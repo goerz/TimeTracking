@@ -1,5 +1,5 @@
 // ProjectsModel: the Projects section's view state and actions
-// (spec_projects.md §2). Filtering, grouping, sorting, and totals
+// (projects.md §2). Filtering, grouping, sorting, and totals
 // come from the library's `ProjectTable`.
 
 import Foundation

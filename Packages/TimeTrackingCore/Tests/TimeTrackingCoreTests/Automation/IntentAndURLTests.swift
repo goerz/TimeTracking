@@ -1,5 +1,5 @@
 // App Intents, the URL scheme, and the change signal the menu bar follows
-// (spec_automation.md §5, §6, §9 items 38 to 40). What only Shortcuts,
+// (automation.md §5, §6, §9 items 38 to 40). What only Shortcuts,
 // Siri, or a running app can show is listed in the ledger.
 
 import Foundation

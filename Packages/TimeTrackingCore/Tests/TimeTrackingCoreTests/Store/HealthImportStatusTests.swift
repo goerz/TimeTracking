@@ -1,5 +1,5 @@
 // Tests of the import status the Calendar settings show
-// (spec_calendar.md §6 and PC-25, spec_data_and_sync.md §1.9).
+// (calendar.md §6 and PC-25, data_and_sync.md §1.9).
 
 import Foundation
 import Testing

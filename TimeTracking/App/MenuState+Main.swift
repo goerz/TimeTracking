@@ -1,5 +1,5 @@
 // MenuState+Main: the menu context of the main window and the Mini Timer
-// (spec_timer.md §9).
+// (timer.md §9).
 
 import SwiftUI
 import TimeTrackingCore

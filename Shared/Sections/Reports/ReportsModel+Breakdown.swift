@@ -1,5 +1,5 @@
 // ReportsModel+Breakdown: the breakdown table's rows, expansion, sorting,
-// and drill-down to the entry list (spec_reports.md §5.3).
+// and drill-down to the entry list (reports.md §5.3).
 
 import Foundation
 import TimeTrackingCore

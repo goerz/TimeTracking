@@ -1,4 +1,4 @@
-// Where a process opens the store (spec_architecture.md §1.5, §2.5, ARCH-17, ARCH-19).
+// Where a process opens the store (architecture.md §1.5, §2.5, ARCH-17, ARCH-19).
 
 public import Foundation
 

@@ -1,6 +1,6 @@
 // MainWindowView: the main window, the Timer and the four sections in
 // the iPad's adaptable tab view, which the Mac shows as a sidebar
-// (spec_projects.md §1.1).
+// (projects.md §1.1).
 
 import SwiftUI
 import TimeTrackingCore
@@ -50,7 +50,7 @@ struct MainWindowView: View {
             app.windowActivated(.mainWindow, isKey: active, undoManager: undoManager)
         }
         // The Timer's alerts raised while this window is key, over any item
-        // (spec_timer.md §1).
+        // (timer.md §1).
         .timerAlert(timer: app.timer, list: app.mainTimer.list, active: app.alertWindow == .mainWindow)
     }
 

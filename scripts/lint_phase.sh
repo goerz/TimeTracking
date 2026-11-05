@@ -1,5 +1,5 @@
 #!/bin/sh
-# Build phase of the two apps, Debug only (spec_architecture.md §4.3):
+# Build phase of the two apps, Debug only (architecture.md §4.3):
 # SwiftFormat rewrites the sources; SwiftLint fixes what it can and reports
 # the rest as build warnings and errors.
 set -eu

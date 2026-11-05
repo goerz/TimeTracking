@@ -1,6 +1,6 @@
 #!/bin/sh
 # `make lint`: SwiftFormat --lint and SwiftLint lint --strict from the package
-# checkouts, without building the project (spec_architecture.md §4.3, ARCH-15).
+# checkouts, without building the project (architecture.md §4.3, ARCH-15).
 #
 #   scripts/lint.sh [<derived data folder>]
 #

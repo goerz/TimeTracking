@@ -1,4 +1,4 @@
-// Several stores against InMemoryTransport (spec_data_and_sync.md §3; §9 items 23 to 31).
+// Several stores against InMemoryTransport (data_and_sync.md §3; §9 items 23 to 31).
 
 import Foundation
 import Testing

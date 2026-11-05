@@ -1,5 +1,5 @@
 // PortRegistry: notebook server ports and the panes that own them
-// (spec_activity_tracking.md §2.2 rule 2, §3.1, §3.3).
+// (activity_tracking.md §2.2 rule 2, §3.1, §3.3).
 
 // nil means "cannot read", which differs from an empty answer.
 // swiftlint:disable discouraged_optional_collection

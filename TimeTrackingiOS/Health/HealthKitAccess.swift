@@ -1,5 +1,5 @@
 // HealthKitAccess: sleep analysis and workouts from HealthKit, read-only
-// (spec_ios.md §7 item 6, spec_data_and_sync.md §1.9).
+// (ios.md §7 item 6, data_and_sync.md §1.9).
 
 import Foundation
 import HealthKit

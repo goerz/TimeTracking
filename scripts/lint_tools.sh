@@ -1,6 +1,6 @@
 #!/bin/sh
 # Prints the path of the SwiftFormat or SwiftLint binary from the package
-# checkouts (spec_architecture.md §4.3, §5), building SwiftFormat once.
+# checkouts (architecture.md §4.3, §5), building SwiftFormat once.
 #
 #   scripts/lint_tools.sh swiftformat|swiftlint <SourcePackages folder>
 #

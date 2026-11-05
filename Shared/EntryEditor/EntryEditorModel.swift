@@ -1,5 +1,5 @@
 // EntryEditorModel: the edit popover's fields, commits, and notices
-// (spec_timer.md §4). The Calendar reuses it.
+// (timer.md §4). The Calendar reuses it.
 
 import Foundation
 import Observation

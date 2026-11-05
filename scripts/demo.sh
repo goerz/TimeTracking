@@ -1,5 +1,5 @@
 #!/bin/bash
-# The seeding and launching part of `make demo` (spec_architecture.md §2.5, ARCH-23).
+# The seeding and launching part of `make demo` (architecture.md §2.5, ARCH-23).
 #
 #   scripts/demo.sh <fixture> <Debug Mac app> <Debug support folder> <Debug app id> <simulator app> [<simulator>...]
 #

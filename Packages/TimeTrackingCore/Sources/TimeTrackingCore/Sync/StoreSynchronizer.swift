@@ -1,5 +1,5 @@
 // StoreSynchronizer: drains the outbox through a transport and applies
-// fetched changes (spec_data_and_sync.md §3.1). It drives the in-memory
+// fetched changes (data_and_sync.md §3.1). It drives the in-memory
 // transport in tests and `-UITesting`; the CKSyncEngine coordinator
 // (`SyncCoordinator`) uses the same store calls.
 

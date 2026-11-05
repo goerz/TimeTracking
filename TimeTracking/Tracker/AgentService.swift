@@ -1,5 +1,5 @@
 // AgentService: registering the tracker agent as a login item
-// (spec_architecture.md §1.4, spec_activity_tracking.md §7.4).
+// (architecture.md §1.4, activity_tracking.md §7.4).
 
 import Foundation
 import TimeTrackingCore

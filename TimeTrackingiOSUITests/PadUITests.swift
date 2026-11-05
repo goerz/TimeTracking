@@ -1,6 +1,6 @@
 // What only the iPad's real screens show: the tabs, the hardware keyboard,
 // drawing and scrolling in the Calendar by touch, and section URLs
-// (spec_ios.md §6.4, §10). Skipped on the iPhone.
+// (ios.md §6.4, §10). Skipped on the iPhone.
 
 import XCTest
 

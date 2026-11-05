@@ -1,5 +1,5 @@
 // SuggestionRow: one line of the Mac's task suggestions, under the bar and
-// in the edit popover (spec_timer.md §2.2, §4.1).
+// in the edit popover (timer.md §2.2, §4.1).
 
 import SwiftUI
 import TimeTrackingCore

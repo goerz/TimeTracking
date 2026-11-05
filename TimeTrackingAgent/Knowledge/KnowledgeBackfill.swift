@@ -1,5 +1,5 @@
 // KnowledgeBackfill: samples reconstructed from the Knowledge store's app
-// intervals for periods the agent was down (spec_activity_tracking.md §3.2).
+// intervals for periods the agent was down (activity_tracking.md §3.2).
 
 import Foundation
 import TimeTrackingCore

@@ -1,5 +1,5 @@
 // KeyedDecodingContainer+Settings: the decoding helpers of the settings.toml
-// sections, with defaults for absent keys (spec_activity_tracking.md §7.1).
+// sections, with defaults for absent keys (activity_tracking.md §7.1).
 
 import Foundation
 

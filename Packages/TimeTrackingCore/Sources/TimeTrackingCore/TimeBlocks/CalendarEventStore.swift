@@ -1,6 +1,6 @@
 // CalendarEventStore: the EventKit seam of the Calendar column; the live
 // store wraps EventKit, tests use the in-memory store
-// (spec_calendar.md §4).
+// (calendar.md §4).
 
 public import Foundation
 
@@ -106,7 +106,7 @@ public struct CalendarEvent: Sendable, Hashable, Identifiable {
 
     /// Whether this all-day event falls on the calendar date `day`. It
     /// belongs to dates, not to shown days, so Midnight plays no part
-    /// (spec_calendar.md §1.4).
+    /// (calendar.md §1.4).
     public func isAllDay(on day: TrackingDay, in zone: TimeZone) -> Bool {
         let date = TrackingCalendar(timeZone: zone).interval(of: day)
         return isAllDay && start < date.end && max(end, start + 1) > date.start

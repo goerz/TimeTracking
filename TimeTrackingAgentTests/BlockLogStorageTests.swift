@@ -1,5 +1,5 @@
 // The block log's per-Mac folders, whole-file day replacement, and days
-// closed after the agent was not running (spec_activity_tracking.md §2.8,
+// closed after the agent was not running (activity_tracking.md §2.8,
 // §4.1).
 
 import Foundation

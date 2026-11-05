@@ -1,6 +1,6 @@
-// EntryEditSheetModel: the iPhone's edit sheet (spec_ios.md §2.7): a draft
+// EntryEditSheetModel: the iPhone's edit sheet (ios.md §2.7): a draft
 // of task, project, start, and end that Done saves under the Mac Timer's
-// future and overlap rules (spec_timer.md §4.2).
+// future and overlap rules (timer.md §4.2).
 
 import Foundation
 import Observation

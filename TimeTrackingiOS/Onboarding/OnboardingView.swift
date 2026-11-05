@@ -1,5 +1,5 @@
 // OnboardingView: the blocking account screen, the device name, and the
-// initial sync's progress (spec_ios.md §11).
+// initial sync's progress (ios.md §11).
 
 import SwiftUI
 import TimeTrackingCore

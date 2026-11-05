@@ -1,5 +1,5 @@
 // CollectionFlush: when the iOS app flushes the collection file and what it
-// adds before the upload (spec_ios.md §6.1, §9.5, §9.6).
+// adds before the upload (ios.md §6.1, §9.5, §9.6).
 
 public import Foundation
 

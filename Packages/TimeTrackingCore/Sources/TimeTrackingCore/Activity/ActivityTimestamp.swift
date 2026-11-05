@@ -1,5 +1,5 @@
 // ActivityTimestamp: the public face of the logs' offset-free local times
-// (spec_activity_tracking.md §4.2 to §4.4).
+// (activity_tracking.md §4.2 to §4.4).
 
 public import Foundation
 

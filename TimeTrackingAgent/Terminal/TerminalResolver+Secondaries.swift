@@ -1,5 +1,5 @@
 // TerminalResolver+Secondaries: busy coding agents, other active tmux
-// clients, and job commands (spec_activity_tracking.md §2.4 step 4, §7.2).
+// clients, and job commands (activity_tracking.md §2.4 step 4, §7.2).
 
 import Foundation
 import TimeTrackingCore

@@ -1,6 +1,6 @@
 // AutomationTargets: the browsers and terminals the tracker reads through
 // Apple Events, which the Tracker pane's "Ask for Access" asks for
-// (spec_activity_tracking.md §3.1, §3.3, §7.4).
+// (activity_tracking.md §3.1, §3.3, §7.4).
 
 /// The apps whose Automation permission the tracker needs.
 public enum AutomationTargets {

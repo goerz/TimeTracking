@@ -1,5 +1,5 @@
 // EntriesResult: the entries the tool's `entries` lists, with their day
-// subtotals (spec_automation.md §3.6).
+// subtotals (automation.md §3.6).
 
 public import Foundation
 

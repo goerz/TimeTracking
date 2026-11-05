@@ -1,6 +1,6 @@
 // The timetracking tool as a subprocess: import, export, schema, version,
-// completions, the store path (spec_automation.md §3.1, §3.10, §7, §9
-// items 24 to 30, 35, 37; spec_architecture.md ARCH-19).
+// completions, the store path (automation.md §3.1, §3.10, §7, §9
+// items 24 to 30, 35, 37; architecture.md ARCH-19).
 
 import Foundation
 import SQLite3

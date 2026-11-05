@@ -1,5 +1,5 @@
 // The Knowledge store backfill and synced Safari history
-// (spec_activity_tracking.md §3.2, §6.1).
+// (activity_tracking.md §3.2, §6.1).
 
 import Foundation
 import GRDB

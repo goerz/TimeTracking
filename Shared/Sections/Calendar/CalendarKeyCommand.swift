@@ -1,5 +1,5 @@
 // CalendarKeyCommand: every key of the Calendar section with its menu item
-// (spec_calendar.md §5).
+// (calendar.md §5).
 
 import SwiftUI
 import TimeTrackingCore

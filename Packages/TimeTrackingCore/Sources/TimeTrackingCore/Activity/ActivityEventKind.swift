@@ -1,5 +1,5 @@
 // ActivityEventKind: the kinds of the "Log activity event" intent
-// (spec_ios.md §6.1, §9.4).
+// (ios.md §6.1, §9.4).
 
 /// What a Shortcuts automation reports; the raw value is the `kind` of the
 /// `intent` line.

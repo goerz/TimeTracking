@@ -1,4 +1,4 @@
-// Observation (spec_data_and_sync.md §7.4).
+// Observation (data_and_sync.md §7.4).
 
 import Foundation
 

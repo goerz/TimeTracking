@@ -1,5 +1,5 @@
 // AutomationService+Tool: the time and project arguments of the write
-// commands (spec_automation.md §3.2, §3.3).
+// commands (automation.md §3.2, §3.3).
 
 import Foundation
 import TimeTrackingCore

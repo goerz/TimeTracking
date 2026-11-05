@@ -1,5 +1,5 @@
 // Tests for TrackerSettings, TrackerDuration, and ExclusionRules
-// (spec_activity_tracking.md §7.1, §7.2).
+// (activity_tracking.md §7.1, §7.2).
 
 import Foundation
 import Testing

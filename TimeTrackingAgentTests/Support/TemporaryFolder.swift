@@ -1,4 +1,4 @@
-// TemporaryFolder: fresh folders for tests (spec_architecture.md §3.3).
+// TemporaryFolder: fresh folders for tests (architecture.md §3.3).
 
 import Foundation
 

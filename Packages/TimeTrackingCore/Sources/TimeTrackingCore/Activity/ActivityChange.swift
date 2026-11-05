@@ -1,4 +1,4 @@
-// ActivityChange: what changed in the activity folders (spec_data_and_sync.md §6).
+// ActivityChange: what changed in the activity folders (data_and_sync.md §6).
 
 /// A change reported by `ActivityReading.changes`.
 public enum ActivityChange: Sendable, Hashable {

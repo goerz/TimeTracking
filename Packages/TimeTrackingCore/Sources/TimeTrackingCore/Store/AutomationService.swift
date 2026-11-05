@@ -1,5 +1,5 @@
 // AutomationService: the operations behind the tool, the App Intents, and
-// the URL scheme (spec_automation.md §1, §3, §5, §6).
+// the URL scheme (automation.md §1, §3, §5, §6).
 
 public import Foundation
 
@@ -10,7 +10,7 @@ public struct AutomationService: Sendable {
     public let store: TimeStore
     /// The zone dates are read and printed in (the system zone).
     public let timeZone: TimeZone
-    /// Writes come from an intent, which `spec_timer.md` §8.3 tells apart
+    /// Writes come from an intent, which `timer.md` §8.3 tells apart
     /// from URLs and the tool.
     public let isIntent: Bool
 

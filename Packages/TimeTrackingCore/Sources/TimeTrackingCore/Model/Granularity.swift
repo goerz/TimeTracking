@@ -1,4 +1,4 @@
-// Granularity and TrackingPeriod: report buckets (spec_data_and_sync.md §7.3, §8).
+// Granularity and TrackingPeriod: report buckets (data_and_sync.md §7.3, §8).
 
 import Foundation
 

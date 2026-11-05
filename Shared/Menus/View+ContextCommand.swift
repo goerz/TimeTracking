@@ -1,5 +1,5 @@
 // View+ContextCommand: a menu item that applies in one window or section
-// (spec_timer.md §9).
+// (timer.md §9).
 
 import SwiftUI
 

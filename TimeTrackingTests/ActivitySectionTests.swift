@@ -1,6 +1,6 @@
 // The Activity section's view model: the shared range, the filter, the
 // footer, drill-down into the Calendar, the setup card, and exclusions
-// (spec_activity.md §6).
+// (activity.md §6).
 
 import Foundation
 import Synchronization

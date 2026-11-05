@@ -1,5 +1,5 @@
 // The Activity section's drill-down from a bar segment and its keyboard
-// focus on the heatmap and the bars (spec_activity.md §2, §3).
+// focus on the heatmap and the bars (activity.md §2, §3).
 
 import Testing
 import TimeTrackingCore

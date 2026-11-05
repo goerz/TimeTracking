@@ -1,4 +1,4 @@
-// EntryCommands: the Entry menu (spec_timer.md §9).
+// EntryCommands: the Entry menu (timer.md §9).
 
 import SwiftUI
 import TimeTrackingCore

@@ -1,5 +1,5 @@
 // MonthFileRewriter: rewriting block-log and detail-log month files line by
-// line (spec_activity_tracking.md §7.3).
+// line (activity_tracking.md §7.3).
 
 import Foundation
 import TimeTrackingCore

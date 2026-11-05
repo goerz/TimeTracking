@@ -1,4 +1,4 @@
-// SettingsScreen: the iOS Settings (spec_ios.md §2.9): short sections on the
+// SettingsScreen: the iOS Settings (ios.md §2.9): short sections on the
 // first screen; pinned projects, activity collection, and privacy on screens
 // of their own; Apple Health on the iPhone, the Calendar settings on the iPad.
 

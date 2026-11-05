@@ -1,4 +1,4 @@
-// StatusItemContent: what the menu bar item shows (spec_menubar.md §1).
+// StatusItemContent: what the menu bar item shows (menubar.md §1).
 
 /// The status item's icon, title, Pomodoro segment, badge, and accessibility label.
 struct StatusItemContent: Equatable {

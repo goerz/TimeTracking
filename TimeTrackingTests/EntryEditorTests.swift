@@ -1,4 +1,4 @@
-// The edit popover (spec_timer.md §4).
+// The edit popover (timer.md §4).
 
 import Foundation
 import Testing

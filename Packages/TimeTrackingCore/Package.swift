@@ -1,7 +1,7 @@
 // swift-tools-version: 6.2
 
 // TimeTrackingCore: the shared library linked statically by every executable
-// (spec_architecture.md §1.2, §5). Dependencies are pinned exactly; the same
+// (architecture.md §1.2, §5). Dependencies are pinned exactly; the same
 // versions are pinned in the Xcode project's Package.resolved.
 
 import PackageDescription

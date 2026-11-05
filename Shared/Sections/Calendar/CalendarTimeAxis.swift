@@ -1,5 +1,5 @@
 // CalendarTimeAxis: the hour labels and the now bubble
-// (spec_calendar.md §1.3, §1.5).
+// (calendar.md §1.3, §1.5).
 
 import SwiftUI
 import TimeTrackingCore

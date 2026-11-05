@@ -1,5 +1,5 @@
 // TrackerTerminalSettings: the [terminal] table of settings.toml
-// (spec_activity_tracking.md §3.1, §7.1). A missing key takes its default.
+// (activity_tracking.md §3.1, §7.1). A missing key takes its default.
 
 /// `[terminal]`: editor title patterns and job commands.
 public struct TrackerTerminalSettings: Sendable, Hashable, Codable {

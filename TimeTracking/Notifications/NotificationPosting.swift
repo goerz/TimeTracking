@@ -1,5 +1,5 @@
 // NotificationPosting: posting and removing the Mac app's notifications,
-// with a recorder for tests and UI testing (spec_timer.md §10).
+// with a recorder for tests and UI testing (timer.md §10).
 
 import Foundation
 

@@ -1,12 +1,12 @@
 // CalendarToolbar: the Calendar's toolbar, the period items and Filters, as
-// in Reports and Projects (spec_calendar.md §1.1; spec_design.md §4).
+// in Reports and Projects (calendar.md §1.1; design.md §4).
 
 import SwiftUI
 import TimeTrackingCore
 
 /// The toolbar of §1.1: the arrows and the date menu leading, Filters
 /// trailing, then the search field (`CalendarView`). The day width, the
-/// columns, and the hours' zoom sit in the content (spec_design.md §4).
+/// columns, and the hours' zoom sit in the content (design.md §4).
 struct CalendarToolbar: ToolbarContent {
     @Bindable var model: CalendarModel
     @Binding var pickedDate: Date

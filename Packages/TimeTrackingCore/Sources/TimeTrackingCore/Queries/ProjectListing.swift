@@ -1,5 +1,5 @@
 // ProjectListing: a project with the names display resolves it to, as an
-// entry's listing does (spec_data_and_sync.md §7.3; spec_timer.md §2).
+// entry's listing does (data_and_sync.md §7.3; timer.md §2).
 
 import Foundation
 import GRDB

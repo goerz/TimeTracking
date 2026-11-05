@@ -1,5 +1,5 @@
 // BlockLogWriter: appending blocks to the month files of the block log or
-// the day files of the detail log (spec_activity_tracking.md §4.2, §4.3).
+// the day files of the detail log (activity_tracking.md §4.2, §4.3).
 
 public import Foundation
 

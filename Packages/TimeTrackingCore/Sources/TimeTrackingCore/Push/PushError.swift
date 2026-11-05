@@ -1,4 +1,4 @@
-// PushError: failures of the APNs client (spec_architecture.md §2.4).
+// PushError: failures of the APNs client (architecture.md §2.4).
 
 import Foundation
 

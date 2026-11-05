@@ -1,5 +1,5 @@
-// Pasteboard: ⌘C in the sections' tables (spec_projects.md §2.5,
-// spec_reports.md §7) and the ⌥ state of clicks.
+// Pasteboard: ⌘C in the sections' tables (projects.md §2.5,
+// reports.md §7) and the ⌥ state of clicks.
 
 import AppKit
 

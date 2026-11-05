@@ -1,5 +1,5 @@
 // TerminalResolver+Pane: the item of one pane, refined by its foreground
-// program (spec_activity_tracking.md §2.2, §3.1, §7.2).
+// program (activity_tracking.md §2.2, §3.1, §7.2).
 
 import Foundation
 import TimeTrackingCore

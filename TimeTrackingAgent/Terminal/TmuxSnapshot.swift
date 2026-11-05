@@ -1,5 +1,5 @@
 // TmuxSnapshot: clients and panes of every tmux server
-// (spec_activity_tracking.md §3.1).
+// (activity_tracking.md §3.1).
 
 import Foundation
 

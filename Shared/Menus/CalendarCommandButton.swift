@@ -1,5 +1,5 @@
 // CalendarCommandButton: one Calendar key command as a menu item, in the
-// Entry and View menus (spec_calendar.md §5).
+// Entry and View menus (calendar.md §5).
 
 import SwiftUI
 import TimeTrackingCore

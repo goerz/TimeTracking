@@ -1,5 +1,5 @@
 // AppResolver: items of documents, Finder, chat apps, and every other app
-// (spec_activity_tracking.md §2.2, §2.4 step 3, §7.2).
+// (activity_tracking.md §2.2, §2.4 step 3, §7.2).
 
 import Foundation
 import TimeTrackingCore

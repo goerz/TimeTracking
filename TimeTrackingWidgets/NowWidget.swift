@@ -1,5 +1,5 @@
 // NowWidget: the running entry widget on the Home Screen and the Lock
-// Screen (spec_ios.md §3.2, §3.5).
+// Screen (ios.md §3.2, §3.5).
 
 import AppIntents
 import SwiftUI
@@ -19,7 +19,7 @@ struct NowWidget: Widget {
     }
 }
 
-/// `timetracking://show`, the tap outside a button (spec_ios.md §3.1); nil
+/// `timetracking://show`, the tap outside a button (ios.md §3.1); nil
 /// without the app's identity, which a build always carries.
 enum WidgetLinks {
     static var show: URL? {

@@ -1,5 +1,5 @@
 // SafariWebExtensionHandler: the Safari web extension's native handler
-// (spec_ios.md §9.5). It forwards each `{url, time}` message to the
+// (ios.md §9.5). It forwards each `{url, time}` message to the
 // library's CollectionLog with the exclusions of the App Group copy of
 // settings.toml, and answers whether a line was written.
 

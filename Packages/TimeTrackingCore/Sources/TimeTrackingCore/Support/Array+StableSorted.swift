@@ -1,5 +1,5 @@
 // Array.stableSorted: the stable sort behind the tool's project orders and
-// the intents' project lists (spec_automation.md §3.8, §5).
+// the intents' project lists (automation.md §3.8, §5).
 
 import Foundation
 

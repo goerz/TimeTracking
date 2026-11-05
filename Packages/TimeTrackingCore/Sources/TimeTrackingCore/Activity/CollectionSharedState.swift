@@ -1,5 +1,5 @@
 // CollectionSharedState: what the iOS app and its collectors share in the
-// App Group about the activity collection (spec_ios.md §2.9, §9, §11).
+// App Group about the activity collection (ios.md §2.9, §9, §11).
 
 public import Foundation
 

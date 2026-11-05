@@ -1,5 +1,5 @@
 // SubjectsPanel: where the time went, by subject, with the drill-down
-// (spec_activity.md §1.6).
+// (activity.md §1.6).
 
 import SwiftUI
 import TimeTrackingCore

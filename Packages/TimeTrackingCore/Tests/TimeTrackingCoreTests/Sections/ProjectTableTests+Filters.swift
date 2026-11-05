@@ -1,5 +1,5 @@
 // The date range, the Filters popover's tree folding, and "Include
-// archived projects" (spec_projects.md §2.4).
+// archived projects" (projects.md §2.4).
 
 import Foundation
 import Testing

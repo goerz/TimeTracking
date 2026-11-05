@@ -1,5 +1,5 @@
 // DescriptionCheck: compares a store with a description file and repairs
-// what loses no information (spec_automation.md §4.2, §4.3).
+// what loses no information (automation.md §4.2, §4.3).
 
 import Foundation
 import GRDB

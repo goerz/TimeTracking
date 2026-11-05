@@ -1,5 +1,5 @@
 // FolderStamps: modification stamps of the activity files, for change
-// detection (spec_data_and_sync.md §6).
+// detection (data_and_sync.md §6).
 
 import Foundation
 

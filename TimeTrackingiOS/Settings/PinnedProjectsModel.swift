@@ -1,5 +1,5 @@
 // PinnedProjectsModel: the ordered pinned list of Settings > Widgets over the
-// synced `pinnedProjectIDs` (spec_ios.md §2.9, §3.4).
+// synced `pinnedProjectIDs` (ios.md §2.9, §3.4).
 
 import Foundation
 import Observation

@@ -1,4 +1,4 @@
-// Import options and report (spec_data_and_sync.md §5.2).
+// Import options and report (data_and_sync.md §5.2).
 
 import Foundation
 

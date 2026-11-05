@@ -1,5 +1,5 @@
 // The section router and the Projects section's view models
-// (spec_projects.md §1, §2, §3, §4).
+// (projects.md §1, §2, §3, §4).
 
 import Foundation
 import SwiftUI

@@ -1,4 +1,4 @@
-// Records of the store's rows and applying remote records (spec_data_and_sync.md §3.1, §3.2).
+// Records of the store's rows and applying remote records (data_and_sync.md §3.1, §3.2).
 
 import Foundation
 import GRDB

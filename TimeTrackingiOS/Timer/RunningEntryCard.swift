@@ -1,5 +1,5 @@
 // RunningEntryCard: the Mac Timer's running-entry bar in rows
-// (spec_ios.md §2.2): task field; project chip; Pomodoro button, time,
+// (ios.md §2.2): task field; project chip; Pomodoro button, time,
 // Discard while running, and Start or Stop.
 
 import SwiftUI
@@ -116,7 +116,7 @@ struct RunningEntryCard: View {
         }
     }
 
-    /// The iPad's picker popover (spec_ios.md §10.1).
+    /// The iPad's picker popover (ios.md §10.1).
     private var padPicker: Binding<ProjectPickerModel?> {
         Binding {
             if model.settings.isPad, case let .picker(picker) = model.sheet {

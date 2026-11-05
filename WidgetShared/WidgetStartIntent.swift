@@ -1,5 +1,5 @@
 // WidgetStartIntent: the wrapper intent of the Pinned buttons, the Recent
-// rows, and the project control (spec_ios.md §1, §5, §6.1).
+// rows, and the project control (ios.md §1, §5, §6.1).
 // Compiled into the app and the widget extension; it runs in the app
 // process, which performs the library operation, sends the change at once,
 // and reloads timelines and controls. Hidden from Shortcuts.

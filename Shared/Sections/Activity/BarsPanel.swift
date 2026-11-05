@@ -1,4 +1,4 @@
-// BarsPanel: active time by day (spec_activity.md §1.5).
+// BarsPanel: active time by day (activity.md §1.5).
 
 import Charts
 import SwiftUI

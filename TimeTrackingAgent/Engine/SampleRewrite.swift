@@ -1,5 +1,5 @@
 // SampleRewrite: the current exclusions applied to a stored sample for
-// `reapply-exclusions` (spec_activity_tracking.md §7.2, §7.3).
+// `reapply-exclusions` (activity_tracking.md §7.2, §7.3).
 
 import Foundation
 import TimeTrackingCore

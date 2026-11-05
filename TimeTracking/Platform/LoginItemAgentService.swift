@@ -1,5 +1,5 @@
 // LoginItemAgentService: the agent's registration through SMAppService
-// (spec_architecture.md §1.4).
+// (architecture.md §1.4).
 
 import Foundation
 import os
@@ -45,7 +45,7 @@ final class LoginItemAgentService: AgentService {
 
     /// `launchctl kickstart -k gui/<uid>/<label>`: launchd stops the agent
     /// and starts it at once. A new Full Disk Access grant reached the
-    /// running agent only after this (spec_activity_tracking.md §5).
+    /// running agent only after this (activity_tracking.md §5).
     func restart() async throws {
         let process = Process()
         process.executableURL = URL(filePath: "/bin/launchctl")

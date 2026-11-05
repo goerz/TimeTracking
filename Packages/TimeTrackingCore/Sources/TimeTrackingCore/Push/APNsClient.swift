@@ -1,5 +1,5 @@
 // APNsClient: WidgetKit pushes over HTTP/2 to the APNs sandbox
-// (spec_architecture.md §2.4).
+// (architecture.md §2.4).
 
 public import Foundation
 

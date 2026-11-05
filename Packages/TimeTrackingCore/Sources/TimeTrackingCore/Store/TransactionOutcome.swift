@@ -1,5 +1,5 @@
 // TransactionOutcome: what a committed write transaction changed, and the
-// store error for a SQLite error (spec_data_and_sync.md §2.2, §7.4).
+// store error for a SQLite error (data_and_sync.md §2.2, §7.4).
 
 import GRDB
 

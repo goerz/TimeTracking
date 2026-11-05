@@ -1,5 +1,5 @@
 // ProjectTable: filtering, grouping, sorting, and the status line of the
-// Projects section (spec_projects.md §2).
+// Projects section (projects.md §2).
 
 public import Foundation
 

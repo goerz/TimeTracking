@@ -1,6 +1,6 @@
 // CalendarDayHeader: a day's weekday and date, overlaps, the column
 // totals with the column toggles, and the all-day events
-// (spec_calendar.md §1.2, §1.4, §2.6, §4.3).
+// (calendar.md §1.2, §1.4, §2.6, §4.3).
 
 import SwiftUI
 import TimeTrackingCore

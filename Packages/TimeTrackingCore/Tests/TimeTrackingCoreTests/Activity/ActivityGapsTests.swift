@@ -1,5 +1,5 @@
 // Tests of the Calendar's gaps between blocks of any device
-// (spec_calendar.md §3.1).
+// (calendar.md §3.1).
 
 import Foundation
 import Testing

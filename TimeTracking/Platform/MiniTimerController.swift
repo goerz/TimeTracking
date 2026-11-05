@@ -1,6 +1,6 @@
 // MiniTimerController: the Mini Timer's AppKit side: frames, compact
 // snapping, the pin's window level, hiding on close, restoration
-// (spec_timer.md §1, spec_architecture.md §4.2).
+// (timer.md §1, architecture.md §4.2).
 
 import AppKit
 import SwiftUI

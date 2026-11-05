@@ -1,5 +1,5 @@
 // WidgetLiveResolver: the running state every widget and control provider
-// uses (spec_ios.md §4, item 2): the store's `live_state` row, the last
+// uses (ios.md §4, item 2): the store's `live_state` row, the last
 // resolved state in the App Group, and a direct CloudKit fetch unless one ran
 // less than 10 s ago or the app wrote the running entry less than 5 s ago.
 

@@ -1,5 +1,5 @@
 // DeviceInfo: the device's name and kind, the pasteboard, and the system
-// settings URL, which SwiftUI does not provide (spec_ios.md §2.6, §8, §11).
+// settings URL, which SwiftUI does not provide (ios.md §2.6, §8, §11).
 
 import UIKit
 
@@ -20,7 +20,7 @@ enum DeviceInfo {
     }
 }
 
-/// `-UITesting YES` runs without animations (spec_architecture.md §3.3).
+/// `-UITesting YES` runs without animations (architecture.md §3.3).
 enum UIViewAnimations {
     static func disable() {
         UIView.setAnimationsEnabled(false)

@@ -1,5 +1,5 @@
 // AreaEntity and ClientEntity: areas and clients for Shortcuts
-// (spec_automation.md §5).
+// (automation.md §5).
 
 public import AppIntents
 public import Foundation

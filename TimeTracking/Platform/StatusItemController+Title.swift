@@ -1,5 +1,5 @@
 // StatusItemController+Title: the status item's attributed title with the
-// Pomodoro segment (spec_menubar.md §1.1).
+// Pomodoro segment (menubar.md §1.1).
 
 import AppKit
 

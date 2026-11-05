@@ -1,5 +1,5 @@
 // SettingsMonitor: loads settings.toml and reloads it when it changes
-// (spec_activity_tracking.md §7: applied from the next tick).
+// (activity_tracking.md §7: applied from the next tick).
 
 import Foundation
 import os

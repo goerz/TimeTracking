@@ -1,6 +1,6 @@
 // ShortcutsUpdating: Siri, Shortcuts, and Spotlight updates the iOS app
 // model asks for, with a recording stand-in for tests and UI testing
-// (spec_ios.md §6.2).
+// (ios.md §6.2).
 
 import Foundation
 import TimeTrackingCore

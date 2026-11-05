@@ -1,4 +1,4 @@
-// The Projects section's Filters popover (spec_projects.md §2.4).
+// The Projects section's Filters popover (projects.md §2.4).
 
 import SwiftUI
 import TimeTrackingCore

@@ -1,5 +1,5 @@
 // IntentBridge: hands the library's App Intents the Mac app's store, its
-// re-read after a change, and the Mini Timer (spec_automation.md §5).
+// re-read after a change, and the Mini Timer (automation.md §5).
 
 import AppIntents
 import Foundation
@@ -30,7 +30,7 @@ final class IntentBridge {
     }
 
     /// The model is ready: resumes every waiting intent and keeps the App
-    /// Shortcut parameters current with the project list (spec_ios.md §6.2).
+    /// Shortcut parameters current with the project list (ios.md §6.2).
     func attach(_ model: AppModel) {
         self.model = model
         let stream = model.store.changes

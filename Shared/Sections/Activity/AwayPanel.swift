@@ -1,4 +1,4 @@
-// AwayPanel: the time away (spec_activity.md §1.8).
+// AwayPanel: the time away (activity.md §1.8).
 
 import SwiftUI
 import TimeTrackingCore

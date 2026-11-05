@@ -1,5 +1,5 @@
 // The Calendar's Filters button and popover, those of Reports
-// (spec_calendar.md §1.6; spec_reports.md §3).
+// (calendar.md §1.6; reports.md §3).
 
 import SwiftUI
 import TimeTrackingCore

@@ -1,5 +1,5 @@
 // AreaColor: `#RRGGBB` area colors, the default-color rule, and display
-// derivations (spec_data_and_sync.md §1.2, spec_projects.md §4.4).
+// derivations (data_and_sync.md §1.2, projects.md §4.4).
 
 import Foundation
 
@@ -150,7 +150,7 @@ public struct AreaColor: Hashable, Sendable, CustomStringConvertible {
         return Self(hue: hue, saturation: brightness == 0 ? 0 : chroma / brightness, brightness: brightness)
     }
 
-    /// The default color of a new area (spec_data_and_sync.md §1.2): the
+    /// The default color of a new area (data_and_sync.md §1.2): the
     /// midpoint of the largest circular gap between the whole-degree hues of
     /// `existing` colors with saturation at least 0.1, or 210 without any; at
     /// saturation 0.65 and brightness 0.80.

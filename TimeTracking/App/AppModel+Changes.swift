@@ -1,6 +1,6 @@
 // AppModel+Changes: loading at launch, following the store's changes, and
-// the start of a new shown day (spec_timer.md §2; spec_data_and_sync.md §7,
-// §8; spec_menubar.md §5).
+// the start of a new shown day (timer.md §2; data_and_sync.md §7,
+// §8; menubar.md §5).
 
 import Foundation
 import os

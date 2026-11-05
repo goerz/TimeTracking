@@ -1,5 +1,5 @@
 // FiltersButton: the Filters toolbar button of Projects and Reports
-// (spec_design.md §4, §5).
+// (design.md §4, §5).
 
 import SwiftUI
 import TimeTrackingCore

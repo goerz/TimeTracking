@@ -1,5 +1,5 @@
 // SyncDriving: the sync engine as the iOS app model drives it, with a
-// stand-in over the library's synchronizer for tests (spec_ios.md §7).
+// stand-in over the library's synchronizer for tests (ios.md §7).
 
 import Foundation
 import TimeTrackingCore

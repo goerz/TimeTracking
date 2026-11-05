@@ -1,5 +1,5 @@
 #!/bin/bash
-# `make mac-debug` (spec_architecture.md §2.5): quits every running copy of
+# `make mac-debug` (architecture.md §2.5): quits every running copy of
 # the app's bundle identifier, from any checkout, and opens the given build,
 # so the app that runs is the one just built.
 #

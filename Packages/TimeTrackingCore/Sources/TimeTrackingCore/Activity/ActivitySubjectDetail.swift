@@ -1,5 +1,5 @@
 // ActivitySubjectDetail: a subject's details from the detail log, on the
-// recording Mac (spec_activity.md §1.6).
+// recording Mac (activity.md §1.6).
 
 import Foundation
 

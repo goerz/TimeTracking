@@ -1,5 +1,5 @@
 // ReportsModel+Entries: the entry list's order and commands, exports, and
-// copying rows (spec_reports.md §6, §7).
+// copying rows (reports.md §6, §7).
 
 import Foundation
 import TimeTrackingCore
@@ -96,7 +96,7 @@ extension ReportsModel {
         snapshot?.entriesCSV() ?? ""
     }
 
-    /// ⌘C (spec_reports.md §7): the selected rows of the card that
+    /// ⌘C (reports.md §7): the selected rows of the card that
     /// shows, with times as the list shows them.
     func copySelectedRows() -> String {
         switch state.card {

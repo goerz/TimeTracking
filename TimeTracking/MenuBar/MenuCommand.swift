@@ -1,5 +1,5 @@
 // MenuCommand: what an item of the status item's menu does, and its symbol
-// (spec_menubar.md §2, spec_design.md §5).
+// (menubar.md §2, design.md §5).
 
 import TimeTrackingCore
 
@@ -17,7 +17,7 @@ enum MenuCommand: Hashable {
 }
 
 extension MenuCommand {
-    /// The item's SF Symbol (spec_design.md §5), or `nil` for none.
+    /// The item's SF Symbol (design.md §5), or `nil` for none.
     var symbol: String? {
         switch self {
         case .new: SymbolName.add

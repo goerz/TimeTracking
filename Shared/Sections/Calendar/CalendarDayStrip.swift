@@ -1,5 +1,5 @@
 // CalendarDayStrip: places the day headers and the day columns at their
-// place in the viewport, cut off at its edges (spec_calendar.md §1.2).
+// place in the viewport, cut off at its edges (calendar.md §1.2).
 
 import SwiftUI
 import TimeTrackingCore

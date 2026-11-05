@@ -1,4 +1,4 @@
-// TimerListDay: the days of the Timer's list (spec_timer.md §3).
+// TimerListDay: the days of the Timer's list (timer.md §3).
 
 public import Foundation
 import GRDB

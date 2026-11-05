@@ -1,5 +1,5 @@
 // FamilyControlsAuthorization: Screen Time authorization through
-// AuthorizationCenter (spec_ios.md §9.2, §11 item 3). Needs a device with
+// AuthorizationCenter (ios.md §9.2, §11 item 3). Needs a device with
 // the Family Controls entitlement; the simulator reports it unavailable.
 
 import FamilyControls

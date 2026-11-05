@@ -1,5 +1,5 @@
 // CalendarNoticeView: the transient notice, a future refusal or a deletion
-// with Undo (spec_calendar.md §2.2, §2.5).
+// with Undo (calendar.md §2.2, §2.5).
 
 import SwiftUI
 import TimeTrackingCore

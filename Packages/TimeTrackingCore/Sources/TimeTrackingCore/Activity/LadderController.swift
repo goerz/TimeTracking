@@ -1,5 +1,5 @@
 // LadderController: registering the DeviceActivity ladder and handling its
-// callbacks, early ones included (spec_ios.md §9.2).
+// callbacks, early ones included (ios.md §9.2).
 
 import Foundation
 

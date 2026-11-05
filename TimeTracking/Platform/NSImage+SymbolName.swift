@@ -1,5 +1,5 @@
 // NSImage+SymbolName: symbol images for the status item and its menu, SF
-// Symbols or the app's own (spec_design.md §5, spec_menubar.md §1.1).
+// Symbols or the app's own (design.md §5, menubar.md §1.1).
 
 import AppKit
 import TimeTrackingCore

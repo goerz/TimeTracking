@@ -1,5 +1,5 @@
 // RefreshScheduler: the BGAppRefreshTask, rescheduled 15 minutes after
-// each run (spec_ios.md §7 item 1).
+// each run (ios.md §7 item 1).
 
 import BackgroundTasks
 import Foundation

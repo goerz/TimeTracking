@@ -1,5 +1,5 @@
 // WidgetReloading: the widget reloads the iOS app model asks for, with a
-// recording stand-in for tests and UI testing (spec_ios.md §3, §5).
+// recording stand-in for tests and UI testing (ios.md §3, §5).
 
 import Foundation
 

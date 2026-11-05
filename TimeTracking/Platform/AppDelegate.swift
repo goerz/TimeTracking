@@ -1,6 +1,6 @@
 // AppDelegate: launch, the status item, the Dock tile and menu, activation
-// policy, global shortcuts, and notifications (spec_timer.md §1.3,
-// §8; spec_menubar.md §1, §4).
+// policy, global shortcuts, and notifications (timer.md §1.3,
+// §8; menubar.md §1, §4).
 
 import AppKit
 import KeyboardShortcuts
@@ -242,7 +242,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     /// Activation fetches from CloudKit, whose silent pushes can lag
-    /// (spec_data_and_sync.md §3.1).
+    /// (data_and_sync.md §3.1).
     func applicationDidBecomeActive(_: Notification) {
         host.model?.live?.activated()
     }

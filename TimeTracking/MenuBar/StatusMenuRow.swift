@@ -1,4 +1,4 @@
-// StatusMenuRow: a menu line as shown, header lines grouped (spec_menubar.md §2.1).
+// StatusMenuRow: a menu line as shown, header lines grouped (menubar.md §2.1).
 
 /// A menu entry as shown: consecutive header lines form one item.
 enum StatusMenuRow: Equatable {

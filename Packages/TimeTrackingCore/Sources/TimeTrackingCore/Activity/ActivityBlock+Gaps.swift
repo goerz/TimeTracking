@@ -1,5 +1,5 @@
 // ActivityBlock+Gaps: stretches of a day without a block of any device, for
-// the Calendar's gap labels (spec_calendar.md §3.1).
+// the Calendar's gap labels (calendar.md §3.1).
 
 public import Foundation
 

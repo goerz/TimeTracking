@@ -1,6 +1,6 @@
 // PeriodToolbar: the leading toolbar items that Calendar, Reports,
 // Projects, and Activity share: the period arrows and the section's date
-// menu (spec_design.md §4; spec_projects.md §1.1).
+// menu (design.md §4; projects.md §1.1).
 
 import SwiftUI
 import TimeTrackingCore

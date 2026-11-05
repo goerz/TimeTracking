@@ -1,6 +1,6 @@
 // TrackerSourceHealth+Words: the on-screen words for the tracker's sources, their
-// status, the presence state, and the primary item (spec_design.md §12,
-// spec_activity_tracking.md §2.3, §7.4).
+// status, the presence state, and the primary item (design.md §11,
+// activity_tracking.md §2.3, §7.4).
 
 extension TrackerSourceHealth {
     /// The on-screen name of every source of §2.3 by id, in table order.

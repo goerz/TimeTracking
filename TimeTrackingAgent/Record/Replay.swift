@@ -1,6 +1,6 @@
 // Replay: `--replay <fixture>` runs the Blocker over a recorded sample stream
 // and compares the blocks with `<fixture>.expected.jsonl`
-// (spec_activity_tracking.md §5, spec_architecture.md ARCH-16, TRK-29).
+// (activity_tracking.md §5, architecture.md ARCH-16, TRK-29).
 
 import Foundation
 import TimeTrackingCore

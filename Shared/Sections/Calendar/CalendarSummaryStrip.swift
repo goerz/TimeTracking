@@ -1,5 +1,5 @@
 // CalendarSummaryStrip: the tracked, block, and activity totals above the
-// day headers, and the day width slider (spec_calendar.md §1.1, §1.2).
+// day headers, and the day width slider (calendar.md §1.1, §1.2).
 
 import SwiftUI
 import TimeTrackingCore

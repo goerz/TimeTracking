@@ -1,6 +1,6 @@
 // SampleStore+Timeline: the inputs of the user's timeline besides the
 // Mac's samples: samples reconstructed from the Knowledge store, synced
-// Safari visits, and deleted time (spec_activity_tracking.md §2.8, §4.1,
+// Safari visits, and deleted time (activity_tracking.md §2.8, §4.1,
 // §7.3; kept 90 days, never leaves the Mac).
 
 import Foundation

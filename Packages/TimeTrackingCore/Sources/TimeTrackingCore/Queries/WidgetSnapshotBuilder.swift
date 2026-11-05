@@ -1,6 +1,6 @@
 // WidgetSnapshotBuilder: builds the widgets' snapshot from the store, the
 // resolved LiveState, and this device's Pomodoro, and decides when the
-// timeline ends (spec_ios.md §3).
+// timeline ends (ios.md §3).
 
 public import Foundation
 
@@ -172,7 +172,7 @@ public struct WidgetSnapshotBuilder: Sendable {
         return calendar.startOfDay(calendar.day(containing: now).adding(days: 1))
     }
 
-    /// Smart Stack relevance (spec_ios.md §3.1).
+    /// Smart Stack relevance (ios.md §3.1).
     public static func relevance(live: LiveState, at now: Date) -> Int {
         if live.running != nil {
             return 100

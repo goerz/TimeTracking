@@ -1,5 +1,5 @@
 // OpenWindowsRecord: the main window and the Mini Timer as open when the
-// app last quit, for the next login-item launch (spec_timer.md §1.3).
+// app last quit, for the next login-item launch (timer.md §1.3).
 
 import Foundation
 import TimeTrackingCore

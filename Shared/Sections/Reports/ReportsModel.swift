@@ -1,5 +1,5 @@
 // ReportsModel: the Reports section's view state and commands
-// (spec_reports.md). Every figure comes from the library's
+// (reports.md). Every figure comes from the library's
 // `ReportSnapshot`; this model holds selection, expansion, and sorts.
 
 import Foundation

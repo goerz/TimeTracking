@@ -1,4 +1,4 @@
-// SettingMerge: the field-level merge of synced settings (spec_data_and_sync.md §1.6).
+// SettingMerge: the field-level merge of synced settings (data_and_sync.md §1.6).
 
 /// The names of synced settings with a field-level merge.
 public enum SettingMerge {

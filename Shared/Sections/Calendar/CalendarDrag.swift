@@ -1,6 +1,6 @@
 // CalendarDrag: the Calendar's drags on the Mac and their touch and
-// Apple Pencil equivalents on the iPad (spec_calendar.md §2.3,
-// §2.4; spec_ios.md §10.2): a mouse drag on the Mac; on the iPad a long
+// Apple Pencil equivalents on the iPad (calendar.md §2.3,
+// §2.4; ios.md §10.2): a mouse drag on the Mac; on the iPad a long
 // press, then a drag, or Apple Pencil directly; a long press without a drag
 // opens the item's menu.
 
@@ -19,7 +19,7 @@ struct CalendarDrag {
 /// The long press that lifts an item on the iPad.
 enum CalendarTouch {
     static let liftSeconds = 0.35
-    /// The resize handles' height (spec_ios.md §10.2).
+    /// The resize handles' height (ios.md §10.2).
     static let handleHeight: CGFloat = 44
 }
 

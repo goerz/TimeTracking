@@ -1,4 +1,4 @@
-// The task field of the running-entry bar (spec_timer.md §2.2).
+// The task field of the running-entry bar (timer.md §2.2).
 
 import Foundation
 import TimeTrackingCore

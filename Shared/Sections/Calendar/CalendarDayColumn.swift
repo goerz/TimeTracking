@@ -1,5 +1,5 @@
 // CalendarDayColumn: one day's Activity, Tracked, and Calendar columns with
-// drawing, the now-line, and drops (spec_calendar.md §1.4, §1.5,
+// drawing, the now-line, and drops (calendar.md §1.4, §1.5,
 // §2.3, §3, §4).
 
 import SwiftUI
@@ -144,7 +144,7 @@ private struct TrackedColumn: View {
         }
     }
 
-    /// The empty slots: tap deselects, a drag draws (§2.3; spec_ios.md §10.2).
+    /// The empty slots: tap deselects, a drag draws (§2.3; ios.md §10.2).
     private func drawArea(_ axis: CalendarDayAxis) -> some View {
         Color.clear
             .contentShape(Rectangle())
@@ -417,7 +417,7 @@ private struct EventsColumn: View {
         }
     }
 
-    /// The empty slots: a drag draws a time block (§4.2; spec_ios.md §10.2).
+    /// The empty slots: a drag draws a time block (§4.2; ios.md §10.2).
     private func drawArea(_ axis: CalendarDayAxis) -> some View {
         Color.clear
             .contentShape(Rectangle())

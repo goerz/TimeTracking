@@ -1,4 +1,4 @@
-// status, start, stop, continue (spec_automation.md §3.5).
+// status, start, stop, continue (automation.md §3.5).
 
 import ArgumentParser
 import Foundation

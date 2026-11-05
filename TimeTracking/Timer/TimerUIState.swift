@@ -1,5 +1,5 @@
 // TimerUIState: one Timer view's own state, the Mini Timer's or the main
-// window's (spec_timer.md §1, §9).
+// window's (timer.md §1, §9).
 
 import Foundation
 import Observation

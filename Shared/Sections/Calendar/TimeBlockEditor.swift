@@ -1,5 +1,5 @@
 // TimeBlockEditor: the time-block editor, title, project, start, end, and
-// notes (spec_calendar.md §4.2).
+// notes (calendar.md §4.2).
 
 import SwiftUI
 import TimeTrackingCore

@@ -1,5 +1,5 @@
 // EnclosingScrollPan: pauses the scroll view around a Calendar drag on the
-// iPad while the drag runs (spec_calendar.md §2.3, §2.4; spec_ios.md §10.2).
+// iPad while the drag runs (calendar.md §2.3, §2.4; ios.md §10.2).
 
 import UIKit
 

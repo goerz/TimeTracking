@@ -1,5 +1,5 @@
 // AutomationPermissionService: "Ask for Access" on the Tracker pane's
-// Automation row (spec_activity_tracking.md §7.4).
+// Automation row (activity_tracking.md §7.4).
 
 import Foundation
 

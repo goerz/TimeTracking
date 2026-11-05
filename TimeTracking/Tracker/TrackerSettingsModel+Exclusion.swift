@@ -1,6 +1,6 @@
 // The Activity section's "Exclude <name> from tracking…" draft in the
 // Tracker pane, and the exclusion lists of settings.toml
-// (spec_activity.md §4, spec_activity_tracking.md §7.2).
+// (activity.md §4, activity_tracking.md §7.2).
 
 import Foundation
 import TimeTrackingCore

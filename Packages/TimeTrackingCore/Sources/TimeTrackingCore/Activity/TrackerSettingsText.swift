@@ -1,5 +1,5 @@
 // TrackerSettingsText: adds one value to an array of settings.toml in place,
-// keeping every other byte of the file (spec_activity_tracking.md §7, §7.4).
+// keeping every other byte of the file (activity_tracking.md §7, §7.4).
 
 import Foundation
 

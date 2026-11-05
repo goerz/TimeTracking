@@ -1,4 +1,4 @@
-// Helpers for the Activity tests (spec_data_and_sync.md §6): activity
+// Helpers for the Activity tests (data_and_sync.md §6): activity
 // folders in a temporary folder, fixed instants, and file writes.
 
 import Foundation

@@ -1,5 +1,5 @@
 // FlowChips: chips that wrap onto further lines, whole chips only
-// (spec_reports.md §3, §4.4; spec_activity.md §1.3).
+// (reports.md §3, §4.4; activity.md §1.3).
 
 import SwiftUI
 

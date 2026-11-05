@@ -1,5 +1,5 @@
 // Design: spacing, radius, and color tokens of the design language
-// (spec_design.md §3, §6).
+// (design.md §3, §6).
 
 import SwiftUI
 
@@ -38,7 +38,7 @@ enum Design {
         static let small: CGFloat = 6
     }
 
-    /// Circle button diameters (spec_design.md §7).
+    /// Circle button diameters (design.md §7).
     enum CircleDiameter {
         #if os(macOS)
             /// Start, stop, discard, and Pomodoro in the Timer's running-entry bar.
@@ -74,7 +74,7 @@ extension Color {
 }
 
 extension View {
-    /// A card (spec_design.md §3): the secondary background in the card radius.
+    /// A card (design.md §3): the secondary background in the card radius.
     func cardBackground() -> some View {
         background(.background.secondary, in: .rect(cornerRadius: Design.Radius.card))
     }

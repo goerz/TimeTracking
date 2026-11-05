@@ -1,5 +1,5 @@
 // AppIdentity: the identifiers and containers of the running build, read
-// from its Info.plist (spec_architecture.md §1.5, §2.2).
+// from its Info.plist (architecture.md §1.5, §2.2).
 
 public import Foundation
 

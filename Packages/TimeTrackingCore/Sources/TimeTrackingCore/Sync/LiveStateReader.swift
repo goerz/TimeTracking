@@ -1,5 +1,5 @@
 // LiveStateReader: fetches the LiveState record without the sync engine,
-// for the widget timeline providers (spec_data_and_sync.md §4.3).
+// for the widget timeline providers (data_and_sync.md §4.3).
 
 public import Foundation
 

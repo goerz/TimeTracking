@@ -1,4 +1,4 @@
-// FileCommands: the File menu (spec_timer.md §9).
+// FileCommands: the File menu (timer.md §9).
 
 import SwiftUI
 import TimeTrackingCore

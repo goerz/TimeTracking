@@ -1,5 +1,5 @@
 // Pomodoro: the focus and break state machine laid over the running entry
-// (spec_timer.md §5.3). It never starts, stops, or splits entries.
+// (timer.md §5.3). It never starts, stops, or splits entries.
 
 public import Foundation
 
@@ -43,7 +43,7 @@ public enum PomodoroState: Hashable, Sendable, Codable {
     }
 }
 
-/// The user actions of §5.3 and the menus of `spec_menubar.md` §2.3.
+/// The user actions of §5.3 and the menus of `menubar.md` §2.3.
 public enum PomodoroAction: String, Hashable, Sendable, CaseIterable {
     case start
     case endFocusNow
@@ -85,7 +85,7 @@ public struct Pomodoro: Hashable, Sendable, Codable {
         self.state = state
     }
 
-    /// The actions the state allows, in menu order (`spec_menubar.md` §2.3).
+    /// The actions the state allows, in menu order (`menubar.md` §2.3).
     public func actions(isRunning: Bool) -> [PomodoroAction] {
         switch state {
         case .off: isRunning ? [.start] : []

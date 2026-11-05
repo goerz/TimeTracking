@@ -4,7 +4,7 @@
 
 ## Workflow
 
-Read `spec/components.md`, then the spec for the area you work on. The specs describe what the product does, so a change in behavior updates the spec in the same commit. A new item under a spec's "Testable behaviors" needs a test that carries its identifier (for example, `TM-1`), which `make check-behaviors` enforces.
+Read `docs/reference/components.md`, then the spec for the area you work on. The specs describe what the product does, so a change in behavior updates the spec in the same commit. A new item under a spec's "Testable behaviors" needs a test that carries its identifier (for example, `TM-1`), which `make check-behaviors` enforces.
 
 Build through the Makefile, not Xcode or a bare `xcodebuild`: it selects the right toolchain and generates `Config/Local.xcconfig` from your `local.mk`.
 
@@ -17,7 +17,7 @@ Logic belongs in `Packages/TimeTrackingCore`, where it can be tested without an 
 | `swift test --package-path Packages/TimeTrackingCore` | Library tests |
 | `make unit-test` | Library, Mac view model, agent, and tool tests (about 3 minutes) |
 | `make test` | All of the above, plus iOS and UI tests (about 15 minutes) |
-| `make check` | SwiftFormat, SwiftLint, behavior coverage, and personal data |
+| `make check` | SwiftFormat, SwiftLint, behavior coverage, spec citations, and personal data |
 
 The code must build without warnings and pass SwiftLint with no findings.
 

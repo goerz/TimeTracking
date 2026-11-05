@@ -1,5 +1,5 @@
 // TimeTrackingWidgetsBundle: the widget extension's entry point
-// (spec_ios.md §3, §4, §5): widgets, controls, the widget push handler, and
+// (ios.md §3, §4, §5): widgets, controls, the widget push handler, and
 // the read-only intent environment the project pickers of configurations use.
 
 import AppIntents

@@ -1,5 +1,5 @@
 // CalendarView: the Calendar section's toolbar, summary strip, day headers,
-// day columns, and zoom control (spec_calendar.md §1).
+// day columns, and zoom control (calendar.md §1).
 
 import SwiftUI
 import TimeTrackingCore
@@ -160,7 +160,7 @@ struct CalendarView: View {
         #if os(iOS)
             // Pinch vertically to zoom the hours, horizontally the day width;
             // a sideways swipe, with one finger or two, scrolls through time
-            // (spec_ios.md §10.2).
+            // (ios.md §10.2).
             .gesture(CalendarPinch { scale, horizontal in
                 pinch(scale: scale, horizontal: horizontal)
             } onEnd: {

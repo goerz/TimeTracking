@@ -1,4 +1,4 @@
-// ⌘F and the Timer list's filter field (spec_timer.md §3).
+// ⌘F and the Timer list's filter field (timer.md §3).
 
 import Testing
 @testable import TimeTracking

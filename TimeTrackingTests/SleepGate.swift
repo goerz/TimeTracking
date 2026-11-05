@@ -1,5 +1,5 @@
 // SleepGate: a stand-in for Task.sleep in periodic loops, so a test steps
-// a loop one period at a time without waiting (spec_architecture.md §3).
+// a loop one period at a time without waiting (architecture.md §3).
 
 import Foundation
 

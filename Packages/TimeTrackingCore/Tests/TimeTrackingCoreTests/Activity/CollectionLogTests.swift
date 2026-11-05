@@ -1,6 +1,6 @@
 // Tests for the collectors' shared log: the Focus filter, the automation
 // intent, the Safari extension's reduction, the app's own lines, and the
-// flush rules (spec_ios.md §9.1, §9.3 to §9.7; spec_activity_tracking.md §7.2).
+// flush rules (ios.md §9.1, §9.3 to §9.7; activity_tracking.md §7.2).
 
 import Foundation
 import Testing

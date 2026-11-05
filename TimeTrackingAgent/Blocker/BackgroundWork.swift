@@ -1,5 +1,5 @@
 // BackgroundWork: assigning background items to blocks and to background
-// stretches (spec_activity_tracking.md §2.7).
+// stretches (activity_tracking.md §2.7).
 
 import Foundation
 import TimeTrackingCore

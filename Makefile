@@ -1,4 +1,4 @@
-# TimeTracking: build, install, and test (spec_architecture.md §2.5).
+# TimeTracking: build, install, and test (architecture.md §2.5).
 # `make help` lists the targets. Personal settings live in local.mk (see
 # local.mk.example). Works with GNU make 3.81 (macOS) and later.
 
@@ -31,7 +31,7 @@ SIGN := -allowProvisioningUpdates -allowProvisioningDeviceRegistration
 
 PRODUCTS = $(DERIVED)/Build/Products
 MAC_RELEASE_APP = $(PRODUCTS)/Release/$(APP_NAME).app
-# Debug Mac bundles carry " Debug" in their file names (spec_architecture.md §2.2).
+# Debug Mac bundles carry " Debug" in their file names (architecture.md §2.2).
 MAC_DEBUG_APP = $(PRODUCTS)/Debug/$(APP_NAME) Debug.app
 DEBUG_AGENT = $(MAC_DEBUG_APP)/Contents/Library/LoginItems/TimeTrackingAgent Debug.app
 # Debug products built before the rename; mac-debug-unregister cleans them up too.
@@ -47,7 +47,7 @@ SIM_IPAD := TimeTracking iPad
 SIM_IPHONE_TYPE := com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro
 SIM_IPAD_TYPE := com.apple.CoreSimulator.SimDeviceType.iPad-Pro-13-inch-M5-12GB
 MAC_DEST := -destination 'platform=macOS,arch=arm64'
-# The simulators by UDID, looked up by name in the recipe's shell (spec_architecture.md
+# The simulators by UDID, looked up by name in the recipe's shell (architecture.md
 # §2.6, docs/xcode27.md): a `name=` destination implies OS=latest and misses a
 # simulator on an older runtime. SIM_UDIDS starts a recipe line that uses the two.
 SIMULATOR := scripts/simulator.sh
@@ -62,15 +62,15 @@ AGENT_TEST = $(XCB) test -scheme TimeTrackingAgent $(MAC_DEST) -only-testing:Tim
 
 LOCAL_XCCONFIG := Config/Local.xcconfig
 
-# The first line of every recipe that builds an app (spec_architecture.md §2.3).
+# The first line of every recipe that builds an app (architecture.md §2.3).
 require_team = @if [ -z "$(TEAM)" ]; then echo "set TEAM in local.mk" >&2; exit 1; fi
 
 .PHONY: all build build-mac build-ios build-sim sim sim-create stop mac-debug mac-debug-unregister demo \
 	logs sim-logs screenshots install mac uninstall apns-key device iphone ipad devices console \
-	unit-test agent-test ui-test test test-sync lint check-behaviors check-private check hooks \
+	unit-test agent-test ui-test test test-sync lint check-behaviors check-citations check-private check hooks \
 	secrets xcode skills clean distclean help
 
-# The runtime lock (spec_architecture.md §2.5): every checkout of the repository
+# The runtime lock (architecture.md §2.5): every checkout of the repository
 # shares the Debug bundle ID, the Debug store and agent, the simulators, and
 # /Applications, so the targets that run them hold one lock in the shared git
 # directory. Outside the lock, each such target runs make again under lockf,
@@ -234,7 +234,7 @@ else
 endif
 
 test: unit-test ## (15 min) unit-test, slow library tests, TimeTrackingiOSTests on the iPhone simulator, ui-test
-	@# Timing targets hold for optimized builds, one test at a time (spec_data_and_sync.md §7.5).
+	@# Timing targets hold for optimized builds, one test at a time (data_and_sync.md §7.5).
 	TIMETRACKING_TEST_SLOW=1 swift test --package-path Packages/TimeTrackingCore -c release -Xswiftc -enable-testing --no-parallel --filter PerformanceTests
 	@$(MAKE) --no-print-directory sim-create
 	$(SIM_UDIDS) $(XCB) test -scheme TimeTrackingiOS $(IPHONE_DEST) -only-testing:TimeTrackingiOSTests $(SIGN)
@@ -253,10 +253,13 @@ lint: ## SwiftFormat --lint and SwiftLint --strict from the package checkouts; n
 check-behaviors: ## Every testable behavior has a test (ONLY=ARCH,DATA limits the failures)
 	@scripts/check_behaviors.sh $(if $(ONLY),--only $(ONLY))
 
+check-citations: ## Every citation of a spec names an existing section
+	@scripts/check_citations.py
+
 check-private: ## Refuse tracked files with personal data
 	@.githooks/check-private tree
 
-check: lint check-behaviors check-private ## lint, check-behaviors, check-private
+check: lint check-behaviors check-citations check-private ## lint, check-behaviors, check-citations, check-private
 
 hooks: ## Use the git hooks in .githooks/
 	@if git rev-parse --git-dir >/dev/null 2>&1; then git config core.hooksPath .githooks; fi

@@ -1,5 +1,5 @@
 // AgentEnvironment+Recording: the seams that `--record` wraps
-// (spec_activity_tracking.md §5, spec_architecture.md §3.4).
+// (activity_tracking.md §5, architecture.md §3.4).
 
 extension AgentEnvironment {
     /// This environment with its command and AppleScript runners recording

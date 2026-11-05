@@ -1,4 +1,4 @@
-// Tests for LaunchArguments (spec_architecture.md §2.5).
+// Tests for LaunchArguments (architecture.md §2.5).
 
 import Foundation
 import Testing

@@ -1,5 +1,5 @@
 // MainSection+Menu: each section's menu title and sidebar key
-// (spec_timer.md §9).
+// (timer.md §9).
 
 import SwiftUI
 

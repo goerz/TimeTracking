@@ -1,5 +1,5 @@
 // UnixSocket: binding and connecting the agent's socket relative to its
-// folder (spec_architecture.md §1.5, spec_activity_tracking.md §7.3).
+// folder (architecture.md §1.5, activity_tracking.md §7.3).
 
 public import Foundation
 import Synchronization

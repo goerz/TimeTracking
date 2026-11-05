@@ -1,5 +1,5 @@
 // MenuState: which window, tab, and section the main menu's commands act on
-// (spec_timer.md §9, spec_projects.md §1.2, spec_ios.md §10.3).
+// (timer.md §9, projects.md §1.2, ios.md §10.3).
 
 import SwiftUI
 import TimeTrackingCore
@@ -50,7 +50,7 @@ struct MenuState: Equatable {
 
     /// View › Go to Today, Previous Period, Next Period, and Date Range…:
     /// the sections that show a date range; on the iPad not Projects
-    /// (spec_ios.md, IOS-34).
+    /// (ios.md, IOS-34).
     var periodCommands: Bool {
         #if os(macOS)
             calendarCommands || reportCommands || activityCommands || projectCommands

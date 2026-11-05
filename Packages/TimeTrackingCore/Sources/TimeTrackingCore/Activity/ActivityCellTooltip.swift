@@ -1,4 +1,4 @@
-// ActivityCellTooltip: the heatmap cell's tooltip (spec_activity.md §1.4).
+// ActivityCellTooltip: the heatmap cell's tooltip (activity.md §1.4).
 
 /// What hovering a heatmap cell shows.
 public struct ActivityCellTooltip: Sendable, Hashable {

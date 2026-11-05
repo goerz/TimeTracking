@@ -1,6 +1,6 @@
 // CloudKitDeviceEvents: DeviceEvent records in the zone `ActivityEvents` of
 // the private database: the iOS flush uploads them, the Mac agent reads and
-// purges them (spec_data_and_sync.md §3.1, §6; spec_ios.md §9.6).
+// purges them (data_and_sync.md §3.1, §6; ios.md §9.6).
 
 public import CloudKit
 public import Foundation
@@ -99,7 +99,7 @@ public struct CloudKitDeviceEventUploader: Sendable {
 /// The Mac agent's `DeviceEventSource` over the zone's change feed.
 ///
 /// There is no push subscription: `changes` fires every `pollInterval`
-/// (the 5-minute fallback of spec_activity_tracking.md §2.3). `purge`
+/// (the 5-minute fallback of activity_tracking.md §2.3). `purge`
 /// reads the whole zone and deletes the records older than the date; the
 /// agent calls it once a day.
 public struct CloudKitDeviceEventSource: DeviceEventSource {

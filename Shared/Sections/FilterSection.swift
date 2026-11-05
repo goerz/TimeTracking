@@ -1,5 +1,5 @@
 // FilterSection: a section of the Projects and Reports Filters popovers
-// (spec_projects.md §2.4, spec_reports.md §3).
+// (projects.md §2.4, reports.md §3).
 
 import SwiftUI
 

@@ -1,5 +1,5 @@
 // OnboardingModel: the iCloud account check, the device name, and the
-// initial sync before anything else shows (spec_ios.md §11).
+// initial sync before anything else shows (ios.md §11).
 
 import Foundation
 import Observation

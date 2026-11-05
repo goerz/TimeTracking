@@ -1,5 +1,5 @@
 // SectionContent: one section's view, in the Mac's detail
-// column and in an iPad tab (spec_projects.md §1.1, spec_ios.md §10.1).
+// column and in an iPad tab (projects.md §1.1, ios.md §10.1).
 
 import SwiftUI
 import TimeTrackingCore

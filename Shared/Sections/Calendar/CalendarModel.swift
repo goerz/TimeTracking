@@ -1,5 +1,5 @@
 // CalendarModel: the Calendar section's view state, loading, and navigation
-// (spec_calendar.md §1, §6). Geometry and overlaps come from the library;
+// (calendar.md §1, §6). Geometry and overlaps come from the library;
 // this model holds selection, drafts, and presentation state.
 
 import Foundation

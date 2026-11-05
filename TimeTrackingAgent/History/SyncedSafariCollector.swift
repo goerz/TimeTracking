@@ -1,5 +1,5 @@
 // SyncedSafariCollector: samples from Safari history synced from other
-// devices, attributed through CloudTabs.db (spec_activity_tracking.md §6.1).
+// devices, attributed through CloudTabs.db (activity_tracking.md §6.1).
 
 import Foundation
 import TimeTrackingCore

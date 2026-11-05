@@ -1,11 +1,11 @@
 // DateRangeToolbar: the shared range's toolbar items (the period arrows and
 // the range menu titled by the selection) and the date popover
-// (spec_reports.md §2). Activity uses the same items on the same model.
+// (reports.md §2). Activity uses the same items on the same model.
 
 import SwiftUI
 import TimeTrackingCore
 
-/// The leading toolbar items of Reports, Projects, and Activity (spec_design.md §4).
+/// The leading toolbar items of Reports, Projects, and Activity (design.md §4).
 struct DateRangeToolbar: ToolbarContent {
     var range: DateRangeModel
     @Binding var showsPopover: Bool

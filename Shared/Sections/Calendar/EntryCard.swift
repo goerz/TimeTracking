@@ -1,5 +1,5 @@
 // EntryCard: an entry card with its gestures, menu, and popovers
-// (spec_calendar.md §2.1, §2.4, §2.5, §2.6, §5).
+// (calendar.md §2.1, §2.4, §2.5, §2.6, §5).
 
 import SwiftUI
 import TimeTrackingCore
@@ -122,7 +122,7 @@ struct EntryCard: View {
     @ViewBuilder
     private func content(textColor: Color) -> some View {
         let label = ProjectLabel(listing)
-        // Running: h:mm:ss, ticking; otherwise "1h 33m" (spec_design.md §2).
+        // Running: h:mm:ss, ticking; otherwise "1h 33m" (design.md §2).
         let duration = TimelineView(.periodic(from: .now, by: 1)) { _ in
             let seconds = entry.seconds(at: model.clock.now)
             Text(entry.isRunning ? DurationText.clock(seconds) : ActivityText.duration(seconds)).monospacedDigit()
@@ -200,7 +200,7 @@ struct EntryCard: View {
         }
     }
 
-    /// Whether the touch equivalents apply (spec_ios.md §10.2).
+    /// Whether the touch equivalents apply (ios.md §10.2).
     static var touch: Bool {
         #if os(iOS)
             true

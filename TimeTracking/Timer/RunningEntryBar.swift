@@ -1,5 +1,5 @@
-// RunningEntryBar: the running-entry bar of the Timer (spec_timer.md §2, §5.1;
-// spec_design.md §7, §8).
+// RunningEntryBar: the running-entry bar of the Timer (timer.md §2, §5.1;
+// design.md §7, §8).
 
 import SwiftUI
 import TimeTrackingCore
@@ -81,7 +81,7 @@ struct RunningEntryBar: View {
     /// The elapsed time; a click edits the running entry. Only the
     /// label's text ticks: a button rebuilt each second reset focus and made
     /// SwiftUI rebuild the main menu, even while a menu was open
-    /// (spec_design.md §7.1).
+    /// (design.md §7.1).
     private var timerLabel: some View {
         Button {
             app.editEntry(in: view)

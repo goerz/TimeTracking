@@ -1,5 +1,5 @@
 // StatusItemPresenter: what the menu bar item and its menu show
-// (spec_menubar.md §1, §2, §4, §5).
+// (menubar.md §1, §2, §4, §5).
 
 import Foundation
 import TimeTrackingCore

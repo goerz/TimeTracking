@@ -1,5 +1,5 @@
 // WidgetStopIntent: the wrapper intent of the widgets' Stop buttons
-// (spec_ios.md §1, §6.1).
+// (ios.md §1, §6.1).
 // Compiled into the app and the widget extension; it runs in the app
 // process, which performs the library operation, sends the change at once,
 // and reloads timelines and controls. Hidden from Shortcuts.

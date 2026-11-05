@@ -1,4 +1,4 @@
-// Sample: one tick's or event's observation (spec_activity_tracking.md §2.1,
+// Sample: one tick's or event's observation (activity_tracking.md §2.1,
 // §2.4, §4.1).
 
 import Foundation

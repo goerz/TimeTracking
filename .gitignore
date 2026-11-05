@@ -6,7 +6,7 @@ DerivedData/
 xcuserdata/
 *.xcuserstate
 
-# Personal settings (spec_architecture.md §2.1)
+# Personal settings (architecture.md §2.1)
 local.mk
 Config/Local.xcconfig
 CLAUDE.local.md

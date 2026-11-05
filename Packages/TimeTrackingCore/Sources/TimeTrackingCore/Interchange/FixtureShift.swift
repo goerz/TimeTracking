@@ -1,5 +1,5 @@
 // FixtureShift: a fixture document moved to the current date for `make demo`
-// (spec_architecture.md §2.5, §3.4).
+// (architecture.md §2.5, §3.4).
 
 public import Foundation
 

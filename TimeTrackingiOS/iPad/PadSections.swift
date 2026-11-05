@@ -1,5 +1,5 @@
 // PadSections: the iPad's section tabs over the shared SectionRouter
-// (spec_ios.md §10; spec_calendar.md §4.1; spec_activity.md
+// (ios.md §10; calendar.md §4.1; activity.md
 // §5). The iPhone has none, so it never creates a calendar store.
 
 import Foundation

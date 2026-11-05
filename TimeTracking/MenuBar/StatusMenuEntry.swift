@@ -1,4 +1,4 @@
-// StatusMenuEntry: one line of the status item's menu (spec_menubar.md §2).
+// StatusMenuEntry: one line of the status item's menu (menubar.md §2).
 
 /// One line of the menu.
 enum StatusMenuEntry: Equatable {

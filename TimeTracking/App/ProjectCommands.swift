@@ -1,4 +1,4 @@
-// ProjectCommands: the Project menu (spec_timer.md §9).
+// ProjectCommands: the Project menu (timer.md §9).
 
 import SwiftUI
 import TimeTrackingCore

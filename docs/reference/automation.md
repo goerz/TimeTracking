@@ -1,6 +1,6 @@
 # Spec: Scripting Surface
 
-Every way a program other than the app's user interface reads or changes tracked time: the command-line tool `timetracking`, App Intents, and the `timetracking` URL scheme, plus the CSV formats, the description file, and `check`. Everything runs on the device against the local store; there is no web API or `x-callback-url`. App Intents stand in for an AppleScript dictionary because one definition serves Shortcuts, Siri, and Spotlight on both platforms. Time blocks are calendar events (`spec_calendar.md`), so no command touches them.
+Every way a program other than the app's user interface reads or changes tracked time: the command-line tool `timetracking`, App Intents, and the `timetracking` URL scheme, plus the CSV formats, the description file, and `check`. Everything runs on the device against the local store; there is no web API or `x-callback-url`. App Intents stand in for an AppleScript dictionary because one definition serves Shortcuts, Siri, and Spotlight on both platforms. Time blocks are calendar events ([calendar.md](calendar.md)), so no command touches them.
 
 ## 1. Principles
 
@@ -12,7 +12,7 @@ Every way a program other than the app's user interface reads or changes tracked
 
 ## 2. Store access
 
-The tool runs in its own process, works without the app running, and writes through the library as one more outbox writer, with no XPC service (`spec_data_and_sync.md` §2.2). It never touches CloudKit; the app sends its outbox rows and the `LiveState` change. It lives in the app bundle at `Contents/Helpers/timetracking`, linked into `PATH` by `make install`, so tool and app versions never differ. App Intents and URLs run in the Mac or iOS app, launched in the background if needed.
+The tool runs in its own process, works without the app running, and writes through the library as one more outbox writer, with no XPC service ([data_and_sync.md](data_and_sync.md) §2.2). It never touches CloudKit; the app sends its outbox rows and the `LiveState` change. It lives in the app bundle at `Contents/Helpers/timetracking`, linked into `PATH` by `make install`, so tool and app versions never differ. App Intents and URLs run in the Mac or iOS app, launched in the background if needed.
 
 ## 3. The command-line tool
 
@@ -26,13 +26,13 @@ These options may come before or after the subcommand: `--json` and `--csv` (mut
 
 Date arguments (`--from`, `--to`, `--day`, `--week`, `--month`, `--at`, `--start`, `--end`) accept `2026-10-29`, `2026-10-29T09:15` (offset optional), `2026-W44`, `2026-10`, the words `today`, `yesterday`, `tomorrow`, `week`, `last-week`, `month`, `last-month`, `year`, and `-3d`, `-2w`, `-1m`. A date option takes the next argument even when it starts with a dash.
 
-Days run from Midnight to Midnight in local time, by default 00:00 ([spec_data_and_sync.md](spec_data_and_sync.md) §8), so `today`, `--day`, and `status` follow the setting and `report` cuts entries at it, while `entries` lists stored entries by their start, never in parts. Weeks run Monday to Sunday.
+Days run from Midnight to Midnight in local time, by default 00:00 ([data_and_sync.md](data_and_sync.md) §8), so `today`, `--day`, and `status` follow the setting and `report` cuts entries at it, while `entries` lists stored entries by their start, never in parts. Weeks run Monday to Sunday.
 
 The range `--from A --to B` is half-open (`--to` names the first day excluded), so ranges compose without an "end of day" ambiguity; `--from` alone runs through today, and `--to` needs `--from`. A `--from` or `--to` with a time of day is an instant bound: the entries whose start lies in the half-open interval count, and either bound may be a day while the other is an instant. In JSON, `from` and `to` echo an instant as ISO 8601 with offset and a day as its date. The options `--day`, `--week`, and `--month` always mean whole days and exclude `--from` and `--to`. Defaults: `entries` and `health` today, `report` the current week. A range over 366 days is a usage error unless `--all-time` is given, which without a range means all time (`report` needs a range). Ranges may include future days.
 
 ### 3.3 Names and identifiers
 
-The options `--project`, `--area`, and `--client` take a name, matched after trimming, case- and diacritic-insensitively (`spec_data_and_sync.md` §1). A write that names an archived project through `start` or `entry` refuses with exit 4, `Project "X" is archived; unarchive it first.`; filters and `project archive`, `unarchive`, `rename`, and `move` also match archived projects. A name found in several clients exits 3 and lists the candidates; `--client` or the form `Client/Project` resolves it. The options `--project-id` (`start`, `entry create`, `entry edit`) and `--entry-id` (`continue`) take UUIDs. Output uses lowercase UUIDs and upper-case `#RRGGBB`; input colors accept either case.
+The options `--project`, `--area`, and `--client` take a name, matched after trimming, case- and diacritic-insensitively ([data_and_sync.md](data_and_sync.md) §1). A write that names an archived project through `start` or `entry` refuses with exit 4, `Project "X" is archived; unarchive it first.`; filters and `project archive`, `unarchive`, `rename`, and `move` also match archived projects. A name found in several clients exits 3 and lists the candidates; `--client` or the form `Client/Project` resolves it. The options `--project-id` (`start`, `entry create`, `entry edit`) and `--entry-id` (`continue`) take UUIDs. Output uses lowercase UUIDs and upper-case `#RRGGBB`; input colors accept either case.
 
 A write command prints one line describing the change (`Started "Clarify noise model" on Noise paper at 09:15.`), or with `--json` the changed record; `--quiet` suppresses the line, never an error.
 
@@ -68,11 +68,11 @@ The command `entries [range]` lists entries whose start lies in the range, ascen
 
 The command `entry show ID` prints one entry. The commands `entry create [TASK] --start TIME --end TIME` and `entry edit ID` (with `--start`, `--end`, `--project` or `--no-project`, `--task`) take `--force`. The command `entry delete ID --yes` deletes one entry; without `--yes` it prints the entry to stderr and exits 2.
 
-Create and edit refuse with exit 4 an overlap (unless `--force`), an end in the future, and an end before the start. An entry can span dates (`spec_data_and_sync.md` §1.5). There is no bulk delete.
+Create and edit refuse with exit 4 an overlap (unless `--force`), an end in the future, and an end before the start. An entry can span dates ([data_and_sync.md](data_and_sync.md) §1.5). There is no bulk delete.
 
 ### 3.7 Report
 
-The command `report [range]` takes the filters of `entries`. The option `--group-by` is an ordered list of one to four distinct keys of `client`, `area`, `project`, `task`, `day` (default `client,area,project`); `--granularity` is `total` (default), `day`, `week`, or `month`. The tool calls the report query Reports uses, so an entry crossing Midnight counts in each shown day it lies on. The table prints durations as `h:mm:ss`, or decimal hours with two decimals under `--hours`. The sleep and workouts that Reports count (`spec_reports.md` §1.1) count here only with `--health`, so a script's totals are tracked time unless it asks for more. With an instant bound (3.2), the entries starting inside the interval count whole, not cut at the bounds, while health time is cut at the bounds; the periods are those of the days the interval touches. JSON:
+The command `report [range]` takes the filters of `entries`. The option `--group-by` is an ordered list of one to four distinct keys of `client`, `area`, `project`, `task`, `day` (default `client,area,project`); `--granularity` is `total` (default), `day`, `week`, or `month`. The tool calls the report query Reports uses, so an entry crossing Midnight counts in each shown day it lies on. The table prints durations as `h:mm:ss`, or decimal hours with two decimals under `--hours`. The sleep and workouts that Reports count ([reports.md](reports.md) §1.1) count here only with `--health`, so a script's totals are tracked time unless it asks for more. With an instant bound (3.2), the entries starting inside the interval count whole, not cut at the bounds, while health time is cut at the bounds; the periods are those of the days the interval touches. JSON:
 
 ```json
 {
@@ -91,19 +91,19 @@ The command `projects [--active|--archived|--all] [--client NAME] [--area NAME] 
 
 The command `clients` lists clients alphabetically: `{"clients": [{"id", "name", "areaCount", "activeProjectCount"}]}`. The command `areas [--client NAME] [--retired]` prints `{"areas": [{"id", "name", "color", "retired", "general", "client": {"id", "name"}, "activeProjectCount"}]}`; `--retired` includes retired areas. With `--csv` the three print the structure tables of 8.2.
 
-The command `health [range] [--kind workout|sleep]` lists the health periods (`spec_data_and_sync.md` §1.9) whose start lies in the range, ascending, whatever the Calendar settings show, then the last import. JSON: `{"from", "to", "lastImport": {"device", "at", "kinds"} | null, "periods": [{"id", "kind", "activity", "start", "end", "duration", "distance"}]}`, with `--csv` `id,kind,activity,start,end,seconds,distance`. Here `lastImport` is the synced `calendar.healthImport` (the iPhone's name, its last import that read at least one kind, rewritten at most hourly, and the kinds read), so a script tells "no workout yesterday" from "not imported since" by comparing `lastImport.at` with the end of the day. The fields `activity` and `distance` (whole meters) are null when unknown. Ids change when Health changes a period's start or end, so scripts don't keep them across imports.
+The command `health [range] [--kind workout|sleep]` lists the health periods ([data_and_sync.md](data_and_sync.md) §1.9) whose start lies in the range, ascending, whatever the Calendar settings show, then the last import. JSON: `{"from", "to", "lastImport": {"device", "at", "kinds"} | null, "periods": [{"id", "kind", "activity", "start", "end", "duration", "distance"}]}`, with `--csv` `id,kind,activity,start,end,seconds,distance`. Here `lastImport` is the synced `calendar.healthImport` (the iPhone's name, its last import that read at least one kind, rewritten at most hourly, and the kinds read), so a script tells "no workout yesterday" from "not imported since" by comparing `lastImport.at` with the end of the day. The fields `activity` and `distance` (whole meters) are null when unknown. Ids change when Health changes a period's start or end, so scripts don't keep them across imports.
 
 ### 3.9 Managing projects, areas, clients
 
 The subcommands `project create|archive|unarchive|rename|move`, `area create|rename|set-color`, and `client create|rename` change the structure; there is no command to delete a project, area, or client. They take a name, plus `--area`, `--client`, and `--color #RRGGBB` as `--help` shows.
 
-They refuse with exit 4 a name already taken (for `project create`, by an active or archived project of the client), archiving what is archived, unarchiving what is active, creating a project in a retired area, and renaming a general area. Archiving keeps the project on its entries. Moving goes to an area of any client; a target not found exits 3. A malformed color exits 2. A new area without `--color` gets the default of `spec_data_and_sync.md` §1.2. Creating a client creates its general area, and renaming it renames that area too.
+They refuse with exit 4 a name already taken (for `project create`, by an active or archived project of the client), archiving what is archived, unarchiving what is active, creating a project in a retired area, and renaming a general area. Archiving keeps the project on its entries. Moving goes to an area of any client; a target not found exits 3. A malformed color exits 2. A new area without `--color` gets the default of [data_and_sync.md](data_and_sync.md) §1.2. Creating a client creates its general area, and renaming it renames that area too.
 
 ### 3.10 Import and export
 
-The command `export [-o PATH] [--include-deleted]` writes the JSON export (`spec_data_and_sync.md` §5.1) to a file or stdout. The command `export --format csv [range] [--what entries|projects|areas|clients|all] [-o PATH]` writes the Entries CSV (default all time) or a structure table (8.2); with `--what all`, `-o` is required and names a directory receiving `entries.csv`, `projects.csv`, `areas.csv`, and `clients.csv`. A range or `--what` without `--format csv` is a usage error.
+The command `export [-o PATH] [--include-deleted]` writes the JSON export ([data_and_sync.md](data_and_sync.md) §5.1) to a file or stdout. The command `export --format csv [range] [--what entries|projects|areas|clients|all] [-o PATH]` writes the Entries CSV (default all time) or a structure table (8.2); with `--what all`, `-o` is required and names a directory receiving `entries.csv`, `projects.csv`, `areas.csv`, and `clients.csv`. A range or `--what` without `--format csv` is a usage error.
 
-The command `import FILE [--dry-run] [--include-settings]` validates the whole document, upserts by id in one transaction, and never deletes (`spec_data_and_sync.md` §5.2). A document that fails validation exits 7 with the JSON path and reason, and nothing is written. The option `--include-settings` also applies the synced settings. The tool prints one line per kind, `entries: 1520 created, 3 updated, 41 unchanged, 1 skipped (deleted here)`, or with `--json` `{"clients": {"created", "updated", "unchanged", "skipped"}, "areas": {…}, "projects": {…}, "entries": {…}}`. With `--dry-run` it prints the same summary and writes nothing.
+The command `import FILE [--dry-run] [--include-settings]` validates the whole document, upserts by id in one transaction, and never deletes ([data_and_sync.md](data_and_sync.md) §5.2). A document that fails validation exits 7 with the JSON path and reason, and nothing is written. The option `--include-settings` also applies the synced settings. The tool prints one line per kind, `entries: 1520 created, 3 updated, 41 unchanged, 1 skipped (deleted here)`, or with `--json` `{"clients": {"created", "updated", "unchanged", "skipped"}, "areas": {…}, "projects": {…}, "entries": {…}}`. With `--dry-run` it prints the same summary and writes nothing.
 
 Import reads only this format. Converters from other trackers are external scripts that write it, deriving every id as a UUID version 5 (RFC 9562) in a namespace of their choosing from names such as `client:<source id>` and `entry:<source id>`, so rerunning on a later dump updates instead of duplicating.
 
@@ -168,13 +168,13 @@ It does only what loses no information: it never archives, moves, renames, or de
 
 ## 5. App Intents
 
-The intents live in the library and both apps include them; the phrase table and the wrapper intents of widget and control buttons are in `spec_ios.md` §6. Every intent runs in the background except `ShowTimerIntent`. They call the same library operations as the tool, and its exit-4 refusals become thrown errors with the same messages. No intent deletes, archives, or edits.
+The intents live in the library and both apps include them; the phrase table and the wrapper intents of widget and control buttons are in [ios.md](ios.md) §6. Every intent runs in the background except `ShowTimerIntent`. They call the same library operations as the tool, and its exit-4 refusals become thrown errors with the same messages. No intent deletes, archives, or edits.
 
 Entities are identified by the record's UUID, and their property names match the JSON records of section 3. Projects are found by name (prefix, then substring) and by state, client, and area, suggested as active projects by recency, and archived ones appear only when asked for. Areas are found by name or enumerated, clients enumerated, and time entries found by identifier only.
 
 | Intent | Parameters | Result |
 |---|---|---|
-| `StartTimerIntent` | `task?`, `project?`, hidden `inferProject` (default false) | The entry, dialog "Started Clarify noise model on Noise paper."; stops a running entry. Only the Siri App Shortcut sets `inferProject` (`spec_ios.md` §6.3): with a non-empty task and no project, it assigns the project of the most recent entry whose task equals the task (trimmed, case- and diacritic-insensitively) and whose project is active, else none |
+| `StartTimerIntent` | `task?`, `project?`, hidden `inferProject` (default false) | The entry, dialog "Started Clarify noise model on Noise paper."; stops a running entry. Only the Siri App Shortcut sets `inferProject` ([ios.md](ios.md) §6.3): with a non-empty task and no project, it assigns the project of the most recent entry whose task equals the task (trimmed, case- and diacritic-insensitively) and whose project is active, else none |
 | `StopTimerIntent` | none | The stopped entry with its duration in the dialog; nothing running returns nil with "Nothing is running." (not an error) |
 | `ContinueIntent` | `project?` | The new entry: from the most recent entry other than the running one, or the project's most recent |
 | `CurrentEntryIntent` | none | The running entry or nil |
@@ -203,7 +203,7 @@ A project name that is unknown, archived, or ambiguous starts nothing and shows 
 
 ## 7. Read-only access for scripts
 
-The store is `~/Library/Group Containers/<TEAM>.<APP_ID>/Library/Application Support/TimeTracking/store.sqlite`; `timetracking --store-path` prints it. Scripts open it read-only (`sqlite3 "file:$(timetracking --store-path)?mode=ro"`), never use `immutable=1` on the live file, wrap several queries in one transaction, and never write. The stable surface is defined in `spec_data_and_sync.md` §2.1. The system asks once per program without the App Group entitlement before it may open the container.
+The store is `~/Library/Group Containers/<TEAM>.<APP_ID>/Library/Application Support/TimeTracking/store.sqlite`; `timetracking --store-path` prints it. Scripts open it read-only (`sqlite3 "file:$(timetracking --store-path)?mode=ro"`), never use `immutable=1` on the live file, wrap several queries in one transaction, and never write. The stable surface is defined in [data_and_sync.md](data_and_sync.md) §2.1. The system asks once per program without the App Group entitlement before it may open the container.
 
 ## 8. Formats
 
@@ -257,7 +257,7 @@ The tool tests build the Debug tool, create a fixture store from a JSON export, 
 23. Running `check --fix` on a store with a missing client, a recolored area, an archived standing project, and a standing project in the wrong area prints three action lines, then the `wrong area` line, and exits 6; a following `check` prints only `wrong area`; nothing was archived or moved.
 24. Exporting the fixture, importing it with `--include-settings` into an empty store, and exporting again yields a document equal to the first except `generatedAt` and `storeID`.
 25. Importing the same file twice reports every record unchanged on the second run, appends no outbox row, and posts no change notification.
-26. An import whose record id is a tombstone in the store reports it skipped and keeps the tombstone; a record carrying `deletedAt` leaves the store's live record in place (`spec_data_and_sync.md` §5.2).
+26. An import whose record id is a tombstone in the store reports it skipped and keeps the tombstone; a record carrying `deletedAt` leaves the store's live record in place ([data_and_sync.md](data_and_sync.md) §5.2).
 27. An import with an `areaID` found neither in the file nor in the store, or a new project whose name collides with another project of the same client, exits 7 and writes nothing.
 28. Running `import --dry-run` prints the same summary as the real import and leaves the store's modification time unchanged.
 29. Running `export --from 2026-10-01` or `export --what entries` without `--format csv` exits 2.

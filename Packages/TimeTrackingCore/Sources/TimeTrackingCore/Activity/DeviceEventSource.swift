@@ -1,5 +1,5 @@
 // DeviceEventSource: how the Mac agent receives device events
-// (spec_data_and_sync.md §6).
+// (data_and_sync.md §6).
 
 public import Foundation
 

@@ -1,5 +1,5 @@
 // View+CardClicks: a Calendar card's click and double-click
-// (spec_calendar.md §2.5).
+// (calendar.md §2.5).
 
 import SwiftUI
 

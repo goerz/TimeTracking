@@ -1,5 +1,5 @@
 // The Calendar's strip of days, zoom, column toggles, and toolbar as the
-// real main window shows them (spec_calendar.md §1).
+// real main window shows them (calendar.md §1).
 
 import XCTest
 

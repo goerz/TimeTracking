@@ -1,5 +1,5 @@
 // ActivityBars+Focus: the arrow keys on the bars and their segments
-// (spec_activity.md §2).
+// (activity.md §2).
 
 extension ActivityBars {
     /// The first bar, whole.

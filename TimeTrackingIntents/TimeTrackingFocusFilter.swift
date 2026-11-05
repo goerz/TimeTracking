@@ -1,5 +1,5 @@
 // TimeTrackingFocusFilter: the Focus filter that logs Focus changes as
-// presence hints (spec_ios.md §9.3). It forwards to the library's
+// presence hints (ios.md §9.3). It forwards to the library's
 // CollectionLog, which decides between `on` and `off`.
 
 import AppIntents

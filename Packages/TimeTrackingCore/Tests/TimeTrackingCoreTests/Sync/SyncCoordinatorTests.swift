@@ -1,5 +1,5 @@
 // SyncCoordinator against a simulated engine over InMemoryTransport
-// (spec_data_and_sync.md §3.1, §4.3).
+// (data_and_sync.md §3.1, §4.3).
 
 import CryptoKit
 import Foundation

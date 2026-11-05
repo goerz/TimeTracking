@@ -1,5 +1,5 @@
 // EntryListing: an entry with the names display and CSV resolve it to
-// (spec_data_and_sync.md §7.3, spec_automation.md §8.2). Client and area come
+// (data_and_sync.md §7.3, automation.md §8.2). Client and area come
 // from the project's current area.
 
 import Foundation

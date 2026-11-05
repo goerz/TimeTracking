@@ -1,5 +1,5 @@
 // ViewDisplayItems: the View menu's navigation and each view's display
-// options, on the Mac and the iPad (spec_timer.md §9).
+// options, on the Mac and the iPad (timer.md §9).
 
 import SwiftUI
 import TimeTrackingCore

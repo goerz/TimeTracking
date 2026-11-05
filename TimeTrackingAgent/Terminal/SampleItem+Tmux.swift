@@ -1,5 +1,5 @@
 // SampleItem+Tmux: the `tmux:<session>` context of a session's items
-// (spec_activity_tracking.md §2.2, §3.1).
+// (activity_tracking.md §2.2, §3.1).
 
 extension SampleItem {
     /// What every tmux context starts with.

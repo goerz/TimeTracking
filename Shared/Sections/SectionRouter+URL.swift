@@ -1,5 +1,5 @@
 // SectionRouter+URL: the section URLs (`timetracking://planner/…`) of
-// spec_automation.md §6 (Mac: the main window; iPad: the tabs, spec_ios.md
+// automation.md §6 (Mac: the main window; iPad: the tabs, ios.md
 // §6.4).
 
 import Foundation

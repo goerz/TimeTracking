@@ -1,5 +1,5 @@
 // ICloudFile: whether an iCloud Drive file is on this Mac in full
-// (spec_activity_tracking.md §4.1).
+// (activity_tracking.md §4.1).
 
 import Foundation
 

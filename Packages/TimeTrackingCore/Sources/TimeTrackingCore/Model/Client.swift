@@ -1,4 +1,4 @@
-// Client: who the work is for (spec_data_and_sync.md §1.1, §1.7).
+// Client: who the work is for (data_and_sync.md §1.1, §1.7).
 
 public import Foundation
 

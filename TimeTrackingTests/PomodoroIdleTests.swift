@@ -1,5 +1,5 @@
 // The Pomodoro, idle prompt, reminders, notifications, and the tracker
-// onboarding (spec_timer.md §5 to §8, §10).
+// onboarding (timer.md §5 to §8, §10).
 
 import Foundation
 import Testing

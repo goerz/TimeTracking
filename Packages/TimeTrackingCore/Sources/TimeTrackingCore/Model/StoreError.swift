@@ -1,4 +1,4 @@
-// StoreError: the errors of every store write (spec_data_and_sync.md §7.1).
+// StoreError: the errors of every store write (data_and_sync.md §7.1).
 
 import Foundation
 

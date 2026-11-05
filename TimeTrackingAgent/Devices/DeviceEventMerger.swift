@@ -1,5 +1,5 @@
 // DeviceEventMerger: one device-day's DeviceEvents as stretches of the
-// user's timeline (spec_activity_tracking.md §2.8, §6.2, §7.2; spec_ios.md §9).
+// user's timeline (activity_tracking.md §2.8, §6.2, §7.2; ios.md §9).
 
 import Foundation
 import TimeTrackingCore

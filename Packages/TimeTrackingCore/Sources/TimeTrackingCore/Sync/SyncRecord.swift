@@ -1,4 +1,4 @@
-// SyncRecord: a transport-neutral record of zone `TimeTracking` (spec_data_and_sync.md §3.1, §3.2).
+// SyncRecord: a transport-neutral record of zone `TimeTracking` (data_and_sync.md §3.1, §3.2).
 
 public import Foundation
 

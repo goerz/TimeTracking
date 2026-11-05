@@ -1,4 +1,4 @@
-// The running-entry bar and its commands (spec_timer.md §2).
+// The running-entry bar and its commands (timer.md §2).
 
 import Foundation
 import Testing

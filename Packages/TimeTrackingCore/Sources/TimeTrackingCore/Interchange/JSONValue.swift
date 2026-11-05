@@ -1,5 +1,5 @@
 // JSONValue: the JSON output of the tool, with keys in the order of the
-// spec's examples (spec_automation.md §1, §8.1).
+// spec's examples (automation.md §1, §8.1).
 
 import Foundation
 

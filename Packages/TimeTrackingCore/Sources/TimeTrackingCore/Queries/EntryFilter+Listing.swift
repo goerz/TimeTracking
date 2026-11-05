@@ -1,6 +1,6 @@
 // EntryFilter+Listing: one listed entry against the Filters and the search
 // of Reports, for the Calendar, which loads its entries by day
-// (spec_calendar.md §1.6; spec_reports.md §3).
+// (calendar.md §1.6; reports.md §3).
 
 extension EntryFilter {
     /// Whether `listing` passes the filter's clients, areas, projects,

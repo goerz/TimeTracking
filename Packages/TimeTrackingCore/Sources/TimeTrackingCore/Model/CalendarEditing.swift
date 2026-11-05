@@ -1,6 +1,6 @@
 // CalendarEditing: drawing, moving, resizing, splitting, and duplicating in
 // the Calendar, never past midnight or (for entries) after now
-// (spec_calendar.md §2.2 to §2.5, §4.2).
+// (calendar.md §2.2 to §2.5, §4.2).
 
 public import Foundation
 

@@ -1,5 +1,5 @@
 // WidgetCenterReloader: WidgetKit reloads of the widget timelines and the
-// timer control (spec_ios.md §3.1, §5).
+// timer control (ios.md §3.1, §5).
 
 import Foundation
 import TimeTrackingCore

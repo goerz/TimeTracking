@@ -1,5 +1,5 @@
 // Tests for the DeviceActivity ladder: plan, ledger, registrations, and
-// callbacks (spec_ios.md §9.2; spec_activity_tracking.md §6.2, phase 7).
+// callbacks (ios.md §9.2; activity_tracking.md §6.2, phase 7).
 
 import Foundation
 import Synchronization

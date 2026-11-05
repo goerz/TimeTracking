@@ -1,4 +1,4 @@
-// Date ranges, presets, arrows, labels, granularity (spec_reports.md §2, §4.3).
+// Date ranges, presets, arrows, labels, granularity (reports.md §2, §4.3).
 
 import Foundation
 import Testing

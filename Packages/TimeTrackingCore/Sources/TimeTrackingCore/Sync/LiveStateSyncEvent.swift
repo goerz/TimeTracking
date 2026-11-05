@@ -1,5 +1,5 @@
 // LiveStateSyncEvent: what the sync engine reports about LiveState, for the
-// widget pushes (spec_data_and_sync.md §4.3).
+// widget pushes (data_and_sync.md §4.3).
 
 import Foundation
 

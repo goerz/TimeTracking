@@ -1,5 +1,5 @@
 // Siri's Start Timer App Shortcut: inference and project names
-// (spec_ios.md §6.2, §6.3).
+// (ios.md §6.2, §6.3).
 
 import Foundation
 import Testing

@@ -1,5 +1,5 @@
 // ReportLowerCard: the segmented control, the level chain, and the
-// breakdown table or the entry list (spec_reports.md §5, §6).
+// breakdown table or the entry list (reports.md §5, §6).
 
 import SwiftUI
 import TimeTrackingCore
@@ -24,7 +24,7 @@ struct ReportLowerCard: View {
         }
         #if os(macOS)
         .onCopyCommand {
-            // ⌘C on the selected table or list rows (spec_reports.md §7).
+            // ⌘C on the selected table or list rows (reports.md §7).
             let text = model.copySelectedRows()
             // NSItemProvider writes plain text from an NSString only.
             // swiftlint:disable:next legacy_objc_type

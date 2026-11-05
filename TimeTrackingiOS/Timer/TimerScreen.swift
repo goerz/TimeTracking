@@ -1,4 +1,4 @@
-// TimerScreen: the iPhone's Timer (spec_ios.md §2.1): a large title, the
+// TimerScreen: the iPhone's Timer (ios.md §2.1): a large title, the
 // settings button, the running-entry card, the Mac activity line,
 // the sync pill, and the searchable day-grouped list.
 
@@ -100,7 +100,7 @@ struct TimerScreen: View {
             .listSectionSpacing(Design.Spacing.medium)
             .accessibilityIdentifier("timer.list")
             .onChange(of: model.list.scrollToTopRequest) {
-                // ⌘↑ (spec_ios.md §10.3).
+                // ⌘↑ (ios.md §10.3).
                 if let first = model.list.days.first {
                     proxy.scrollTo(first.id, anchor: .top)
                 }

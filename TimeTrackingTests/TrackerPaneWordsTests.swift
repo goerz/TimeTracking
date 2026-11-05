@@ -1,6 +1,6 @@
 // The Tracker pane's words: setup rows, marks, list names, settings errors,
-// and the socket replies the Calendar shows (spec_activity_tracking.md §7.3,
-// §7.4; spec_design.md §12).
+// and the socket replies the Calendar shows (activity_tracking.md §7.3,
+// §7.4; design.md §11).
 
 import Foundation
 import Testing

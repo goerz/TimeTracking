@@ -1,5 +1,5 @@
 // Widget buttons, controls, push tokens, App Shortcuts, sync, adjustments,
-// onboarding, and the URL scheme on iOS (spec_ios.md §3 to §7, §11).
+// onboarding, and the URL scheme on iOS (ios.md §3 to §7, §11).
 
 import AppIntents
 import Foundation

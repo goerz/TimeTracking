@@ -1,5 +1,5 @@
 // BlockLogFolder: the month files of a `blocks/` folder, one subfolder per
-// Mac (spec_activity_tracking.md §4.1).
+// Mac (activity_tracking.md §4.1).
 
 public import Foundation
 

@@ -1,5 +1,5 @@
 // TerminalResolver: the item of a frontmost terminal and the terminal
-// secondaries (spec_activity_tracking.md §2.2, §2.4, §3.1, §7.2).
+// secondaries (activity_tracking.md §2.2, §2.4, §3.1, §7.2).
 
 import Foundation
 import TimeTrackingCore

@@ -1,5 +1,5 @@
 // ActivityModel: the Activity section's filter, device, subject view, and
-// drill-downs (spec_activity.md). Every figure comes from the
+// drill-downs (activity.md). Every figure comes from the
 // library's `ActivitySummary`; this model holds selection and requests.
 
 import Foundation

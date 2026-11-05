@@ -1,5 +1,5 @@
 // CalendarZoomControl: the hours' zoom buttons floating over the columns'
-// bottom trailing corner (spec_calendar.md §1.3).
+// bottom trailing corner (calendar.md §1.3).
 
 import SwiftUI
 import TimeTrackingCore
