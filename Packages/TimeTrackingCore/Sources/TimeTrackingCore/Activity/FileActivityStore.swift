@@ -44,8 +44,11 @@ public actor FileActivityStore: ActivityReading {
         self.timeZone = timeZone
         self.clock = clock
         self.homeDirectory = homeDirectory
-        let rules = Self.loadExclusions(folders: folders, homeDirectory: homeDirectory)
-        self.shared = Mutex(SharedState(exclusions: rules))
+        let settings = Self.loadSettings(folders: folders)
+        self.shared = Mutex(SharedState(
+            exclusions: settings.exclusions(homeDirectory: homeDirectory),
+            idleClose: settings.blocks.idleClose
+        ))
         self.stamps = FolderStamps(folders: folders)
     }
 
@@ -167,6 +170,10 @@ public actor FileActivityStore: ActivityReading {
         shared.withLock(\.exclusions)
     }
 
+    public nonisolated var idleClose: TimeInterval {
+        shared.withLock(\.idleClose)
+    }
+
     /// A new stream of changes; every stream receives every change found by
     /// `refresh()` after it was created.
     public nonisolated var changes: AsyncStream<ActivityChange> {
@@ -194,10 +201,13 @@ public actor FileActivityStore: ActivityReading {
         }
         if current.settings != stamps.settings {
             // A file that cannot be read now (a placeholder, a parse error)
-            // keeps the exclusions in force.
+            // keeps the settings in force.
             if let settings = try? TrackerSettings(contentsOf: folders.settingsURL) {
                 let rules = settings.exclusions(homeDirectory: homeDirectory)
-                shared.withLock { $0.exclusions = rules }
+                shared.withLock { state in
+                    state.exclusions = rules
+                    state.idleClose = settings.blocks.idleClose
+                }
             }
             found.append(.settings)
         }
@@ -269,12 +279,12 @@ public actor FileActivityStore: ActivityReading {
         return block.localDay == today ? block : nil
     }
 
-    private static func loadExclusions(folders: ActivityFolders, homeDirectory: String) -> ExclusionRules {
+    private static func loadSettings(folders: ActivityFolders) -> TrackerSettings {
         do {
-            return try TrackerSettings(contentsOf: folders.settingsURL).exclusions(homeDirectory: homeDirectory)
+            return try TrackerSettings(contentsOf: folders.settingsURL)
         } catch {
             logger.error("settings.toml: \(error.localizedDescription, privacy: .public)")
-            return TrackerSettings.defaults.exclusions(homeDirectory: homeDirectory)
+            return .defaults
         }
     }
 
@@ -315,6 +325,7 @@ public actor FileActivityStore: ActivityReading {
 /// The state the nonisolated requirements read.
 private struct SharedState {
     var exclusions: ExclusionRules
+    var idleClose: TimeInterval
     var contexts: [String: String] = [:]
 }
 

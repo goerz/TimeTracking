@@ -258,4 +258,19 @@ struct FileActivityStoreTests {
         #expect(await changes.next() == .settings)
         #expect(try await store.blocks(in: day).isEmpty)
     }
+
+    @Test("PA-15 the reader gives the settings file's idle_close and keeps it while the file can't be read")
+    func idleCloseFollowsTheSettings() async throws {
+        let temporary = try TemporaryFolder()
+        let folders = temporary.folders
+        try ActivityFixture.write("[blocks]\nidle_close = \"12m\"\n", to: folders.settingsURL, modified: Date(timeIntervalSince1970: 1))
+        let store = try Self.store(folders)
+        #expect(store.idleClose == 720)
+        try ActivityFixture.write("[blocks]\nidle_close = \"20m\"\n", to: folders.settingsURL, modified: Date(timeIntervalSince1970: 2))
+        await store.refresh()
+        #expect(store.idleClose == 1200)
+        try ActivityFixture.write("[blocks\n", to: folders.settingsURL, modified: Date(timeIntervalSince1970: 3))
+        await store.refresh()
+        #expect(store.idleClose == 1200)
+    }
 }

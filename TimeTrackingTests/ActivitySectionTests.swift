@@ -210,6 +210,20 @@ struct ActivitySectionTests {
         #expect(model.emptyState == .noActivity(trackerNotRunning: false))
     }
 
+    @Test("PA-15 the Away panel counts gaps by the settings file's idle_close")
+    func awayFollowsIdleClose() async throws {
+        let test = try await TestApp()
+        let blocks = try [
+            Self.block("2024-03-14", "08:00", "08:30", [("mail", 1800)]),
+            Self.block("2024-03-14", "08:40", "09:00", [("mail", 1200)]),
+        ]
+        let activity = InMemoryActivityStore(blocks: blocks, idleClose: 900)
+        let router = SectionRouter(store: test.store, clock: test.clock, device: test.app.settings.device, activity: activity)
+        router.range.set(.preset(.thisWeek))
+        await router.activity.reload()
+        #expect(router.activity.summary?.away.seconds == 0)
+    }
+
     @Test("PA-19 Exclude from tracking opens the Tracker pane with the right list and value and saves nothing")
     func exclude() async throws {
         let test = try await TestApp()
@@ -319,6 +333,10 @@ final class GatedActivityReader: ActivityReading {
 
     var exclusions: ExclusionRules {
         base.exclusions
+    }
+
+    var idleClose: TimeInterval {
+        base.idleClose
     }
 
     var changes: AsyncStream<ActivityChange> {

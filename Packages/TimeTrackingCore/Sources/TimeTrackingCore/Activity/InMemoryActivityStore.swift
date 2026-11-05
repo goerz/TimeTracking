@@ -14,6 +14,7 @@ public final class InMemoryActivityStore: ActivityReading {
         var trackerState: TrackerState?
         var contexts: [String: String] = [:]
         var exclusions = ExclusionRules()
+        var idleClose = TrackerSettings.defaults.blocks.idleClose
     }
 
     private let state = Mutex(State())
@@ -24,7 +25,8 @@ public final class InMemoryActivityStore: ActivityReading {
         stretches: [ActivityBackgroundStretch] = [],
         details: [ActivityBlockDetail] = [],
         trackerState: TrackerState? = nil,
-        contexts: [String: String] = [:]
+        contexts: [String: String] = [:],
+        idleClose: TimeInterval = TrackerSettings.defaults.blocks.idleClose
     ) {
         state.withLock { state in
             state.blocks = blocks
@@ -32,6 +34,7 @@ public final class InMemoryActivityStore: ActivityReading {
             state.details = Dictionary(details.map { ($0.blockID, $0) }) { first, _ in first }
             state.trackerState = trackerState
             state.contexts = contexts
+            state.idleClose = idleClose
         }
     }
 
@@ -99,6 +102,10 @@ public final class InMemoryActivityStore: ActivityReading {
 
     public var exclusions: ExclusionRules {
         state.withLock(\.exclusions)
+    }
+
+    public var idleClose: TimeInterval {
+        state.withLock(\.idleClose)
     }
 
     public var changes: AsyncStream<ActivityChange> {

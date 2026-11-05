@@ -25,6 +25,8 @@ public protocol ActivityReading: Sendable {
     func bundleIdentifier(forContext context: String) -> String?
     /// The exclusions of the current `settings.toml`.
     var exclusions: ExclusionRules { get }
+    /// The `idle_close` of the current `settings.toml`.
+    var idleClose: TimeInterval { get }
     /// Changes of the block log, `current.json`, and `settings.toml`.
     var changes: AsyncStream<ActivityChange> { get }
 }

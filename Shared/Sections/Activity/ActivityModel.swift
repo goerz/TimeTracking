@@ -122,6 +122,7 @@ final class ActivityModel {
                 contexts: contexts,
                 device: selectedDevice,
                 details: details,
+                idleClose: activity.idleClose,
                 exclusions: activity.exclusions,
                 stretches: stretches
             )
