@@ -240,6 +240,18 @@ struct ActivitySummaryTests {
         #expect(summary.bars.bars[3].seconds == 1200)
     }
 
+    @Test("PA-24 today's bar marks the open block's part as the top of its stack, also under a filter")
+    func openBlockIsTheTopOfTheStack() throws {
+        let closed = try Self.block("2026-10-29", "08:00", "09:00", [Self.item("mail", 1800)], active: 2000)
+        let open = try Self.block("2026-10-29", "09:00", "09:20", [Self.item("safari", 1000), Self.item("mail", 100)], active: 1200, isOpen: true)
+        let bar = Self.summary([closed, open]).bars.bars[3]
+        #expect(bar.seconds == 3200)
+        #expect(bar.openRange == 2000 ... 3200)
+        let filtered = Self.summary([closed, open], contexts: ["safari"]).bars.bars[3]
+        #expect(filtered.openRange == 0 ... 1000)
+        #expect(Self.summary([closed]).bars.bars[3].openRange == nil)
+    }
+
     @Test("PA-12 context shares stay relative to the unfiltered total; Brief activity equals a minus item seconds")
     func contextShares() throws {
         let block = try Self.block(

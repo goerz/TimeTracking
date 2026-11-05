@@ -49,12 +49,20 @@ struct BarsPanel: View {
             }
     }
 
-    /// The bar's segments and its total above it.
+    /// The bar's segments, the open block's hatched top, and its total above it.
     @ChartContentBuilder
     private func marks(_ bar: ActivityBars.Bar) -> some ChartContent {
         ForEach(bar.segments, id: \.series) { segment in
             BarMark(x: .value("Day", bar.id), y: .value("Hours", Double(segment.seconds) / 3600))
                 .foregroundStyle(color(segment.series))
+        }
+        if let open = bar.openRange {
+            BarMark(
+                x: .value("Day", bar.id),
+                yStart: .value("Hours", Double(open.lowerBound) / 3600),
+                yEnd: .value("Hours", Double(open.upperBound) / 3600)
+            )
+            .foregroundStyle(Hatch.paint(.white.opacity(0.55)))
         }
         if !bar.isFuture, bar.seconds > 0 {
             PointMark(x: .value("Day", bar.id), y: .value("Hours", Double(bar.seconds) / 3600))

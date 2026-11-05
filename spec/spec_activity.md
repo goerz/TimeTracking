@@ -137,3 +137,4 @@ The Activity tab shows the same panels from the synced block log, without subjec
 21. In the background adds the background stretches' items, each with its part while away; the Away panel says how much of the counted gaps background stretches cover, also under a context filter, and has no such line without them.
 22. A reload of a long range that finishes after a later reload of a short range leaves the short range's figures and no loading indicator.
 23. With Midnight at 04:00, a block at 02:00 on March 14 counts on March 13 while its log date stays March 14, its hour stays 02:00, and a heatmap row's columns run from 04:00 to 03:00.
+24. On the Mac today's bar marks the open block's part, hatched, as the top of its stack, also under a filter; a bar without an open block has none.
