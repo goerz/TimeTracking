@@ -90,20 +90,24 @@ struct ReportChartCard: View {
             }
         }
         .chartOverlay { proxy in
-            Rectangle().fill(.clear).contentShape(Rectangle())
-                .onContinuousHover { phase in
-                    switch phase {
-                    case let .active(location):
-                        hovered = proxy.value(atX: location.x, as: String.self)
-                    case .ended:
-                        hovered = nil
+            GeometryReader { geometry in
+                Rectangle().fill(.clear).contentShape(Rectangle())
+                    .onContinuousHover { phase in
+                        switch phase {
+                        case let .active(location):
+                            // The overlay starts left of the plot, at the y axis.
+                            let plotX = proxy.plotFrame.map { location.x - geometry[$0].minX } ?? location.x
+                            hovered = proxy.value(atX: plotX, as: String.self)
+                        case .ended:
+                            hovered = nil
+                        }
                     }
-                }
-                .onTapGesture(count: 2) {
-                    if let bucket = hoveredBucket(chart) {
-                        Task { await model.drillDown(bucket) }
+                    .onTapGesture(count: 2) {
+                        if let bucket = hoveredBucket(chart) {
+                            Task { await model.drillDown(bucket) }
+                        }
                     }
-                }
+            }
         }
         .overlay(alignment: .top) {
             if let bucket = hoveredBucket(chart) {

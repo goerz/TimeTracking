@@ -257,7 +257,7 @@ The tracker spec defines the formats and folders ([spec_activity_tracking.md](sp
 | Artifact | Location | Writer | Readers |
 |---|---|---|---|
 | `Activity/blocks/<mac>/YYYY-MM.jsonl` | iCloud Drive container, outside `Documents/`; local fallback in the App Group | Each Mac's agent, only its own subfolder | Mac app, iPhone, iPad, scripts |
-| `Activity/settings.toml` | Same folder | The Mac app's Tracker pane | Agent, iOS app (exclusions) |
+| `Activity/settings.toml` | Same folder | The Mac app's Tracker pane | Agent, iOS app (exclusions), the Activity section (`idle_close`) |
 | `Activity/current.json` | Mac, local | Agent, every tick | Mac app |
 | `Activity/detail/YYYY-MM-DD.jsonl` | Mac, local | Agent | The recording Mac; scripts |
 | `DeviceEvent` records | CloudKit zone `ActivityEvents` | iOS app | Agent |
