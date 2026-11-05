@@ -20,5 +20,7 @@ struct ActivityPanel<Content: View>: View {
         .padding(Design.Spacing.large)
         .frame(maxWidth: .infinity, alignment: .leading)
         .cardBackground()
+        // The controls inside keep their own identifiers.
+        .accessibilityElement(children: .contain)
     }
 }

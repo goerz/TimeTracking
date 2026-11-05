@@ -25,6 +25,8 @@ struct BarsPanel: View {
                 }
                 .frame(height: 220)
                 .activityPanelKeys(isFocused: $isFocused, onFocus: model.barsFocused, perform: handle)
+                // One element, and the tooltip inside keeps its identifier.
+                .accessibilityElement(children: .contain)
                 .accessibilityIdentifier("activity.bars.chart")
         }
         .accessibilityIdentifier("activity.bars")
