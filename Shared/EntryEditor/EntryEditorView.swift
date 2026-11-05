@@ -53,6 +53,11 @@ struct EntryEditorView: View {
             commitOnFocusLoss(old)
         }
         .onKeyPress(.escape) {
+            // The picker's key presses arrive here: Escape closes it alone.
+            if picker != nil {
+                picker = nil
+                return .handled
+            }
             if model.taskField.escape(text: model.task) {
                 return .handled
             }
