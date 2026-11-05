@@ -230,4 +230,35 @@ struct TimerScreenTests {
         #expect(test.model.timer.taskText == "Outline results")
         #expect(test.model.timer.elapsedSeconds(at: test.clock.now) == 1200)
     }
+
+    @Test("IOS-51 the edit sheet's task field suggests earlier tasks; a suggestion fills the draft and Done stores it")
+    func editSheetSuggestions() async throws {
+        let test = try await TestPhone()
+        let projects = try await test.projects(["Household"])
+        _ = try await test.store.create(EntryDraft(
+            projectID: projects[0].id,
+            task: "Prepare methods",
+            start: test.date("2024-03-14T08:00"),
+            end: test.date("2024-03-14T08:30")
+        ))
+        let entry = try await test.store.create(EntryDraft(
+            projectID: nil,
+            task: "Pre",
+            start: test.date("2024-03-14T09:00"),
+            end: test.date("2024-03-14T09:30")
+        ))[0]
+        let editor = EntryEditSheetModel(store: test.store, clock: test.clock)
+        await editor.load(entry.id)
+        editor.task = "Prepare"
+        await editor.taskEdited(editor.task)
+        let suggestion = try #require(editor.taskField.suggestions.first)
+        #expect(suggestion.task == "Prepare methods")
+        await editor.accept(suggestion)
+        #expect(editor.task == "Prepare methods" && editor.projectID == projects[0].id)
+        #expect(editor.taskField.suggestions.isEmpty)
+        #expect(try await test.store.entry(entry.id)?.task == "Pre")
+        #expect(await editor.save())
+        let stored = try #require(try await test.store.entry(entry.id))
+        #expect(stored.task == "Prepare methods" && stored.projectID == projects[0].id)
+    }
 }

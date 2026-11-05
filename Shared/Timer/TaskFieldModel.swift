@@ -81,6 +81,14 @@ final class TaskFieldModel {
         await loadSuggestions(for: text, chipProject: chipProject)
     }
 
+    /// A keystroke in a task field without the `@` trigger (the iPhone's
+    /// edit sheet): suggestions only, whatever the text.
+    func suggest(for text: String, chipProject: ProjectID?) async {
+        textChanged(text)
+        suggestionsDismissed = false
+        await loadSuggestions(for: text, chipProject: chipProject)
+    }
+
     private func loadSuggestions(for text: String, chipProject: ProjectID?) async {
         guard !text.trimmed.isEmpty, !suggestionsDismissed else {
             suggestions = []

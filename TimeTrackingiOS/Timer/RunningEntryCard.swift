@@ -98,20 +98,10 @@ struct RunningEntryCard: View {
     }
 
     private var suggestions: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            ForEach(Array(model.taskField.suggestions.prefix(4).enumerated()), id: \.offset) { index, suggestion in
-                Button {
-                    taskFocused = false
-                    model.taskField.reset()
-                    Task { await timer.accept(suggestion) }
-                } label: {
-                    SuggestionLabel(suggestion: suggestion, label: suggestion.projectID.flatMap { model.taskField.labels[$0] })
-                        .padding(.vertical, Design.Spacing.small)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .accessibilityIdentifier("timer.suggestion.\(index)")
-            }
+        TaskSuggestionRows(field: model.taskField, identifier: "timer.suggestion") { suggestion in
+            taskFocused = false
+            model.taskField.reset()
+            Task { await timer.accept(suggestion) }
         }
     }
 

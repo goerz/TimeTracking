@@ -33,6 +33,20 @@ struct TaskFieldTests {
         #expect(!field.isShowingSuggestions)
     }
 
+    @Test("IOS-51 a task field without the @ trigger only suggests: an @ opens no picker")
+    func suggestionsWithoutTrigger() async throws {
+        let test = try await TestApp()
+        let projects = try await test.projects(["Noise Model"])
+        try await test.entry("Mail @home", projects[0], from: "06:00", to: "06:30")
+        let field = TaskFieldModel(store: test.store)
+        await field.suggest(for: "@ho", chipProject: nil)
+        #expect(field.picker == nil)
+        #expect(field.suggestions.map(\.task) == ["Mail @home"])
+        #expect(field.labels[projects[0].id]?.name == "Noise Model")
+        await field.suggest(for: "", chipProject: nil)
+        #expect(field.suggestions.isEmpty)
+    }
+
     @Test("TM-44 Return accepts no suggestion or picker line loaded for text the user has typed past")
     func staleHighlightNotAccepted() async throws {
         let test = try await TestApp()

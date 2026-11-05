@@ -63,6 +63,25 @@ final class RunningEntryUITests: XCTestCase {
     }
 
     @MainActor
+    func testIOS51_editSheetSuggestsTasks() {
+        let app = launch()
+        app.buttons["timer.time"].tap()
+        assertSheet(in: app, task: Self.runningTask)
+        let field = app.textFields["editor.task"]
+        field.tap()
+        // Leaves "Prepare methods", which other entries of the fixture contain.
+        field.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: 2))
+        let suggestion = app.buttons["editor.suggestion.0"]
+        XCTAssertTrue(suggestion.waitForExistence(timeout: 5))
+        suggestion.tap()
+        XCTAssertFalse(suggestion.waitForExistence(timeout: 2))
+        // Only Done stores the draft.
+        app.buttons["editor.cancel"].tap()
+        XCTAssertFalse(field.waitForExistence(timeout: 3))
+        assertTimer(in: app, task: Self.runningTask, time: "0:25:00")
+    }
+
+    @MainActor
     func testIOS42_cardTimeEditsTheRunningStart() {
         let app = launch()
         app.buttons["timer.time"].tap()

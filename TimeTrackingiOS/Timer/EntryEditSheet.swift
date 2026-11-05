@@ -12,6 +12,7 @@ struct EntryEditSheet: View {
     @State private var editor: EntryEditSheetModel?
     @State private var picker: ProjectPickerModel?
     @State private var confirmDelete = false
+    @FocusState private var taskFocused: Bool
 
     var body: some View {
         NavigationStack {
@@ -84,7 +85,24 @@ struct EntryEditSheet: View {
     private func taskSection(_ editor: EntryEditSheetModel) -> some View {
         Section {
             TextField("Task", text: Bindable(editor).task)
+                .focused($taskFocused)
                 .accessibilityIdentifier("editor.task")
+                .onChange(of: editor.task) { _, text in
+                    if taskFocused {
+                        Task { await editor.taskEdited(text) }
+                    }
+                }
+                .onChange(of: taskFocused) { _, focused in
+                    if !focused {
+                        editor.taskField.reset()
+                    }
+                }
+            if taskFocused, !editor.taskField.suggestions.isEmpty {
+                TaskSuggestionRows(field: editor.taskField, identifier: "editor.suggestion") { suggestion in
+                    taskFocused = false
+                    Task { await editor.accept(suggestion) }
+                }
+            }
             Button {
                 picker = ProjectPickerModel(store: model.store, currentProject: editor.projectID, taskMatching: false)
             } label: {

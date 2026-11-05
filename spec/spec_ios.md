@@ -52,7 +52,7 @@ Grouping, day totals, paging, and row content are those of [spec_timer.md](spec_
 
 ### 2.7 Entry editing
 
-A sheet with the task field (autocompletion, no `@` trigger), the project chip, Start and End pickers, the duration, Continue and Delete, and "Created on <device name>". It always edits the stored entry, also from a row that shows part of one. For the running entry End reads "Running", Continue is absent, and only Start, task, and project change. Opening it first stores a task still being typed on the card; Done writes only the fields the sheet changed, so a task stored meanwhile is kept.
+A sheet with the task field (the card's autocompletion, no `@` trigger; a suggestion fills the task and project, which Done stores), the project chip, Start and End pickers, the duration, Continue and Delete, and "Created on <device name>". It always edits the stored entry, also from a row that shows part of one. For the running entry End reads "Running", Continue is absent, and only Start, task, and project change. Opening it first stores a task still being typed on the card; Done writes only the fields the sheet changed, so a task stored meanwhile is kept.
 
 The rules and messages of [spec_timer.md](spec_timer.md) §4.2 and §4.3 are checked on Done. An interval crossing real midnight shows "Will be saved as 2 entries, split at midnight", whatever the Midnight setting.
 
@@ -333,3 +333,4 @@ The iPad reads the block log and `LiveState`; it never writes the block log or r
 - IOS-48. With Midnight at 04:00, a widget's today at 02:00 holds the stopped parts of the day and a live timer from the running entry's own start, a chain counted once, and its timeline ends at 04:00.
 - IOS-49. The iPhone's Settings show Midnight.
 - IOS-50. With "Play a sound" off a phase's notification is silent; on, it has its bundled sound; `longRunning` and `syncAdjusted` use the default sound.
+- IOS-51. Typing in the edit sheet's task field lists up to four earlier tasks; `@` opens no picker; a tap on a suggestion sets the sheet's task and project, Done stores them, and Cancel leaves the entry unchanged.

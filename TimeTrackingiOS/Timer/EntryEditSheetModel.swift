@@ -28,6 +28,8 @@ final class EntryEditSheetModel {
     private(set) var message: String?
     /// "Overlaps “Morning Review” (9:00 to 9:25)", waiting for Keep or Revert.
     private(set) var overlap: String?
+    /// The task field's suggestions; it has no `@` trigger.
+    let taskField: TaskFieldModel
 
     static let futureMessage = EntryEditorModel.futureMessage
     static let orderMessage = "The end must be after the start"
@@ -36,6 +38,7 @@ final class EntryEditSheetModel {
     init(store: TimeStore, clock: any Clock) {
         self.store = store
         self.clock = clock
+        self.taskField = TaskFieldModel(store: store)
     }
 
     var isRunning: Bool {
@@ -58,6 +61,18 @@ final class EntryEditSheetModel {
     func setProject(_ id: ProjectID?) async {
         projectID = id
         label = await ProjectLabel.loadLive(id, from: store)
+    }
+
+    /// A keystroke in the task field.
+    func taskEdited(_ text: String) async {
+        await taskField.suggest(for: text, chipProject: projectID)
+    }
+
+    /// A suggestion: the draft's task and project; Done stores them.
+    func accept(_ suggestion: TaskSuggestion) async {
+        taskField.reset()
+        task = suggestion.task
+        await setProject(suggestion.projectID)
     }
 
     /// The duration line: the draft's, or the live time of a running entry.
