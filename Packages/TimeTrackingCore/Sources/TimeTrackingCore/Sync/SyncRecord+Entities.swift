@@ -126,7 +126,7 @@ extension TimeEntry {
     var syncRecord: SyncRecord {
         .make(.timeEntry, id.rawValue, [
             "projectID": value(projectID?.rawValue), "task": value(task), "start": value(start), "end": value(end),
-            "timeZone": value(timeZone), "deviceID": value(deviceID.rawValue), "splitRootID": value(splitRootID?.rawValue),
+            "timeZone": value(timeZone), "deviceID": value(deviceID.rawValue),
             "createdAt": value(createdAt), "modifiedAt": value(modifiedAt), "deletedAt": value(deletedAt),
         ])
     }
@@ -145,7 +145,6 @@ extension TimeEntry {
             end: record.instant("end"),
             timeZone: record.text("timeZone") ?? TimeZone.current.identifier,
             deviceID: deviceID,
-            splitRootID: record.id("splitRootID"),
             createdAt: record.instant("createdAt") ?? start,
             modifiedAt: record.modifiedAt,
             deletedAt: record.instant("deletedAt")

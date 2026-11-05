@@ -17,15 +17,4 @@ extension EntryEditRules {
         }
         return .success(EntryEditResult(start: start, end: end))
     }
-
-    /// Whether a stopped interval in `zone` is saved as more than one
-    /// entry: it ends on a later day, and not exactly at midnight.
-    public static func crossesMidnight(start: Date, end: Date, in zone: TimeZone) -> Bool {
-        guard end > start else {
-            return false
-        }
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = zone
-        return !calendar.isDate(start, inSameDayAs: end) && end != calendar.startOfDay(for: end)
-    }
 }

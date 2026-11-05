@@ -20,17 +20,17 @@ extension TimeStore: TimeStoreWriting {
     }
 
     @discardableResult
-    public func create(_ draft: EntryDraft) throws -> [TimeEntry] {
+    public func create(_ draft: EntryDraft) throws -> TimeEntry {
         try write { try $0.create(draft) }
     }
 
     @discardableResult
-    public func update(_ id: EntryID, _ change: EntryChange) throws -> [TimeEntry] {
+    public func update(_ id: EntryID, _ change: EntryChange) throws -> TimeEntry {
         try write { try $0.update(id, change) }
     }
 
     @discardableResult
-    public func move(_ id: EntryID, by offset: TimeInterval) throws -> [TimeEntry] {
+    public func move(_ id: EntryID, by offset: TimeInterval) throws -> TimeEntry {
         try write { try $0.move(id, by: offset) }
     }
 

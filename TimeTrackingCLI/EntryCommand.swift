@@ -71,8 +71,8 @@ struct EntryCommand: AsyncParsableCommand {
                 end: service.instant(end),
                 timeZone: context.timeZone.identifier
             )
-            let pieces = try await service.createEntry(draft, force: force)
-            EntryCommand.changed("Created", pieces, service: service, context: context)
+            let created = try await service.createEntry(draft, force: force)
+            EntryCommand.changed("Created", created, service: service, context: context)
         }
     }
 
@@ -125,8 +125,8 @@ struct EntryCommand: AsyncParsableCommand {
             }
             change.start = try service.instant(ifGiven: start)
             change.end = try service.instant(ifGiven: end)
-            let pieces = try await service.editEntry(entry.id, change, force: force)
-            EntryCommand.changed("Changed", pieces, service: service, context: context)
+            let changed = try await service.editEntry(entry.id, change, force: force)
+            EntryCommand.changed("Changed", changed, service: service, context: context)
         }
     }
 
@@ -159,22 +159,20 @@ struct EntryCommand: AsyncParsableCommand {
         }
     }
 
-    /// One line per piece, or `{"entries": [...]}`.
+    /// One line, or `{"entries": [...]}`.
     static func changed(
         _ verb: String,
-        _ pieces: [EntryListing],
+        _ listing: EntryListing,
         service: AutomationService,
         context: ToolContext
     ) {
         let zone = context.timeZone
-        let lines = pieces.map { piece in
-            let entry = piece.entry
-            let end = entry.end.map { ToolFormat.time($0, zone) } ?? "now"
-            return "\(verb) \(ToolFormat.subject(piece)) on \(ToolFormat.date(entry.start, zone)) "
-                + "from \(ToolFormat.time(entry.start, zone)) to \(end) (\(entry.id.rawValue))."
-        }
-        context.changed(lines.joined(separator: "\n")) {
-            AutomationRecords.entryList(pieces, now: service.now, timeZone: zone)
+        let entry = listing.entry
+        let end = entry.end.map { ToolFormat.time($0, zone) } ?? "now"
+        let line = "\(verb) \(ToolFormat.subject(listing)) on \(ToolFormat.date(entry.start, zone)) "
+            + "from \(ToolFormat.time(entry.start, zone)) to \(end) (\(entry.id.rawValue))."
+        context.changed(line) {
+            AutomationRecords.entryList([listing], now: service.now, timeZone: zone)
         }
     }
 }

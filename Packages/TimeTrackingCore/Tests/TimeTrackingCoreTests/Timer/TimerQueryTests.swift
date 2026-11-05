@@ -135,36 +135,36 @@ struct TimerQueryTests {
         #expect(try await test.store.projectNameIsTaken("RESUME", client: first.client.id))
     }
 
-    @Test("TM-21 a task change on one piece of a chain changes every piece; a Start change only that piece")
-    func chainEdits() async throws {
+    @Test("TM-21 an edit from either row of an entry across midnight acts on the whole entry")
+    func editsActOnTheWholeEntry() async throws {
         let test = try await TestStore(now: "2024-03-14T10:00")
-        let pieces = try await test.store.create(EntryDraft(
+        let entry = try await test.store.create(EntryDraft(
             projectID: nil,
             task: "Night",
             start: test.date("2024-03-13T23:10"),
             end: test.date("2024-03-14T00:35")
         ))
-        #expect(pieces.count == 2)
-        let chain = try await test.store.chain(of: pieces[1].id)
-        #expect(try chain.map(\.start) == [test.date("2024-03-13T23:10"), test.date("2024-03-14T00:00")])
-        try await test.store.updateChain(of: pieces[1].id, task: "Late night")
-        #expect(try await test.store.chain(of: pieces[0].id).map(\.task) == ["Late night", "Late night"])
-        _ = try await test.store.update(pieces[1].id, EntryChange(start: test.date("2024-03-14T00:10")))
-        let after = try await test.store.chain(of: pieces[0].id)
-        #expect(try after.map(\.start) == [test.date("2024-03-13T23:10"), test.date("2024-03-14T00:10")])
+        let list = try await test.store.timerList(dayLimit: 2)
+        #expect(list.flatMap(\.rows).map(\.id) == [entry.id, entry.id])
+        #expect(list.flatMap(\.rows).map(\.editable) == [nil, entry])
+        _ = try await test.store.update(entry.id, EntryChange(task: "Late night"))
+        let renamed = try await test.store.timerList(dayLimit: 2)
+        #expect(renamed.flatMap(\.rows).map(\.entry.task) == ["Late night", "Late night"])
+        _ = try await test.store.update(entry.id, EntryChange(start: test.date("2024-03-13T23:20")))
+        let moved = try await test.store.timerList(dayLimit: 2)
+        #expect(try moved.flatMap(\.rows).map(\.entry.start) == [test.date("2024-03-14T00:00"), test.date("2024-03-13T23:20")])
     }
 
-    @Test("TM-18 TM-19 TM-20 the editor recomputes, moves by days, refuses the future, disables running fields, and splits at midnight")
+    @Test("TM-18 TM-19 TM-20 the editor recomputes, moves by days, refuses the future, disables running fields, and crosses midnight")
     func editRules() async throws {
         let test = try await TestStore(now: "2024-03-14T10:00")
         let now = test.clock.now
-        let pieces = try await test.store.create(EntryDraft(
+        let entry = try await test.store.create(EntryDraft(
             projectID: nil,
             task: "",
             start: test.date("2024-03-13T09:10"),
             end: test.date("2024-03-13T09:35")
         ))
-        let entry = pieces[0]
         func result(_ edit: EntryFieldEdit, _ target: TimeEntry = entry) -> Result<EntryEditResult, EntryEditError> {
             EntryEditRules.apply(edit, to: target, now: now)
         }
@@ -195,30 +195,33 @@ struct TimerQueryTests {
         #expect(try result(.start(8 * 3600), running) == .success(EntryEditResult(start: test.date("2024-03-14T08:00"), end: nil)))
         _ = try await test.store.stop(at: now)
 
-        // TM-20: Stop 00:35 on an entry starting 23:10 stores two pieces.
+        // TM-20: Stop 00:35 on an entry starting 23:10 stores one entry.
         let late = try await test.store.create(EntryDraft(
             projectID: nil,
             task: "",
             start: test.date("2024-03-12T23:10"),
             end: test.date("2024-03-12T23:50")
-        ))[0]
+        ))
         let change = try EntryEditRules.apply(.stop(35 * 60), to: late, now: now).get()
         let stored = try await test.store.update(late.id, change.change)
-        #expect(stored.count == 2)
-        #expect(try stored[0].end == (test.date("2024-03-13T00:00")))
-        #expect(try stored[1].end == (test.date("2024-03-13T00:35")))
+        #expect(try stored.end == (test.date("2024-03-13T00:35")))
+        // An entry across dates keeps the date of its Stop, and a Stop
+        // before the date's start of the entry goes to the next date.
+        let shorter = try EntryEditRules.apply(.stop(23 * 3600 + 30 * 60), to: stored, now: now).get()
+        #expect(try shorter.end == (test.date("2024-03-12T23:30")))
+        let forgotten = try await test.store.update(late.id, EntryChange(end: test.date("2024-03-14T09:00")))
+        let edited = try EntryEditRules.apply(.stop(9 * 3600 + 30 * 60), to: forgotten, now: test.clock.now).get()
+        #expect(try edited.end == (test.date("2024-03-14T09:30")))
     }
 
-    @Test("TM-13 TM-14 an entry running since 23:10 counts 0:55:00 at 00:05 by its chain start; today's total grows with the clock")
-    func chainStartAndTotals() async throws {
+    @Test("TM-13 TM-14 an entry running since 23:10 counts 0:55:00 at 00:05 by its start; today's total grows with the clock")
+    func elapsedAndTotals() async throws {
         let test = try await TestStore(now: "2024-03-13T23:30")
         let running = try await test.store.start(projectID: nil, task: "Night", at: test.date("2024-03-13T23:10"))
         try test.clock.set(test.date("2024-03-14T00:05"))
-        try await test.store.checkInvariants()
         let current = try #require(try await test.store.runningEntry())
-        #expect(current.id != running.id)
-        let chainStart = try await test.store.chainStart(of: current.id)
-        #expect(DurationText.clock(Int(test.clock.now.timeIntervalSince(chainStart))) == "0:55:00")
+        #expect(current == running)
+        #expect(DurationText.clock(current.seconds(at: test.clock.now)) == "0:55:00")
         let today = TrackingDay(year: 2024, month: 3, day: 14)
         var days = try await test.store.days(ending: today, count: 2)
         #expect(days[0].totalSeconds == 300)

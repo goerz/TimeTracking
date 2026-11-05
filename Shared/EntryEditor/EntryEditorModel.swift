@@ -33,8 +33,6 @@ final class EntryEditorModel {
     /// "Entries cannot be in the future", shown until the next edit.
     private(set) var message: String?
     private(set) var overlap: OverlapNotice?
-    /// "Continued from …" and "Continues on … until …".
-    private(set) var chainLines: [String] = []
 
     static let futureMessage = "Entries cannot be in the future"
 
@@ -66,10 +64,9 @@ final class EntryEditorModel {
             label = ProjectLabel(listing)
         }
         resetTimeFields()
-        await loadChain()
     }
 
-    /// The live duration of this entry (not the chain) for a running entry.
+    /// The live duration of a running entry.
     func durationDisplay(at now: Date) -> String {
         isRunning ? DurationText.clock(entry.seconds(at: now)) : durationText
     }
@@ -82,7 +79,7 @@ final class EntryEditorModel {
         }
         let old = entry
         await perform(undo: old) { [store, entry, task] in
-            try await store.updateChain(of: entry.id, task: task)
+            try await store.update(entry.id, EntryChange(task: task))
         }
     }
 
@@ -92,7 +89,7 @@ final class EntryEditorModel {
         }
         let old = entry
         await perform(undo: old) { [store, entry] in
-            try await store.updateChain(of: entry.id, projectID: .some(projectID))
+            try await store.update(entry.id, EntryChange(projectID: .some(projectID)))
         }
     }
 
@@ -151,7 +148,7 @@ final class EntryEditorModel {
                 return
             }
             let draft = EntryDraft(projectID: entry.projectID, task: entry.task, start: result.start, end: result.end)
-            if let other = await (try? store.overlaps(for: draft, outsideChainOf: entry.id))?.first {
+            if let other = await (try? store.overlaps(for: draft, excluding: entry.id))?.first {
                 overlap = await OverlapNotice(text: OverlapNotice.text(for: other, in: store), change: result)
                 return
             }
@@ -212,16 +209,12 @@ final class EntryEditorModel {
         }
     }
 
-    private func perform(undo old: TimeEntry, _ write: @Sendable () async throws -> [TimeEntry]) async {
+    private func perform(undo old: TimeEntry, _ write: @Sendable () async throws -> TimeEntry) async {
         do {
-            let pieces = try await write()
-            if let first = pieces.first(where: { $0.id == old.id }) ?? pieces.first {
-                entry = first
-            }
+            entry = try await write()
             registerUndo(restoring: old)
             task = entry.task
             resetTimeFields()
-            await loadChain()
             if let listing = try? await store.listings(for: [entry]).first {
                 label = ProjectLabel(listing)
             }
@@ -252,23 +245,5 @@ final class EntryEditorModel {
         stopText = stopDisplay
         durationText = DurationText.clock(entry.seconds(at: clock.now))
         date = entry.start
-    }
-
-    private func loadChain() async {
-        guard let chain = try? await store.chain(of: entry.id), let index = chain.firstIndex(where: { $0.id == entry.id }) else {
-            chainLines = []
-            return
-        }
-        var lines: [String] = []
-        if index > 0 {
-            let previous = chain[index - 1]
-            lines.append("Continued from \(LocalDateText.day(previous.start)), \(LocalDateText.time(previous.start))")
-        }
-        if index + 1 < chain.count {
-            let next = chain[index + 1]
-            let until = next.end.map(LocalDateText.time) ?? "now"
-            lines.append("Continues on \(LocalDateText.day(next.start)) until \(until)")
-        }
-        chainLines = lines
     }
 }

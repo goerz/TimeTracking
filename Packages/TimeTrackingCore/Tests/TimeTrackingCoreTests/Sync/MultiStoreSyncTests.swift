@@ -100,7 +100,7 @@ struct MultiStoreSyncTests {
             task: "x",
             start: net.date("2024-03-14T08:00"),
             end: net.date("2024-03-14T08:30")
-        ))[0]
+        ))
         try await net.converge()
         await net.partition(true)
         try await peerA.store.updateProject(project.id, ProjectChange(name: "Renamed"))
@@ -128,7 +128,7 @@ struct MultiStoreSyncTests {
             task: "x",
             start: net.date("2024-03-14T08:00"),
             end: net.date("2024-03-14T08:30")
-        ))[0]
+        ))
         try await peerA.sync.sync()
         let entryRecord = try #require(await net.server.record(SyncRecordRef(.timeEntry, entry.id.rawValue)))
         try await peerB.store.applyFetched([entryRecord], deletions: [])
@@ -147,7 +147,7 @@ struct MultiStoreSyncTests {
             task: "x",
             start: net.date("2024-03-14T08:00"),
             end: net.date("2024-03-14T08:30")
-        ))[0]
+        ))
         try await net.converge()
         _ = try await peerA.store.update(entry.id, EntryChange(task: "from A"))
         net.clock.advance(by: 1)
@@ -165,7 +165,7 @@ struct MultiStoreSyncTests {
             task: "y",
             start: net.date("2024-03-14T09:00"),
             end: net.date("2024-03-14T09:10")
-        ))[0]
+        ))
         try await peerA.store.delete([doomed.id])
         try await net.converge()
         await net.server.deleteZone()
@@ -232,55 +232,34 @@ struct MultiStoreSyncTests {
         let first = try await peerA.store.start(projectID: nil, task: "X", at: net.date("2026-10-28T23:00"))
         let second = try await peerB.store.start(projectID: nil, task: "Y", at: net.date("2026-10-28T23:30"))
         try net.clock.set(net.date("2026-10-29T00:30"))
-        try await peerA.store.checkInvariants()
-        try await peerB.store.checkInvariants()
         await net.partition(false)
         try await net.converge()
-        let midnight = try net.date("2026-10-29T00:00")
-        let continuation = { (id: EntryID) in EntryID(UUID.version5(namespace: id.uuid, name: "split:2026-10-29")) }
         for peer in net.peers {
             #expect(try await peer.store.entry(first.id)?.end == (net.date("2026-10-28T23:30")))
-            #expect(try await peer.store.entry(second.id)?.end == midnight)
-            #expect(try await peer.store.runningEntry()?.id == continuation(second.id))
-            #expect(try await peer.store.entry(continuation(first.id)) == nil)
+            #expect(try await peer.store.runningEntry()?.id == second.id)
             let outbox = try await peer.store.outboxCount()
             try await peer.store.checkInvariants()
             #expect(try await peer.store.outboxCount() == outbox)
         }
     }
 
-    @Test("DATA-19 a device asleep from Monday 22:00 to Wednesday 10:00 and one that split night by night hold identical pieces after sync")
-    func wakeSplitConverges() async throws {
+    @Test("DATA-19 a device asleep from Monday 22:00 to Wednesday 10:00 and one awake throughout hold one running entry after sync")
+    func runningEntryConverges() async throws {
         let net = try await Network(now: "2026-10-26T22:00")
-        let (sleeper, nightly) = (net.peers[0], net.peers[1])
+        let (sleeper, awake) = (net.peers[0], net.peers[1])
         let entry = try await sleeper.store.start(projectID: nil, task: "Long", at: net.date("2026-10-26T22:00"))
         try await net.converge()
-        #expect(try await nightly.store.runningEntry()?.id == entry.id)
-        // The sleeper neither syncs nor runs the invariant pass until it wakes.
-        for time in ["2026-10-27T00:00:01", "2026-10-28T00:00:01"] {
-            try net.clock.set(net.date(time))
-            try await nightly.store.checkInvariants()
-            try await nightly.sync.sync()
-        }
+        #expect(try await awake.store.runningEntry() == entry)
         try net.clock.set(net.date("2026-10-28T10:00"))
-        try await sleeper.store.checkInvariants()
         try await net.converge()
-        let piece = { (date: String) in EntryID(UUID.version5(namespace: entry.id.uuid, name: "split:\(date)")) }
         let interval = try DateInterval(start: net.date("2026-10-26T00:00"), end: net.date("2026-10-29T00:00"))
-        let pieces = try await sleeper.store.entries(in: interval)
-        #expect(pieces.map(\.id) == [entry.id, piece("2026-10-27"), piece("2026-10-28")])
-        #expect(try pieces.map(\.start) == [
-            net.date("2026-10-26T22:00"), net.date("2026-10-27T00:00"), net.date("2026-10-28T00:00"),
-        ])
-        #expect(try pieces.map(\.end) == [net.date("2026-10-27T00:00"), net.date("2026-10-28T00:00"), nil])
-        #expect(try await nightly.store.entries(in: interval) == pieces)
         for peer in net.peers {
-            #expect(try await peer.store.runningEntry()?.id == piece("2026-10-28"))
+            #expect(try await peer.store.entries(in: interval) == [entry])
             #expect(try await peer.store.outboxCount() == 0)
         }
     }
 
-    @Test("DATA-24 .adjusted with stoppedByLaterStart reaches only the device that created the entry, never for splits")
+    @Test("DATA-24 .adjusted with stoppedByLaterStart reaches only the device that created the entry")
     func adjustedEvents() async throws {
         let net = try await Network(["A", "B", "C"], now: "2026-10-28T23:50")
         let (peerA, peerB, peerC) = (net.peers[0], net.peers[1], net.peers[2])
@@ -289,7 +268,6 @@ struct MultiStoreSyncTests {
         await net.partition(true)
         let own = try await peerA.store.start(projectID: nil, task: "A", at: net.date("2026-10-28T23:40"))
         try net.clock.set(net.date("2026-10-29T00:05"))
-        try await peerA.store.checkInvariants()
         let later = try await peerB.store.start(projectID: nil, task: "B", at: net.date("2026-10-29T00:04"))
         await net.partition(false)
         try await peerB.sync.sync()
@@ -299,7 +277,7 @@ struct MultiStoreSyncTests {
         let adjustedA = await Self.adjusted(in: eventsA, until: peerA.store)
         #expect(adjustedA.map(\.reason) == [.stoppedByLaterStart])
         #expect(adjustedA.first?.causingDeviceID == peerB.test.deviceID)
-        #expect(adjustedA.first?.before?.rootID == own.id)
+        #expect(adjustedA.first?.before?.id == own.id)
         #expect(await Self.adjusted(in: eventsC, until: peerC.store).isEmpty)
     }
 

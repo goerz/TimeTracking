@@ -59,7 +59,7 @@ The field `running` is `null` when nothing runs. This object (with `running` fal
 | Command | Effect | Refused with exit 4 |
 |---|---|---|
 | `start [TASK] [--project NAME] [--at TIME] [--force]` | Starts an entry; stops a running entry at the new start and says so. Never infers a project | `--at` in the future, more than 24 hours back, before the running entry's start, or overlapping a stopped entry (unless `--force`); an archived project |
-| `stop [--at TIME]` | Stops the running entry (its last real-midnight piece) | Nothing running (`No entry running.`); `--at` before the start or in the future |
+| `stop [--at TIME]` | Stops the running entry | Nothing running (`No entry running.`); `--at` before the start or in the future |
 | `continue [--entry-id ID \| --project NAME \| --task TEXT]` | New entry with the task and project of: the most recent entry other than the running one; the given entry; or the most recent match (`--task` matches a substring). Stops a running entry first | Continuing the running entry itself |
 
 ### 3.6 Entries
@@ -68,7 +68,7 @@ The command `entries [range]` lists entries whose start lies in the range, ascen
 
 The command `entry show ID` prints one entry. The commands `entry create [TASK] --start TIME --end TIME` and `entry edit ID` (with `--start`, `--end`, `--project` or `--no-project`, `--task`) take `--force`. The command `entry delete ID --yes` deletes one entry; without `--yes` it prints the entry to stderr and exits 2.
 
-Create and edit refuse with exit 4 an overlap (unless `--force`), an end in the future, and an end before the start. An entry across real midnight is split by the store (`spec_data_and_sync.md` §1.5) and every resulting entry is printed. There is no bulk delete.
+Create and edit refuse with exit 4 an overlap (unless `--force`), an end in the future, and an end before the start. An entry can span dates (`spec_data_and_sync.md` §1.5). There is no bulk delete.
 
 ### 3.7 Report
 
@@ -240,7 +240,7 @@ The tool tests build the Debug tool, create a fixture store from a JSON export, 
 6. Running `continue` creates a new entry with the task and project of the latest non-running entry and leaves that entry's end unchanged.
 7. Running `entries` without a range lists exactly the entries starting on 2026-10-29; `report --json` without a range has `from` `2026-10-26` and `to` `2026-11-02`.
 8. Running `entries --from 2026-10-20 --to 2026-10-27 --json` returns exactly the entries starting in that half-open range, ascending, with `total` equal to the sum of their durations.
-9. Running `entry create "T" --start 2026-10-20T23:30 --end 2026-10-21T00:30` creates and prints two entries split at midnight, listed under their own days.
+9. Running `entry create "T" --start 2026-10-20T23:30 --end 2026-10-21T00:30` creates and prints one entry, listed under the day of its start.
 10. Running `entry edit` with a change that overlaps another entry exits 4 and changes nothing; with `--force` it succeeds.
 11. Running `entry delete ID` without `--yes` prints the entry, exits 2, and deletes nothing; with `--yes` the entry is gone.
 12. Running `report --week 2026-W43 --granularity day --group-by project --json` equals the library's report query row for row; `periods` has seven items; `total` equals the sums of `periods` and of `rows`; no row has duration 0.

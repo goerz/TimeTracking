@@ -89,7 +89,7 @@ struct WidgetButtonTests {
             projectName: "Household",
             clientName: nil,
             areaColor: nil,
-            chainStart: test.clock.now - 60
+            start: test.clock.now - 60
         ))
         #expect(try await control(other) == WidgetControlValue(isRunning: true, label: "Household"))
         #expect(try await control(LiveState()).isRunning == false)

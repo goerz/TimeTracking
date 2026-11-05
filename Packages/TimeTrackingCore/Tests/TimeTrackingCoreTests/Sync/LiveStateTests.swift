@@ -57,9 +57,9 @@ struct LiveStateTests {
         #expect(running.projectName == "Paper")
         #expect(running.clientName == made.client.name)
         #expect(running.areaColor == "#2E8BC0")
-        #expect(running.chainStart == start)
+        #expect(running.start == start)
         let json = try #require(LiveState.runningJSON(running))
-        #expect(json.contains("\"chainStart\":\"2024-03-14T21:30:00Z\""))
+        #expect(json.contains("\"start\":\"2024-03-14T21:30:00Z\""))
         #expect(try await store.liveState().changedAt == test.clock.now)
 
         let server = InMemorySyncServer(clock: test.clock)
@@ -68,13 +68,12 @@ struct LiveStateTests {
         let batch = try #require(transport.batches.first { $0.contains(Self.liveRef) })
         #expect(batch.contains(SyncRecordRef(.timeEntry, entry.id.rawValue)))
 
-        // The midnight split names the continuation with the same chain start.
+        // Midnight changes nothing in the snapshot.
         try test.clock.set(test.date("2024-03-15T00:10"))
+        let outbox = try await store.outboxCount()
         try await store.checkInvariants()
-        let continued = try #require(try await store.liveState().running)
-        #expect(continued.entryID != entry.id)
-        #expect(try await continued.entryID == (store.runningEntry())?.id)
-        #expect(continued.chainStart == start)
+        #expect(try await store.liveState().running == running)
+        #expect(try await store.outboxCount() == outbox)
 
         _ = try await store.stop(at: test.clock.now)
         #expect(try await store.liveState().running == nil)
@@ -141,7 +140,7 @@ struct LiveStateTests {
             projectName: nil,
             clientName: nil,
             areaColor: nil,
-            chainStart: early
+            start: early
         )
         let local = LiveState(running: nil, changedAt: late, activity: ["a": Self.activity("local a", at: late)])
         let remote = LiveState(running: running, changedAt: early, activity: [

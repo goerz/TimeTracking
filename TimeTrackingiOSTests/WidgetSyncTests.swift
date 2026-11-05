@@ -151,14 +151,10 @@ struct WidgetSyncTests {
             task: "Mine",
             start: test.date("2024-03-14T08:00"),
             end: test.date("2024-03-14T09:00")
-        ))[0]
+        ))
         let mac = DeviceID()
         var after = entry
         after.end = try test.date("2024-03-14T08:30")
-        let split = EntryAdjustment(entryID: entry.id, reason: .splitAtMidnight, before: entry, after: entry, time: test.clock.now)
-        await test.model.storeChanged(.adjusted([split]))
-        #expect(test.model.banner == nil)
-
         let stopped = EntryAdjustment(
             entryID: entry.id,
             reason: .stoppedByLaterStart,

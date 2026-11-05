@@ -61,18 +61,17 @@ extension ToolTests {
         #expect(try fixture.run(["entries", "--from", "2026-13-01"]).status == 2)
     }
 
-    @Test("AUTO-9 entry create across midnight creates and prints two entries, listed under their own days")
+    @Test("AUTO-9 entry create across midnight creates and prints one entry, listed under the day of its start")
     func createAcrossMidnight() throws {
         let fixture = try ToolFixture()
         let result = try fixture.run(["entry", "create", "Overnight", "--start", "2026-10-20T23:30", "--end", "2026-10-21T00:30"])
         #expect(result.status == 0, "\(result.standardError)")
-        #expect(result.lines.count == 2)
-        #expect(result.lines[0].contains("on 2026-10-20 from 23:30 to 00:00"))
-        #expect(result.lines[1].contains("on 2026-10-21 from 00:00 to 00:30"))
+        #expect(result.lines.count == 1)
+        #expect(result.lines[0].contains("on 2026-10-20 from 23:30 to 00:30"))
         let first = try fixture.run(["entries", "--day", "2026-10-20", "--task", "Overnight", "--json"])
-        #expect((first.json["entries"] as? [[String: Any]])?.compactMap { $0["duration"] as? Int } == [1800])
+        #expect((first.json["entries"] as? [[String: Any]])?.compactMap { $0["duration"] as? Int } == [3600])
         let second = try fixture.run(["entries", "--day", "2026-10-21", "--task", "Overnight", "--json"])
-        #expect((second.json["entries"] as? [[String: Any]])?.compactMap { $0["duration"] as? Int } == [1800])
+        #expect((second.json["entries"] as? [[String: Any]])?.isEmpty == true)
         let future = try fixture.run(["entry", "create", "F", "--start", "2026-10-29T10:30", "--end", "2026-10-29T11:00"])
         #expect(future.status == 4)
         let backwards = try fixture.run(["entry", "create", "B", "--start", "2026-10-22T10:30", "--end", "2026-10-22T10:00"])

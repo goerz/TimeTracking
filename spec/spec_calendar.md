@@ -14,7 +14,7 @@ Below the filter bar, a summary strip covers the shown days: "Tracked" with its 
 
 A day column runs from Midnight to Midnight ([spec_data_and_sync.md](spec_data_and_sync.md) §8), 00:00 by default, in the device's current time zone, so it is 23 or 25 hours tall on daylight-saving days. The hour labels start at that hour, and today is the shown day that contains now: with Midnight at 04:00, 02:00 on Tuesday still belongs to Monday. Weeks run Monday to Sunday.
 
-Anything that crosses the day change (an entry or activity block when Midnight is not 00:00, an external event, a time block) is drawn as one piece per day. Dragging a piece of an entry or time block moves the whole; an entry's edges resize it within the piece's column, and its totals count each piece on its own day. An activity block counts whole on the day of its start.
+Anything that crosses the day change (an entry, an activity block when Midnight is not 00:00, an external event, a time block) is drawn as one piece per day. Dragging a piece of an entry or time block moves the whole; an entry's edges resize it within the piece's column, and its totals count each piece on its own day. An activity block counts whole on the day of its start.
 
 The strip has no first or last day and loads the days around the view as it moves. Every day is `dayWidth` points wide, from 96 to 1600 (default 260), so the window's width decides how many days show, and the days at either edge may be cut off. The logarithmic slider, ⌥⌘[ and ⌥⌘] (a factor of 1.25), and a horizontal pinch on the iPad change it, keeping the time at the viewport's center in place.
 
@@ -60,7 +60,7 @@ Dragging vertically in empty space draws a provisional entry. Both ends snap to 
 
 ### 2.4 Moving and resizing
 
-Dragging a card's body moves it with its duration, the start snapping like drawing, with a time label showing the new start while the pointer is over a Tracked column; dropping on another day's Tracked column moves it there, outside any Tracked column cancels. The top and bottom 6 points resize, down to 1 minute and snapping the same way; the running entry has no bottom handle, and its start can move up to 1 minute before now. Cards cannot pass the column's ends or the now-line. With Midnight at another hour a column contains the real midnight, and an entry dragged across it is split by the store. Escape during a drag restores the card, and the rest of the drag does nothing. Each move or resize is one undo step.
+Dragging a card's body moves it with its duration, the start snapping like drawing, with a time label showing the new start while the pointer is over a Tracked column; dropping on another day's Tracked column moves it there, outside any Tracked column cancels. The top and bottom 6 points resize, down to 1 minute and snapping the same way; the running entry has no bottom handle, and its start can move up to 1 minute before now. Cards cannot pass the column's ends or the now-line, except that an entry crossing the day change, which no column holds, moves whole and only the now-line limits it. An entry dragged across the real midnight inside a column stays one entry. Escape during a drag restores the card, and the rest of the drag does nothing. Each move or resize is one undo step.
 
 ### 2.5 Selecting, editing, deleting
 
@@ -207,7 +207,7 @@ The settings read the calendars without asking for access; like the Calendar col
 31. Two commits of one draft arriving together (Return and Save, or Return and a click elsewhere) store one entry.
 32. A reload that finishes after a later one changes nothing, and the days count as loaded only once their data is in.
 33. With Midnight at 04:00, a column starts at 04:00; an entry from 03:00 to 05:00 is in the columns of both days, each total counting its hour; a drag of the later piece down an hour moves the entry to 04:00 to 06:00; a block from the night reaches both columns and counts on the day of its start; a heatmap click at 09:00 scrolls five hours below the column's top.
-34. With Midnight at 04:00, dragging an entry across the real midnight inside a column splits it in the store, and one undo restores the entry and removes the later piece.
+34. With Midnight at 04:00, dragging an entry across the real midnight inside a column keeps one entry, and one undo restores it.
 35. With Midnight at 04:00 or at 22:00, an all-day event on March 14 is in the strip of the column named March 14 and no other; an event spanning March 14 and 15 is in both.
 36. With Midnight at 04:00, a block from 03:30 to 04:30 with an entry over 04:10 to 04:20 is dimmed 10 minutes below the top of its card in the later column and not at all in the earlier one.
 37. A click on a card selects it alone; ⇧-click and ⌘-click add a card of any kind to the selection and take a selected one out; ⌥-click selects like a plain click; a block's popover opens on a plain click only.
@@ -215,3 +215,4 @@ The settings read the calendars without asking for access; like the Calendar col
 39. A time block linked to "Noise Model" of "University" shows "Noise Model · University" in its area's color with no entry of the project loaded; an unlinked block has no project line.
 40. Dragging a 14:00 to 15:00 block onto the next day's Calendar column one hour down gives 15:00 to 16:00 there, also past the now-line, in one undo step; a 7 minute move snaps to 5 minutes, with ⌥ to the minute; its piece after the day change moves it whole; its edges resize it within the piece's column, down to 1 minute; Escape during a drag changes nothing.
 41. The hover "+" of a time block or event opens the popover of 4.4, and a time block dropped on a Tracked column does the same.
+42. An entry from 23:00 to 01:00 is in the columns of both days; dragging either piece moves it whole, ⌘↓ moves it one snap step, and ⌥⌘↓ lengthens it at its end.

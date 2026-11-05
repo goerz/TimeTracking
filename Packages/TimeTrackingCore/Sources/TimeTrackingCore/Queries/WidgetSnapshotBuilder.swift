@@ -41,7 +41,7 @@ public struct WidgetSnapshotBuilder: Sendable {
                     clientName: running.clientName,
                     areaColor: running.areaColor
                 ),
-                chainStart: running.chainStart
+                start: running.start
             )
         }
         var snapshot = WidgetSnapshot(
@@ -94,10 +94,7 @@ public struct WidgetSnapshotBuilder: Sendable {
             return total + max(0, Int(interval.end.timeIntervalSince(start)))
         }
         if let running = snapshot.running {
-            // The chain's stopped parts today are in the sum above; a chain
-            // reaches back over a real midnight that lies inside today.
-            let start = stored.first { $0.id == running.entryID }?.start ?? running.chainStart
-            snapshot.todayTimerStart = max(start, midnight) - TimeInterval(snapshot.todayStoppedSeconds)
+            snapshot.todayTimerStart = max(running.start, midnight) - TimeInterval(snapshot.todayStoppedSeconds)
         }
     }
 

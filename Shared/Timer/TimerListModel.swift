@@ -127,7 +127,7 @@ final class TimerListModel {
 
     /// The delete alert's text: "0:25:00, Household".
     func deleteSummary(for listing: EntryListing) -> String {
-        let duration = DurationText.clock(listing.entry.seconds(at: clock.now))
+        let duration = DurationText.clock((listing.whole ?? listing.entry).seconds(at: clock.now))
         return "\(duration), \(listing.project?.name ?? "No project")"
     }
 

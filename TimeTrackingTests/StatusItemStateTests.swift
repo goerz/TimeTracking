@@ -162,8 +162,10 @@ struct StatusItemStateTests {
         #expect(try controller.nextTickDate == test.date("2024-03-14T12:00:17"))
     }
 
-    @Test("MB-19 an entry running past midnight while the Mac sleeps is split at 00:00 on wake; a time zone change runs the pass too")
-    func invariantPassOnWake() async throws {
+    @Test(
+        "MB-19 an entry running past midnight while the Mac sleeps stays one; a wake or zone change moves its part to the new day"
+    )
+    func reloadOnWake() async throws {
         let test = try await TestApp()
         try test.clock.set(test.date("2024-03-13T23:40"))
         let started = try await test.store.start(projectID: nil, task: "Late", at: test.date("2024-03-13T23:30"))
@@ -175,17 +177,14 @@ struct StatusItemStateTests {
         workspace.post(name: NSWorkspace.willSleepNotification, object: nil)
         try test.clock.set(test.date("2024-03-14T07:00"))
         workspace.post(name: NSWorkspace.didWakeNotification, object: nil)
-        await events.invariantCheck?.value
-        let stopped = try #require(try await test.store.entry(started.id))
-        #expect(try stopped.end == test.date("2024-03-14T00:00"))
-        let running = try #require(try await test.store.runningEntry())
-        #expect(running.rootID == started.id)
-        #expect(try await test.store.chainStart(of: running.id) == stopped.start)
-        // A time zone change runs the same pass.
+        await events.timeChangeReload?.value
+        #expect(try await test.store.runningEntry() == started)
+        #expect(test.app.activeTimer.list.days.first?.day == TrackingDay(year: 2024, month: 3, day: 14))
+        // A time zone change reloads the same way.
         try test.clock.set(test.date("2024-03-15T07:00"))
         local.post(name: .NSSystemTimeZoneDidChange, object: nil)
-        await events.invariantCheck?.value
-        #expect(try await test.store.runningEntry()?.start == test.date("2024-03-15T00:00"))
+        await events.timeChangeReload?.value
+        #expect(test.app.activeTimer.list.days.first?.day == TrackingDay(year: 2024, month: 3, day: 15))
     }
 
     @Test("MB-11 a Pomodoro ticks every second on its phase end's fraction of a second")

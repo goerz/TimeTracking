@@ -81,7 +81,7 @@ final class PhoneModel {
     }
 
     @ObservationIgnored private var changeTask: Task<Void, Never>?
-    @ObservationIgnored private var midnightTask: Task<Void, Never>?
+    @ObservationIgnored private var dayTask: Task<Void, Never>?
     @ObservationIgnored private var lastRunningID: EntryID?
     @ObservationIgnored var lastLongRunningKey: String?
 
@@ -126,7 +126,6 @@ final class PhoneModel {
     func start(observing: Bool) async {
         let stream = observing ? store.changes : nil
         await pomodoro.loadSettings()
-        _ = try? await store.checkInvariants()
         await timer.refresh()
         lastRunningID = timer.running?.id
         pomodoro.replay(isRunning: timer.isRunning)
@@ -139,40 +138,31 @@ final class PhoneModel {
                     await self?.storeChanged(change)
                 }
             }
-            midnightTask = Task { [weak self] in
-                await self?.splitAtMidnights()
+            dayTask = Task { [weak self] in
+                await self?.watchShownDay()
             }
         }
     }
 
-    /// The midnight split while the app runs (spec_ios.md §7 item 5): wake
-    /// at the running entry's next midnight or the next shown day, run the
-    /// pass, and fan out; with nothing running, look every minute and fan
-    /// out when the shown day has changed.
-    private func splitAtMidnights() async {
+    /// Looks every minute and fans out when the shown day has changed
+    /// (spec_ios.md §7 item 5): no store change marks a new day, and the
+    /// running entry's part moves to it.
+    private func watchShownDay() async {
         var watcher = ShownDayWatcher(calendar: store.displayCalendar(), now: clock.now)
         while !Task.isCancelled {
-            guard let midnight = try? await store.nextRunningDayChange() else {
-                try? await Task.sleep(for: .seconds(60))
-                if watcher.dayChanged(calendar: store.displayCalendar(), now: clock.now) {
-                    await fanOut(structureChanged: false)
-                    await pad?.storeChanged()
-                }
-                continue
+            try? await Task.sleep(for: .seconds(60))
+            if watcher.dayChanged(calendar: store.displayCalendar(), now: clock.now) {
+                await fanOut(structureChanged: false)
+                await pad?.storeChanged()
             }
-            try? await Task.sleep(for: .seconds(max(1, midnight.timeIntervalSince(clock.now))))
-            try? await store.checkInvariants()
-            _ = watcher.dayChanged(calendar: store.displayCalendar(), now: clock.now)
-            await fanOut(structureChanged: false)
-            await pad?.storeChanged()
         }
     }
 
     func stop() {
         changeTask?.cancel()
         changeTask = nil
-        midnightTask?.cancel()
-        midnightTask = nil
+        dayTask?.cancel()
+        dayTask = nil
         sync?.stop()
     }
 
@@ -200,7 +190,6 @@ final class PhoneModel {
         await registerDevice()
         await uploadPushToken()
         await sync?.fetchNow()
-        _ = try? await store.checkInvariants()
         await importHealth(interactive: interactive)
         await fanOut(structureChanged: false)
     }

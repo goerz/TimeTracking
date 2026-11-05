@@ -2,9 +2,9 @@
 
 public import Foundation
 
-/// A time entry. Duration is `end - start` (`now - start` while running),
-/// never stored or rounded. Live entries never cross a midnight of their
-/// `timeZone`.
+/// A time entry, stored whole: it can span any number of dates, and display
+/// and reports cut it (`TrackingCalendar.pieces(of:at:)`). Duration is
+/// `end - start` (`now - start` while running), never stored or rounded.
 public struct TimeEntry: Identifiable, Hashable, Sendable {
     public var id: EntryID
     /// `nil` is "no project".
@@ -18,8 +18,6 @@ public struct TimeEntry: Identifiable, Hashable, Sendable {
     public var timeZone: String
     /// The creating device.
     public var deviceID: DeviceID
-    /// For a split piece, the id of the chain's first piece.
-    public var splitRootID: EntryID?
     /// The local date of `start` in `timeZone`.
     public var day: TrackingDay
     public var createdAt: Date
@@ -34,7 +32,6 @@ public struct TimeEntry: Identifiable, Hashable, Sendable {
         end: Date?,
         timeZone: String,
         deviceID: DeviceID,
-        splitRootID: EntryID? = nil,
         day: TrackingDay? = nil,
         createdAt: Date,
         modifiedAt: Date,
@@ -47,7 +44,6 @@ public struct TimeEntry: Identifiable, Hashable, Sendable {
         self.end = end
         self.timeZone = timeZone
         self.deviceID = deviceID
-        self.splitRootID = splitRootID
         self.day = day ?? TrackingCalendar(timeZoneIdentifier: timeZone).day(containing: start)
         self.createdAt = createdAt
         self.modifiedAt = modifiedAt
@@ -60,11 +56,6 @@ public struct TimeEntry: Identifiable, Hashable, Sendable {
 
     public var isDeleted: Bool {
         deletedAt != nil
-    }
-
-    /// The id of the chain this entry belongs to (`splitRootID ?? id`).
-    public var rootID: EntryID {
-        splitRootID ?? id
     }
 
     /// The entry's zone, or the current one for an unknown identifier.

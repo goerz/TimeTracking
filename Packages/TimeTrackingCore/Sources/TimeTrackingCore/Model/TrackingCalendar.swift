@@ -1,4 +1,4 @@
-// TrackingCalendar: days, weeks, midnights in a zone (spec_data_and_sync.md §1.5, §8).
+// TrackingCalendar: days, weeks, and pieces in a zone (spec_data_and_sync.md §1.5, §8).
 
 public import Foundation
 
@@ -144,21 +144,5 @@ public struct TrackingCalendar: Sendable {
     public func reach(of days: ClosedRange<TrackingDay>) -> DateInterval {
         let interval = Self(timeZone: .gmt, midnightHour: midnightHour).interval(of: days)
         return DateInterval(start: interval.start - 16 * 3600, end: interval.end + 16 * 3600)
-    }
-
-    /// The midnights strictly between `after` and `before` in `zone`.
-    public static func midnights(after start: Date, before end: Date, in zone: TimeZone) -> [Date] {
-        let calendar = Self(timeZone: zone)
-        var result: [Date] = []
-        var day = calendar.day(containing: start).adding(days: 1)
-        var midnight = calendar.startOfDay(day)
-        while midnight < end {
-            if midnight > start {
-                result.append(midnight)
-            }
-            day = day.adding(days: 1)
-            midnight = calendar.startOfDay(day)
-        }
-        return result
     }
 }

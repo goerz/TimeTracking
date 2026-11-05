@@ -8,8 +8,8 @@ import TimeTrackingCore
 /// The open prompt.
 struct IdlePrompt: Equatable {
     var idleStart: Date
-    /// The running chain; a split at real midnight keeps the prompt open.
-    var rootID: EntryID
+    /// The running entry.
+    var entryID: EntryID
     /// "Running: <task> · <project>".
     var runningText: String
 }
@@ -78,7 +78,7 @@ final class IdleModel {
 
     /// The running entry changed; a stop elsewhere closes the prompt.
     func runningChanged(_ running: TimeEntry?) {
-        guard let prompt, running?.rootID != prompt.rootID else {
+        guard let prompt, running?.id != prompt.entryID else {
             return
         }
         self.prompt = nil
@@ -94,7 +94,7 @@ final class IdleModel {
         notifier.remove([.idle])
         detector.reset()
         do {
-            guard let running = try await store.runningEntry(), running.rootID == prompt.rootID else {
+            guard let running = try await store.runningEntry(), running.id == prompt.entryID else {
                 return
             }
             let idleStart = prompt.idleStart
@@ -102,16 +102,16 @@ final class IdleModel {
             case .keep:
                 return
             case .discard:
-                _ = try await store.transaction { try $0.stop(chainOf: running.id, at: idleStart) }
+                _ = try await store.transaction { try $0.stop(entry: running.id, at: idleStart) }
             case .discardAndContinue:
-                guard try await store.transaction({ try $0.stop(chainOf: running.id, at: idleStart) }) != nil else {
+                guard try await store.transaction({ try $0.stop(entry: running.id, at: idleStart) }) != nil else {
                     break
                 }
                 try await store.start(projectID: running.projectID, task: running.task, at: clock.now)
             case .split:
-                // In one write, and where the chain really stopped.
+                // In one write, and where the entry really stopped.
                 _ = try await store.transaction { transaction in
-                    let stopped = try transaction.stop(chainOf: running.id, at: idleStart)
+                    let stopped = try transaction.stop(entry: running.id, at: idleStart)
                     return try stopped?.end.map { try transaction.start(projectID: nil, task: "", at: $0) }
                 }
                 showTimer(true)
@@ -132,7 +132,7 @@ final class IdleModel {
             }
             // Only the entry the decision was about, in one write: one
             // started meanwhile keeps running.
-            _ = try? await store.transaction { try $0.stop(chainOf: running.id, at: time) }
+            _ = try? await store.transaction { try $0.stop(entry: running.id, at: time) }
             await onChange?()
         case let .prompt(idleStart):
             guard let running else {
@@ -152,7 +152,7 @@ final class IdleModel {
         }
         let project = listing.flatMap { $0.project?.name } ?? "No project"
         let task = running.task.isEmpty ? "No task" : running.task
-        prompt = IdlePrompt(idleStart: start, rootID: running.rootID, runningText: "Running: \(task) · \(project)")
+        prompt = IdlePrompt(idleStart: start, entryID: running.id, runningText: "Running: \(task) · \(project)")
         showTimer(false)
         if !isAppActive() {
             notifier.post(NotificationRequest(

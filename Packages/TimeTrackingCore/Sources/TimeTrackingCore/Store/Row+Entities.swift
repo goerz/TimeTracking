@@ -106,7 +106,7 @@ extension TimeEntry {
     /// The columns of `time_entry` in the order `init(row:)` expects, for
     /// queries that join (`e.` prefix).
     static let columns = """
-    e.id, e.project_id, e.task, e.start, e."end", e.day, e.time_zone, e.device_id, e.split_root_id,
+    e.id, e.project_id, e.task, e.start, e."end", e.day, e.time_zone, e.device_id,
     e.created_at, e.modified_at, e.deleted_at
     """
 
@@ -119,7 +119,6 @@ extension TimeEntry {
             end: Time.date(optional: row["end"] as Int64?),
             timeZone: row["time_zone"],
             deviceID: row.requiredID("device_id"),
-            splitRootID: row.uuid("split_root_id"),
             day: TrackingDay(row["day"] as String),
             createdAt: Time.date(row["created_at"] as Int64),
             modifiedAt: Time.date(millis: row["modified_at"]),
@@ -133,16 +132,16 @@ extension TimeEntry {
         try database.execute(
             sql: """
             INSERT INTO time_entry (id, project_id, task, task_key, start, "end", day, time_zone, device_id,
-              split_root_id, created_at, modified_at, deleted_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+              created_at, modified_at, deleted_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(id) DO UPDATE SET project_id = excluded.project_id, task = excluded.task,
               task_key = excluded.task_key, start = excluded.start, "end" = excluded."end", day = excluded.day,
-              time_zone = excluded.time_zone, device_id = excluded.device_id, split_root_id = excluded.split_root_id,
-              created_at = excluded.created_at, modified_at = excluded.modified_at, deleted_at = excluded.deleted_at
+              time_zone = excluded.time_zone, device_id = excluded.device_id, created_at = excluded.created_at,
+              modified_at = excluded.modified_at, deleted_at = excluded.deleted_at
             """,
             arguments: [
                 id.rawValue, projectID?.rawValue, task, task.folded, Time.seconds(start), Time.seconds(optional: end),
-                day.description, timeZone, deviceID.rawValue, splitRootID?.rawValue,
+                day.description, timeZone, deviceID.rawValue,
                 Time.seconds(createdAt), Time.millis(modifiedAt), Time.seconds(optional: deletedAt),
             ]
         )

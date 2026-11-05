@@ -112,7 +112,7 @@ struct SyncCoordinatorTests {
             task: "Draft",
             start: device.test.date("2024-03-14T08:00"),
             end: device.test.date("2024-03-14T09:00")
-        ))[0]
+        ))
         let ref = SyncRecordRef(.timeEntry, entry.id.rawValue)
         _ = await device.coordinator.drain()
         // The engine takes the batch; the user edits before the server answers.
@@ -137,7 +137,7 @@ struct SyncCoordinatorTests {
             task: "x",
             start: deviceA.test.date("2024-03-14T08:00"),
             end: deviceA.test.date("2024-03-14T08:30")
-        ))[0]
+        ))
         await deviceA.cycle()
         await deviceB.cycle()
         _ = try await deviceA.store.update(entry.id, EntryChange(task: "from A"))

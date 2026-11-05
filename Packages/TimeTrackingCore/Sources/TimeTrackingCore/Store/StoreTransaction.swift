@@ -32,8 +32,6 @@ public final class StoreTransaction {
     var liveStateChanged = false
     var healthChanged = false
     var adjustments: [EntryAdjustment] = []
-    /// Number of midnight-split pieces created in this transaction.
-    var splitPieceCount = 0
 
     init(database: Database, now: Date, deviceID: DeviceID, timeZone: TimeZone) {
         self.database = database
@@ -123,10 +121,6 @@ public final class StoreTransaction {
             database,
             sql: "SELECT * FROM time_entry INDEXED BY time_entry_running WHERE deleted_at IS NULL AND \"end\" IS NULL ORDER BY start, id"
         ).map(TimeEntry.init(row:))
-    }
-
-    func chainEntries(root: EntryID) throws -> [TimeEntry] {
-        try StoreQueries.chainEntries(root: root, in: database)
     }
 
     func client(_ id: ClientID, includeDeleted: Bool = false) throws -> Client? {

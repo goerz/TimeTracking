@@ -68,8 +68,9 @@ public struct EntryEditResult: Hashable, Sendable {
 /// The editor's rules of §4.2.
 public enum EntryEditRules {
     /// Applies `edit` to `entry` at `now`. Editing Start keeps Stop;
-    /// editing Stop or Duration keeps Start; a Stop at or before Start
-    /// means the next date; Date moves by whole days keeping the times. The
+    /// editing Stop or Duration keeps Start; a Stop takes the occurrence of
+    /// that time after Start nearest the stored stop, which is the next date
+    /// for a Stop at or before Start; Date moves by whole days keeping the times. The
     /// fields show whole minutes, so a Start or Stop without seconds keeps
     /// the stored ones. A result with a start or stop after `now` is refused.
     public static func apply(_ edit: EntryFieldEdit, to entry: TimeEntry, now: Date) -> Result<EntryEditResult, EntryEditError> {
@@ -96,12 +97,13 @@ public enum EntryEditRules {
                 return .failure(.endBeforeStart)
             }
         case let .stop(seconds):
-            let seconds = keepingSeconds(seconds, of: end ?? start)
-            var stop = time(seconds, on: midnight)
-            if stop <= start {
-                stop = time(seconds, on: calendar.date(byAdding: .day, value: 1, to: midnight) ?? midnight)
-            }
-            end = stop
+            let stored = end ?? start
+            let seconds = keepingSeconds(seconds, of: stored)
+            let date = calendar.startOfDay(for: stored)
+            let stops = [-1, 0, 1].compactMap { calendar.date(byAdding: .day, value: $0, to: date) }
+                .map { time(seconds, on: $0) }
+                .filter { $0 > start }
+            end = stops.min { abs($0.timeIntervalSince(stored)) < abs($1.timeIntervalSince(stored)) }
         case let .duration(seconds):
             guard seconds > 0 else {
                 return .failure(.endBeforeStart)

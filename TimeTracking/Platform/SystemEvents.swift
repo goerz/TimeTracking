@@ -15,7 +15,7 @@ final class SystemEvents {
     private var checking: Task<Void, Never>?
     private(set) var isLocked = false
     /// The invariant pass started by the last wake or time change (tests await it).
-    private(set) var invariantCheck: Task<Void, Never>?
+    private(set) var timeChangeReload: Task<Void, Never>?
     private let workspace: NotificationCenter
     private let distributed: NotificationCenter
     private let local: NotificationCenter
@@ -105,7 +105,7 @@ final class SystemEvents {
     }
 
     private func timeChanged() {
-        invariantCheck = Task { await app.checkInvariants() }
+        timeChangeReload = Task { await app.storeChanged(.structure) }
     }
 
     private func event(_ event: IdleSystemEvent) {

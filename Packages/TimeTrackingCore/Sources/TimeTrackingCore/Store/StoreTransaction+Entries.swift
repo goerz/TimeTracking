@@ -1,4 +1,4 @@
-// Entry writes (spec_data_and_sync.md §1.4, §1.5, §7.1).
+// Entry writes (spec_data_and_sync.md §1.4, §7.1).
 
 public import Foundation
 import GRDB
@@ -28,7 +28,6 @@ extension StoreTransaction {
             var stopped = running
             stopped.end = at
             try write(stopped)
-            _ = try splitAcrossMidnights(stopped)
         }
         let entry = TimeEntry(
             projectID: projectID,
@@ -59,39 +58,22 @@ extension StoreTransaction {
             var entry = running
             entry.end = at
             try write(entry)
-            stopped = try splitAcrossMidnights(entry).last
+            stopped = entry
         }
         return stopped
     }
 
-    /// Stops the running entry at `at` only while it belongs to the chain
-    /// of `id` (the entry itself or a midnight continuation of it); `nil`
-    /// when something else runs or nothing does. The check and the stop
-    /// are one transaction, so a button showing an old entry never stops
-    /// one started elsewhere meanwhile. `at` may lie before the running
-    /// piece: the pieces from `at` on are removed and the one before ends
-    /// at `at`, though never before the chain's start.
+    /// Stops the running entry at `at` only while it is `id`; `nil` when
+    /// something else runs or nothing does. The check and the stop are one
+    /// transaction, so a button showing an old entry never stops one started
+    /// elsewhere meanwhile. An `at` before the entry's start ends it at its
+    /// start.
     @discardableResult
-    public func stop(chainOf id: EntryID, at: Date) throws -> TimeEntry? {
-        guard let shown = try entry(id, includeDeleted: true), try runningEntries().contains(where: { $0.rootID == shown.rootID }) else {
+    public func stop(entry id: EntryID, at: Date) throws -> TimeEntry? {
+        guard let running = try runningEntries().first(where: { $0.id == id }) else {
             return nil
         }
-        let pieces = try chainEntries(root: shown.rootID)
-        guard var last = pieces.first else {
-            return nil
-        }
-        let at = max(Time.whole(at), last.start)
-        let later = pieces.dropFirst().filter { $0.start >= at }
-        guard !later.isEmpty else {
-            return try stop(at: at)
-        }
-        try delete(later.map(\.id))
-        last = pieces.last { $0.start < at } ?? last
-        if last.end.map({ $0 > at }) ?? true {
-            last.end = at
-            try write(last)
-        }
-        return last
+        return try stop(at: max(Time.whole(at), running.start))
     }
 
     /// Starts a new entry with the project and task of `id`.
@@ -100,8 +82,8 @@ extension StoreTransaction {
         return try start(projectID: entry.projectID, task: entry.task, at: at)
     }
 
-    /// Creates an entry; returns its pieces, the given id first.
-    public func create(_ draft: EntryDraft) throws -> [TimeEntry] {
+    /// Creates an entry.
+    public func create(_ draft: EntryDraft) throws -> TimeEntry {
         let start = Time.whole(draft.start)
         let end = draft.end.map { Time.whole($0) }
         try validate(start: start, end: end)
@@ -124,11 +106,11 @@ extension StoreTransaction {
             modifiedAt: modifiedAt
         )
         try write(entry)
-        return try splitAcrossMidnights(entry)
+        return entry
     }
 
-    /// Changes project, task, start, or end; returns the pieces, the given id first.
-    public func update(_ id: EntryID, _ change: EntryChange) throws -> [TimeEntry] {
+    /// Changes project, task, start, or end.
+    public func update(_ id: EntryID, _ change: EntryChange) throws -> TimeEntry {
         var entry = try liveEntry(id)
         if let projectID = change.projectID {
             if let projectID, try project(projectID) == nil {
@@ -147,17 +129,17 @@ extension StoreTransaction {
         }
         try validate(start: entry.start, end: entry.end)
         try write(entry)
-        return try splitAcrossMidnights(entry)
+        return entry
     }
 
     /// Moves start and end by `offset`.
-    public func move(_ id: EntryID, by offset: TimeInterval) throws -> [TimeEntry] {
+    public func move(_ id: EntryID, by offset: TimeInterval) throws -> TimeEntry {
         var entry = try liveEntry(id)
         entry.start = Time.whole(entry.start + offset)
         entry.end = entry.end.map { Time.whole($0 + offset) }
         try validate(start: entry.start, end: entry.end)
         try write(entry)
-        return try splitAcrossMidnights(entry)
+        return entry
     }
 
     /// A user split at `at`: the entry ends there and a new entry with a
@@ -215,7 +197,6 @@ extension StoreTransaction {
             }
             entry.deletedAt = nil
             try write(entry)
-            _ = try splitAcrossMidnights(entry)
         }
     }
 
@@ -230,61 +211,6 @@ extension StoreTransaction {
         guard start <= now, (end ?? start) <= now else {
             throw StoreError.inFuture
         }
-    }
-
-    // MARK: Midnight split
-
-    /// Splits a live entry at every midnight of its zone after its start
-    /// and before its end (or `now` while running) (spec §1.5). Returns the
-    /// entry and its pieces in order, the entry first.
-    @discardableResult
-    func splitAcrossMidnights(_ entry: TimeEntry) throws -> [TimeEntry] {
-        let midnights = TrackingCalendar.midnights(after: entry.start, before: entry.end ?? now, in: entry.zone)
-        guard let first = midnights.first else {
-            return [entry]
-        }
-        let calendar = TrackingCalendar(timeZone: entry.zone)
-        let root = entry.rootID
-        var original = entry
-        original.end = first
-        try write(original)
-        record(.splitAtMidnight, before: entry, after: original)
-        var result = [original]
-        for (index, midnight) in midnights.enumerated() {
-            let end = index + 1 < midnights.count ? midnights[index + 1] : entry.end
-            let name = "split:\(calendar.day(containing: midnight))"
-            var id = EntryID(UUID.version5(namespace: root.uuid, name: name))
-            if id == entry.id {
-                id = EntryID()
-            }
-            let piece = TimeEntry(
-                id: id,
-                projectID: entry.projectID,
-                task: entry.task,
-                start: midnight,
-                end: end,
-                timeZone: entry.timeZone,
-                deviceID: entry.deviceID,
-                splitRootID: root,
-                createdAt: midnight,
-                modifiedAt: modifiedAt
-            )
-            if let existing = try self.entry(id, includeDeleted: true) {
-                // A tombstoned derived id stays deleted and that part is dropped.
-                guard existing.deletedAt == nil else {
-                    continue
-                }
-                if !existing.sameContent(as: piece) {
-                    try write(piece)
-                }
-            } else {
-                try write(piece)
-                splitPieceCount += 1
-            }
-            record(.splitAtMidnight, before: nil, after: piece)
-            result.append(piece)
-        }
-        return result
     }
 
     func record(
@@ -313,7 +239,6 @@ extension TimeEntry {
     /// Equal in every field except the bookkeeping times.
     func sameContent(as other: Self) -> Bool {
         id == other.id && projectID == other.projectID && task == other.task && start == other.start
-            && end == other.end && timeZone == other.timeZone && deviceID == other.deviceID
-            && splitRootID == other.splitRootID && deletedAt == other.deletedAt
+            && end == other.end && timeZone == other.timeZone && deviceID == other.deviceID && deletedAt == other.deletedAt
     }
 }

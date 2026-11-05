@@ -3,8 +3,8 @@
 import SwiftUI
 import TimeTrackingCore
 
-/// Task, Project, Start and Stop, Duration, Date as labeled rows; the chain
-/// lines and notices; Delete.
+/// Task, Project, Start and Stop, Duration, Date as labeled rows; the
+/// notices; Delete.
 struct EntryEditorView: View {
     @Bindable var model: EntryEditorModel
     var makePicker: (ProjectID?) -> ProjectPickerModel
@@ -137,11 +137,8 @@ struct EntryEditorView: View {
     }
 
     @ViewBuilder private var notices: some View {
-        if !model.chainLines.isEmpty || model.message != nil || model.overlap != nil {
+        if model.message != nil || model.overlap != nil {
             VStack(alignment: .leading, spacing: Design.Spacing.tight) {
-                ForEach(model.chainLines, id: \.self) { line in
-                    Text(line).font(.caption).foregroundStyle(.secondary)
-                }
                 if let message = model.message {
                     ErrorLine(text: message)
                         .accessibilityIdentifier("editor.message")

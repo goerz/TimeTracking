@@ -86,7 +86,7 @@ struct AppGroupDefaultsTests {
         let live = try #require(state.liveState)
         #expect(live.running?.entryID == entry)
         #expect(live.running?.task == "Review")
-        #expect(live.running?.chainStart == Self.instant)
+        #expect(live.running?.start == Self.instant)
         #expect(live.changedAt == Self.instant)
         #expect(live.activity.isEmpty)
         #expect(state.lastFetchAt == Self.instant + 1)

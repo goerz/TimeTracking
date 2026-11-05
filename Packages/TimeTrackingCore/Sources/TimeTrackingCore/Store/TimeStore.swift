@@ -134,8 +134,8 @@ public actor TimeStore {
         self.notifier = configuration.notifier
     }
 
-    /// Opens the store, runs the invariant pass (a writer splits a running
-    /// entry that passed midnight), and listens for other processes.
+    /// Opens the store, runs the invariant pass, and listens for other
+    /// processes.
     public static func open(_ configuration: Configuration) async throws -> TimeStore {
         let store: TimeStore
         do {
@@ -193,7 +193,6 @@ public actor TimeStore {
     /// outbox rows, commit, then the notification and observer events.
     func write<R>(_ body: (StoreTransaction) throws -> R) throws -> R {
         let (result, outcome) = try perform { transaction in
-            try transaction.splitRunningEntries()
             let result = try body(transaction)
             try transaction.runInvariantPass()
             try transaction.updateLiveStateSnapshot()
@@ -230,31 +229,9 @@ public actor TimeStore {
         }
     }
 
-    /// Runs the invariant pass alone: call it at each local midnight, on
-    /// wake, and on a clock or time zone change.
+    /// Runs the invariant pass alone.
     public func checkInvariants() throws {
         try write { _ in }
-    }
-
-    /// The first midnight of its zone after the running entry's start, for
-    /// scheduling `checkInvariants()`; run it at once when this is past.
-    public func nextMidnightSplit() throws -> Date? {
-        guard let running = try runningEntry() else {
-            return nil
-        }
-        let calendar = TrackingCalendar(timeZone: running.zone)
-        return calendar.startOfDay(calendar.day(containing: running.start).adding(days: 1))
-    }
-
-    /// The next moment a running entry changes how it is stored or shown:
-    /// its next midnight or the start of the next shown day, whichever is
-    /// first; `nil` with nothing running.
-    public func nextRunningDayChange() throws -> Date? {
-        guard let midnight = try nextMidnightSplit() else {
-            return nil
-        }
-        let calendar = displayCalendar(timeZone: timeZone())
-        return min(midnight, calendar.startOfDay(calendar.day(containing: clock.now).adding(days: 1)))
     }
 
     // MARK: Notification
@@ -290,9 +267,7 @@ public actor TimeStore {
             }
             broadcaster.yield(.settings(outcome.changedSettings))
         }
-        let own = outcome.adjustments.filter { adjustment in
-            adjustment.reason != .splitAtMidnight && (adjustment.before ?? adjustment.after)?.deviceID == deviceID
-        }
+        let own = outcome.adjustments.filter { ($0.before ?? $0.after)?.deviceID == deviceID }
         if !own.isEmpty {
             broadcaster.yield(.adjusted(own))
         }

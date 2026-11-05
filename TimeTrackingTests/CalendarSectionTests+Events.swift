@@ -286,7 +286,7 @@ extension CalendarSectionTests {
             task: "Night",
             start: TestApp.date("2024-03-14T03:00"),
             end: TestApp.date("2024-03-14T05:00")
-        ))[0]
+        ))
         await model.reload()
         let earlier = Self.day("2024-03-13")
         let later = Self.day("2024-03-14")
@@ -356,7 +356,7 @@ extension CalendarSectionTests {
         #expect(model.axis(earlier).offset(of: early.start, inCardOf: shown.span) == 12)
     }
 
-    @Test("PC-34 with Midnight at 04:00 a drag across the real midnight splits the entry, and one undo restores it")
+    @Test("PC-34 with Midnight at 04:00 a drag across the real midnight keeps one entry, and one undo restores it")
     func midnightDragUndo() async throws {
         let world = try await World()
         let model = world.model
@@ -367,15 +367,44 @@ extension CalendarSectionTests {
             task: "Late",
             start: TestApp.date("2024-03-12T22:30"),
             end: TestApp.date("2024-03-12T23:30")
-        ))[0]
+        ))
         await model.reload()
         await model.move(entry.id, by: 3600)
         let span = try DateInterval(start: TestApp.date("2024-03-12T20:00"), end: TestApp.date("2024-03-13T03:00"))
-        #expect(try await store.entries(in: span).count == 2)
+        let moved = try await store.entries(in: span)
+        #expect(moved.map(\.id) == [entry.id])
+        #expect(try moved[0].end == TestApp.date("2024-03-13T00:30"))
         world.test.undo.undo()
         await model.waitForUndo()
         let restored = try await store.entries(in: span)
         #expect(restored.map(\.id) == [entry.id])
         #expect(try restored[0].end == TestApp.date("2024-03-12T23:30"))
+    }
+
+    @Test("PC-42 an entry across midnight drags and nudges whole, in either column, and ⌥⌘↓ lengthens it at its end")
+    func nightDrag() async throws {
+        let world = try await World()
+        let model = world.model
+        let store = world.test.store
+        let entry = try await store.create(EntryDraft(
+            projectID: nil,
+            task: "Night",
+            start: TestApp.date("2024-03-12T23:00"),
+            end: TestApp.date("2024-03-13T01:00")
+        ))
+        await model.reload()
+        let (monday, tuesday) = (Self.day("2024-03-12"), Self.day("2024-03-13"))
+        #expect(model.entries(on: monday).map(\.id) == [entry.id])
+        #expect(model.entries(on: tuesday).map(\.id) == [entry.id])
+        await model.move(entry.id, by: 1800, to: monday, from: monday)
+        #expect(try await store.entry(entry.id)?.start == TestApp.date("2024-03-12T23:30"))
+        #expect(try await store.entry(entry.id)?.end == TestApp.date("2024-03-13T01:30"))
+        await model.move(entry.id, by: -3600, to: tuesday, from: tuesday)
+        #expect(try await store.entry(entry.id)?.start == TestApp.date("2024-03-12T22:30"))
+        model.selection = [.entry(entry.id)]
+        await model.nudgeSelection(steps: 1, lengthen: false)
+        #expect(try await store.entry(entry.id)?.start == TestApp.date("2024-03-12T22:35"))
+        await model.nudgeSelection(steps: 1, lengthen: true)
+        #expect(try await store.entry(entry.id)?.end == TestApp.date("2024-03-13T00:40"))
     }
 }

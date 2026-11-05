@@ -7,7 +7,6 @@ import TimeTrackingCore
 /// The inputs of the status item, gathered from the Timer's state.
 struct StatusItemState {
     var running: TimeEntry?
-    var chainStart: Date?
     var label: ProjectLabel
     var mostRecentOther: TimeEntry?
     var lastStoppedToday: TimeEntry?

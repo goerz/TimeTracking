@@ -75,7 +75,7 @@ extension TimeStore {
         withDeletion([
             "id": entry.id.rawValue, "projectID": nullable(entry.projectID?.rawValue), "task": entry.task,
             "start": rfc3339(entry.start), "end": nullable(entry.end.map(rfc3339)), "timeZone": entry.timeZone,
-            "deviceID": entry.deviceID.rawValue, "splitRootID": nullable(entry.splitRootID?.rawValue),
+            "deviceID": entry.deviceID.rawValue,
         ], entry.deletedAt)
     }
 }

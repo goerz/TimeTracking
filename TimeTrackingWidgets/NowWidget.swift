@@ -204,7 +204,7 @@ struct NowInline: View {
 
     var body: some View {
         if let running = snapshot.running {
-            let elapsed = Text(timerInterval: snapshot.elapsedTimer ?? running.chainStart ... running.chainStart, countsDown: false)
+            let elapsed = Text(timerInterval: snapshot.elapsedTimer ?? running.start ... running.start, countsDown: false)
             Label {
                 Text("\(elapsed) · \(running.row.projectText)")
             } icon: {

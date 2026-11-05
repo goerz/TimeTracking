@@ -54,16 +54,15 @@ extension CalendarModel {
 
     private func create(_ draft: CalendarDraft, interval: DateInterval) async {
         do {
-            let pieces = try await store.create(EntryDraft(
+            let id = try await store.create(EntryDraft(
                 projectID: draft.projectID,
                 task: draft.task.trimmed,
                 start: interval.start,
                 end: interval.end
-            ))
-            let ids = pieces.map(\.id)
-            registerUndo("Undo New Entry") { store in try await store.delete(ids) }
+            )).id
+            registerUndo("Undo New Entry") { store in try await store.delete([id]) }
             self.draft = nil
-            selection = Set(ids.map(CalendarItemID.entry))
+            selection = [.entry(id)]
         } catch {
             self.draft = draft
             report(error)
@@ -105,12 +104,20 @@ extension CalendarModel {
         let source = source ?? calendar.displayDay(of: entry)
         let target = day ?? source
         let dayShift = calendar.startOfDay(target).timeIntervalSince(calendar.startOfDay(source))
-        let editing = editing(target, option: option)
         if entry.isRunning {
-            return DateInterval(start: editing.moveRunningStart(to: entry.start + offset), end: clock.now)
+            let column = crossesDayChange(entry) ? calendar.displayDay(of: entry) : target
+            return DateInterval(start: editing(column, option: option).moveRunningStart(to: entry.start + offset), end: clock.now)
         }
         let interval = entry.interval(at: clock.now)
-        return editing.move(DateInterval(start: interval.start + dayShift, duration: interval.duration), by: offset)
+        let shifted = DateInterval(start: interval.start + dayShift, duration: interval.duration)
+        return crossesDayChange(entry)
+            ? editing(target, option: option).moveAcrossDays(shifted, by: offset)
+            : editing(target, option: option).move(shifted, by: offset)
+    }
+
+    /// Whether `entry` has a piece in more than one column, so no column holds it.
+    private func crossesDayChange(_ entry: TimeEntry) -> Bool {
+        calendar.pieces(of: entry, at: clock.now).count > 1
     }
 
     /// An edge drag in the column `day`: the top (`start`) or bottom edge
@@ -136,11 +143,10 @@ extension CalendarModel {
         guard let id = selectedEntry, let entry = listing(id)?.entry, !entry.isRunning else {
             return
         }
-        let interval = entry.interval(at: clock.now)
-        let editing = editing(calendar.displayDay(of: entry))
         if lengthen {
-            await change(id, to: editing.lengthen(interval, steps: steps))
-        } else if let moved = editing.nudge(interval, steps: steps) {
+            let last = calendar.pieces(of: entry, at: clock.now).last?.day ?? calendar.displayDay(of: entry)
+            await change(id, to: editing(last).lengthen(entry.interval(at: clock.now), steps: steps))
+        } else if let moved = movedInterval(of: entry, by: Double(steps * snapMinutes * 60)) {
             await change(id, to: moved)
         }
     }
@@ -165,21 +171,15 @@ extension CalendarModel {
         }
         let old = entry
         do {
-            let pieces: [TimeEntry] = if running {
-                try await store.update(id, EntryChange(start: interval.start))
+            if running {
+                _ = try await store.update(id, EntryChange(start: interval.start))
             } else if interval.duration == old.interval(at: clock.now).duration {
-                try await store.move(id, by: interval.start.timeIntervalSince(old.start))
+                _ = try await store.move(id, by: interval.start.timeIntervalSince(old.start))
             } else {
-                try await store.update(id, EntryChange(start: interval.start, end: interval.end))
+                _ = try await store.update(id, EntryChange(start: interval.start, end: interval.end))
             }
-            // A column can reach past midnight, where the store splits the
-            // entry; undo takes the later pieces back in the same write.
-            let later = pieces.map(\.id).filter { $0 != old.id }
             registerUndo(running ? "Undo Resize Entry" : "Undo Move Entry") { store in
-                try await store.transaction { transaction in
-                    try transaction.delete(later)
-                    _ = try transaction.update(old.id, EntryChange(start: old.start, end: old.end))
-                }
+                _ = try await store.update(old.id, EntryChange(start: old.start, end: old.end))
             }
         } catch {
             report(error)
@@ -417,14 +417,13 @@ extension CalendarModel {
 
     private func storeDuplicate(of entry: TimeEntry, interval: DateInterval) async {
         do {
-            let pieces = try await store.create(EntryDraft(
+            let id = try await store.create(EntryDraft(
                 projectID: entry.projectID,
                 task: entry.task,
                 start: interval.start,
                 end: interval.end
-            ))
-            let ids = pieces.map(\.id)
-            registerUndo("Undo Duplicate") { store in try await store.delete(ids) }
+            )).id
+            registerUndo("Undo Duplicate") { store in try await store.delete([id]) }
         } catch {
             report(error)
         }

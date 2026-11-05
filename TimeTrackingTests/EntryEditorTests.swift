@@ -81,40 +81,36 @@ struct EntryEditorTests {
         #expect(EntryFieldEdit.date(running.day).isDisabledWhileRunning)
     }
 
-    @Test("TM-20 Stop 00:35 on an entry from 23:10 stores two pieces and shows Continues on the next day until 00:35")
+    @Test("TM-20 Stop 00:35 on an entry from 23:10 stores one entry ending at 00:35")
     func midnight() async throws {
         let test = try await TestApp()
         let entry = try await test.entry("Night", from: "2024-03-12T23:10", to: "2024-03-12T23:50")
         let model = await editor(test, entry)
         model.stopText = "0:35"
         await model.commitStop()
-        let chain = try await test.store.chain(of: entry.id)
-        #expect(chain.count == 2)
         #expect(model.entry.id == entry.id)
-        #expect(try model.entry.end == (test.time("2024-03-13T00:00")))
-        let next = try LocalDateText.day(test.time("2024-03-13T00:00"))
-        #expect(try model.chainLines == ["Continues on \(next) until \(LocalDateText.time(test.time("2024-03-13T00:35")))"])
-        let second = await editor(test, chain[1])
-        #expect(second.chainLines == ["Continued from \(LocalDateText.day(entry.start)), \(LocalDateText.time(entry.start))"])
+        #expect(try model.entry.end == (test.time("2024-03-13T00:35")))
+        #expect(try await test.store.entry(entry.id) == model.entry)
     }
 
-    @Test("TM-21 a task change on one piece changes every piece; a Start change only that piece")
-    func chainEdits() async throws {
+    @Test("TM-21 an edit of an entry across midnight acts on the whole entry")
+    func wholeEntryEdits() async throws {
         let test = try await TestApp()
-        let pieces = try await test.store.create(EntryDraft(
+        let entry = try await test.store.create(EntryDraft(
             projectID: nil,
             task: "Night",
             start: test.time("2024-03-12T23:10"),
             end: test.time("2024-03-13T00:35")
         ))
-        let model = await editor(test, pieces[1])
+        let model = await editor(test, entry)
         model.task = "Late night"
         await model.commitTask()
-        #expect(try await test.store.chain(of: pieces[0].id).map(\.task) == ["Late night", "Late night"])
-        model.startText = "0:10"
+        #expect(try await test.store.entry(entry.id)?.task == "Late night")
+        model.startText = "23:20"
         await model.commitStart()
-        let chain = try await test.store.chain(of: pieces[0].id)
-        #expect(try chain.map(\.start) == [test.time("2024-03-12T23:10"), test.time("2024-03-13T00:10")])
+        let stored = try #require(try await test.store.entry(entry.id))
+        #expect(try stored.start == test.time("2024-03-12T23:20"))
+        #expect(try stored.end == test.time("2024-03-13T00:35"))
     }
 
     @Test("TM-22 an overlapping change shows the notice; Keep stores it, Revert restores the field")

@@ -32,7 +32,7 @@ The Dock tile, the menus, the show/hide shortcut, notifications, and URLs open t
 
 From left: the Pomodoro button (5.1); the task field (placeholder "What are you working on?"); the timer label (`h:mm:ss`, `0:00:00` when idle); the start button, which becomes the stop button while an entry runs; and, only while running, the discard button. Below them is the project chip ("No project" with a hollow dot). Their look is in `spec_design.md` §7.
 
-The timer label always shows the elapsed time, also during a Pomodoro, and counts from the running entry's chain start (`spec_data_and_sync.md` 1.5), so it does not reset at the split at real midnight. Day totals count each day's part instead (3).
+The timer label always shows the elapsed time, also during a Pomodoro, and counts from the running entry's start (`spec_data_and_sync.md` 1.5), so it does not reset at midnight. Day totals count each day's part instead (3).
 
 ### 2.1 Start, stop, continue, discard
 
@@ -60,7 +60,7 @@ Clicking the chip, ⌘J, Space on the chip (Tab reaches it from the task field),
 
 ## 3. The list
 
-Entries are grouped by the days of the Midnight setting (`spec_data_and_sync.md` §8). An entry across Midnight has a row on each of its days with that part's times, and its editor opens the stored entry; pieces split at real midnight inside one shown day stay separate rows. Headers read "Today", "Yesterday", then "EEE, MMM d" ("Tue, Oct 27"), with the year for other years, and show the day total `h:mm:ss`. Each entry is its own row, and empty days are omitted. The list loads the 14 most recent days with entries; "Load Earlier Entries" appends 14 more.
+Entries are grouped by the days of the Midnight setting (`spec_data_and_sync.md` §8). An entry across the day change has a row on each of its days with that part's times, and its editor opens the stored entry. Headers read "Today", "Yesterday", then "EEE, MMM d" ("Tue, Oct 27"), with the year for other years, and show the day total `h:mm:ss`. Each entry is its own row, and empty days are omitted. The list loads the 14 most recent days with entries; "Load Earlier Entries" appends 14 more.
 
 The running entry is the first row of its day, with its live duration in the accent color and no continue button; it is not selectable, and a click opens its edit popover. It counts toward today's total, which ticks every second; a filter it does not match hides its row and its seconds.
 
@@ -76,23 +76,21 @@ Clicking a row, Return on a selection, ⌘E, or clicking the timer label opens t
 
 ### 4.1 Fields
 
-Top to bottom: Task (with the autocompletion of 2.2, no `@` trigger); Project (the chip; click or ⌘J opens the picker); Start and Stop (time of day in the system's format; `9:1` reads as 09:10; stored seconds are kept); Duration (`h:mm:ss`, also `25m`, `1h 30m`, `1:30`, `90s`, or plain minutes); Date (the stored entry's real date); the lines of 4.3 and the notices; "Delete Entry…" (⌘⌫), with the alert "Delete this entry?".
+Top to bottom: Task (with the autocompletion of 2.2, no `@` trigger); Project (the chip; click or ⌘J opens the picker); Start and Stop (time of day in the system's format; `9:1` reads as 09:10; stored seconds are kept); Duration (`h:mm:ss`, also `25m`, `1h 30m`, `1:30`, `90s`, or plain minutes); Date (the date of the stored entry's start); the notices; "Delete Entry…" (⌘⌫), with the alert "Delete this entry?".
 
 Each field commits on Return or focus loss; there is no Save button, and a field left unchanged stores nothing. Escape in an edited field reverts it; Escape in an unchanged field, or a click outside, closes the popover.
 
 ### 4.2 Rules
 
-Start and Stop are wall-clock times, also on a day of 23 or 25 hours, and a time a DST change skips becomes the first instant after it. Editing Start keeps Stop, and a Start at or after Stop reverts. Editing Stop or Duration keeps Start, and a Stop at or before Start means the next date. Changing Date moves the entry by whole days, keeping its times. A commit stores only the times it changed, so a time changed elsewhere since the editor opened stays.
+Start and Stop are wall-clock times, also on a day of 23 or 25 hours, and a time a DST change skips becomes the first instant after it. Editing Start keeps Stop, and a Start at or after Stop reverts. Editing Stop or Duration keeps Start. A Stop takes the occurrence of that time after Start nearest the stored stop, so a Stop at or before Start means the next date, and an entry across dates keeps its Stop's date for a small change. Changing Date moves the entry by whole days, keeping its times. A commit stores only the times it changed, so a time changed elsewhere since the editor opened stays.
 
-A commit that would put any start or stop after now is refused: the field reverts and "Entries cannot be in the future" shows until the next edit. A change that overlaps an entry outside its own chain shows the notice "Overlaps “Morning Review” (9:00 to 9:25)" with "Keep" (stores it) and "Revert".
+A commit that would put any start or stop after now is refused: the field reverts and "Entries cannot be in the future" shows until the next edit. A change that overlaps another entry shows the notice "Overlaps “Morning Review” (9:00 to 9:25)" with "Keep" (stores it) and "Revert".
 
-For the running entry, Stop shows "running", Duration shows the live time of this entry (not the chain), and Stop, Duration, and Date are disabled.
+For the running entry, Stop shows "running", Duration shows the live time, and Stop, Duration, and Date are disabled.
 
-### 4.3 Chains at real midnight
+### 4.3 Entries across midnight
 
-The library stores an interval across real midnight as pieces sharing a root, which form a chain (`spec_data_and_sync.md` 1.5); the Midnight setting doesn't affect this.
-
-A commit that makes the entry cross midnight is split; the popover stays on the piece of its date, now ending at 00:00. For any piece, lines name the adjacent pieces: "Continued from Wed, Oct 28, 23:10" and "Continues on Thu, Oct 29 until 00:35". Task and Project changes apply to every live piece in one transaction; Start, Stop, Duration, Date, and Delete apply to the edited piece only.
+An entry can span any number of dates and is stored whole (`spec_data_and_sync.md` 1.5), so a commit that makes it cross midnight changes that entry alone. Every field and Delete act on the whole entry, from any of its rows.
 
 The Timer creates entries only by starting them; past intervals are created in the Calendar.
 
@@ -138,7 +136,7 @@ Entering focus or break sets its end to now plus its duration.
 | breakOver | Start Focus (button, menu, notification) | focus |
 | any but off | Cancel Pomodoro; End Pomodoro (notification); the app quits; nothing runs any more | off |
 
-The Pomodoro belongs to the person, not the entry. A new or continued entry from any source or device and the split at real midnight leave the phase unchanged; only "nothing runs", after a stop or discard from any source or device (including idle Discard), ends it, and removes pending notifications. Idle detection runs unchanged in every phase.
+The Pomodoro belongs to the person, not the entry. A new or continued entry from any source or device and midnight leave the phase unchanged; only "nothing runs", after a stop or discard from any source or device (including idle Discard), ends it, and removes pending notifications. Idle detection runs unchanged in every phase.
 
 ## 6. Idle detection
 
@@ -157,7 +155,7 @@ Every 10 s the app reads the seconds since the last input event, and it records 
 
 ### 6.3 The prompt
 
-When input resumes after an idle period of at least the threshold (or a lock or sleep with "Ask when I return") while an entry runs and presence was not `passive`, the Mini Timer comes forward with the sheet "You have been away": "Idle since 14:02 (23 minutes).", "Running: <task> · <project>", and the options below. If the app is not frontmost, the `idle` notification is posted too. A new idle period extends an open prompt, and the prompt closes if the entry stops on another device. A split at real midnight is no change of the running entry: the prompt stays open and acts on the chain.
+When input resumes after an idle period of at least the threshold (or a lock or sleep with "Ask when I return") while an entry runs and presence was not `passive`, the Mini Timer comes forward with the sheet "You have been away": "Idle since 14:02 (23 minutes).", "Running: <task> · <project>", and the options below. If the app is not frontmost, the `idle` notification is posted too. A new idle period extends an open prompt, and the prompt closes if the entry stops on another device. Midnight is no change of the running entry, so the prompt stays open.
 
 | Option | Effect | Key |
 |---|---|---|
@@ -166,7 +164,7 @@ When input resumes after an idle period of at least the threshold (or a lock or 
 | Discard | Entry stops at the idle start | ⌘D |
 | Keep | Entry keeps running, idle time included | Return, Escape |
 
-An idle start before a split at real midnight stops the chain there: the piece running at that moment ends at the idle start, and the pieces after it are removed. The new entry of Split is split at midnight like any other.
+An idle start before midnight stops the entry there, and the new entry of Split starts there.
 
 With "Stop the entry at that moment", a lock or sleep stops the entry at that time without a prompt. An entry stopped at shutdown needs no prompt at the next launch.
 
@@ -205,7 +203,7 @@ The two global shortcuts are stored per device; a shortcut already in use is rep
 | Show the Mini Timer when an entry starts | off | After a start from the global shortcut, the menu bar, a notification, an intent, or another device, shows the Mini Timer with the task field focused |
 | Show the Mini Timer when an entry stops | off | The same after a stop from those sources |
 
-A start or stop through the commands of a Timer, the main menu, Projects, or Reports shows nothing, and neither does the split at real midnight, which is no start. Window › Mini Timer and the menu bar's "Show Mini Timer" display the show/hide shortcut (none when unassigned); choosing either only shows the Mini Timer.
+A start or stop through the commands of a Timer, the main menu, Projects, or Reports shows nothing, and neither does midnight, which is no start. Window › Mini Timer and the menu bar's "Show Mini Timer" display the show/hide shortcut (none when unassigned); choosing either only shows the Mini Timer.
 
 ## 9. Menus and keyboard
 
@@ -267,8 +265,8 @@ The two Pomodoro categories use bundled sounds with "Play a sound" on and are si
 - TM-17. ⌘F with "noise" leaves only matching entries, and day totals sum them.
 - TM-18. The popover recomputes and moves entries per §4.2.
 - TM-19. A commit that would put the entry after now is refused with "Entries cannot be in the future"; for the running entry Stop, Duration, and Date are disabled.
-- TM-20. Stop 00:35 on an entry starting 23:10 stores two pieces split at midnight and shows "Continues on <next day> until 00:35".
-- TM-21. A task change on one piece of a chain changes every piece; a Start change changes only that piece.
+- TM-20. Stop 00:35 on an entry starting 23:10 stores one entry ending at 00:35, the next date; a Stop on an entry across dates keeps the nearest date.
+- TM-21. An edit from either row of an entry across midnight acts on the whole entry.
 - TM-22. An overlapping change shows the inline notice; "Keep" stores it, "Revert" restores the field.
 - TM-23. A Pomodoro shows the countdown and a filling ring on the Pomodoro button, then `+0:00` counting up at `focusEnd` with "Focus done" sent and "Start Break" shown on the button; the timer label keeps the elapsed time throughout.
 - TM-24. Through a focus, break, and focus cycle the store holds one running entry and no stopped entry.
@@ -294,9 +292,9 @@ The two Pomodoro categories use bundled sounds with "Play a sound" on and are si
 - TM-44. Return accepts no suggestion or picker line loaded for text the user has since typed past; with the `@` picker open it waits for the current lines, assigns the project, and starts nothing.
 - TM-45. With Midnight at 04:00, the list's days and their totals are the shown days: an entry across it has a row with its part on each day, a night across real midnight lies on one day, and a row's editor opens the stored entry.
 - TM-46. Choosing Midnight in the General pane moves the Calendar's first hour label to that hour, and 00:00 restores it.
-- TM-47. A split at real midnight is no change of the running entry: the Mini Timer doesn't show, an open idle prompt stays open and acts on the chain, the Pomodoro's phase stays, and a task being typed stays and commits to every piece.
+- TM-47. Real midnight is no change of the running entry: the Mini Timer doesn't show, an open idle prompt stays open, the Pomodoro's phase stays, and a task being typed stays.
 - TM-48. With "Show the Mini Timer when an entry starts" and "when an entry stops" on, a start or stop from a Timer or the main menu shows nothing, and one from the menu bar, a notification, or another device shows the Mini Timer with the task field focused.
-- TM-49. With idle from 23:50 and the prompt answered at 00:30, Split, Discard and Continue, and Discard stop the entry at 23:50 and remove its piece after midnight; Keep changes nothing. A lock stop reaches back the same way.
+- TM-49. With idle from 23:50 and the prompt answered at 00:30, Split, Discard and Continue, and Discard stop the entry at 23:50; Keep changes nothing. A lock stop reaches back the same way, and a stop never reaches before the entry's start.
 - TM-50. Tabbing through an unchanged Start or Stop stores nothing, also for times with seconds; an edit in whole minutes keeps the stored seconds.
 - TM-51. ⌘J in the edit popover opens the popover's own project picker, and closing the picker leaves the popover open.
 - TM-52. Closing the Mini Timer clears its filter and returns its list to the top, so it opens that way again; the main window's Timer keeps its own filter.

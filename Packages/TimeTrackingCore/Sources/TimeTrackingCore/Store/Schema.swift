@@ -3,11 +3,17 @@
 import Foundation
 import GRDB
 
-/// The store's schema. Migrations run forward on open and only add; a
-/// newer `meta.schema_version` than `version` is refused.
+/// The store's schema. Migrations run forward on open; they add, except
+/// that version 4 merges the midnight chains and drops their column
+/// (`Schema+Chains.swift`). A newer `meta.schema_version` than `version` is
+/// refused.
 enum Schema {
     /// The schema version this library writes.
-    static let version = 3
+    static let version = 4
+
+    /// Orders entries by their end, the running ones latest; the
+    /// expression of the index `time_entry_live_end`.
+    static let latestEndOrder = "COALESCE(\"end\", 9223372036854775807)"
 
     static var migrator: DatabaseMigrator {
         var migrator = DatabaseMigrator()
@@ -23,6 +29,12 @@ enum Schema {
         }
         migrator.registerMigration("v3") { database in
             for statement in version3 {
+                try database.execute(sql: statement)
+            }
+        }
+        migrator.registerMigration("v4") { database in
+            try mergeChains(in: database)
+            for statement in version4 {
                 try database.execute(sql: statement)
             }
         }
@@ -72,6 +84,13 @@ enum Schema {
     }
 
     private static let bookkeeping = "created_at INTEGER NOT NULL, modified_at INTEGER NOT NULL, deleted_at INTEGER, ck_system_fields BLOB"
+
+    /// Version 4: whole entries (§1.5), read by their end for the Timer list.
+    private static let version4: [String] = [
+        "DROP INDEX time_entry_split_root",
+        "ALTER TABLE time_entry DROP COLUMN split_root_id",
+        "CREATE INDEX time_entry_live_end ON time_entry (\(latestEndOrder)) WHERE deleted_at IS NULL",
+    ]
 
     /// Version 3: a workout's activity type and distance (§1.9).
     private static let version3: [String] = [

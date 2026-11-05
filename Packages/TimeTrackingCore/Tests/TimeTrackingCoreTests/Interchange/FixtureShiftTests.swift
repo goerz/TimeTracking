@@ -34,7 +34,7 @@ struct FixtureShiftTests {
             try [
                 "id": UUID().uuidString.lowercased(), "projectID": NSNull(), "task": "Entry \(index)",
                 "start": rfc3339(local(entry.0)), "end": entry.1.map { try rfc3339(local($0)) } ?? NSNull(),
-                "timeZone": "America/New_York", "deviceID": UUID().uuidString.lowercased(), "splitRootID": NSNull(),
+                "timeZone": "America/New_York", "deviceID": UUID().uuidString.lowercased(),
             ] as [String: Any]
         }
         let object: [String: Any] = try [

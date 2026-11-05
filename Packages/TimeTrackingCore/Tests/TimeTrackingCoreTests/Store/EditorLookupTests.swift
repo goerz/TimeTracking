@@ -16,7 +16,7 @@ struct EditorLookupTests {
             start: test.date("2024-03-14T08:00"),
             end: test.date("2024-03-14T09:00")
         ))
-        let shown = try #require(created.first)
+        let shown = created
         // Another device moves the end while the editor shows the entry.
         _ = try await test.store.update(shown.id, EntryChange(end: test.date("2024-03-14T09:30")))
         // Editing Start keeps the Stop the editor shows (§4.2).
@@ -64,7 +64,7 @@ struct EditorLookupTests {
             task: "Model",
             start: test.date("2024-03-14T08:00"),
             end: test.date("2024-03-14T09:00")
-        ))[0]
+        ))
         try await test.store.delete([entry.id])
         try await test.store.deleteProject(noise)
         try await test.store.deleteArea(structure.area.id)
@@ -79,29 +79,6 @@ struct EditorLookupTests {
         #expect(try await test.store.projectListing(ProjectID()) == nil)
     }
 
-    @Test("overlaps(for:outsideChainOf:) leaves out the edited entry's own chain")
-    func overlapsOutsideChain() async throws {
-        let test = try await TestStore()
-        let pieces = try await test.store.create(EntryDraft(
-            projectID: nil,
-            task: "Late",
-            start: test.date("2024-03-12T23:00"),
-            end: test.date("2024-03-13T01:00")
-        ))
-        #expect(pieces.count == 2)
-        let other = try await test.store.create(EntryDraft(
-            projectID: nil,
-            task: "Early",
-            start: test.date("2024-03-13T00:30"),
-            end: test.date("2024-03-13T02:00")
-        ))
-        let draft = try EntryDraft(projectID: nil, task: "Late", start: test.date("2024-03-12T22:00"), end: test.date("2024-03-13T01:30"))
-        let all = try await test.store.overlaps(for: draft, excluding: pieces[0].id)
-        #expect(Set(all.map(\.id)) == [pieces[1].id, other[0].id])
-        let outside = try await test.store.overlaps(for: draft, outsideChainOf: pieces[0].id)
-        #expect(outside.map(\.id) == [other[0].id])
-    }
-
     @Test("A saved start and end: future first, then the order; a running end is not checked")
     func draftCheck() {
         let now = Date(timeIntervalSinceReferenceDate: 10_000)
@@ -111,20 +88,6 @@ struct EditorLookupTests {
         #expect(EntryEditRules.check(start: now - 60, end: now - 120, now: now) == .failure(.endBeforeStart))
         #expect(EntryEditRules.check(start: now - 60, end: nil, now: now) == .success(EntryEditResult(start: now - 60, end: nil)))
         #expect(EntryEditRules.check(start: now - 60, end: now, now: now) == .success(EntryEditResult(start: now - 60, end: now)))
-    }
-
-    @Test("A stopped interval crosses midnight in the entry's zone unless it ends exactly at midnight")
-    func midnight() throws {
-        let berlin = try #require(TimeZone(identifier: "Europe/Berlin"))
-        let tokyo = try #require(TimeZone(identifier: "Asia/Tokyo"))
-        let start = try TestTime.local("2024-03-12T23:00", in: berlin)
-        let end = try TestTime.local("2024-03-13T00:30", in: berlin)
-        let midnight = try TestTime.local("2024-03-13T00:00", in: berlin)
-        #expect(EntryEditRules.crossesMidnight(start: start, end: end, in: berlin))
-        #expect(!EntryEditRules.crossesMidnight(start: start, end: midnight, in: berlin))
-        #expect(!EntryEditRules.crossesMidnight(start: end, end: start, in: berlin))
-        // 07:00 to 08:30 in Tokyo.
-        #expect(!EntryEditRules.crossesMidnight(start: start, end: end, in: tokyo))
     }
 
     @Test("assignContextColors adds new contexts, stores the setting, and keeps existing indexes")

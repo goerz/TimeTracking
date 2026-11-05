@@ -20,10 +20,10 @@ public struct WidgetControlValue: Hashable, Sendable {
 
 extension WidgetSnapshot {
     /// The interval of the running entry's elapsed-time text in every family:
-    /// from the chain start, counting up without an end, so the system
+    /// from the entry's start, counting up without an end, so the system
     /// advances it without timeline reloads; `nil` while nothing runs.
     public var elapsedTimer: ClosedRange<Date>? {
-        running.map { $0.chainStart ... Date.distantFuture }
+        running.map { $0.start ... Date.distantFuture }
     }
 
     /// The Lock Screen button: Stop while running, else Continue the latest.

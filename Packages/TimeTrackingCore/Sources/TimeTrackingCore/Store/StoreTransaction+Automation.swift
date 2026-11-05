@@ -38,8 +38,7 @@ extension StoreTransaction {
     }
 
     /// Stops the running entry at `at` (default now); refuses when nothing
-    /// runs, and a time before its start or in the future. Returns the last
-    /// midnight piece.
+    /// runs, and a time before its start or in the future.
     public func checkedStop(at: Date?) throws -> TimeEntry {
         let at = at.map { Time.whole($0) } ?? now
         guard let running = try runningEntries().first else {
@@ -58,8 +57,8 @@ extension StoreTransaction {
     }
 
     /// Creates a stopped entry; refuses an overlap (unless `force`), an end
-    /// in the future, and an end before the start. Returns every piece.
-    public func checkedCreate(_ draft: EntryDraft, force: Bool) throws -> [TimeEntry] {
+    /// in the future, and an end before the start.
+    public func checkedCreate(_ draft: EntryDraft, force: Bool) throws -> TimeEntry {
         guard let end = draft.end else {
             throw AutomationError.usage("An entry needs --end.")
         }
@@ -71,8 +70,8 @@ extension StoreTransaction {
     }
 
     /// Changes one entry with the refusals of `checkedCreate` when its times
-    /// change; the entry's own chain does not count as an overlap.
-    public func checkedUpdate(_ id: EntryID, _ change: EntryChange, force: Bool) throws -> [TimeEntry] {
+    /// change.
+    public func checkedUpdate(_ id: EntryID, _ change: EntryChange, force: Bool) throws -> TimeEntry {
         guard let entry = try entry(id) else {
             throw AutomationError.notFound("No entry with id \(id.rawValue).")
         }
@@ -83,8 +82,7 @@ extension StoreTransaction {
             try refuseTimes(start: start, end: end ?? now)
         }
         if timesChange, !force {
-            let chain = try chainEntries(root: entry.rootID).map(\.id)
-            try refuseOverlap(start: start, end: end ?? now, excluding: Set(chain + [id]))
+            try refuseOverlap(start: start, end: end ?? now, excluding: [id])
         }
         return try update(id, change)
     }
@@ -123,7 +121,7 @@ extension StoreTransaction {
 /// The result of a checked start: the new entry and the entry it stopped.
 public struct StartOutcome: Hashable, Sendable {
     public var entry: TimeEntry
-    /// The last piece of the entry that was running, now stopped.
+    /// The entry that was running, now stopped.
     public var stopped: TimeEntry?
 
     public init(entry: TimeEntry, stopped: TimeEntry?) {

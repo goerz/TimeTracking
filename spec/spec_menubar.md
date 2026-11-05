@@ -11,11 +11,11 @@ The item is an `NSStatusItem`, for control of its text, clicks, and removal: an 
 | State | Icon | Text |
 |---|---|---|
 | No running entry | The track alone | None |
-| Running entry | The chain's minutes within the hour, like a minute hand (`0:40` is two thirds of a turn) | Elapsed time |
+| Running entry | The entry's minutes within the hour, like a minute hand (`0:40` is two thirds of a turn) | Elapsed time |
 | Pomodoro focus or break | The elapsed fraction of the phase | Elapsed time, then the phase glyph (`pomodoro`, `cup.and.saucer`) and the remaining time |
 | Phase ended, confirmation pending | The full ring with the knob at 12 o'clock | Elapsed time, then the ended phase's glyph and `+m:ss`, counting up from the phase end |
 
-The elapsed time is `h:mm` (`0:04`, `13:05`), or `h:mm:ss` with "Show seconds"; hours grow past 24. It counts from the running entry's chain start (`spec_data_and_sync.md` 1.5), so it does not reset at the split at real midnight.
+The elapsed time is `h:mm` (`0:04`, `13:05`), or `h:mm:ss` with "Show seconds"; hours grow past 24. It counts from the running entry's start (`spec_data_and_sync.md` 1.5), so it does not reset at midnight.
 
 With "Show project" on and a project set, the project name follows the time after " · " (`0:40 · Thesis`), truncated with an ellipsis at 24 characters. With "Show timer" off the name stands alone; with both off the item is the icon alone. The task never appears in the menu bar.
 
@@ -39,7 +39,7 @@ The header lines form one disabled item with a hosted view, because AppKit grays
 
 | Situation | Lines |
 |---|---|
-| Running entry | The task (or "No task"), truncated at 60 characters; the area dot (hollow for no project), the project and " · Client" (or "No project"); `Started HH:MM · h:mm elapsed`, with "yesterday" or the date after the time when the chain started on an earlier calendar date ("Started 23:10 yesterday · 1:05 elapsed") |
+| Running entry | The task (or "No task"), truncated at 60 characters; the area dot (hollow for no project), the project and " · Client" (or "No project"); `Started HH:MM · h:mm elapsed`, with "yesterday" or the date after the time when the entry started on an earlier calendar date ("Started 23:10 yesterday · 1:05 elapsed") |
 | No running entry | "Not tracking"; then `Last: <task>, stopped HH:MM` if the latest stopped entry lies on the current day of the Midnight setting |
 | Pomodoro on | One more line with the phase glyph: `Focus · m:ss left`, `Break · m:ss left`, `Focus ended · +m:ss`, or `Break ended · +m:ss` |
 | Tracker warning | An orange `exclamationmark.triangle` and "Tracker not running since HH:MM" |
@@ -86,9 +86,9 @@ The Dock menu has "New Entry", "Continue Latest", and "Stop", with the enablemen
 
 ## 5. Refresh
 
-The item ticks every 60 s while an entry runs, aligned to the chain start's second, and every 1 s with seconds on (aligned to the chain start), during a Pomodoro (aligned to the phase end), and while the menu is open. With nothing running it doesn't tick. A tick re-reads the clock; nothing is accumulated. The item also re-renders at once on any change of the running entry or Pomodoro state (local or synced), a setting, or the warning. Sleep cancels the tick; wake and unlock re-render from the clock and re-arm it.
+The item ticks every 60 s while an entry runs, aligned to the entry start's second, and every 1 s with seconds on (aligned to the entry's start), during a Pomodoro (aligned to the phase end), and while the menu is open. With nothing running it doesn't tick. A tick re-reads the clock; nothing is accumulated. The item also re-renders at once on any change of the running entry or Pomodoro state (local or synced), a setting, or the warning. Sleep cancels the tick; wake and unlock re-render from the clock and re-arm it.
 
-While an entry runs, the Mac app runs the invariant pass (`spec_data_and_sync.md` §1.5) and reloads at the entry's next real midnight, so that it splits there, and at the next day change of the Midnight setting, so that its part moves to the new day. The pass also runs on wake and on a clock or time zone change, which covers a Mac that sleeps through midnight.
+The Mac app looks every minute and reloads when the shown day has changed, so the running entry's part moves to the new day, and it also reloads on wake and on a clock or time zone change.
 
 ## 6. Settings
 
@@ -122,5 +122,5 @@ Device settings in Settings > General, section "Menu bar and Dock".
 - MB-16. With the menu open, the per-second refresh of an unchanged menu keeps every item and the menu's width; only the header view updates.
 - MB-17. The dial is the empty ring with nothing running, a minute hand while an entry runs (95 min 20 s: 35/60 of a turn), the phase's progress during a Pomodoro (10 minutes into a 25-minute focus: 0.4), and the full ring once the phase has ended; with "Show timer" off the item still ticks each minute; the image is a 16 pt template, 18 pt wide with the badge.
 - MB-18. The countdown keeps the width of its phase's full length: 9:59 left of a 25-minute focus reads ` ` + `9:59` (a figure space first); a 5-minute break needs no padding.
-- MB-19. An entry started at 23:30 that runs while the Mac sleeps past midnight is split at 00:00 on wake, and the item counts from the chain start; a time zone change runs the same pass.
+- MB-19. An entry started at 23:30 that runs while the Mac sleeps past midnight stays one entry, the item counts from its start, and the wake shows its part under the new day; a time zone change reloads the same way.
 - MB-20. With Midnight at 04:00, the "Last:" line names an entry from 03:00 to 05:00 today.

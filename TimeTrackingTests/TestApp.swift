@@ -81,9 +81,9 @@ struct TestApp {
     /// A stopped entry from `start` to `end` (local `HH:mm` today unless a full date).
     @discardableResult
     func entry(_ task: String, _ project: Project? = nil, from start: String, to end: String) async throws -> TimeEntry {
-        let pieces = try await store.create(EntryDraft(projectID: project?.id, task: task, start: time(start), end: time(end)))
+        let entry = try await store.create(EntryDraft(projectID: project?.id, task: task, start: time(start), end: time(end)))
         await app.afterChange()
-        return pieces[0]
+        return entry
     }
 
     /// `HH:mm` today or a full local date.

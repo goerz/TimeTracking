@@ -51,8 +51,7 @@ extension TimeStore {
         try read { database in
             let rows = try Row.fetchCursor(
                 database,
-                sql: "SELECT * FROM time_entry WHERE deleted_at IS NULL ORDER BY COALESCE(\"end\", ?) DESC, id",
-                arguments: [Time.seconds(now)]
+                sql: "SELECT * FROM time_entry WHERE deleted_at IS NULL ORDER BY \(Schema.latestEndOrder) DESC"
             )
             while let row = try rows.next() {
                 let entry = TimeEntry(row: row)

@@ -21,7 +21,6 @@ public enum StoreChange: Hashable, Sendable {
 /// One change the invariant pass or conflict resolution made to an entry.
 public struct EntryAdjustment: Hashable, Sendable {
     public enum Reason: String, Sendable {
-        case splitAtMidnight
         case stoppedByLaterStart
         case removedByLaterStart
         case replacedByRemoteEdit

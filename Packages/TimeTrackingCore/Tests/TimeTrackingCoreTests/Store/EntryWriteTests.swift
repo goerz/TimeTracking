@@ -42,7 +42,7 @@ struct EntryWriteTests {
             end: test.date("2024-03-14T09:30")
         ))
         await #expect(throws: StoreError.inFuture) {
-            try await store.move(entries[0].id, by: 3600)
+            try await store.move(entries.id, by: 3600)
         }
         _ = try await store.start(projectID: nil, task: "now", at: test.date("2024-03-14T10:00"))
         await #expect(throws: StoreError.endBeforeStart) {
@@ -65,7 +65,7 @@ struct EntryWriteTests {
             task: "x",
             start: test.date("2024-03-14T08:00"),
             end: test.date("2024-03-14T09:00")
-        ))[0]
+        ))
         try await store.delete([entry.id])
         #expect(try await store.entries(on: day).isEmpty)
         #expect(try await store.entry(entry.id) == nil)
@@ -92,13 +92,13 @@ struct EntryWriteTests {
             task: "a",
             start: test.date("2024-03-14T08:00"),
             end: test.date("2024-03-14T09:00")
-        ))[0]
+        ))
         let second = try await store.create(EntryDraft(
             projectID: nil,
             task: "b",
             start: test.date("2024-03-14T08:30"),
             end: test.date("2024-03-14T09:30")
-        ))[0]
+        ))
         _ = try await store.create(EntryDraft(
             projectID: nil,
             task: "c",

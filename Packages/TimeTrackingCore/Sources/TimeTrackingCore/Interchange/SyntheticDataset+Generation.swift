@@ -135,7 +135,7 @@ extension SyntheticDataset {
         }
     }
 
-    /// The unsplit document fed to the importer.
+    /// The document fed to the importer.
     func rawDocument() throws -> Data {
         let created = TimeStore.rfc3339(TrackingCalendar(timeZone: zone).startOfDay(days.lowerBound))
         let records = structure(createdAt: created)

@@ -1,6 +1,6 @@
 // EntryEditSheetModel: the iPhone's edit sheet (spec_ios.md §2.7): a draft
 // of task, project, start, and end that Done saves under the Mac Timer's
-// future, overlap, and midnight rules (spec_timer.md §4.2, §4.3).
+// future and overlap rules (spec_timer.md §4.2).
 
 import Foundation
 import Observation
@@ -33,7 +33,6 @@ final class EntryEditSheetModel {
 
     static let futureMessage = EntryEditorModel.futureMessage
     static let orderMessage = "The end must be after the start"
-    static let midnightNotice = "Will be saved as 2 entries, split at midnight"
 
     init(store: TimeStore, clock: any Clock) {
         self.store = store
@@ -81,14 +80,6 @@ final class EntryEditSheetModel {
         return DurationText.clock(max(0, Int(seconds)))
     }
 
-    /// Shown under the duration before saving an interval across midnight.
-    var midnightNoticeText: String? {
-        guard let entry, !isRunning, EntryEditRules.crossesMidnight(start: start, end: end, in: entry.zone) else {
-            return nil
-        }
-        return Self.midnightNotice
-    }
-
     /// Done: checks the rules and saves; `true` when the sheet may close.
     func save() async -> Bool {
         guard let entry else {
@@ -100,7 +91,7 @@ final class EntryEditSheetModel {
             return false
         }
         let draft = EntryDraft(projectID: projectID, task: task, start: start, end: isRunning ? nil : end)
-        if overlap == nil, let other = await (try? store.overlaps(for: draft, outsideChainOf: entry.id))?.first {
+        if overlap == nil, let other = await (try? store.overlaps(for: draft, excluding: entry.id))?.first {
             overlap = await OverlapNotice.text(for: other, in: store)
             return false
         }
@@ -140,7 +131,7 @@ final class EntryEditSheetModel {
             let newTask = task.trimmed != entry.task ? task : nil
             let newProject = projectID != entry.projectID ? Optional(projectID) : nil
             if newTask != nil || newProject != nil {
-                _ = try await store.updateChain(of: entry.id, task: newTask, projectID: newProject)
+                _ = try await store.update(entry.id, EntryChange(projectID: newProject, task: newTask))
             }
             // Only the times the sheet changed: an end stored meanwhile on
             // another device stays when only the start changes.

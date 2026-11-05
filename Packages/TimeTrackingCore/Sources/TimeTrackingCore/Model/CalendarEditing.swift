@@ -72,6 +72,17 @@ public struct CalendarEditing: Sendable {
         return DateInterval(start: start, duration: interval.duration)
     }
 
+    /// A body drag of an entry crossing the day change, which no column
+    /// holds: the start snapped, the duration kept, and only the now-line
+    /// limits it; `nil` on a drop past it.
+    public func moveAcrossDays(_ interval: DateInterval, by offset: TimeInterval) -> DateInterval? {
+        let start = snapped(interval.start + offset)
+        guard start < now else {
+            return nil
+        }
+        return DateInterval(start: min(start, now - interval.duration), duration: interval.duration)
+    }
+
     /// The running entry's start dragged to `date`: snapped, at most 1
     /// minute before now.
     public func moveRunningStart(to date: Date) -> Date {
@@ -89,11 +100,6 @@ public struct CalendarEditing: Sendable {
     public func resizeEnd(_ interval: DateInterval, to date: Date) -> DateInterval {
         let end = max(interval.start + Self.minimumLength, min(upperLimit, snapped(date)))
         return DateInterval(start: interval.start, end: max(end, interval.start))
-    }
-
-    /// ⌘↑ / ⌘↓: one snap step, clamped like a move.
-    public func nudge(_ interval: DateInterval, steps: Int) -> DateInterval? {
-        move(interval, by: Double(steps * snap.minutes * 60))
     }
 
     /// ⌥⌘↑ / ⌥⌘↓: the end by one snap step.

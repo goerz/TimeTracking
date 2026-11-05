@@ -57,7 +57,7 @@ extension StoreTransaction {
     }
 
     /// The running part computed from the store: the running entry with its
-    /// project, client, area color, and chain start.
+    /// project, client, area color, and start.
     func runningSnapshot() throws -> (running: LiveState.Running?, projectMissing: Bool) {
         guard let entry = try runningEntries().last else {
             return (nil, false)
@@ -65,14 +65,14 @@ extension StoreTransaction {
         let project = try entry.projectID.flatMap { try self.project($0, includeDeleted: true) }
         let area = try project.flatMap { try self.area($0.areaID, includeDeleted: true) }
         let client = try area.flatMap { try self.client($0.clientID, includeDeleted: true) }
-        let running = try LiveState.Running(
+        let running = LiveState.Running(
             entryID: entry.id,
             projectID: entry.projectID,
             task: entry.task,
             projectName: project?.name,
             clientName: client?.name,
             areaColor: area?.color,
-            chainStart: chainStart(root: entry.rootID) ?? entry.start
+            start: entry.start
         )
         return (running, entry.projectID != nil && project == nil)
     }

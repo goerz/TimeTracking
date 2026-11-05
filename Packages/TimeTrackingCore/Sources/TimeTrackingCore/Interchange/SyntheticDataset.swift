@@ -6,8 +6,8 @@ public import Foundation
 /// A deterministic generator of clients, areas, projects, and entries.
 ///
 /// Workdays have 6 to 14 entries of 3 minutes to 3 hours (log-normal), 10
-/// percent of them evening work, 2 percent running past midnight (stored
-/// split), 3 percent tombstones (in `write(to:)`), 20 to 60 task phrases per
+/// percent of them evening work, 2 percent running past midnight, 3 percent
+/// tombstones (in `write(to:)`), 20 to 60 task phrases per
 /// project, 15 percent archived projects, default-rule colors, and an
 /// optional running entry. The same parameters always give the same data.
 public struct SyntheticDataset: Sendable {
@@ -116,7 +116,7 @@ public struct SyntheticDataset: Sendable {
 
     static let namespace = UUID(uuid: (0x6B, 0x8E, 0x2A, 0x51, 0x0C, 0x3D, 0x4F, 0x7A, 0x9B, 0x10, 0x5E, 0x22, 0x71, 0x4C, 0x88, 0x03))
 
-    /// The export-format document (spec §5.1), entries split at midnight,
+    /// The export-format document (spec §5.1),
     /// with a fixed `storeID` and `generatedAt`.
     public func exportDocument() async throws -> Data {
         let store = try await populatedStore(withTombstones: false)

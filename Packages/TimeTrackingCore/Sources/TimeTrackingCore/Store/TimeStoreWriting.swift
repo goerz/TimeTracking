@@ -11,11 +11,10 @@ public protocol TimeStoreWriting: Sendable {
     func stop(at: Date) async throws -> TimeEntry?
     /// Starts a new entry with the project and task of `id`.
     func `continue`(_ id: EntryID, at: Date) async throws -> TimeEntry
-    /// Creates an entry; returns its midnight-split pieces, the given id first.
-    func create(_ draft: EntryDraft) async throws -> [TimeEntry]
-    /// Changes project, task, start, or end; returns the pieces, the given id first.
-    func update(_ id: EntryID, _ change: EntryChange) async throws -> [TimeEntry]
-    func move(_ id: EntryID, by offset: TimeInterval) async throws -> [TimeEntry]
+    func create(_ draft: EntryDraft) async throws -> TimeEntry
+    /// Changes project, task, start, or end.
+    func update(_ id: EntryID, _ change: EntryChange) async throws -> TimeEntry
+    func move(_ id: EntryID, by offset: TimeInterval) async throws -> TimeEntry
     /// A user split at `at`; the second part gets a random id.
     func split(_ id: EntryID, at: Date) async throws -> (TimeEntry, TimeEntry)
     func delete(_ ids: [EntryID]) async throws

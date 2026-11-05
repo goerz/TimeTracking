@@ -18,7 +18,7 @@ struct PomodoroNotificationTests {
             task: "Earlier",
             start: test.date("2024-03-14T08:00"),
             end: test.date("2024-03-14T08:30")
-        ))[0]
+        ))
         await test.model.timer.start()
         test.model.pomodoro.perform(.start, isRunning: true)
         let focusEnd = test.clock.now + 25 * 60
@@ -81,7 +81,7 @@ struct PomodoroNotificationTests {
         }
     }
 
-    @Test("IOS-26 longRunning fires at the chain start plus N hours, also for a Mac entry; Keep Running reschedules; Stop stops")
+    @Test("IOS-26 longRunning fires at the entry's start plus N hours, also for a Mac entry; Keep Running reschedules; Stop stops")
     func longRunning() async throws {
         let server = InMemorySyncServer()
         let macClock = try ManualClock(TestPhone.date("2024-03-14T09:00"))

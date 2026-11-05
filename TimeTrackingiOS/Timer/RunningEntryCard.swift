@@ -130,7 +130,7 @@ struct RunningEntryCard: View {
         }
     }
 
-    /// The chain's elapsed time; a Pomodoro shows on its button instead.
+    /// The elapsed time; a Pomodoro shows on its button instead.
     /// While running, a tap edits the running entry, as the Mac's timer label.
     /// Only the text ticks, not the button around it.
     private var timeLabel: some View {

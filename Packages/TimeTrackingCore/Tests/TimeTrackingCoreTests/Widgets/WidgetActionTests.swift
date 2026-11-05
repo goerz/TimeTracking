@@ -99,21 +99,21 @@ struct WidgetActionTests {
         #expect(try await test.store.runningEntry()?.task == "Other")
     }
 
-    @Test("IOS-45 a Stop for one entry stops it or its midnight continuation, and never another entry started meanwhile")
-    func stopOnlyTheShownChain() async throws {
+    @Test("IOS-45 a Stop for one entry stops it, also across midnight, and never another entry started meanwhile")
+    func stopOnlyTheShownEntry() async throws {
         let test = try await TestStore()
         let service = AutomationService(store: test.store, timeZone: test.zone)
-        // Started before midnight: the running piece is a continuation with another id.
+        // Started before midnight and still the same entry.
         let overnight = try await test.store.start(projectID: nil, task: "Overnight", at: test.date("2024-03-13T23:00"))
-        #expect(try await test.store.runningEntry()?.id != overnight.id)
-        #expect(try await service.stop(chainOf: overnight.id) != nil)
+        #expect(try await test.store.runningEntry()?.id == overnight.id)
+        #expect(try await service.stop(entry: overnight.id) != nil)
         #expect(try await test.store.runningEntry() == nil)
         // Another entry started since the button was drawn keeps running.
         let shown = try await test.store.start(projectID: nil, task: "Shown", at: test.date("2024-03-14T09:00"))
         _ = try await test.store.start(projectID: nil, task: "Started elsewhere", at: test.date("2024-03-14T09:30"))
-        #expect(try await service.stop(chainOf: shown.id) == nil)
+        #expect(try await service.stop(entry: shown.id) == nil)
         #expect(try await test.store.runningEntry()?.task == "Started elsewhere")
-        let stopped = try await test.store.transaction { try $0.stop(chainOf: shown.id, at: test.clock.now) }
+        let stopped = try await test.store.transaction { try $0.stop(entry: shown.id, at: test.clock.now) }
         #expect(stopped == nil)
     }
 

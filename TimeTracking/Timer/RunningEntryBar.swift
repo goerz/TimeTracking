@@ -78,7 +78,7 @@ struct RunningEntryBar: View {
         )
     }
 
-    /// The chain's elapsed time; a click edits the running entry. Only the
+    /// The elapsed time; a click edits the running entry. Only the
     /// label's text ticks: a button rebuilt each second reset focus and made
     /// SwiftUI rebuild the main menu, even while a menu was open
     /// (spec_design.md §7.1).

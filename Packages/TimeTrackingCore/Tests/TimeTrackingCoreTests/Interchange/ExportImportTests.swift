@@ -21,7 +21,7 @@ struct ExportImportTests {
             task: "gone",
             start: test.date("2024-03-14T07:00"),
             end: test.date("2024-03-14T07:10")
-        ))[0]
+        ))
         try await test.store.delete([gone.id])
         _ = try await test.store.start(projectID: nil, task: "Running", at: test.date("2024-03-14T09:40"))
         try await test.store.set(.pomodoroFocusMinutes, 30)
@@ -53,7 +53,7 @@ struct ExportImportTests {
         #expect(document["format"] as? Int == 1)
         let entries = try #require(document["entries"] as? [[String: Any]])
         #expect(entries.count == 2)
-        #expect(Set(entries[0].keys) == ["id", "projectID", "task", "start", "end", "timeZone", "deviceID", "splitRootID"])
+        #expect(Set(entries[0].keys) == ["id", "projectID", "task", "start", "end", "timeZone", "deviceID"])
         #expect(entries[0]["start"] as? String == "2024-03-14T07:00:00Z")
         #expect(entries[1]["end"] is NSNull)
         let projects = try #require(document["projects"] as? [[String: Any]])
@@ -168,7 +168,7 @@ struct ExportImportTests {
         #expect(areas.first?.name == "Imported")
     }
 
-    @Test("DATA-41 imports split at midnight, stop at the local running start, default zone and device, and dry-run")
+    @Test("DATA-41 imports keep entries whole, stop at the local running start, default zone and device, and dry-run")
     func importRules() async throws {
         let test = try await TestStore()
         let local = try await test.store.start(projectID: nil, task: "local", at: test.date("2024-03-14T09:00"))
@@ -192,11 +192,10 @@ struct ExportImportTests {
         #expect(try await test.store.entry(late) == nil)
         let report = try await test.store.importDocument(data, options: ImportOptions(defaultTimeZone: "Europe/Berlin"))
         #expect(dry == report)
-        #expect(report.splitPieces == 1)
         let imported = try #require(try await test.store.entry(late))
         #expect(imported.timeZone == "Europe/Berlin")
         #expect(imported.deviceID == test.deviceID)
-        #expect(try imported.end == (test.date("2024-03-13T00:00")))
+        #expect(try imported.end == (test.date("2024-03-13T02:00")))
         #expect(try await test.store.entry(running)?.end == local.start)
         #expect(try await test.store.runningEntry()?.id == local.id)
     }

@@ -8,11 +8,11 @@ extension PhoneModel {
     // MARK: Adjustments
 
     func showAdjustments(_ adjustments: [EntryAdjustment]) async {
-        guard let adjustment = adjustments.last(where: { $0.reason != .splitAtMidnight }) else {
+        guard let adjustment = adjustments.last else {
             return
         }
         let devices = await (try? store.devices()) ?? []
-        for item in adjustments where item.reason != .splitAtMidnight {
+        for item in adjustments {
             let device = devices.first { $0.id == item.causingDeviceID }?.name
             explanations[item.entryID] = Self.explanation(item, deviceName: device)
             badged.insert(item.entryID)
@@ -46,8 +46,6 @@ extension PhoneModel {
             return "Deleted\(device)"
         case .restoredRemotely:
             return "Restored\(device)"
-        case .splitAtMidnight:
-            return "Split at midnight"
         }
     }
 

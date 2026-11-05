@@ -76,7 +76,7 @@ struct ReportTests {
             start: test.date("2024-03-14T09:15"),
             end: test.date("2024-03-14T10:00")
         ))
-        let listings = try await test.store.listings(for: entries)
+        let listings = try await test.store.listings(for: [entries])
         let csv = ReportCSVWriter.entriesCSV(listings, now: test.clock.now, timeZone: test.zone)
         let lines = csv.split(separator: "\n")
         #expect(lines.first == "start,stop,seconds,client,area,project,task,running")

@@ -4,7 +4,7 @@ One iOS target runs on iPhone and iPad. The iPhone gets the Timer in pocket form
 
 This spec states only what differs on a touch device. The Timer is that of [spec_timer.md](spec_timer.md), the picker and project dialog those of [spec_projects.md](spec_projects.md), and the intents, entities, and URL scheme those of [spec_automation.md](spec_automation.md). iOS has no Apple Watch app, Live Activities, idle detection, or "remind me to track time" reminders.
 
-Days shown here (the Timer list, widget totals, Today's Total, the iPad's sections) run from Midnight to Midnight, the synced setting of [spec_data_and_sync.md](spec_data_and_sync.md) §8; entries stay stored split at real midnight.
+Days shown here (the Timer list, widget totals, Today's Total, the iPad's sections) run from Midnight to Midnight, the synced setting of [spec_data_and_sync.md](spec_data_and_sync.md) §8; entries are stored whole and cut at that hour when shown.
 
 ## 1. Processes
 
@@ -30,7 +30,7 @@ Under the large title "Timer" and a settings button, one list holds the running-
 
 The Mac Timer's running-entry bar ([spec_timer.md](spec_timer.md) §2) in three rows: the task field; the project chip; and the Pomodoro button (2.8), the elapsed time, Discard while running, and Start or Stop.
 
-While nothing runs the time reads `0:00:00`, and Start (or Return in the task field) starts an entry with the field's task and the chip's project. While an entry runs the time counts from the chain's start ([spec_data_and_sync.md](spec_data_and_sync.md) §1.5), also during a Pomodoro, and a tap on it opens the edit sheet (2.7). Stop blanks the field and chip. Discard asks as on the Mac and is undoable until the next change.
+While nothing runs the time reads `0:00:00`, and Start (or Return in the task field) starts an entry with the field's task and the chip's project. While an entry runs the time counts from its start ([spec_data_and_sync.md](spec_data_and_sync.md) §1.5), also during a Pomodoro, and a tap on it opens the edit sheet (2.7). Stop blanks the field and chip. Discard asks as on the Mac and is undoable until the next change.
 
 Starting while another entry runs, from any surface, stops it at the new start. Task field behavior is that of [spec_timer.md](spec_timer.md) §2.2; up to four suggestions appear in the card under the field.
 
@@ -54,7 +54,7 @@ Grouping, day totals, paging, and row content are those of [spec_timer.md](spec_
 
 A sheet with the task field (the card's autocompletion, no `@` trigger; a suggestion fills the task and project, which Done stores), the project chip, Start and End pickers, the duration, Continue and Delete, and "Created on <device name>". It always edits the stored entry, also from a row that shows part of one. For the running entry End reads "Running", Continue is absent, and only Start, task, and project change. Opening it first stores a task still being typed on the card; Done writes only the fields the sheet changed, so a task stored meanwhile is kept.
 
-The rules and messages of [spec_timer.md](spec_timer.md) §4.2 and §4.3 are checked on Done. An interval crossing real midnight shows "Will be saved as 2 entries, split at midnight", whatever the Midnight setting.
+The rules and messages of [spec_timer.md](spec_timer.md) §4.2 are checked on Done.
 
 ### 2.8 Pomodoro
 
@@ -91,7 +91,7 @@ On screen an app set is an "app group" ([spec_design.md](spec_design.md) §12), 
 
 ### 3.1 Common rules
 
-Each timeline is one entry with the policy `.after(date)`: the next Pomodoro phase end when a phase counts down on this device, otherwise the start of the next shown day. Elapsed times are live timers from the chain start, which `LiveState` carries. "Today" is the shown day: its total sums the day's stopped parts and counts the running entry from the later of its own start and the start of the day.
+Each timeline is one entry with the policy `.after(date)`: the next Pomodoro phase end when a phase counts down on this device, otherwise the start of the next shown day. Elapsed times are live timers from the entry's start, which `LiveState` carries. "Today" is the shown day: its total sums the day's stopped parts and counts the running entry from the later of its own start and the start of the day.
 
 The look is that of [spec_design.md](spec_design.md) §6 and §7 at widget scale, with start and stop circles of 44 pt in Now, 32 pt in Recent rows, and 24 pt as the Pinned stop mark. Outside full-color rendering the circles become one shape with the glyph cut out. Task text is `privacySensitive()`. A widget without content shows "No Pinned Projects" or "No Recent Entries".
 
@@ -170,9 +170,9 @@ The app handles the URLs of [spec_automation.md](spec_automation.md) §6. On the
 
 1. Wake. The silent-push handler passes the notification to the engine, waits at most 25 s, runs the fan-out, and calls the completion handler exactly once. The app also syncs at every foreground and in a background refresh rescheduled 15 minutes after each run.
 2. Offline. Every change commits locally first, so every surface works offline. While the outbox holds changes, a sync pill under the card shows waiting for the network, sending lasting over 10 s, or an error.
-3. Adjustments. When the library reports an adjustment to an entry this device created, the Timer shows a banner "Another device changed an entry" with "Show", which opens the edit sheet with a one-line explanation ("Stopped at 10:14 because an entry started on MacBook"). The row keeps a badge until its sheet has opened once. A midnight split shows no banner.
+3. Adjustments. When the library reports an adjustment to an entry this device created, the Timer shows a banner "Another device changed an entry" with "Show", which opens the edit sheet with a one-line explanation ("Stopped at 10:14 because an entry started on MacBook"). The row keeps a badge until its sheet has opened once.
 4. Fan-out. After every applied sync and local write, the app reloads widgets and controls, ends the Pomodoro when nothing runs any more, reschedules the long-running reminder, uploads the push token, updates the App Shortcut parameters when projects changed, and flushes the collection file when due (9.6).
-5. Midnight. The library's split runs whenever the app's process runs ([spec_data_and_sync.md](spec_data_and_sync.md) §1.5). While an entry runs, the app also wakes at its next real midnight and at the start of the next shown day and runs the fan-out, so the running part moves to the new day. A change of the Midnight setting does the same and reloads the iPad's sections.
+5. Midnight. While the app runs it looks every minute and runs the fan-out when the shown day has changed ([spec_data_and_sync.md](spec_data_and_sync.md) §8), so the running part moves to the new day. A change of the Midnight setting does the same and reloads the iPad's sections.
 6. Apple Health. The iPhone, never the iPad, imports sleep and workouts while `calendar.showSleep` or `calendar.showWorkouts` are on ([spec_data_and_sync.md](spec_data_and_sync.md) §1.9): at every wake after the fetch and when either setting changes in the foreground, then it sends. Only in the foreground does it first ask HealthKit for read access, Workouts including the distance types, so a refresh task never shows the sheet. A failed read (protected data on a locked device) leaves that kind's periods and import time as they were. An import that read at least one kind records the synced import status, at most hourly unless the device or kinds change, which the Calendar settings report.
 
 ## 8. Notifications
@@ -183,7 +183,7 @@ Local notifications only. Authorization is requested at the first start of an en
 |---|---|---|---|---|
 | `pomodoroFocusDone` | Scheduled at focus start for its end | The Mac's | Start Break, Skip Break | `timeSensitive` |
 | `pomodoroBreakDone` | Scheduled at break start for its end | The Mac's | Start Focus, End Pomodoro | `timeSensitive` |
-| `longRunning` | N hours after the chain start, whichever device started it | "Still tracking Plan the widget layout?" / "Running for 4 hours." | Keep Running, Stop | `active` |
+| `longRunning` | N hours after the entry's start, whichever device started it | "Still tracking Plan the widget layout?" / "Running for 4 hours." | Keep Running, Stop | `active` |
 | `syncAdjusted` | Section 7, item 3, while the app is in the background | "An entry was changed" / the explanation | None; a tap opens the entry | `passive` |
 
 Actions run in the background. Keep Running schedules the next `longRunning` N hours from now; Stop stops that entry only, not one started since. The reminder follows every change of the running entry and is removed when nothing runs.
@@ -289,8 +289,8 @@ The iPad reads the block log and `LiveState`; it never writes the block log or r
 - IOS-4. Create Project from the picker with a new client and area creates all three and assigns the project to the running entry (2.4).
 - IOS-5. Continue on a row with an archived project shows the restore alert; Cancel starts nothing.
 - IOS-6. A full leading swipe on a row continues it.
-- IOS-7. The card's elapsed time and the Now widget count from the chain start: with Midnight at 00:00, at 00:30 an entry started at 23:00 shows 1:30:00 before and after the split, and the Today total includes 0:30:00 of it.
-- IOS-8. Saving 23:00 to 01:00 in the edit sheet produces two entries split at midnight; an end later than now or before the start is refused; an overlap shows the notice with Keep and Revert (2.7).
+- IOS-7. The card's elapsed time and the Now widget count from the entry's start: with Midnight at 00:00, at 00:30 an entry started at 23:00 shows 1:30:00, and the Today total includes 0:30:00 of it.
+- IOS-8. Saving 23:00 to 01:00 in the edit sheet stores one entry; an end later than now or before the start is refused; an overlap shows the notice with Keep and Revert (2.7).
 - IOS-9. Starting a Pomodoro schedules `pomodoroFocusDone` for `focusEnd`; continuing another entry leaves the phase and `focusEnd` unchanged; stopping so that nothing runs, on any device, sets `off` and removes pending notifications.
 - IOS-10. After termination and relaunch the Pomodoro state and notification are intact; a relaunch after `focusEnd` shows `focusOver` with "Start Break"; the replay never changes an entry.
 - IOS-11. The Now widget's Stop stops the entry without opening the app, and the widget shows the idle state after its reload.
@@ -307,8 +307,8 @@ The iPad reads the block log and `LiveState`; it never writes the block log or r
 - IOS-22. The app calls `updateAppShortcutParameters()` after creating, renaming, archiving, or restoring a project and after a sync that changed projects.
 - IOS-23. The silent-push handler finishes within 25 s, runs the fan-out, and calls the completion handler exactly once.
 - IOS-24. An offline change is visible at once, shows the sync pill, and syncs at the next connection, after which the pill disappears.
-- IOS-25. When the invariant pass stops an entry this device started, the banner appears and the row is badged until its sheet opens; a midnight split shows no banner.
-- IOS-26. The `longRunning` notification is scheduled at the chain start plus the configured hours, also for an entry started on the Mac; Keep Running reschedules N hours later; Stop stops the entry.
+- IOS-25. When the invariant pass stops an entry this device started, the banner appears and the row is badged until its sheet opens.
+- IOS-26. The `longRunning` notification is scheduled at the entry's start plus the configured hours, also for an entry started on the Mac; Keep Running reschedules N hours later; Stop stops the entry.
 - IOS-27. Concurrent appends from two processes never interleave lines; `lastFlushedSeq` advances only after CloudKit acknowledges the batch; two overlapping flushes keep an event appended while both were uploading.
 - IOS-28. A ladder callback earlier than its ledger time is logged with `"early": true`, not counted, and re-registered.
 - IOS-29. Turning a configured Focus on and off appends `on` and `off` lines with its label while the app is not running.
@@ -327,10 +327,10 @@ The iPad reads the block log and `LiveState`; it never writes the block log or r
 - IOS-42. Tapping the card's elapsed time, tapping the running row, and the running row's Edit open the running entry's sheet with its task and End "Running"; the running row's context menu also has Copy Task and Discard. Moving Start 15 minutes earlier and Done moves the card's elapsed time by 15 minutes and keeps the task on the card and in the row; a task typed on the card just before is the sheet's task and is kept; a task stored after the sheet loaded is kept when Done changes only Start and the project.
 - IOS-43. In the iPad's Calendar a swipe up scrolls the hours, a sideways swipe on the day headers or over the hours scrolls the days (and not the hours), and a pinch zooms; a long press then drag draws instead (IOS-35).
 - IOS-44. In every section tab of the iPad, in portrait and landscape, the sidebar opens and closes with its button and the tabs then still switch by tap.
-- IOS-45. A widget's Stop and the long-running notification's Stop stop only the entry they showed or its midnight continuation, checked and stopped in one write; an entry started since keeps running.
+- IOS-45. A widget's Stop and the long-running notification's Stop stop only the entry they showed, checked and stopped in one write; an entry started since keeps running.
 - IOS-46. A widget provider resolving while another provider's CloudKit fetch is still under way fetches too; a fetch counts for the 10-second reuse only once it returned.
 - IOS-47. The app's ladder configuration and the monitor extension's callbacks read and write a set's ledger while holding the App Group lock; the device ID is created under the same lock.
-- IOS-48. With Midnight at 04:00, a widget's today at 02:00 holds the stopped parts of the day and a live timer from the running entry's own start, a chain counted once, and its timeline ends at 04:00.
+- IOS-48. With Midnight at 04:00, a widget's today at 02:00 holds the stopped parts of the day and a live timer from the running entry's own start, and its timeline ends at 04:00.
 - IOS-49. The iPhone's Settings show Midnight.
 - IOS-50. With "Play a sound" off a phase's notification is silent; on, it has its bundled sound; `longRunning` and `syncAdjusted` use the default sound.
 - IOS-51. Typing in the edit sheet's task field lists up to four earlier tasks; `@` opens no picker; a tap on a suggestion sets the sheet's task and project, Done stores them, and Cancel leaves the entry unchanged.

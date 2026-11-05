@@ -30,7 +30,7 @@ extension TimerModel {
             return
         }
         do {
-            try await store.updateChain(of: running.id, task: taskText)
+            _ = try await store.update(running.id, EntryChange(task: taskText))
             await refresh()
         } catch {
             report(error)
@@ -63,7 +63,7 @@ extension TimerModel {
         taskText = suggestion.task
         if let running {
             do {
-                try await store.updateChain(of: running.id, task: suggestion.task, projectID: .some(suggestion.projectID))
+                _ = try await store.update(running.id, EntryChange(projectID: .some(suggestion.projectID), task: suggestion.task))
                 await refresh()
             } catch {
                 report(error)

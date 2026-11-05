@@ -23,7 +23,7 @@ struct ToolIntegrationTests {
         #expect(StatusItemPresenter.content(test.app.statusState, at: now).dial == nil)
         let result = try HelperTool.run(["start", "Hello", "--project", "Noise paper"], store: url, now: now)
         #expect(result.status == 0, "\(result.error)")
-        #expect(await eventually { test.app.timer.running?.task == "Hello" && test.app.timer.chainStart != nil })
+        #expect(await eventually { test.app.timer.running?.task == "Hello" })
         #expect(test.clock.now == now)
         let content = StatusItemPresenter.content(test.app.statusState, at: now)
         #expect(content.dial != nil)

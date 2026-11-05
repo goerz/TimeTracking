@@ -11,7 +11,6 @@ extension TimeStore {
             return try write { transaction in
                 var report = try transaction.importDocument(data, options: options)
                 try transaction.runInvariantPass()
-                report.splitPieces = transaction.splitPieceCount
                 report.adjustments = transaction.adjustments
                 if options.dryRun {
                     throw DryRun(report: report)

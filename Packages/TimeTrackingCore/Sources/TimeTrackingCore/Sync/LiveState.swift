@@ -27,8 +27,8 @@ public struct LiveState: Hashable, Sendable {
         public var projectName: String?
         public var clientName: String?
         public var areaColor: String?
-        /// The chain's earliest start, so the elapsed time survives the midnight split.
-        public var chainStart: Date
+        /// The entry's start, which elapsed times count from.
+        public var start: Date
 
         public init(
             entryID: EntryID,
@@ -37,7 +37,7 @@ public struct LiveState: Hashable, Sendable {
             projectName: String?,
             clientName: String?,
             areaColor: String?,
-            chainStart: Date
+            start: Date
         ) {
             self.entryID = entryID
             self.projectID = projectID
@@ -45,7 +45,7 @@ public struct LiveState: Hashable, Sendable {
             self.projectName = projectName
             self.clientName = clientName
             self.areaColor = areaColor
-            self.chainStart = chainStart
+            self.start = start
         }
     }
 

@@ -25,7 +25,8 @@ TimeTracking is a personal time tracker for the Mac, iPhone, and iPad. It record
 | Area | An ongoing part of life or line of work, belonging to exactly one client, with a color (any RGB value) and a manual order within its client. Every client has a general area named like the client. |
 | Project | A unit of work inside exactly one area; active or archived. Colors come from the area, and entries store no color, area, or client, so moving a project recolors and regroups its history. |
 | Task | The free-text description of a time entry ("Clarify noise model"), autocompleted from earlier entries. |
-| Time entry | A tracked interval: start, end (or running), project (optional), task. At most one entry runs at a time, across all devices. Stored entries never cross real midnight; an interval spanning it is stored as one entry per date. |
+| Time entry | A tracked interval: start, end (or running), project (optional), task. At most one entry runs at a time, across all devices. An entry is stored whole and can span any number of dates, a forgotten timer included. |
+| Piece | An entry's part on one shown day. Display and reports cut entries into pieces; nothing stores them. |
 | Midnight | The synced setting for the hour the app's days start, 00:00 by default (see "Days" under Cross-cutting rules). Written lowercase, "midnight" is the real one on the clock. |
 | Pomodoro | A count-down display of focus and break phases over the running entry, kept per device. It never starts, stops, or splits entries. |
 | Activity block | A contiguous stretch of attention, recorded by the tracker with items at three levels: context, subject, detail. Not a time entry; a source for one. The tracker never assigns projects, so its logs stay a neutral record. |
@@ -128,7 +129,7 @@ The `timetracking` command-line tool, App Intents (Shortcuts, Siri, Spotlight), 
 
 ## Cross-cutting rules
 
-- Days: stored data and the tracker use real days, so entries and activity blocks are split at local midnight. What the app shows and reports (Timer list, Calendar, Reports, Activity, Projects, widgets, the tool's day ranges) follows Midnight ([spec_data_and_sync.md](spec_data_and_sync.md) §8). Display and reports cut entries at that hour the way storage cuts them at midnight, so daily sums stay plain sums and totals agree, and changing the setting rewrites nothing. Weeks run Monday to Sunday.
+- Days: entries are stored whole, and the tracker uses real days, so activity blocks close at local midnight. What the app shows and reports (Timer list, Calendar, Reports, Activity, Projects, widgets, the tool's day ranges) follows Midnight ([spec_data_and_sync.md](spec_data_and_sync.md) §8). Display and reports cut entries into pieces at that hour, so daily sums stay plain sums and totals agree, and changing the setting rewrites nothing. Weeks run Monday to Sunday.
 - Settings are synced (Midnight, Pomodoro durations, pinned projects, context colors, the Calendar's settings) or per device (idle threshold, shortcuts, menu bar display, window frames).
 - Platforms: macOS 27 and iOS and iPadOS 27 only, with no availability checks. The apps are built from source with the Makefile and development-signed (APNs sandbox, CloudKit development environment); there is no App Store or TestFlight distribution.
 - Every testable behavior has a test carrying its identifier `<prefix>-<n>` (ARCH, DATA, TM, MB, PP, PC, PR, PA, TRK, IOS, AUTO); `make check-behaviors` enforces the mapping.

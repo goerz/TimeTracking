@@ -35,22 +35,22 @@ extension PhoneModel {
 
     // MARK: Long-running reminder
 
-    /// Schedules `longRunning` at the running chain's start plus N hours,
+    /// Schedules `longRunning` at the running entry's start plus N hours,
     /// whichever device started it; removes it when nothing runs.
     func rescheduleLongRunning() {
-        guard settings.longRunningEnabled, let running = timer.running, let chainStart = timer.chainStart else {
+        guard settings.longRunningEnabled, let running = timer.running else {
             if lastLongRunningKey != nil || timer.running == nil {
                 notifications.remove([.longRunning])
             }
             lastLongRunningKey = nil
             return
         }
-        let key = "\(running.rootID)-\(settings.longRunningHours)-\(running.task)"
+        let key = "\(running.id)-\(settings.longRunningHours)-\(running.task)"
         guard key != lastLongRunningKey else {
             return
         }
         lastLongRunningKey = key
-        scheduleLongRunning(at: chainStart + TimeInterval(settings.longRunningHours * 3600), elapsedHours: settings.longRunningHours)
+        scheduleLongRunning(at: running.start + TimeInterval(settings.longRunningHours * 3600), elapsedHours: settings.longRunningHours)
     }
 
     func scheduleLongRunning(at date: Date, elapsedHours: Int) {
@@ -62,7 +62,7 @@ extension PhoneModel {
             body: "Running for \(elapsedHours) hour\(elapsedHours == 1 ? "" : "s").",
             date: max(date, clock.now + 1),
             // Its Stop acts on this entry only (IOS-45).
-            entryID: timer.running?.rootID.rawValue
+            entryID: timer.running?.id.rawValue
         ))
     }
 
@@ -76,14 +76,14 @@ extension PhoneModel {
         case .startFocus: pomodoro.perform(.startFocus, isRunning: timer.isRunning)
         case .endPomodoro: pomodoro.perform(.cancel, isRunning: timer.isRunning)
         case .keep:
-            let hours = timer.chainStart.map { Int(clock.now.timeIntervalSince($0) / 3600) } ?? settings.longRunningHours
+            let hours = timer.running.map { Int(clock.now.timeIntervalSince($0.start) / 3600) } ?? settings.longRunningHours
             scheduleLongRunning(
                 at: clock.now + TimeInterval(settings.longRunningHours * 3600),
                 elapsedHours: hours + settings.longRunningHours
             )
         case .stop:
-            if let root = entryID.flatMap({ EntryID($0) }) {
-                await timer.stop(chainOf: root)
+            if let id = entryID.flatMap({ EntryID($0) }) {
+                await timer.stop(entry: id)
             } else {
                 await timer.stop()
             }

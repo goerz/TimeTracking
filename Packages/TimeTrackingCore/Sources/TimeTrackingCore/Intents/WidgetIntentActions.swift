@@ -83,7 +83,7 @@ public enum WidgetIntentActions {
             }
             // Stopped elsewhere meanwhile, or another entry started there:
             // nothing to do (checked and stopped in one transaction).
-            _ = try await service.stop(chainOf: expected)
+            _ = try await service.stop(entry: expected)
             return
         }
         guard try await service.status().running != nil else {

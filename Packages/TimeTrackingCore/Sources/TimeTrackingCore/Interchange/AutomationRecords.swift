@@ -42,7 +42,7 @@ public enum AutomationRecords {
         ])
     }
 
-    /// `{"entries": [...]}` for the pieces a write produced.
+    /// `{"entries": [...]}` for the entries a write produced.
     public static func entryList(_ listings: [EntryListing], now: Date, timeZone: TimeZone) -> JSONValue {
         .object(["entries": .array(listings.map { entry($0, now: now, timeZone: timeZone) })])
     }

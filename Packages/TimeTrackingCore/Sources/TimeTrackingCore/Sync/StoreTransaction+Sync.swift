@@ -64,6 +64,9 @@ extension StoreTransaction {
             try applyRemoteLiveState(remote)
             return
         }
+        // A device on schema version 3 or earlier still sends this field.
+        var remote = remote
+        remote["splitRootID"] = nil
         let local = try syncRecord(remote.ref)
         if remote.ref.type == .setting, remote.ref.name == SettingMerge.contextColorsKey, let local {
             try mergeContextColors(local: local, remote: remote)

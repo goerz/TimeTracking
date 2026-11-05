@@ -196,7 +196,7 @@ extension ToolFixture {
     static func entry(_ number: Int, project: String?, _ task: String, _ start: String, _ end: String?) -> [String: Any] {
         [
             "id": entryID(number), "projectID": project ?? NSNull(), "task": task,
-            "start": utc(start), "end": end.map(utc) ?? NSNull(), "timeZone": zone, "deviceID": device, "splitRootID": NSNull(),
+            "start": utc(start), "end": end.map(utc) ?? NSNull(), "timeZone": zone, "deviceID": device,
         ]
     }
 

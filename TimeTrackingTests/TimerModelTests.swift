@@ -153,13 +153,12 @@ struct TimerModelTests {
         #expect(try await test.store.project(projects[0].id)?.isArchived == false)
     }
 
-    @Test("TM-13 TM-14 the label counts the chain from 23:10 and reads 0:55:00 at 00:05; today's total rises per second")
-    func chainLabelAndTotal() async throws {
+    @Test("TM-13 TM-14 the label counts from 23:10 and reads 0:55:00 at 00:05; today's total rises per second")
+    func labelAndTotal() async throws {
         let test = try await TestApp(now: "2024-03-13T23:30")
         let timer = test.app.timer
         _ = try await test.store.start(projectID: nil, task: "Night", at: test.date("2024-03-13T23:10"))
         try test.clock.set(test.date("2024-03-14T00:05"))
-        try await test.store.checkInvariants()
         await test.app.afterChange()
         #expect(timer.timerText(at: test.clock.now) == "0:55:00")
         // The list shows the earlier piece under its own day.

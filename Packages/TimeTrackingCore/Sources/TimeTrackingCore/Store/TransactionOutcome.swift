@@ -12,7 +12,6 @@ struct TransactionOutcome: Sendable {
     var healthChanged: Bool
     var adjustments: [EntryAdjustment]
     var queuedCount: Int
-    var splitPieces: Int
 
     init(_ transaction: StoreTransaction) {
         self.changedEntryIDs = transaction.changedEntryIDs
@@ -22,7 +21,6 @@ struct TransactionOutcome: Sendable {
         self.healthChanged = transaction.healthChanged
         self.adjustments = transaction.adjustments
         self.queuedCount = transaction.queued.count
-        self.splitPieces = transaction.splitPieceCount
     }
 
     var hasChanges: Bool {

@@ -31,8 +31,8 @@ public struct WidgetSnapshot: Hashable, Sendable {
     public struct Running: Hashable, Sendable {
         public var entryID: EntryID
         public var row: Row
-        /// The chain's earliest start: elapsed times count from here.
-        public var chainStart: Date
+        /// The entry's start: elapsed times count from here.
+        public var start: Date
     }
 
     /// A Pinned widget button.
@@ -97,7 +97,7 @@ public struct WidgetSnapshot: Hashable, Sendable {
         return Self(
             date: now,
             needsSetup: false,
-            running: Running(entryID: EntryID(), row: row, chainStart: now - 2547),
+            running: Running(entryID: EntryID(), row: row, start: now - 2547),
             latest: row,
             latestEntryID: nil,
             todayStoppedSeconds: 5898,

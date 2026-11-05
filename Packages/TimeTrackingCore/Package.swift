@@ -46,7 +46,7 @@ let package = Package(
         ),
         .testTarget(
             name: "TimeTrackingCoreTests",
-            dependencies: ["TimeTrackingCore"],
+            dependencies: ["TimeTrackingCore", .product(name: "GRDB", package: "GRDB.swift")],
             swiftSettings: swiftSettings
         ),
     ],

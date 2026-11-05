@@ -154,7 +154,7 @@ struct CalendarGeometryTests {
         #expect(shrunk.duration == 60)
         let fromTop = try editing.resizeStart(entry, to: Self.time("2026-10-29T11:00"))
         #expect(fromTop.duration == 60)
-        #expect(try editing.nudge(entry, steps: 1)?.start == Self.time("2026-10-29T09:05"))
+        #expect(try editing.move(entry, by: 300)?.start == Self.time("2026-10-29T09:05"))
     }
 
     @Test("PC-9 a 12 minute overlap asks Trim / Overlap / Cancel; 1 minute or less trims silently; overlapping cards go side by side")

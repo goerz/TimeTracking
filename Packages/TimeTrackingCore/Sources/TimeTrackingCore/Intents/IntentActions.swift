@@ -39,10 +39,9 @@ public enum IntentActions {
             return Outcome(value: nil, dialog: "Nothing is running.")
         }
         let stopped = try await service.stop()
-        let seconds = try await service.store.automationChainSeconds(of: stopped.entry, now: service.now)
         return Outcome(
             value: TimeEntryEntity(stopped, now: service.now),
-            dialog: "Stopped \(IntentText.subject(stopped)) after \(IntentText.duration(seconds))."
+            dialog: "Stopped \(IntentText.subject(stopped)) after \(IntentText.duration(stopped.entry.seconds(at: service.now)))."
         )
     }
 
@@ -160,13 +159,5 @@ public enum IntentText {
     public static func spokenDay(_ day: TrackingDay, today: TrackingDay) -> String {
         let text = DayText.longWeekdayDate(day)
         return day.year == today.year ? text : "\(text), \(day.year)"
-    }
-}
-
-extension TimeStore {
-    /// The seconds of the chain `entry` ends.
-    func automationChainSeconds(of entry: TimeEntry, now: Date) throws(AutomationError) -> Int {
-        let start = try AutomationError.catching { try chainStart(of: entry.id) }
-        return max(0, Int((entry.end ?? now).timeIntervalSince(start).rounded(.down)))
     }
 }

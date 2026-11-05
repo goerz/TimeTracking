@@ -5,8 +5,6 @@ public import Foundation
 /// Entry queries for the Timer list, Calendar, pickers, and scripts.
 public protocol TimeStoreReading: Sendable {
     func runningEntry() async throws -> TimeEntry?
-    /// The earliest start of the live entries sharing the entry's root.
-    func chainStart(of id: EntryID) async throws -> Date
     func entry(_ id: EntryID) async throws -> TimeEntry?
     /// Entries intersecting `interval`, by start.
     func entries(in interval: DateInterval, includeDeleted: Bool) async throws -> [TimeEntry]

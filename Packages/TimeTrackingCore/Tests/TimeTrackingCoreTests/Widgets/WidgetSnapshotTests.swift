@@ -53,8 +53,8 @@ struct WidgetSnapshotTests {
         #expect(snapshot.pomodoro == .focus(end: end))
     }
 
-    @Test("IOS-7 the Now widget counts from the chain start; at 00:30 the Today total holds 0:30:00 of an entry started at 23:00")
-    func chainStartAndToday() async throws {
+    @Test("IOS-7 the Now widget counts from the entry's start; at 00:30 the Today total holds 0:30:00 of an entry started at 23:00")
+    func startAndToday() async throws {
         let test = try await TestStore(now: "2024-03-14T23:00")
         let made = try await test.structure(projects: ["Paper"])
         let started = try test.date("2024-03-14T23:00")
@@ -67,15 +67,14 @@ struct WidgetSnapshotTests {
         ))
         let builder = WidgetSnapshotBuilder(store: test.store, timeZone: test.zone)
         let before = try await builder.build(at: test.clock.now, live: test.store.liveState(), setupComplete: true)
-        #expect(before.running?.chainStart == started)
+        #expect(before.running?.start == started)
         #expect(before.todaySeconds(at: test.clock.now) == 3600)
 
         try test.clock.set(test.date("2024-03-15T00:30"))
-        try await test.store.checkInvariants()
         let after = try await builder.build(at: test.clock.now, live: test.store.liveState(), setupComplete: true)
         let running = try #require(after.running)
-        #expect(running.chainStart == started)
-        #expect(DurationText.clock(Int(test.clock.now.timeIntervalSince(running.chainStart))) == "1:30:00")
+        #expect(running.start == started)
+        #expect(DurationText.clock(Int(test.clock.now.timeIntervalSince(running.start))) == "1:30:00")
         #expect(after.todaySeconds(at: test.clock.now) == 1800)
         #expect(after.relevance == 100)
     }

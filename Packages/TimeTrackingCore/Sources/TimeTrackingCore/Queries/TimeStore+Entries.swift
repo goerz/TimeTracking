@@ -16,15 +16,6 @@ extension TimeStore: TimeStoreReading {
         }
     }
 
-    public func chainStart(of id: EntryID) throws -> Date {
-        try read { database in
-            guard let entry = try StoreQueries.entry(id, includeDeleted: true, in: database) else {
-                throw StoreError.unknownID
-            }
-            return try StoreQueries.chainStart(root: entry.rootID, in: database) ?? entry.start
-        }
-    }
-
     public func entry(_ id: EntryID) throws -> TimeEntry? {
         try read { try StoreQueries.entry(id, includeDeleted: false, in: $0) }
     }
@@ -114,13 +105,6 @@ extension TimeStore: TimeStoreReading {
         let end = draft.end ?? now
         return try entries(in: DateInterval(start: draft.start, end: max(end, draft.start)))
             .filter { $0.id != excluding && $0.start < end && ($0.end ?? now) > draft.start }
-    }
-
-    /// The entries `draft` overlaps, other than the pieces of the chain of
-    /// `id` (the entry being edited), by start (spec_timer.md §4.3).
-    public func overlaps(for draft: EntryDraft, outsideChainOf id: EntryID) throws -> [TimeEntry] {
-        let chain = try Set(chain(of: id).map(\.id))
-        return try overlaps(for: draft, excluding: id).filter { !chain.contains($0.id) }
     }
 
     public func overlappingEntries(in interval: DateInterval) throws -> [(TimeEntry, TimeEntry)] {

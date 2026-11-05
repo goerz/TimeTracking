@@ -62,12 +62,11 @@ final class AppModel {
     @ObservationIgnored var changeTask: Task<Void, Never>?
     /// The coalesced reload after entry and structure changes.
     @ObservationIgnored var reloadLoop: Task<Void, Never>?
-    /// Wakes at the running entry's next midnight to run the invariant pass.
-    @ObservationIgnored var midnightTask: Task<Void, Never>?
+    /// Looks for a new shown day.
+    @ObservationIgnored var dayTask: Task<Void, Never>?
     @ObservationIgnored var reloadRequested = false
-    /// The running chain the models last reacted to; a split at real
-    /// midnight gives the running entry a new id but keeps this.
-    @ObservationIgnored var lastRunningRootID: EntryID?
+    /// The running entry the models last reacted to.
+    @ObservationIgnored var lastRunningID: EntryID?
     /// Timer commands in flight on behalf of a source of §8.3: the global
     /// shortcut, the menu bar, or a notification.
     @ObservationIgnored private var sourceCommands = 0
@@ -133,8 +132,8 @@ final class AppModel {
     func stop() {
         changeTask?.cancel()
         changeTask = nil
-        midnightTask?.cancel()
-        midnightTask = nil
+        dayTask?.cancel()
+        dayTask = nil
     }
 
     /// A change from the store (this process, the tool, or sync).
@@ -176,7 +175,7 @@ final class AppModel {
         await timer.refresh()
         await reloadLists()
         let running = timer.running
-        if running?.rootID != lastRunningRootID {
+        if running?.id != lastRunningID {
             pomodoro.runningChanged(isRunning: running != nil)
             idle.runningChanged(running)
             if running != nil {
@@ -186,7 +185,7 @@ final class AppModel {
             if running != nil ? settings.focusOnStart : settings.focusOnStop, !changeIsFromWindow {
                 router?.showTimer(focusTask: true)
             }
-            lastRunningRootID = running?.rootID
+            lastRunningID = running?.id
         }
         revision += 1
     }
@@ -336,7 +335,6 @@ extension AppModel {
     var statusState: StatusItemState {
         StatusItemState(
             running: timer.running,
-            chainStart: timer.chainStart,
             label: timer.runningLabel,
             mostRecentOther: timer.mostRecentOther,
             lastStoppedToday: timer.lastStoppedToday,

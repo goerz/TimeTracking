@@ -62,8 +62,6 @@ final class TimerModel {
 
     private(set) var running: TimeEntry?
     private(set) var runningLabel: ProjectLabel = .noProject
-    /// The earliest start of the running entry's midnight chain.
-    private(set) var chainStart: Date?
     /// The most recent entry other than the running one.
     private(set) var mostRecentOther: TimeEntry?
     /// The latest entry stopped today, for the menu bar header.
@@ -123,10 +121,8 @@ final class TimerModel {
         do {
             let current = try await store.runningEntry()
             var label = ProjectLabel.noProject
-            var chain: Date?
             if let current {
                 label = try await ProjectLabel(store.listings(for: [current])[0])
-                chain = try await store.chainStart(of: current.id)
             }
             let other = try await store.recentEntries(before: nil, limit: 2).first { $0.id != current?.id }
             let stopped = try await store.lastStoppedEntry(excluding: current?.id)
@@ -135,9 +131,7 @@ final class TimerModel {
             }
             let previous = running
             var stoppedElsewhere = false
-            // A split at real midnight continues the chain: a task being
-            // typed stays, and the commit goes to the whole chain.
-            if current?.rootID != previous?.rootID {
+            if current?.id != previous?.id {
                 pendingTaskCommit?.cancel()
                 pendingTaskCommit = nil
                 if let current {
@@ -151,7 +145,6 @@ final class TimerModel {
             }
             running = current
             runningLabel = label
-            chainStart = chain
             mostRecentOther = other
             let calendar = store.displayCalendar()
             let today = calendar.day(containing: clock.now)
@@ -290,15 +283,15 @@ final class TimerModel {
         }
     }
 
-    /// Assigns a project from the picker: the running entry's (whole
-    /// chain) at once, or the draft's.
+    /// Assigns a project from the picker: the running entry's at once, or
+    /// the draft's.
     func setProject(_ id: ProjectID?) async {
         guard let running else {
             await setDraftProject(id)
             return
         }
         do {
-            try await store.updateChain(of: running.id, projectID: .some(id))
+            _ = try await store.update(running.id, EntryChange(projectID: .some(id)))
             await refresh()
         } catch {
             report(error)

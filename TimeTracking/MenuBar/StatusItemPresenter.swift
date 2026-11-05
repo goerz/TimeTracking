@@ -18,9 +18,9 @@ enum StatusItemPresenter {
         let pomodoroRemaining = state.pomodoro.state.isOn ? state.pomodoro.remaining(at: now) : nil
         // "Countdown only" hides the elapsed time while a countdown shows.
         let hidesElapsed = pomodoroRemaining != nil && state.pomodoroDisplay == .countdown
-        if let chainStart = state.chainStart, state.running != nil {
-            let elapsed = max(0, Int(now.timeIntervalSince(chainStart)))
-            // A minute hand: one turn per hour of the chain.
+        if let running = state.running {
+            let elapsed = max(0, Int(now.timeIntervalSince(running.start)))
+            // A minute hand: one turn per hour of the entry.
             dial = Double(elapsed / 60 % 60) / 60
             if state.showTimer, !hidesElapsed {
                 title = state.showSeconds ? DurationText.clock(elapsed) : DurationText.hoursMinutes(elapsed)
@@ -79,7 +79,7 @@ enum StatusItemPresenter {
                 let client = state.label.client.map { " · \($0)" }
                 lines.append(MenuHeaderLine(state.label.name, secondary: client, style: .primary, dot: state.label.color ?? ""))
             }
-            let start = state.chainStart ?? running.start
+            let start = running.start
             var started = LocalDateText.time(start)
             if !calendar.isDate(start, inSameDayAs: now) {
                 let yesterday = calendar.date(byAdding: .day, value: -1, to: now).map { calendar.isDate(start, inSameDayAs: $0) } ?? false
@@ -169,14 +169,14 @@ enum StatusItemPresenter {
         if let end = state.pomodoro.state.phaseEnd {
             return aligned(now, anchor: end, period: 1)
         }
-        guard state.running != nil, let chainStart = state.chainStart else {
+        guard let start = state.running?.start else {
             return nil
         }
         if menuOpen || state.showSeconds {
-            return aligned(now, anchor: chainStart, period: 1)
+            return aligned(now, anchor: start, period: 1)
         }
         // Also without the timer text: the dial moves every minute.
-        return aligned(now, anchor: chainStart, period: 60)
+        return aligned(now, anchor: start, period: 60)
     }
 
     /// The first instant after `now` that is a whole number of `period`s from `anchor`.

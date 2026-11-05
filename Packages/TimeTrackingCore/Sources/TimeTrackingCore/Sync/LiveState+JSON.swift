@@ -15,15 +15,16 @@ extension LiveState {
         writer.add("projectName", running.projectName)
         writer.add("clientName", running.clientName)
         writer.add("areaColor", running.areaColor)
-        writer.add("chainStart", LiveStateTime.text(running.chainStart))
+        writer.add("start", LiveStateTime.text(running.start))
         return writer.text
     }
 
-    /// Parses the `running` field; `nil` for absent or malformed text.
+    /// Parses the `running` field; `nil` for absent or malformed text. A
+    /// device on schema version 3 or earlier writes `chainStart` for `start`.
     public static func running(json: String?) -> Running? {
         guard let object = json.map(LiveStateTime.object),
               let entryID = (object["entryID"] as? String).flatMap({ EntryID($0) }),
-              let chainStart = (object["chainStart"] as? String).flatMap(LiveStateTime.date)
+              let start = ((object["start"] ?? object["chainStart"]) as? String).flatMap(LiveStateTime.date)
         else {
             return nil
         }
@@ -34,7 +35,7 @@ extension LiveState {
             projectName: object["projectName"] as? String,
             clientName: object["clientName"] as? String,
             areaColor: object["areaColor"] as? String,
-            chainStart: chainStart
+            start: start
         )
     }
 

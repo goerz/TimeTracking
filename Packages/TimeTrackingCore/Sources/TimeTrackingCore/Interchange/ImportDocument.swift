@@ -57,9 +57,13 @@ struct ImportDocument {
                 modifiedAt: context.modifiedAt
             )))
         }
+        var chainRoots: [EntryID: EntryID] = [:]
         for (path, object) in try Self.objects(root, "entries") {
-            try entries.append(Record(path: path, value: parser.entry(object, path, context: context, defaultTimeZone: defaultTimeZone)))
+            let entry = try parser.entry(object, path, context: context, defaultTimeZone: defaultTimeZone)
+            entries.append(Record(path: path, value: entry))
+            chainRoots[entry.id] = try parser.optionalID(object, "splitRootID", path)
         }
+        mergeChains(roots: chainRoots)
         if let settings = root["settings"] as? [String: Any] {
             for (key, value) in settings {
                 let data = try JSONSerialization.data(
@@ -68,6 +72,33 @@ struct ImportDocument {
                 )
                 self.settings[key] = String(decoding: data, as: UTF8.self)
             }
+        }
+    }
+
+    /// A document exported before schema version 4 holds entries as midnight
+    /// pieces: contiguous ones become one entry, as in the store's migration.
+    private mutating func mergeChains(roots: [EntryID: EntryID]) {
+        let rootIDs = Set(roots.values)
+        let pieces = entries.map(\.value).filter { roots[$0.id] != nil || rootIDs.contains($0.id) }.map { entry in
+            ChainPiece(
+                id: entry.id.rawValue,
+                root: (roots[entry.id] ?? entry.id).rawValue,
+                start: Time.seconds(entry.start),
+                end: Time.seconds(optional: entry.end)
+            )
+        }
+        var ends: [String: Int64?] = [:]
+        var later: Set<String> = []
+        for run in ChainRun.runs(of: pieces) {
+            ends[run.head] = run.end
+            later.formUnion(run.later)
+        }
+        entries = entries.filter { !later.contains($0.value.id.rawValue) }.map { record in
+            var record = record
+            if let end = ends[record.value.id.rawValue] {
+                record.value.end = Time.date(optional: end)
+            }
+            return record
         }
     }
 
@@ -193,7 +224,6 @@ private struct FieldParser {
             end: end,
             timeZone: zone,
             deviceID: optionalID(object, "deviceID", path) ?? context.deviceID,
-            splitRootID: optionalID(object, "splitRootID", path),
             createdAt: date(object, "createdAt", path) ?? context.now,
             modifiedAt: context.modifiedAt
         )

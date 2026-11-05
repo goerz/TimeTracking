@@ -155,9 +155,6 @@ struct EntryEditSheet: View {
 
     @ViewBuilder
     private func notices(_ editor: EntryEditSheetModel) -> some View {
-        if let notice = editor.midnightNoticeText {
-            Text(notice).font(.caption).foregroundStyle(.secondary).accessibilityIdentifier("editor.midnight")
-        }
         if let explanation = editor.explanation {
             Text(explanation).font(.caption).foregroundStyle(.secondary).accessibilityIdentifier("editor.explanation")
         }

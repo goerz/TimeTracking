@@ -14,7 +14,7 @@ struct EntryEditRulesTests {
                 task: "",
                 start: test.date("\(date)T10:00"),
                 end: test.date("\(date)T11:00")
-            ))[0]
+            ))
             #expect(try EntryEditRules.apply(.start(9 * 3600), to: entry, now: test.clock.now)
                 == .success(EntryEditResult(start: test.date("\(date)T09:00"), end: entry.end)))
             #expect(try EntryEditRules.apply(.stop(12 * 3600), to: entry, now: test.clock.now)
@@ -26,7 +26,7 @@ struct EntryEditRulesTests {
             task: "",
             start: test.date("2026-03-29T01:00"),
             end: test.date("2026-03-29T05:00")
-        ))[0]
+        ))
         #expect(try EntryEditRules.apply(.start(2 * 3600 + 1800), to: early, now: test.clock.now)
             == .success(EntryEditResult(start: test.date("2026-03-29T03:00"), end: early.end)))
     }
@@ -39,7 +39,7 @@ struct EntryEditRulesTests {
             task: "",
             start: test.date("2024-03-13T09:10:37"),
             end: test.date("2024-03-13T09:35:12")
-        ))[0]
+        ))
         func result(_ edit: EntryFieldEdit) -> Result<EntryEditResult, EntryEditError> {
             EntryEditRules.apply(edit, to: entry, now: test.clock.now)
         }

@@ -65,15 +65,15 @@ struct MidnightHourTests {
     }
 
     @Test(
-        "DATA-58 Midnight changes no stored entry: an entry across it becomes two pieces only when shown, and only a real midnight splits"
+        "DATA-58 Midnight changes no stored entry: an entry across it becomes two pieces only when shown, at that hour"
     )
     func storageUnchanged() async throws {
         let test = try await Self.nights()
         let span = try DateInterval(start: test.date("2024-03-12T00:00"), end: test.date("2024-03-15T00:00"))
         let stored = try await test.store.entries(in: span)
-        #expect(stored.map(\.task) == ["Evening", "Night", "Late", "Late"])
+        #expect(stored.map(\.task) == ["Evening", "Night", "Late"])
         let days = try await [test.store.entries(on: Self.day("2024-03-13")).count, test.store.entries(on: Self.day("2024-03-14")).count]
-        #expect(days == [2, 1])
+        #expect(days == [2, 0])
         let night = try #require(stored.first { $0.task == "Night" })
         let calendar = test.store.displayCalendar(timeZone: test.zone)
         let pieces = calendar.pieces(of: night, at: test.clock.now)
@@ -83,7 +83,9 @@ struct MidnightHourTests {
         #expect(try pieces[1].start == test.date("2024-03-13T04:00"))
         #expect(pieces[1].end == night.end)
         #expect(try await test.store.entry(night.id) == night)
-        #expect(TrackingCalendar(timeZone: test.zone).pieces(of: night, at: test.clock.now) == [night])
+        var unchanged = night
+        unchanged.day = try Self.day("2024-03-13")
+        #expect(TrackingCalendar(timeZone: test.zone).pieces(of: night, at: test.clock.now) == [unchanged])
     }
 
     @Test("DATA-58 a running entry's last piece runs, a piece in another zone cuts at that zone's Midnight")
@@ -118,7 +120,7 @@ struct MidnightHourTests {
             report.buckets[TrackingPeriod(.day, containing: Self.day("2024-03-14"))],
         ]
         #expect(seconds == [9000, 12_600, 1800])
-        #expect(report.entryCount == 7)
+        #expect(report.entryCount == 6)
         let groups = try await test.store.days(ending: days.upperBound, count: 3)
         #expect(groups.map(\.totalSeconds) == [1800, 12_600, 9000])
         let middle = try Self.day("2024-03-13")
@@ -171,7 +173,7 @@ struct MidnightHourTests {
         let test = try await Self.nights()
         let days = try await test.store.timerList(dayLimit: 10)
         #expect(try days.map(\.day) == [Self.day("2024-03-13"), Self.day("2024-03-12")])
-        #expect(days[0].rows.map(\.entry.task) == ["Late", "Late", "Night"])
+        #expect(days[0].rows.map(\.entry.task) == ["Late", "Night"])
         #expect(days[1].rows.map(\.entry.task) == ["Night", "Evening"])
         #expect(days.map { $0.totalSeconds(at: test.clock.now) } == [10_800, 9000])
         #expect(try await test.store.entryDays(limit: 1).count == 1)
@@ -179,7 +181,7 @@ struct MidnightHourTests {
         let first = try #require(days[1].rows.first)
         #expect(try first.entry.end == test.date("2024-03-13T04:00"))
         #expect(try first.editable?.end == test.date("2024-03-13T05:00"))
-        #expect(first.rowID != days[0].rows[2].rowID)
+        #expect(first.rowID != days[0].rows[1].rowID)
     }
 
     @Test("PA-23 a block counts on the shown day of its start, and a heatmap row runs from Midnight round the clock")
@@ -213,7 +215,7 @@ struct MidnightHourTests {
         #expect(status.todaySeconds == 3600 + 7200)
         let range = try DayRange(from: Self.day("2024-03-13"), to: Self.day("2024-03-14"))
         let entries = try await service.entries(in: range)
-        #expect(entries.listings.map(\.entry.task) == ["Late", "Late"])
+        #expect(entries.listings.map(\.entry.task) == ["Late"])
         #expect(entries.listings.allSatisfy { $0.whole == nil })
         let report = try await service.report(range: range, groupBy: [.task], granularity: .day)
         #expect(report.root.seconds == 3600 + 7200)
@@ -252,12 +254,11 @@ struct MidnightHourTests {
             end: test.date("2024-03-13T21:00")
         ))
         _ = try await test.store.start(projectID: nil, task: "Late", at: test.date("2024-03-13T23:00"))
-        try await test.store.checkInvariants()
         let builder = WidgetSnapshotBuilder(store: test.store, timeZone: test.zone)
         let live = try await test.store.liveState()
         let snapshot = await builder.build(at: test.clock.now, live: live, setupComplete: true)
-        // 1 h "Evening", 1 h to midnight, 2 h running since midnight.
-        #expect(snapshot.todayStoppedSeconds == 2 * 3600)
+        // 1 h "Evening", then 3 h running since 23:00.
+        #expect(snapshot.todayStoppedSeconds == 3600)
         #expect(snapshot.todaySeconds(at: test.clock.now) == 4 * 3600)
         #expect(try snapshot.reloadAt == test.date("2024-03-14T04:00"))
     }

@@ -57,7 +57,6 @@ struct StatusItemTests {
         #expect(content(test).title == "0:04:33")
         test.app.settings.menuBarShowSeconds = false
         try test.clock.set(test.date("2024-03-14T09:00"))
-        try await test.store.checkInvariants()
         await test.app.afterChange()
         #expect(content(test).title == "25:00")
         #expect(content(test).accessibilityLabel == "Tracking, 25 hours")
@@ -68,7 +67,6 @@ struct StatusItemTests {
         let test = try await TestApp(now: "2024-03-13T23:20")
         _ = try await test.store.start(projectID: nil, task: "", at: test.date("2024-03-13T23:10"))
         try test.clock.set(test.date("2024-03-14T00:05"))
-        try await test.store.checkInvariants()
         await test.app.afterChange()
         #expect(content(test).title == "0:55")
     }

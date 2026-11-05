@@ -84,12 +84,12 @@ public struct AutomationService: Sendable {
         return try await listing(stopped)
     }
 
-    /// Stops the running entry only while it belongs to the chain of
-    /// `id`; `nil` when another entry or none runs.
-    public func stop(chainOf id: EntryID) async throws(AutomationError) -> EntryListing? {
+    /// Stops the running entry only while it is `id`; `nil` when another
+    /// entry or none runs.
+    public func stop(entry id: EntryID) async throws(AutomationError) -> EntryListing? {
         let store = store
         let now = store.clock.now
-        let stopped = try await run { try await store.transaction { try $0.stop(chainOf: id, at: now) } }
+        let stopped = try await run { try await store.transaction { try $0.stop(entry: id, at: now) } }
         guard let stopped else {
             return nil
         }
@@ -180,18 +180,18 @@ public struct AutomationService: Sendable {
         return EntriesResult(range: range, listings: listings, now: now, calendar: calendar)
     }
 
-    /// Creates a stopped entry; returns every midnight piece.
-    public func createEntry(_ draft: EntryDraft, force: Bool = false) async throws(AutomationError) -> [EntryListing] {
+    /// Creates a stopped entry.
+    public func createEntry(_ draft: EntryDraft, force: Bool = false) async throws(AutomationError) -> EntryListing {
         let store = store
-        let pieces = try await run { try await store.transaction { try $0.checkedCreate(draft, force: force) } }
-        return try await listings(pieces)
+        let entry = try await run { try await store.transaction { try $0.checkedCreate(draft, force: force) } }
+        return try await listing(entry)
     }
 
-    /// Changes one entry; returns every piece.
-    public func editEntry(_ id: EntryID, _ change: EntryChange, force: Bool = false) async throws(AutomationError) -> [EntryListing] {
+    /// Changes one entry.
+    public func editEntry(_ id: EntryID, _ change: EntryChange, force: Bool = false) async throws(AutomationError) -> EntryListing {
         let store = store
-        let pieces = try await run { try await store.transaction { try $0.checkedUpdate(id, change, force: force) } }
-        return try await listings(pieces)
+        let entry = try await run { try await store.transaction { try $0.checkedUpdate(id, change, force: force) } }
+        return try await listing(entry)
     }
 
     /// Deletes one entry.

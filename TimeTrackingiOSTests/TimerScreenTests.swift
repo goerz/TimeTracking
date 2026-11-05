@@ -105,8 +105,8 @@ struct TimerScreenTests {
         ))
         try await test.store.archive(old.id)
         await test.model.fanOut(structureChanged: true)
-        await test.model.timer.continueEntry(entry[0].id)
-        #expect(test.model.timer.alert == .restoreProject(entry[0].id, projectName: "Old"))
+        await test.model.timer.continueEntry(entry.id)
+        #expect(test.model.timer.alert == .restoreProject(entry.id, projectName: "Old"))
         test.model.timer.alert = nil
         #expect(try await test.store.runningEntry() == nil)
     }
@@ -121,19 +121,17 @@ struct TimerScreenTests {
             end: test.date("2024-03-14T09:00")
         ))
         await test.model.fanOut(structureChanged: false)
-        #expect(test.model.list.rows.map(\.id) == [entry[0].id])
-        await test.model.timer.continueEntry(entry[0].id)
+        #expect(test.model.list.rows.map(\.id) == [entry.id])
+        await test.model.timer.continueEntry(entry.id)
         #expect(test.model.timer.running?.task == "Read")
     }
 
-    @Test("IOS-7 at 00:30 an entry started at 23:00 shows 1:30:00 before and after the split; Today holds 0:30:00 of it")
-    func chainElapsed() async throws {
+    @Test("IOS-7 at 00:30 an entry started at 23:00 shows 1:30:00; Today holds 0:30:00 of it")
+    func elapsedAcrossMidnight() async throws {
         let test = try await TestPhone(now: "2024-03-14T23:00")
         await test.model.timer.start()
         try test.clock.set(test.date("2024-03-15T00:30"))
         await test.model.timer.refresh()
-        #expect(test.model.timer.timerText(at: test.clock.now) == "1:30:00")
-        try await test.store.checkInvariants()
         await test.model.fanOut(structureChanged: false)
         #expect(test.model.timer.timerText(at: test.clock.now) == "1:30:00")
         let today = try #require(test.model.list.days.first)
@@ -141,7 +139,7 @@ struct TimerScreenTests {
         #expect(today.totalSeconds(at: test.clock.now) == 1800)
     }
 
-    @Test("IOS-8 saving 23:00 to 01:00 splits at midnight; future and reversed ends are refused; an overlap offers Keep and Revert")
+    @Test("IOS-8 saving 23:00 to 01:00 stores one entry; future and reversed ends are refused; an overlap offers Keep and Revert")
     func editSheet() async throws {
         let test = try await TestPhone(now: "2024-03-15T10:00")
         let entry = try await test.store.create(EntryDraft(
@@ -149,26 +147,25 @@ struct TimerScreenTests {
             task: "Late",
             start: test.date("2024-03-14T22:00"),
             end: test.date("2024-03-14T22:30")
-        ))[0]
+        ))
         let editor = EntryEditSheetModel(store: test.store, clock: test.clock)
         await editor.load(entry.id)
         editor.start = try test.date("2024-03-14T23:00")
         editor.end = try test.date("2024-03-15T01:00")
-        #expect(editor.midnightNoticeText == EntryEditSheetModel.midnightNotice)
         #expect(await editor.save())
-        let pieces = try await test.store.entries(
+        let stored = try await test.store.entries(
             in: DateInterval(start: test.date("2024-03-14T00:00"), end: test.date("2024-03-16T00:00")),
             includeDeleted: false
         )
-        #expect(pieces.count == 2)
-        #expect(Set(pieces.map(\.rootID)).count == 1)
+        #expect(stored.map(\.id) == [entry.id])
+        #expect(try stored[0].end == test.date("2024-03-15T01:00"))
 
         let other = try await test.store.create(EntryDraft(
             projectID: nil,
             task: "Morning",
             start: test.date("2024-03-15T08:00"),
             end: test.date("2024-03-15T09:00")
-        ))[0]
+        ))
         let second = EntryEditSheetModel(store: test.store, clock: test.clock)
         await second.load(other.id)
         second.end = try test.date("2024-03-15T11:00")
@@ -246,7 +243,7 @@ struct TimerScreenTests {
             task: "Pre",
             start: test.date("2024-03-14T09:00"),
             end: test.date("2024-03-14T09:30")
-        ))[0]
+        ))
         let editor = EntryEditSheetModel(store: test.store, clock: test.clock)
         await editor.load(entry.id)
         editor.task = "Prepare"

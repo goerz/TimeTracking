@@ -46,14 +46,11 @@ public struct ImportCounts: Hashable, Sendable, Codable {
 /// The result of an import.
 public struct ImportReport: Hashable, Sendable {
     public var counts: [ImportEntity: ImportCounts]
-    /// Pieces created by the midnight split.
-    public var splitPieces: Int
     /// What the invariant pass changed.
     public var adjustments: [EntryAdjustment]
 
-    public init(counts: [ImportEntity: ImportCounts] = [:], splitPieces: Int = 0, adjustments: [EntryAdjustment] = []) {
+    public init(counts: [ImportEntity: ImportCounts] = [:], adjustments: [EntryAdjustment] = []) {
         self.counts = counts
-        self.splitPieces = splitPieces
         self.adjustments = adjustments
     }
 
@@ -63,6 +60,6 @@ public struct ImportReport: Hashable, Sendable {
 
     /// True when the import created or updated nothing.
     public var isNoOp: Bool {
-        counts.values.allSatisfy { $0.created == 0 && $0.updated == 0 } && splitPieces == 0
+        counts.values.allSatisfy { $0.created == 0 && $0.updated == 0 }
     }
 }
