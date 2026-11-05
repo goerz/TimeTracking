@@ -121,7 +121,9 @@ def launch(fixture="small", calendar=False, reset=True, extra=(), wait=60):
     args += ["-CalendarAccess", "YES"] if calendar else []
     args += list(extra)
     environment = dict(os.environ, TIMETRACKING_NOW=FIXED_NOW)
-    subprocess.run(["make", "mac-debug", f"ARGS={' '.join(args)}"], cwd=ROOT, env=environment, check=True)
+    build = subprocess.run(["make", "mac-debug", f"ARGS={' '.join(args)}"], cwd=ROOT, env=environment)
+    if build.returncode != 0:
+        raise DriverError("make mac-debug failed; on Error 75 another checkout holds the lock, so retry later")
     deadline = time.time() + wait
     while time.time() < deadline:
         if running_pid() is not None and windows():
@@ -330,7 +332,16 @@ def focused():
 def move_window(x, y, index=0):
     """Moves a window by the Accessibility API, for example out from under a system prompt."""
     point = AX.AXValueCreate(AX.kAXValueCGPointType, Quartz.CGPointMake(x, y))
-    AX.AXUIElementSetAttributeValue(windows()[index].ref, "AXPosition", point)
+    # A window still settling after launch can jump back, so the move repeats.
+    for _ in range(20):
+        window = windows()[index]
+        if abs(window.frame[0] - x) < 1 and abs(window.frame[1] - y) < 1:
+            time.sleep(0.2)
+            if abs(windows()[index].frame[1] - y) < 1:
+                return
+        AX.AXUIElementSetAttributeValue(window.ref, "AXPosition", point)
+        time.sleep(0.2)
+    raise DriverError(f"the window did not stay at {x},{y}")
 
 
 def clear_auth_prompts():
