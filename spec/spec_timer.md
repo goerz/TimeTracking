@@ -166,6 +166,8 @@ When input resumes after an idle period of at least the threshold (or a lock or 
 | Discard | Entry stops at the idle start | ⌘D |
 | Keep | Entry keeps running, idle time included | Return, Escape |
 
+An idle start before a split at real midnight stops the chain there: the piece running at that moment ends at the idle start, and the pieces after it are removed. The new entry of Split is split at midnight like any other.
+
 With "Stop the entry at that moment", a lock or sleep stops the entry at that time without a prompt. An entry stopped at shutdown needs no prompt at the next launch.
 
 ## 7. Reminders (Settings > Reminders, device)
@@ -294,3 +296,4 @@ The two Pomodoro categories use bundled sounds with "Play a sound" on; all other
 - TM-46. Choosing Midnight in the General pane moves the Calendar's first hour label to that hour, and 00:00 restores it.
 - TM-47. A split at real midnight is no change of the running entry: the Mini Timer doesn't show, an open idle prompt stays open and acts on the chain, the Pomodoro's phase stays, and a task being typed stays and commits to every piece.
 - TM-48. With "Show the Mini Timer when an entry starts" and "when an entry stops" on, a start or stop from a Timer or the main menu shows nothing, and one from the menu bar, a notification, or another device shows the Mini Timer with the task field focused.
+- TM-49. With idle from 23:50 and the prompt answered at 00:30, Split, Discard and Continue, and Discard stop the entry at 23:50 and remove its piece after midnight; Keep changes nothing. A lock stop reaches back the same way.

@@ -97,19 +97,23 @@ final class IdleModel {
             guard let running = try await store.runningEntry(), running.rootID == prompt.rootID else {
                 return
             }
-            let stopAt = max(prompt.idleStart, running.start)
+            let idleStart = prompt.idleStart
             switch option {
             case .keep:
                 return
             case .discard:
-                _ = try await store.transaction { try $0.stop(chainOf: running.id, at: stopAt) }
+                _ = try await store.transaction { try $0.stop(chainOf: running.id, at: idleStart) }
             case .discardAndContinue:
-                guard try await store.transaction({ try $0.stop(chainOf: running.id, at: stopAt) }) != nil else {
+                guard try await store.transaction({ try $0.stop(chainOf: running.id, at: idleStart) }) != nil else {
                     break
                 }
                 try await store.start(projectID: running.projectID, task: running.task, at: clock.now)
             case .split:
-                try await store.start(projectID: nil, task: "", at: stopAt)
+                // In one write, and where the chain really stopped.
+                _ = try await store.transaction { transaction in
+                    let stopped = try transaction.stop(chainOf: running.id, at: idleStart)
+                    return try stopped?.end.map { try transaction.start(projectID: nil, task: "", at: $0) }
+                }
                 showTimer(true)
             }
             await onChange?()
@@ -128,7 +132,7 @@ final class IdleModel {
             }
             // Only the entry the decision was about, in one write: one
             // started meanwhile keeps running.
-            _ = try? await store.transaction { try $0.stop(chainOf: running.id, at: max(time, running.start)) }
+            _ = try? await store.transaction { try $0.stop(chainOf: running.id, at: time) }
             await onChange?()
         case let .prompt(idleStart):
             guard let running else {

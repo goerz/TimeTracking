@@ -173,6 +173,55 @@ struct MidnightSplitTests {
         #expect(try await tie.store.entry(pair[0]) == nil)
     }
 
+    @Test("TM-49 a chain stopped before its running piece ends there: the pieces from that time on are removed, across several midnights")
+    func stopChainBackAcrossMidnights() async throws {
+        let test = try await TestStore(now: "2026-03-02T23:30")
+        let root = try await test.store.start(projectID: nil, task: "Night", at: test.date("2026-03-02T23:00"))
+        try test.clock.set(test.date("2026-03-04T00:30"))
+        try await test.store.checkInvariants()
+        let stop = try test.date("2026-03-02T23:50")
+        let stopped = try await test.store.transaction { try $0.stop(chainOf: root.id, at: stop) }
+        #expect(stopped?.id == root.id && stopped?.end == stop)
+        #expect(try await test.store.runningEntry() == nil)
+        #expect(try await test.store.chain(of: root.id).map(\.id) == [root.id])
+        // The next pass brings nothing back.
+        try await test.store.checkInvariants()
+        #expect(try await test.store.entry(pieceID(root.id, "2026-03-03")) == nil)
+        #expect(try await test.store.entry(pieceID(root.id, "2026-03-04")) == nil)
+    }
+
+    @Test("TM-49 a chain stopped at midnight keeps the piece before it; a chain never stops before its start")
+    func stopChainBackInsidePieces() async throws {
+        let test = try await TestStore(now: "2026-03-02T23:30")
+        let root = try await test.store.start(projectID: nil, task: "Night", at: test.date("2026-03-02T23:00"))
+        try test.clock.set(test.date("2026-03-04T00:30"))
+        try await test.store.checkInvariants()
+        let midnight = try test.date("2026-03-03T00:00")
+        let stopped = try await test.store.transaction { try $0.stop(chainOf: root.id, at: midnight) }
+        #expect(stopped?.id == root.id && stopped?.end == midnight)
+
+        let other = try await test.store.start(projectID: nil, task: "Dawn", at: test.date("2026-03-03T23:40"))
+        try test.clock.set(test.date("2026-03-04T00:50"))
+        try await test.store.checkInvariants()
+        let start = try test.date("2026-03-03T23:40")
+        let early = try test.date("2026-03-03T22:00")
+        let clamped = try await test.store.transaction { try $0.stop(chainOf: other.id, at: early) }
+        #expect(clamped?.id == other.id && clamped?.end == start)
+        #expect(try await test.store.chain(of: other.id).count == 1)
+    }
+
+    @Test("TM-49 a chain stopped inside its running piece stops as a plain stop, keeping the earlier pieces")
+    func stopChainInsideRunningPiece() async throws {
+        let test = try await TestStore(now: "2026-03-02T23:30")
+        let root = try await test.store.start(projectID: nil, task: "Night", at: test.date("2026-03-02T23:00"))
+        try test.clock.set(test.date("2026-03-03T00:30"))
+        try await test.store.checkInvariants()
+        let stop = try test.date("2026-03-03T00:10")
+        let stopped = try await test.store.transaction { try $0.stop(chainOf: root.id, at: stop) }
+        #expect(stopped?.id == pieceID(root.id, "2026-03-03") && stopped?.end == stop)
+        #expect(try await test.store.chain(of: root.id).count == 2)
+    }
+
     @Test("DATA-46 Berlin DST days are 23 and 25 hours; consecutive days at midnight; ISO week 1 of 2027")
     func calendarRules() throws {
         let zone = try #require(TimeZone(identifier: "Europe/Berlin"))

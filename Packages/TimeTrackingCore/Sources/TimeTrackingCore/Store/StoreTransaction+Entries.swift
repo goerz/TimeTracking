@@ -68,13 +68,30 @@ extension StoreTransaction {
     /// of `id` (the entry itself or a midnight continuation of it); `nil`
     /// when something else runs or nothing does. The check and the stop
     /// are one transaction, so a button showing an old entry never stops
-    /// one started elsewhere meanwhile.
+    /// one started elsewhere meanwhile. `at` may lie before the running
+    /// piece: the pieces from `at` on are removed and the one before ends
+    /// at `at`, though never before the chain's start.
     @discardableResult
     public func stop(chainOf id: EntryID, at: Date) throws -> TimeEntry? {
         guard let shown = try entry(id, includeDeleted: true), try runningEntries().contains(where: { $0.rootID == shown.rootID }) else {
             return nil
         }
-        return try stop(at: at)
+        let pieces = try chainEntries(root: shown.rootID)
+        guard var last = pieces.first else {
+            return nil
+        }
+        let at = max(Time.whole(at), last.start)
+        let later = pieces.dropFirst().filter { $0.start >= at }
+        guard !later.isEmpty else {
+            return try stop(at: at)
+        }
+        try delete(later.map(\.id))
+        last = pieces.last { $0.start < at } ?? last
+        if last.end.map({ $0 > at }) ?? true {
+            last.end = at
+            try write(last)
+        }
+        return last
     }
 
     /// Starts a new entry with the project and task of `id`.
