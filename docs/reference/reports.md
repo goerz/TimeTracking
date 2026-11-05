@@ -1,4 +1,4 @@
-# Spec: Reports Section
+# Reports Section
 
 The Reports section of the main window shows where the time went in a date range. It never writes; corrections go through the Timer's edit popover and continue command. The iPad's Reports tab uses this layout, with touch for hover.
 

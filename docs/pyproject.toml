@@ -1,0 +1,14 @@
+[project]
+name = "timetracking-docs"
+version = "1.0"
+description = "The documentation site of TimeTracking"
+requires-python = ">=3.12"
+dependencies = [
+    "furo",
+    "myst-parser",
+    "sphinx",
+    "sphinx-design",
+]
+
+[tool.uv]
+package = false

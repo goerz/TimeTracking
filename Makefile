@@ -12,6 +12,7 @@ ALIAS ?=
 ARGS ?=
 D ?=
 FIXTURE ?= small
+SHOTS ?=
 
 DEVELOPER_DIR ?= /Applications/Xcode.app/Contents/Developer
 export DEVELOPER_DIR
@@ -22,6 +23,7 @@ SHELL := /bin/bash
 # Tools and folders; tests override them (scripts/test_make.sh).
 XCODEBUILD ?= xcodebuild
 LAUNCHCTL ?= launchctl
+UV ?= uv
 DERIVED ?= build.noindex
 KEYCHAIN ?=
 XCFLAGS ?=
@@ -65,8 +67,8 @@ LOCAL_XCCONFIG := Config/Local.xcconfig
 # The first line of every recipe that builds an app (architecture.md §2.3).
 require_team = @if [ -z "$(TEAM)" ]; then echo "set TEAM in local.mk" >&2; exit 1; fi
 
-.PHONY: all build build-mac build-ios build-sim sim sim-create stop mac-debug mac-debug-unregister demo \
-	logs sim-logs screenshots install mac uninstall apns-key device iphone ipad devices console \
+.PHONY: all build build-mac build-ios build-sim docs sim sim-create stop mac-debug mac-debug-unregister demo \
+	logs sim-logs sim-screenshots screenshots install mac uninstall apns-key device iphone ipad devices console \
 	unit-test agent-test ui-test test test-sync lint check-behaviors check-citations check-private check hooks \
 	secrets xcode skills clean distclean help
 
@@ -77,13 +79,13 @@ require_team = @if [ -z "$(TEAM)" ]; then echo "set TEAM in local.mk" >&2; exit 
 # whose kernel lock ends with the process; nested make calls inherit
 # TT_RUNTIME_LOCKED and run directly. The real rules sit in ifdef blocks below.
 RUNTIME_LOCK ?= $(shell git rev-parse --path-format=absolute --git-common-dir 2>/dev/null || echo "$(CURDIR)/$(DERIVED)")/timetracking-runtime.lock
-RUNTIME_TARGETS := sim mac-debug demo install unit-test agent-test ui-test test test-sync
+RUNTIME_TARGETS := sim mac-debug demo screenshots install unit-test agent-test ui-test test test-sync
 
 ifndef TT_RUNTIME_LOCKED
 $(RUNTIME_TARGETS):
 	@mkdir -p "$$(dirname "$(RUNTIME_LOCK)")"
 	@TT_RUNTIME_LOCKED=1 lockf -k -t 0 "$(RUNTIME_LOCK)" $(MAKE) --no-print-directory $@ || \
-		{ s=$$?; [ $$s != 75 ] || echo "another checkout is running sim, mac-debug, demo, install, or a test target; retry when it finishes ($(RUNTIME_LOCK))" >&2; exit $$s; }
+		{ s=$$?; [ $$s != 75 ] || echo "another checkout is running sim, mac-debug, demo, screenshots, install, or a test target; retry when it finishes ($(RUNTIME_LOCK))" >&2; exit $$s; }
 endif
 
 ##@ Build
@@ -105,6 +107,10 @@ build-sim: secrets ## Debug iOS app for the simulator
 	$(require_team)
 	@$(MAKE) --no-print-directory sim-create
 	$(BUILD_SIM_DEBUG)
+
+docs: ## The documentation site into build.noindex/docs/, with warnings as errors
+	$(UV) run --project docs --locked sphinx-build -W --keep-going -q -b html docs "$(DERIVED)/docs"
+	@echo "Built $(DERIVED)/docs/index.html"
 
 ##@ Develop
 
@@ -162,13 +168,20 @@ sim-logs: ## Stream the unified log of the simulator app
 	$(SIM_UDIDS) xcrun simctl spawn "$$iphone" log stream --style compact --level info \
 		--predicate 'subsystem BEGINSWITH "$(BUNDLE_ID).debug"'
 
-screenshots: ## Simulator screenshots to build.noindex/screenshots/
-	@mkdir -p "$(DERIVED)/screenshots"
+sim-screenshots: ## Simulator screenshots to build.noindex/sim-screenshots/
+	@mkdir -p "$(DERIVED)/sim-screenshots"
 	@stamp=$$(date +%Y%m%d-%H%M%S); for name in "$(SIM_IPHONE)" "$(SIM_IPAD)"; do \
-		file="$(DERIVED)/screenshots/$${name// /-}-$$stamp.png"; \
+		file="$(DERIVED)/sim-screenshots/$${name// /-}-$$stamp.png"; \
 		udid=$$($(SIMULATOR) udid "$$name") || continue; \
 		xcrun simctl io "$$udid" screenshot "$$file" >/dev/null 2>&1 && echo "$$file" || echo "$$name is not booted" >&2; \
 	done
+
+ifdef TT_RUNTIME_LOCKED
+screenshots: secrets ## Retake the site's screenshots from the fixtures into docs/images/ (SHOTS=name... limits them)
+	$(require_team)
+	scripts/capture_screenshots.py "$(DERIVED)/screenshots" $(SHOTS)
+	scripts/frame_screenshots.py "$(DERIVED)/screenshots" docs/images $(SHOTS)
+endif
 
 ##@ Use
 
@@ -285,7 +298,7 @@ skills: ## Export Xcode's agent skills into .claude/skills/ (git-ignored)
 
 clean: ## Remove intermediates; keep build.noindex/Build/Products
 	@if [ -d "$(DERIVED)" ]; then \
-		find "$(DERIVED)" -mindepth 1 -maxdepth 1 ! -name Build ! -name SourcePackages ! -name LintTools ! -name screenshots -exec rm -rf {} +; \
+		find "$(DERIVED)" -mindepth 1 -maxdepth 1 ! -name Build ! -name SourcePackages ! -name LintTools ! -name screenshots ! -name sim-screenshots ! -name docs -exec rm -rf {} +; \
 		[ ! -d "$(DERIVED)/Build" ] || find "$(DERIVED)/Build" -mindepth 1 -maxdepth 1 ! -name Products -exec rm -rf {} +; \
 	fi
 	@echo "Removed intermediates; kept $(PRODUCTS)"

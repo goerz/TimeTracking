@@ -1,10 +1,12 @@
 # Contributing
 
-`README.md` covers the requirements and first-time setup. `make help` lists every build, test, and check target.
+`README.md` covers the requirements and first-time setup, and `make help` lists every build, test, and check target.
 
 ## Workflow
 
 Read `docs/reference/components.md`, then the spec for the area you work on. The specs describe what the product does, so a change in behavior updates the spec in the same commit. A new item under a spec's "Testable behaviors" needs a test that carries its identifier (for example, `TM-1`), which `make check-behaviors` enforces.
+
+The rest of `docs/` is the documentation site: tutorials, how-to guides, and explanation for readers who have never seen the app, with the specs as its Reference section. A change a reader would notice updates those pages too. The command `make docs` builds the site into `build.noindex/docs/`, and a warning fails the build. When a view changes visibly, `make screenshots` retakes the images in `docs/images/` from the fixtures (`SHOTS=mac-timer` for one). Look at every new image before you commit it: the screenshots are public.
 
 Build through the Makefile, not Xcode or a bare `xcodebuild`: it selects the right toolchain and generates `Config/Local.xcconfig` from your `local.mk`.
 

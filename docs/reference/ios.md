@@ -1,4 +1,4 @@
-# Spec: iPhone and iPad App
+# iPhone and iPad App
 
 One iOS target runs on iPhone and iPad. The iPhone gets the Timer in pocket form, widgets, a Control Center control, App Shortcuts, and Siri; the other sections need the width. On the iPad the Timer is the first tab, followed by Calendar, Reports, Projects, and Activity tabs that present the Mac's sections. The target also hosts the device-side activity collection ([activity_tracking.md](activity_tracking.md) §6.2).
 

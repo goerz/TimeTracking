@@ -1,4 +1,4 @@
-# Spec: Timer and Main Window (Mac app)
+# Timer and Main Window (Mac app)
 
 The Timer is the Mac app's everyday surface: the running entry on top, recent entries by day below. It is the first item of the main window and, as the Mini Timer, a small window of its own. This spec also covers the main window, the main menu, the Pomodoro, idle detection, reminders, the settings window, the global shortcuts, and the shared entry editor.
 

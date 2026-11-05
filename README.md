@@ -2,13 +2,22 @@
 
 A personal time tracker for the Mac, iPhone, and iPad. It records time entries (client, area, project, task), keeps the running entry in sync across devices within seconds, plans the day next to the calendar, reports on tracked time, and keeps a separate record of where attention went on each device.
 
+![The Calendar on the Mac, with activity, tracked entries, and plans side by side](docs/images/mac-calendar.png)
+
+<p align="center">
+  <img src="docs/images/mac-reports.png" alt="Reports on the Mac, with tiles, a stacked chart, and a breakdown" width="68%">
+  <img src="docs/images/iphone-timer.png" alt="The Timer on the iPhone" width="24%">
+</p>
+
+The [documentation](https://goerz.github.io/TimeTracking/) explains what the app does and why, with tutorials, how-to guides, and a tour of every view.
+
 The apps are built from source and development-signed; there is no App Store or TestFlight distribution.
 
 ## Requirements
 
-- macOS 27 and Xcode 27 at `/Applications/Xcode.app`
+- A Mac with macOS 27 and Xcode 27 at `/Applications/Xcode.app`
 - A paid Apple Developer Program membership, signed in to Xcode
-- iOS 27 simulator runtime for the simulator targets
+- The iOS 27 simulator runtime for the simulator targets
 
 ## Getting started
 
@@ -18,8 +27,8 @@ make install                   # build, check, and install into /Applications
 timetracking --version         # the tool, linked into $(PREFIX)/bin
 ```
 
-`make help` lists all targets: `make sim` runs the iOS app on the simulators, `make iphone` installs it on a device named in `local.mk`, `make test` runs the test suite, and `make check` runs lint, the behavior check, and the personal-data check.
+The command `make help` lists all targets: `make sim` runs the iOS app on the simulators, `make iphone` installs it on a device named in `local.mk`, `make test` runs the test suite, and `make check` runs lint, the behavior and citation checks, and the personal-data check. [Build and install the app](https://goerz.github.io/TimeTracking/tutorials/install.html) has the details.
 
 ## Documentation
 
-The specifications in `docs/reference/` describe the product: start with `docs/reference/components.md`. `CLAUDE.md` summarizes the project conventions.
+The site's sources are in `docs/`, and `make docs` builds them. The specifications in `docs/reference/` are its Reference section and describe the product exactly: start with `docs/reference/components.md`. `CONTRIBUTING.md` covers the development workflow, and `CLAUDE.md` summarizes the project conventions.

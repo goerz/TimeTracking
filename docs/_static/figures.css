@@ -1,0 +1,9 @@
+/* Screenshots sit in drawn device frames on a transparent background. */
+figure img {
+    height: auto;
+}
+
+figcaption {
+    font-size: var(--font-size--small);
+    text-align: center;
+}

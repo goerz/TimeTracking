@@ -42,7 +42,7 @@ show() {
             open -a "$hub" "devices://device/open?id=$id"
         done
     elif ! open -a Simulator 2> /dev/null; then
-        echo "Neither Device Hub nor Simulator.app found; the simulators run without a window (make screenshots captures them)."
+        echo "Neither Device Hub nor Simulator.app found; the simulators run without a window (make sim-screenshots captures them)."
     fi
 }
 

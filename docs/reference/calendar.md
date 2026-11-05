@@ -1,4 +1,4 @@
-# Spec: Calendar Section
+# Calendar Section
 
 The Calendar section shows days side by side on one time axis, so activity, entries, and plans compare at a glance. Each day has up to three columns: Activity (the tracker's blocks), Tracked (time entries), and Calendar (time blocks and events from system calendars the user selects). Entries are drawn, moved, and resized here, and made from activity blocks, time blocks, and calendar events. The iPad's Calendar tab is the same view with the touch equivalents of [ios.md](ios.md) §10.2, without the open activity block, gap labels, or "Delete This Activity…"; the iPhone has no calendar view and never requests calendar access.
 

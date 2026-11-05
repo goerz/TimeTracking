@@ -22,8 +22,9 @@ One Xcode project (`TimeTracking.xcodeproj`, hand-authored, file-system-synchron
 | `AppTestSupport/` | Test helpers compiled into both hosted test bundles (`TimeTrackingTests`, `TimeTrackingiOSTests`) |
 | `Config/` | `Project.xcconfig`, `<target>.entitlements`, `<target>-Info.plist` |
 | `Fixtures/` | `Store/<name>.json` (export format), `Activity/`, `Agent/`; synthetic, dates in 2024 |
-| `docs/reference/` | The specs: `components.md` and one file per component |
-| `scripts/` | `check_behaviors.sh`, `check_citations.py`, `test_make.sh`, `check_products.sh`, `install.sh`, `apns_key.sh`, `debug_unregister.sh`, `simulator.sh` (simulator UDID by name, Device Hub), `relaunch_mac_app.sh` (mac-debug's quit and reopen), `common.sh` (shared by the install and unregister scripts), lint helpers |
+| `docs/` | The documentation site (Sphinx, MyST, Furo; dependencies in `docs/pyproject.toml`): `tutorials/`, `howto/`, `explanation/`, `images/` (committed screenshots) |
+| `docs/reference/` | The specs, the site's Reference section: `components.md` and one file per component |
+| `scripts/` | `check_behaviors.sh`, `check_citations.py`, `test_make.sh`, `capture_screenshots.py` and `frame_screenshots.py` (`make screenshots`), `check_products.sh`, `install.sh`, `apns_key.sh`, `debug_unregister.sh`, `simulator.sh` (simulator UDID by name, Device Hub), `relaunch_mac_app.sh` (mac-debug's quit and reopen), `common.sh` (shared by the install and unregister scripts), lint helpers |
 
 A view model may hold selection, drafts, sort order, and presentation state and call the library. It may not compute totals, overlaps, or export formats. If a view model test needs a store fixture, the logic belongs in the library.
 
@@ -64,6 +65,8 @@ Always use the Makefile; it sets `DEVELOPER_DIR=/Applications/Xcode.app/Contents
 | `make demo [FIXTURE=small]` | The store fixture (`small`, `large`, `running`) moved to today into the Debug store and both simulators' stores, then the Debug Mac app and simulators launched; Debug containers only |
 | `make sim` | Build, install, and launch on both simulators; show them in Device Hub |
 | `make install` | Install into `/Applications`, link `timetracking` and `tracker-event` into `$(PREFIX)/bin`, write completions |
+| `make docs` | The documentation site into `build.noindex/docs/`, with warnings as errors; no build of the app |
+| `make screenshots [SHOTS=name...]` | Retake the site's screenshots from the fixtures into `docs/images/` |
 | `make lint` | SwiftFormat `--lint` and SwiftLint `--strict`; no build |
 
 Every `xcodebuild` call uses `-quiet -project TimeTracking.xcodeproj -derivedDataPath build.noindex -skipPackagePluginValidation -skipMacroValidation` and, when signing, `-allowProvisioningUpdates -allowProvisioningDeviceRegistration`. All builds are development-signed with automatic provisioning: APNs sandbox and the CloudKit development environment in Release and Debug alike. `XCFLAGS` passes extra build settings to every `xcodebuild` call.
@@ -119,4 +122,4 @@ Several Claude sessions often work on this repository at once. Every session tha
 
 Commit on the worktree branch. When the task is done, committed, and its tests pass, ask the user (AskUserQuestion) whether to merge it into `master`; don't wait to be asked, and don't merge without a yes. On yes: in the worktree, `git rebase master` (resolve conflicts, rerun the affected tests); then ExitWorktree with `keep`, and in the main checkout `git merge --ff-only <branch>`. If the fast-forward refuses because the main checkout's uncommitted changes touch the same files, stop and report rather than stashing someone else's work. After the merge, ask whether to remove the worktree and its branch (`git worktree remove`, `git branch -d`).
 
-Worktrees isolate source, not runtime state: all checkouts share the Debug bundle ID, the Debug store, the Debug agent registration, the simulators, and `/Applications`. The Makefile serializes `sim`, `mac-debug`, `demo`, `install`, `unit-test`, `agent-test`, `ui-test`, `test`, and `test-sync` across checkouts with a lock in the shared git directory: while one checkout runs any of them, the others fail with "another checkout is running ..." (`Error 75`). On that message, wait for the other session (SendMessage with `notify_when_idle` to the session ListAgents shows) and rerun; never work around the lock with a bare `xcodebuild`, `xcrun simctl`, or `open` of the Debug app. `swift test --package-path Packages/TimeTrackingCore` and `make lint` don't take the lock.
+Worktrees isolate source, not runtime state: all checkouts share the Debug bundle ID, the Debug store, the Debug agent registration, the simulators, and `/Applications`. The Makefile serializes `sim`, `mac-debug`, `demo`, `screenshots`, `install`, `unit-test`, `agent-test`, `ui-test`, `test`, and `test-sync` across checkouts with a lock in the shared git directory: while one checkout runs any of them, the others fail with "another checkout is running ..." (`Error 75`). On that message, wait for the other session (SendMessage with `notify_when_idle` to the session ListAgents shows) and rerun; never work around the lock with a bare `xcodebuild`, `xcrun simctl`, or `open` of the Debug app. `swift test --package-path Packages/TimeTrackingCore` and `make lint` don't take the lock.

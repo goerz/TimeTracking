@@ -1,4 +1,4 @@
-# Spec: Menu Bar Item
+# Menu Bar Item
 
 The Mac app's status item shows the running entry's elapsed time and, during a Pomodoro, the countdown. Its menu drives the Timer's commands ([timer.md](timer.md)) and opens the app's windows. This spec also covers the Dock icon setting, the Dock menu, and the warning when the activity tracker has stopped.
 

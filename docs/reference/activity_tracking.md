@@ -1,4 +1,4 @@
-# Spec: Activity Tracking Component
+# Activity Tracking Component
 
 ## 1. Scope
 

@@ -1,4 +1,4 @@
-# Spec: Project Architecture and Build System
+# Project Architecture and Build System
 
 The Xcode project and its targets, the shared library, identifiers and entitlements, the APNs credentials, the build system, testing, code conventions, and dependencies. The product name in code is `TimeTracking`; the name the user sees is a personal build setting (2.1).
 
@@ -124,8 +124,8 @@ The target `help` describes each target under its group. The Makefile sets `DEVE
 
 | Group | Targets |
 |---|---|
-| Build | `all`, `build`, `build-mac`, `build-ios`, `build-sim` |
-| Develop | `sim`, `sim-create`, `stop`, `mac-debug`, `demo`, `mac-debug-unregister`, `logs`, `sim-logs`, `screenshots` |
+| Build | `all`, `build`, `build-mac`, `build-ios`, `build-sim`, `docs` |
+| Develop | `sim`, `sim-create`, `stop`, `mac-debug`, `demo`, `mac-debug-unregister`, `logs`, `sim-logs`, `sim-screenshots`, `screenshots` |
 | Use | `install`, `mac`, `uninstall`, `apns-key`, `device`, `iphone`, `ipad`, `devices`, `console` |
 | Test | `unit-test`, `agent-test`, `ui-test`, `test`, `test-sync` |
 | Check | `lint`, `check-behaviors`, `check-citations`, `check-private`, `check`, `hooks` |
@@ -137,13 +137,19 @@ The target `demo` replaces the Debug store, its block log, and each simulator's 
 
 The variable `ARGS` passes launch arguments. The apps understand `-UITesting YES` (in-memory store and transport, fixture, no animations; a fake agent service unless `-RealAgent YES` is added; `-CalendarAccess YES` grants the fake calendar store access), `-Fixture <name>`, `-ResetState YES`, and under `-UITesting` also `-LoginItemLaunch YES`, which launches the Mac app as if opened as a login item ([timer.md](timer.md) §1.3). The tool reads `TIMETRACKING_STORE` and `TIMETRACKING_NOW` ([automation.md](automation.md)).
 
-Every worktree of the repository shares the Debug bundle ID, the Debug store and agent, the simulators, and `/Applications`, so `sim`, `mac-debug`, `demo`, `install`, `unit-test`, `agent-test`, `ui-test`, `test`, and `test-sync` hold one runtime lock: `lockf` on `timetracking-runtime.lock` in the shared git directory, taken without waiting. While another process holds it, these targets fail with "another checkout is running ..." (`Error 75`) before running anything; make calls nested inside a target that holds the lock run directly. The kernel releases the lock when make exits.
+Every worktree of the repository shares the Debug bundle ID, the Debug store and agent, the simulators, and `/Applications`, so `sim`, `mac-debug`, `demo`, `screenshots`, `install`, `unit-test`, `agent-test`, `ui-test`, `test`, and `test-sync` hold one runtime lock: `lockf` on `timetracking-runtime.lock` in the shared git directory, taken without waiting. While another process holds it, these targets fail with "another checkout is running ..." (`Error 75`) before running anything; make calls nested inside a target that holds the lock run directly. The kernel releases the lock when make exits.
 
 Git hooks `pre-commit`, `commit-msg`, and `pre-push` run `check-private` in modes `staged`, `message <file>`, and `push`; `pre-push` also runs `make lint`. They are never bypassed.
 
 ### 2.6 Simulators
 
 The simulators are "TimeTracking iPhone" (`iPhone-17-Pro`) and "TimeTracking iPad" (`iPad-Pro-13-inch-M5-12GB`). The target `sim-create` creates a missing one on the newest runtime that supports its device type; an existing one stays on its runtime. The script `scripts/simulator.sh udid <name>` turns the name into the UDID of the available device of that name, on the newest runtime that has one, at run time. Every `xcodebuild` destination is `platform=iOS Simulator,id=<UDID>` and every `simctl` call takes the UDID, because a `name=` destination implies `OS=latest` and misses a device on an older runtime. No UDID is written into a tracked file. Simulator builds are team-signed; tests switch CloudKit off through the in-memory transport, never through entitlements.
+
+### 2.7 Documentation site
+
+The site's sources are in `docs/`: tutorials, how-to guides, explanation, and these specs as its Reference section, in `docs/reference/`. It uses Sphinx with MyST Markdown, the Furo theme, and sphinx-design, declared in `docs/pyproject.toml` and pinned in `docs/uv.lock`. The target `docs` builds it into `build.noindex/docs/` with warnings as errors, so a broken internal link or heading anchor fails the build. The workflow `.github/workflows/docs.yml` builds it the same way on every push to `master` that touches the site and deploys it to GitHub Pages.
+
+Screenshots are committed PNGs in `docs/images/`, because CI can't run the app. The target `screenshots` retakes them under the runtime lock, and `SHOTS=<name>...` limits it to those images. The script `scripts/capture_screenshots.py` launches the Debug apps with `-UITesting YES` and the store fixture `running`, at the test clock's time, so no real store, calendar, or account is read. On the Mac it captures single windows, and on the simulators it sets a clean status bar. The script `scripts/frame_screenshots.py` then draws each raw capture into a device frame; every frame is drawn there.
 
 ## 3. Testing
 
@@ -233,3 +239,5 @@ Source folders carry their target's name (1.3); `Packages/TimeTrackingCore/`, `C
 24. In Debug the Mac app is `<APP_NAME> Debug.app` and the agent `Contents/Library/LoginItems/TimeTrackingAgent Debug.app`, both with "Debug" in `CFBundleName` and `CFBundleDisplayName`, the launchd plist's `BundleProgram` names the renamed agent, and every iOS bundle's display name ends in " Debug"; executable names are unchanged, and no Release bundle's file name, `CFBundleName`, or `CFBundleDisplayName` contains "Debug".
 25. While another process holds `<git common dir>/timetracking-runtime.lock`, `make agent-test` exits non-zero with "another checkout is running" without invoking `xcodebuild`; once it is released, `make agent-test` invokes `xcodebuild`; and a `make agent-test` run from inside a target that holds the lock invokes `xcodebuild` instead of failing.
 26. With "TimeTracking iPhone" available on iOS 27.0 and iOS 27.2, `scripts/simulator.sh udid "TimeTracking iPhone"` prints the UDID of the iOS 27.2 device; "TimeTracking iPad" does not match "TimeTracking iPad Pro"; an unknown name exits non-zero naming `make sim-create`. `make build-sim`, `ui-test`, and `test` pass simulator destinations as `platform=iOS Simulator,id=<UDID>` looked up by name, never `name=`.
+27. Running `make docs` calls `sphinx-build` through `uv` with the locked dependencies and `-W`, writing to `build.noindex/docs/`.
+28. While another process holds the runtime lock, `make screenshots` exits non-zero with "another checkout is running" and captures nothing.

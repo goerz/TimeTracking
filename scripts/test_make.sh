@@ -364,8 +364,8 @@ test_check_behaviors() {
 test_help() {
     local output group target expected
     output=$(make -C "$root" --no-print-directory help)
-    expected="Build:all build build-mac build-ios build-sim
-Develop:sim sim-create stop mac-debug demo mac-debug-unregister logs sim-logs screenshots
+    expected="Build:all build build-mac build-ios build-sim docs
+Develop:sim sim-create stop mac-debug demo mac-debug-unregister logs sim-logs sim-screenshots screenshots
 Use:install mac uninstall apns-key device iphone ipad devices console
 Test:unit-test agent-test ui-test test test-sync
 Check:lint check-behaviors check-citations check-private check hooks
@@ -781,6 +781,40 @@ test_install() {
 
 # --- ARCH-25
 
+# --- ARCH-27
+
+test_docs() {
+    local sb fake
+    sb=$(sandbox)
+    fake=$(fake_tool uv 0)
+    rm -f "$scratch/calls"
+    make -C "$sb" --no-print-directory UV="$fake" docs > /dev/null
+    check "uv runs sphinx-build" grep -q 'run --project docs --locked sphinx-build' "$scratch/calls"
+    check "warnings are errors" grep -q ' -W ' "$scratch/calls"
+    check "the site goes to build.noindex" grep -q 'build.noindex/docs' "$scratch/calls"
+}
+
+# --- ARCH-28
+
+test_screenshots_lock() {
+    local sb lock holder status=0 output
+    sb=$(sandbox)
+    lock="$sb/.git/timetracking-runtime.lock"
+    mkfifo "$scratch/held-shots" "$scratch/release-shots"
+    lockf -k -t 0 "$lock" sh -c 'echo held > "$1"; read -r _ < "$2"' sh "$scratch/held-shots" "$scratch/release-shots" &
+    holder=$!
+    read -r _ < "$scratch/held-shots"
+    printf '#!/bin/sh\ntouch "%s/captured"\n' "$scratch" > "$sb/scripts/capture_screenshots.py"
+    output=$(make -C "$sb" --no-print-directory screenshots 2>&1) || status=$?
+    echo > "$scratch/release-shots"
+    wait "$holder"
+    check "a held lock fails" [ "$status" != 0 ]
+    check "a held lock is named" grep -q 'another checkout is running' <<< "$output"
+    check "nothing was captured" [ ! -e "$scratch/captured" ]
+}
+
+# --- ARCH-25
+
 test_runtime_lock() {
     local sb fake nested lock holder status=0 output
     sb=$(sandbox)
@@ -826,6 +860,8 @@ behavior "ARCH-23 make demo seeds only the Debug container after building both D
 behavior "ARCH-24 Debug Mac bundle file names and all Debug display names contain Debug; Release names do not" test_debug_names
 behavior "ARCH-25 the runtime lock stops a second checkout before xcodebuild and lets nested make calls through" test_runtime_lock
 behavior "ARCH-26 simulator destinations are UDIDs looked up by name, on the newest runtime that has the name" test_simulator_destinations
+behavior "ARCH-27 make docs builds with warnings as errors from the lock file" test_docs
+behavior "ARCH-28 make screenshots stops at a held runtime lock before it captures anything" test_screenshots_lock
 [ "$run_build" = 0 ] || behavior "ARCH-15 a compiler warning fails the build" test_warning_fails_build
 [ "$run_build" = 0 ] || behavior "ARCH-1 swift test passes in a copy of the checkout without local.mk, signing, or network" test_package_without_local_mk
 [ "$run_products" = 0 ] || behavior "ARCH-4 the Release Mac app holds the agent, launchd plist, and tools, and no Frameworks" test_mac_products

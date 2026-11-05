@@ -1,4 +1,4 @@
-# Spec: Activity Section
+# Activity Section
 
 The Activity section of the main window (fifth sidebar item, ⌘5; on the iPad a tab, section 5; the iPhone has none) shows what the tracker recorded over a date range: how much of each day was active, at which hours, in which apps, terminal sessions, and browsers, and where inside them the time went. It reads the logs through the shared library ([data_and_sync.md](data_and_sync.md) §6) and never writes them; collection and formats belong to [activity_tracking.md](activity_tracking.md). It does not change blocks, assign projects, create entries, or export.
 

@@ -1,4 +1,4 @@
-# Spec: Shared Library, Data Model, and Sync
+# Shared Library, Data Model, and Sync
 
 The shared library (`TimeTrackingCore`) is linked by every executable. It holds the entities and their invariants, the store, iCloud sync, the live-update path to the iPhone and iPad widgets, JSON export and import, the reader for the tracker's logs, and the queries behind every view and script. User interfaces hold views and view state only.
 

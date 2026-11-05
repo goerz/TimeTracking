@@ -1,4 +1,4 @@
-# Spec: Design Language
+# Design Language
 
 The visual rules of every surface: the Mac main window, Mini Timer, menu bar item, and settings; the iPhone and iPad app; widgets and controls. A component spec says what a surface contains and how it behaves; this spec says how it looks and wins where the two differ on a size, symbol, or style.
 

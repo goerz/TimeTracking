@@ -1,4 +1,4 @@
-# Spec: Scripting Surface
+# Scripting Surface
 
 Every way a program other than the app's user interface reads or changes tracked time: the command-line tool `timetracking`, App Intents, and the `timetracking` URL scheme, plus the CSV formats, the description file, and `check`. Everything runs on the device against the local store; there is no web API or `x-callback-url`. App Intents stand in for an AppleScript dictionary because one definition serves Shortcuts, Siri, and Spotlight on both platforms. Time blocks are calendar events ([calendar.md](calendar.md)), so no command touches them.
 

@@ -1,4 +1,4 @@
-# Spec: Sections and Projects
+# Sections and Projects
 
 This spec covers the four sections of the main window after the Timer (Calendar, Reports, Projects, Activity) and their router, and the Projects section: the projects table with its clients and areas, the project dialog, the area colors, and the shared project picker. Entities and their store rules are in [data_and_sync.md](data_and_sync.md) §1.
 
