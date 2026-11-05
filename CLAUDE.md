@@ -108,6 +108,8 @@ System frameworks first. Third-party packages, pinned exactly in the committed `
 
 ## Git
 
+Follow the development guidelines in @CONTRIBUTING.md, in particular its commit message template, which applies to every commit, whatever the style of older commits.
+
 Hooks in `.githooks/` (enabled by `make hooks`, which every building target runs) refuse personal data: the `local.mk` values, `.private-strings` lines, the home directory, host names, the git e-mail, credentials, UDIDs, and key or profile files (`make check-private`). The pre-push hook also runs `make lint`. Never bypass a hook.
 
 ## Parallel sessions
