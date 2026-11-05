@@ -46,8 +46,7 @@ struct EventCard: View {
         .clipped()
         .onHover { hovering = $0 }
         .accessibilityAddTraits(.isButton)
-        .onTapGesture(count: 2) { model.openEvent(event) }
-        .onTapGesture { model.click(.event(event.id)) }
+        .cardClicks { model.click(.event(event.id)) } onDoubleClick: { model.openEvent(event) }
         .draggable("event:\(event.id)")
         .help("\(event.notes ?? "")\(event.attendeeCount > 0 ? "\n\(event.attendeeCount) attendees" : "")")
         .contextMenu {

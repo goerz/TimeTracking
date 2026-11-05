@@ -64,7 +64,7 @@ Dragging a card's body moves it with its duration, the start snapping like drawi
 
 ### 2.5 Selecting, editing, deleting
 
-A click selects; ⇧-click or ⌘-click extends, on every kind of card; Tab and ⇧Tab step through entries by start. Return or a double-click opens the Timer's edit popover ([spec_timer.md](spec_timer.md) §4). Delete or ⌫ deletes the selection, undoable, with the notice "Deleted 'Clarify noise model' (1h 33m). Undo" for 8 seconds. Deleting the running entry asks "Discard the running entry?" first; undo restores it stopped at the deletion time.
+A click selects at once, by the keys held for that click; ⇧-click or ⌘-click extends, on every kind of card; Tab and ⇧Tab step through entries by start. Return or a double-click opens the Timer's edit popover ([spec_timer.md](spec_timer.md) §4). Delete or ⌫ deletes the selection, undoable, with the notice "Deleted 'Clarify noise model' (1h 33m). Undo" for 8 seconds. Deleting the running entry asks "Discard the running entry?" first; undo restores it stopped at the deletion time.
 
 Duplicate to Next Day (⌘D) copies an entry to the same time next day as a stopped entry, refused unless that interval is entirely past. Split Here splits at the entry's snapped midpoint, refused within 1 minute of either end; on the running entry the later part keeps running.
 

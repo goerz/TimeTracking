@@ -87,8 +87,7 @@ struct EntryCard: View {
         .opacity(model.passesFilters(listing) ? 1 : 0.25)
         .onHover { hovering = $0 }
         .accessibilityAddTraits(.isButton)
-        .onTapGesture(count: 2) { model.editingEntry = entry.id }
-        .onTapGesture { model.click(.entry(entry.id)) }
+        .cardClicks { model.click(.entry(entry.id)) } onDoubleClick: { model.editingEntry = entry.id }
         .calendarDrag(minimumDistance: 4, onLongPress: longPressed) { drag in
             guard model.continueCardDrag(.entry(entry.id), on: day, from: drag.start) else {
                 return

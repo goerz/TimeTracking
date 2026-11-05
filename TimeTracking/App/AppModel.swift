@@ -129,6 +129,7 @@ final class AppModel {
         ModifierState.optionDown = { ModifierKeys.optionIsDown }
         ModifierState.shiftDown = { ModifierKeys.shiftIsDown }
         ModifierState.extendDown = { ModifierKeys.extendsSelection }
+        ModifierState.clickCount = { ModifierKeys.clickCount }
         ModifierState.readsKeyPresses = true
     }
 

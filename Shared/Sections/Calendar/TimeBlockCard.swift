@@ -55,8 +55,7 @@ struct TimeBlockCard: View {
         .offset(model.cardDragCancelled ? .zero : dragOffset)
         .onHover { hovering = $0 }
         .accessibilityAddTraits(.isButton)
-        .onTapGesture(count: 2) { model.editTimeBlock(block) }
-        .onTapGesture { model.click(.timeBlock(block.id)) }
+        .cardClicks { model.click(.timeBlock(block.id)) } onDoubleClick: { model.editTimeBlock(block) }
         .calendarDrag(minimumDistance: 4, onLongPress: EntryCard.touch ? { showsMenu = true } : nil) { drag in
             guard model.continueCardDrag(.timeBlock(block.id), on: day, from: drag.start) else {
                 return

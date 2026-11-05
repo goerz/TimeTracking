@@ -23,6 +23,14 @@ enum ModifierKeys {
         !flags.isDisjoint(with: [.shift, .command])
     }
 
+    /// The click count of the click being handled; 1 for any other event.
+    static var clickCount: Int {
+        guard let event = NSApp.currentEvent, [.leftMouseDown, .leftMouseUp].contains(event.type) else {
+            return 1
+        }
+        return event.clickCount
+    }
+
     private static var flags: NSEvent.ModifierFlags {
         NSApp.currentEvent?.modifierFlags ?? NSEvent.modifierFlags
     }

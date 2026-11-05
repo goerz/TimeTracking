@@ -8,6 +8,8 @@ enum ModifierState {
     @MainActor static var optionDown: () -> Bool = { false }
     /// ⇧ or ⌘ on a click, which extends a selection.
     @MainActor static var extendDown: () -> Bool = { false }
+    /// The click count of the click being handled (2 on a double-click).
+    @MainActor static var clickCount: () -> Int = { 1 }
     /// A view's plain-arrow or Tab shortcut on the Mac may also take the
     /// key with ⇧, so `CalendarKeyHandlers` checks ⇧ itself.
     @MainActor static var shiftDown: () -> Bool = { false }
