@@ -61,8 +61,8 @@ struct BarsPanel: View {
                     }
                 }
                 .onTapGesture { location in
-                    if let target = target(at: location, proxy, geometry, bars: bars), let bar = bars.bar(of: target) {
-                        model.showInCalendar(bar: bar, series: nil)
+                    if let target = target(at: location, proxy, geometry, bars: bars) {
+                        model.showInCalendar(target, in: bars)
                     }
                 }
         }

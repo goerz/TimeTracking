@@ -273,6 +273,18 @@ struct ActivitySummaryTests {
         #expect(bars.tooltip(of: .init(bar: wednesday.id), displayName: name) == "Wed Oct 28 · 0h")
     }
 
+    @Test("PA-26 a height in a bar finds the segment there, bottom up; outside the stack there is none")
+    func segmentAtHeight() throws {
+        let block = try Self.block("2026-10-29", "08:00", "09:00", [Self.item("safari", 1000), Self.item("mail", 500)], active: 2000)
+        let bar = Self.summary([block]).bars.bars[3]
+        #expect(bar.series(atSeconds: 0) == .context("safari"))
+        #expect(bar.series(atSeconds: 999) == .context("safari"))
+        #expect(bar.series(atSeconds: 1000) == .context("mail"))
+        #expect(bar.series(atSeconds: 1500) == .notItemized)
+        #expect(bar.series(atSeconds: 2000) == nil)
+        #expect(bar.series(atSeconds: -1) == nil)
+    }
+
     @Test("PA-12 context shares stay relative to the unfiltered total; Brief activity equals a minus item seconds")
     func contextShares() throws {
         let block = try Self.block(

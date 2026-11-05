@@ -139,3 +139,4 @@ The Activity tab shows the same panels from the synced block log, without subjec
 23. With Midnight at 04:00, a block at 02:00 on March 14 counts on March 13 while its log date stays March 14, its hour stays 02:00, and a heatmap row's columns run from 04:00 to 03:00.
 24. On the Mac today's bar marks the open block's part, hatched, as the top of its stack, also under a filter; a bar without an open block has none.
 25. Hovering a bar segment shows its day, display name, and time of the bar's total; hovering a label or the empty area above a bar shows the total and the three largest contexts; a future bar shows nothing.
+26. Clicking a bar segment opens the Calendar at its day with that context's blocks highlighted; a click beside the stack or on a gray layer opens the day without a highlight.

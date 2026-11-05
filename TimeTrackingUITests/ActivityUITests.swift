@@ -53,6 +53,13 @@ final class ActivityUITests: XCTestCase {
     }
 
     @MainActor
+    func testPA26_clickingABarOpensItsDayInTheCalendar() {
+        let app = launch()
+        point(chart(app), weekday: 1, dy: 0.8).click()
+        XCTAssertTrue(element(app, "calendar.header.2024-03-12").waitForExistence(timeout: 5))
+    }
+
+    @MainActor
     func testPA25_hoveringABarShowsItsTooltip() {
         let app = launch()
         let chart = chart(app)

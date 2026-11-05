@@ -278,12 +278,12 @@ final class ActivityModel {
     }
 
     /// A bar (no hour) or a segment (its context highlighted).
-    func showInCalendar(bar: ActivityBars.Bar, series: ActivityBars.Series?) {
-        guard let day = bar.days.first else {
+    func showInCalendar(_ target: ActivityBars.Target, in bars: ActivityBars) {
+        guard let day = bars.bar(of: target)?.days.first else {
             return
         }
         var highlight: BlockHighlight?
-        if case let .context(context) = series {
+        if case let .context(context) = target.series {
             highlight = .context(context)
         }
         router?.showCalendar(day: day, hour: nil, highlight: highlight)
