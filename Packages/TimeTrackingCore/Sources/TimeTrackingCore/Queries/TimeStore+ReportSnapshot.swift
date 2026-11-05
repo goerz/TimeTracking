@@ -36,9 +36,13 @@ extension TimeStore {
         let projects = try reportProjects()
         let now = clock.now
         let calendar = displayCalendar(timeZone: timeZone())
-        var stored = query
-        stored.days = calendar.storedDays(of: query.days)
-        let listings = try listings(for: entries(matching: stored))
+        let reach = calendar.reach(of: query.days)
+        let matching = try entries(
+            matching: query,
+            where: "e.start < ? AND COALESCE(e.\"end\", ?) > ?",
+            [Time.seconds(reach.end), Time.seconds(now), Time.seconds(reach.start)]
+        )
+        let listings = try listings(for: matching)
             .flatMap { $0.pieces(in: calendar, at: now) }
             .filter { listing in
                 let entry = listing.entry
@@ -53,6 +57,7 @@ extension TimeStore {
                     }
                 }
             }
+            .anchoringEditors()
         let stopped = listings.reduce(0) { $0 + ($1.entry.isRunning ? 0 : $1.entry.seconds(at: now)) }
         return ReportEntryList(listings: listings, stoppedSeconds: stopped)
     }

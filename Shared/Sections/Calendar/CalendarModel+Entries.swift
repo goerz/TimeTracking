@@ -239,12 +239,9 @@ extension CalendarModel {
         CalendarLane.assign(entries(on: day).map { ($0.entry.id, $0.entry.interval(at: clock.now)) })
     }
 
-    /// The entries with a part in the column of `day`; one crossing
-    /// Midnight is in both columns.
+    /// The entries with a part in the column of `day`; one crossing the
+    /// day change is in the column of every day it lies on.
     func entries(on day: TrackingDay) -> [EntryListing] {
-        guard calendar.midnightHour != 0 else {
-            return entries.filter { $0.entry.day == day }.sorted { $0.entry.start < $1.entry.start }
-        }
         let span = calendar.interval(of: day)
         return entries.filter { listing in
             let entry = listing.entry.interval(at: clock.now)

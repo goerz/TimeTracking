@@ -39,30 +39,31 @@ public struct TimerListDay: Hashable, Sendable, Identifiable {
 }
 
 extension TimeStore {
-    /// The `limit` most recent days with live entries, newest first.
+    /// The `limit` most recent days with a piece of a live entry, newest
+    /// first. An entry lies on every day from its start to its end, so the
+    /// entries are read by their end, the latest first, until the rest
+    /// cannot reach the days found.
     public func entryDays(limit: Int) throws -> [TrackingDay] {
         let calendar = displayCalendar(timeZone: timeZone())
-        guard calendar.midnightHour != 0 else {
-            return try storedDays(limit: limit)
-        }
-        // The `limit` latest shown days lie within one stored day of the
-        // `limit` latest stored days.
-        let stored = try storedDays(limit: limit + 1)
-        guard let first = stored.last, let last = stored.first else {
-            return []
-        }
-        let days = try Set(entries(days: first ... last).flatMap { calendar.pieces(of: $0, at: clock.now).map(\.day) })
-        return Array(days.sorted(by: >).prefix(max(limit, 0)))
-    }
-
-    private func storedDays(limit: Int) throws -> [TrackingDay] {
+        let now = clock.now
+        var days: Set<TrackingDay> = []
+        var latest: [TrackingDay] = []
         try read { database in
-            try String.fetchAll(
+            let rows = try Row.fetchCursor(
                 database,
-                sql: "SELECT DISTINCT day FROM time_entry WHERE deleted_at IS NULL ORDER BY day DESC LIMIT ?",
-                arguments: [max(limit, 0)]
-            ).compactMap { TrackingDay($0) }
+                sql: "SELECT * FROM time_entry WHERE deleted_at IS NULL ORDER BY COALESCE(\"end\", ?) DESC, id",
+                arguments: [Time.seconds(now)]
+            )
+            while let row = try rows.next() {
+                let entry = TimeEntry(row: row)
+                if latest.count >= limit, let last = latest.last, (entry.end ?? now) < calendar.reach(of: last ... last).start {
+                    break
+                }
+                days.formUnion(calendar.pieces(of: entry, at: now).map(\.day))
+                latest = Array(days.sorted(by: >).prefix(max(limit, 0)))
+            }
         }
+        return latest
     }
 
     /// The Timer's list: the `dayLimit` most recent days with
@@ -79,6 +80,7 @@ extension TimeStore {
         let calendar = displayCalendar(timeZone: timeZone())
         let listings = try shownListings(days: first ... last, in: calendar)
             .filter { wanted.contains($0.entry.day) && (needle.isEmpty || Self.listing($0, contains: needle)) }
+            .anchoringEditors()
         let byDay = Dictionary(grouping: listings, by: \.entry.day)
         return days.compactMap { day in
             let all = byDay[day] ?? []
@@ -94,7 +96,7 @@ extension TimeStore {
 
     /// The pieces lying on `days` in `calendar`, with their names.
     func shownListings(days: ClosedRange<TrackingDay>, in calendar: TrackingCalendar) throws -> [EntryListing] {
-        try listings(for: entries(days: calendar.storedDays(of: days)))
+        try listings(for: entries(reaching: days, in: calendar))
             .flatMap { $0.pieces(in: calendar, at: clock.now) }
             .filter { days.contains($0.entry.day) }
     }

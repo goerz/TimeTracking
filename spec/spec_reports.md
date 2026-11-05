@@ -14,7 +14,7 @@ With Sleep or Workouts on and an area chosen under "In Reports" in the Calendar 
 
 ### 2.1 Days
 
-Days run from Midnight to Midnight ([spec_data_and_sync.md](spec_data_and_sync.md) §8), 00:00 by default, and today is the shown day that contains now. Each entry counts for the days it lies on, the running entry up to now; an entry across Midnight counts its part on each day and as one entry on each. The entry list shows those parts as rows with their times, and editing a row edits the stored entry. Weeks run Monday to Sunday, numbered per ISO 8601; weeks, months, and years are whole shown days, so with Midnight at 04:00 a week starts on Monday at 04:00.
+Days run from Midnight to Midnight ([spec_data_and_sync.md](spec_data_and_sync.md) §8), 00:00 by default, and today is the shown day that contains now. Each entry counts for the days it lies on, the running entry up to now; an entry across Midnight counts its part on each day and as one entry on each. The entry list shows those parts as rows with their times, and editing a row edits the stored entry; the first row of an entry in the list anchors the popover. Weeks run Monday to Sunday, numbered per ISO 8601; weeks, months, and years are whole shown days, so with Midnight at 04:00 a week starts on Monday at 04:00.
 
 ### 2.2 Presets and the date popover
 

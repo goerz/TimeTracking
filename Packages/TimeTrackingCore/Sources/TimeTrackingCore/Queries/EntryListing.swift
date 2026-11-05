@@ -15,6 +15,9 @@ public struct EntryListing: Identifiable, Hashable, Sendable {
     /// The stored entry when `entry` is only its piece of one day
     /// (`TrackingCalendar.pieces(of:at:)`).
     public var whole: TimeEntry?
+    /// This row presents the stored entry's editor; of an entry's rows in
+    /// one list only the earliest does (`anchoringEditors()`).
+    var anchorsEditor = true
 
     public init(entry: TimeEntry, project: Project?, area: Area?, client: Client?, whole: TimeEntry? = nil) {
         self.entry = entry
@@ -33,13 +36,10 @@ public struct EntryListing: Identifiable, Hashable, Sendable {
         "\(entry.id) \(entry.day)"
     }
 
-    /// What an editor opens: the stored entry, on the row of its first
-    /// piece only, so its other row doesn't present a second editor.
+    /// What an editor opens: the stored entry, on the row that anchors it
+    /// only, so the entry's other rows don't present a second editor.
     public var editable: TimeEntry? {
-        guard let whole else {
-            return entry
-        }
-        return whole.start == entry.start ? whole : nil
+        anchorsEditor ? whole ?? entry : nil
     }
 
     /// The listing's pieces in `calendar`.
@@ -49,6 +49,19 @@ public struct EntryListing: Identifiable, Hashable, Sendable {
             var listing = self
             listing.entry = piece
             listing.whole = pieces.count > 1 ? entry : nil
+            return listing
+        }
+    }
+}
+
+extension [EntryListing] {
+    /// The rows of one list, in start order: each entry's first row anchors
+    /// its editor, also when the list holds only its later pieces.
+    func anchoringEditors() -> Self {
+        var seen: Set<EntryID> = []
+        return map { listing in
+            var listing = listing
+            listing.anchorsEditor = seen.insert(listing.id).inserted
             return listing
         }
     }

@@ -62,35 +62,16 @@ extension TimeStore: StructureReading {
     /// counts in the days it lies on, the running one to now); projects
     /// without an entry in the range are absent (spec_projects.md §2.4).
     public func projectSeconds(days: ClosedRange<TrackingDay>) throws -> [ProjectID: Int] {
-        let now = Time.seconds(clock.now)
-        let hour = displayCalendar(timeZone: timeZone()).midnightHour
-        guard hour == 0 else {
-            let groups = try shownGroups(days: days, scan: ReportScan(now: now), midnightHour: hour)
-            return groups.reduce(into: [:]) { result, group in
-                if let id = group.projectKey.flatMap(ProjectID.init) {
-                    result[id, default: 0] += group.seconds
-                }
+        let groups = try shownGroups(
+            days: days,
+            scan: ReportScan(now: Time.seconds(clock.now)),
+            in: displayCalendar(timeZone: timeZone())
+        )
+        return groups.reduce(into: [:]) { result, group in
+            if let id = group.projectKey.flatMap(ProjectID.init) {
+                result[id, default: 0] += group.seconds
             }
         }
-        let rows = try read { database in
-            try Row.fetchAll(
-                database,
-                sql: """
-                SELECT e.project_id, SUM(MAX(0, COALESCE(e."end", ?) - e.start)) AS seconds
-                FROM time_entry e
-                WHERE e.deleted_at IS NULL AND e.project_id IS NOT NULL AND e.day >= ? AND e.day <= ?
-                GROUP BY e.project_id
-                """,
-                arguments: [now, days.lowerBound.description, days.upperBound.description]
-            )
-        }
-        var result: [ProjectID: Int] = [:]
-        for row in rows {
-            if let id = ProjectID(row["project_id"] as String) {
-                result[id] = row["seconds"]
-            }
-        }
-        return result
     }
 
     /// The live project `id` as `projects(filter:)` lists it, archived or

@@ -109,17 +109,14 @@ public struct TrackingCalendar: Sendable {
 
     /// The day an entry is shown on: the day of its start in its own zone.
     public func displayDay(of entry: TimeEntry) -> TrackingDay {
-        midnightHour == 0 ? entry.day : zoned(for: entry).day(containing: entry.start)
+        zoned(for: entry).day(containing: entry.start)
     }
 
-    /// `entry` as the app shows it: one piece per day it lies on, each with
-    /// its part of the interval and that day as `day`, and only the last
-    /// one running. Stored entries never change; an entry crossing the day
-    /// change in its own zone becomes two pieces with the same id.
+    /// `entry` as the app shows it: one piece per day it lies on in its own
+    /// zone, each with its part of the interval and that day as `day`, and
+    /// only the last one running. Stored entries never change; every piece
+    /// has the entry's id.
     public func pieces(of entry: TimeEntry, at now: Date) -> [TimeEntry] {
-        guard midnightHour != 0 else {
-            return [entry]
-        }
         let calendar = zoned(for: entry)
         var piece = entry
         piece.day = calendar.day(containing: entry.start)
@@ -141,10 +138,12 @@ public struct TrackingCalendar: Sendable {
         entry.timeZone == timeZone.identifier ? self : Self(timeZoneIdentifier: entry.timeZone, midnightHour: midnightHour)
     }
 
-    /// The stored days of the entries that can lie on `days`: a stored
-    /// entry's day and the days of its pieces are at most one apart.
-    public func storedDays(of days: ClosedRange<TrackingDay>) -> ClosedRange<TrackingDay> {
-        midnightHour == 0 ? days : days.lowerBound.adding(days: -1) ... days.upperBound.adding(days: 1)
+    /// The instants `days` can cover in any zone, for finding the entries
+    /// with a piece on them by interval overlap: each entry's pieces follow
+    /// its own zone, and no zone's offset from GMT exceeds 16 hours.
+    public func reach(of days: ClosedRange<TrackingDay>) -> DateInterval {
+        let interval = Self(timeZone: .gmt, midnightHour: midnightHour).interval(of: days)
+        return DateInterval(start: interval.start - 16 * 3600, end: interval.end + 16 * 3600)
     }
 
     /// The midnights strictly between `after` and `before` in `zone`.

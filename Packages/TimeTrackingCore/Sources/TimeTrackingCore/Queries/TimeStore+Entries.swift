@@ -46,11 +46,14 @@ extension TimeStore: TimeStoreReading {
         try fetchEntries(where: "day = ? AND deleted_at IS NULL", [day.description])
     }
 
-    /// Entries whose day lies in `days`, by start.
-    public func entries(days: ClosedRange<TrackingDay>) throws -> [TimeEntry] {
-        try fetchEntries(
-            where: "day >= ? AND day <= ? AND deleted_at IS NULL",
-            [days.lowerBound.description, days.upperBound.description]
+    /// The live entries that can have a piece on `days`, by start. An entry
+    /// can start any number of days before them, so this is interval
+    /// overlap, not a filter on `day`; the caller keeps the pieces it wants.
+    public func entries(reaching days: ClosedRange<TrackingDay>, in calendar: TrackingCalendar) throws -> [TimeEntry] {
+        let reach = calendar.reach(of: days)
+        return try fetchEntries(
+            where: "start < ? AND COALESCE(\"end\", ?) > ? AND deleted_at IS NULL",
+            [Time.seconds(reach.end), Time.seconds(clock.now), Time.seconds(reach.start)]
         )
     }
 
@@ -61,7 +64,7 @@ extension TimeStore: TimeStoreReading {
         let first = ending.adding(days: 1 - count)
         let now = clock.now
         let calendar = displayCalendar(timeZone: timeZone())
-        let pieces = try entries(days: calendar.storedDays(of: first ... ending)).flatMap { calendar.pieces(of: $0, at: now) }
+        let pieces = try entries(reaching: first ... ending, in: calendar).flatMap { calendar.pieces(of: $0, at: now) }
         let byDay = Dictionary(grouping: pieces, by: \.day)
         return (0 ..< count).map { offset in
             let day = ending.adding(days: -offset)

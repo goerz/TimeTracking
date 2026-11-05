@@ -141,7 +141,7 @@ struct MidnightHourTests {
         let part = try #require(listings.first { $0.entry.task == "Night" })
         #expect(try part.entry.start == test.date("2024-03-13T04:00"))
         #expect(try part.whole?.start == test.date("2024-03-13T03:00"))
-        #expect(part.editable == nil)
+        #expect(part.editable == part.whole, "the first row of an entry in the list opens its editor")
         #expect(snapshot.entries.stoppedSeconds == 3600 + 7200)
     }
 

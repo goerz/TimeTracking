@@ -83,7 +83,7 @@ public struct WidgetSnapshotBuilder: Sendable {
         let today = calendar.day(containing: now)
         let midnight = calendar.startOfDay(today)
         let runningID = snapshot.running?.entryID
-        let stored = await (try? store.entries(days: calendar.storedDays(of: today ... today))) ?? []
+        let stored = await (try? store.entries(reaching: today ... today, in: calendar)) ?? []
         let stopped = stored
             .filter { $0.id != runningID && !$0.isRunning }
             .flatMap { calendar.pieces(of: $0, at: now) }

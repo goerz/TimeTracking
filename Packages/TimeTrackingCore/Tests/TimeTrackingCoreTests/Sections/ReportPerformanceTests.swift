@@ -48,7 +48,7 @@ struct ReportPerformanceTests {
         #expect(yearTime < 100, "report over one year by day: \(yearTime) ms")
         #expect(decadeTime < 300, "report over ten years by month: \(decadeTime) ms")
         #expect(snapshotTime < 100, "Reports snapshot over one year: \(snapshotTime) ms")
-        // With a Midnight, Swift forms the groups instead of SQLite.
+        // Entries cut at another hour land on other days, at the same cost.
         try await store.set(.midnightHour, 4)
         let shownTree = try await store.report(year)
         #expect(shownTree.buckets != yearTree.buckets, "work past midnight moves to the day before")

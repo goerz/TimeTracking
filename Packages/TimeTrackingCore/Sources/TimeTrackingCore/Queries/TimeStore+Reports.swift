@@ -1,9 +1,9 @@
 // Report aggregation (spec_data_and_sync.md §7.3, §7.5; spec_reports.md §5).
 // Each entry counts in the days it lies on, the running one up to the query
-// time; grouping uses the project's current area. SQLite sums entries per
-// project, task, and day; Swift builds the tree from those groups (§7.5's
-// targets on the large dataset). With a `midnightHour`, an entry's part on
-// each day counts as one entry there, and Swift forms the groups.
+// time, its part on each day as one entry there; grouping uses the project's
+// current area. One scan cuts the entries and sums them per project, task,
+// and day, and the tree is built from those groups (§7.5's targets on the
+// large dataset).
 
 import Foundation
 import GRDB
@@ -144,8 +144,18 @@ extension TimeStore: Reporting {
         return periods.map { ($0, sums[$0] ?? [:]) }
     }
 
-    /// The matching entries by start.
+    /// The matching entries whose stored `day` lies in the query's days,
+    /// by start.
     public func entries(matching query: ReportQuery) throws -> [TimeEntry] {
+        try entries(
+            matching: query,
+            where: "e.day >= ? AND e.day <= ?",
+            [query.days.lowerBound.description, query.days.upperBound.description]
+        )
+    }
+
+    /// The live entries satisfying `clause` that pass the query's filter, by start.
+    func entries(matching query: ReportQuery, where clause: String, _ arguments: [any DatabaseValueConvertible]) throws -> [TimeEntry] {
         let projects = try reportProjects()
         let filter = query.filter
         let needle = filter.taskContains?.folded ?? ""
@@ -154,10 +164,10 @@ extension TimeStore: Reporting {
                 database,
                 sql: """
                 SELECT \(TimeEntry.columns) FROM time_entry e
-                WHERE e.deleted_at IS NULL AND e.day >= ? AND e.day <= ? AND (? = '' OR instr(e.task_key, ?) > 0)
+                WHERE e.deleted_at IS NULL AND \(clause) AND (? = '' OR instr(e.task_key, ?) > 0)
                 ORDER BY e.start, e.id
                 """,
-                arguments: [query.days.lowerBound.description, query.days.upperBound.description, needle, needle]
+                arguments: StatementArguments(arguments + [needle, needle])
             )
         }
         .map(TimeEntry.init(row:))
@@ -180,8 +190,7 @@ extension TimeStore: Reporting {
         let lower = query.bounds.map { Int64($0.start.timeIntervalSince1970.rounded(.up)) } ?? Int64.min
         let upper = query.bounds.map { Int64($0.end.timeIntervalSince1970.rounded(.up)) } ?? Int64.max
         let scan = ReportScan(needle: needle, now: now, lower: lower, upper: upper)
-        let hour = displayCalendar(timeZone: timeZone()).midnightHour
-        let groups = try hour == 0 ? storedGroups(query, scan: scan) : shownGroups(days: query.days, scan: scan, midnightHour: hour)
+        let groups = try shownGroups(days: query.days, scan: scan, in: displayCalendar(timeZone: timeZone()))
         var periods: [TrackingDay: TrackingPeriod] = [:]
         let entryRows = groups.compactMap { group -> ReportRow? in
             let project = group.projectKey.flatMap { projects[$0] }
@@ -207,42 +216,11 @@ extension TimeStore: Reporting {
         return try entryRows + (query.includeHealth ? healthReportRows(query) : [])
     }
 
-    /// The groups by the stored days, summed by SQLite.
-    private func storedGroups(_ query: ReportQuery, scan: ReportScan) throws -> [ReportGroup] {
-        try read { database in
-            try Row.fetchAll(
-                database,
-                sql: """
-                SELECT e.project_id, e.task, e.day, COUNT(*) AS n,
-                  SUM(MAX(0, COALESCE(e."end", ?) - e.start)) AS seconds, MAX(e."end" IS NULL) AS running
-                FROM time_entry e
-                WHERE e.deleted_at IS NULL AND e.day >= ? AND e.day <= ? AND (? = '' OR instr(e.task_key, ?) > 0)
-                  AND e.start >= ? AND e.start < ?
-                GROUP BY e.project_id, e.task, e.day
-                """,
-                arguments: [
-                    scan.now, query.days.lowerBound.description, query.days.upperBound.description,
-                    scan.needle, scan.needle, scan.lower, scan.upper,
-                ]
-            )
-            .map { row in
-                ReportGroup(
-                    projectKey: row["project_id"],
-                    task: row["task"],
-                    day: TrackingDay(row["day"] as String) ?? query.days.lowerBound,
-                    seconds: row["seconds"],
-                    count: row["n"],
-                    running: row["running"]
-                )
-            }
-        }
-    }
-
     /// The groups by the days the app shows, each part of an entry counting
     /// as one entry of its day.
-    func shownGroups(days: ClosedRange<TrackingDay>, scan: ReportScan, midnightHour: Int) throws -> [ReportGroup] {
-        let stored = TrackingCalendar(timeZone: .gmt, midnightHour: midnightHour).storedDays(of: days)
-        var cutter = ReportDayCutter(midnightHour: midnightHour, now: scan.now)
+    func shownGroups(days: ClosedRange<TrackingDay>, scan: ReportScan, in calendar: TrackingCalendar) throws -> [ReportGroup] {
+        let reach = calendar.reach(of: days)
+        var cutter = ReportDayCutter(midnightHour: calendar.midnightHour, now: scan.now)
         var groups: [ReportGroupKey: ReportGroup] = [:]
         try read { database in
             let rows = try Row.fetchCursor(
@@ -250,11 +228,11 @@ extension TimeStore: Reporting {
                 sql: """
                 SELECT e.project_id, e.task, e.day, e.time_zone, e.start, e."end"
                 FROM time_entry e
-                WHERE e.deleted_at IS NULL AND e.day >= ? AND e.day <= ? AND (? = '' OR instr(e.task_key, ?) > 0)
-                  AND e.start >= ? AND e.start < ?
+                WHERE e.deleted_at IS NULL AND e.start < ? AND COALESCE(e."end", ?) > ?
+                  AND (? = '' OR instr(e.task_key, ?) > 0) AND e.start >= ? AND e.start < ?
                 """,
                 arguments: [
-                    stored.lowerBound.description, stored.upperBound.description,
+                    Time.seconds(reach.end), scan.now, Time.seconds(reach.start),
                     scan.needle, scan.needle, scan.lower, scan.upper,
                 ]
             )

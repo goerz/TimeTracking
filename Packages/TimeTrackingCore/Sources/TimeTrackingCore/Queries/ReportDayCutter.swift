@@ -4,15 +4,12 @@
 import Foundation
 import GRDB
 
-/// Cuts entry rows at the day change. A stored entry lies on one local
-/// date, which has one day change, so it has at most two parts. Reports scan
-/// many entries over few dates, so each date's change is worked out once per
-/// zone.
+/// Cuts entry rows at every day change they cross. Reports scan many entries
+/// over few dates, so each date's start is worked out once per zone.
 struct ReportDayCutter {
     let midnightHour: Int
     let now: Int64
-    private var calendars: [String: TrackingCalendar] = [:]
-    private var changes: [String: (instant: Int64, days: [TrackingDay])] = [:]
+    private var zones: [String: ZoneDays] = [:]
 
     init(midnightHour: Int, now: Int64) {
         self.midnightHour = midnightHour
@@ -20,31 +17,64 @@ struct ReportDayCutter {
     }
 
     /// The parts of a `time_entry` row with `day`, `time_zone`, `start`, and
-    /// `end`, in order; an entry without length lies on the side of its start.
+    /// `end`, in order; an entry without length lies on the day of its start.
     mutating func parts(of row: Row) -> [(day: TrackingDay, seconds: Int)] {
-        let change = change(zone: row["time_zone"], date: row["day"])
-        let start: Int64 = row["start"]
-        let end = (row["end"] as Int64?) ?? now
-        var parts: [(TrackingDay, Int)] = []
-        if start < change.instant {
-            parts.append((change.days[0], Int(max(0, min(end, change.instant) - start))))
-        }
-        if end > change.instant || start >= change.instant {
-            parts.append((change.days[1], Int(max(0, end - max(start, change.instant)))))
-        }
-        return parts
+        let name: String = row["time_zone"]
+        let hour = midnightHour
+        return zones[name, default: ZoneDays(TrackingCalendar(timeZoneIdentifier: name, midnightHour: hour))].parts(
+            date: row["day"],
+            start: row["start"],
+            end: (row["end"] as Int64?) ?? now
+        )
+    }
+}
+
+/// The days of one zone, with what is known of them so far.
+private struct ZoneDays {
+    let calendar: TrackingCalendar
+    private var dates: [String: TrackingDay] = [:]
+    private var starts: [TrackingDay: Int64] = [:]
+
+    init(_ calendar: TrackingCalendar) {
+        self.calendar = calendar
     }
 
-    private mutating func change(zone: String, date: String) -> (instant: Int64, days: [TrackingDay]) {
-        let key = zone + date
-        if let known = changes[key] {
+    mutating func parts(date: String, start: Int64, end: Int64) -> [(day: TrackingDay, seconds: Int)] {
+        var day = shownDay(of: start, onDate: date)
+        var next = self.start(of: day.adding(days: 1))
+        guard next < end else {
+            return [(day, Int(max(0, end - start)))]
+        }
+        var parts = [(day: day, seconds: Int(next - start))]
+        while true {
+            day = day.adding(days: 1)
+            let later = self.start(of: day.adding(days: 1))
+            guard later < end else {
+                parts.append((day, Int(end - next)))
+                return parts
+            }
+            parts.append((day, Int(later - next)))
+            next = later
+        }
+    }
+
+    /// The shown day of an instant on the local `date`: that date, or the
+    /// one next to it when the day change lies between them.
+    private mutating func shownDay(of instant: Int64, onDate date: String) -> TrackingDay {
+        let day = dates[date] ?? TrackingDay(date) ?? TrackingDay(year: 1970, month: 1, day: 1)
+        dates[date] = day
+        if instant < start(of: day) {
+            return day.adding(days: -1)
+        }
+        return instant < start(of: day.adding(days: 1)) ? day : day.adding(days: 1)
+    }
+
+    private mutating func start(of day: TrackingDay) -> Int64 {
+        if let known = starts[day] {
             return known
         }
-        let calendar = calendars[zone] ?? TrackingCalendar(timeZoneIdentifier: zone, midnightHour: midnightHour)
-        calendars[zone] = calendar
-        let found = calendar.dayChange(on: TrackingDay(date) ?? TrackingDay(year: 1970, month: 1, day: 1))
-        let change = (Time.seconds(found.instant), found.days)
-        changes[key] = change
-        return change
+        let start = Time.seconds(calendar.startOfDay(day))
+        starts[day] = start
+        return start
     }
 }
