@@ -60,6 +60,23 @@ final class EntryEditorUITests: XCTestCase {
     }
 
     @MainActor
+    func testTM51_projectShortcutInPopoverOpensItsPicker() {
+        let app = launch()
+        app.buttons["timer.time"].click()
+        _ = startField(in: app)
+        app.typeKey("j", modifierFlags: .command)
+        let picker = app.descendants(matching: .any)["picker"]
+        XCTAssertTrue(picker.waitForExistence(timeout: 5))
+        // The picker is the popover's: closing it leaves the popover open.
+        app.typeKey(.escape, modifierFlags: [])
+        XCTAssertTrue(picker.waitForNonExistence(timeout: 5))
+        XCTAssertTrue(app.textFields["editor.start"].exists)
+        // ⌘P is no shortcut of the popover.
+        app.typeKey("p", modifierFlags: .command)
+        XCTAssertFalse(picker.waitForExistence(timeout: 2))
+    }
+
+    @MainActor
     func testTM37_editRunningStartFromTimerLabelKeepsTask() {
         let app = launch()
         app.buttons["timer.time"].click()

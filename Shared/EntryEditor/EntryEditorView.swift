@@ -168,7 +168,7 @@ struct EntryEditorView: View {
         ProjectChipButton(label: model.label) {
             picker = makePicker(model.entry.projectID)
         }
-        .keyboardShortcut("p", modifiers: .command)
+        .keyboardShortcut("j", modifiers: .command)
         .accessibilityIdentifier("editor.project")
         .popover(item: $picker) { picker in
             ProjectPickerView(model: picker) { choice in

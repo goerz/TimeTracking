@@ -298,3 +298,4 @@ The two Pomodoro categories use bundled sounds with "Play a sound" on; all other
 - TM-48. With "Show the Mini Timer when an entry starts" and "when an entry stops" on, a start or stop from a Timer or the main menu shows nothing, and one from the menu bar, a notification, or another device shows the Mini Timer with the task field focused.
 - TM-49. With idle from 23:50 and the prompt answered at 00:30, Split, Discard and Continue, and Discard stop the entry at 23:50 and remove its piece after midnight; Keep changes nothing. A lock stop reaches back the same way.
 - TM-50. Tabbing through an unchanged Start or Stop stores nothing, also for times with seconds; an edit in whole minutes keeps the stored seconds.
+- TM-51. ⌘J in the edit popover opens the popover's own project picker, and closing the picker leaves the popover open.
