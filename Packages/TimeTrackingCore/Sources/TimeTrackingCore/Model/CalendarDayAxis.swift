@@ -169,6 +169,12 @@ public enum CalendarColumn: String, Sendable, Hashable, CaseIterable, Codable {
         return Dictionary(uniqueKeysWithValues: visible.map { ($0, dayWidth * $0.weight / max(total, 1)) })
     }
 
+    /// The left edge of `column` in its day, the visible columns in order.
+    public static func x(of column: Self, dayWidth: Double, visible: [Self]) -> Double {
+        let widths = widths(dayWidth: dayWidth, visible: visible)
+        return visible.prefix { $0 != column }.reduce(0) { $0 + (widths[$1] ?? 0) }
+    }
+
     /// A column under 72 points draws its cards as bars.
     public static func drawsBars(width: Double) -> Bool {
         width < 72

@@ -60,7 +60,7 @@ Dragging vertically in empty space draws a provisional entry. Both ends snap to 
 
 ### 2.4 Moving and resizing
 
-Dragging a card's body moves it with its duration, the start snapping like drawing, with a time label showing the new start; dropping on another day's Tracked column moves it there, outside any Tracked column cancels. The top and bottom 6 points resize, down to 1 minute; the running entry has no bottom handle, and its start can move up to 1 minute before now. Cards cannot pass the column's ends or the now-line. With Midnight at another hour a column contains the real midnight, and an entry dragged across it is split by the store. Escape restores. Each move or resize is one undo step.
+Dragging a card's body moves it with its duration, the start snapping like drawing, with a time label showing the new start while the pointer is over a Tracked column; dropping on another day's Tracked column moves it there, outside any Tracked column cancels. The top and bottom 6 points resize, down to 1 minute and snapping the same way; the running entry has no bottom handle, and its start can move up to 1 minute before now. Cards cannot pass the column's ends or the now-line. With Midnight at another hour a column contains the real midnight, and an entry dragged across it is split by the store. Escape during a drag restores the card, and the rest of the drag does nothing. Each move or resize is one undo step.
 
 ### 2.5 Selecting, editing, deleting
 
@@ -211,3 +211,4 @@ The settings read the calendars without asking for access; like the Calendar col
 35. With Midnight at 04:00 or at 22:00, an all-day event on March 14 is in the strip of the column named March 14 and no other; an event spanning March 14 and 15 is in both.
 36. With Midnight at 04:00, a block from 03:30 to 04:30 with an entry over 04:10 to 04:20 is dimmed 10 minutes below the top of its card in the later column and not at all in the earlier one.
 37. A click on a card selects it alone; ⇧-click and ⌘-click add a card of any kind to the selection and take a selected one out; ⌥-click selects like a plain click; a block's popover opens on a plain click only.
+38. A 7 minute move with ⌥ moves the start 7 minutes; the time label shows the start the drop would give; Escape during a drag leaves the entry and the selection as they were, and the next drag works; a drop on an Activity or Calendar column, on the time axis, or above the columns in view changes nothing; a drop on the next day's Tracked column moves the entry there.

@@ -285,4 +285,22 @@ extension CalendarGeometryTests {
         timed.isAllDay = false
         #expect(!timed.isAllDay(on: Self.thursday, in: Self.zone))
     }
+
+    @Test("PC-38 the column at a point of the viewport, none outside it or where the columns end")
+    func dropTargets() {
+        let viewport = CalendarViewport(firstDay: Self.thursday, dayWidth: 450, width: 900)
+        let all = CalendarColumn.allCases
+        #expect(CalendarColumn.x(of: .activity, dayWidth: 450, visible: all) == 0)
+        #expect(CalendarColumn.x(of: .tracked, dayWidth: 450, visible: all) == 100)
+        #expect(CalendarColumn.x(of: .calendar, dayWidth: 450, visible: all) == 300)
+        #expect(viewport.target(atX: 99, columns: all) == CalendarDropTarget(day: Self.thursday, column: .activity))
+        #expect(viewport.target(atX: 100, columns: all) == CalendarDropTarget(day: Self.thursday, column: .tracked))
+        #expect(viewport.target(atX: 449, columns: all) == CalendarDropTarget(day: Self.thursday, column: .calendar))
+        let friday = Self.thursday.adding(days: 1)
+        #expect(viewport.target(atX: 600, columns: all) == CalendarDropTarget(day: friday, column: .tracked))
+        #expect(viewport.target(atX: -1, columns: all) == nil)
+        #expect(viewport.target(atX: 900, columns: all) == nil)
+        // A hidden column gives its width to the others.
+        #expect(viewport.target(atX: 10, columns: [.tracked]) == CalendarDropTarget(day: Self.thursday, column: .tracked))
+    }
 }

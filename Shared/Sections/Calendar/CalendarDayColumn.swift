@@ -19,6 +19,8 @@ struct CalendarDayColumn: View {
                 ActivityColumn(model: model, day: day, width: CGFloat(activity))
             }
             TrackedColumn(model: model, day: day, width: CGFloat(widths[.tracked] ?? 0))
+                // A dragged entry passes over the columns beside it.
+                .zIndex(model.dragsEntry(on: day) ? 1 : 0)
             if let calendar = widths[.calendar] {
                 EventsColumn(model: model, day: day, width: CGFloat(calendar))
             }
@@ -85,6 +87,7 @@ private struct TrackedColumn: View {
     var body: some View {
         let axis = model.axis(day)
         let lanes = model.lanes(on: day)
+        let left = CalendarColumn.x(of: .tracked, dayWidth: model.dayWidth, visible: model.columns)
         ZStack(alignment: .topLeading) {
             futureHatch(axis)
             drawArea(axis)
@@ -92,14 +95,16 @@ private struct TrackedColumn: View {
                 if let frame = axis.frame(of: listing.entry.interval(at: model.clock.now)) {
                     let lane = lanes[listing.entry.id] ?? CalendarLane(index: 0, count: 1)
                     let laneWidth = (width - 4) / CGFloat(lane.count)
+                    let x = 2 + laneWidth * CGFloat(lane.index)
                     EntryCard(
                         model: model,
                         listing: listing,
                         day: day,
                         size: CGSize(width: laneWidth, height: max(4, frame.height)),
-                        dayWidth: CGFloat(model.dayWidth)
+                        origin: CGPoint(x: CGFloat(left) + x, y: frame.y)
                     )
-                    .offset(x: 2 + laneWidth * CGFloat(lane.index), y: frame.y)
+                    .offset(x: x, y: frame.y)
+                    .zIndex(model.cardDrag?.item == .entry(listing.entry.id) ? 1 : 0)
                 }
             }
             if let draft = model.draft, draft.day == day, let frame = axis.frame(of: draft.interval) {

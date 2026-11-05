@@ -146,7 +146,10 @@ struct CalendarView: View {
             }
         }
         .scrollPosition($scrollPosition)
-        .onScrollGeometryChange(for: CGRect.self) { $0.visibleRect } action: { _, rect in hoursScroll = rect }
+        .onScrollGeometryChange(for: CGRect.self) { $0.visibleRect } action: { _, rect in
+            hoursScroll = rect
+            model.visibleColumnsY = Double(rect.minY) ... Double(rect.maxY)
+        }
         .onScrollGeometryChange(for: CGFloat.self) { $0.contentSize.height } action: { _, _ in
             if let zoomOffset {
                 scrollPosition.scrollTo(y: zoomOffset)

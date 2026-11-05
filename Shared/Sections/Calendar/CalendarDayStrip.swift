@@ -20,6 +20,8 @@ struct CalendarDayStrip<Content: View>: View {
                 content(day, width)
                     .frame(width: width)
                     .layoutValue(key: DayX.self, value: CGFloat(viewport.x(of: day)))
+                    // A dragged card passes over the days beside it.
+                    .zIndex(model.cardDrag?.day == day ? 1 : 0)
                     // The day kept just outside the viewport on each side
                     // is drawn for the slide only, not for VoiceOver.
                     .accessibilityHidden(!model.days.contains(day))

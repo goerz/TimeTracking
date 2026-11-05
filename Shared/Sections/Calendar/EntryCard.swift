@@ -12,8 +12,11 @@ struct EntryCard: View {
     /// The column: an entry across Midnight has a card on each of its days.
     var day: TrackingDay
     var size: CGSize
-    var dayWidth: CGFloat
+    /// The card's top left corner from the day's left edge and the columns' top.
+    var origin: CGPoint
     @State private var dragOffset: CGSize = .zero
+    /// The start a drag would give, the card's time label (§2.4).
+    @State private var dragStart: Date?
     @State private var hovering = false
     /// The iPad's long-press menu.
     @State private var showsMenu = false
@@ -74,7 +77,12 @@ struct EntryCard: View {
                 touchHandles
             }
         }
-        .offset(dragOffset)
+        .overlay(alignment: .topLeading) {
+            if let dragStart, !model.cardDragCancelled {
+                CalendarDragTime(time: dragStart, zone: model.calendar.timeZone)
+            }
+        }
+        .offset(model.cardDragCancelled ? .zero : dragOffset)
         // Faded while the Filters or the search leave it out (§1.6).
         .opacity(model.passesFilters(listing) ? 1 : 0.25)
         .onHover { hovering = $0 }
@@ -82,12 +90,21 @@ struct EntryCard: View {
         .onTapGesture(count: 2) { model.editingEntry = entry.id }
         .onTapGesture { model.click(.entry(entry.id)) }
         .calendarDrag(minimumDistance: 4, onLongPress: longPressed) { drag in
+            guard model.continueCardDrag(.entry(entry.id), on: day, from: drag.start) else {
+                return
+            }
             dragOffset = drag.translation
+            dragStart = trackedDay(under: drag).flatMap { target in
+                model.movedInterval(of: entry, by: seconds(drag), to: target, from: day, option: ModifierState.optionDown())?.start
+            }
         } onEnded: { drag in
             dragOffset = .zero
-            let days = Int((drag.translation.width / dayWidth).rounded())
-            let seconds = Double(drag.translation.height) / model.pointsPerHour * 3600
-            Task { await model.move(entry.id, by: seconds, to: day.adding(days: days), from: day) }
+            dragStart = nil
+            guard model.finishCardDrag(), let target = trackedDay(under: drag) else {
+                return
+            }
+            let option = ModifierState.optionDown()
+            Task { await model.move(entry.id, by: seconds(drag), to: target, from: day, option: option) }
         }
         .modifier(EntryMenu(showsMenu: $showsMenu) { menu })
         .modifier(EntryEditorPopover(
@@ -224,6 +241,10 @@ struct EntryCard: View {
             .frame(height: CalendarTouch.handleHeight)
             .contentShape(Rectangle())
             .calendarDirectDrag { drag in
+                guard model.continueCardDrag(.entry(entry.id), on: day, from: drag.start) else {
+                    edgeOffsets = (0, 0)
+                    return
+                }
                 if top {
                     edgeOffsets.top = drag.translation.height
                 } else {
@@ -231,15 +252,35 @@ struct EntryCard: View {
                 }
             } onEnded: { drag in
                 edgeOffsets = (0, 0)
-                resize(top: top, by: drag.translation.height)
+                if model.finishCardDrag() {
+                    resize(top: top, by: drag.translation.height)
+                }
             }
             .accessibilityIdentifier(top ? "calendar.entry.topHandle" : "calendar.entry.bottomHandle")
     }
 
     private func resizeGesture(top: Bool) -> some Gesture {
-        DragGesture(minimumDistance: 2).onEnded { value in
-            resize(top: top, by: value.translation.height)
+        DragGesture(minimumDistance: 2).onChanged { value in
+            _ = model.continueCardDrag(.entry(entry.id), on: day, from: value.startLocation)
+        }.onEnded { value in
+            if model.finishCardDrag() {
+                resize(top: top, by: value.translation.height)
+            }
         }
+    }
+
+    /// The seconds a drag moves the card by.
+    private func seconds(_ drag: CalendarDrag) -> TimeInterval {
+        Double(drag.translation.height) / model.pointsPerHour * 3600
+    }
+
+    /// The day whose Tracked column lies under the pointer, if one does.
+    private func trackedDay(under drag: CalendarDrag) -> TrackingDay? {
+        let point = CGPoint(x: origin.x + drag.location.x, y: origin.y + drag.location.y)
+        guard let target = model.dropTarget(from: day, at: point), target.column == .tracked else {
+            return nil
+        }
+        return target.day
     }
 
     private func resize(top: Bool, by translation: CGFloat) {
@@ -248,7 +289,8 @@ struct EntryCard: View {
         let column = model.axis(day).interval
         let edge = top ? max(interval.start, column.start) : min(interval.end, column.end)
         let date = edge + Double(translation) / model.pointsPerHour * 3600
-        Task { await model.resize(entry.id, top: top, to: date, on: day) }
+        let option = ModifierState.optionDown()
+        Task { await model.resize(entry.id, top: top, to: date, on: day, option: option) }
     }
 }
 

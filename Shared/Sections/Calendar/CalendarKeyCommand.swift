@@ -165,8 +165,12 @@ extension CalendarModel {
         }
     }
 
-    /// Escape: closes a popover or editor, else deselects.
+    /// Escape: cancels a card's drag, else closes a popover or editor,
+    /// else deselects.
     func escape() {
+        if cancelCardDrag() {
+            return
+        }
         if pendingOverlap != nil {
             pendingOverlap = nil
         } else if draft != nil {

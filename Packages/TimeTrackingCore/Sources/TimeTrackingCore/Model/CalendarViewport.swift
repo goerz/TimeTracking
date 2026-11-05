@@ -4,6 +4,17 @@
 
 import Foundation
 
+/// A column of a day, as a drag's pointer finds it (§2.4, §4.2).
+public struct CalendarDropTarget: Sendable, Hashable {
+    public var day: TrackingDay
+    public var column: CalendarColumn
+
+    public init(day: TrackingDay, column: CalendarColumn) {
+        self.day = day
+        self.column = column
+    }
+}
+
 /// The days across the viewport. A day is `dayWidth` points wide whatever
 /// the window's size, so the window decides how many days show, and the
 /// days at either edge may be cut off.
@@ -74,6 +85,18 @@ public struct CalendarViewport: Sendable, Hashable {
     /// The day at `x` points from the viewport's left edge.
     public func day(atX x: Double) -> TrackingDay {
         firstDay.adding(days: Int((offset + x / dayWidth).rounded(.down)))
+    }
+
+    /// The column at `x` points from the viewport's left edge, of the
+    /// visible `columns`; `nil` outside the viewport.
+    public func target(atX x: Double, columns: [CalendarColumn]) -> CalendarDropTarget? {
+        guard x >= 0, x < width else {
+            return nil
+        }
+        let day = day(atX: x)
+        let inDay = x - self.x(of: day)
+        let column = columns.last { CalendarColumn.x(of: $0, dayWidth: dayWidth, visible: columns) <= inDay }
+        return column.map { CalendarDropTarget(day: day, column: $0) }
     }
 
     /// A sideways scroll by `points` (positive: later), free of snapping.

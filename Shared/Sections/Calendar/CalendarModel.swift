@@ -35,6 +35,17 @@ struct PendingOverlap: Equatable {
     var action: Action
 }
 
+/// A card's move or resize while the pointer holds it (§2.4).
+struct CalendarCardDrag: Equatable {
+    var item: CalendarItemID
+    /// The column the drag started in.
+    var day: TrackingDay
+    /// Where it started in the card: a new start is a new drag.
+    var start: CGPoint
+    /// Escape cancelled it; the rest of the gesture does nothing.
+    var cancelled = false
+}
+
 /// The Calendar section.
 @Observable
 final class CalendarModel {
@@ -163,6 +174,10 @@ final class CalendarModel {
     var draft: CalendarDraft?
     var blockDraft: TimeBlockDraft?
     var pendingOverlap: PendingOverlap?
+    var cardDrag: CalendarCardDrag?
+    /// The part of the columns in view, from their top; a drag dropped
+    /// above or below it is outside them.
+    @ObservationIgnored var visibleColumnsY: ClosedRange<Double>?
     /// "Entries can't be in the future" (3 s) or "Deleted … Undo" (8 s).
     var notice: CalendarNotice?
     /// "Discard the running entry?"

@@ -75,35 +75,51 @@ extension CalendarModel {
 
     /// A body drag of `entry` by `offset` from the column `source` onto
     /// `day` (another day's Tracked column moves it there); refused when it
-    /// cannot fit before now.
-    func move(_ id: EntryID, by offset: TimeInterval, to day: TrackingDay? = nil, from source: TrackingDay? = nil) async {
+    /// cannot fit before now. With `option` it snaps to the minute.
+    func move(
+        _ id: EntryID,
+        by offset: TimeInterval,
+        to day: TrackingDay? = nil,
+        from source: TrackingDay? = nil,
+        option: Bool = false
+    ) async {
         guard let entry = listing(id)?.entry else {
             return
         }
-        let source = source ?? calendar.displayDay(of: entry)
-        let target = day ?? source
-        let dayShift = calendar.startOfDay(target).timeIntervalSince(calendar.startOfDay(source))
-        let editing = editing(target)
-        if entry.isRunning {
-            await change(id, to: DateInterval(start: editing.moveRunningStart(to: entry.start + offset), end: clock.now), running: true)
-            return
-        }
-        let interval = entry.interval(at: clock.now)
-        let shifted = DateInterval(start: interval.start + dayShift, duration: interval.duration)
-        guard let moved = editing.move(shifted, by: offset) else {
+        guard let moved = movedInterval(of: entry, by: offset, to: day, from: source, option: option) else {
             notice = CalendarNotice(text: CalendarEditing.futureNotice, duration: 3)
             return
         }
-        await change(id, to: moved)
+        await change(id, to: moved, running: entry.isRunning)
+    }
+
+    /// Where a body drag puts `entry`, which the card's time label shows
+    /// while it lasts; `nil` when it cannot fit before now.
+    func movedInterval(
+        of entry: TimeEntry,
+        by offset: TimeInterval,
+        to day: TrackingDay? = nil,
+        from source: TrackingDay? = nil,
+        option: Bool = false
+    ) -> DateInterval? {
+        let source = source ?? calendar.displayDay(of: entry)
+        let target = day ?? source
+        let dayShift = calendar.startOfDay(target).timeIntervalSince(calendar.startOfDay(source))
+        let editing = editing(target, option: option)
+        if entry.isRunning {
+            return DateInterval(start: editing.moveRunningStart(to: entry.start + offset), end: clock.now)
+        }
+        let interval = entry.interval(at: clock.now)
+        return editing.move(DateInterval(start: interval.start + dayShift, duration: interval.duration), by: offset)
     }
 
     /// An edge drag in the column `day`: the top (`start`) or bottom edge
-    /// to `date`.
-    func resize(_ id: EntryID, top: Bool, to date: Date, on day: TrackingDay? = nil) async {
+    /// to `date`. With `option` it snaps to the minute.
+    func resize(_ id: EntryID, top: Bool, to date: Date, on day: TrackingDay? = nil, option: Bool = false) async {
         guard let entry = listing(id)?.entry else {
             return
         }
-        let editing = editing(day ?? calendar.displayDay(of: entry))
+        let editing = editing(day ?? calendar.displayDay(of: entry), option: option)
         if entry.isRunning {
             guard top else {
                 return
