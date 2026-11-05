@@ -67,6 +67,7 @@ struct NotificationRequest: Equatable, Sendable {
     var category: NotificationCategory
     var title: String
     var body: String
-    /// A bundled sound, or `nil` for the default sound.
+    /// A bundled sound, or `nil` for the category's default
+    /// (`notificationSound(_:)`).
     var sound: NotificationSound?
 }

@@ -39,7 +39,7 @@ final class UserNotifications: NSObject, NotificationPosting, UNUserNotification
         content.title = request.title
         content.body = request.body
         content.categoryIdentifier = request.category.rawValue
-        content.sound = request.sound.map { UNNotificationSound(named: UNNotificationSoundName($0.rawValue)) } ?? .default
+        content.sound = request.category.notificationSound(request.sound)
         let notification = UNNotificationRequest(identifier: request.category.rawValue, content: content, trigger: nil)
         Task { try? await center.add(notification) }
     }

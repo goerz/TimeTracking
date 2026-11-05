@@ -51,7 +51,7 @@ final class UserNotifications: NSObject, NotificationScheduling, UNUserNotificat
         content.title = notification.title
         content.body = notification.body
         content.categoryIdentifier = notification.category.rawValue
-        content.sound = notification.sound.map { UNNotificationSound(named: UNNotificationSoundName($0.rawValue)) } ?? .default
+        content.sound = notification.category.notificationSound(notification.sound)
         content.interruptionLevel = switch notification.category.level {
         case .passive: .passive
         case .active: .active

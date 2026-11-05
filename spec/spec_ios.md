@@ -62,7 +62,7 @@ The Pomodoro is that of [spec_timer.md](spec_timer.md) §5; a tap acts as the Ma
 
 1. The state is persisted in the device settings at every transition, and a phase's notification (8) is scheduled when it starts.
 2. Whenever the app's process runs, it replays that state: a passed phase end becomes the over-state, and if nothing runs the Pomodoro turns off and its notifications are removed. The replay only moves phases, so it never changes an entry.
-3. The phase-end sound is the notification's, in the foreground as in the background.
+3. The phase-end sound is the notification's, in the foreground as in the background; with `pomodoro.sounds` off the notification is silent.
 
 ### 2.9 Settings
 
@@ -332,3 +332,4 @@ The iPad reads the block log and `LiveState`; it never writes the block log or r
 - IOS-47. The app's ladder configuration and the monitor extension's callbacks read and write a set's ledger while holding the App Group lock; the device ID is created under the same lock.
 - IOS-48. With Midnight at 04:00, a widget's today at 02:00 holds the stopped parts of the day and a live timer from the running entry's own start, a chain counted once, and its timeline ends at 04:00.
 - IOS-49. The iPhone's Settings show Midnight.
+- IOS-50. With "Play a sound" off a phase's notification is silent; on, it has its bundled sound; `longRunning` and `syncAdjusted` use the default sound.

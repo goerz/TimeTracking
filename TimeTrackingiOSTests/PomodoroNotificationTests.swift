@@ -3,6 +3,7 @@
 import Foundation
 import Testing
 import TimeTrackingCore
+import UserNotifications
 @testable import TimeTrackingiOS
 
 @MainActor
@@ -62,6 +63,22 @@ struct PomodoroNotificationTests {
         #expect(second.model.pomodoro.pomodoro.confirmationTitle == "Start Break")
         let after = try await second.store.entries(in: DateInterval(start: .distantPast, end: .distantFuture), includeDeleted: true)
         #expect(after == entries)
+    }
+
+    @Test("IOS-50 with Play a sound off a phase's notification is silent; on, it has its bundled sound; the others use the default")
+    func phaseSound() async throws {
+        let test = try await TestPhone()
+        await test.model.timer.start()
+        test.settings.pomodoroSounds = false
+        test.model.pomodoro.perform(.start, isRunning: true)
+        let silent = try #require(test.scheduler.pending(.pomodoroFocusDone))
+        #expect(silent.sound == nil)
+        #expect(silent.category.notificationSound(silent.sound) == nil)
+        #expect(NotificationCategory.pomodoroBreakDone.notificationSound(nil) == nil)
+        #expect(NotificationCategory.pomodoroFocusDone.notificationSound(.focusEnd) != nil)
+        for category in [NotificationCategory.longRunning, .syncAdjusted] {
+            #expect(category.notificationSound(nil) == .default)
+        }
     }
 
     @Test("IOS-26 longRunning fires at the chain start plus N hours, also for a Mac entry; Keep Running reschedules; Stop stops")

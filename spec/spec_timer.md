@@ -244,7 +244,7 @@ The Mac app requests authorization at the first start of an entry. Without it, t
 | `idle` | "You have been away" / "Idle since 14:02 while tracking Clarify noise model." | Keep, Discard, Discard and Continue, Split |
 | `reminder` | "Nothing is being tracked" / "Last entry stopped at 13:40." | Start New, Continue Latest, Snooze |
 
-The two Pomodoro categories use bundled sounds with "Play a sound" on; all others use the default sound. Clicking a notification shows the Mini Timer (with the idle prompt for `idle`). Pending Pomodoro and idle notifications are removed when their state resolves elsewhere. A URL's banner is the category `tracking` ([spec_automation.md](spec_automation.md) §6).
+The two Pomodoro categories use bundled sounds with "Play a sound" on and are silent with it off; all others use the default sound. Clicking a notification shows the Mini Timer (with the idle prompt for `idle`). Pending Pomodoro and idle notifications are removed when their state resolves elsewhere. A URL's banner is the category `tracking` ([spec_automation.md](spec_automation.md) §6).
 
 ## 11. Testable behaviors
 
@@ -300,3 +300,4 @@ The two Pomodoro categories use bundled sounds with "Play a sound" on; all other
 - TM-50. Tabbing through an unchanged Start or Stop stores nothing, also for times with seconds; an edit in whole minutes keeps the stored seconds.
 - TM-51. ⌘J in the edit popover opens the popover's own project picker, and closing the picker leaves the popover open.
 - TM-52. Closing the Mini Timer clears its filter and returns its list to the top, so it opens that way again; the main window's Timer keeps its own filter.
+- TM-53. With "Play a sound" off a phase's notification is silent; on, it has its bundled sound; every other category uses the default sound.
