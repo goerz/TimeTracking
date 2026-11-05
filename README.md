@@ -1,8 +1,14 @@
 # TimeTracking
 
+[![Source code on GitHub](https://img.shields.io/badge/goerz-TimeTracking-blue.svg?logo=github)](https://github.com/goerz/TimeTracking)
+[![Documentation](https://img.shields.io/badge/docs-gh--pages-blue.svg)](https://goerz.github.io/TimeTracking/)
+[![Documentation build](https://github.com/goerz/TimeTracking/actions/workflows/docs.yml/badge.svg?branch=master)](https://github.com/goerz/TimeTracking/actions/workflows/docs.yml)
+[![Library tests](https://github.com/goerz/TimeTracking/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/goerz/TimeTracking/actions/workflows/test.yml)
+[![GPL v3 License](https://img.shields.io/badge/License-GPLv3-green.svg)](https://github.com/goerz/TimeTracking/blob/master/LICENSE)
+
 A personal time tracker for the Mac, iPhone, and iPad. It records time entries (client, area, project, task), keeps the running entry in sync across devices within seconds, plans the day next to the calendar, reports on tracked time, and keeps a separate record of where attention went on each device.
 
-![The Calendar on the Mac, with activity, tracked entries, and plans side by side](docs/images/mac-calendar.png)
+![The Mac desktop with the Calendar open, the Mini Timer beside it, and the status menu open under the running time](docs/images/mac-desktop.png)
 
 <p align="center">
   <img src="docs/images/mac-reports.png" alt="Reports on the Mac, with tiles, a stacked chart, and a breakdown" width="68%">

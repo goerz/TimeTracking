@@ -23,6 +23,8 @@ Logic belongs in `Packages/TimeTrackingCore`, where it can be tested without an 
 
 The code must build without warnings and pass SwiftLint with no findings.
 
+GitHub Actions lints and runs the library tests on every push to `master` and on pull requests. That covers only the library, so `make test` is still the check to run before merging.
+
 Nothing personal goes into the repository. Team IDs, bundle IDs, and device names live in the git-ignored `local.mk`. The hooks in `.githooks/` (enabled by `make hooks`) refuse commits containing personal data, and the pre-push hook runs `make lint`. Don't bypass them.
 
 ## Branches

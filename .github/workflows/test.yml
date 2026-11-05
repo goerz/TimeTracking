@@ -1,0 +1,38 @@
+# Lints and tests what needs neither signing nor a device (architecture.md §3.3).
+# The app, agent, and UI suites run locally with `make test`.
+name: Library tests
+
+on:
+  push:
+    branches: [master]
+    paths-ignore:
+      - "docs/images/**"
+  pull_request:
+    paths-ignore:
+      - "docs/images/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: xcode-27
+    timeout-minutes: 45
+    env:
+      DEVELOPER_DIR: /Applications/Xcode.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.3
+      - name: Show the toolchain
+        run: xcodebuild -version
+      - name: Check behaviors and citations
+        run: make check-behaviors check-citations
+      - name: Lint
+        run: make lint
+      - name: Test the library
+        run: swift test --package-path Packages/TimeTrackingCore
