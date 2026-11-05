@@ -30,6 +30,7 @@ struct TimeBlockEditor: View {
                     Button("Cancel") { model.blockDraft = nil }.keyboardShortcut(.cancelAction)
                     Button("Save") { Task { await model.saveTimeBlock() } }
                         .keyboardShortcut(.defaultAction)
+                        .accessibilityIdentifier("calendar.block.save")
                     #if os(macOS)
                         .buttonStyle(.borderedProminent)
                     #endif

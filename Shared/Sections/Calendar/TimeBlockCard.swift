@@ -28,7 +28,9 @@ struct TimeBlockCard: View {
         let color = label?.color.map { Color(hex: $0) } ?? .gray
         let selected = model.selection.contains(.timeBlock(block.id))
         ZStack(alignment: .topLeading) {
-            text(label)
+            // On the text, not the card: the card's would replace the
+            // identifiers of the "+" and the handles.
+            text(label).accessibilityIdentifier("calendar.timeBlock")
             if !EntryCard.touch {
                 edgeHandles
             }
@@ -77,7 +79,6 @@ struct TimeBlockCard: View {
             Button("Edit…") { model.editTimeBlock(block) }
             Button("Delete", role: .destructive) { Task { await model.deleteTimeBlocks([block.id]) } }
         })
-        .accessibilityIdentifier("calendar.timeBlock")
     }
 
     private func text(_ label: ProjectLabel?) -> some View {

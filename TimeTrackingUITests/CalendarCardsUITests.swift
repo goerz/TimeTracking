@@ -197,18 +197,27 @@ final class CalendarCardsUITests: XCTestCase {
     @MainActor
     func testPC41_aTimeBlockMakesAnEntryByItsPlusAndByADrop() {
         let app = openCalendar(extra: ["-CalendarAccess", "YES"])
-        let block = drawBlock(app, "Plan", day: Self.today, from: 8, to: 9)
         let task = element(app, "calendar.draft.task")
-        // The hover "+".
-        block.hover()
+        // The hover "+", on a block saved by a click: after a synthesized
+        // Return in the editor the app reports no more hover, with a test or
+        // with scripts/drive_mac_app.py alike.
+        let column = element(app, "calendar.events.\(Self.today)")
+        XCTAssertTrue(column.waitForExistence(timeout: 5))
+        drag(point(in: column, hours: 8), by: CGVector(dx: 0, dy: Self.hour))
+        let save = element(app, "calendar.block.save")
+        XCTAssertTrue(save.waitForExistence(timeout: 5))
+        save.click()
+        let untitled = card(app, "1h", identifier: "calendar.timeBlock")
+        XCTAssertTrue(untitled.waitForExistence(timeout: 5))
+        untitled.hover()
         let plus = element(app, "calendar.createEntry")
         XCTAssertTrue(plus.waitForExistence(timeout: 5))
         plus.click()
         XCTAssertTrue(task.waitForExistence(timeout: 5), "the + opened no popover")
-        XCTAssertEqual(task.value as? String, "Plan")
         app.typeKey(.escape, modifierFlags: [])
         XCTAssertTrue(task.waitForNonExistence(timeout: 5))
         // A drop on the Tracked column.
+        let block = drawBlock(app, "Plan", day: Self.today, from: 9, to: 9.75)
         let tracked = element(app, "calendar.tracked.\(Self.today)")
         let center = block.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
         drag(center, by: CGVector(dx: tracked.frame.midX - block.frame.midX, dy: 0))
