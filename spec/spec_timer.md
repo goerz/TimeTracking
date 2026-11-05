@@ -78,7 +78,7 @@ Clicking a row, Return on a selection, ⌘E, or clicking the timer label opens t
 
 Top to bottom: Task (with the autocompletion of 2.2, no `@` trigger); Project (the chip; click or ⌘J opens the picker); Start and Stop (time of day in the system's format; `9:1` reads as 09:10; stored seconds are kept); Duration (`h:mm:ss`, also `25m`, `1h 30m`, `1:30`, `90s`, or plain minutes); Date (the stored entry's real date); the lines of 4.3 and the notices; "Delete Entry…" (⌘⌫), with the alert "Delete this entry?".
 
-Each field commits on Return or focus loss; there is no Save button. Escape in an edited field reverts it; Escape in an unchanged field, or a click outside, closes the popover.
+Each field commits on Return or focus loss; there is no Save button, and a field left unchanged stores nothing. Escape in an edited field reverts it; Escape in an unchanged field, or a click outside, closes the popover.
 
 ### 4.2 Rules
 
@@ -297,3 +297,4 @@ The two Pomodoro categories use bundled sounds with "Play a sound" on; all other
 - TM-47. A split at real midnight is no change of the running entry: the Mini Timer doesn't show, an open idle prompt stays open and acts on the chain, the Pomodoro's phase stays, and a task being typed stays and commits to every piece.
 - TM-48. With "Show the Mini Timer when an entry starts" and "when an entry stops" on, a start or stop from a Timer or the main menu shows nothing, and one from the menu bar, a notification, or another device shows the Mini Timer with the task field focused.
 - TM-49. With idle from 23:50 and the prompt answered at 00:30, Split, Discard and Continue, and Discard stop the entry at 23:50 and remove its piece after midnight; Keep changes nothing. A lock stop reaches back the same way.
+- TM-50. Tabbing through an unchanged Start or Stop stores nothing, also for times with seconds; an edit in whole minutes keeps the stored seconds.

@@ -96,7 +96,11 @@ final class EntryEditorModel {
         }
     }
 
+    /// An unchanged field stores nothing: focus only passed through it.
     func commitStart() async {
+        guard startText != LocalDateText.time(entry.start) else {
+            return
+        }
         guard let seconds = DurationText.parseTimeOfDay(startText) else {
             resetTimeFields()
             return
@@ -105,6 +109,9 @@ final class EntryEditorModel {
     }
 
     func commitStop() async {
+        guard stopText != stopDisplay else {
+            return
+        }
         guard let seconds = DurationText.parseTimeOfDay(stopText) else {
             resetTimeFields()
             return

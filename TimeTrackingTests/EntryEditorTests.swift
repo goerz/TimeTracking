@@ -36,6 +36,30 @@ struct EntryEditorTests {
         #expect(try model.entry.end == (test.time("2024-03-11T10:00")))
     }
 
+    @Test("TM-50 tabbing through an unchanged Start or Stop stores nothing; an edit keeps the stored seconds")
+    func unchangedFieldStoresNothing() async throws {
+        let test = try await TestApp()
+        // Stop within Start's minute: rewritten, it would move to the next day.
+        let brief = try await test.entry("Brief", from: "2024-03-12T08:00:10", to: "2024-03-12T08:00:40")
+        let briefModel = await editor(test, brief)
+        await briefModel.commitStart()
+        await briefModel.commitStop()
+        #expect(try await test.store.entry(brief.id) == brief)
+
+        let entry = try await test.entry("Notes", from: "2024-03-12T09:10:37", to: "2024-03-12T09:35:12")
+        let model = await editor(test, entry)
+        await model.commitStart()
+        await model.commitStop()
+        await model.commitDuration()
+        #expect(try await test.store.entry(entry.id) == entry)
+        model.startText = "9:05"
+        await model.commitStart()
+        model.stopText = "9:40"
+        await model.commitStop()
+        #expect(try model.entry.start == (test.date("2024-03-12T09:05:37")))
+        #expect(try model.entry.end == (test.date("2024-03-12T09:40:12")))
+    }
+
     @Test("TM-19 a commit after now is refused with Entries cannot be in the future; the running entry's Stop, Duration, Date are disabled")
     func futureAndRunning() async throws {
         let test = try await TestApp()

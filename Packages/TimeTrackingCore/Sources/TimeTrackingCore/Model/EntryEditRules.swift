@@ -69,14 +69,18 @@ public struct EntryEditResult: Hashable, Sendable {
 public enum EntryEditRules {
     /// Applies `edit` to `entry` at `now`. Editing Start keeps Stop;
     /// editing Stop or Duration keeps Start; a Stop at or before Start
-    /// means the next date; Date moves by whole days keeping the times. A
-    /// result with a start or stop after `now` is refused.
+    /// means the next date; Date moves by whole days keeping the times. The
+    /// fields show whole minutes, so a Start or Stop without seconds keeps
+    /// the stored ones. A result with a start or stop after `now` is refused.
     public static func apply(_ edit: EntryFieldEdit, to entry: TimeEntry, now: Date) -> Result<EntryEditResult, EntryEditError> {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = entry.zone
         let midnight = calendar.startOfDay(for: entry.start)
         func time(_ seconds: Int, on day: Date) -> Date {
             calendar.date(byAdding: .second, value: seconds, to: day) ?? day
+        }
+        func keepingSeconds(_ seconds: Int, of stored: Date) -> Int {
+            seconds.isMultiple(of: 60) ? seconds + calendar.component(.second, from: stored) : seconds
         }
         if entry.isRunning, edit.isDisabledWhileRunning {
             return .failure(.runningEntry)
@@ -85,11 +89,12 @@ public enum EntryEditRules {
         var end = entry.end
         switch edit {
         case let .start(seconds):
-            start = time(seconds, on: midnight)
+            start = time(keepingSeconds(seconds, of: entry.start), on: midnight)
             if let end, start >= end {
                 return .failure(.endBeforeStart)
             }
         case let .stop(seconds):
+            let seconds = keepingSeconds(seconds, of: end ?? start)
             var stop = time(seconds, on: midnight)
             if stop <= start {
                 stop = time(seconds, on: calendar.date(byAdding: .day, value: 1, to: midnight) ?? midnight)
