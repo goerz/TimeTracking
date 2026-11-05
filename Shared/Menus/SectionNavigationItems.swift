@@ -5,7 +5,7 @@ import SwiftUI
 import TimeTrackingCore
 
 /// Go to Today, Previous Period, Next Period, and Date Range… (Go to Date…
-/// in the Calendar): one item each for the Calendar, Reports, and Activity,
+/// in the Calendar): one item each for the sections with a date range,
 /// acting on the section shown.
 struct SectionNavigationItems: View {
     var router: SectionRouter

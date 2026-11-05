@@ -14,6 +14,9 @@ extension ProjectsSectionTests {
         let sections = test.app.sections
         #expect(sections.projects.range.isAllTime)
         sections.select(.projects)
+        // The menu items reach the section, not only the router.
+        #expect(MenuState(sectionKey: true, section: .projects).periodCommands)
+        #expect(!MenuState(sectionKey: false, section: .projects).periodCommands)
         #expect(!sections.canShiftPeriod)
         sections.projects.range.select(.thisWeek)
         let reportsRange = sections.range.range

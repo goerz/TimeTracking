@@ -12,7 +12,7 @@ At launch the main window shows the Timer. Per device the app remembers the wind
 
 ### 1.2 Commands
 
-View has the sidebar's items (⌘1 to ⌘5, always available), Show/Hide Sidebar (⌃⌘S), and each section's display options under its header. Go to Today (⌘T), Previous and Next Period (⌥⌘← ⌥⌘→; in the Calendar by the visible span), and Date Range… (⇧⌘D; in the Calendar Go to Date…) apply in the Calendar, Reports, and Activity. Edit › Find (⌘F) focuses the search field of the Calendar, Reports, or Projects. The Entry menu acts on the selected entry in the Calendar and the Reports entry list, the Project menu on the selected row in Projects (2.5).
+View has the sidebar's items (⌘1 to ⌘5, always available), Show/Hide Sidebar (⌃⌘S), and each section's display options under its header. Go to Today (⌘T), Previous and Next Period (⌥⌘← ⌥⌘→; in the Calendar by the visible span), and Date Range… (⇧⌘D; in the Calendar Go to Date…) apply in the Calendar, Reports, and Activity, and on the Mac in Projects. Edit › Find (⌘F) focuses the search field of the Calendar, Reports, or Projects. The Entry menu acts on the selected entry in the Calendar and the Reports entry list, the Project menu on the selected row in Projects (2.5).
 
 The menus are the same in every window and view ([spec_timer.md](spec_timer.md) §9): a section's command is listed while another view is shown, disabled and without its key equivalent, so the Timer's commands on the same keys (⌘E, ⌘⌫, ⌘F) reach the Timer, and the reverse.
 

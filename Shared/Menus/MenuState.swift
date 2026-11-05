@@ -49,9 +49,14 @@ struct MenuState: Equatable {
     }
 
     /// View › Go to Today, Previous Period, Next Period, and Date Range…:
-    /// the sections that show a date range.
+    /// the sections that show a date range; on the iPad not Projects
+    /// (spec_ios.md, IOS-34).
     var periodCommands: Bool {
-        calendarCommands || reportCommands || activityCommands
+        #if os(macOS)
+            calendarCommands || reportCommands || activityCommands || projectCommands
+        #else
+            calendarCommands || reportCommands || activityCommands
+        #endif
     }
 
     /// Edit › Find: the Timer list's filter, the Calendar, Projects, and

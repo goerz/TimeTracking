@@ -55,6 +55,9 @@ final class MenuUITests: XCTestCase {
         XCTAssertTrue(project.contains { $0.title == "Edit Project…" })
         XCTAssertFalse(project.contains { $0.title == "Start Timer" })
         XCTAssertTrue(items(app, menu: "File").contains { $0.title == "New Project…" && $0.enabled })
+        // PP-8: its range takes the View commands (All time has no period to step).
+        assertItem(app, menu: "View", item: "Go to Today", enabled: true)
+        assertItem(app, menu: "View", item: "Date Range…", enabled: true)
 
         // The Mini Timer: the same menus; its window options enabled.
         _ = app.openMiniTimer()
