@@ -88,6 +88,12 @@ public enum ActivityEmptyState: Sendable, Hashable {
     /// "Nothing recorded for the selected contexts".
     case nothingForContexts
 
+    /// Whether the tracker is set up on this Mac: enabled, with a
+    /// `current.json` whose `window` source says Accessibility is on.
+    public static func trackerSetUp(registration: AgentRegistration, state: TrackerState?) -> Bool {
+        registration == .enabled && state?.health.sources.contains { $0.id == "window" && $0.status == .active } == true
+    }
+
     /// The state for a summary; `everSawBlock` is the device's memory that a
     /// block existed, `trackerSetUp` whether the tracker is enabled with a
     /// `current.json` and Accessibility.

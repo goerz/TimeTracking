@@ -64,7 +64,7 @@ extension AppModel {
             guard let self else {
                 return false
             }
-            return tracker.registration == .enabled && tracker.state != nil
+            return ActivityEmptyState.trackerSetUp(registration: tracker.registration, state: tracker.state)
         }
         activity.appName = { InstalledApps.name(forBundleIdentifier: $0) }
     }

@@ -224,6 +224,33 @@ struct ActivitySectionTests {
         #expect(router.activity.summary?.away.seconds == 0)
     }
 
+    @Test("PA-18 the tracker counts as set up only when enabled, with a current.json and Accessibility", arguments: [
+        (TrackerSourceStatus.active, AgentRegistration.enabled, true),
+        (.fallback, .enabled, false),
+        (.active, .notRegistered, false),
+    ])
+    func setupNeedsAccessibility(window: TrackerSourceStatus, registration: AgentRegistration, setUp: Bool) async throws {
+        let now = try TestApp.date("2024-03-14T10:00")
+        let state = TrackerState(
+            device: "macbook",
+            openBlock: nil,
+            primary: nil,
+            presence: TrackerPresence(state: .active, since: now - 600),
+            health: TrackerHealth(
+                lastTick: now - 12,
+                version: "1.0",
+                sources: [TrackerSourceHealth(id: "window", name: "Window titles", status: window)]
+            )
+        )
+        let test = try await TestApp(trackerState: state)
+        test.agent.registration = registration
+        await test.app.tracker.refresh()
+        let model = test.app.sections.activity
+        #expect(await model.trackerSetUp() == setUp)
+        await model.reload()
+        #expect((model.emptyState == .setup) == !setUp)
+    }
+
     @Test("PA-19 Exclude from tracking opens the Tracker pane with the right list and value and saves nothing")
     func exclude() async throws {
         let test = try await TestApp()
