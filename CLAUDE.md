@@ -103,7 +103,7 @@ Rules: `make test` needs no network and no permission grant; it uses the in-memo
 - Logging through `Logging.logger(category:)` (`os.Logger`): one subsystem per process (its bundle identifier), one category per module.
 - Errors are typed `enum`s per module conforming to `LocalizedError`; user-visible text comes from the view layer.
 - One primary type per file; extensions in `Type+Topic.swift`; every file starts with a header comment naming its defining spec section. The package declares access control explicitly. Time comes from a `Clock` (`SystemClock`, `ManualClock`), never from `Date()` in logic.
-- SwiftUI with `@Observable`, `@State`, `@Environment`, `@Bindable`; no `ObservableObject`. Observed library types are `@MainActor @Observable`; the store and sync coordinator are actors; model values are `Sendable` structs. AppKit only where SwiftUI has no equivalent, one file per use under `TimeTracking/Platform/`. UIKit is not expected.
+- SwiftUI with `@Observable`, `@State`, `@Environment`, `@Bindable`; no `ObservableObject`. Observed library types are `@MainActor @Observable`; the store and sync coordinator are actors; model values are `Sendable` structs. AppKit and UIKit only where SwiftUI has no equivalent, one file per use under `TimeTracking/Platform/` or `TimeTrackingiOS/Platform/`.
 - SwiftFormat (`.swiftformat`: indent 4, upper-case acronyms, trailing commas, `self` only in initializers) and SwiftLint (`.swiftlint.yml`: all rules, disabled ones listed with a reason) run as Debug build phases of both apps, from the package checkouts, and in `make lint`.
 
 ## Dependencies (§5)

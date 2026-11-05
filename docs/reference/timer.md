@@ -100,7 +100,7 @@ The Pomodoro lays focus and break phases over the running entry and notifies at 
 
 ### 5.1 Controls and display
 
-The Pomodoro button is the countdown's only place, so the timer label keeps showing the elapsed time.
+In the Timer, the Pomodoro button is the countdown's only place, so the timer label keeps showing the elapsed time.
 
 | State | Shows | Click | Menu |
 |---|---|---|---|
@@ -108,7 +108,7 @@ The Pomodoro button is the countdown's only place, so the timer label keeps show
 | Focus, break | A fixed-width capsule: progress ring (accent color in focus, secondary on a break) and the countdown `m:ss` (`h:mm:ss` from one hour) | The menu | The phase and countdown ("Focus 24:59"), then the actions 5.3 allows |
 | Focus over, break over | The capsule in the accent color: `cup.and.saucer` and "Break", or `pomodoro` and "Focus"; tooltip "Start Break (⌘↩)" or "Start Focus (⌘↩)" | The confirmation; also ⌘↩ anywhere in the window | Secondary click: the actions 5.3 allows |
 
-Every menu ends with "Pomodoro Settings…". The accessibility value names the phase and the countdown, in overtime as `+m:ss` ("Focus +1:20").
+Every menu ends with "Pomodoro Settings…". The accessibility value names the phase and the countdown, in overtime as `+m:ss` ("Focus +1:20"). The overtime has no text on the button; it shows in the menu bar ([menubar.md](menubar.md) §1.1).
 
 ### 5.2 Settings (Settings > Pomodoro)
 
@@ -268,7 +268,7 @@ The two Pomodoro categories use bundled sounds with "Play a sound" on and are si
 - TM-20. Stop 00:35 on an entry starting 23:10 stores one entry ending at 00:35, the next date; a Stop on an entry across dates keeps the nearest date.
 - TM-21. An edit from either row of an entry across midnight acts on the whole entry.
 - TM-22. An overlapping change shows the inline notice; "Keep" stores it, "Revert" restores the field.
-- TM-23. A Pomodoro shows the countdown and a filling ring on the Pomodoro button, then `+0:00` counting up at `focusEnd` with "Focus done" sent and "Start Break" shown on the button; the timer label keeps the elapsed time throughout.
+- TM-23. A Pomodoro shows the countdown and a filling ring on the Pomodoro button; at `focusEnd` "Focus done" is sent, the button shows "Break" with the tooltip "Start Break (⌘↩)", and its accessibility value counts up from `+0:00`; the timer label keeps the elapsed time throughout.
 - TM-24. Through a focus, break, and focus cycle the store holds one running entry and no stopped entry.
 - TM-25. Every transition of §5.3 holds, including that pending notifications are removed when the state turns off.
 - TM-26. A focus duration change during focus does not move `focusEnd`; waking after `focusEnd` lands in `focusOver` and notifies at wake.
