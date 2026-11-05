@@ -24,7 +24,7 @@ One Xcode project (`TimeTracking.xcodeproj`, hand-authored, file-system-synchron
 | `Fixtures/` | `Store/<name>.json` (export format), `Activity/`, `Agent/`; synthetic, dates in 2024 |
 | `docs/` | The documentation site (Sphinx, MyST, Furo; dependencies in `docs/pyproject.toml`): `tutorials/`, `howto/`, `explanation/`, `images/` (committed screenshots) |
 | `docs/reference/` | The specs, the site's Reference section: `components.md` and one file per component |
-| `scripts/` | `check_behaviors.sh`, `check_citations.py`, `test_make.sh`, `capture_screenshots.py` and `frame_screenshots.py` (`make screenshots`), `check_products.sh`, `install.sh`, `apns_key.sh`, `debug_unregister.sh`, `simulator.sh` (simulator UDID by name, Device Hub), `relaunch_mac_app.sh` (mac-debug's quit and reopen), `common.sh` (shared by the install and unregister scripts), lint helpers |
+| `scripts/` | `check_behaviors.sh`, `check_citations.py`, `test_make.sh`, `capture_screenshots.py` and `frame_screenshots.py` (`make screenshots`), `check_products.sh`, `stats.py` (`make stats`), `install.sh`, `apns_key.sh`, `debug_unregister.sh`, `simulator.sh` (simulator UDID by name, Device Hub), `relaunch_mac_app.sh` (mac-debug's quit and reopen), `common.sh` (shared by the install and unregister scripts), lint helpers |
 
 A view model may hold selection, drafts, sort order, and presentation state and call the library. It may not compute totals, overlaps, or export formats. If a view model test needs a store fixture, the logic belongs in the library.
 
@@ -68,6 +68,7 @@ Always use the Makefile; it sets `DEVELOPER_DIR=/Applications/Xcode.app/Contents
 | `make docs` | The documentation site into `build.noindex/docs/`, with warnings as errors; no build of the app |
 | `make screenshots [SHOTS=name...]` | Retake the site's screenshots from the fixtures into `docs/images/` |
 | `make lint` | SwiftFormat `--lint` and SwiftLint `--strict`; no build |
+| `make stats` | Line counts of the tracked files by area and language (needs `cloc`) |
 
 Every `xcodebuild` call uses `-quiet -project TimeTracking.xcodeproj -derivedDataPath build.noindex -skipPackagePluginValidation -skipMacroValidation` and, when signing, `-allowProvisioningUpdates -allowProvisioningDeviceRegistration`. All builds are development-signed with automatic provisioning: APNs sandbox and the CloudKit development environment in Release and Debug alike. `XCFLAGS` passes extra build settings to every `xcodebuild` call.
 

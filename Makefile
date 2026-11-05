@@ -24,6 +24,7 @@ SHELL := /bin/bash
 XCODEBUILD ?= xcodebuild
 LAUNCHCTL ?= launchctl
 UV ?= uv
+CLOC ?= cloc
 DERIVED ?= build.noindex
 KEYCHAIN ?=
 XCFLAGS ?=
@@ -71,7 +72,7 @@ require_team = @if [ -z "$(TEAM)" ]; then echo "set TEAM in local.mk" >&2; exit 
 .PHONY: all build build-mac build-ios build-sim docs sim sim-create stop mac-debug mac-debug-unregister demo \
 	logs sim-logs sim-screenshots screenshots install mac uninstall apns-key device iphone ipad devices console \
 	unit-test agent-test ui-test test test-sync lint check-behaviors check-citations check-private check hooks \
-	secrets xcode skills clean distclean help
+	secrets xcode skills stats clean distclean help
 
 # The runtime lock (architecture.md §2.5): every checkout of the repository
 # shares the Debug bundle ID, the Debug store and agent, the simulators, and
@@ -301,6 +302,9 @@ xcode: secrets ## Write the xcconfig and open the project
 skills: ## Export Xcode's agent skills into .claude/skills/ (git-ignored)
 	@mkdir -p .claude/skills
 	xcrun mcpbridge run-agent skills export --output-dir "$(CURDIR)/.claude/skills" --replace-existing
+
+stats: ## Line counts of the tracked files by area and language (needs cloc)
+	@scripts/stats.py --cloc "$(CLOC)"
 
 clean: ## Remove intermediates; keep build.noindex/Build/Products
 	@if [ -d "$(DERIVED)" ]; then \

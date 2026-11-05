@@ -813,6 +813,43 @@ test_screenshots_lock() {
     check "nothing was captured" [ ! -e "$scratch/captured" ]
 }
 
+# --- make stats
+
+test_stats() {
+    local sb fake file output status=0
+    sb=$(sandbox)
+    # A cloc that counts every listed file as 1 blank, 2 comment, and 3 code lines.
+    fake="$scratch/fake-cloc"
+    cat > "$fake" <<EOF
+#!/bin/sh
+echo "\$*" > "$scratch/cloc-args"
+echo 'language,filename,blank,comment,code,"cloc"'
+while read -r file; do echo "Swift,\$file,1,2,3"; done
+echo 'SUM,,0,0,0'
+EOF
+    chmod +x "$fake"
+    for file in Packages/TimeTrackingCore/Sources/TimeTrackingCore/A.swift Shared/B.swift \
+        Packages/TimeTrackingCore/Tests/TimeTrackingCoreTests/C.swift TimeTrackingUITests/D.swift \
+        Fixtures/Store/e.json TimeTrackingWidgets/Assets.xcassets/Contents.json Makefile; do
+        mkdir -p "$sb/$(dirname "$file")"
+        touch "$sb/$file"
+        git -C "$sb" add -f "$file"
+    done
+    touch "$sb/Untracked.swift"
+    output=$(make -C "$sb" --no-print-directory CLOC="$fake" stats)
+    check "identical files count separately" grep -q -- '--skip-uniqueness' "$scratch/cloc-args"
+    check "the library is a product area" grep -Eq '^Library +1 +1 +2 +3$' <<< "$output"
+    check "the subtotal holds the two product files" grep -Eq '^Product subtotal +2 +2 +4 +6$' <<< "$output"
+    check "both kinds of test count as tests" grep -Eq '^Tests +2 +2 +4 +6$' <<< "$output"
+    check "fixtures and asset catalogs are data" grep -Eq '^Data +2 +2 +4 +6$' <<< "$output"
+    check "the Makefile is tooling" grep -Eq '^Build and tooling +1 +1 +2 +3$' <<< "$output"
+    check "the total leaves out the untracked file" grep -Eq '^Total +7 +7 +14 +21$' <<< "$output"
+    check "languages are listed" grep -Eq '^Swift +7 +7 +14 +21$' <<< "$output"
+    output=$(make -C "$sb" --no-print-directory CLOC=no-such-cloc stats 2>&1) || status=$?
+    check "a missing cloc fails" [ "$status" != 0 ]
+    check "a missing cloc names the fix" grep -q 'brew install cloc' <<< "$output"
+}
+
 # --- ARCH-25
 
 test_runtime_lock() {
@@ -862,6 +899,7 @@ behavior "ARCH-25 the runtime lock stops a second checkout before xcodebuild and
 behavior "ARCH-26 simulator destinations are UDIDs looked up by name, on the newest runtime that has the name" test_simulator_destinations
 behavior "ARCH-27 make docs builds with warnings as errors from the lock file" test_docs
 behavior "ARCH-28 make screenshots stops at a held runtime lock before it captures anything" test_screenshots_lock
+behavior "make stats counts tracked files by area and language and names cloc when it is missing" test_stats
 [ "$run_build" = 0 ] || behavior "ARCH-15 a compiler warning fails the build" test_warning_fails_build
 [ "$run_build" = 0 ] || behavior "ARCH-1 swift test passes in a copy of the checkout without local.mk, signing, or network" test_package_without_local_mk
 [ "$run_products" = 0 ] || behavior "ARCH-4 the Release Mac app holds the agent, launchd plist, and tools, and no Frameworks" test_mac_products
