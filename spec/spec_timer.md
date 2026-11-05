@@ -68,7 +68,7 @@ A row shows the task ("No task" in placeholder style), the project line, and the
 
 A click selects a row and opens the edit popover, a double-click continues it, and the context menu has Continue, Edit…, and Delete…. ↑ and ↓ move the selection, Return edits it, ⌘O continues it, and Escape clears it. ⌘⌫ deletes after the alert "Delete this entry? 0:25:00, Household" (Delete, Cancel), undoable with ⌘Z. ⌘↑ scrolls to the top.
 
-⌘F shows a filter field above the list: only entries whose task, project, client, or area contains the text (case- and diacritic-insensitive) remain, and day totals sum them. Escape clears and hides the field.
+⌘F shows and focuses a filter field above the list: only entries whose task, project, client, or area contains the text (case- and diacritic-insensitive) remain, and day totals sum them. Escape clears and hides the field.
 
 ## 4. The edit popover
 

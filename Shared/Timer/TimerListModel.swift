@@ -23,6 +23,8 @@ final class TimerListModel {
     private(set) var canLoadMore = false
     var filter = ""
     var isFilterVisible = false
+    /// Counts ⌘F, so a shown field takes the focus again.
+    var filterFocusRequests = 0
     var selection: EntryID?
     /// Bumped by ⌘↑ (Scroll to Today).
     private(set) var scrollToTopRequest = 0
@@ -114,6 +116,7 @@ final class TimerListModel {
     /// ⌘F shows the filter field.
     func showFilter() {
         isFilterVisible = true
+        filterFocusRequests += 1
     }
 
     /// Escape in the filter field clears and hides it.

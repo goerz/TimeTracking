@@ -40,6 +40,13 @@ struct TimerListView: View {
                 }
                 .accessibilityIdentifier("timer.list")
         }
+        .onChange(of: view.list.filterFocusRequests) {
+            // A field that has just appeared takes no focus yet.
+            Task {
+                try? await Task.sleep(for: .milliseconds(200))
+                filterFocused = true
+            }
+        }
     }
 
     /// ⌘F's filter field; Escape clears and hides it.
@@ -51,7 +58,6 @@ struct TimerListView: View {
             .padding(.horizontal, Design.Spacing.window)
             .padding(.vertical, Design.Spacing.small)
             .accessibilityIdentifier("timer.filterField")
-            .onAppear { filterFocused = true }
             .onChange(of: list.filter) { Task { await view.list.reload() } }
             .onKeyPress(.escape) {
                 Task { await view.list.hideFilter() }
