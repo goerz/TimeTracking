@@ -106,6 +106,12 @@ public struct CalendarDayAxis: Sendable, Hashable {
         return (y(start), end.timeIntervalSince(start) * pointsPerHour / 3600)
     }
 
+    /// The offset of `date` from the top of the card of `card`, which the
+    /// column clips (§3.1).
+    public func offset(of date: Date, inCardOf card: DateInterval) -> Double {
+        y(date) - y(max(card.start, interval.start))
+    }
+
     /// The now-line's offset on today only (§1.5).
     public func nowOffset(_ now: Date) -> Double? {
         now >= interval.start && now < interval.end ? y(now) : nil

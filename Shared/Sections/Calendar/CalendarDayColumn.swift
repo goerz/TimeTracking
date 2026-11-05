@@ -186,8 +186,8 @@ private struct ActivityColumn: View {
             healthAndGaps(axis)
             strips(axis)
             ForEach(model.blocks(on: day)) { block in
-                if let frame = axis.frame(of: DateInterval(start: block.start, end: max(block.start, block.end))) {
-                    BlockCard(model: model, block: block, size: CGSize(width: width - 4, height: max(4, frame.height)))
+                if let frame = axis.frame(of: block.span) {
+                    BlockCard(model: model, block: block, day: day, size: CGSize(width: width - 4, height: max(4, frame.height)))
                         .offset(x: 2, y: frame.y)
                 }
             }

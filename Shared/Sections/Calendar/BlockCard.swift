@@ -9,6 +9,8 @@ import TimeTrackingCore
 struct BlockCard: View {
     var model: CalendarModel
     var block: ActivityBlock
+    /// The column: a block across Midnight has a card on each of its days.
+    var day: TrackingDay
     var size: CGSize
     @State private var hovering = false
     @State private var showsPopover = false
@@ -59,11 +61,11 @@ struct BlockCard: View {
     }
 
     private var coveredDimming: some View {
-        ForEach(model.coveredParts(of: block), id: \.self) { part in
-            let axis = model.axis(TrackingDay(block.localDay) ?? model.today)
+        ForEach(model.coveredParts(of: block, on: day), id: \.self) { part in
+            let axis = model.axis(day)
             Rectangle().fill(.background.opacity(0.5))
                 .frame(height: CGFloat(part.duration * model.pointsPerHour / 3600))
-                .offset(y: CGFloat(axis.y(part.start) - axis.y(block.start)))
+                .offset(y: CGFloat(axis.offset(of: part.start, inCardOf: block.span)))
         }
     }
 

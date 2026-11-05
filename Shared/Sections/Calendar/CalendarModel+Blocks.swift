@@ -4,23 +4,31 @@
 import Foundation
 import TimeTrackingCore
 
+extension ActivityBlock {
+    /// The block's time.
+    var span: DateInterval {
+        DateInterval(start: start, end: max(start, end))
+    }
+}
+
 extension CalendarModel {
     /// The block's longest untracked stretch, clamped at now (§3.3).
     func untrackedStretch(of block: ActivityBlock) -> DateInterval? {
         let tracked = entries.map { $0.entry.interval(at: clock.now) }
         return CalendarCoverage.longestUntracked(
-            DateInterval(start: block.start, end: max(block.start, block.end)),
+            block.span,
             entries: tracked,
             now: clock.now
         )
     }
 
-    /// The parts of `block` covered by entries (dimmed to 50 %).
-    func coveredParts(of block: ActivityBlock) -> [DateInterval] {
-        CalendarCoverage.covered(
-            DateInterval(start: block.start, end: max(block.start, block.end)),
-            by: entries.map { $0.entry.interval(at: clock.now) }
-        )
+    /// The parts of `block` in the column of `day` covered by entries
+    /// (dimmed to 50 %).
+    func coveredParts(of block: ActivityBlock, on day: TrackingDay) -> [DateInterval] {
+        guard let shown = block.span.intersection(with: calendar.interval(of: day)) else {
+            return []
+        }
+        return CalendarCoverage.covered(shown, by: entries.map { $0.entry.interval(at: clock.now) })
     }
 
     /// "+", a drag into Tracked, Create Entry…, and Space: a provisional
