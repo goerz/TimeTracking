@@ -139,7 +139,7 @@ The variable `ARGS` passes launch arguments. The apps understand `-UITesting YES
 
 Every worktree of the repository shares the Debug bundle ID, the Debug store and agent, the simulators, and `/Applications`, so `sim`, `mac-debug`, `demo`, `screenshots`, `install`, `unit-test`, `agent-test`, `ui-test`, `test`, and `test-sync` hold one runtime lock: `lockf` on `timetracking-runtime.lock` in the shared git directory, taken without waiting. While another process holds it, these targets fail with "another checkout is running ..." (`Error 75`) before running anything; make calls nested inside a target that holds the lock run directly. The kernel releases the lock when make exits.
 
-Git hooks `pre-commit`, `commit-msg`, and `pre-push` run `check-private` in modes `staged`, `message <file>`, and `push`; `pre-push` also runs `make lint`. They are never bypassed.
+Git hooks `pre-commit`, `commit-msg`, and `pre-push` run `check-private` in modes `staged`, `message <file>`, and `push`; `pre-push` also runs `make lint`, `make check-behaviors`, and `make check-citations`. They are never bypassed.
 
 ### 2.6 Simulators
 

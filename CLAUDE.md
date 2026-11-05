@@ -94,6 +94,8 @@ Simulator destinations are UDIDs looked up by name (`scripts/simulator.sh udid "
 | Makefile, scripts, hooks | shell | `scripts/test_make.sh` (`--build`, `--products`, `--sim`, `--install`) | `scripts/test_make.sh` |
 | CloudKit integration | Swift Testing, `.tags(.sync)` | enabled only by `TIMETRACKING_TEST_SYNC=1` | `make test-sync`, never part of `make test` |
 
+The specs in `docs/reference/` describe what the app does. Any commit that changes behavior updates the affected spec sections and their testable behaviors in the same commit, and a change a reader would notice also updates the rest of `docs/`. If a spec already disagrees with the code, say so in your final message rather than silently changing either one.
+
 Every numbered item in a spec's "Testable behaviors" is backed by a test carrying its identifier (`ARCH`, `DATA`, `TM`, `MB`, `PP`, `PC`, `PR`, `PA`, `TRK`, `IOS`, `AUTO`): in a Swift Testing display name, `@Test("TM-1 releasing below 200 pt collapses to the bar")`; in an XCUITest method name, `testTM1_collapseBelowThreshold()`; in `scripts/test_make.sh`, `behavior "ARCH-2 ..."`. One test may name several. `make check-behaviors` (optionally `ONLY=TM,MB`) fails on a behavior without a test, an identifier no spec defines, or a non-continuous list. Comments cite a spec by its file name in `docs/reference/` (`timer.md §2.1`); `make check-citations` fails on a section that does not exist.
 
 Rules: `make test` needs no network and no permission grant; it uses the in-memory store and transport only. UI tests find controls by accessibility identifier (`timer.startButton`), never by visible text, and launch with `-UITesting YES` (in-memory store and transport, a fake agent service, `-Fixture <name>`, no animations), which may not change what a control does. Only the ARCH-8 UI tests add `-RealAgent YES` to register the real Debug agent, and they unregister it again. Tests never sleep: use `ManualClock`, drive the agent's tick, fix `TIMETRACKING_NOW`. The test clock is `ManualClock.fixture()`, 2024-03-14T10:00:00 local time. A test over 10 seconds is tagged `.slow`.
@@ -115,7 +117,7 @@ System frameworks first. Third-party packages, pinned exactly in the committed `
 
 Follow the development guidelines in @CONTRIBUTING.md, in particular its commit message template, which applies to every commit.
 
-Hooks in `.githooks/` (enabled by `make hooks`, which every building target runs) refuse personal data: the `local.mk` values, `.private-strings` lines, the home directory, host names, the git e-mail, credentials, UDIDs, and key or profile files (`make check-private`). The pre-push hook also runs `make lint`. Never bypass a hook.
+Hooks in `.githooks/` (enabled by `make hooks`, which every building target runs) refuse personal data: the `local.mk` values, `.private-strings` lines, the home directory, host names, the git e-mail, credentials, UDIDs, and key or profile files (`make check-private`). The pre-push hook also runs `make lint`, `make check-behaviors`, and `make check-citations`. Never bypass a hook.
 
 ## Parallel sessions
 
