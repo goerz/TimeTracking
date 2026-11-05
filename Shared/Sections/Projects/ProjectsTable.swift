@@ -122,17 +122,31 @@ struct ProjectsTable: View {
 
     private typealias Sort = ProjectColumnSort
 
+    // A narrow iPad gives each column little more than its minimum, and the
+    // rows' indents come out of that.
+    #if os(macOS)
+        private static let nameColumnMinimum: CGFloat = 160
+        private static let placeColumnMinimum: CGFloat? = nil
+        private static let lastTrackedColumnMinimum: CGFloat? = nil
+        private static let totalColumnMinimum: CGFloat? = nil
+    #else
+        private static let nameColumnMinimum: CGFloat = 215
+        private static let placeColumnMinimum: CGFloat? = 92
+        private static let lastTrackedColumnMinimum: CGFloat? = 100
+        private static let totalColumnMinimum: CGFloat? = 104
+    #endif
+
     @TableColumnBuilder<ProjectTableItem, Sort> private var nameColumns: some TableColumnContent<ProjectTableItem, Sort> {
         TableColumn("Project", sortUsing: Sort(key: .name)) { item in
             ProjectNameCell(model: model, item: item)
         }
-        .width(min: 160, ideal: 280)
+        .width(min: Self.nameColumnMinimum, ideal: 280)
         .customizationID("project")
         .disabledCustomizationBehavior(.visibility)
         TableColumn("Client", sortUsing: Sort(key: .client)) { item in
             Text(item.row?.clientText ?? "")
         }
-        .width(ideal: 140)
+        .width(min: Self.placeColumnMinimum, ideal: 140)
         .customizationID("client")
         TableColumn("Area", sortUsing: Sort(key: .area)) { item in
             if let row = item.row {
@@ -140,7 +154,7 @@ struct ProjectsTable: View {
                     .foregroundStyle(row.areaIsGeneral || row.isOrphan ? .secondary : .primary)
             }
         }
-        .width(ideal: 140)
+        .width(min: Self.placeColumnMinimum, ideal: 140)
         .customizationID("area")
         TableColumn("State") { item in
             Text(item.row.map { $0.row.project.isArchived ? "Archived" : "Active" } ?? "")
@@ -163,12 +177,12 @@ struct ProjectsTable: View {
                 dateText(row.row.lastUsed)
             }
         }
-        .width(ideal: 120)
+        .width(min: Self.lastTrackedColumnMinimum, ideal: 120)
         .customizationID("lastTracked")
         TableColumn("Total tracked", sortUsing: Sort(key: .totalTracked)) { item in
             totalCell(item)
         }
-        .width(ideal: 120)
+        .width(min: Self.totalColumnMinimum, ideal: 120)
         .alignment(.trailing)
         .customizationID("totalTracked")
     }
@@ -237,6 +251,16 @@ private struct ProjectNameCell: View {
     @State private var renameText = ""
     @State private var hovering = false
 
+    /// The Mac keeps the ⋯ button's space, so a row doesn't shift on hover.
+    /// Without a pointer the button never shows, and a name needs that space.
+    private var showsMoreButton: Bool {
+        #if os(macOS)
+            true
+        #else
+            hovering
+        #endif
+    }
+
     var body: some View {
         switch item {
         case let .group(group):
@@ -283,16 +307,18 @@ private struct ProjectNameCell: View {
                     .accessibilityLabel(tooltip)
             }
             Spacer(minLength: 4)
-            Menu {
-                ProjectContextMenu(model: model)
-            } label: {
-                Image(systemName: SymbolName.more).accessibilityLabel("Actions")
+            if showsMoreButton {
+                Menu {
+                    ProjectContextMenu(model: model)
+                } label: {
+                    Image(systemName: SymbolName.more).accessibilityLabel("Actions")
+                }
+                .menuStyle(.button)
+                .buttonStyle(.borderless)
+                .menuIndicator(.hidden)
+                .fixedSize()
+                .opacity(hovering ? 1 : 0)
             }
-            .menuStyle(.button)
-            .buttonStyle(.borderless)
-            .menuIndicator(.hidden)
-            .fixedSize()
-            .opacity(hovering ? 1 : 0)
         }
         .contentShape(Rectangle())
         .onHover { hovering = $0 }
