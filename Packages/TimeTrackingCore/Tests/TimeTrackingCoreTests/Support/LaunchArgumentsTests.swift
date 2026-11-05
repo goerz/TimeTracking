@@ -17,6 +17,8 @@ struct LaunchArgumentsTests {
                 "YES",
                 "-ResetState",
                 "true",
+                "-CalendarAccess",
+                "YES",
                 "-RealAgent",
                 "YES",
                 "-LoginItemLaunch",
@@ -27,6 +29,7 @@ struct LaunchArgumentsTests {
         #expect(parsed.uiTesting)
         #expect(parsed.fixture == "small")
         #expect(parsed.resetState)
+        #expect(parsed.calendarAccess)
         #expect(parsed.realAgent)
         #expect(parsed.loginItemLaunch)
         #expect(!parsed.unregister)

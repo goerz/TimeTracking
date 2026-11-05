@@ -1,5 +1,5 @@
-// EventCard: a time block or external event piece with its gestures and
-// menu (spec_calendar.md §4.2, §4.3, §4.4).
+// EventCard: a time block or external event piece; the external event's
+// hover button, gestures, and menu (spec_calendar.md §4.3, §4.4).
 
 import SwiftUI
 import TimeTrackingCore
@@ -10,63 +10,16 @@ struct EventCard: View {
     var model: CalendarModel
     var piece: CalendarPiece<CalendarEvent.ID>
     var size: CGSize
-    @State private var dragOffset: CGFloat = 0
-    @State private var showsMenu = false
+    /// The card's top left corner from the day's left edge and the columns' top.
+    var origin: CGPoint
+    @State private var hovering = false
 
     var body: some View {
         if let block = model.timeBlocks.first(where: { $0.id == piece.id }) {
-            timeBlockCard(block)
+            TimeBlockCard(model: model, block: block, day: piece.day, size: size, origin: origin)
         } else if let event = model.externalEvents.first(where: { $0.id == piece.id }) {
             eventCard(event)
         }
-    }
-
-    private func timeBlockCard(_ block: TimeBlock) -> some View {
-        let project = model.project(block.link.projectID)
-        let area = project.flatMap { project in model.entries.first { $0.project?.id == project.id }?.area?.color }
-        let color = area.map { Color(hex: $0) } ?? .gray
-        let selected = model.selection.contains(.timeBlock(block.id))
-        return VStack(alignment: .leading, spacing: 1) {
-            Text(block.title).fontWeight(.semibold)
-            if let project {
-                Text(project.name)
-            }
-            HStack(spacing: 2) {
-                Image(systemName: SymbolName.calendar).imageScale(.small).accessibilityHidden(true)
-                Text(ActivityText.duration(Int(block.event.interval.duration))).monospacedDigit()
-            }
-        }
-        .font(.caption).lineLimit(1).padding(.horizontal, Design.Spacing.tight + 2).padding(.vertical, Design.Spacing.tight)
-        .frame(width: size.width - 2, height: size.height, alignment: .topLeading)
-        .background(RoundedRectangle(cornerRadius: Design.Radius.small).fill(color.opacity(0.15)))
-        .overlay(RoundedRectangle(cornerRadius: Design.Radius.small).strokeBorder(color, style: StrokeStyle(lineWidth: 1.5, dash: [4])))
-        .overlay(RoundedRectangle(cornerRadius: Design.Radius.small).strokeBorder(Color.accentColor, lineWidth: selected ? 2 : 0))
-        .clipped()
-        .offset(y: dragOffset)
-        .accessibilityAddTraits(.isButton)
-        .onTapGesture(count: 2) { model.editTimeBlock(block) }
-        .onTapGesture { model.click(.timeBlock(block.id)) }
-        .calendarDrag(minimumDistance: 4, onLongPress: EntryCard.touch ? { showsMenu = true } : nil) { drag in
-            dragOffset = drag.translation.height
-        } onEnded: { drag in
-            dragOffset = 0
-            Task { await model.moveTimeBlock(block.id, by: Double(drag.translation.height) / model.pointsPerHour * 3600) }
-        }
-        .draggable("timeBlock:\(block.id)")
-        .help(timeBlockHelp(block))
-        .modifier(EntryMenu(showsMenu: $showsMenu) {
-            Button("Create Entry…") { model.createEntry(fromEvent: block.event, timeBlock: block) }
-            Button("Edit…") { model.editTimeBlock(block) }
-            Button("Delete", role: .destructive) { Task { await model.deleteTimeBlocks([block.id]) } }
-        })
-        .accessibilityIdentifier("calendar.timeBlock")
-    }
-
-    private func timeBlockHelp(_ block: TimeBlock) -> String {
-        if case let .unlinked(reason?) = block.link {
-            return reason
-        }
-        return TimeBlockLink.visibleNotes(block.event.notes)
     }
 
     private func eventCard(_ event: CalendarEvent) -> some View {
@@ -85,7 +38,13 @@ struct EventCard: View {
         }
         .frame(width: size.width - 2, height: size.height, alignment: .topLeading)
         .background(RoundedRectangle(cornerRadius: Design.Radius.small).fill(color.opacity(0.08)))
+        .overlay {
+            if hovering {
+                CreateEntryButton(tint: color) { model.createEntry(fromEvent: event, timeBlock: nil) }
+            }
+        }
         .clipped()
+        .onHover { hovering = $0 }
         .accessibilityAddTraits(.isButton)
         .onTapGesture(count: 2) { model.openEvent(event) }
         .onTapGesture { model.click(.event(event.id)) }

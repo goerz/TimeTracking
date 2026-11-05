@@ -7,7 +7,8 @@ public import Foundation
 /// The parsed launch arguments and test-related environment of a process.
 ///
 /// The apps understand `-UITesting YES`, `-Fixture <name>`,
-/// `-ResetState YES`, `-RealAgent YES`, and `-LoginItemLaunch YES` (the `-Key value` form of
+/// `-ResetState YES`, `-CalendarAccess YES`, `-RealAgent YES`, and
+/// `-LoginItemLaunch YES` (the `-Key value` form of
 /// `UserDefaults`); the agent
 /// understands `--record <folder>`, `--replay <file>`, and `--unregister`,
 /// which it hands to the Mac app's own `--unregister`;
@@ -22,6 +23,9 @@ public struct LaunchArguments: Sendable, Equatable {
     public var fixture: String?
     /// `-ResetState YES`: forget window frames and other device-local state.
     public var resetState: Bool
+    /// `-CalendarAccess YES`: under `-UITesting`, the in-memory calendar
+    /// store has an iCloud account and grants access, so time blocks work.
+    public var calendarAccess: Bool
     /// `-RealAgent YES`: under `-UITesting`, the Mac app registers the real
     /// Debug agent instead of an in-memory one (the ARCH-8 UI tests).
     public var realAgent: Bool
@@ -53,6 +57,7 @@ public struct LaunchArguments: Sendable, Equatable {
         uiTesting: Bool = false,
         fixture: String? = nil,
         resetState: Bool = false,
+        calendarAccess: Bool = false,
         realAgent: Bool = false,
         loginItemLaunch: Bool = false,
         recordFolder: URL? = nil,
@@ -65,6 +70,7 @@ public struct LaunchArguments: Sendable, Equatable {
         self.uiTesting = uiTesting
         self.fixture = fixture
         self.resetState = resetState
+        self.calendarAccess = calendarAccess
         self.realAgent = realAgent
         self.loginItemLaunch = loginItemLaunch
         self.recordFolder = recordFolder
@@ -89,6 +95,7 @@ public struct LaunchArguments: Sendable, Equatable {
             let next = position + 1
             return next < arguments.endIndex ? arguments[next] : nil
         }
+        self.calendarAccess = arguments.firstIndex(of: "-CalendarAccess").map { Self.bool(value(after: $0)) } ?? false
         while index < arguments.endIndex {
             let argument = arguments[index]
             var consumed = 1

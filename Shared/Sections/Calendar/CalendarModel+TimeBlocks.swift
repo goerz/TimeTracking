@@ -70,23 +70,47 @@ extension CalendarModel {
         await reload()
     }
 
-    /// Moves a block (both pieces of one crossing midnight) by `offset`,
-    /// unlimited by the now-line.
-    func moveTimeBlock(_ id: CalendarEvent.ID, by offset: TimeInterval) async {
+    /// Moves a block whole (all pieces of one crossing the day change) by
+    /// `offset`, from the column `source` onto `day`, unlimited by the
+    /// now-line. With `option` it snaps to the minute.
+    func moveTimeBlock(
+        _ id: CalendarEvent.ID,
+        by offset: TimeInterval,
+        to day: TrackingDay? = nil,
+        from source: TrackingDay? = nil,
+        option: Bool = false
+    ) async {
         guard let block = timeBlocks.first(where: { $0.id == id }) else {
             return
         }
-        let day = calendar.day(containing: block.event.start)
-        let snapped = CalendarSnap(minutes: snapMinutes).snap(block.event.start + offset, dayStart: calendar.startOfDay(day))
-        await updateTimeBlock(block, interval: DateInterval(start: snapped, duration: block.event.interval.duration))
+        await updateTimeBlock(block, interval: movedInterval(of: block, by: offset, to: day, from: source, option: option))
     }
 
-    /// Resizes a block's top or bottom edge.
-    func resizeTimeBlock(_ id: CalendarEvent.ID, top: Bool, to date: Date) async {
+    /// Where a body drag puts `block`, which the card's time label shows
+    /// while it lasts.
+    func movedInterval(
+        of block: TimeBlock,
+        by offset: TimeInterval,
+        to day: TrackingDay? = nil,
+        from source: TrackingDay? = nil,
+        option: Bool = false
+    ) -> DateInterval {
+        let source = source ?? calendar.day(containing: block.event.start)
+        let dayShift = calendar.startOfDay(day ?? source).timeIntervalSince(calendar.startOfDay(source))
+        let start = block.event.start + dayShift + offset
+        let dayStart = calendar.startOfDay(calendar.day(containing: start))
+        let snapped = CalendarSnap(minutes: option ? 1 : snapMinutes).snap(start, dayStart: dayStart)
+        return DateInterval(start: snapped, duration: block.event.interval.duration)
+    }
+
+    /// Resizes a block's top or bottom edge within the column `day`, by
+    /// default the one the edge is in. With `option` it snaps to the minute.
+    func resizeTimeBlock(_ id: CalendarEvent.ID, top: Bool, to date: Date, on day: TrackingDay? = nil, option: Bool = false) async {
         guard let block = timeBlocks.first(where: { $0.id == id }) else {
             return
         }
-        let editing = editing(calendar.day(containing: top ? block.event.start : block.event.end - 1), limitToNow: false)
+        let column = day ?? calendar.day(containing: top ? block.event.start : block.event.end - 1)
+        let editing = editing(column, option: option, limitToNow: false)
         let interval = block.event.interval
         await updateTimeBlock(block, interval: top ? editing.resizeStart(interval, to: date) : editing.resizeEnd(interval, to: date))
     }

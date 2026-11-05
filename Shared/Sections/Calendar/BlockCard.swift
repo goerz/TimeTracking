@@ -33,13 +33,7 @@ struct BlockCard: View {
                 label(style)
             }
             if hovering {
-                Button { model.createEntry(from: block) } label: { Image(systemName: SymbolName.addCircle) }
-                    .buttonStyle(.plain)
-                    .foregroundStyle(tint)
-                    .padding(Design.Spacing.tight)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-                    .help("Create Entry…")
-                    .accessibilityLabel("Create Entry")
+                CreateEntryButton(tint: tint) { model.createEntry(from: block) }
             }
         }
         .frame(width: size.width, height: size.height)

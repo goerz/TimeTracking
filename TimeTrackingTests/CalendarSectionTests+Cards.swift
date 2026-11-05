@@ -79,4 +79,103 @@ extension CalendarSectionTests {
         #expect(model.cancelCardDrag())
         #expect(model.continueCardDrag(.entry(entry.id), on: today, from: CGPoint(x: 20, y: 30)))
     }
+
+    /// A time block from `start` to `end` on the time-block calendar.
+    private func timeBlock(_ world: World, from start: String, to end: String, project: Project? = nil) async throws -> TimeBlock {
+        let calendar = try #require(world.model.timeBlockCalendar)
+        let event = try world.events.create(TimeBlock.draft(
+            calendarID: calendar.id,
+            title: "Write",
+            project: project?.id,
+            interval: DateInterval(start: world.test.time(start), end: world.test.time(end)),
+            notes: nil,
+            scheme: "timetracking"
+        ))
+        await world.model.reload()
+        return try #require(world.model.timeBlocks.first { $0.id == event.id })
+    }
+
+    @Test("PC-39 a time block's label and color come from its project, whether or not an entry of it is loaded")
+    func timeBlockLabel() async throws {
+        let world = try await World()
+        let project = try await world.test.projects(["Noise Model"])[0]
+        await world.model.reload()
+        #expect(world.model.entries.isEmpty)
+        let linked = try await timeBlock(world, from: "14:00", to: "15:00", project: project)
+        let row = try #require(world.model.projectRows[project.id])
+        let label = try #require(world.model.label(of: linked))
+        #expect(label.name == "Noise Model")
+        #expect(label.projectAndClient == ProjectLabel(row).projectAndClient)
+        #expect(label.color != nil)
+        #expect(label.color == row.area?.color)
+        let unlinked = try await timeBlock(world, from: "16:00", to: "17:00")
+        #expect(world.model.label(of: unlinked) == nil)
+    }
+
+    @Test("PC-40 a time block moves across days past the now-line, snaps, moves whole, and resizes in its piece's column")
+    func timeBlockMoveAndResize() async throws {
+        let world = try await World()
+        let model = world.model
+        let block = try await timeBlock(world, from: "14:00", to: "15:00")
+        let today = Self.day("2024-03-14")
+        let tomorrow = Self.day("2024-03-15")
+        await model.moveTimeBlock(block.id, by: 3600, to: tomorrow, from: today)
+        var moved = try #require(world.events.allEvents.first)
+        #expect(try moved.start == world.test.time("2024-03-15T15:00"))
+        #expect(try moved.end == world.test.time("2024-03-15T16:00"))
+        // One undo step takes it back.
+        world.test.undo.undo()
+        await model.waitForUndo()
+        #expect(world.events.allEvents.first?.start == block.event.start)
+
+        // 7 minutes snap to 5, with ⌥ to the minute; the label agrees.
+        let current = try #require(model.timeBlocks.first)
+        #expect(try model.movedInterval(of: current, by: 420).start == world.test.time("14:05"))
+        #expect(try model.movedInterval(of: current, by: 420, option: true).start == world.test.time("14:07"))
+
+        // The edges: to the next snap mark, down to 1 minute.
+        let id = current.id
+        try await model.resizeTimeBlock(id, top: false, to: world.test.time("15:32"))
+        moved = try #require(world.events.allEvents.first)
+        #expect(try moved.end == world.test.time("15:30"))
+        try await model.resizeTimeBlock(moved.id, top: true, to: world.test.time("16:00"))
+        moved = try #require(world.events.allEvents.first)
+        #expect(try moved.start == world.test.time("15:29"))
+        #expect(try moved.end == world.test.time("15:30"))
+    }
+
+    @Test("PC-40 with Midnight at 04:00 the later piece of a block moves it whole, and its edge stays in that column")
+    func timeBlockAcrossMidnight() async throws {
+        let world = try await World()
+        let model = world.model
+        try await world.test.store.set(.midnightHour, 4)
+        let block = try await timeBlock(world, from: "03:00", to: "05:00")
+        let later = Self.day("2024-03-14")
+        await model.moveTimeBlock(block.id, by: 3600, to: later, from: later)
+        let moved = try #require(world.events.allEvents.first)
+        #expect(try moved.start == world.test.time("04:00"))
+        #expect(try moved.end == world.test.time("06:00"))
+        let earlier = try await timeBlock(world, from: "2024-03-14T02:00", to: "2024-03-14T04:30")
+        // The later piece's top edge cannot leave its column.
+        try await model.resizeTimeBlock(earlier.id, top: true, to: world.test.time("03:00"), on: later)
+        let resized = try #require(world.events.allEvents.first { $0.id == earlier.id })
+        #expect(try resized.start == world.test.time("04:00"))
+    }
+
+    @Test("PC-41 the + of a time block or event opens the popover, past blocks only")
+    func createFromCards() async throws {
+        let world = try await World()
+        let model = world.model
+        let project = try await world.test.projects(["Noise Model"])[0]
+        await model.reload()
+        let block = try await timeBlock(world, from: "08:00", to: "11:00", project: project)
+        model.createEntry(fromEvent: block.event, timeBlock: block)
+        #expect(try model.draft?.interval == DateInterval(start: world.test.time("08:00"), end: world.test.time("10:00")))
+        #expect(model.draft?.projectID == project.id)
+        model.escape()
+        let future = try await timeBlock(world, from: "12:00", to: "13:00")
+        model.createEntry(fromEvent: future.event, timeBlock: future)
+        #expect(model.draft == nil)
+        #expect(model.notice?.text == CalendarEditing.futureNotice)
+    }
 }

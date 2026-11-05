@@ -23,6 +23,12 @@ extension CalendarModel {
         id.flatMap { projectRows[$0] }.map(ProjectLabel.init) ?? .noProject
     }
 
+    /// The label of a time block's linked project, with its area color;
+    /// `nil` for an unlinked block (§4.2).
+    func label(of block: TimeBlock) -> ProjectLabel? {
+        block.link.projectID.flatMap { projectRows[$0] }.map(ProjectLabel.init)
+    }
+
     /// Waits for a pending undo (tests).
     func waitForUndo() async {
         await pendingUndo?.value

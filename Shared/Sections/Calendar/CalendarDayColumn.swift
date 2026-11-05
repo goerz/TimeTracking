@@ -163,12 +163,11 @@ private struct TrackedColumn: View {
             }
     }
 
-    /// A block, time block, or event dragged in; the drop position is ignored.
+    /// A block or event dragged in; the drop position is ignored. A time
+    /// block's own drag finds this column itself (`TimeBlockCard`).
     private func drop(_ item: String) {
         if let id = item.dropPrefix("block:"), let block = model.blocks.first(where: { $0.id == id }) {
             model.createEntry(from: block)
-        } else if let id = item.dropPrefix("timeBlock:"), let block = model.timeBlocks.first(where: { $0.id == id }) {
-            model.createEntry(fromEvent: block.event, timeBlock: block)
         } else if let id = item.dropPrefix("event:"), let event = model.externalEvents.first(where: { $0.id == id }) {
             model.createEntry(fromEvent: event, timeBlock: nil)
         }
@@ -357,19 +356,10 @@ private struct EventsColumn: View {
 
     var body: some View {
         let axis = model.axis(day)
-        let items = pieces()
-        let lanes = CalendarLane.assign(items.map { ($0.id, $0.interval) })
         ZStack(alignment: .topLeading) {
             drawArea(axis)
             notice
-            ForEach(items, id: \.self) { piece in
-                if let frame = axis.frame(of: piece.interval) {
-                    let lane = lanes[piece.id] ?? CalendarLane(index: 0, count: 1)
-                    let laneWidth = (width - 4) / CGFloat(lane.count)
-                    EventCard(model: model, piece: piece, size: CGSize(width: laneWidth, height: max(4, frame.height)))
-                        .offset(x: 2 + laneWidth * CGFloat(lane.index), y: frame.y)
-                }
-            }
+            cards(axis)
             if let draft = model.blockDraft, model.calendar.day(containing: draft.interval.start) == day,
                let frame = axis.frame(of: draft.interval)
             {
@@ -392,6 +382,28 @@ private struct EventsColumn: View {
         // The cards inside keep their own identifiers.
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("calendar.events.\(day)")
+    }
+
+    /// The day's pieces, side by side where they overlap.
+    private func cards(_ axis: CalendarDayAxis) -> some View {
+        let items = pieces()
+        let lanes = CalendarLane.assign(items.map { ($0.id, $0.interval) })
+        let left = CalendarColumn.x(of: .calendar, dayWidth: model.dayWidth, visible: model.columns)
+        return ForEach(items, id: \.self) { piece in
+            if let frame = axis.frame(of: piece.interval) {
+                let lane = lanes[piece.id] ?? CalendarLane(index: 0, count: 1)
+                let laneWidth = (width - 4) / CGFloat(lane.count)
+                let x = 2 + laneWidth * CGFloat(lane.index)
+                EventCard(
+                    model: model,
+                    piece: piece,
+                    size: CGSize(width: laneWidth, height: max(4, frame.height)),
+                    origin: CGPoint(x: CGFloat(left) + x, y: frame.y)
+                )
+                .offset(x: x, y: frame.y)
+                .zIndex(model.cardDrag?.item == .timeBlock(piece.id) ? 1 : 0)
+            }
+        }
     }
 
     /// The empty slots: a drag draws a time block (§4.2; spec_ios.md §10.2).

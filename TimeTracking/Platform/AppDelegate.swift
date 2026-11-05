@@ -69,7 +69,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             trackerCommands: uiTesting || socket == nil ? RecordingTrackerCommands() : TrackerSocket(url: socket ?? URL(filePath: "/")),
             trackerSettingsURL: folders?.settingsURL,
             activity: activity ?? InMemoryActivityStore(),
-            calendarEvents: uiTesting ? InMemoryCalendarEventStore(access: .denied) : EventKitCalendarStore()
+            calendarEvents: uiTesting ? Self.fixtureCalendar(host.arguments) : EventKitCalendarStore()
         ) else {
             // The main window shows why. No scene opens by itself, and the
             // status item comes only with a model (`wire`), so without this
@@ -116,6 +116,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// `-UITesting` with a store fixture: the block log the same dataset
     /// generates, in a temporary folder; `nil` (an empty in-memory log) for
     /// `empty` and unknown names.
+    private static func fixtureCalendar(_ arguments: LaunchArguments) -> InMemoryCalendarEventStore {
+        InMemoryCalendarEventStore(access: arguments.calendarAccess ? .fullAccess : .denied)
+    }
+
     private static func fixtureActivity(_ arguments: LaunchArguments, clock: any Clock) async -> FileActivityStore? {
         guard let name = arguments.fixture, name != "empty", let dataset = SyntheticDataset.fixture(named: name) else {
             return nil
