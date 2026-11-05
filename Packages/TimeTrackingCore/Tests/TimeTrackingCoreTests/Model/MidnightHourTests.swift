@@ -219,6 +219,28 @@ struct MidnightHourTests {
         #expect(report.root.seconds == 3600 + 7200)
     }
 
+    @Test("AUTO-48 Today's Total counts the part of an entry that started before Midnight, as status does")
+    func todayTotalIntent() async throws {
+        let test = try await Self.nights()
+        try test.clock.set(test.date("2024-03-13T12:00"))
+        let service = AutomationService(store: test.store, timeZone: test.zone)
+        let total = try await IntentActions.total(on: nil, service: service)
+        #expect(total.value == 10_800)
+        #expect(try await service.status().todaySeconds == 10_800)
+    }
+
+    @Test("DATA-60 a day watcher reports the start of a shown day once, and a change of Midnight that moves the day")
+    func dayWatcher() throws {
+        let zone = try #require(TimeZone(identifier: "Europe/Berlin"))
+        let calendar = TrackingCalendar(timeZone: zone, midnightHour: 4)
+        var watcher = try ShownDayWatcher(calendar: calendar, now: TestStore.date("2024-03-14T03:59", zone))
+        #expect(try !watcher.dayChanged(calendar: calendar, now: TestStore.date("2024-03-14T03:59:30", zone)))
+        #expect(try watcher.dayChanged(calendar: calendar, now: TestStore.date("2024-03-14T04:00", zone)))
+        #expect(try !watcher.dayChanged(calendar: calendar, now: TestStore.date("2024-03-14T04:01", zone)))
+        let later = TrackingCalendar(timeZone: zone, midnightHour: 5)
+        #expect(try watcher.dayChanged(calendar: later, now: TestStore.date("2024-03-14T04:02", zone)))
+    }
+
     @Test("IOS-48 a widget's today follows Midnight: stopped parts, a live timer from the running entry, a timeline to the next day")
     func widgets() async throws {
         let test = try await TestStore(now: "2024-03-14T02:00")

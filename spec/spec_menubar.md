@@ -123,3 +123,4 @@ Device settings in Settings > General, section "Menu bar and Dock".
 - MB-17. The dial is the empty ring with nothing running, a minute hand while an entry runs (95 min 20 s: 35/60 of a turn), the phase's progress during a Pomodoro (10 minutes into a 25-minute focus: 0.4), and the full ring once the phase has ended; with "Show timer" off the item still ticks each minute; the image is a 16 pt template, 18 pt wide with the badge.
 - MB-18. The countdown keeps the width of its phase's full length: 9:59 left of a 25-minute focus reads ` ` + `9:59` (a figure space first); a 5-minute break needs no padding.
 - MB-19. An entry started at 23:30 that runs while the Mac sleeps past midnight is split at 00:00 on wake, and the item counts from the chain start; a time zone change runs the same pass.
+- MB-20. With Midnight at 04:00, the "Last:" line names an entry from 03:00 to 05:00 today.

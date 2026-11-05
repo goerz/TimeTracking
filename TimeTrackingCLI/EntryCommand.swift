@@ -17,7 +17,7 @@ struct EntryCommand: AsyncParsableCommand {
         try context.emit(
             json: { AutomationRecords.entryList(listings, now: service.now, timeZone: zone) },
             csv: { ReportCSVWriter.entriesCSV(listings, now: service.now, timeZone: zone) },
-            text: { ToolFormat.entriesTable(listings, now: service.now, zone: zone, colors: context.colors) }
+            text: { ToolFormat.entriesTable(listings, now: service.now, calendar: service.calendar, colors: context.colors) }
         )
     }
 
@@ -149,7 +149,7 @@ struct EntryCommand: AsyncParsableCommand {
             let listing = try await service.listing(service.store.resolveEntry(id))
             guard yes else {
                 // stdout stays empty on an error: the entry goes to stderr.
-                ToolContext.writeError(ToolFormat.entriesTable([listing], now: service.now, zone: context.timeZone, colors: false))
+                ToolContext.writeError(ToolFormat.entriesTable([listing], now: service.now, calendar: service.calendar, colors: false))
                 throw AutomationError.usage("Add --yes to delete this entry.")
             }
             try await service.deleteEntry(listing.entry.id)

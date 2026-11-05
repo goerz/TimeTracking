@@ -72,9 +72,7 @@ public enum IntentActions {
     public static func total(on date: Date?, service: AutomationService) async throws(AutomationError) -> Outcome<Int> {
         let calendar = service.calendar
         let day = date.map { calendar.day(containing: $0) } ?? service.today
-        let result = try await service.entries(in: DayRange(from: day, to: day.adding(days: 1)))
-        let interval = calendar.interval(of: day)
-        let seconds = result.listings.reduce(0) { $0 + AutomationService.seconds(of: $1.entry, within: interval, at: service.now) }
+        let seconds = try await service.totalSeconds(on: day)
         let suffix = day == service.today ? "today" : "on \(IntentText.spokenDay(day, today: service.today))"
         return Outcome(value: seconds, dialog: "\(IntentText.duration(seconds)) \(suffix)")
     }

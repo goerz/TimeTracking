@@ -35,10 +35,9 @@ public struct AutomationService: Sendable {
         let now = now
         let today = today
         let store = store
+        let total = try await totalSeconds(on: today)
         return try await run {
             let running = try await store.runningEntry()
-            let entries = try await store.entries(in: calendar.interval(of: today), includeDeleted: false)
-            let total = entries.reduce(0) { $0 + Self.seconds(of: $1, within: calendar.interval(of: today), at: now) }
             let listing = try await store.listings(for: running.map { [$0] } ?? []).first
             return try await AutomationStatus(
                 running: listing,
@@ -47,6 +46,18 @@ public struct AutomationService: Sendable {
                 pendingChanges: store.outboxCount(),
                 asOf: now
             )
+        }
+    }
+
+    /// The tracked seconds of `day`: every entry's part on it, the running
+    /// one up to now.
+    public func totalSeconds(on day: TrackingDay) async throws(AutomationError) -> Int {
+        let store = store
+        let now = now
+        let interval = calendar.interval(of: day)
+        return try await run {
+            try await store.entries(in: interval, includeDeleted: false)
+                .reduce(0) { $0 + Self.seconds(of: $1, within: interval, at: now) }
         }
     }
 

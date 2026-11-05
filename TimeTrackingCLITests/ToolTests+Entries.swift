@@ -5,6 +5,17 @@ import Foundation
 import Testing
 
 extension ToolTests {
+    @Test("AUTO-49 the entries table subtotals by shown day, while each row keeps its real date")
+    func entriesSubtotalsFollowMidnight() throws {
+        let fixture = try ToolFixture()
+        try fixture.execute("INSERT INTO setting (key, value, modified_at) VALUES ('day.midnightHour', '9', 0)")
+        let table = try fixture.run(["entries", "--from", "2026-10-28", "--to", "2026-10-29"])
+        #expect(table.status == 0, "\(table.standardError)")
+        #expect(table.standardOutput.contains("2026-10-29"))
+        #expect(table.standardOutput.contains("Subtotal 2026-10-28"))
+        #expect(!table.standardOutput.contains("Subtotal 2026-10-29"))
+    }
+
     @Test("AUTO-7 entries without a range lists today's entries; report --json without a range covers the current week")
     func defaultRanges() throws {
         let fixture = try ToolFixture()

@@ -7,6 +7,20 @@ import TimeTrackingCore
 
 @MainActor
 struct TimerModelTests {
+    @Test("MB-20 the menu's Last line names an entry stopped today that started before Midnight")
+    func lastStoppedAcrossMidnight() async throws {
+        let test = try await TestApp()
+        try await test.store.set(.midnightHour, 4)
+        _ = try await test.store.create(EntryDraft(
+            projectID: nil,
+            task: "Dawn",
+            start: TestApp.date("2024-03-14T03:00"),
+            end: TestApp.date("2024-03-14T05:00")
+        ))
+        await test.app.timer.refresh()
+        #expect(test.app.timer.lastStoppedToday?.task == "Dawn")
+    }
+
     @Test("TM-6 start, New, stop, continue, and discard; New and Continue stop the running entry at the same instant")
     func actions() async throws {
         let test = try await TestApp()

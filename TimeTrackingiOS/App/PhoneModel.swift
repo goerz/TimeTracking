@@ -147,16 +147,24 @@ final class PhoneModel {
 
     /// The midnight split while the app runs (spec_ios.md §7 item 5): wake
     /// at the running entry's next midnight or the next shown day, run the
-    /// pass, and fan out.
+    /// pass, and fan out; with nothing running, look every minute and fan
+    /// out when the shown day has changed.
     private func splitAtMidnights() async {
+        var watcher = ShownDayWatcher(calendar: store.displayCalendar(), now: clock.now)
         while !Task.isCancelled {
             guard let midnight = try? await store.nextRunningDayChange() else {
                 try? await Task.sleep(for: .seconds(60))
+                if watcher.dayChanged(calendar: store.displayCalendar(), now: clock.now) {
+                    await fanOut(structureChanged: false)
+                    await pad?.storeChanged()
+                }
                 continue
             }
             try? await Task.sleep(for: .seconds(max(1, midnight.timeIntervalSince(clock.now))))
             try? await store.checkInvariants()
+            _ = watcher.dayChanged(calendar: store.displayCalendar(), now: clock.now)
             await fanOut(structureChanged: false)
+            await pad?.storeChanged()
         }
     }
 

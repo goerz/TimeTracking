@@ -58,15 +58,20 @@ extension AppModel {
     /// Sleeps until the running entry's next midnight or the next shown
     /// day, runs the pass, reloads (its part moves to the new day even when
     /// nothing is stored), and repeats; with nothing running it looks again
-    /// every minute.
+    /// every minute and reloads when the shown day has changed.
     private func splitAtMidnights() async {
+        var watcher = ShownDayWatcher(calendar: store.displayCalendar(), now: clock.now)
         while !Task.isCancelled {
             guard let midnight = try? await store.nextRunningDayChange() else {
                 try? await Task.sleep(for: .seconds(60))
+                if watcher.dayChanged(calendar: store.displayCalendar(), now: clock.now), !Task.isCancelled {
+                    await storeChanged(.structure)
+                }
                 continue
             }
             try? await Task.sleep(for: .seconds(max(1, midnight.timeIntervalSince(clock.now))))
             await checkInvariants()
+            _ = watcher.dayChanged(calendar: store.displayCalendar(), now: clock.now)
             if !Task.isCancelled {
                 await storeChanged(.structure)
             }

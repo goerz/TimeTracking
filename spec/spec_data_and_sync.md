@@ -315,7 +315,7 @@ The synced setting Midnight (`day.midnightHour`, whole hours, default 00:00) set
 
 A shown day that starts before noon is named after the date it starts on; one that starts at noon or later after the date it ends on, so with Midnight at 04:00 "Tuesday" runs Tuesday 04:00 to Wednesday 04:00, and with 22:00 Monday 22:00 to Tuesday 22:00. Each local date holds one day change. Days last 23 or 25 hours across DST changes. An hour a DST change skips is replaced by the first instant after it; of an hour it repeats, the first counts. Weeks are Monday to Sunday of shown days, with ISO 8601 numbers.
 
-Shown, an entry crossing the day change in its own zone is two *pieces* (`TrackingCalendar.pieces(of:at:)`) with the entry's id: each has its part of the interval and its day, only the last one runs, and each counts as an entry of its day, so sums over days stay plain sums. Entries split at a midnight inside a shown day stay two entries there. Editing always acts on the stored entry. While an entry runs, the apps wake at the start of the next shown day so its part moves over. The tool's `entries` lists stored entries by their start (`spec_automation.md` §3.2). Activity blocks and background stretches keep one shown day, that of their start, because their items cannot be divided; the Calendar draws them in every column they reach.
+Shown, an entry crossing the day change in its own zone is two *pieces* (`TrackingCalendar.pieces(of:at:)`) with the entry's id: each has its part of the interval and its day, only the last one runs, and each counts as an entry of its day, so sums over days stay plain sums. Entries split at a midnight inside a shown day stay two entries there. Editing always acts on the stored entry. While an entry runs, the apps wake at the start of the next shown day so its part moves over; with nothing running, they check every minute and reload when the shown day has changed. The tool's `entries` lists stored entries by their start (`spec_automation.md` §3.2). Activity blocks and background stretches keep one shown day, that of their start, because their items cannot be divided; the Calendar draws them in every column they reach.
 
 Durations are integer seconds throughout; rounding happens only in formatting.
 
@@ -380,6 +380,7 @@ Durations are integer seconds throughout; rounding happens only in formatting.
 57. In New York with Midnight at 02:00, March 10, 2024 starts at 03:00 and lasts 23 hours; with 01:00, November 3 starts at the first 01:00 and lasts 25 hours, and the second 01:00 lies on it.
 58. Midnight changes no stored entry: entries across it stay one record, entries across a real midnight stay split with their stored days; shown, an entry from 03:00 to 05:00 is pieces ending and starting at 04:00 with one id and the days March 12 and 13, a running entry's last piece runs, and an entry in another zone cuts at that zone's Midnight.
 59. Midnight is 00:00 by default, syncs as a setting, and reaches `displayCalendar` on the other device.
+60. Polling at 03:59 and 04:00 with Midnight at 04:00 reports one change of shown day, then none, and a change of Midnight that moves the day reports one.
 
 ### 9.1 Fixtures
 

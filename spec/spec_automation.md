@@ -279,3 +279,5 @@ The tool tests build the Debug tool, create a fixture store from a JSON export, 
 45. Running `entries --from today --to tomorrow --json` covers exactly today.
 46. With a run (activity and distance), a walk without distance, a night, and an import status in the store, `health --from 2026-10-28 --to 2026-10-29 --json` lists the two workouts with their activity, local start and end, duration, and distance (null for the walk) and `lastImport` with device, time, and kinds; `--kind sleep` lists only the night, an instant `--from` only the walk, `--csv` writes `id,kind,activity,start,end,seconds,distance`; `--kind nap` exits 2; a store without an import status prints `"lastImport": null`.
 47. With Midnight at 04:00, at 02:00 `today` is the previous date and `status` sums its parts, `report` over a day cuts entries at 04:00, and `entries` over it lists the stored entries starting in it.
+48. Today's Total counts an entry's part on the day, also of an entry that started before Midnight, and agrees with `status`.
+49. With Midnight at 09:00, the `entries` table puts an entry at 08:00 on October 29 under "Subtotal 2026-10-28" while its row shows its real date.

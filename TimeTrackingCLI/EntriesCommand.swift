@@ -45,7 +45,7 @@ struct EntriesCommand: AsyncParsableCommand {
                     : ToolFormat.entriesTable(
                         result.listings,
                         now: result.now,
-                        zone: zone,
+                        calendar: service.calendar,
                         colors: context.colors,
                         total: result.totalSeconds
                     )

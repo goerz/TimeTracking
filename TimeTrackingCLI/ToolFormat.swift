@@ -34,10 +34,12 @@ nonisolated enum ToolFormat {
         }
     }
 
-    /// The table of entries with a subtotal at each day change.
-    static func entriesTable(_ listings: [EntryListing], now: Date, zone: TimeZone, colors: Bool, total: Int? = nil) -> String {
+    /// The table of entries with a subtotal at each change of shown day;
+    /// a row keeps the real date of its start.
+    static func entriesTable(_ listings: [EntryListing], now: Date, calendar: TrackingCalendar, colors: Bool, total: Int? = nil) -> String {
+        let zone = calendar.timeZone
         var table = TextTable(headers: ["Date", "Start", "End", "Duration", "Project", "Client", "Task"], rightAligned: [3])
-        var day: String?
+        var day: TrackingDay?
         var subtotal = 0
         func closeDay() {
             if let day {
@@ -47,15 +49,16 @@ nonisolated enum ToolFormat {
         }
         for listing in listings {
             let entry = listing.entry
-            let date = date(entry.start, zone)
-            if date != day {
+            let shownDay = calendar.day(containing: entry.start)
+            if shownDay != day {
                 closeDay()
-                day = date
+                day = shownDay
                 subtotal = 0
             }
             subtotal += entry.seconds(at: now)
             table.add([
-                date, time(entry.start, zone), entry.end.map { time($0, zone) } ?? "running", duration(entry.seconds(at: now)),
+                date(entry.start, zone), time(entry.start, zone), entry.end.map { time($0, zone) } ?? "running",
+                duration(entry.seconds(at: now)),
                 listing.project?.name ?? "", listing.client?.name ?? "", entry.task,
             ])
         }
