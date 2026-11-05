@@ -28,4 +28,9 @@ if [ "$(running terminate)" != 0 ]; then
         exit 1
     fi
 fi
-open "$app" --args "$@"
+# `open` starts the app without this environment, so a fixed clock goes along.
+if [ -n "${TIMETRACKING_NOW:-}" ]; then
+    open --env "TIMETRACKING_NOW=$TIMETRACKING_NOW" "$app" --args "$@"
+else
+    open "$app" --args "$@"
+fi
