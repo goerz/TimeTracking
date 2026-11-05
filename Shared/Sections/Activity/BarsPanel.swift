@@ -9,6 +9,8 @@ struct BarsPanel: View {
     var model: ActivityModel
     var summary: ActivitySummary
     @Environment(\.contextColors) private var colors
+    /// The bar or segment under the pointer.
+    @State private var hovered: ActivityBars.Target?
 
     var body: some View {
         let bars = summary.bars
@@ -32,21 +34,61 @@ struct BarsPanel: View {
                 }
             }
             .chartYScale(domain: 0 ... Double(bars.axisHours))
-            .chartOverlay { proxy in tapArea(proxy, bars: bars) }
+            .chartOverlay { proxy in pointerArea(proxy, bars: bars) }
+            .overlay(alignment: .top) {
+                if let text = hovered.flatMap({ bars.tooltip(of: $0, displayName: model.displayName) }) {
+                    tooltip(text)
+                }
+            }
             .frame(height: 220)
+            .accessibilityIdentifier("activity.bars.chart")
         }
         .accessibilityIdentifier("activity.bars")
     }
 
-    /// A click on a bar drills into the Calendar (§3).
-    private func tapArea(_ proxy: ChartProxy, bars: ActivityBars) -> some View {
-        Rectangle().fill(.clear).contentShape(Rectangle())
-            .accessibilityAddTraits(.isButton)
-            .onTapGesture { location in
-                if let id: String = proxy.value(atX: location.x), let bar = bars.bars.first(where: { $0.id == id }) {
-                    model.showInCalendar(bar: bar, series: nil)
+    /// The pointer over the chart: hovering shows a tooltip, a click drills
+    /// into the Calendar (§1.5, §3).
+    private func pointerArea(_ proxy: ChartProxy, bars: ActivityBars) -> some View {
+        GeometryReader { geometry in
+            Rectangle().fill(.clear).contentShape(Rectangle())
+                .accessibilityAddTraits(.isButton)
+                .onContinuousHover { phase in
+                    switch phase {
+                    case let .active(location):
+                        hovered = target(at: location, proxy, geometry, bars: bars)
+                    case .ended:
+                        hovered = nil
+                    }
                 }
-            }
+                .onTapGesture { location in
+                    if let target = target(at: location, proxy, geometry, bars: bars), let bar = bars.bar(of: target) {
+                        model.showInCalendar(bar: bar, series: nil)
+                    }
+                }
+        }
+    }
+
+    /// The bar at a point of the chart and the segment there; the proxy
+    /// counts from the plot area, which starts after the y axis.
+    private func target(at location: CGPoint, _ proxy: ChartProxy, _ geometry: GeometryProxy, bars: ActivityBars) -> ActivityBars.Target? {
+        guard let plot = proxy.plotFrame.map({ geometry[$0] }),
+              let id = proxy.value(atX: location.x - plot.minX, as: String.self),
+              let bar = bars.bars.first(where: { $0.id == id })
+        else {
+            return nil
+        }
+        let hours = proxy.value(atY: location.y - plot.minY, as: Double.self)
+        return ActivityBars.Target(bar: id, series: hours.flatMap { bar.series(atSeconds: $0 * 3600) })
+    }
+
+    private func tooltip(_ text: String) -> some View {
+        Text(text)
+            .font(.caption)
+            .padding(.horizontal, Design.Spacing.small)
+            .padding(.vertical, Design.Spacing.tight)
+            .background(RoundedRectangle(cornerRadius: Design.Radius.small).fill(.background).shadow(radius: 4))
+            .allowsHitTesting(false)
+            .accessibilityIdentifier("activity.bars.tooltip")
     }
 
     /// The bar's segments, the open block's hatched top, and its total above it.

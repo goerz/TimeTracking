@@ -52,12 +52,6 @@ public struct ActivityBars: Sendable {
         public var openRange: ClosedRange<Int>? {
             openSeconds > 0 ? max(0, seconds - openSeconds) ... seconds : nil
         }
-
-        /// "Thu Oct 29 · paper · 4h 12m of 6h 38m".
-        public func tooltip(for series: Series) -> String {
-            let part = segments.first { $0.series == series }?.seconds ?? 0
-            return "\(title) · \(series.title) · \(ActivityText.duration(part)) of \(ActivityText.duration(seconds))"
-        }
     }
 
     public var granularity: Granularity

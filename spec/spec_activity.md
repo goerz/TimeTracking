@@ -55,7 +55,7 @@ A cell's tooltip reads "Thu Oct 29 · 09:00–10:00", then "about 47m active (Ma
 
 One stacked bar per day up to 31 days, per ISO week up to 53 weeks, per month beyond. Bars stack item seconds per context in the Apps ranking, in context colors; contexts beyond the twelfth merge into gray "Other apps"; without a filter a gray "Brief activity" top segment makes the bar equal `a`. The y axis has lines every 2 hours, scaled to the tallest bar rounded up to an even hour. Totals sit above bars. On the Mac today's bar includes the open block with a hatched top, and a dot under its label marks today.
 
-Hovering a segment shows "Thu Oct 29 · paper · 4h 12m of 6h 38m"; a label or empty bar area shows the day's total and three largest contexts. Clicking drills into the Calendar.
+Hovering a segment shows "Thu Oct 29 · paper · 4h 12m of 6h 38m"; a label or empty bar area shows the day's total and three largest contexts ("Thu Oct 29 · 6h 38m · paper 4h 12m, Mail 1h 10m, Safari 20m"); a future bar shows nothing. Clicking drills into the Calendar.
 
 ### 1.6 Contexts and subjects
 
@@ -138,3 +138,4 @@ The Activity tab shows the same panels from the synced block log, without subjec
 22. A reload of a long range that finishes after a later reload of a short range leaves the short range's figures and no loading indicator.
 23. With Midnight at 04:00, a block at 02:00 on March 14 counts on March 13 while its log date stays March 14, its hour stays 02:00, and a heatmap row's columns run from 04:00 to 03:00.
 24. On the Mac today's bar marks the open block's part, hatched, as the top of its stack, also under a filter; a bar without an open block has none.
+25. Hovering a bar segment shows its day, display name, and time of the bar's total; hovering a label or the empty area above a bar shows the total and the three largest contexts; a future bar shows nothing.

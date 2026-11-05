@@ -214,7 +214,7 @@ struct ActivitySummaryTests {
         #expect(bars.series[13].title == "Brief activity")
         #expect(bars.bars[0].seconds == 40_000)
         #expect(bars.axisHours == 12)
-        #expect(bars.bars[0].tooltip(for: .context("app1")) == "Mon Oct 26 · App1 · 48m of 11h 06m")
+        #expect(bars.bars[0].tooltip(for: .context("app1")) { $0.capitalized } == "Mon Oct 26 · App1 · 48m of 11h 06m")
         #expect(ActivityBars.granularity(days: ActivitySummary.days(Self.day("2026-01-01") ... Self.day("2026-01-31"))) == .day)
         #expect(ActivityBars.granularity(days: ActivitySummary.days(Self.day("2026-01-01") ... Self.day("2026-06-30"))) == .week)
         #expect(ActivityBars.granularity(days: ActivitySummary.days(Self.day("2025-10-20") ... Self.day("2026-10-31"))) == .month)
@@ -250,6 +250,27 @@ struct ActivitySummaryTests {
         let filtered = Self.summary([closed, open], contexts: ["safari"]).bars.bars[3]
         #expect(filtered.openRange == 0 ... 1000)
         #expect(Self.summary([closed]).bars.bars[3].openRange == nil)
+    }
+
+    @Test("PA-25 hovering a segment names it with its time; a label or empty area gives the total and the three largest contexts")
+    func barTooltips() throws {
+        let block = try Self.block(
+            "2026-10-29",
+            "08:00",
+            "12:00",
+            [Self.item("mail", 600), Self.item("tmux:paper", 7200), Self.item("safari", 3600), Self.item("skim", 1200)],
+            active: 13_200
+        )
+        let bars = Self.summary([block]).bars
+        let thursday = try #require(bars.bars.first { $0.isToday })
+        let name = { (context: String) in context == "mail" ? "Apple Mail" : ActivityContext(context).displayName() }
+        #expect(bars.tooltip(of: .init(bar: thursday.id, series: .context("mail")), displayName: name) == "Thu Oct 29 · Apple Mail · 10m of 3h 40m")
+        #expect(bars.tooltip(of: .init(bar: thursday.id, series: .notItemized), displayName: name) == "Thu Oct 29 · Brief activity · 10m of 3h 40m")
+        #expect(bars.tooltip(of: .init(bar: thursday.id), displayName: name) == "Thu Oct 29 · 3h 40m · paper 2h, Safari 1h, Skim 20m")
+        let friday = try #require(bars.bars.first { $0.isFuture })
+        #expect(bars.tooltip(of: .init(bar: friday.id), displayName: name) == nil)
+        let wednesday = bars.bars[2]
+        #expect(bars.tooltip(of: .init(bar: wednesday.id), displayName: name) == "Wed Oct 28 · 0h")
     }
 
     @Test("PA-12 context shares stay relative to the unfiltered total; Brief activity equals a minus item seconds")
