@@ -25,6 +25,10 @@ SCALE = 2
 MENU_BAR_HEIGHT = 37
 MARGIN = 22
 
+# Where macOS puts a status item's menu, measured on a real screen.
+MENU_GAP = 4
+MENU_LEFT_OF_ITEM = 4
+
 DOCK_ICON = 58
 DOCK_GAP = 7
 DOCK_PADDING = 8
@@ -254,8 +258,8 @@ def compose(main_window, mini_timer, status_menu, status_item, app_icon, menus, 
     desktop.alpha_composite(item, (round(item_left) * SCALE, item_top))
 
     place_window(desktop, main, (MARGIN, MENU_BAR_HEIGHT + 15))
-    menu_top = MENU_BAR_HEIGHT + 2
+    menu_top = MENU_BAR_HEIGHT + MENU_GAP
     timer_top = menu_top + menu.height // SCALE + 14
     place_window(desktop, mini, (SCREEN[0] - MARGIN - mini.width // SCALE, timer_top))
-    place_window(desktop, menu, (round(item_left), menu_top))
+    place_window(desktop, menu, (round(item_left) - MENU_LEFT_OF_ITEM, menu_top))
     desktop.convert("RGB").save(output)
