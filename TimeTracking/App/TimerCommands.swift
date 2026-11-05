@@ -38,7 +38,7 @@ struct TimerCommands: Commands {
             }
             .keyboardShortcut("o")
             .disabled(app?.timer.mostRecentOther == nil && app?.activeTimer.list.selection == nil && sectionTarget == nil)
-            Button("Stop") { run { await $0.stopEntry() } }
+            Button("Stop") { run { await $0.timer.stop() } }
                 .keyboardShortcut("s")
                 .disabled(app?.timer.isRunning != true)
             Button("Discard Running Entry") { run { await $0.timer.requestDiscard(skipAlert: false) } }

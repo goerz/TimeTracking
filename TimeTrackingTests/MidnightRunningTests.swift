@@ -50,4 +50,41 @@ struct MidnightRunningTests {
         #expect(app.idle.prompt == nil)
         #expect(try await test.store.runningEntry()?.id == running.id)
     }
+
+    @Test("TM-48 Show the Mini Timer doesn't follow a Timer or the main menu, whether the command or the store's event comes first")
+    func miniTimerIgnoresWindows() async throws {
+        let test = try await TestApp(observing: true)
+        let app = test.app
+        defer { app.stop() }
+        try await test.entry("Review", from: "08:00", to: "08:30")
+        app.settings.focusOnStart = true
+        app.settings.focusOnStop = true
+        await app.timer.start()
+        await app.timer.stop()
+        await app.timer.continueEntry()
+        await app.timer.stop()
+        await app.continueCommand(timerKey: false)
+        await app.timer.stop()
+        await app.afterChange()
+        #expect(test.router.calls.isEmpty)
+    }
+
+    @Test("TM-48 Show the Mini Timer follows the menu bar, a notification, and another device")
+    func miniTimerFollowsSources() async throws {
+        let test = try await TestApp()
+        let app = test.app
+        try await test.entry("Review", from: "08:00", to: "08:30")
+        app.settings.focusOnStart = true
+        app.settings.focusOnStop = true
+        await app.continueLatest()
+        await app.stopEntry()
+        await app.handle(.continueLatest)
+        await app.timer.stop()
+        #expect(test.router.calls.count == 3)
+        _ = try await test.store.start(projectID: nil, task: "From the iPhone", at: test.clock.now)
+        await app.afterChange()
+        _ = try await test.store.stop(at: test.clock.now)
+        await app.afterChange()
+        #expect(test.router.calls == Array(repeating: .showTimer(focusTask: true), count: 5))
+    }
 }

@@ -68,6 +68,9 @@ final class AppModel {
     /// The running chain the models last reacted to; a split at real
     /// midnight gives the running entry a new id but keeps this.
     @ObservationIgnored var lastRunningRootID: EntryID?
+    /// Timer commands in flight on behalf of a source of §8.3: the global
+    /// shortcut, the menu bar, or a notification.
+    @ObservationIgnored private var sourceCommands = 0
 
     init(
         store: TimeStore,
@@ -180,14 +183,25 @@ final class AppModel {
                 // "Nothing is being tracked" no longer holds.
                 reminders.trackingStarted()
             }
-            if running != nil, settings.focusOnStart {
-                router?.showTimer(focusTask: true)
-            } else if running == nil, settings.focusOnStop {
+            if running != nil ? settings.focusOnStart : settings.focusOnStop, !changeIsFromWindow {
                 router?.showTimer(focusTask: true)
             }
             lastRunningRootID = running?.rootID
         }
         revision += 1
+    }
+
+    /// Whether the change just seen is a Timer command from a window or
+    /// the main menu, none of which are sources of §8.3.
+    private var changeIsFromWindow: Bool {
+        timer.commandsInFlight > 0 && sourceCommands == 0
+    }
+
+    /// Runs a Timer command on behalf of a source of §8.3.
+    private func fromSource(_ command: () async -> Void) async {
+        sourceCommands += 1
+        defer { sourceCommands -= 1 }
+        await command()
     }
 
     // MARK: Commands of the menus, Dock, notifications, and shortcuts
@@ -208,16 +222,17 @@ final class AppModel {
     /// Continue the most recent entry other than the running one, without
     /// showing a window (the restore alert shows one, `alertRaised`).
     func continueLatest() async {
-        await timer.continueEntry()
+        await fromSource { await timer.continueEntry() }
     }
 
+    /// The menu bar's Stop; the main menu's calls the Timer directly.
     func stopEntry() async {
-        await timer.stop()
+        await fromSource { await timer.stop() }
     }
 
-    /// The continue/stop shortcut; the window is not shown.
+    /// The continue/stop shortcut; only the settings of §8.3 show a window.
     func continueOrStop() async {
-        await timer.continueOrStop()
+        await fromSource { await timer.continueOrStop() }
     }
 
     func perform(_ action: PomodoroAction) {
@@ -255,9 +270,11 @@ final class AppModel {
     private static let idleOptions: [NotificationAction: IdleOption] = [
         .keep: .keep, .discard: .discard, .discardAndContinue: .discardAndContinue, .split: .split,
     ]
+}
 
-    // MARK: Timer commands
+// MARK: Timer commands
 
+extension AppModel {
     /// The main window or the Mini Timer became key (`true`) or resigned.
     func windowActivated(_ place: TimerUIState.Place, isKey: Bool, undoManager: UndoManager?) {
         if isKey {
@@ -290,7 +307,7 @@ final class AppModel {
         if timerKey, let selection = activeTimer.list.selection {
             await timer.continueEntry(selection)
         } else {
-            await continueLatest()
+            await timer.continueEntry()
         }
     }
 
