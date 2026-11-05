@@ -204,10 +204,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let names = windows.map(\.rawValue).joined(separator: ", ")
         Self.logger.notice("Launch windows: [\(names, privacy: .public)], login item: \(loginItem, privacy: .public)")
         for window in windows {
-            switch window {
-            case .mainWindow: router.showMainWindow(item: nil)
-            case .miniTimer: router.showTimer(focusTask: false)
-            }
+            router.show(window)
         }
     }
 

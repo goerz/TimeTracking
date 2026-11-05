@@ -24,6 +24,8 @@ To move on early, press ⌃⌘P, which always performs the next step, such as En
 
 Open Settings, Pomodoro. Focus defaults to 25 minutes and break to 5. A change applies from the next phase. The durations sync across your devices, and "Play a sound when a focus or break ends" is set per device.
 
+To have the phase end interrupt you on the Mac, turn on "Bring the app to the foreground when a focus or break ends". The app then comes in front of whatever you are working in. If neither the main window nor the Mini Timer is open, the window you chose under "At launch, show" opens.
+
 ## Switch tasks during a Pomodoro
 
 Start or continue another entry as usual. The phase carries on, because the Pomodoro belongs to you, not to the entry. Only stopping with nothing left running ends it.

@@ -9,6 +9,8 @@ import TimeTrackingCore
 final class PomodoroModel: PomodoroDriver {
     let notifier: NotificationPosting
     let settings: AppSettings
+    /// Brings the app forward at a phase end, with the setting on (§5.2).
+    var bringForward: () -> Void = {}
 
     init(store: TimeStore, clock: any Clock, notifier: NotificationPosting, settings: AppSettings) {
         self.notifier = notifier
@@ -45,6 +47,7 @@ final class PomodoroModel: PomodoroDriver {
                     body: text.body,
                     sound: sounds ? .focusEnd : nil
                 ))
+                phaseEnded()
             case .notifyBreakOver:
                 let text = PomodoroNotificationText.breakOver
                 notifier.post(NotificationRequest(
@@ -53,9 +56,16 @@ final class PomodoroModel: PomodoroDriver {
                     body: text.body,
                     sound: sounds ? .breakEnd : nil
                 ))
+                phaseEnded()
             case .removeNotifications:
                 notifier.remove([.pomodoroFocusDone, .pomodoroBreakDone])
             }
+        }
+    }
+
+    private func phaseEnded() {
+        if settings.pomodoroForeground {
+            bringForward()
         }
     }
 }

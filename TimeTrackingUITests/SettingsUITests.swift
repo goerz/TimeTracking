@@ -67,6 +67,24 @@ final class SettingsUITests: XCTestCase {
     }
 
     @MainActor
+    func testTM56_foregroundTogglePersists() {
+        let app = XCUIApplication.timeTracking()
+        app.launchPastOnboarding()
+        app.typeKey(",", modifierFlags: .command)
+        _ = settingsFrame(app, pane: "Pomodoro")
+        // A switch-style toggle: by identifier, whatever type XCUITest gives it.
+        let toggle = app.descendants(matching: .any)["settings.pomodoroForeground"]
+        XCTAssertTrue(toggle.waitForExistence(timeout: 5))
+        XCTAssertEqual(toggle.value.map { "\($0)" }, "0")
+        toggle.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).click()
+        XCTAssertEqual(toggle.value.map { "\($0)" }, "1")
+        app.typeKey("w", modifierFlags: .command)
+        app.typeKey(",", modifierFlags: .command)
+        XCTAssertTrue(toggle.waitForExistence(timeout: 5))
+        XCTAssertEqual(toggle.value.map { "\($0)" }, "1")
+    }
+
+    @MainActor
     func testTM39_settingsWindowFollowsThePane() {
         let app = XCUIApplication.timeTracking()
         app.launchPastOnboarding()

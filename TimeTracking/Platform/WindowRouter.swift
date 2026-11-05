@@ -23,6 +23,19 @@ final class WindowRouter: AppRouting {
         self.miniTimerWindow = miniTimerWindow
     }
 
+    /// From the record of open windows, because `isVisible` is also false
+    /// for every window of a hidden app.
+    var hasOpenWindow: Bool {
+        app?.openWindows.windows.contains { nsWindow($0)?.isMiniaturized == false } ?? false
+    }
+
+    private func nsWindow(_ window: LaunchWindow) -> NSWindow? {
+        switch window {
+        case .miniTimer: miniTimerWindow.window
+        case .mainWindow: NSApp.windows.first { $0.identifier?.rawValue == MainWindowSetup.sceneID }
+        }
+    }
+
     /// The Mini Timer: brought forward, or
     /// opened the first time.
     func showTimer(focusTask: Bool) {
@@ -66,6 +79,13 @@ final class WindowRouter: AppRouting {
         }
         NSApp.activate()
         Self.scenes.openSettings()
+    }
+
+    /// No click in this app precedes a phase end, so a cooperative
+    /// `activate()` would be refused while another app is active.
+    func bringForward() {
+        NSApp.unhide(nil)
+        NSApp.reclaimActivation()
     }
 
     /// Opens the scene `id`; also before the router exists (the main
@@ -118,8 +138,9 @@ extension NSApplication: ActivationTarget {
     }
 
     /// Cooperative `activate()` is refused once another app has taken
-    /// over, which the switch to accessory causes on its own; this request
-    /// follows the user's own click in this app a moment before.
+    /// over, which the switch to accessory causes on its own. The callers
+    /// are that switch, right after the user's own click in this app, and
+    /// `WindowRouter.bringForward`, which the user turned on in Settings.
     func reclaimActivation() {
         activate(ignoringOtherApps: true)
     }

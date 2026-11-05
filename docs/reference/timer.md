@@ -117,8 +117,11 @@ Every menu ends with "Pomodoro Settings…". The accessibility value names the p
 | Focus duration | `pomodoro.focusMinutes` | 25 min | 1 to 180 | synced |
 | Break duration | `pomodoro.breakMinutes` | 5 min | 1 to 60 | synced |
 | Play a sound when a focus or break ends | `pomodoro.sounds` | on | | device |
+| Bring the app to the foreground when a focus or break ends | `pomodoro.foreground` | off | | device |
 
 A duration change applies from the next phase. Phase ends are absolute times (`focusEnd`, `breakEnd`), so a Mac that sleeps through one wakes into overtime and notifies at wake.
+
+With "Bring the app to the foreground" on, a phase that runs out also puts the app in front of the active app, and shows it if it was hidden; End Focus Now and End Break Now don't. With neither the main window nor the Mini Timer on screen (closed or minimized; Settings doesn't count, because it shows no Timer), the window "At launch, show" (8.1) names opens. The setting is Mac only: iOS doesn't let an app bring itself forward.
 
 ### 5.3 State machine
 
@@ -301,3 +304,4 @@ The two Pomodoro categories use bundled sounds with "Play a sound" on and are si
 - TM-53. With "Play a sound" off a phase's notification is silent; on, it has its bundled sound; every other category uses the default sound.
 - TM-54. On a DST day, a Start or Stop edit lands on the typed wall-clock time; a skipped time becomes the first instant after the change.
 - TM-55. Typing in the edit popover's Task field suggests earlier tasks; accepting one stores its task and project as one undoable edit, and a text with no suggestion accepted commits as typed.
+- TM-56. With "Bring the app to the foreground" on, a focus or break that runs out brings the app forward; with no main window or Mini Timer on screen it also opens the "At launch, show" window. Off (the default), or with End Focus Now, nothing comes forward. The toggle in the Pomodoro pane persists.

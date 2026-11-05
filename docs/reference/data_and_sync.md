@@ -80,6 +80,7 @@ Synced settings are records; device settings live in the App Group's `UserDefaul
 | `calendar.sleepAreaID`, `calendar.workoutAreaID` | synced | nil |
 | `calendar.healthImport` | synced | nil (written by the iPhone's import, 1.9) |
 | `pomodoro.sounds` | device | true |
+| `pomodoro.foreground` | device | false (Mac only) |
 | `idle.thresholdMinutes` | device | 10 |
 | `deviceID` | device | a UUID created on first use |
 

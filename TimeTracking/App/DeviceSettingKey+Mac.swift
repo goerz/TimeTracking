@@ -25,6 +25,10 @@ extension DeviceSettingKey where Value == Bool {
         Self("showDockIcon", default: true)
     }
 
+    static var pomodoroForeground: Self {
+        Self("pomodoro.foreground", default: false)
+    }
+
     static var idleDetect: Self {
         Self("idle.detect", default: true)
     }

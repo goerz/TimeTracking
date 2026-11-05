@@ -179,6 +179,8 @@ struct PomodoroPane: View {
             }
             Section {
                 Toggle("Play a sound when a focus or break ends", isOn: $settings.pomodoroSounds)
+                Toggle("Bring the app to the foreground when a focus or break ends", isOn: $settings.pomodoroForeground)
+                    .accessibilityIdentifier("settings.pomodoroForeground")
             }
         }
         .settingsForm()

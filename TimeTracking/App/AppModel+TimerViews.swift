@@ -33,6 +33,20 @@ extension AppModel {
         await miniTimer.list.hideFilter()
     }
 
+    /// A Pomodoro phase ended with the setting on: with no window to show,
+    /// the "At launch, show" window opens, and the app comes forward
+    /// (timer.md §5.2). Coming forward is last, because opening a window
+    /// asks for a cooperative activation, which would replace it.
+    func bringForward() {
+        guard let router else {
+            return
+        }
+        if !router.hasOpenWindow {
+            router.show(settings.launchWindow)
+        }
+        router.bringForward()
+    }
+
     /// The chip's picker in `view`, with task matching (timer.md §2.3).
     func openChipPicker(in view: TimerUIState) {
         view.pickerModel = ProjectPickerModel(store: store, currentProject: timer.chipProjectID, taskMatching: true)

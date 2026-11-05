@@ -43,6 +43,10 @@ final class AppSettings {
         didSet { device[.pomodoroSounds] = pomodoroSounds }
     }
 
+    var pomodoroForeground: Bool {
+        didSet { device[.pomodoroForeground] = pomodoroForeground }
+    }
+
     var idle: IdleSettings {
         didSet {
             device[.idleDetect] = idle.detectIdle
@@ -78,6 +82,7 @@ final class AppSettings {
         self.menuBarPomodoroDisplay = device[.menuBarPomodoroDisplay]
         self.showDockIcon = device[.showDockIcon]
         self.pomodoroSounds = device[.pomodoroSounds]
+        self.pomodoroForeground = device[.pomodoroForeground]
         self.idle = IdleSettings(
             detectIdle: device[.idleDetect],
             thresholdMinutes: device[.idleThresholdMinutes],

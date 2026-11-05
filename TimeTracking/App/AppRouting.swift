@@ -49,6 +49,10 @@ enum SettingsPane: String, CaseIterable, Identifiable, Sendable {
 /// Showing and hiding windows.
 @MainActor
 protocol AppRouting: AnyObject {
+    /// Whether the main window or the Mini Timer is on screen, also behind
+    /// other apps. Settings doesn't count: it shows no Timer.
+    var hasOpenWindow: Bool { get }
+
     /// Shows the Mini Timer and activates the app; optionally focuses the task field.
     func showTimer(focusTask: Bool)
     /// The show/hide shortcut: shows the window with the task field focused
@@ -59,6 +63,19 @@ protocol AppRouting: AnyObject {
     func showMainWindow(item: MainSidebarItem?)
     /// Opens Settings, on `pane` or the last pane shown.
     func openSettings(pane: SettingsPane?)
+    /// Puts the app in front of the active app, without any user action
+    /// asking for it, and shows it if it was hidden.
+    func bringForward()
+}
+
+extension AppRouting {
+    /// Shows a window of the "At launch, show" setting.
+    func show(_ window: LaunchWindow) {
+        switch window {
+        case .mainWindow: showMainWindow(item: nil)
+        case .miniTimer: showTimer(focusTask: false)
+        }
+    }
 }
 
 /// Records routing calls (tests).
@@ -69,9 +86,11 @@ final class RecordingRouter: AppRouting {
         case toggleTimer
         case showMainWindow(MainSidebarItem?)
         case openSettings(SettingsPane?)
+        case bringForward
     }
 
     private(set) var calls: [Call] = []
+    var hasOpenWindow = true
 
     func showTimer(focusTask: Bool) {
         calls.append(.showTimer(focusTask: focusTask))
@@ -87,5 +106,9 @@ final class RecordingRouter: AppRouting {
 
     func openSettings(pane: SettingsPane?) {
         calls.append(.openSettings(pane))
+    }
+
+    func bringForward() {
+        calls.append(.bringForward)
     }
 }

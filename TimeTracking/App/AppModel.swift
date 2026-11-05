@@ -122,6 +122,7 @@ final class AppModel {
         idle.onChange = { [weak self] in await self?.afterChange() }
         idle.showTimer = { [weak self] focus in self?.router?.showTimer(focusTask: focus) }
         pomodoro.currentTask = { [weak self] in self?.timer.running?.task ?? "" }
+        pomodoro.bringForward = { [weak self] in self?.bringForward() }
         sections.wireTimer(timer) { [weak self] in await self?.afterChange() }
         sections.showMainWindow = { [weak self] section in self?.router?.showMainWindow(item: .section(section)) }
         wireSections(trackerCommands: trackerCommands)
