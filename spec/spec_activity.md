@@ -28,8 +28,8 @@ An "All" chip, then one chip per context ranked by time: the first eight, the re
 |---|---|---|
 | `tmux:<name>` | `<name>` with a "tmux" badge in lists, else "`<name>` (tmux)" | terminal |
 | `tmux:(private)` | "(private session)" | terminal, gray |
-| `safari`, `arc`, `chrome`, `brave`, `edge`, `vivaldi`, `firefox` | the browser's name | the browser's icon |
-| any other | the app's name for the bundle identifier of the month header's `contexts` map, else a table of known apps ("VS Code"), else each word capitalized | the app's icon, else a generic app glyph |
+| `safari`, `arc`, `chrome`, `brave`, `edge`, `vivaldi`, `firefox` | the browser's name | a compass, the same for every browser |
+| any other | the app's name for the bundle identifier of the month header's `contexts` map, else a table of known apps ("VS Code"), else each word capitalized | a generic app glyph |
 
 A raw context or workspace never shows. A workspace reads like its context ("paper (tmux)", "Safari"), a site or folder as written ("github.com/owner", "~/Papers/2026_Noise").
 
@@ -77,7 +77,7 @@ Away time is a gap longer than the tracker's `idle_close` between consecutive bl
 
 ### 1.9 Live updates and empty states
 
-An appended block updates the aggregates within 2 seconds. On the Mac today's figures include the open block, drawn like a closed block with "running" in tooltips, until the closed block replaces it. Reconstructed time (`rec`) counts normally. Block times are shown as recorded in the device's time zone. Figures stay until the new ones are ready, and a slow read that finishes after a later one is dropped.
+An appended block updates the aggregates within 2 seconds. On the Mac today's figures include the open block until the closed block replaces it. Reconstructed time (`rec`) counts normally. Block times are shown as recorded in the device's time zone. Figures stay until the new ones are ready, and a slow read that finishes after a later one is dropped.
 
 With no blocks, the panels give way to "No activity recorded between Oct 20 and Oct 26" ("on Oct 20" for one day), plus "The tracker was not running." and "Tracker Settings…" when the footer is red. With nothing left after filtering: "Nothing recorded for the selected apps" with "Show All Apps". With an empty block log and the tracker not set up on this Mac (not enabled, no `current.json`, or Accessibility missing), "No Activity Yet" reads "Set up the tracker to see where your time goes. Nothing is recorded until you enable it." with "Open Tracker Settings…"; once a block exists it never returns.
 
@@ -110,7 +110,7 @@ The reader applies the current rules to past data at read time on every device, 
 
 ## 5. iPad
 
-The Activity tab shows the same panels from the synced block log, without subject drill-down, away classification, app icons, exclusion shortcut, or open block. Its footer shows the most recently updated Mac's tracker from `LiveState` ([spec_data_and_sync.md](spec_data_and_sync.md) §4.1): "Mac tracker: checked 2 min ago", the presence in the tooltip ("Idle for 5 min"), and the sources with a problem ("iCloud Drive needs attention on the Mac"). The dot is green while `agentRunning` is true, else gray with "Mac tracker: last checked 2 h ago" or "Mac tracker: not checked yet". "Waiting for iCloud · activity up to 14:02" shows while the current month has not arrived. With no blocks the empty state reads "The tracker runs on your Mac. Set it up in the Mac app's Settings, Tracker pane."
+The Activity tab shows the same panels from the synced block log, without subject drill-down, away classification, exclusion shortcut, or open block. Its footer shows the most recently updated Mac's tracker from `LiveState` ([spec_data_and_sync.md](spec_data_and_sync.md) §4.1): "Mac tracker: checked 2 min ago", the presence in the tooltip ("Idle for 5 min"), and the sources with a problem ("iCloud Drive needs attention on the Mac"). The dot is green while `agentRunning` is true, else gray with "Mac tracker: last checked 2 h ago" or "Mac tracker: not checked yet". "Waiting for iCloud · activity up to 14:02" shows while the current month has not arrived. With no blocks the empty state reads "The tracker runs on your Mac. Set it up in the Mac app's Settings, Tracker pane."
 
 ## 6. Testable behaviors
 
