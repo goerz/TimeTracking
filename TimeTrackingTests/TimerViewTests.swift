@@ -269,4 +269,24 @@ struct TimerViewTests {
         #expect(list.rows.count == 3)
         #expect(list.filter.isEmpty && !list.isFilterVisible)
     }
+
+    @Test("TM-52 closing the Mini Timer clears its filter and returns its list to the top; the main window's Timer keeps its filter")
+    func closingMiniTimerResetsItsList() async throws {
+        let test = try await TestApp()
+        try await test.entry("Draft", from: "08:00", to: "08:10")
+        try await test.entry("Deploy", from: "08:10", to: "08:40")
+        let mini = test.app.miniTimer.list
+        let main = test.app.mainTimer.list
+        for list in [mini, main] {
+            list.showFilter()
+            list.filter = "draft"
+            await list.reload()
+        }
+        let scrolls = mini.scrollToTopRequest
+        await test.app.miniTimerClosed()
+        #expect(mini.filter.isEmpty && !mini.isFilterVisible)
+        #expect(mini.rows.count == 2)
+        #expect(mini.scrollToTopRequest == scrolls + 1)
+        #expect(main.filter == "draft" && main.isFilterVisible)
+    }
 }

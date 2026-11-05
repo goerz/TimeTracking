@@ -25,6 +25,14 @@ extension AppModel {
         }
     }
 
+    /// The Mini Timer closed. Its window only hides, with its list as it
+    /// was: it opens again at the top, without the filter (spec_timer.md §1.3).
+    func miniTimerClosed() async {
+        openWindows.closed(.miniTimer)
+        miniTimer.list.scrollToTop()
+        await miniTimer.list.hideFilter()
+    }
+
     /// The chip's picker in `view`, with task matching (spec_timer.md §2.3).
     func openChipPicker(in view: TimerUIState) {
         view.pickerModel = ProjectPickerModel(store: store, currentProject: timer.chipProjectID, taskMatching: true)

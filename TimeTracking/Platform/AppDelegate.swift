@@ -151,7 +151,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             if open {
                 app?.openWindows.opened(.miniTimer)
             } else {
-                app?.openWindows.closed(.miniTimer)
+                Task { await app?.miniTimerClosed() }
             }
         }
         let router = WindowRouter(miniTimerWindow: window)

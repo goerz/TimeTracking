@@ -130,6 +130,20 @@ final class WindowsUITests: XCTestCase {
     }
 
     @MainActor
+    func testTM52_closedMiniTimerReopensWithoutFilter() {
+        let app = launch()
+        let mini = app.openMiniTimer()
+        mini.typeKey("f", modifierFlags: .command)
+        let filter = mini.textFields["timer.filterField"]
+        XCTAssertTrue(filter.waitForExistence(timeout: 5))
+        filter.typeText("noise")
+        mini.typeKey("w", modifierFlags: .command)
+        XCTAssertTrue(mini.waitForNonExistence(timeout: 5))
+        XCTAssertFalse(app.openMiniTimer().textFields["timer.filterField"].waitForExistence(timeout: 2))
+        app.terminate()
+    }
+
+    @MainActor
     func testTM9_atTriggerOpensPicker() {
         let app = launch()
         let field = app.mainWindow.textFields["timer.taskField"]

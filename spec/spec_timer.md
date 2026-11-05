@@ -22,7 +22,7 @@ The pin (`pin`, `pin.fill` while pinned), mirrored by View › Float on Top, flo
 
 ### 1.3 Opening, closing, and restoration
 
-Opening the Mini Timer restores mode, frame, and pin; a frame with less than 100 × 44 pt on any screen moves to the main screen's center. The list starts at the top, the filter is cleared, and the task field is focused when nothing runs.
+Opening the Mini Timer restores mode, frame, and pin; a frame with less than 100 × 44 pt on any screen moves to the main screen's center. The list starts at the top, the filter is cleared, and the task field is focused when nothing runs; closing the window only hides it, so its list resets then.
 
 The state macOS saves never decides what shows, because saved state, also after a crash or a force quit, made SwiftUI skip the launch window. The app itself opens the launch's windows once the store is open (when it can't be opened, the main window with the message). A login-item launch reopens the main window and the Mini Timer as far as they were open when the app last quit; with neither, only the menu bar item shows. Any other launch shows the window "At launch, show" (8.1) names. The device setting `openWindows` tracks the two windows as they open and close, so it survives an unclean exit, and freezes when a quit starts, so the closes during termination don't count. Under `-UITesting`, `-LoginItemLaunch YES` launches as a login item.
 
@@ -299,3 +299,4 @@ The two Pomodoro categories use bundled sounds with "Play a sound" on; all other
 - TM-49. With idle from 23:50 and the prompt answered at 00:30, Split, Discard and Continue, and Discard stop the entry at 23:50 and remove its piece after midnight; Keep changes nothing. A lock stop reaches back the same way.
 - TM-50. Tabbing through an unchanged Start or Stop stores nothing, also for times with seconds; an edit in whole minutes keeps the stored seconds.
 - TM-51. ⌘J in the edit popover opens the popover's own project picker, and closing the picker leaves the popover open.
+- TM-52. Closing the Mini Timer clears its filter and returns its list to the top, so it opens that way again; the main window's Timer keeps its own filter.
