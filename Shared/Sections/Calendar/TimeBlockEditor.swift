@@ -13,6 +13,7 @@ struct TimeBlockEditor: View {
         if let draft = model.blockDraft {
             VStack(alignment: .leading, spacing: Design.Spacing.medium) {
                 TextField("Title", text: Binding { model.blockDraft?.title ?? "" } set: { model.blockDraft?.title = $0 })
+                    .onSubmit { Task { await model.saveTimeBlock() } }
                     .accessibilityIdentifier("calendar.block.title")
                 ProjectChipButton(label: model.label(draft.projectID)) { showsPicker = true }
                     .popover(isPresented: $showsPicker) { picker(draft) }

@@ -366,8 +366,10 @@ private struct EventsColumn: View {
                 RoundedRectangle(cornerRadius: Design.Radius.small)
                     .strokeBorder(style: StrokeStyle(lineWidth: 1.5, dash: [4]))
                     .frame(width: width - 4, height: frame.height)
+                    // Before the offset, as on `DraftCard`: after it, no
+                    // popover opened.
+                    .popover(isPresented: blockEditorShown, arrowEdge: .trailing) { TimeBlockEditor(model: model) }
                     .offset(x: 2, y: frame.y)
-                    .popover(isPresented: .constant(true)) { TimeBlockEditor(model: model) }
             }
             if let drawing, let frame = axis.frame(of: DateInterval(
                 start: min(drawing.start, drawing.end),
@@ -402,6 +404,15 @@ private struct EventsColumn: View {
                 )
                 .offset(x: x, y: frame.y)
                 .zIndex(model.cardDrag?.item == .timeBlock(piece.id) ? 1 : 0)
+            }
+        }
+    }
+
+    /// Whether the time-block editor shows; a click outside cancels it.
+    private var blockEditorShown: Binding<Bool> {
+        Binding { model.blockDraft != nil } set: { shown in
+            if !shown {
+                model.blockDraft = nil
             }
         }
     }
