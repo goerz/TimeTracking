@@ -77,7 +77,9 @@ final class ActivityUITests: XCTestCase {
         let app = launch()
         let chart = chart(app)
         let tooltip = element(app, "activity.bars.tooltip")
-        XCTAssertFalse(tooltip.exists)
+        // The scrolling may have left the pointer over the chart.
+        app.mainWindow.coordinate(withNormalizedOffset: CGVector(dx: 0.05, dy: 0.9)).hover()
+        XCTAssertTrue(tooltip.waitForNonExistence(timeout: 5))
         point(chart, weekday: 0, height: 0.3).hover()
         XCTAssertTrue(tooltip.waitForExistence(timeout: 5))
         XCTAssertTrue(text(tooltip).hasPrefix("Mon Mar 11 · "), text(tooltip))

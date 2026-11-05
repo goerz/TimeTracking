@@ -52,6 +52,8 @@ struct BarsPanel: View {
             }
         }
         .chartYScale(domain: 0 ... Double(bars.axisHours))
+        // Every day has its column: a future day has no marks to make one.
+        .chartXScale(domain: bars.bars.map(\.id))
     }
 
     /// What the tooltip is about: the pointer's target, else the focused
