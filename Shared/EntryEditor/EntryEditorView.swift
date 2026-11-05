@@ -53,6 +53,9 @@ struct EntryEditorView: View {
             commitOnFocusLoss(old)
         }
         .onKeyPress(.escape) {
+            if model.taskField.escape(text: model.task) {
+                return .handled
+            }
             if !model.revertFields() {
                 onClose()
             }
@@ -68,17 +71,62 @@ struct EntryEditorView: View {
     @ViewBuilder private var subjectRows: some View {
         GridRow {
             rowLabel("Task")
-            TextField("Task", text: $model.task, prompt: Text("No task"))
+            TextField("Task", text: taskText, prompt: Text("No task"))
                 .labelsHidden()
                 .textFieldStyle(.roundedBorder)
                 .focused($focus, equals: .task)
-                .onSubmit { Task { await model.commitTask() } }
+                .onSubmit { Task { await model.submitTask() } }
+                .onKeyPress(.upArrow) { moveSuggestion(-1) }
+                .onKeyPress(.downArrow) { moveSuggestion(1) }
+                .onKeyPress(.tab) {
+                    guard let suggestion = model.taskField.acceptSuggestion() else {
+                        return .ignored
+                    }
+                    Task { await model.accept(suggestion) }
+                    return .handled
+                }
                 .accessibilityIdentifier("editor.task")
+        }
+        if focus == .task, model.taskField.isShowingSuggestions {
+            GridRow {
+                Color.clear.gridCellUnsizedAxes([.horizontal, .vertical])
+                VStack(alignment: .leading, spacing: 0) {
+                    ForEach(Array(model.taskField.suggestions.enumerated()), id: \.offset) { index, suggestion in
+                        SuggestionRow(field: model.taskField, index: index, suggestion: suggestion) {
+                            Task { await model.accept(suggestion) }
+                        }
+                        .accessibilityIdentifier("editor.suggestion.\(index)")
+                    }
+                }
+            }
         }
         GridRow(alignment: .center) {
             rowLabel("Project")
             projectChip
         }
+    }
+
+    /// User edits go through this binding; programmatic changes do not.
+    private var taskText: Binding<String> {
+        Binding {
+            model.task
+        } set: { text in
+            // AppKit writes the value back on focus; only real edits count.
+            guard text != model.task else {
+                return
+            }
+            model.task = text
+            model.taskField.textChanged(text)
+            Task { await model.taskEdited(text) }
+        }
+    }
+
+    private func moveSuggestion(_ offset: Int) -> KeyPress.Result {
+        guard model.taskField.isShowingSuggestions else {
+            return .ignored
+        }
+        model.taskField.move(by: offset)
+        return .handled
     }
 
     /// Start, Stop, Duration, and Date.
@@ -199,7 +247,9 @@ struct EntryEditorView: View {
     private func commitOnFocusLoss(_ field: Field?) {
         Task {
             switch field {
-            case .task: await model.commitTask()
+            case .task:
+                model.taskField.reset()
+                await model.commitTask()
             case .start: await model.commitStart()
             case .stop: await model.commitStop()
             case .duration: await model.commitDuration()

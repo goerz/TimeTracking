@@ -113,6 +113,37 @@ struct EntryEditorTests {
         #expect(try stored.end == test.time("2024-03-13T00:35"))
     }
 
+    @Test("TM-55 the popover's task field suggests earlier tasks; a choice stores task and project in one undoable edit")
+    func taskAutocompletion() async throws {
+        let test = try await TestApp()
+        let project = try await test.projects(["Noise Model"])[0]
+        try await test.entry("Clarify noise model", project, from: "08:00", to: "08:30")
+        let entry = try await test.entry("", from: "09:00", to: "09:30")
+        let model = await editor(test, entry)
+        await model.taskEdited("clar")
+        #expect(model.task == "clar")
+        #expect(model.taskField.suggestions.map(\.task) == ["Clarify noise model"])
+        await model.submitTask()
+        let stored = try #require(try await test.store.entry(entry.id))
+        #expect(stored.task == "Clarify noise model" && stored.projectID == project.id)
+        #expect(model.task == "Clarify noise model")
+        #expect(!model.taskField.isShowingSuggestions)
+        test.undo.undo()
+        var restored = try await test.store.entry(entry.id)
+        for _ in 0 ..< 10_000 where restored?.projectID != nil {
+            await Task.yield()
+            restored = try await test.store.entry(entry.id)
+        }
+        #expect(restored?.task.isEmpty == true && restored?.projectID == nil)
+
+        // Escape closes the suggestions and Return then commits the text.
+        let plain = await editor(test, entry)
+        await plain.taskEdited("clar")
+        #expect(plain.taskField.escape(text: plain.task))
+        await plain.submitTask()
+        #expect(try await test.store.entry(entry.id)?.task == "clar")
+    }
+
     @Test("TM-22 an overlapping change shows the notice; Keep stores it, Revert restores the field")
     func overlap() async throws {
         let test = try await TestApp()

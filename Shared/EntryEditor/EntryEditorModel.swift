@@ -33,6 +33,8 @@ final class EntryEditorModel {
     /// "Entries cannot be in the future", shown until the next edit.
     private(set) var message: String?
     private(set) var overlap: OverlapNotice?
+    /// The task field's suggestions; it has no `@` trigger.
+    let taskField: TaskFieldModel
 
     static let futureMessage = "Entries cannot be in the future"
 
@@ -43,6 +45,7 @@ final class EntryEditorModel {
         self.clock = clock
         self.entry = entry
         self.task = entry.task
+        self.taskField = TaskFieldModel(store: store)
         resetTimeFields()
     }
 
@@ -90,6 +93,31 @@ final class EntryEditorModel {
         let old = entry
         await perform(undo: old) { [store, entry] in
             try await store.update(entry.id, EntryChange(projectID: .some(projectID)))
+        }
+    }
+
+    /// A keystroke in the task field.
+    func taskEdited(_ text: String) async {
+        task = text
+        await taskField.suggest(for: text, chipProject: entry.projectID)
+    }
+
+    /// A suggestion: stores its task and project as one edit.
+    func accept(_ suggestion: TaskSuggestion) async {
+        taskField.reset()
+        task = suggestion.task
+        let old = entry
+        await perform(undo: old) { [store, entry] in
+            try await store.update(entry.id, EntryChange(projectID: .some(suggestion.projectID), task: suggestion.task))
+        }
+    }
+
+    /// Return in the task field: the highlighted suggestion, else the text.
+    func submitTask() async {
+        if let suggestion = taskField.acceptSuggestion() {
+            await accept(suggestion)
+        } else {
+            await commitTask()
         }
     }
 

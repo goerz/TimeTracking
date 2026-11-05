@@ -300,3 +300,4 @@ The two Pomodoro categories use bundled sounds with "Play a sound" on and are si
 - TM-52. Closing the Mini Timer clears its filter and returns its list to the top, so it opens that way again; the main window's Timer keeps its own filter.
 - TM-53. With "Play a sound" off a phase's notification is silent; on, it has its bundled sound; every other category uses the default sound.
 - TM-54. On a DST day, a Start or Stop edit lands on the typed wall-clock time; a skipped time becomes the first instant after the change.
+- TM-55. Typing in the edit popover's Task field suggests earlier tasks; accepting one stores its task and project as one undoable edit, and a text with no suggestion accepted commits as typed.

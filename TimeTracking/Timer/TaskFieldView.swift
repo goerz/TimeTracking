@@ -122,28 +122,10 @@ struct TaskFieldPopup: View {
     }
 
     private func suggestionRow(_ index: Int, _ suggestion: TaskSuggestion) -> some View {
-        let label = suggestion.projectID.flatMap { view.taskField.labels[$0] } ?? .noProject
-        let highlighted = view.taskField.highlightedSuggestion == index
-        return Button {
+        SuggestionRow(field: view.taskField, index: index, suggestion: suggestion) {
             view.taskField.closeSuggestions()
             Task { await app.timer.accept(suggestion) }
-        } label: {
-            SuggestionLabel(
-                suggestion: suggestion,
-                label: label,
-                projectStyle: highlighted ? AnyShapeStyle(.white.opacity(0.85)) : AnyShapeStyle(.secondary)
-            )
-            .foregroundStyle(highlighted ? AnyShapeStyle(.white) : AnyShapeStyle(.primary))
-            .padding(.horizontal, Design.Spacing.medium)
-            .padding(.vertical, Design.Spacing.tight)
-            .background(
-                RoundedRectangle(cornerRadius: Design.Radius.small)
-                    .fill(highlighted ? Color.accentColor : .clear)
-                    .padding(.horizontal, Design.Spacing.compact)
-            )
-            .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
         .accessibilityIdentifier("timer.suggestion.\(index)")
     }
 }
