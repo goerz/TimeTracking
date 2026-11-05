@@ -6,7 +6,6 @@
 """Puts raw screenshots into drawn device frames (architecture.md §2.7).
 
     scripts/frame_screenshots.py <raw folder> <output folder> [name...]
-    scripts/frame_screenshots.py --placeholders <output folder>
 
 The kind of frame comes from the file name: `iphone-*` a phone, `ipad-*` a
 tablet in the orientation of the image, `mac-*` a laptop for the main window,
@@ -14,19 +13,14 @@ and a window on a backdrop for anything small or for `mac-{mini,menu,settings,
 pomodoro}-*`. Every frame is drawn here; none copies a manufacturer's artwork.
 The output is a PNG with a transparent background, so it works on the site's
 light and dark themes.
-
-With --placeholders, each image the documentation names under docs/images/ is
-drawn from a gray stand-in that carries its name, for working on the pages
-without running the app.
 """
 
 import argparse
 import re
 from pathlib import Path
 
-from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageFont
+from PIL import Image, ImageChops, ImageDraw, ImageFilter
 
-ROOT = Path(__file__).resolve().parent.parent
 MAX_WIDTH = {"phone": 640, "tablet": 1500, "laptop": 1600, "window": 1200}
 
 # Colors of the drawn hardware.
@@ -211,72 +205,16 @@ def frame_file(source, output):
     framed.save(output / source.name, optimize=True)
 
 
-# MARK: Placeholders
-
-
-def placeholder_names():
-    """Every image the pages and the README name under docs/images/."""
-    pattern = re.compile(r"(?:/|docs/)images/([\w-]+)\.png")
-    names = set()
-    for path in [*(ROOT / "docs").rglob("*.md"), ROOT / "README.md"]:
-        if ".venv" not in path.parts:
-            names.update(pattern.findall(path.read_text()))
-    return sorted(names)
-
-
-def placeholder_size(name):
-    sizes = {
-        "phone": (1206, 2622),
-        "tablet": (2752, 2064),
-        "laptop": (2200, 1520),
-    }
-    kind = frame_kind(name)
-    if kind != "window":
-        return sizes[kind]
-    return {
-        "mac-mini-timer-compact": (960, 212),
-        "mac-mini-timer": (960, 1200),
-        "mac-pomodoro": (960, 212),
-        "mac-menu-bar": (640, 760),
-    }.get(name, (1040, 1100))
-
-
-def placeholder(name):
-    size = placeholder_size(name)
-    image = Image.new("RGBA", size, (236, 236, 238, 255))
-    draw = ImageDraw.Draw(image)
-    font = ImageFont.load_default(size=max(32, size[0] // 22))
-    draw.multiline_text(
-        (size[0] / 2, size[1] / 2), f"PLACEHOLDER\n{name}", font=font, fill=(120, 120, 126), anchor="mm", align="center"
-    )
-    return image
-
-
-def write_placeholders(output):
-    for name in placeholder_names():
-        image = placeholder(name)
-        if frame_kind(name) in ("laptop", "window"):
-            image.putalpha(rounded_mask(image.size, 24))
-        FRAMES[frame_kind(name)](image).save(output / f"{name}.png", optimize=True)
-        print(name)
-
-
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--placeholders", action="store_true", help="draw stand-ins for the documented images")
-    parser.add_argument("arguments", nargs="+", metavar="argument", help="the folders, then any image names")
+    parser.add_argument("raw", type=Path, help="the folder of raw images")
+    parser.add_argument("output", type=Path, help="the folder for the framed images")
+    parser.add_argument("names", nargs="*", help="the images to frame; default all")
     args = parser.parse_args()
-    if args.placeholders:
-        output = Path(args.arguments[0])
-        output.mkdir(parents=True, exist_ok=True)
-        write_placeholders(output)
-        return
-    raw, output, *wanted = args.arguments
-    raw, output = Path(raw), Path(output)
-    output.mkdir(parents=True, exist_ok=True)
-    for source in sorted(raw.glob("*.png")):
-        if not wanted or source.stem in wanted:
-            frame_file(source, output)
+    args.output.mkdir(parents=True, exist_ok=True)
+    for source in sorted(args.raw.glob("*.png")):
+        if not args.names or source.stem in args.names:
+            frame_file(source, args.output)
             print(source.stem)
 
 

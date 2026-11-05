@@ -18,7 +18,9 @@ data can appear and every run shows the same days. On the Mac the driver
 (scripts/drive_mac_app.py) moves through the app and each image is one window,
 captured by its id, so nothing else on the desktop shows. The Mac's keyboard and
 pointer must be free meanwhile. The simulators get a fixed status bar and the
-light appearance, and their tabs are chosen with `-PadTab`.
+light appearance, and their tabs are chosen with `-PadTab`. The widgets are the
+one exception to the in-memory store: they read the simulator's Debug store, so
+it gets the same fixture, moved to today.
 
 The images are named after their shots; scripts/frame_screenshots.py then puts
 them into device frames. With names, only those shots run.
@@ -29,12 +31,12 @@ import json
 import os
 import subprocess
 import sys
-import tempfile
 import time
+from datetime import UTC, datetime
 from pathlib import Path
 
 import Quartz
-from PIL import Image
+from PIL import Image, ImageDraw
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import drive_mac_app as app  # noqa: E402
@@ -44,6 +46,7 @@ FIXTURE = "running"
 MAIN_WINDOW_SIZE = (1360, 880)
 SIM_IPHONE = "TimeTracking iPhone"
 SIM_IPAD = "TimeTracking iPad"
+WIDGETS = "iphone-widgets"
 
 
 def settle(seconds=1.0):
@@ -88,12 +91,8 @@ def cg_window(element):
     x, y, width, height = element.frame
     for window in windows_on_screen():
         bounds = window["bounds"]
-        if (abs(bounds["X"] - x), abs(bounds["Y"] - y), abs(bounds["Width"] - width), abs(bounds["Height"] - height)) < (
-            2,
-            2,
-            2,
-            2,
-        ):
+        differences = (bounds["X"] - x, bounds["Y"] - y, bounds["Width"] - width, bounds["Height"] - height)
+        if all(abs(difference) < 2 for difference in differences):
             return window
     raise app.DriverError(f"no window at {element.frame}")
 
@@ -102,29 +101,9 @@ def capture_id(window_id, path):
     subprocess.run(["screencapture", "-x", "-o", "-l", str(window_id), str(path)], check=True)
 
 
-def capture(element, path, overlays=False):
-    """Writes one window to `path`. With `overlays`, the app's windows in front
-    of it (a popover, a popup) are composed onto it, each from its own capture."""
-    base = cg_window(element)
-    capture_id(base["id"], path)
-    if not overlays:
-        return
-    canvas = Image.open(path).convert("RGBA")
-    scale = canvas.width / base["bounds"]["Width"]
-    above = []
-    for window in windows_on_screen():
-        if window["id"] == base["id"]:
-            break
-        above.append(window)
-    for window in reversed(above):
-        with tempfile.TemporaryDirectory() as folder:
-            part = Path(folder) / "part.png"
-            capture_id(window["id"], part)
-            image = Image.open(part).convert("RGBA")
-        x = round((window["bounds"]["X"] - base["bounds"]["X"]) * scale)
-        y = round((window["bounds"]["Y"] - base["bounds"]["Y"]) * scale)
-        canvas.alpha_composite(image, (max(x, 0), max(y, 0)))
-    canvas.save(path)
+def capture(element, path):
+    """Writes one window to `path`; a popover of the window comes along."""
+    capture_id(cg_window(element)["id"], path)
 
 
 def main_window():
@@ -144,34 +123,48 @@ def section(number):
     return shoot
 
 
+def draw_time_block(day, start, minutes, title, project):
+    """Draws a time block at 72 points per hour, by the column of `day`."""
+    x = app.find(f"calendar.events.{day}").center[0]
+    # The label of 10:00 gives way to the now-line's, so measure from 08:00.
+    y = app.find("calendar.hourLabel.480").center[1] + (start - 480) * 1.2
+    app.drag((x, y), (x, y + minutes * 1.2))
+    settle(0.5)
+    app.click(app.find("calendar.block.title").center)
+    app.type_text(title)
+    app.click(app.find("calendar.block.project").center)
+    settle(0.5)
+    app.type_text(project)
+    settle(0.5)
+    app.key("return")
+    settle(0.5)
+    app.key("return")
+    settle(0.5)
+
+
 def calendar(path):
     show_section(2)
-    today = next(
-        (element for element in app.walk() if element.identifier.startswith("calendar.events.2024-03-14")),
-        None,
-    )
-    if today is None:
-        raise app.DriverError("today's Calendar column is not in view")
-    for start, title in ((780, "Write the intro"), (960, "Review the slides")):
-        label = app.find(f"calendar.hourLabel.{start}")
-        x = today.center[0]
-        y = label.center[1]
-        app.drag((x, y), (x, y + 120))
-        settle(0.5)
-        app.click(app.find("calendar.block.title").center)
-        app.type_text(title)
-        app.key("return")
-        settle(0.5)
+    # Wide enough for text on the activity cards, with two past days in view.
+    app.key("]", ["opt", "cmd"])
+    settle(0.5)
+    app.key("t", ["cmd"])
+    settle(0.5)
+    app.key("left")
+    settle()
+    draw_time_block("2024-03-12", 600, 90, "Outline the methods", "Model paper")
+    draw_time_block("2024-03-13", 540, 120, "Plan the methods", "Model paper")
+    draw_time_block("2024-03-14", 660, 90, "Write the intro", "Model paper")
+    draw_time_block("2024-03-14", 840, 90, "Review the slides", "Control paper")
     capture(main_window(), path)
 
 
 def entry_popover(path):
     show_section(1)
-    row = next(element for element in app.walk() if element.role == "AXRow" and element.frame[1] > 0)
+    row = next(element for element in app.walk() if element.identifier.startswith("timer.row."))
     app.click(row.center)
     app.find("editor.task")
     settle(0.5)
-    capture(main_window(), path, overlays=True)
+    capture(main_window(), path)
     app.key("escape")
     settle(0.3)
 
@@ -180,7 +173,9 @@ def settings_pane(pane):
     def shoot(path):
         app.key(",", ["cmd"])
         settle()
-        app.click(app.find(f"settings.pane.{pane}").center)
+        window = next(element for element in app.windows() if element.identifier not in ("planner", "timer"))
+        tab = next(element for element in app.walk(window.ref) if element.label == pane and "Button" in element.role)
+        app.click(tab.center)
         settle()
         window = next(element for element in app.windows() if element.identifier not in ("planner", "timer"))
         capture(window, path)
@@ -250,8 +245,8 @@ MAC_SHOTS = {
     "mac-reports": section(3),
     "mac-projects": section(4),
     "mac-activity": section(5),
-    "mac-settings-general": settings_pane("general"),
-    "mac-settings-tracker": settings_pane("tracker"),
+    "mac-settings-general": settings_pane("General"),
+    "mac-settings-tracker": settings_pane("Tracker"),
     "mac-mini-timer": mini_timer,
     "mac-mini-timer-compact": mini_timer_compact,
     "mac-pomodoro": pomodoro,
@@ -259,14 +254,27 @@ MAC_SHOTS = {
 }
 
 
+def answer_idle_prompt():
+    """Keeps the running entry if "You have been away" has come up."""
+    if app.exists("idle.keep"):
+        app.click(app.find("idle.keep").center)
+        settle(0.5)
+
+
 def capture_mac(names, raw):
-    app.launch(fixture=FIXTURE, calendar=True, extra=["-UITestingAppearance", "light"])
+    # Without full keyboard access, no focus ring sits on a toolbar button.
+    app.launch(fixture=FIXTURE, calendar=True, extra=["-UITestingAppearance", "light", "-AppleKeyboardUIMode", "0"])
     try:
         resize(main_window(), MAIN_WINDOW_SIZE)
+        # The idle check looks every 10 seconds, so a Mac left alone for a while
+        # asks about it soon after the driver's first input. Answer that first.
+        settle(12)
         for name in names:
+            answer_idle_prompt()
             print(name, flush=True)
             MAC_SHOTS[name](raw / f"{name}.png")
     finally:
+        answer_idle_prompt()
         app.quit_app()
 
 
@@ -293,9 +301,8 @@ def prepare_simulator(udid):
     simctl("ui", udid, "appearance", "light")
     simctl(
         "status_bar", udid, "override",
-        "--time", app.FIXED_NOW,
-        "--dataNetwork", "wifi", "--wifiMode", "active", "--wifiBars", "3",
-        "--cellularMode", "active", "--cellularBars", "4", "--operatorName", "",
+        "--time", datetime.fromisoformat(app.FIXED_NOW).astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%S.000Z"),
+        "--dataNetwork", "wifi", "--wifiMode", "active", "--wifiBars", "3", "--cellularMode", "notSupported",
         "--batteryState", "charged", "--batteryLevel", "100",
     )  # fmt: skip
 
@@ -315,12 +322,61 @@ def rotate_to_landscape(udid):
     settle(2)
 
 
+def cover_status_date(path):
+    """Clears the iPad status bar's weekday, date, and app name beside the
+    clock: the override's date always reads as a Tuesday, against the Thursday
+    the app shows."""
+    image = Image.open(path).convert("RGBA")
+    background = image.getpixel((600, 30))
+    ImageDraw.Draw(image).rectangle((134, 8, 560, 58), fill=background)
+    image.save(path)
+
+
+# name: (simulator, launch arguments, a URL to open after the launch)
 IOS_SHOTS = {
-    "iphone-timer": (SIM_IPHONE, ()),
-    "ipad-timer": (SIM_IPAD, ("-PadTab", "timer")),
-    "ipad-calendar": (SIM_IPAD, ("-PadTab", "calendar")),
-    "ipad-reports": (SIM_IPAD, ("-PadTab", "reports")),
+    "iphone-timer": (SIM_IPHONE, (), None),
+    "ipad-timer": (SIM_IPAD, ("-PadTab", "timer"), None),
+    "ipad-calendar": (SIM_IPAD, ("-PadTab", "calendar"), "planner/calendar?date=2024-03-11"),
+    "ipad-reports": (SIM_IPAD, ("-PadTab", "reports"), None),
 }
+
+
+def seed_widget_data(udid):
+    """Widgets read the store on disk, so the simulator's Debug store gets the
+    fixture, and the shared settings say that setup is complete."""
+    identifier = debug_app_id()
+    group = subprocess.run(
+        ["xcrun", "simctl", "get_app_container", udid, identifier, f"group.{identifier}"],
+        capture_output=True, text=True, check=True,
+    ).stdout.strip()  # fmt: skip
+    simctl("terminate", udid, identifier)
+    subprocess.run(
+        ["swift", "run", "--quiet", "--package-path", ROOT / "Packages/TimeTrackingCore", "DemoStore", FIXTURE,
+         f"{group}/Library/Application Support/TimeTracking/store.sqlite"],
+        check=True,
+    )  # fmt: skip
+    preferences = Path(group) / "Library/Preferences" / f"group.{identifier}.plist"
+    preferences.parent.mkdir(parents=True, exist_ok=True)
+    if not preferences.exists():
+        subprocess.run(["plutil", "-create", "binary1", preferences], check=True)
+    subprocess.run(["plutil", "-replace", "setupComplete", "-bool", "YES", preferences], check=True)
+    simctl("shutdown", udid)
+    prepare_simulator(udid)
+
+
+def iphone_widgets(udid, path):
+    """Adds the widgets with a UI test, since no command can, and shoots the Home Screen."""
+    seed_widget_data(udid)
+    subprocess.run(
+        ["xcodebuild", "-quiet", "-project", "TimeTracking.xcodeproj", "-derivedDataPath", "build.noindex",
+         "-skipPackagePluginValidation", "-skipMacroValidation", *os.environ.get("XCFLAGS", "").split(),
+         "test", "-scheme", "TimeTrackingiOS", "-destination", f"platform=iOS Simulator,id={udid}",
+         "-only-testing:TimeTrackingiOSUITests/WidgetScreenshotUITests",
+         "-allowProvisioningUpdates", "-allowProvisioningDeviceRegistration"],
+        cwd=ROOT, check=True, env=dict(os.environ, TEST_RUNNER_TIMETRACKING_SCREENSHOTS="1"),
+    )  # fmt: skip
+    settle(8)
+    simctl("io", udid, "screenshot", str(path))
 
 
 def capture_simulators(names, raw):
@@ -332,13 +388,23 @@ def capture_simulators(names, raw):
     try:
         for name in names:
             print(name, flush=True)
-            device, arguments = IOS_SHOTS[name]
+            if name == WIDGETS:
+                iphone_widgets(devices[SIM_IPHONE], raw / f"{name}.png")
+                continue
+            device, arguments, url = IOS_SHOTS[name]
             launch_on_simulator(devices[device], *arguments)
-            simctl("io", devices[device], "screenshot", str(raw / f"{name}.png"))
+            if url:
+                simctl("openurl", devices[device], f"timetracking-debug://{url}")
+                settle(2)
+            path = raw / f"{name}.png"
+            simctl("io", devices[device], "screenshot", str(path))
+            if device == SIM_IPAD:
+                cover_status_date(path)
     finally:
+        subprocess.run(["xcrun", "devicectl", "device", "orientation", "set", "--device", devices[SIM_IPAD], "portrait"])
         for udid in devices.values():
             simctl("status_bar", udid, "clear")
-            simctl("terminate", udid, debug_app_id())
+            subprocess.run(["xcrun", "simctl", "terminate", udid, debug_app_id()], stderr=subprocess.DEVNULL)
 
 
 def main():
@@ -346,7 +412,7 @@ def main():
     parser.add_argument("raw", type=Path, help="the folder for the raw images")
     parser.add_argument("names", nargs="*", help="the shots to take; default all")
     args = parser.parse_args()
-    known = [*MAC_SHOTS, *IOS_SHOTS]
+    known = [*MAC_SHOTS, *IOS_SHOTS, WIDGETS]
     names = args.names or known
     if unknown := sorted(set(names) - set(known)):
         parser.error(f"unknown shots {json.dumps(unknown)}; known: {', '.join(known)}")
@@ -354,7 +420,7 @@ def main():
     try:
         if mac := [name for name in names if name in MAC_SHOTS]:
             capture_mac(mac, args.raw)
-        if ios := [name for name in names if name in IOS_SHOTS]:
+        if ios := [name for name in names if name in IOS_SHOTS or name == WIDGETS]:
             capture_simulators(ios, args.raw)
     except app.DriverError as error:
         print(f"capture_screenshots: {error}", file=sys.stderr)

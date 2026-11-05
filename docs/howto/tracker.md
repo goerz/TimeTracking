@@ -12,7 +12,7 @@ The Tracker pane lists each step with a mark.
 
 1. Open Settings (⌘,) and click Tracker, or click "Open Tracker Settings" in the sheet at first launch.
 2. Click "Enable Tracker". If macOS asks you to approve the login item, click "Open Login Items" and turn it on there.
-3. Under Accessibility, which is required, click "Open System Settings" and turn on `TimeTrackingAgent`. "Show TimeTrackingAgent in Finder" helps if it isn't listed.
+3. Under Accessibility, which is required, click "Open System Settings" and "Show TimeTrackingAgent in Finder". Drag `TimeTrackingAgent` from the Finder window into the list under Privacy & Security, Accessibility, and turn it on.
 
 The status line turns green with "Tracker running". Without Accessibility access the tracker records app names only.
 

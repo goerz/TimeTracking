@@ -34,7 +34,8 @@ SIGN := -allowProvisioningUpdates -allowProvisioningDeviceRegistration
 PRODUCTS = $(DERIVED)/Build/Products
 MAC_RELEASE_APP = $(PRODUCTS)/Release/$(APP_NAME).app
 # Debug Mac bundles carry " Debug" in their file names (architecture.md §2.2).
-MAC_DEBUG_APP = $(PRODUCTS)/Debug/$(APP_NAME) Debug.app
+MAC_DEBUG_NAME ?= $(APP_NAME) Debug
+MAC_DEBUG_APP = $(PRODUCTS)/Debug/$(MAC_DEBUG_NAME).app
 DEBUG_AGENT = $(MAC_DEBUG_APP)/Contents/Library/LoginItems/TimeTrackingAgent Debug.app
 # Debug products built before the rename; mac-debug-unregister cleans them up too.
 LEGACY_DEBUG_APP = $(PRODUCTS)/Debug/$(APP_NAME).app
@@ -176,11 +177,16 @@ sim-screenshots: ## Simulator screenshots to build.noindex/sim-screenshots/
 		xcrun simctl io "$$udid" screenshot "$$file" >/dev/null 2>&1 && echo "$$file" || echo "$$name is not booted" >&2; \
 	done
 
+# The images show the app as a reader's build names it, so this Debug build
+# leaves " Debug" out of the bundle and display names (architecture.md §2.7).
 ifdef TT_RUNTIME_LOCKED
+screenshots: export MAC_DEBUG_NAME := $(APP_NAME)
+screenshots: export XCFLAGS := $(XCFLAGS) TT_MAC_APP_NAME=$(APP_NAME) TT_AGENT_NAME=TimeTrackingAgent TT_DISPLAY_NAME=$(APP_NAME)
 screenshots: secrets ## Retake the site's screenshots from the fixtures into docs/images/ (SHOTS=name... limits them)
 	$(require_team)
 	scripts/capture_screenshots.py "$(DERIVED)/screenshots" $(SHOTS)
 	scripts/frame_screenshots.py "$(DERIVED)/screenshots" docs/images $(SHOTS)
+	@rm -rf "$(MAC_DEBUG_APP)"
 endif
 
 ##@ Use
