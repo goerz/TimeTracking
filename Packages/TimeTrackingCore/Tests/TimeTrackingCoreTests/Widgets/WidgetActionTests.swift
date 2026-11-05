@@ -33,6 +33,50 @@ struct WidgetActionTests {
         }
     }
 
+    @Test("IOS-52 the control's off on an entry known only from LiveState fetches changes first and then stops it")
+    func toggleOffAfterFetch() async throws {
+        let server = InMemorySyncServer()
+        let mac = try await TestStore()
+        let entry = try await mac.store.start(projectID: nil, task: "Draft", at: mac.clock.now - 600)
+        try await StoreSynchronizer(store: mac.store, transport: server.transport(for: "mac")).sync()
+        let resolved = try await mac.store.liveState()
+
+        let phone = try await TestStore()
+        let service = AutomationService(store: phone.store, timeZone: phone.zone)
+        let phoneSync = StoreSynchronizer(store: phone.store, transport: server.transport(for: "phone"))
+        #expect(try await phone.store.entry(entry.id) == nil)
+        try await WidgetIntentActions.perform(.toggle(false), service: service, resolved: resolved) {
+            try? await phoneSync.sync()
+        }
+        let stopped = try #require(try await phone.store.entry(entry.id))
+        #expect(!stopped.isRunning)
+    }
+
+    @Test("IOS-52 if the entry still has not arrived, the control's off fails with the iCloud message")
+    func toggleOffUnreachable() async throws {
+        let mac = try await TestStore()
+        _ = try await mac.store.start(projectID: nil, task: "Draft", at: mac.clock.now - 600)
+        let resolved = try await mac.store.liveState()
+        let phone = try await TestStore()
+        let service = AutomationService(store: phone.store, timeZone: phone.zone)
+        await #expect(throws: AutomationError.failure(WidgetIntentActions.unreachableMessage)) {
+            try await WidgetIntentActions.perform(.toggle(false), service: service, resolved: resolved) {}
+        }
+    }
+
+    @Test("IOS-52 a local start newer than the widgets' last state wins: the control's off stops it")
+    func toggleOffStopsTheNewerEntry() async throws {
+        let mac = try await TestStore()
+        _ = try await mac.store.start(projectID: nil, task: "Earlier", at: mac.clock.now - 600)
+        let stale = try await mac.store.liveState()
+        let phone = try await TestStore()
+        let service = AutomationService(store: phone.store, timeZone: phone.zone)
+        phone.clock.advance(by: 60)
+        _ = try await phone.store.start(projectID: nil, task: "Here", at: phone.clock.now)
+        try await WidgetIntentActions.perform(.toggle(false), service: service, resolved: stale) {}
+        #expect(try await phone.store.runningEntry() == nil)
+    }
+
     @Test("IOS-11 IOS-13 IOS-19 Stop stops the running entry; Continue and the toggle's on continue the latest; off stops")
     func stopAndContinue() async throws {
         let test = try await TestStore()

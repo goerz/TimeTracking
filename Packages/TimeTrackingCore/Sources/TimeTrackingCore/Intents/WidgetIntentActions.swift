@@ -40,11 +40,14 @@ public enum WidgetIntentActions {
 
     /// Performs `action`. A stop of an entry the store does not hold yet
     /// first runs `fetch` (the app bounds it at `fetchTimeout`); if the entry
-    /// still has not arrived, it fails with `unreachableMessage`.
+    /// still has not arrived, it fails with `unreachableMessage`. The
+    /// toggle's off stops what the control showed: the running entry of the
+    /// store's `LiveState` merged with `resolved`, the widgets' last one.
     @preconcurrency
     public static func perform(
         _ action: WidgetAction,
         service: AutomationService,
+        resolved: LiveState? = nil,
         fetch: @Sendable () async -> Void
     ) async throws(AutomationError) {
         switch action {
@@ -58,7 +61,9 @@ public enum WidgetIntentActions {
             if isOn {
                 _ = try await service.continue(.latest)
             } else {
-                try await stop(expected: nil, service: service, fetch: fetch)
+                let local = await (try? service.store.liveState()) ?? LiveState()
+                let live = resolved.map(local.merged(with:)) ?? local
+                try await stop(expected: live.running?.entryID, service: service, fetch: fetch)
             }
         }
     }

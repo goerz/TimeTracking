@@ -79,7 +79,7 @@ extension PhoneModel {
     func performWidgetAction(_ action: WidgetAction, service: AutomationService) async throws(AutomationError) {
         let sync = sync
         let bounded = boundedFetch
-        try await WidgetIntentActions.perform(action, service: service) {
+        try await WidgetIntentActions.perform(action, service: service, resolved: shared.liveState) {
             await bounded { await sync?.fetchNow() }
         }
         await localWrite()

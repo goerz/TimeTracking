@@ -126,7 +126,7 @@ CloudKit cannot send widget pushes and silent pushes are throttled, so widgets f
 
 1. Push token. The widgets' push handler stores the token, or nil when no widget is installed, in the App Group. The app records it on this device's `Device` record at every wake and fan-out (7), so a lost write repairs itself.
 2. Reload. Every widget and control provider fetches `LiveState` (at most 5 s) before building its entry. It reuses the last result when the last fetch returned less than 10 s ago (one push reloads several kinds) or the app wrote the running entry less than 5 s ago. When the running entry changed, it reloads the timer control. The running project's names come from the store when it holds the project, else from `LiveState`.
-3. A widget's Stop on an entry known only from `LiveState` first fetches changes (at most 10 s); if the entry has still not arrived, it fails with "Couldn't reach iCloud. Try again in a moment."
+3. A widget's Stop, or the timer control turned off, on an entry known only from `LiveState` first fetches changes (at most 10 s); if the entry has still not arrived, it fails with "Couldn't reach iCloud. Try again in a moment."
 4. Without a running Mac app nothing sends widget pushes. Local changes reload widgets directly; changes from another iOS device arrive through the CloudKit silent push, the next refresh, or the next foreground.
 
 ## 5. Control Center control and Action button
@@ -334,3 +334,4 @@ The iPad reads the block log and `LiveState`; it never writes the block log or r
 - IOS-49. The iPhone's Settings show Midnight.
 - IOS-50. With "Play a sound" off a phase's notification is silent; on, it has its bundled sound; `longRunning` and `syncAdjusted` use the default sound.
 - IOS-51. Typing in the edit sheet's task field lists up to four earlier tasks; `@` opens no picker; a tap on a suggestion sets the sheet's task and project, Done stores them, and Cancel leaves the entry unchanged.
+- IOS-52. Turning the timer control off on an entry known only from `LiveState` fetches changes first and then stops it, or fails with the iCloud message; an entry started here since the widgets' last state is the one it stops.
