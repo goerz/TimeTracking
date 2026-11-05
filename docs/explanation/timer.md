@@ -47,6 +47,6 @@ Editing Start keeps Stop in place, and editing Stop or Duration keeps Start. Cha
 
 ## The rest of the Mac app
 
-The main window's sidebar also holds the [Calendar](calendar.md) (⌘2), [Reports](where-the-time-went.md) (⌘3), [Projects](projects.md) (⌘4), and [Activity](activity.md) (⌘5). The menu bar at the top of the screen has the same menus in every window: File, Edit, View, Timer, Entry, Project, and Window. Commands that don't apply to the view shown are grayed out rather than hidden.
+The main window's sidebar also holds the [Calendar](calendar.md) (⌘2), [Reports](reports.md) (⌘3), [Projects](projects.md) (⌘4), and [Activity](activity.md) (⌘5). The menu bar at the top of the screen has the same menus in every window: File, Edit, View, Timer, Entry, Project, and Window. Commands that don't apply to the view shown are grayed out rather than hidden.
 
 Closing the window keeps the app running, and quitting doesn't stop the running entry. The Timer spec has [all commands and keys](../reference/timer.md#9-menus-and-keyboard).

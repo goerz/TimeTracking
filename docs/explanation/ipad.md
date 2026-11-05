@@ -8,7 +8,7 @@ The iPad runs the same app as the iPhone, with the room to show everything the M
 The iPad's Calendar is the Mac's view with touch controls.
 ```
 
-The Timer tab is the [iPhone's screen](iphone.md), with the card and the list side by side on a wide screen. [Calendar](calendar.md), [Reports](where-the-time-went.md), [Projects](projects.md), and [Activity](activity.md) behave as they do on the Mac, so those pages apply here too.
+The Timer tab is the [iPhone's screen](iphone.md), with the card and the list side by side on a wide screen. [Calendar](calendar.md), [Reports](reports.md), [Projects](projects.md), and [Activity](activity.md) behave as they do on the Mac, so those pages apply here too.
 
 ::::{grid} 1 1 2 2
 :gutter: 3

@@ -22,7 +22,7 @@ timer
 mini-timer
 menu-bar
 calendar
-where-the-time-went
+reports
 projects
 activity
 iphone

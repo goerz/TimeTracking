@@ -8,7 +8,7 @@ The Activity section shows what the tracker recorded over a date range: how much
 The header, chips, heatmap, and panels for one week of recorded activity.
 ```
 
-The date range is the one from [Reports](where-the-time-went.md): change it in either place and both follow. The header gives the total active time, the number of days with activity, and the average per day. With several devices it also gives each device's share, and a popup narrows every panel to one device.
+The date range is the one from [Reports](reports.md): change it in either place and both follow. The header gives the total active time, the number of days with activity, and the average per day. With several devices it also gives each device's share, and a popup narrows every panel to one device.
 
 ## Chips
 
