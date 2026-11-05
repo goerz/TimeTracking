@@ -3,25 +3,24 @@
 # requires-python = ">=3.12"
 # dependencies = ["pillow==12.0.0"]
 # ///
-"""Puts raw screenshots into drawn device frames (architecture.md §2.7).
+"""Finishes raw screenshots for the site (architecture.md §2.7).
 
     scripts/frame_screenshots.py <raw folder> <output folder> [name...]
 
-The kind of frame comes from the file name: `iphone-*` a phone, `ipad-*` a
-tablet in the orientation of the image, `mac-*` a laptop for the main window,
-and a window on a backdrop for anything small or for `mac-{mini,menu,settings,
-pomodoro}-*`. Every frame is drawn here; none copies a manufacturer's artwork.
-The output is a PNG with a transparent background, so it works on the site's
-light and dark themes.
+The file name picks the treatment: `iphone-*` a phone frame, `ipad-*` a tablet
+frame in the orientation of the image, `mac-desktop` a laptop frame around a
+whole screen, and any other `mac-*` no device at all, only the window's shadow.
+Every frame is drawn here; none copies a manufacturer's artwork. The output is
+a PNG with a transparent background, so it works on the site's light and dark
+themes.
 """
 
 import argparse
-import re
 from pathlib import Path
 
 from PIL import Image, ImageChops, ImageDraw, ImageFilter
 
-MAX_WIDTH = {"phone": 640, "tablet": 1500, "laptop": 1600, "window": 1200}
+MAX_WIDTH = {"phone": 640, "tablet": 1500, "laptop": 1800, "window": 1600}
 
 # Colors of the drawn hardware.
 EDGE = (138, 141, 148, 255)
@@ -29,8 +28,6 @@ EDGE_LIGHT = (196, 199, 205, 255)
 GLASS = (10, 10, 12, 255)
 BODY_TOP = (208, 210, 214, 255)
 BODY_BOTTOM = (168, 171, 176, 255)
-BACKDROP_TOP = (92, 132, 196)
-BACKDROP_BOTTOM = (58, 76, 136)
 
 
 def rounded_mask(size, radius, supersample=4):
@@ -143,15 +140,16 @@ def tablet(shot):
 
 
 def laptop(shot):
-    """The window on a backdrop inside a laptop's screen, above a slim base.
-    Sizes are relative to the window's width (a 2x image of 1100 pt)."""
-    unit = shot.width / 2200
-    inset_x, inset_y = round(110 * unit), round(84 * unit)
+    """A whole screen in a laptop's lid, with its notch, above a slim base.
+    Sizes are relative to the screen's width (a 2x image of 1512 pt)."""
+    unit = shot.width / 3024
     bezel, band = round(30 * unit), round(4 * unit)
     radius = round(26 * unit)
-    screen_size = (shot.width + 2 * inset_x, shot.height + 2 * inset_y)
-    screen = gradient(screen_size, BACKDROP_TOP, BACKDROP_BOTTOM)
-    shadowed(screen, shot.convert("RGBA"), (inset_x, inset_y), round(36 * unit), 0.45, (0, round(16 * unit)))
+    screen_size = shot.size
+    screen = shot.convert("RGBA")
+    notch = (round(380 * unit), round(64 * unit))
+    notch_layer = filled((notch[0], notch[1] * 2), round(20 * unit), GLASS).crop((0, notch[1], notch[0], notch[1] * 2))
+    screen.alpha_composite(notch_layer, ((screen_size[0] - notch[0]) // 2, 0))
     screen.putalpha(rounded_mask(screen_size, radius))
 
     lid_size = (screen_size[0] + 2 * (bezel + band), screen_size[1] + 2 * (bezel + band))
@@ -170,21 +168,22 @@ def laptop(shot):
     # The top of the base is straight; only its lower corners are round.
     ImageDraw.Draw(base).rectangle((0, 0, width, base_height // 3), fill=BODY_TOP)
     canvas.alpha_composite(base, (0, lid_size[1]))
-    notch = (round(300 * unit), round(16 * unit))
-    notch_layer = filled((notch[0], notch[1] * 2), notch[1], (150, 153, 158, 255)).crop((0, notch[1], *((notch[0], notch[1] * 2))))
-    canvas.alpha_composite(notch_layer, ((width - notch[0]) // 2, lid_size[1]))
+    lip = (round(300 * unit), round(16 * unit))
+    lip_layer = filled((lip[0], lip[1] * 2), lip[1], (150, 153, 158, 255)).crop((0, lip[1], lip[0], lip[1] * 2))
+    canvas.alpha_composite(lip_layer, ((width - lip[0]) // 2, lid_size[1]))
     return fit_width(pad(canvas, round(10 * unit)), MAX_WIDTH["laptop"])
 
 
 def window(shot):
-    """A small window on a rounded backdrop, for what a laptop would dwarf."""
+    """A window alone: only its shadow, on a transparent background."""
     unit = 2  # raw captures are 2x
-    margin = 36 * unit
+    margin = 26 * unit
+    # A menu's capture has a clear margin around the menu.
+    shot = shot.crop(shot.getchannel("A").point(lambda value: 255 if value > 8 else 0).getbbox())
     size = (shot.width + 2 * margin, shot.height + 2 * margin)
-    backdrop = gradient(size, BACKDROP_TOP, BACKDROP_BOTTOM)
-    shadowed(backdrop, shot.convert("RGBA"), (margin, margin), 14 * unit, 0.45, (0, 6 * unit))
-    backdrop.putalpha(rounded_mask(size, 16 * unit))
-    return fit_width(backdrop, MAX_WIDTH["window"])
+    canvas = Image.new("RGBA", size, (0, 0, 0, 0))
+    shadowed(canvas, shot.convert("RGBA"), (margin, margin), 12 * unit, 0.32, (0, 5 * unit))
+    return fit_width(canvas, MAX_WIDTH["window"])
 
 
 def frame_kind(name):
@@ -192,9 +191,9 @@ def frame_kind(name):
         return "phone"
     if name.startswith("ipad"):
         return "tablet"
-    if re.match(r"mac-(mini|menu|settings|pomodoro)", name):
-        return "window"
-    return "laptop"
+    if name == "mac-desktop":
+        return "laptop"
+    return "window"
 
 
 FRAMES = {"phone": phone, "tablet": tablet, "laptop": laptop, "window": window}

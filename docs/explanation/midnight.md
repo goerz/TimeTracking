@@ -6,6 +6,8 @@ Throughout this documentation, lowercase "midnight" means the real one on the cl
 
 ```{figure} /images/mac-settings-general.png
 :alt: The General pane of the Mac app's settings window, with the Midnight setting among its options.
+:width: 460px
+:align: center
 
 Midnight is in the General pane on the Mac and in Settings on the iPhone and iPad.
 ```

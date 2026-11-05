@@ -1,4 +1,5 @@
-/* Screenshots sit in drawn device frames on a transparent background. */
+/* Screenshots have a transparent background: in a drawn device frame, or a
+   Mac window with its shadow. */
 figure img {
     height: auto;
 }

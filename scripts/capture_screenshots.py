@@ -4,6 +4,7 @@
 # dependencies = [
 #     "pillow==12.0.0",
 #     "pyobjc-framework-ApplicationServices",
+#     "pyobjc-framework-Cocoa",
 #     "pyobjc-framework-Quartz",
 # ]
 # ///
@@ -16,8 +17,10 @@ with `-UITesting YES` and the store fixture `running`, at the test clock's
 2024-03-14T10:00:00: the store and the calendars are in memory, so no real
 data can appear and every run shows the same days. On the Mac the driver
 (scripts/drive_mac_app.py) moves through the app and each image is one window,
-captured by its id, so nothing else on the desktop shows. The Mac's keyboard and
-pointer must be free meanwhile. The simulators get a fixed status bar and the
+captured by its id, so nothing else on the desktop shows. The one exception is
+`mac-desktop`: real windows on a desktop drawn by scripts/compose_desktop.py,
+since a real screen would show the owner's own menu bar and Dock. The Mac's
+keyboard and pointer must be free meanwhile. The simulators get a fixed status bar and the
 light appearance, and their tabs are chosen with `-PadTab`. The widgets are the
 one exception to the in-memory store: they read the simulator's Debug store, so
 it gets the same fixture, moved to today.
@@ -35,15 +38,21 @@ import time
 from datetime import UTC, datetime
 from pathlib import Path
 
+import AppKit
 import Quartz
 from PIL import Image, ImageDraw
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import compose_desktop  # noqa: E402
 import drive_mac_app as app  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 FIXTURE = "running"
 MAIN_WINDOW_SIZE = (1360, 880)
+DESKTOP_WINDOW_SIZE = (1190, 826)
+# Short enough to fit between the open status menu and the Dock.
+DESKTOP_TIMER_HEIGHT = 440
+DESKTOP_CLOCK = "Thu Mar 14  10:00"
 SIM_IPHONE = "TimeTracking iPhone"
 SIM_IPAD = "TimeTracking iPad"
 WIDGETS = "iphone-widgets"
@@ -142,8 +151,16 @@ def draw_time_block(day, start, minutes, title, project):
     settle(0.5)
 
 
-def calendar(path):
+calendar_prepared = False
+
+
+def prepare_calendar():
+    """Shows the Calendar; the first time, also its zoom and its time blocks."""
+    global calendar_prepared
     show_section(2)
+    if calendar_prepared:
+        return
+    calendar_prepared = True
     # Wide enough for text on the activity cards, with two past days in view.
     app.key("]", ["opt", "cmd"])
     settle(0.5)
@@ -155,6 +172,10 @@ def calendar(path):
     draw_time_block("2024-03-13", 540, 120, "Plan the methods", "Model paper")
     draw_time_block("2024-03-14", 660, 90, "Write the intro", "Model paper")
     draw_time_block("2024-03-14", 840, 90, "Review the slides", "Control paper")
+
+
+def calendar(path):
+    prepare_calendar()
     capture(main_window(), path)
 
 
@@ -225,7 +246,8 @@ def status_item():
     return app.wrap(children[0])
 
 
-def menu_bar(path):
+def menu_bar(path, item_path=None):
+    """Captures the open status menu and, with `item_path`, the item above it."""
     item = status_item()
     known = {window["id"] for window in windows_on_screen()}
     app.click(item.center)
@@ -234,8 +256,64 @@ def menu_bar(path):
     if not fresh:
         raise app.DriverError("the status menu did not open")
     capture_id(fresh[0]["id"], path)
+    if item_path:
+        x, y, width, height = (round(value) for value in item.frame)
+        subprocess.run(["screencapture", "-x", f"-R{x},{y},{width},{height}", str(item_path)], check=True)
     app.key("escape")
     settle(0.3)
+
+
+def menu_titles():
+    """The app's real menus, without the Apple menu."""
+    bar = app.attribute(app.app_element(), "AXMenuBar")
+    titles = [app.attribute(item, "AXTitle") for item in app.attribute(bar, "AXChildren") or []]
+    return [title for title in titles[1:] if title]
+
+
+def app_path():
+    """The running app's bundle, for its icon in the Dock."""
+    url = AppKit.NSWorkspace.sharedWorkspace().URLForApplicationWithBundleIdentifier_(debug_app_id())
+    return url.path()
+
+
+def desktop(path):
+    window_path = path.with_suffix(".window.png")
+    timer_path = path.with_suffix(".timer.png")
+    menu_path = path.with_suffix(".menu.png")
+    item_path = path.with_suffix(".item.png")
+    # The main window first: the Mini Timer takes the keyboard when it opens.
+    prepare_calendar()
+    resize(main_window(), DESKTOP_WINDOW_SIZE)
+    settle()
+    app.key("t", ["cmd"])
+    settle(0.5)
+    app.key("left")
+    settle()
+    # The arrow key leaves a focus ring on the sidebar button; this clears it.
+    app.click(main_window().point(0.07, 0.93))
+    settle(0.5)
+    capture(main_window(), window_path)
+    resize(main_window(), MAIN_WINDOW_SIZE)
+    settle()
+    timer = mini_timer_window()
+    timer_size = timer.frame[2:]
+    resize(timer, (timer_size[0], DESKTOP_TIMER_HEIGHT))
+    settle()
+    capture(window_named("timer"), timer_path)
+    resize(window_named("timer"), timer_size)
+    menu_bar(menu_path, item_path)
+    compose_desktop.compose(
+        window_path,
+        timer_path,
+        menu_path,
+        item_path,
+        app_icon=app_path(),
+        menus=menu_titles(),
+        clock=DESKTOP_CLOCK,
+        output=path,
+    )
+    for scratch in (window_path, timer_path, menu_path, item_path):
+        scratch.unlink()
 
 
 MAC_SHOTS = {
@@ -247,6 +325,7 @@ MAC_SHOTS = {
     "mac-activity": section(5),
     "mac-settings-general": settings_pane("General"),
     "mac-settings-tracker": settings_pane("Tracker"),
+    "mac-desktop": desktop,
     "mac-mini-timer": mini_timer,
     "mac-mini-timer-compact": mini_timer_compact,
     "mac-pomodoro": pomodoro,

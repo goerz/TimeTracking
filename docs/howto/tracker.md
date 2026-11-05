@@ -4,6 +4,8 @@ The tracker is an optional background program that [records where your attention
 
 ```{figure} /images/mac-settings-tracker.png
 :alt: The Tracker pane of the settings window, with the status line, the Enable Tracker button, and the setup steps.
+:width: 460px
+:align: center
 
 The Tracker pane lists each step with a mark.
 ```

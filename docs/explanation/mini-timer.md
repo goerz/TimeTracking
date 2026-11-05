@@ -8,6 +8,8 @@ The Mini Timer keeps the Timer next to whatever else you are doing, the way the 
 :::{grid-item}
 ```{figure} /images/mac-mini-timer.png
 :alt: The Mini Timer window in full mode, with the running-entry bar above the list of entries.
+:width: 400px
+:align: center
 
 Full mode.
 ```
@@ -16,6 +18,8 @@ Full mode.
 :::{grid-item}
 ```{figure} /images/mac-mini-timer-compact.png
 :alt: The Mini Timer in compact mode, showing only the running-entry bar.
+:width: 400px
+:align: center
 
 Compact mode, just the bar.
 ```

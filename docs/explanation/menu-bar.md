@@ -4,7 +4,7 @@ The dial at the top right of your screen shows what is running without any windo
 
 ```{figure} /images/mac-menu-bar.png
 :alt: The app's menu open under its menu bar item, with the running entry at the top, then New, Continue, Stop, Pomodoro items, and commands to open the app's windows.
-:width: 420px
+:width: 340px
 :align: center
 
 The menu starts with the running entry and its project.

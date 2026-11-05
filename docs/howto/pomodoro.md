@@ -4,6 +4,8 @@ A Pomodoro lays timed focus and break phases over your running entry. It never s
 
 ```{figure} /images/mac-pomodoro.png
 :alt: The Mini Timer in compact mode with a Pomodoro running, showing a progress ring and a countdown on the Pomodoro button.
+:width: 400px
+:align: center
 
 A running focus phase: the button shows the countdown, and the elapsed time stays beside the task.
 ```
