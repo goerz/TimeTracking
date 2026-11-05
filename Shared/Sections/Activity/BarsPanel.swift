@@ -75,7 +75,8 @@ struct BarsPanel: View {
     }
 
     /// The pointer over the chart: hovering shows a tooltip, a click drills
-    /// into the Calendar (§1.5, §3), and beside the bars takes the focus.
+    /// into the Calendar (§1.5, §3), and beside the bars takes the focus, by
+    /// `focusable`: setting it again in the tap gesture loses it.
     private func pointerArea(_ proxy: ChartProxy, bars: ActivityBars) -> some View {
         GeometryReader { geometry in
             Rectangle().fill(.clear).contentShape(Rectangle())
@@ -91,8 +92,6 @@ struct BarsPanel: View {
                 .onTapGesture { location in
                     if let target = target(at: location, proxy, geometry, bars: bars) {
                         model.showInCalendar(target, in: bars)
-                    } else {
-                        isFocused = true
                     }
                 }
         }

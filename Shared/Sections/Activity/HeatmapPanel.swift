@@ -15,8 +15,8 @@ struct HeatmapPanel: View {
         let gap: CGFloat = heatmap.mode == .days ? 3 : 2
         let hours = ActivityHeatmap.columns(midnightHour: model.range.calendar.midnightHour)
         ActivityPanel(title: "Active time by hour") {
-            // A click beside the cells only takes the focus; the cells are the buttons.
-            // swiftlint:disable:next accessibility_trait_for_button
+            // A click beside the cells takes the focus by `focusable`: setting it
+            // again in a tap gesture loses it. The cells are the buttons.
             VStack(alignment: .leading, spacing: gap) {
                 HStack(spacing: gap) {
                     Color.clear.frame(width: 56, height: 10)
@@ -36,7 +36,6 @@ struct HeatmapPanel: View {
                 }
             }
             .contentShape(Rectangle())
-            .onTapGesture { isFocused = true }
             .activityPanelKeys(isFocused: $isFocused, onFocus: model.heatmapFocused, perform: handle)
         }
         .accessibilityElement(children: .contain)
