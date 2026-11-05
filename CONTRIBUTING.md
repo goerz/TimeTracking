@@ -25,7 +25,7 @@ Nothing personal goes into the repository. Team IDs, bundle IDs, and device name
 
 ## Commit messages
 
-Every commit message follows this template. Older commits in the history predate it, so don't copy their style.
+Every commit message follows this template.
 
 ```
 Short (50 chars or less) summary ("subject line")
