@@ -53,6 +53,25 @@ struct TaskFieldTests {
         #expect(picker.chooseHighlighted() != nil)
     }
 
+    @Test("TM-44 Return right after a keystroke in the @ picker waits for its lines, assigns the project, and starts nothing")
+    func returnWaitsForThePicker() async throws {
+        let test = try await TestApp()
+        let projects = try await test.projects(["Noise Model", "Website"])
+        let view = test.app.miniTimer
+        let timer = test.app.timer
+        timer.taskText = "Review @no"
+        await view.taskField.userEdited("Review @no", chipProject: nil)
+        // The next keystroke's lines have not loaded when Return arrives.
+        timer.taskText = "Review @web"
+        view.taskField.picker?.search = "web"
+        #expect(view.taskField.pickerIsLoading)
+        await test.app.taskFieldReturn(in: view).value
+        #expect(timer.running == nil)
+        #expect(timer.taskText == "Review")
+        #expect(timer.draftProjectID == projects[1].id)
+        #expect(view.taskField.picker == nil)
+    }
+
     @Test("TM-9 @noi opens the picker searching noi; Return assigns and removes @noi; Escape leaves it; a@b opens nothing")
     func atTrigger() async throws {
         let test = try await TestApp()

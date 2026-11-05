@@ -37,15 +37,13 @@ extension XCUIApplication {
     /// most three times. While a status menu is open the accessibility tree
     /// sometimes leaves it out for as long as it stays open, though it is on
     /// screen; closing and opening it again brings it back. A menu that
-    /// never opens still fails.
-    func opensStatusMenu(_ open: () -> Void, showing: @escaping @MainActor () -> Bool) -> Bool {
+    /// never opens still fails. `showing` waits by itself, with
+    /// `waitForExistence` rather than `exists`: a query of the open menu can
+    /// time out, which `exists` records as a failure of the test.
+    func opensStatusMenu(_ open: () -> Void, showing: () -> Bool) -> Bool {
         for _ in 0 ..< 3 {
             open()
-            let shown = NSPredicate { _, _ in
-                MainActor.assumeIsolated { showing() }
-            }
-            let expectation = XCTNSPredicateExpectation(predicate: shown, object: nil)
-            if XCTWaiter.wait(for: [expectation], timeout: 3) == .completed {
+            if showing() {
                 return true
             }
             typeKey(.escape, modifierFlags: [])

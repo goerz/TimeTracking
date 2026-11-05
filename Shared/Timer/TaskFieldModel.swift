@@ -136,6 +136,21 @@ final class TaskFieldModel {
         return choice
     }
 
+    /// Whether the picker is open with a search whose lines have not loaded.
+    var pickerIsLoading: Bool {
+        picker.map { !$0.isLoaded } ?? false
+    }
+
+    /// Return with the picker's lines still loading: its highlighted choice
+    /// once they are in.
+    func choosePickerHighlightWhenLoaded() async -> ProjectPickerChoice? {
+        guard let choice = await picker?.chooseHighlightedWhenLoaded() else {
+            return nil
+        }
+        picker = nil
+        return choice
+    }
+
     /// Escape: closes the popup, leaving the text. Returns whether one was open.
     func escape(text: String) -> Bool {
         if picker != nil {

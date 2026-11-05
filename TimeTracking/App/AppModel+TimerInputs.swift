@@ -26,6 +26,17 @@ extension AppModel {
     /// else the task is submitted. The returned task finishes the command.
     @discardableResult
     func taskFieldReturn(in view: TimerUIState) -> Task<Void, Never> {
+        // A Return right after a keystroke: the `@query` must not end up
+        // in a task, so it waits for the picker's lines.
+        if view.taskField.pickerIsLoading {
+            return Task {
+                if let choice = await view.taskField.choosePickerHighlightWhenLoaded() {
+                    await assignPicked(choice, in: view).value
+                } else {
+                    await timer.submitTask()
+                }
+            }
+        }
         if let choice = view.taskField.choosePickerHighlight() {
             return assignPicked(choice, in: view)
         }

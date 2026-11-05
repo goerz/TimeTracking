@@ -73,6 +73,20 @@ final class ProjectPickerModel {
         return highlight.map(choice(for:))
     }
 
+    /// Whether the lines are those of the current search.
+    var isLoaded: Bool {
+        loadedSearch == search
+    }
+
+    /// ↩ typed before the lines of the current search loaded: loads them,
+    /// then chooses.
+    func chooseHighlightedWhenLoaded() async -> ProjectPickerChoice? {
+        if loadedSearch != search {
+            await reload()
+        }
+        return chooseHighlighted()
+    }
+
     /// ⌘↩: create from the search text.
     func createFromSearch() -> ProjectPickerChoice? {
         let name = search.trimmed

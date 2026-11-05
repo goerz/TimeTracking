@@ -118,9 +118,14 @@ final class LaunchUITests: XCTestCase {
         XCTAssertTrue(status.waitForExistence(timeout: 5))
         let query = app.menuItems.matching(predicate)
         let found = ElementBox()
+        let hittable = NSPredicate { _, _ in
+            MainActor.assumeIsolated {
+                found.element = query.allElementsBoundByIndex.first(where: \.isHittable)
+                return found.element != nil
+            }
+        }
         let opened = app.opensStatusMenu { status.click() } showing: {
-            found.element = query.allElementsBoundByIndex.first(where: \.isHittable)
-            return found.element != nil
+            XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: hittable, object: nil)], timeout: 3) == .completed
         }
         XCTAssertTrue(opened, "\(predicate)")
         return found.element ?? query.firstMatch

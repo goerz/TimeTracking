@@ -359,7 +359,7 @@ Clicking a notification shows the Mini Timer (with the idle prompt for `idle`). 
 - TM-41. A task typed into the running entry less than 500 ms before New, Continue, or Start Timer replaces it is stored on that entry.
 - TM-42. With an editor (the Mac popover or the iPhone edit sheet) open on an entry whose Stop another device then changes, editing Start stores the new start and keeps the other device's stop.
 - TM-43. Starting an entry, here or on another device, removes a delivered "Nothing is being tracked" reminder, and its Start New and Continue Latest do nothing while an entry runs.
-- TM-44. Return accepts no suggestion or picker line loaded for text the user has since typed past.
+- TM-44. Return accepts no suggestion or picker line loaded for text the user has since typed past; with the `@` picker open it waits for the current lines, assigns the project, and starts nothing.
 
 ## 12. Decisions
 

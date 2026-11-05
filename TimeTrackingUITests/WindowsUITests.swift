@@ -140,7 +140,7 @@ final class WindowsUITests: XCTestCase {
         app.typeText("i")
         XCTAssertEqual(field.value as? String, "Review @noi")
         field.typeKey(.escape, modifierFlags: [])
-        XCTAssertFalse(app.descendants(matching: .any)["picker"].exists)
+        XCTAssertTrue(app.descendants(matching: .any)["picker"].waitForNonExistence(timeout: 5))
         XCTAssertEqual(field.value as? String, "Review @noi")
         // Deleting the @ and typing it again reopens it; Return assigns the
         // highlighted project and removes "@noi".
@@ -150,7 +150,7 @@ final class WindowsUITests: XCTestCase {
         field.typeText("@noi")
         XCTAssertTrue(app.descendants(matching: .any)["picker"].waitForExistence(timeout: 5))
         field.typeKey(.return, modifierFlags: [])
-        XCTAssertFalse(app.descendants(matching: .any)["picker"].waitForExistence(timeout: 1))
+        XCTAssertTrue(app.descendants(matching: .any)["picker"].waitForNonExistence(timeout: 5))
         XCTAssertEqual(field.value as? String, "Review")
         app.terminate()
     }
@@ -160,9 +160,9 @@ final class WindowsUITests: XCTestCase {
         let app = launch()
         let item = app.statusItems["statusItem"]
         XCTAssertTrue(item.waitForExistence(timeout: 5))
-        XCTAssertTrue(app.opensStatusMenu { item.click() } showing: { app.menuItems["New"].exists })
+        XCTAssertTrue(app.opensStatusMenu { item.click() } showing: { app.menuItems["New"].waitForExistence(timeout: 3) })
         app.typeKey(.escape, modifierFlags: [])
-        XCTAssertTrue(app.opensStatusMenu { item.rightClick() } showing: { app.menuItems["New"].exists })
+        XCTAssertTrue(app.opensStatusMenu { item.rightClick() } showing: { app.menuItems["New"].waitForExistence(timeout: 3) })
         app.typeKey(.escape, modifierFlags: [])
         app.terminate()
     }

@@ -78,9 +78,16 @@ struct ProjectPickerView: View {
             return .handled
         }
         .onKeyPress(keys: [.return]) { press in
-            let choice = press.modifiers.contains(.command) ? model.createFromSearch() : model.chooseHighlighted()
-            if let choice {
-                onChoose(choice)
+            if press.modifiers.contains(.command) {
+                if let choice = model.createFromSearch() {
+                    onChoose(choice)
+                }
+            } else {
+                Task {
+                    if let choice = await model.chooseHighlightedWhenLoaded() {
+                        onChoose(choice)
+                    }
+                }
             }
             return .handled
         }
