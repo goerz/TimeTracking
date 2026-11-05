@@ -11,8 +11,8 @@ A personal time tracker for the Mac, iPhone, and iPad. It records time entries (
 ![The Mac desktop with the Calendar open, the Mini Timer beside it, and the status menu open under the running time](docs/images/mac-desktop.png)
 
 <p align="center">
-  <img src="docs/images/mac-reports.png" alt="Reports on the Mac, with tiles, a stacked chart, and a breakdown" width="68%">
-  <img src="docs/images/iphone-timer.png" alt="The Timer on the iPhone" width="24%">
+  <img src="docs/images/ipad-reports.png" alt="Reports on the iPad, with tiles, a stacked chart, and a breakdown" width="70%">
+  <img src="docs/images/iphone-timer.png" alt="The Timer on the iPhone" width="26%">
 </p>
 
 The [documentation](https://goerz.github.io/TimeTracking/) explains what the app does and why, with tutorials, how-to guides, and a tour of every view.
