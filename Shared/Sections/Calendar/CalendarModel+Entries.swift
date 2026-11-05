@@ -359,7 +359,7 @@ extension CalendarModel {
 
     // MARK: Split, duplicate, continue (§2.5)
 
-    /// Split Here at the pointer's snapped time; refused within 1 minute of either end.
+    /// Split Here at `time`, snapped; refused within 1 minute of either end.
     func split(_ id: EntryID, at time: Date) async {
         guard let entry = listing(id)?.entry else {
             return

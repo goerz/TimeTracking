@@ -31,7 +31,7 @@ The `SectionRouter` shows the main window if needed, selects a section, and pass
 
 ### 1.4 iPad
 
-The sections are tabs ([spec_ios.md](spec_ios.md) §10). In Projects, a Sort menu after Filters replaces header clicks, long press opens context menus, and rows swipe to Archive or Restore.
+The sections are tabs ([spec_ios.md](spec_ios.md) §10). In Projects, a Sort menu after Filters replaces header clicks, and long press opens context menus.
 
 ## 2. The projects table
 

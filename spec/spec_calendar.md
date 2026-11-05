@@ -48,7 +48,7 @@ The Filters, the filter bar, and the search field are those of Reports ([spec_re
 
 ### 2.1 Cards
 
-An entry card is filled with its area color, text in the contrasting color of [spec_projects.md](spec_projects.md) §4.4, and has three lines: task, "Project · Client", and a stopwatch glyph with the duration ("1h 33m"; the running entry "1:35:00"). Without a project the card is neutral gray with "No project"; an empty task reads "No task" in placeholder style. Hovering shows continue (▶) and edit (…), space permitting. The running entry has a pulsing border and stop (■) instead of continue, and its time updates every second.
+An entry card is filled with its area color, text in the contrasting color of [spec_projects.md](spec_projects.md) §4.4, and has three lines: task, "Project · Client", and a stopwatch glyph with the duration ("1h 33m"; the running entry "1:35:00"). Without a project the card is neutral gray with "No project"; an empty task reads "No task" in placeholder style. Hovering shows continue (▶) and edit (…), space permitting. The running entry has a border in its text color and stop (■) instead of continue, and its time updates every second.
 
 ### 2.2 No entries in the future
 
@@ -66,7 +66,7 @@ Dragging a card's body moves it with its duration, the start snapping like drawi
 
 A click selects; ⇧-click or ⌘-click extends, on every kind of card; Tab and ⇧Tab step through entries by start. Return or a double-click opens the Timer's edit popover ([spec_timer.md](spec_timer.md) §4). Delete or ⌫ deletes the selection, undoable, with the notice "Deleted 'Clarify noise model' (1h 33m). Undo" for 8 seconds. Deleting the running entry asks "Discard the running entry?" first; undo restores it stopped at the deletion time.
 
-Duplicate to Next Day (⌘D) copies an entry to the same time next day as a stopped entry, refused unless that interval is entirely past. Split Here splits at the pointer's snapped time, refused within 1 minute of either end; on the running entry the later part keeps running.
+Duplicate to Next Day (⌘D) copies an entry to the same time next day as a stopped entry, refused unless that interval is entirely past. Split Here splits at the entry's snapped midpoint, refused within 1 minute of either end; on the running entry the later part keeps running.
 
 ### 2.6 Overlaps
 
@@ -83,7 +83,7 @@ Trim (default) shortens the changed entry to abut the neighbor; Overlap forces t
 
 ### 3.1 Blocks
 
-The column shows the day's blocks, plus on the Mac today's open block. A card is a light neutral tint, the same for every context: context colors ([spec_activity.md](spec_activity.md) §1.3) would mostly repeat the terminal's or the browser's color and compete with the entries' area colors beside them. Line 1 is the dominant workspace as the Activity section names it ("paper (tmux)"), line 2 the dominant item's subject and detail. Background items add a "+1" badge. A block mostly reconstructed from macOS app usage history (`rec` over half of `a`) is hatched, one with time on an iPhone or iPad carries a phone or tablet glyph, and one with `remote` time a cloud glyph. Parts covered by entries are dimmed to 50% opacity. On the Mac, a gap over 15 minutes between blocks of any device shows its duration as a faint label ("22m").
+The column shows the day's blocks, plus on the Mac today's open block. A card is a light neutral tint, the same for every context: context colors ([spec_activity.md](spec_activity.md) §1.3) would mostly repeat the terminal's or the browser's color and compete with the entries' area colors beside them. Line 1 is the dominant workspace as the Activity section names it ("paper (tmux)"), line 2 the dominant item's subject and detail. Background items add a "+1" badge. A block mostly reconstructed from macOS app usage history (`rec` over half of `a`) is hatched, one with time on an iPhone or iPad carries a phone glyph, and one with `remote` time a cloud glyph. Parts covered by entries are dimmed to 50% opacity. On the Mac, a gap over 15 minutes between blocks of any device shows its duration as a faint label ("22m").
 
 Background stretches ([spec_activity_tracking.md](spec_activity_tracking.md) §2.7) are thin strips at the column's trailing edge over their time, in a gap and never on a block. The tooltip names their items ("In the background while away: Claude refactor-parser 38m"); they have no popover and make no entry.
 
@@ -184,8 +184,8 @@ The settings read the calendars without asking for access; like the Calendar col
 8. A 7 minute move with 5 minute snapping lands the start on a 5 minute mark with the duration kept; resizing stops at 1 minute.
 9. A 12 minute overlap shows Trim / Overlap / Cancel with the 2.6 results; 1 minute or less is trimmed silently; overlapping entries are drawn at half width with "⚠ 2 overlaps".
 10. Delete then ⌘Z restores the entry with the same id and fields; the running entry asks first and comes back stopped.
-11. Split Here at 10:00 on 09:00 to 11:00 gives two abutting entries; at 10:59:30 it is refused. Duplicate to Next Day is refused when the copy would not be entirely past.
-12. A block half covered by entries is dimmed on that half; blocks with iPhone, iPad, or remote time show their glyphs.
+11. Split Here on 09:00 to 11:00 gives two entries abutting at 10:00; a split at 10:59:30 is refused. Duplicate to Next Day is refused when the copy would not be entirely past.
+12. A block half covered by entries is dimmed on that half; blocks with iPhone or iPad time show the phone glyph, those with remote time the cloud glyph.
 13. The "+" on a 09:10 to 09:44 block with its first 20 minutes covered opens the popover for 09:30 to 09:44.
 14. A confirmed "Delete This Activity…" sends one `delete-block <s> <e>`; Cancel sends nothing; the open block and the iPad do not offer it.
 15. With no time-block calendar the app creates "Time Blocks" in the iCloud source and writes `calendar.timeBlockCalendarID`; a second device whose identifier lookup fails finds it by title.
