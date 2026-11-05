@@ -65,7 +65,9 @@ final class AppModel {
     /// Wakes at the running entry's next midnight to run the invariant pass.
     @ObservationIgnored var midnightTask: Task<Void, Never>?
     @ObservationIgnored var reloadRequested = false
-    @ObservationIgnored var lastRunningID: EntryID?
+    /// The running chain the models last reacted to; a split at real
+    /// midnight gives the running entry a new id but keeps this.
+    @ObservationIgnored var lastRunningRootID: EntryID?
 
     init(
         store: TimeStore,
@@ -171,7 +173,7 @@ final class AppModel {
         await timer.refresh()
         await reloadLists()
         let running = timer.running
-        if running?.id != lastRunningID {
+        if running?.rootID != lastRunningRootID {
             pomodoro.runningChanged(isRunning: running != nil)
             idle.runningChanged(running)
             if running != nil {
@@ -183,7 +185,7 @@ final class AppModel {
             } else if running == nil, settings.focusOnStop {
                 router?.showTimer(focusTask: true)
             }
-            lastRunningID = running?.id
+            lastRunningRootID = running?.rootID
         }
         revision += 1
     }

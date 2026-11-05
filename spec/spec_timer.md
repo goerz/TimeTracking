@@ -157,7 +157,7 @@ Every 10 s the app reads the seconds since the last input event, and it records 
 
 ### 6.3 The prompt
 
-When input resumes after an idle period of at least the threshold (or a lock or sleep with "Ask when I return") while an entry runs and presence was not `passive`, the Mini Timer comes forward with the sheet "You have been away": "Idle since 14:02 (23 minutes).", "Running: <task> · <project>", and the options below. If the app is not frontmost, the `idle` notification is posted too. A new idle period extends an open prompt, and the prompt closes if the entry stops on another device.
+When input resumes after an idle period of at least the threshold (or a lock or sleep with "Ask when I return") while an entry runs and presence was not `passive`, the Mini Timer comes forward with the sheet "You have been away": "Idle since 14:02 (23 minutes).", "Running: <task> · <project>", and the options below. If the app is not frontmost, the `idle` notification is posted too. A new idle period extends an open prompt, and the prompt closes if the entry stops on another device. A split at real midnight is no change of the running entry: the prompt stays open and acts on the chain.
 
 | Option | Effect | Key |
 |---|---|---|
@@ -292,3 +292,4 @@ The two Pomodoro categories use bundled sounds with "Play a sound" on; all other
 - TM-44. Return accepts no suggestion or picker line loaded for text the user has since typed past; with the `@` picker open it waits for the current lines, assigns the project, and starts nothing.
 - TM-45. With Midnight at 04:00, the list's days and their totals are the shown days: an entry across it has a row with its part on each day, a night across real midnight lies on one day, and a row's editor opens the stored entry.
 - TM-46. Choosing Midnight in the General pane moves the Calendar's first hour label to that hour, and 00:00 restores it.
+- TM-47. A split at real midnight is no change of the running entry: the Mini Timer doesn't show, an open idle prompt stays open and acts on the chain, the Pomodoro's phase stays, and a task being typed stays and commits to every piece.

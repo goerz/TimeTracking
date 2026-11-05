@@ -8,7 +8,8 @@ import TimeTrackingCore
 /// The open prompt.
 struct IdlePrompt: Equatable {
     var idleStart: Date
-    var entryID: EntryID
+    /// The running chain; a split at real midnight keeps the prompt open.
+    var rootID: EntryID
     /// "Running: <task> · <project>".
     var runningText: String
 }
@@ -77,7 +78,7 @@ final class IdleModel {
 
     /// The running entry changed; a stop elsewhere closes the prompt.
     func runningChanged(_ running: TimeEntry?) {
-        guard let prompt, running?.id != prompt.entryID else {
+        guard let prompt, running?.rootID != prompt.rootID else {
             return
         }
         self.prompt = nil
@@ -93,7 +94,7 @@ final class IdleModel {
         notifier.remove([.idle])
         detector.reset()
         do {
-            guard let running = try await store.runningEntry(), running.id == prompt.entryID else {
+            guard let running = try await store.runningEntry(), running.rootID == prompt.rootID else {
                 return
             }
             let stopAt = max(prompt.idleStart, running.start)
@@ -147,7 +148,7 @@ final class IdleModel {
         }
         let project = listing.flatMap { $0.project?.name } ?? "No project"
         let task = running.task.isEmpty ? "No task" : running.task
-        prompt = IdlePrompt(idleStart: start, entryID: running.id, runningText: "Running: \(task) · \(project)")
+        prompt = IdlePrompt(idleStart: start, rootID: running.rootID, runningText: "Running: \(task) · \(project)")
         showTimer(false)
         if !isAppActive() {
             notifier.post(NotificationRequest(

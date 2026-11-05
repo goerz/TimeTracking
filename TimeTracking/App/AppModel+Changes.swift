@@ -14,7 +14,7 @@ extension AppModel {
         let stream = observing ? store.changes : nil
         await pomodoro.loadSettings()
         await timer.refresh()
-        lastRunningID = timer.running?.id
+        lastRunningRootID = timer.running?.rootID
         await reloadLists()
         await tracker.refresh()
         guard let stream else {

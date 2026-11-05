@@ -131,7 +131,9 @@ final class TimerModel {
             }
             let previous = running
             var stoppedElsewhere = false
-            if current?.id != previous?.id {
+            // A split at real midnight continues the chain: a task being
+            // typed stays, and the commit goes to the whole chain.
+            if current?.rootID != previous?.rootID {
                 pendingTaskCommit?.cancel()
                 pendingTaskCommit = nil
                 if let current {
