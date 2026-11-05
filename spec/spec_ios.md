@@ -164,7 +164,7 @@ Project inference is limited to the Start Timer App Shortcut, which sets `StartT
 
 ### 6.4 URL scheme
 
-The app handles the URLs of [spec_automation.md](spec_automation.md) §6. On the iPad, `planner/*` and `project/` URLs select the matching tab and its state; on the iPhone they show the Timer.
+The app handles the URLs of [spec_automation.md](spec_automation.md) §6. On the iPad, `planner/*` and `project/` URLs select the matching tab and its state, and `start`, `stop`, and `continue` select the Timer tab; on the iPhone they all show the Timer.
 
 ## 7. Sync behavior
 
@@ -335,3 +335,4 @@ The iPad reads the block log and `LiveState`; it never writes the block log or r
 - IOS-50. With "Play a sound" off a phase's notification is silent; on, it has its bundled sound; `longRunning` and `syncAdjusted` use the default sound.
 - IOS-51. Typing in the edit sheet's task field lists up to four earlier tasks; `@` opens no picker; a tap on a suggestion sets the sheet's task and project, Done stores them, and Cancel leaves the entry unchanged.
 - IOS-52. Turning the timer control off on an entry known only from `LiveState` fetches changes first and then stops it, or fails with the iCloud message; an entry started here since the widgets' last state is the one it stops.
+- IOS-53. On the iPad, a `start`, `stop`, or `continue` URL selects the Timer tab; one that fails leaves the tab as it was.

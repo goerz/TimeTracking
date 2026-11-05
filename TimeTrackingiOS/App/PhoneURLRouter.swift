@@ -42,6 +42,7 @@ struct PhoneURLRouter {
             do {
                 let banner = try await AutomationService(store: model.store).perform(parsed) ?? ""
                 await model.localWrite()
+                model.padTab = .timer
                 return .tracked(banner)
             } catch {
                 return .failed(AutomationError(wrapping: error).message)

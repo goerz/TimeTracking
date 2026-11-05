@@ -246,4 +246,20 @@ struct PadTests {
         phone.model.macActivityTapped()
         #expect(phone.model.padTab == .timer)
     }
+
+    @Test("IOS-53 on the iPad, start, stop, and continue URLs show the Timer tab; a URL that fails leaves the tab")
+    func trackingURLsShowTimer() async throws {
+        let test = try await Self.pad()
+        let router = PhoneURLRouter(model: test.model, scheme: "timetracking")
+        for url in ["timetracking://start?task=Review", "timetracking://stop", "timetracking://continue"] {
+            test.model.padTab = .reports
+            let outcome = try await router.open(#require(URL(string: url)))
+            #expect(outcome != .shown)
+            #expect(test.model.padTab == .timer)
+        }
+        test.model.padTab = .reports
+        try await router.open(#require(URL(string: "timetracking://start?project=Nowhere")))
+        #expect(test.model.urlAlert != nil)
+        #expect(test.model.padTab == .reports)
+    }
 }
