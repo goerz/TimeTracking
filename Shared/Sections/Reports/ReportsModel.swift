@@ -130,7 +130,9 @@ final class ReportsModel {
                 return
             }
             snapshot = result
-            runningInRange = running.map { range.days.contains($0.day) } ?? false
+            runningInRange = running.map { entry in
+                range.calendar.pieces(of: entry, at: clock.now).contains { range.days.contains($0.day) }
+            } ?? false
             initializeExpansion()
         } catch {
             report(error)

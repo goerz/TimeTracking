@@ -30,9 +30,7 @@ public struct WidgetSnapshotBuilder: Sendable {
         pinnedIDs: [ProjectID]? = nil,
         taskMode: PinnedTaskMode = .latest
     ) async -> WidgetSnapshot {
-        let calendar = TrackingCalendar(timeZone: timeZone)
-        let today = calendar.day(containing: now)
-        let midnight = calendar.startOfDay(today)
+        let calendar = store?.displayCalendar(timeZone: timeZone) ?? TrackingCalendar(timeZone: timeZone)
         let running = live.running.map { running in
             WidgetSnapshot.Running(
                 entryID: running.entryID,
@@ -58,7 +56,7 @@ public struct WidgetSnapshotBuilder: Sendable {
             macLines: MacActivityLine.lines(live, timeZone: timeZone),
             recent: [],
             pinned: [],
-            reloadAt: Self.reloadDate(after: now, pomodoro: pomodoro, timeZone: timeZone),
+            reloadAt: Self.reloadDate(after: now, pomodoro: pomodoro, timeZone: timeZone, midnightHour: calendar.midnightHour),
             relevance: Self.relevance(live: live, at: now)
         )
         guard let store else {
@@ -71,7 +69,7 @@ public struct WidgetSnapshotBuilder: Sendable {
             running.row = Self.row(projectID: running.row.projectID, task: running.row.task, in: byID, fallback: running.row)
             snapshot.running = running
         }
-        await addToday(to: &snapshot, store: store, at: now, midnight: midnight, today: today)
+        await addToday(to: &snapshot, store: store, at: now, calendar: calendar)
         await addRecent(to: &snapshot, store: store, rows: byID)
         var ids = pinnedIDs ?? []
         if pinnedIDs == nil {
@@ -81,16 +79,25 @@ public struct WidgetSnapshotBuilder: Sendable {
         return snapshot
     }
 
-    private func addToday(to snapshot: inout WidgetSnapshot, store: TimeStore, at now: Date, midnight: Date, today: TrackingDay) async {
+    private func addToday(to snapshot: inout WidgetSnapshot, store: TimeStore, at now: Date, calendar: TrackingCalendar) async {
+        let today = calendar.day(containing: now)
+        let midnight = calendar.startOfDay(today)
         let runningID = snapshot.running?.entryID
-        let stopped = await ((try? store.entries(on: today)) ?? []).filter { $0.id != runningID && !$0.isRunning }
+        let stored = await (try? store.entries(days: calendar.storedDays(of: today ... today))) ?? []
+        let stopped = stored
+            .filter { $0.id != runningID && !$0.isRunning }
+            .flatMap { calendar.pieces(of: $0, at: now) }
+            .filter { $0.day == today }
         snapshot.todayStoppedSeconds = stopped.reduce(0) { total, entry in
             let interval = entry.interval(at: now)
             let start = max(interval.start, midnight)
             return total + max(0, Int(interval.end.timeIntervalSince(start)))
         }
         if let running = snapshot.running {
-            snapshot.todayTimerStart = max(running.chainStart, midnight) - TimeInterval(snapshot.todayStoppedSeconds)
+            // The chain's stopped parts today are in the sum above; a chain
+            // reaches back over a real midnight that lies inside today.
+            let start = stored.first { $0.id == running.entryID }?.start ?? running.chainStart
+            snapshot.todayTimerStart = max(start, midnight) - TimeInterval(snapshot.todayStoppedSeconds)
         }
     }
 
@@ -154,8 +161,8 @@ public struct WidgetSnapshotBuilder: Sendable {
     }
 
     /// The timeline's end: the running phase's end while a Pomodoro phase
-    /// counts down on this device, else the next local midnight.
-    public static func reloadDate(after now: Date, pomodoro: PomodoroState, timeZone: TimeZone) -> Date {
+    /// counts down on this device, else the start of the next day.
+    public static func reloadDate(after now: Date, pomodoro: PomodoroState, timeZone: TimeZone, midnightHour: Int = 0) -> Date {
         switch pomodoro {
         case let .focus(end), let .onBreak(end):
             if end > now {
@@ -164,7 +171,7 @@ public struct WidgetSnapshotBuilder: Sendable {
         case .off, .focusOver, .breakOver:
             break
         }
-        let calendar = TrackingCalendar(timeZone: timeZone)
+        let calendar = TrackingCalendar(timeZone: timeZone, midnightHour: midnightHour)
         return calendar.startOfDay(calendar.day(containing: now).adding(days: 1))
     }
 

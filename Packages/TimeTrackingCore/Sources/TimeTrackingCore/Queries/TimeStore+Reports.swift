@@ -1,8 +1,9 @@
 // Report aggregation (spec_data_and_sync.md §7.3, §7.5; spec_reports.md §5).
-// Each entry whose day lies in the range counts whole in its day, the
-// running one up to the query time; grouping uses the project's current area.
-// SQLite sums entries per project, task, and day; Swift builds the tree from
-// those groups (§7.5's targets on the large dataset).
+// Each entry counts in the days it lies on, the running one up to the query
+// time; grouping uses the project's current area. SQLite sums entries per
+// project, task, and day; Swift builds the tree from those groups (§7.5's
+// targets on the large dataset). With a `midnightHour`, an entry's part on
+// each day counts as one entry there, and Swift forms the groups.
 
 import Foundation
 import GRDB
@@ -19,6 +20,30 @@ struct ReportProject {
     var areaOrder: Int
     var clientID: ClientID?
     var clientName: String?
+}
+
+/// What one scan of the entries looks at.
+struct ReportScan {
+    var needle = ""
+    var now: Int64
+    var lower = Int64.min
+    var upper = Int64.max
+}
+
+/// The entries of one project, untrimmed task, and day.
+struct ReportGroup {
+    var projectKey: String?
+    var task: String
+    var day: TrackingDay
+    var seconds = 0
+    var count = 0
+    var running = false
+}
+
+private struct ReportGroupKey: Hashable {
+    var projectKey: String?
+    var task: String
+    var day: TrackingDay
 }
 
 /// The entries of one project, task, and day: their count and seconds.
@@ -110,7 +135,7 @@ extension TimeStore: Reporting {
 
     public func series(_ query: ReportQuery) throws -> [(TrackingPeriod, [GroupKeyValue: Int])] {
         let rows = try reportRows(query)
-        let periods = TrackingCalendar(timeZone: .current).periods(query.granularity, covering: query.days)
+        let periods = displayCalendar().periods(query.granularity, covering: query.days)
         var sums: [TrackingPeriod: [GroupKeyValue: Int]] = [:]
         for row in rows {
             let key = query.groupBy.first.map(row.value) ?? .total
@@ -154,7 +179,37 @@ extension TimeStore: Reporting {
         let now = Int64(clock.now.timeIntervalSince1970.rounded(.down))
         let lower = query.bounds.map { Int64($0.start.timeIntervalSince1970.rounded(.up)) } ?? Int64.min
         let upper = query.bounds.map { Int64($0.end.timeIntervalSince1970.rounded(.up)) } ?? Int64.max
-        let groups = try read { database in
+        let scan = ReportScan(needle: needle, now: now, lower: lower, upper: upper)
+        let hour = displayCalendar(timeZone: timeZone()).midnightHour
+        let groups = try hour == 0 ? storedGroups(query, scan: scan) : shownGroups(days: query.days, scan: scan, midnightHour: hour)
+        var periods: [TrackingDay: TrackingPeriod] = [:]
+        let entryRows = groups.compactMap { group -> ReportRow? in
+            let project = group.projectKey.flatMap { projects[$0] }
+            let projectID = project?.id ?? group.projectKey.flatMap(ProjectID.init)
+            guard Self.passes(project, projectID: projectID, filter: filter),
+                  Self.matches(filter.search, task: group.task, project: project)
+            else {
+                return nil
+            }
+            let period = periods[group.day] ?? TrackingPeriod(query.granularity, containing: group.day, rangeStart: query.days.lowerBound)
+            periods[group.day] = period
+            return ReportRow(
+                projectID: projectID,
+                project: project,
+                task: group.task.trimmed,
+                day: group.day,
+                period: period,
+                seconds: group.seconds,
+                count: group.count,
+                running: group.running
+            )
+        }
+        return try entryRows + (query.includeHealth ? healthReportRows(query) : [])
+    }
+
+    /// The groups by the stored days, summed by SQLite.
+    private func storedGroups(_ query: ReportQuery, scan: ReportScan) throws -> [ReportGroup] {
+        try read { database in
             try Row.fetchAll(
                 database,
                 sql: """
@@ -165,36 +220,60 @@ extension TimeStore: Reporting {
                   AND e.start >= ? AND e.start < ?
                 GROUP BY e.project_id, e.task, e.day
                 """,
-                arguments: [now, query.days.lowerBound.description, query.days.upperBound.description, needle, needle, lower, upper]
+                arguments: [
+                    scan.now, query.days.lowerBound.description, query.days.upperBound.description,
+                    scan.needle, scan.needle, scan.lower, scan.upper,
+                ]
             )
-        }
-        var periods: [String: (TrackingDay, TrackingPeriod)] = [:]
-        let entryRows = groups.compactMap { row -> ReportRow? in
-            let projectKey: String? = row["project_id"]
-            let project = projectKey.flatMap { projects[$0] }
-            guard Self.passes(project, projectID: project?.id ?? projectKey.flatMap(ProjectID.init), filter: filter),
-                  Self.matches(filter.search, task: row["task"], project: project)
-            else {
-                return nil
+            .map { row in
+                ReportGroup(
+                    projectKey: row["project_id"],
+                    task: row["task"],
+                    day: TrackingDay(row["day"] as String) ?? query.days.lowerBound,
+                    seconds: row["seconds"],
+                    count: row["n"],
+                    running: row["running"]
+                )
             }
-            let dayText: String = row["day"]
-            let (day, period) = periods[dayText] ?? {
-                let day = TrackingDay(dayText) ?? query.days.lowerBound
-                return (day, TrackingPeriod(query.granularity, containing: day, rangeStart: query.days.lowerBound))
-            }()
-            periods[dayText] = (day, period)
-            return ReportRow(
-                projectID: project?.id ?? projectKey.flatMap(ProjectID.init),
-                project: project,
-                task: (row["task"] as String).trimmed,
-                day: day,
-                period: period,
-                seconds: row["seconds"],
-                count: row["n"],
-                running: row["running"]
-            )
         }
-        return try entryRows + (query.includeHealth ? healthReportRows(query) : [])
+    }
+
+    /// The groups by the days the app shows, each part of an entry counting
+    /// as one entry of its day.
+    func shownGroups(days: ClosedRange<TrackingDay>, scan: ReportScan, midnightHour: Int) throws -> [ReportGroup] {
+        let stored = TrackingCalendar(timeZone: .gmt, midnightHour: midnightHour).storedDays(of: days)
+        var cutter = ReportDayCutter(midnightHour: midnightHour, now: scan.now)
+        var groups: [ReportGroupKey: ReportGroup] = [:]
+        try read { database in
+            let rows = try Row.fetchCursor(
+                database,
+                sql: """
+                SELECT e.project_id, e.task, e.day, e.time_zone, e.start, e."end"
+                FROM time_entry e
+                WHERE e.deleted_at IS NULL AND e.day >= ? AND e.day <= ? AND (? = '' OR instr(e.task_key, ?) > 0)
+                  AND e.start >= ? AND e.start < ?
+                """,
+                arguments: [
+                    stored.lowerBound.description, stored.upperBound.description,
+                    scan.needle, scan.needle, scan.lower, scan.upper,
+                ]
+            )
+            while let row = try rows.next() {
+                let projectKey: String? = row["project_id"]
+                let task: String = row["task"]
+                let isRunning = (row["end"] as Int64?) == nil
+                let parts = cutter.parts(of: row)
+                for (index, part) in parts.enumerated() where days.contains(part.day) {
+                    let key = ReportGroupKey(projectKey: projectKey, task: task, day: part.day)
+                    var group = groups[key] ?? ReportGroup(projectKey: projectKey, task: task, day: part.day)
+                    group.seconds += part.seconds
+                    group.count += 1
+                    group.running = group.running || (isRunning && index == parts.count - 1)
+                    groups[key] = group
+                }
+            }
+        }
+        return Array(groups.values)
     }
 
     /// Every project by its id text, with its area and client.

@@ -40,7 +40,7 @@ enum ActivityAggregation {
         case .hourOfDay:
             hourShares(of: block).reduce(into: [:]) { $0[.hour($1.key), default: 0] += $1.value }
         case .day:
-            [.day(block.localDay): block.activeSeconds]
+            [.day(block.shownDay): block.activeSeconds]
         }
     }
 

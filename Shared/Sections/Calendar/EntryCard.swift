@@ -9,6 +9,8 @@ import TimeTrackingCore
 struct EntryCard: View {
     var model: CalendarModel
     var listing: EntryListing
+    /// The column: an entry across Midnight has a card on each of its days.
+    var day: TrackingDay
     var size: CGSize
     var dayWidth: CGFloat
     @State private var dragOffset: CGSize = .zero
@@ -25,7 +27,7 @@ struct EntryCard: View {
     var body: some View {
         let selected = model.selection.contains(.entry(entry.id))
         let color = listing.area?.color
-        let overlaps = model.overlapping(on: entry.day).contains(entry.id)
+        let overlaps = model.overlapping(on: day).contains(entry.id)
         let textColor = cardTextColor(color)
         let style = CalendarZoom.cardStyle(height: Double(size.height))
         let wanted = hovering || entry.isRunning || (Self.touch && selected)
@@ -85,7 +87,7 @@ struct EntryCard: View {
             dragOffset = .zero
             let days = Int((drag.translation.width / dayWidth).rounded())
             let seconds = Double(drag.translation.height) / model.pointsPerHour * 3600
-            Task { await model.move(entry.id, by: seconds, to: entry.day.adding(days: days)) }
+            Task { await model.move(entry.id, by: seconds, to: day.adding(days: days), from: day) }
         }
         .modifier(EntryMenu(showsMenu: $showsMenu) { menu })
         .modifier(EntryEditorPopover(
@@ -241,10 +243,12 @@ struct EntryCard: View {
     }
 
     private func resize(top: Bool, by translation: CGFloat) {
+        // The card's edge, which is the column's where the entry goes on.
         let interval = entry.interval(at: model.clock.now)
-        let edge = top ? interval.start : interval.end
+        let column = model.axis(day).interval
+        let edge = top ? max(interval.start, column.start) : min(interval.end, column.end)
         let date = edge + Double(translation) / model.pointsPerHour * 3600
-        Task { await model.resize(entry.id, top: top, to: date) }
+        Task { await model.resize(entry.id, top: top, to: date, on: day) }
     }
 }
 

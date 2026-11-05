@@ -41,6 +41,21 @@ public struct TimerListDay: Hashable, Sendable, Identifiable {
 extension TimeStore {
     /// The `limit` most recent days with live entries, newest first.
     public func entryDays(limit: Int) throws -> [TrackingDay] {
+        let calendar = displayCalendar(timeZone: timeZone())
+        guard calendar.midnightHour != 0 else {
+            return try storedDays(limit: limit)
+        }
+        // The `limit` latest shown days lie within one stored day of the
+        // `limit` latest stored days.
+        let stored = try storedDays(limit: limit + 1)
+        guard let first = stored.last, let last = stored.first else {
+            return []
+        }
+        let days = try Set(entries(days: first ... last).flatMap { calendar.pieces(of: $0, at: clock.now).map(\.day) })
+        return Array(days.sorted(by: >).prefix(max(limit, 0)))
+    }
+
+    private func storedDays(limit: Int) throws -> [TrackingDay] {
         try read { database in
             try String.fetchAll(
                 database,
@@ -61,8 +76,9 @@ extension TimeStore {
         }
         let wanted = Set(days)
         let needle = filter.folded
-        let listings = try listings(for: entries(days: first ... last).filter { wanted.contains($0.day) })
-            .filter { needle.isEmpty || Self.listing($0, contains: needle) }
+        let calendar = displayCalendar(timeZone: timeZone())
+        let listings = try shownListings(days: first ... last, in: calendar)
+            .filter { wanted.contains($0.entry.day) && (needle.isEmpty || Self.listing($0, contains: needle)) }
         let byDay = Dictionary(grouping: listings, by: \.entry.day)
         return days.compactMap { day in
             let all = byDay[day] ?? []
@@ -74,6 +90,13 @@ extension TimeStore {
             let seconds = stopped.reduce(0) { $0 + $1.entry.seconds(at: clock.now) }
             return TimerListDay(day: day, rows: stopped, stoppedSeconds: seconds, runningListing: running)
         }
+    }
+
+    /// The pieces lying on `days` in `calendar`, with their names.
+    func shownListings(days: ClosedRange<TrackingDay>, in calendar: TrackingCalendar) throws -> [EntryListing] {
+        try listings(for: entries(days: calendar.storedDays(of: days)))
+            .flatMap { $0.pieces(in: calendar, at: clock.now) }
+            .filter { days.contains($0.entry.day) }
     }
 
     static func listing(_ listing: EntryListing, contains needle: String) -> Bool {

@@ -32,7 +32,7 @@ extension ActivitySummary {
     public func cellTooltip(row: ActivityHeatmap.Row, hour: Int) -> ActivityCellTooltip {
         let hourText = "\(ActivityText.clock(hour: hour))–\(ActivityText.clock(hour: (hour + 1) % 24))"
         let rowDays = Set(row.days.map(\.description))
-        let cellBlocks = blocks.filter { rowDays.contains($0.localDay) && (ActivityAggregation.hourFractions(of: $0)[hour] ?? 0) > 0 }
+        let cellBlocks = blocks.filter { rowDays.contains($0.shownDay) && (ActivityAggregation.hourFractions(of: $0)[hour] ?? 0) > 0 }
         let severalDevices = Set(blocks.flatMap(\.deviceNames)).count > 1
         var seconds: [ActivityCellTooltip.Line: Double] = [:]
         for block in cellBlocks {

@@ -117,6 +117,7 @@ struct GeneralPane: View {
                 }
                 .accessibilityIdentifier("settings.launchWindow")
             }
+            MidnightSection(store: app.store)
             menuBarSection
             if let live = app.live {
                 LiveStatusSection(live: live)

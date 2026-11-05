@@ -272,3 +272,60 @@ extension CalendarSectionTests {
         #expect(model.draft == nil)
     }
 }
+
+extension CalendarSectionTests {
+    @Test("PC-33 a column starts at Midnight, an entry across it is in both columns, and its later piece drags within that column")
+    func midnightColumns() async throws {
+        let block = try TestBlocks.block("03:30", "04:30")
+        let world = try await World(blocks: [block])
+        let model = world.model
+        let store = world.test.store
+        try await store.set(.midnightHour, 4)
+        let entry = try await store.create(EntryDraft(
+            projectID: nil,
+            task: "Night",
+            start: TestApp.date("2024-03-14T03:00"),
+            end: TestApp.date("2024-03-14T05:00")
+        ))[0]
+        await model.reload()
+        let earlier = Self.day("2024-03-13")
+        let later = Self.day("2024-03-14")
+        #expect(try model.axis(later).interval.start == TestApp.date("2024-03-14T04:00"))
+        #expect(model.entries(on: earlier).map(\.id) == [entry.id])
+        #expect(model.entries(on: later).map(\.id) == [entry.id])
+        #expect(model.blocks(on: earlier).count == 1)
+        #expect(model.blocks(on: later).count == 1)
+        #expect(model.blocks[0].shownDay == earlier.description)
+        #expect(model.dayTotals[earlier]?.tracked == 3600)
+        #expect(model.dayTotals[later]?.tracked == 3600)
+        #expect(model.axisHour(clock: 9) == 5)
+        #expect(model.axisHour(clock: 2) == 22)
+        await model.move(entry.id, by: 3600, to: later, from: later)
+        let moved = try #require(try await store.entry(entry.id))
+        #expect(try moved.start == TestApp.date("2024-03-14T04:00"))
+        #expect(try moved.end == TestApp.date("2024-03-14T06:00"))
+    }
+
+    @Test("PC-34 with Midnight at 04:00 a drag across the real midnight splits the entry, and one undo restores it")
+    func midnightDragUndo() async throws {
+        let world = try await World()
+        let model = world.model
+        let store = world.test.store
+        try await store.set(.midnightHour, 4)
+        let entry = try await store.create(EntryDraft(
+            projectID: nil,
+            task: "Late",
+            start: TestApp.date("2024-03-12T22:30"),
+            end: TestApp.date("2024-03-12T23:30")
+        ))[0]
+        await model.reload()
+        await model.move(entry.id, by: 3600)
+        let span = try DateInterval(start: TestApp.date("2024-03-12T20:00"), end: TestApp.date("2024-03-13T03:00"))
+        #expect(try await store.entries(in: span).count == 2)
+        world.test.undo.undo()
+        await model.waitForUndo()
+        let restored = try await store.entries(in: span)
+        #expect(restored.map(\.id) == [entry.id])
+        #expect(try restored[0].end == TestApp.date("2024-03-12T23:30"))
+    }
+}

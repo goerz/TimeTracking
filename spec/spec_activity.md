@@ -12,7 +12,7 @@ The window title is "Activity" and its subtitle the range label. The toolbar fol
 
 ### 1.1 Date range
 
-The range control, its presets, and its shortcuts are those of Reports ([spec_reports.md](spec_reports.md) §2), and the selected range is one state shared by both sections. Activity adds a 366-day cap: a longer range is clipped to the 366 days ending on its last day, and the header says "Showing the last 366 days of the selection". Days run midnight to midnight; future days of the range appear as empty rows and bars and are left out of every average.
+The range control, its presets, and its shortcuts are those of Reports ([spec_reports.md](spec_reports.md) §2), and the selected range is one state shared by both sections. Activity adds a 366-day cap: a longer range is clipped to the 366 days ending on its last day, and the header says "Showing the last 366 days of the selection". Days run from Midnight to Midnight ([spec_data_and_sync.md](spec_data_and_sync.md) §8), each block counting on the day of its start, and a heatmap row starts at the Midnight hour; future days of the range appear as empty rows and bars and are left out of every average.
 
 ### 1.2 Header
 
@@ -157,6 +157,7 @@ The Activity tab shows the same panels from the synced block log, without subjec
 20. The view never modifies the block log, detail log, `current.json`, or `settings.toml`.
 21. In the background adds the background stretches' items, each with its part while away; the Away panel says how much of the counted gaps background stretches cover, also under a context filter, and has no such line without them.
 22. A reload of a long range that finishes after a later reload of a short range leaves the short range's figures and no loading indicator.
+23. With Midnight at 04:00, a block at 02:00 on March 14 counts on March 13 while its log date stays March 14, its hour stays 02:00, and a heatmap row's columns run from 04:00 to 03:00.
 
 ## 7. Decisions
 

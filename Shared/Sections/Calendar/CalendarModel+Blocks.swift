@@ -31,7 +31,8 @@ extension CalendarModel {
             return
         }
         draft = CalendarDraft(
-            day: TrackingDay(block.localDay) ?? calendar.day(containing: stretch.start),
+            day: calendar.midnightHour == 0 ? TrackingDay(block.localDay) ?? calendar.day(containing: stretch.start)
+                : calendar.day(containing: stretch.start),
             interval: stretch,
             projectID: nil,
             task: ""

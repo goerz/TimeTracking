@@ -55,16 +55,29 @@ extension AppModel {
         }
     }
 
-    /// Sleeps until the running entry's next midnight, runs the pass, and
-    /// repeats; with nothing running it looks again every minute.
+    /// Sleeps until the running entry's next midnight or the next shown
+    /// day, runs the pass, reloads (its part moves to the new day even when
+    /// nothing is stored), and repeats; with nothing running it looks again
+    /// every minute.
     private func splitAtMidnights() async {
         while !Task.isCancelled {
-            guard let midnight = try? await store.nextMidnightSplit() else {
+            guard let midnight = try? await store.nextRunningDayChange() else {
                 try? await Task.sleep(for: .seconds(60))
                 continue
             }
             try? await Task.sleep(for: .seconds(max(1, midnight.timeIntervalSince(clock.now))))
             await checkInvariants()
+            if !Task.isCancelled {
+                await storeChanged(.structure)
+            }
+        }
+    }
+
+    /// The synced Midnight among `keys`: every view shows other days.
+    func reloadAfterMidnightChange(_ keys: Set<String>) async {
+        if keys.contains(SyncedSettingKey<Int>.midnightHour.name) {
+            await storeChanged(.structure)
+            await sections.activity.reload()
         }
     }
 

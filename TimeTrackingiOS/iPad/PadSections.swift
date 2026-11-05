@@ -73,6 +73,14 @@ final class PadSections {
 
     /// Entries or structure changed: the opened tabs re-read (the Calendar
     /// only once it has opened, so no change asks for calendar access).
+    /// The synced Midnight changed: every section shows other days.
+    func midnightChanged() async {
+        await storeChanged()
+        if opened.contains(.activity) {
+            await router.activity.reload()
+        }
+    }
+
     func storeChanged() async {
         if opened.contains(.projects) {
             await router.projects.reload()

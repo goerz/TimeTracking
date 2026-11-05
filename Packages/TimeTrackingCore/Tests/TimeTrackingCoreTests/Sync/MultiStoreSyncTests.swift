@@ -318,3 +318,16 @@ struct MultiStoreSyncTests {
         return result
     }
 }
+
+extension MultiStoreSyncTests {
+    @Test("DATA-59 Midnight defaults to 00:00, syncs like any setting, and reaches every device's calendar")
+    func midnightSyncs() async throws {
+        let net = try await Network()
+        let (peerA, peerB) = (net.peers[0], net.peers[1])
+        #expect(peerB.store.displayCalendar().midnightHour == 0)
+        try await peerA.store.set(.midnightHour, 4)
+        try await net.converge()
+        #expect(try await peerB.store.value(.midnightHour) == 4)
+        #expect(peerB.store.displayCalendar().midnightHour == 4)
+    }
+}

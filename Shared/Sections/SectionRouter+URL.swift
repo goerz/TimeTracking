@@ -12,7 +12,7 @@ extension SectionRouter {
     func open(_ url: TimeTrackingURL, now: Date) async -> Bool {
         switch url {
         case let .calendar(date):
-            showCalendar(day: date ?? TrackingCalendar(timeZone: .current).day(containing: now))
+            showCalendar(day: date ?? calendar.store.displayCalendar().day(containing: now))
         case let .reports(from, to):
             await showReports(range: Self.range(from: from, to: to), filter: ReportFilters())
         case .projects:

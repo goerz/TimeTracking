@@ -100,6 +100,7 @@ final class ProjectsModel {
         self.clock = clock
         self.device = device
         self.range = DateRangeModel(clock: clock, device: device, key: .projectsRange)
+        range.calendar = store.displayCalendar()
         self.options = device[.projectsOptions]
         self.collapsed = device[.projectsCollapsed]
         self.columnData = device[.projectsColumns]

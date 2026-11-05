@@ -98,6 +98,7 @@ final class SectionRouter {
         self.device = device
         self.section = device[.selectedSection]
         let range = DateRangeModel(clock: clock, device: device)
+        range.calendar = store.displayCalendar()
         self.range = range
         self.projects = ProjectsModel(store: store, clock: clock, device: device)
         self.reports = ReportsModel(store: store, clock: clock, device: device, range: range)

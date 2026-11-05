@@ -75,7 +75,7 @@ The picker's "Create Project" row opens the project dialog (`spec_projects.md` �
 
 ## 3. The list
 
-Entries are grouped by day. Headers read "Today", "Yesterday", then "EEE, MMM d" ("Tue, Oct 27"), with the year for other years, and show the day total `h:mm:ss` at the right. The running entry is the first row of its day, with its live duration in the accent color and no continue button; it is not selectable, and a click opens its edit popover (4). It counts toward today's total, which ticks every second; a filter it does not match hides its row and its seconds. Empty days are omitted. The list loads the 14 most recent days with entries; "Load Earlier Entries" (or scrolling to the end) appends 14 more. Each entry is its own row.
+Entries are grouped by day, the days of the Midnight setting (`spec_data_and_sync.md` §8): an entry across Midnight has a row on each of its days with that part's times, and its editor opens the stored entry. Headers read "Today", "Yesterday", then "EEE, MMM d" ("Tue, Oct 27"), with the year for other years, and show the day total `h:mm:ss` at the right. The running entry is the first row of its day, with its live duration in the accent color and no continue button; it is not selectable, and a click opens its edit popover (4). It counts toward today's total, which ticks every second; a filter it does not match hides its row and its seconds. Empty days are omitted. The list loads the 14 most recent days with entries; "Load Earlier Entries" (or scrolling to the end) appends 14 more. Each entry is its own row.
 
 A row shows the task ("No task" in placeholder style), below it the project line (area dot, project, " · client" in secondary), and the duration at the right; every row has the same height. The continue button (24 pt circle) shows on hover and on the selected row, in space the row always reserves, so the duration never moves; the tooltip shows the range ("9:10 to 9:35"). Without entries the list shows "No Entries"; a filter without matches shows the system's search empty state.
 
@@ -232,6 +232,7 @@ Every pane is a grouped `Form` (`spec_design.md` §8). The window has the size o
 |---|---|---|---|
 | (none) | Open at login | off | `SMAppService.mainApp`; the first-launch alert proposes it (8.2) and the Tracker pane's setup shows it (`spec_activity_tracking.md` §7.4) |
 | (none) | At launch, show: Main window, Mini Timer | Main window | 1.3; a login-item launch reopens the windows open at the last quit instead |
+| (none) | Midnight: 00:00 to 23:00 | 00:00 | Synced; the hour the app's days change (`spec_data_and_sync.md` §8) |
 | Menu bar and Dock | Show timer, Show seconds, Show project, During a Pomodoro, show | on, off, off, Timer and countdown | `spec_menubar.md` §6 |
 | Menu bar and Dock | Show Dock icon | on | `spec_menubar.md` §4 |
 | iCloud | "Sync" ("Up to date", "Not signed in to iCloud. Entries stay on this Mac.", "Couldn't sync with iCloud. The app will try again.") and "Widget updates" ("Instant", "Last sent at 10:42", "Off (no push key)" without a push key, "Not working" with the detail in the log), followed by an info button (as in the Tracker pane, `spec_activity_tracking.md` §7.4) whose popover says that the Mac pushes each timer change to the widgets within seconds, that without the APNs key widgets change only when iOS reloads them, and how to create the key, with `make apns-key P8=…` as the snippet | | `spec_data_and_sync.md` §3.1, §4.3 |
@@ -360,6 +361,8 @@ Clicking a notification shows the Mini Timer (with the idle prompt for `idle`). 
 - TM-42. With an editor (the Mac popover or the iPhone edit sheet) open on an entry whose Stop another device then changes, editing Start stores the new start and keeps the other device's stop.
 - TM-43. Starting an entry, here or on another device, removes a delivered "Nothing is being tracked" reminder, and its Start New and Continue Latest do nothing while an entry runs.
 - TM-44. Return accepts no suggestion or picker line loaded for text the user has since typed past; with the `@` picker open it waits for the current lines, assigns the project, and starts nothing.
+- TM-45. With Midnight at 04:00, the list's days and their totals are the shown days: an entry across it has a row with its part on each day, a night across real midnight lies on one day, and a row's editor opens the stored entry.
+- TM-46. Choosing Midnight in the General pane moves the Calendar's first hour label to that hour, and 00:00 restores it.
 
 ## 12. Decisions
 

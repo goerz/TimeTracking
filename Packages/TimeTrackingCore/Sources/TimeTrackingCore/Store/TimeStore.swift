@@ -60,7 +60,7 @@ public actor TimeStore {
     public nonisolated let clock: any Clock
     public nonisolated let deviceID: DeviceID
     public nonisolated let location: Location
-    let reader: any DatabaseReader
+    nonisolated let reader: any DatabaseReader
     let writer: (any DatabaseWriter)?
     let timeZone: @Sendable () -> TimeZone
     nonisolated let notifier: (any ChangeNotifier)?
@@ -244,6 +244,17 @@ public actor TimeStore {
         }
         let calendar = TrackingCalendar(timeZone: running.zone)
         return calendar.startOfDay(calendar.day(containing: running.start).adding(days: 1))
+    }
+
+    /// The next moment a running entry changes how it is stored or shown:
+    /// its next midnight or the start of the next shown day, whichever is
+    /// first; `nil` with nothing running.
+    public func nextRunningDayChange() throws -> Date? {
+        guard let midnight = try nextMidnightSplit() else {
+            return nil
+        }
+        let calendar = displayCalendar(timeZone: timeZone())
+        return min(midnight, calendar.startOfDay(calendar.day(containing: clock.now).adding(days: 1)))
     }
 
     // MARK: Notification

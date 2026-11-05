@@ -12,19 +12,20 @@ struct HeatmapPanel: View {
         let heatmap = summary.heatmap
         let cell: CGFloat = heatmap.mode == .days ? 14 : 12
         let gap: CGFloat = heatmap.mode == .days ? 3 : 2
+        let hours = ActivityHeatmap.columns(midnightHour: model.range.calendar.midnightHour)
         ActivityPanel(title: "Active time by hour") {
             VStack(alignment: .leading, spacing: gap) {
                 HStack(spacing: gap) {
                     Color.clear.frame(width: 56, height: 10)
-                    ForEach(0 ..< 24, id: \.self) { hour in
+                    ForEach(hours, id: \.self) { hour in
                         Text(ActivityHeatmap.labeledHours.contains(hour) ? "\(hour)" : "").font(.caption).frame(width: cell)
                     }
                 }
                 ForEach(Array(heatmap.rows.enumerated()), id: \.element.id) { _, row in
-                    rowView(row, cell: cell, gap: gap)
+                    rowView(row, hours: hours, cell: cell, gap: gap)
                 }
                 if let footer = heatmap.footer {
-                    rowView(footer, cell: cell, gap: gap, footer: true)
+                    rowView(footer, hours: hours, cell: cell, gap: gap, footer: true)
                 }
                 legend(cell: cell)
             }
@@ -33,7 +34,7 @@ struct HeatmapPanel: View {
         .accessibilityIdentifier("activity.heatmap")
     }
 
-    private func rowView(_ row: ActivityHeatmap.Row, cell: CGFloat, gap: CGFloat, footer: Bool = false) -> some View {
+    private func rowView(_ row: ActivityHeatmap.Row, hours: [Int], cell: CGFloat, gap: CGFloat, footer: Bool = false) -> some View {
         HStack(spacing: gap) {
             VStack(alignment: .leading, spacing: 0) {
                 Text(row.label)
@@ -44,7 +45,7 @@ struct HeatmapPanel: View {
             .font(.caption)
             .foregroundStyle(row.isEmpty ? .tertiary : .primary)
             .frame(width: 56, alignment: .leading)
-            ForEach(0 ..< 24, id: \.self) { hour in
+            ForEach(hours, id: \.self) { hour in
                 RoundedRectangle(cornerRadius: 2)
                     .fill(shade(row.minutes[hour]))
                     .frame(width: cell, height: cell)

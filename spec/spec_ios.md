@@ -92,6 +92,7 @@ A sheet from the toolbar: an inset-grouped `Form` with the inline title "Setting
 | Section | Setting | Default | Scope |
 |---|---|---|---|
 | iCloud | Status, "Waiting to sync" (the outbox count), "Device name" (`Device.name`, a trailing text field), "Sync Now" | | Device |
+| (none) | Midnight: 00:00 to 23:00, the hour the app's days change ([spec_data_and_sync.md](spec_data_and_sync.md) §8) | 00:00 | Synced |
 | Pomodoro | Focus (1 to 180 min), Break (1 to 60 min) | 25, 5 | Synced |
 | Pomodoro | Play a sound when a focus or break ends (`pomodoro.sounds`) | On | Device |
 | Notifications | "Remind me when an entry runs long", "Remind after" N hours (1 to 12); while notifications are denied, the footer reads "Notifications are off, so focus, break, and reminder alerts won't appear." with "Open Settings" | On, 4 h (iPhone); off, 4 h (iPad) | Device |
@@ -201,7 +202,7 @@ The library owns synchronization; this section states what the iOS app does arou
 2. Offline. Every change commits locally first; starting, stopping, continuing, and editing work offline from every surface. A sync pill under the card shows `waitingForNetwork`, `sending(n)` lasting over 10 s, or `error`, and disappears when the outbox is empty.
 3. Adjustments. When the library emits `.adjusted` for an entry this device created or last edited, the Timer shows a banner "Another device changed an entry" with "Show", which opens that entry's edit sheet with a one-line explanation under the duration ("Stopped at 10:14 because an entry started on MacBook"). The row keeps a badge until its sheet has been opened once. A midnight split shows no banner.
 4. Fan-out. After every applied sync and every local write, the app reloads the controls (and, after local writes, the widget timelines; the library reloads them after applied syncs), replays the Pomodoro, reschedules the long-running reminder, uploads a changed push token, updates the App Shortcut parameters when projects changed, flushes the collection file (9.6), and shows the banner of item 3 when applicable.
-5. Midnight. The library's split runs whenever the app's process runs and at midnight while the app is in the foreground ([spec_data_and_sync.md](spec_data_and_sync.md) §1.5).
+5. Midnight. The library's split runs whenever the app's process runs and at midnight while the app is in the foreground ([spec_data_and_sync.md](spec_data_and_sync.md) §1.5); the app also wakes at the start of the next shown day (§8) while an entry runs.
 6. Apple Health. The iPhone, never the iPad, imports sleep and workouts into the store while the synced settings `calendar.showSleep` or `calendar.showWorkouts` are on ([spec_data_and_sync.md](spec_data_and_sync.md) §1.9), one kind at a time, keeping the time of each kind's last import as a device setting. It imports at every wake after the fetch (foreground, refresh task) and when either setting changes while the app is in the foreground, then sends. Only in the foreground does it first ask HealthKit for read access to the kinds that are on, with Workouts also to the distance types a workout records (walking and running, cycling, swimming, wheelchair, downhill snow sports, rowing, cross-country skiing, paddle sports, skating), from which it takes a workout's distance; its activity type is stored under the name `HKWorkoutActivityType+Name.swift` gives it (the system sheet appears once, and once more for the distance types when Workouts was on before they were asked for; the usage text reads "Your sleep and workouts appear in the Calendar on your Mac and iPad, next to your tracked time."); a refresh task never shows the sheet. A failed read (protected data while the device is locked) leaves that kind's periods and import time as they were. After an import that read at least one kind, it records the synced import status (device name, time, kinds read; [spec_data_and_sync.md](spec_data_and_sync.md) §1.9), at most hourly unless the kinds change, which the Calendar settings on the Mac and iPad report.
 
 ## 8. Notifications
@@ -362,6 +363,8 @@ The iPad reads the block log through `ActivityReading` and the Mac's activity fr
 - IOS-45. A widget's Stop and the long-running notification's Stop stop only the entry they showed or its midnight continuation, checked and stopped in one write; an entry started since keeps running.
 - IOS-46. A widget provider resolving while another provider's CloudKit fetch is still under way fetches too; a fetch counts for the 10-second reuse only once it returned.
 - IOS-47. The app's ladder configuration and the monitor extension's callbacks read and write a set's ledger while holding the App Group lock; the device ID is created under the same lock.
+- IOS-48. With Midnight at 04:00, a widget's today at 02:00 holds the stopped parts of the day and a live timer from the running entry's own start, a chain counted once, and its timeline ends at 04:00.
+- IOS-49. The iPhone's Settings show Midnight.
 
 ## 13. Decisions
 

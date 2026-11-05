@@ -21,7 +21,7 @@ Below the toolbar, the filter bar of Reports while a filter is active (1.6), the
 
 ### 1.2 Days and scrolling
 
-A day column runs from midnight to midnight in the device's current time zone (23 or 25 hours on daylight-saving days). Entries and activity blocks never cross midnight. An external event or time block that does is drawn as one piece per day; dragging either piece moves the whole event.
+A day column runs from Midnight to Midnight ([spec_data_and_sync.md](spec_data_and_sync.md) §8), by default 00:00, in the device's current time zone (23 or 25 hours on daylight-saving days), and the hour labels start at that hour. Anything that crosses it (an entry or activity block, with Midnight at another hour; an external event or time block) is drawn as one piece per day. Dragging an event's or entry's piece moves the whole; an entry's edges resize it within the piece's column, and its day total counts each piece on its own day. A block counts on the day of its start.
 
 The view is a horizontal strip of day columns with no first or last day, loaded as it moves (the days in view and as many again on either side). Every day is `dayWidth` points wide, the horizontal zoom, from 96 to 1600 (default 260): the window's width decides how many days show, and the days at either edge may be cut off. The day width slider (`arrow.right.and.line.vertical.and.arrow.left` before it, `arrow.left.and.line.vertical.and.arrow.right` after it, logarithmic), ⌥⌘[ and ⌥⌘] (dividing or multiplying by 1.25), and a horizontal pinch on the iPad change it, keeping the time at the viewport's center in place.
 
@@ -67,11 +67,11 @@ No part of an entry can lie after now. Gestures clamp at the now-line; a drop th
 
 ### 2.3 Drawing
 
-Dragging vertically in empty space draws a provisional entry. Both ends snap to `snapMinutes` (default 5), or 1 minute with ⌥, and stop at the now-line and midnight. Under 1 minute creates nothing (and deselects). Otherwise the entry stays with a dashed border and the Timer's edit popover ([spec_timer.md](spec_timer.md) §4) opens on it with the times filled in. Return commits (empty task and no project allowed); Escape removes it; a click elsewhere commits if a project or task was given and cancels otherwise. A draft is stored once, also when Return, the popover's Save, and a click elsewhere come together. The minimum entry length everywhere is 1 minute.
+Dragging vertically in empty space draws a provisional entry. Both ends snap to `snapMinutes` (default 5), or 1 minute with ⌥, and stop at the now-line and the column's ends. Under 1 minute creates nothing (and deselects). Otherwise the entry stays with a dashed border and the Timer's edit popover ([spec_timer.md](spec_timer.md) §4) opens on it with the times filled in. Return commits (empty task and no project allowed); Escape removes it; a click elsewhere commits if a project or task was given and cancels otherwise. A draft is stored once, also when Return, the popover's Save, and a click elsewhere come together. The minimum entry length everywhere is 1 minute.
 
 ### 2.4 Moving and resizing
 
-Dragging a card's body moves it with its duration, the start snapping like drawing, with a time label showing the new start; dropping on another day's Tracked column moves it there, outside any Tracked column cancels. The top and bottom 6 points resize, down to 1 minute; the running entry has no bottom handle, and its start can move up to 1 minute before now. Cards cannot pass midnight or the now-line. Escape restores. Each move (`move(_:by:)`) or resize (`update(_:_:)`) is one undo step.
+Dragging a card's body moves it with its duration, the start snapping like drawing, with a time label showing the new start; dropping on another day's Tracked column moves it there, outside any Tracked column cancels. The top and bottom 6 points resize, down to 1 minute; the running entry has no bottom handle, and its start can move up to 1 minute before now. With Midnight at another hour a column contains the real midnight, and an entry dragged across it is split by the store. Cards cannot pass the column's ends or the now-line. Escape restores. Each move (`move(_:by:)`) or resize (`update(_:_:)`) is one undo step.
 
 ### 2.5 Selecting, editing, deleting
 
@@ -236,6 +236,8 @@ Per device: `pointsPerHour` (72), `dayWidth` (260), column toggles (on), the Fil
 30. At 72 points per hour a 33-minute entry's card spans exactly its interval and shows its title and duration on one line; a 25-minute running entry's card ends on the now-line.
 31. Two commits of one draft arriving together (Return and Save, or Return and a click elsewhere) store one entry.
 32. A reload that finishes after a later one changes nothing, and the days count as loaded only once their data is in.
+33. With Midnight at 04:00, a column starts at 04:00; an entry from 03:00 to 05:00 is in the columns of both days, each total counting its hour; a drag of the later piece down an hour moves the entry to 04:00 to 06:00; a block from the night reaches both columns and counts on the day of its start; a heatmap click at 09:00 scrolls five hours below the column's top.
+34. With Midnight at 04:00, dragging an entry across the real midnight inside a column splits it in the store, and one undo restores the entry and removes the later piece.
 
 ## 8. Decisions
 

@@ -59,10 +59,19 @@ extension TimeStore: StructureReading {
     }
 
     /// The seconds tracked per project in the inclusive `days` (each entry
-    /// counts whole in its day, the running one to now); projects without
-    /// an entry in the range are absent (spec_projects.md §2.4).
+    /// counts in the days it lies on, the running one to now); projects
+    /// without an entry in the range are absent (spec_projects.md §2.4).
     public func projectSeconds(days: ClosedRange<TrackingDay>) throws -> [ProjectID: Int] {
         let now = Time.seconds(clock.now)
+        let hour = displayCalendar(timeZone: timeZone()).midnightHour
+        guard hour == 0 else {
+            let groups = try shownGroups(days: days, scan: ReportScan(now: now), midnightHour: hour)
+            return groups.reduce(into: [:]) { result, group in
+                if let id = group.projectKey.flatMap(ProjectID.init) {
+                    result[id, default: 0] += group.seconds
+                }
+            }
+        }
         let rows = try read { database in
             try Row.fetchAll(
                 database,

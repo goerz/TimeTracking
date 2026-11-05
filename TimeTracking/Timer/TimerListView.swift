@@ -212,7 +212,7 @@ struct EntryRowView: View {
         .accessibilityIdentifier("timer.row.\(entry.id)")
         .accessibilityValue(selected ? "selected" : "")
         .modifier(EntryEditorPopover(
-            entry: entry,
+            entry: listing.editable,
             editing: Bindable(view).editing,
             store: app.store,
             clock: app.clock,

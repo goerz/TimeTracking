@@ -94,7 +94,7 @@ extension ActivitySummary {
         var counts: [ActivityAway.Cause: Int] = [:]
         var unclassified = false
         var background = 0
-        let groups = Dictionary(grouping: blocks.filter { !$0.isOpen }) { $0.localDay }
+        let groups = Dictionary(grouping: blocks.filter { !$0.isOpen }) { $0.shownDay }
         for group in groups.values {
             let sorted = group.sorted { $0.start < $1.start }
             for (previous, next) in zip(sorted, sorted.dropFirst()) {

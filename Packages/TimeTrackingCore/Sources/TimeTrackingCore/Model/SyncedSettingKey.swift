@@ -55,12 +55,20 @@ extension SyncedSettingKey<Int> {
         Self("calendar.snapMinutes", default: 5)
     }
 
+    /// The hour of the local clock at which the app's days start, 0 to 23
+    /// (spec_data_and_sync.md §8). Only display and reports follow it.
+    public static var midnightHour: Self {
+        Self("day.midnightHour", default: 0)
+    }
+
     /// The values the setting allows (spec_timer.md §5.2): 1 to 180
-    /// focus minutes, 1 to 60 break minutes; any value for other keys.
+    /// focus minutes, 1 to 60 break minutes, hours 0 to 23; any value for
+    /// other keys.
     public var range: ClosedRange<Int> {
         switch self {
         case .pomodoroFocusMinutes: 1 ... 180
         case .pomodoroBreakMinutes: 1 ... 60
+        case .midnightHour: 0 ... 23
         default: Int.min ... Int.max
         }
     }

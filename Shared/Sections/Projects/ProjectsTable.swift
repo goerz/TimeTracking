@@ -222,7 +222,7 @@ struct ProjectsTable: View {
     }
 
     private func dateText(_ date: Date?) -> some View {
-        Text(ProjectTable.dateText(date, now: now, calendar: TrackingCalendar(timeZone: .current)))
+        Text(ProjectTable.dateText(date, now: now, calendar: model.range.calendar))
             .help(date.map { $0.formatted(date: .complete, time: .shortened) } ?? "")
     }
 }

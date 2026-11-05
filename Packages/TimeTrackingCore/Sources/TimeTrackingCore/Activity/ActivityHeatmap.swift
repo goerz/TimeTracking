@@ -62,6 +62,12 @@ public struct ActivityHeatmap: Sendable {
 
     /// The hour labels: 0, 3, …, 21.
     public static let labeledHours = stride(from: 0, to: 24, by: 3).map(\.self)
+
+    /// The clock hours of a row, left to right: a row is one day, so it
+    /// starts at `midnightHour`.
+    public static func columns(midnightHour: Int) -> [Int] {
+        (0 ..< 24).map { ($0 + midnightHour) % 24 }
+    }
 }
 
 extension ActivitySummary {
@@ -69,7 +75,7 @@ extension ActivitySummary {
     var hourSecondsByDay: [TrackingDay: [Int]] {
         var result: [TrackingDay: [Int]] = [:]
         for block in blocks {
-            guard let day = TrackingDay(block.localDay) else {
+            guard let day = TrackingDay(block.shownDay) else {
                 continue
             }
             var hours = result[day] ?? Array(repeating: 0, count: 24)

@@ -73,14 +73,16 @@ extension CalendarModel {
 
     // MARK: Moving and resizing (§2.4)
 
-    /// A body drag of `entry` by `offset` onto `day` (another day's Tracked
-    /// column moves it there); refused when it cannot fit before now.
-    func move(_ id: EntryID, by offset: TimeInterval, to day: TrackingDay? = nil) async {
+    /// A body drag of `entry` by `offset` from the column `source` onto
+    /// `day` (another day's Tracked column moves it there); refused when it
+    /// cannot fit before now.
+    func move(_ id: EntryID, by offset: TimeInterval, to day: TrackingDay? = nil, from source: TrackingDay? = nil) async {
         guard let entry = listing(id)?.entry else {
             return
         }
-        let target = day ?? entry.day
-        let dayShift = calendar.startOfDay(target).timeIntervalSince(calendar.startOfDay(entry.day))
+        let source = source ?? calendar.displayDay(of: entry)
+        let target = day ?? source
+        let dayShift = calendar.startOfDay(target).timeIntervalSince(calendar.startOfDay(source))
         let editing = editing(target)
         if entry.isRunning {
             await change(id, to: DateInterval(start: editing.moveRunningStart(to: entry.start + offset), end: clock.now), running: true)
@@ -95,12 +97,13 @@ extension CalendarModel {
         await change(id, to: moved)
     }
 
-    /// An edge drag: the top (`start`) or bottom edge to `date`.
-    func resize(_ id: EntryID, top: Bool, to date: Date) async {
+    /// An edge drag in the column `day`: the top (`start`) or bottom edge
+    /// to `date`.
+    func resize(_ id: EntryID, top: Bool, to date: Date, on day: TrackingDay? = nil) async {
         guard let entry = listing(id)?.entry else {
             return
         }
-        let editing = editing(entry.day)
+        let editing = editing(day ?? calendar.displayDay(of: entry))
         if entry.isRunning {
             guard top else {
                 return
@@ -118,7 +121,7 @@ extension CalendarModel {
             return
         }
         let interval = entry.interval(at: clock.now)
-        let editing = editing(entry.day)
+        let editing = editing(calendar.displayDay(of: entry))
         if lengthen {
             await change(id, to: editing.lengthen(interval, steps: steps))
         } else if let moved = editing.nudge(interval, steps: steps) {
@@ -146,15 +149,21 @@ extension CalendarModel {
         }
         let old = entry
         do {
-            if running {
-                _ = try await store.update(id, EntryChange(start: interval.start))
+            let pieces: [TimeEntry] = if running {
+                try await store.update(id, EntryChange(start: interval.start))
             } else if interval.duration == old.interval(at: clock.now).duration {
-                _ = try await store.move(id, by: interval.start.timeIntervalSince(old.start))
+                try await store.move(id, by: interval.start.timeIntervalSince(old.start))
             } else {
-                _ = try await store.update(id, EntryChange(start: interval.start, end: interval.end))
+                try await store.update(id, EntryChange(start: interval.start, end: interval.end))
             }
+            // A column can reach past midnight, where the store splits the
+            // entry; undo takes the later pieces back in the same write.
+            let later = pieces.map(\.id).filter { $0 != old.id }
             registerUndo(running ? "Undo Resize Entry" : "Undo Move Entry") { store in
-                _ = try await store.update(old.id, EntryChange(start: old.start, end: old.end))
+                try await store.transaction { transaction in
+                    try transaction.delete(later)
+                    _ = try transaction.update(old.id, EntryChange(start: old.start, end: old.end))
+                }
             }
         } catch {
             report(error)
@@ -214,8 +223,18 @@ extension CalendarModel {
         CalendarLane.assign(entries(on: day).map { ($0.entry.id, $0.entry.interval(at: clock.now)) })
     }
 
+    /// The entries with a part in the column of `day`; one crossing
+    /// Midnight is in both columns.
     func entries(on day: TrackingDay) -> [EntryListing] {
-        entries.filter { $0.entry.day == day }.sorted { $0.entry.start < $1.entry.start }
+        guard calendar.midnightHour != 0 else {
+            return entries.filter { $0.entry.day == day }.sorted { $0.entry.start < $1.entry.start }
+        }
+        let span = calendar.interval(of: day)
+        return entries.filter { listing in
+            let entry = listing.entry.interval(at: clock.now)
+            return entry.start < span.end && (entry.end > span.start || entry.start >= span.start)
+        }
+        .sorted { $0.entry.start < $1.entry.start }
     }
 
     /// The ids of the day's overlapping entries ("⚠ 2 overlaps").
@@ -227,7 +246,7 @@ extension CalendarModel {
     /// for the entries of its day that overlap it (§2.6).
     func overlapHelp(for entry: TimeEntry) -> String {
         let now = clock.now
-        let day = entries(on: entry.day)
+        let day = entries(on: calendar.displayDay(of: entry))
         let tasks = Dictionary(day.map { ($0.entry.id, $0.entry.task) }, uniquingKeysWith: { first, _ in first })
         let amounts = OverlapAmount.amounts(
             overlapping: entry.interval(at: now),

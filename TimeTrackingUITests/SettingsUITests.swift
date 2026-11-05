@@ -41,6 +41,32 @@ final class SettingsUITests: XCTestCase {
     }
 
     @MainActor
+    func testTM46_midnightMovesTheCalendarsHours() {
+        let app = XCUIApplication.timeTracking(fixture: "small")
+        app.launchPastOnboarding()
+        app.typeKey("2", modifierFlags: .command)
+        let label = app.descendants(matching: .any)["calendar.hourLabel.60"]
+        XCTAssertTrue(label.waitForExistence(timeout: 5))
+        XCTAssertTrue([label.label, label.value as? String].contains("01:00"))
+        app.typeKey(",", modifierFlags: .command)
+        _ = settingsFrame(app, pane: "General")
+        let picker = app.descendants(matching: .any)["settings.midnight"]
+        XCTAssertTrue(picker.waitForExistence(timeout: 5))
+        picker.click()
+        app.menuItems["04:00"].click()
+        app.typeKey("w", modifierFlags: .command)
+        let moved = NSPredicate(format: "label == %@ OR value == %@", "05:00", "05:00")
+        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: moved, object: label)], timeout: 10), .completed)
+        app.typeKey(",", modifierFlags: .command)
+        XCTAssertTrue(picker.waitForExistence(timeout: 5))
+        picker.click()
+        app.menuItems["00:00"].click()
+        app.typeKey("w", modifierFlags: .command)
+        let restored = NSPredicate(format: "label == %@ OR value == %@", "01:00", "01:00")
+        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: restored, object: label)], timeout: 10), .completed)
+    }
+
+    @MainActor
     func testTM39_settingsWindowFollowsThePane() {
         let app = XCUIApplication.timeTracking()
         app.launchPastOnboarding()

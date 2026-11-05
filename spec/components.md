@@ -132,7 +132,7 @@ Every way a program other than the app's own interface reads or changes tracked 
 - Every explicitly specified behavior is backed by a test. Each spec numbers its testable behaviors continuously; tests carry the identifier `<prefix>-<n>` (ARCH, DATA, TM, MB, PP, PC, PR, PA, TRK, IOS, AUTO), and `make check-behaviors` enforces the mapping.
 - The Mac app, the agent, and the command-line tools are not sandboxed and share one App Group container; the iOS app and its extensions are sandboxed.
 - Privacy: raw activity detail stays on the Mac; only block summaries sync; exclusions apply before anything is written.
-- Days start at midnight, local time, everywhere: the Timer list, Calendar, Reports, Activity, and the tracker. There is no setting for it. Weeks run Monday to Sunday.
+- Stored data and the tracker use real days: entries and activity blocks are split at local midnight. What the app shows and reports (the Timer list, Calendar, Reports, Activity, Projects, widgets, the tool) follows the synced setting Midnight, the hour a day starts, 00:00 by default ([spec_data_and_sync.md](spec_data_and_sync.md) §8). Weeks run Monday to Sunday.
 - Every entity is soft-deleted; tombstones sync and are kept 180 days. Durations are never rounded outside display code.
 - Keyboard first on the Mac and iPad: every action has a menu command and, where it is frequent, a shortcut. Mini Timer ⌥⌘R (global, recordable), the sidebar's Timer, Calendar, Reports, Projects, and Activity ⌘1 to ⌘5, Today in Calendar ⌘T, compact Mini Timer ⇧⌘M, New ⌘N, Continue ⌘O, Stop ⌘S.
 - Calendar access (EventKit full access) is requested by the Mac and iPad apps for the Calendar section; the iPhone needs none.
@@ -143,9 +143,9 @@ Every way a program other than the app's own interface reads or changes tracked 
 - The product's own SQLite schema (GRDB) with `CKSyncEngine`: unique constraints, custom merge, SQL aggregates for reports, and a documented on-disk format for scripts.
 - The tracker never maps activity to projects, so its logs stay a neutral record; the user assigns projects when making entries in the Calendar.
 - Areas carry the colors; projects do not. Entries store no color, area, or client; display resolves them through the project's current area, so moving a project recolors and regroups its history.
-- Entries are split at midnight in storage, so every daily sum is a plain sum and list and report totals agree.
+- Entries are split at midnight in storage, so every daily sum is a plain sum. With Midnight at another hour, display and reports cut entries at that hour by the same rule, so list, Calendar, and report totals still agree, and changing the setting rewrites nothing.
 - Time blocks are events in an iCloud calendar of the system calendar store: they sync to every device without extra code, appear in every calendar app, and can be created by any calendar tool. The app reads them but does not manage them.
 - Live updates go through CloudKit plus WidgetKit pushes sent by the Mac itself (no server, no LAN connection), so the phone's widgets follow the Mac within seconds while the app is suspended.
 - Pomodoro state is device-local on every platform.
 - The iPad shares the iOS target and gets the sections as tabs; the Mac has one main window and the Mini Timer. No Mac widget, no Apple Watch app, no Live Activity.
-- Settings are either synced (Pomodoro durations, pinned projects, context colors, and the Calendar's settings: snapping, the time-block calendar, sleep and workouts, the calendars to show) or per device (idle threshold, shortcuts, menu bar display, window frames).
+- Settings are either synced (Midnight, Pomodoro durations, pinned projects, context colors, and the Calendar's settings: snapping, the time-block calendar, sleep and workouts, the calendars to show) or per device (idle threshold, shortcuts, menu bar display, window frames).

@@ -146,10 +146,11 @@ final class PhoneModel {
     }
 
     /// The midnight split while the app runs (spec_ios.md §7 item 5): wake
-    /// at the running entry's next midnight, run the pass, and fan out.
+    /// at the running entry's next midnight or the next shown day, run the
+    /// pass, and fan out.
     private func splitAtMidnights() async {
         while !Task.isCancelled {
-            guard let midnight = try? await store.nextMidnightSplit() else {
+            guard let midnight = try? await store.nextRunningDayChange() else {
                 try? await Task.sleep(for: .seconds(60))
                 continue
             }
@@ -209,6 +210,10 @@ final class PhoneModel {
             }
             if keys.contains(where: { $0.hasPrefix("calendar.") }) {
                 await pad?.storeChanged()
+            }
+            if keys.contains(SyncedSettingKey<Int>.midnightHour.name) {
+                await fanOut(structureChanged: false)
+                await pad?.midnightChanged()
             }
         case .health:
             await pad?.storeChanged()

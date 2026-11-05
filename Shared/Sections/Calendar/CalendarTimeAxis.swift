@@ -16,12 +16,13 @@ struct CalendarTimeAxis: View {
             let now = model.days.contains(model.today) ? axis.nowOffset(model.clock.now) : nil
             ForEach(Array(stride(from: step, to: 24 * 60, by: step)), id: \.self) { minute in
                 let y = CGFloat(minute) / 60 * model.pointsPerHour
-                Text(ActivityText.clock(hour: minute / 60, minute: minute % 60))
+                Text(ActivityText.clock(hour: (minute / 60 + model.calendar.midnightHour) % 24, minute: minute % 60))
                     .font(.caption).monospacedDigit()
                     .foregroundStyle(.secondary)
                     // The now bubble covers the hour label it would overlap.
                     .opacity(now.map { abs($0 - y) < 14 } == true ? 0 : 1)
                     .offset(x: -6, y: y - 7)
+                    .accessibilityIdentifier("calendar.hourLabel.\(minute)")
             }
             TimelineView(.periodic(from: .now, by: 30)) { _ in
                 if let offset = axis.nowOffset(model.clock.now) {

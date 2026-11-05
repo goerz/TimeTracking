@@ -48,5 +48,13 @@ struct ReportPerformanceTests {
         #expect(yearTime < 100, "report over one year by day: \(yearTime) ms")
         #expect(decadeTime < 300, "report over ten years by month: \(decadeTime) ms")
         #expect(snapshotTime < 100, "Reports snapshot over one year: \(snapshotTime) ms")
+        // With a Midnight, Swift forms the groups instead of SQLite.
+        try await store.set(.midnightHour, 4)
+        let shownTree = try await store.report(year)
+        #expect(shownTree.buckets != yearTree.buckets, "work past midnight moves to the day before")
+        let shownYearTime = try await Self.milliseconds { _ = try await store.report(year) }
+        let shownDecadeTime = try await Self.milliseconds { _ = try await store.report(decade) }
+        #expect(shownYearTime < 100, "report over one year by day with a Midnight: \(shownYearTime) ms")
+        #expect(shownDecadeTime < 300, "report over ten years by month with a Midnight: \(shownDecadeTime) ms")
     }
 }

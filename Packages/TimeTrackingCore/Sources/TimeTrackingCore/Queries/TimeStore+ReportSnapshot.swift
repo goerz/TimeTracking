@@ -35,27 +35,32 @@ extension TimeStore {
     func entryList(query: ReportQuery, levels: [GroupKey], path: [GroupKeyValue]) throws -> ReportEntryList {
         let projects = try reportProjects()
         let now = clock.now
-        let entries = try entries(matching: query).filter { entry in
-            let project = entry.projectID.flatMap { projects[$0.rawValue] }
-            return zip(levels, path).allSatisfy { level, value in
-                switch level {
-                case .client: value == .client(project?.clientID)
-                case .area: value == .area(project?.areaID)
-                case .project: value == .project(entry.projectID)
-                case .task: value == .task(entry.task.trimmed)
-                case .day: value == .day(entry.day)
+        let calendar = displayCalendar(timeZone: timeZone())
+        var stored = query
+        stored.days = calendar.storedDays(of: query.days)
+        let listings = try listings(for: entries(matching: stored))
+            .flatMap { $0.pieces(in: calendar, at: now) }
+            .filter { listing in
+                let entry = listing.entry
+                let project = entry.projectID.flatMap { projects[$0.rawValue] }
+                return query.days.contains(entry.day) && zip(levels, path).allSatisfy { level, value in
+                    switch level {
+                    case .client: value == .client(project?.clientID)
+                    case .area: value == .area(project?.areaID)
+                    case .project: value == .project(entry.projectID)
+                    case .task: value == .task(entry.task.trimmed)
+                    case .day: value == .day(entry.day)
+                    }
                 }
             }
-        }
-        let stopped = entries.reduce(0) { $0 + ($1.isRunning ? 0 : $1.seconds(at: now)) }
-        return try ReportEntryList(listings: listings(for: entries), stoppedSeconds: stopped)
+        let stopped = listings.reduce(0) { $0 + ($1.entry.isRunning ? 0 : $1.entry.seconds(at: now)) }
+        return ReportEntryList(listings: listings, stoppedSeconds: stopped)
     }
 
     /// The day of the earliest live entry (All time's first day).
     public func earliestEntryDay() throws -> TrackingDay? {
-        try read { database in
-            try String.fetchOne(database, sql: "SELECT MIN(day) FROM time_entry WHERE deleted_at IS NULL").flatMap(TrackingDay.init)
-        }
+        let first = try fetchEntries(where: "deleted_at IS NULL", [], order: "start, id LIMIT 1").first
+        return first.map { displayCalendar(timeZone: timeZone()).displayDay(of: $0) }
     }
 
     /// Each live project's position within its area, by folded name.

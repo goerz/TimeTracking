@@ -106,19 +106,19 @@ public struct ActivitySummary: Sendable {
     public init(_ input: ActivitySummaryInput) {
         self.input = input
         let inRange = input.blocks.filter { block in
-            TrackingDay(block.localDay).map { input.days.contains($0) } ?? false
+            TrackingDay(block.shownDay).map { input.days.contains($0) } ?? false
         }
         let blocks = inRange.compactMap { block in input.device.map { block.restricted(to: [$0]) } ?? block }
             .sorted { ($0.start, $0.id) < ($1.start, $1.id) }
         self.blocks = blocks
         self.stretches = input.stretches
-            .filter { TrackingDay($0.localDay).map { input.days.contains($0) } ?? false }
+            .filter { TrackingDay($0.shownDay).map { input.days.contains($0) } ?? false }
             .compactMap { $0.part(on: input.device.map { [$0] }) }
             .sorted { ($0.start, $0.id) < ($1.start, $1.id) }
         let value = Self.valueFunction(contexts: input.contexts)
         self.total = blocks.reduce(0) { $0 + value($1) }
         self.unfilteredTotal = blocks.reduce(0) { $0 + $1.activeSeconds }
-        self.activeDays = Set(blocks.filter { value($0) > 0 }.map(\.localDay)).count
+        self.activeDays = Set(blocks.filter { value($0) > 0 }.map(\.shownDay)).count
         let perDevice = inRange.reduce(into: [String: Int]()) { totals, block in
             for device in block.deviceNames {
                 totals[device, default: 0] += block.restricted(to: [device]).map(value) ?? 0

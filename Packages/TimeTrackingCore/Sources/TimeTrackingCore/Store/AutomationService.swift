@@ -17,7 +17,7 @@ public struct AutomationService: Sendable {
     }
 
     public var calendar: TrackingCalendar {
-        TrackingCalendar(timeZone: timeZone)
+        store.displayCalendar(timeZone: timeZone)
     }
 
     public var now: Date {

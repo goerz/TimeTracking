@@ -60,7 +60,9 @@ extension TimeStore: TimeStoreReading {
         }
         let first = ending.adding(days: 1 - count)
         let now = clock.now
-        let byDay = try Dictionary(grouping: entries(days: first ... ending), by: \.day)
+        let calendar = displayCalendar(timeZone: timeZone())
+        let pieces = try entries(days: calendar.storedDays(of: first ... ending)).flatMap { calendar.pieces(of: $0, at: now) }
+        let byDay = Dictionary(grouping: pieces, by: \.day)
         return (0 ..< count).map { offset in
             let day = ending.adding(days: -offset)
             let entries = (byDay[day] ?? []).sorted { ($0.start, $0.id) > ($1.start, $1.id) }

@@ -93,6 +93,7 @@ Synced settings are records; device settings live in the App Group's `UserDefaul
 | `calendar.sleepAreaID`, `calendar.workoutAreaID` | synced | AreaID? | nil | Calendar settings; Reports count the kind in that area (7.3) |
 | `calendar.healthImport` | synced | HealthImportStatus? | nil | Written by the iPhone's import: device name, time, kinds read (1.9); the Calendar settings show it |
 | `calendar.snapMinutes` | synced | Int | 5 | Calendar |
+| `day.midnightHour` | synced | Int, 0 to 23 | 0 | §8 |
 | `calendar.shownCalendars` | synced | [(account, calendar)] titles | [] | Calendar |
 | `deviceID` | device | UUID | created on first launch | this spec |
 | `pomodoro.sounds` | device | Bool | true | Timer |
@@ -444,7 +445,7 @@ public protocol Reporting: Sendable {
 }
 ```
 
-A report counts each entry whose `day` lies in the range whole in its day, the running one up to the query time, so the Timer list and Reports agree. Client and area grouping use the project's current area. A health kind that is shown and mapped to a live area by its setting adds one row per day it touches, its part of that day, under the fixed project id `kind.reportProjectID` named "Sleep" or "Workouts" in that area, with an empty task; the filters treat it as a project of that area with no record ([spec_reports.md](spec_reports.md) §1.1). `entries(matching:)` returns entries only. A query's `includeHealth` (default on; the tool's `report` turns it on only with `--health`) leaves the health rows out when off, and its optional `bounds`, instants inside the days, keep only the entries starting inside them and cut health time at them (the tool's instant ranges, spec_automation.md §3.2). The `ReportCSVWriter` writes the Breakdown and Entries CSV whose columns spec_automation.md defines.
+A report counts each entry in the days it lies on (with Midnight at 00:00 that is its `day`, section 8), the running one up to the query time, so the Timer list and Reports agree. Client and area grouping use the project's current area. A health kind that is shown and mapped to a live area by its setting adds one row per day it touches, its part of that day, under the fixed project id `kind.reportProjectID` named "Sleep" or "Workouts" in that area, with an empty task; the filters treat it as a project of that area with no record ([spec_reports.md](spec_reports.md) §1.1). `entries(matching:)` returns entries only. A query's `includeHealth` (default on; the tool's `report` turns it on only with `--health`) leaves the health rows out when off, and its optional `bounds`, instants inside the days, keep only the entries starting inside them and cut health time at them (the tool's instant ranges, spec_automation.md §3.2). The `ReportCSVWriter` writes the Breakdown and Entries CSV whose columns spec_automation.md defines.
 
 ### 7.4 Observation
 
@@ -472,7 +473,13 @@ On the `large` fixture (9.1), on a current Mac and iPhone, checked by a separate
 
 ## 8. Days, weeks, and time zones
 
-Days start at midnight, local time; there is no setting. An entry's day is the date of its `start` in its own `timeZone`, and the entry lies wholly within it; after travel, entries keep their recorded day. Weeks run Monday to Sunday with ISO 8601 numbers.
+Stored days start at midnight, local time. A stored entry's `day` is the date of its `start` in its own `timeZone`, and the entry lies wholly within it; after travel, entries keep their recorded day. Weeks run Monday to Sunday with ISO 8601 numbers.
+
+The synced setting Midnight (`day.midnightHour`, whole hours, default 0) sets the hour of the local clock at which the days the app shows and reports start. People set it to the middle of their night, when they are least likely to be active. It changes no stored data and nothing the tracker collects: entries keep their real midnight splits and `day`, and blocks their dates, so changing it is instant, reversible, and rewrites no record. `TimeStore.displayCalendar(timeZone:)` is the `TrackingCalendar` of those days; storage code keeps the plain `TrackingCalendar(timeZone:)`.
+
+A day that starts before noon is named after the date it starts on; one that starts at noon or later after the date it ends on, so with Midnight at 04:00 "Tuesday" runs Tuesday 04:00 to Wednesday 04:00, and with 22:00 Monday 22:00 to Tuesday 22:00. Each local date holds one day change. An hour a DST change skips is replaced by the first instant after it; of an hour it repeats, the first counts.
+
+Shown, an entry crossing the day change in its own zone is two *pieces* (`TrackingCalendar.pieces(of:at:)`) with the entry's id: each has its part of the interval and its day, only the last one runs, and each counts as an entry of its day, so sums over days stay plain sums. Entries split at a real midnight inside a shown day stay two entries there. Editing always acts on the stored entry. The tool's `entries` lists stored entries by their start (`spec_automation.md` §3.2). Activity blocks and background stretches keep one shown day, that of their start, because their items cannot be divided; the Calendar draws them in every column they reach.
 
 ```swift
 public struct TrackingDay: Hashable, Comparable, Codable { var year, month, day: Int }   // "YYYY-MM-DD"
@@ -546,6 +553,10 @@ Views use `TrackingCalendar(timeZone: .current)`, rebuilt on a time zone change.
 53. The query `backgroundStretches(in:)` returns the stretches overlapping the interval, with the items of the asked devices and without excluded contexts; `blocks(in:)` never returns them.
 54. When another process writes and posts and this process writes and posts before its listener runs, this process's observers still receive `.entries([])`, and `.settings` with each key the other process changed.
 55. An edit made while its record is being sent stays queued after the send is confirmed and goes out with the next send; a batch's outbox sequence and records are read in one transaction.
+56. With Midnight at 04:00, 03:59:59 on March 14 lies on March 13 and 04:00 on March 14, whose day lasts 24 hours; with 22:00, 21:59 on March 14 lies on March 14 and 22:00 on March 15, which starts on March 14; with 0 a day is the local date.
+57. In New York with Midnight at 02:00, March 10, 2024 starts at 03:00 and lasts 23 hours; with 01:00, November 3 starts at the first 01:00 and lasts 25 hours, and the second 01:00 lies on it.
+58. Midnight changes no stored entry: entries across it stay one record, entries across a real midnight stay split with their stored days; shown, an entry from 03:00 to 05:00 is pieces ending and starting at 04:00 with one id and the days March 12 and 13, a running entry's last piece runs, and an entry in another zone cuts at that zone's Midnight.
+59. Midnight is 00:00 by default, syncs as a setting, and reaches `displayCalendar` on the other device.
 
 ### 9.1 Fixtures
 

@@ -31,6 +31,8 @@ public struct ActivityBlock: Sendable, Hashable, Identifiable {
     public var isOpen: Bool
     /// Seconds east of UTC of the local times, from the header `tz`.
     public var utcOffset: Int
+    /// The day the app shows the block on, when it isn't `localDay`.
+    private var shownDayOverride: String?
 
     public init(
         start: Date,
@@ -67,6 +69,28 @@ public struct ActivityBlock: Sendable, Hashable, Identifiable {
     /// The local date of the block, `YYYY-MM-DD`.
     public var localDay: String {
         LocalTimestamp(date: start, utcOffset: utcOffset).dayKey
+    }
+
+    /// The day the app counts the block on, `YYYY-MM-DD`: `localDay` unless
+    /// `shown(midnightHour:)` moved it. A block keeps one day, that of its
+    /// start, also when the day changes during it.
+    public var shownDay: String {
+        shownDayOverride ?? localDay
+    }
+
+    /// The block as the app shows it with days starting at `midnightHour`.
+    public func shown(midnightHour: Int) -> Self {
+        var block = self
+        block.shownDayOverride = Self.shownDay(of: start, utcOffset: utcOffset, midnightHour: midnightHour)
+        return block
+    }
+
+    /// The day of `date` at `utcOffset`, or `nil` for the plain local date.
+    static func shownDay(of date: Date, utcOffset: Int, midnightHour: Int) -> String? {
+        guard midnightHour != 0, let zone = TimeZone(secondsFromGMT: utcOffset) else {
+            return nil
+        }
+        return TrackingCalendar(timeZone: zone, midnightHour: midnightHour).day(containing: date).description
     }
 
     /// The month file the block belongs to, `YYYY-MM`.

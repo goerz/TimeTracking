@@ -56,7 +56,8 @@ final class CalendarModel {
     /// Whether this device shows the open block, gap labels, and Delete This Activity.
     @ObservationIgnored var isRecordingMac = true
 
-    var calendar = TrackingCalendar(timeZone: .current)
+    /// The days the columns show (the synced Midnight, read on every reload).
+    var calendar: TrackingCalendar
 
     /// The strip of days (§1.2). Every sideways scroll changes it, so only
     /// the strip itself reads it; other views read the values derived below,
@@ -195,7 +196,9 @@ final class CalendarModel {
         self.showsActivity = device[.calendarShowsActivity]
         self.showsCalendar = device[.calendarShowsCalendar]
         self.filters = device[.calendarFilters]
-        let today = TrackingCalendar(timeZone: .current).day(containing: clock.now)
+        let calendar = store.displayCalendar()
+        self.calendar = calendar
+        let today = calendar.day(containing: clock.now)
         let viewport = CalendarViewport(firstDay: today, dayWidth: device[.calendarDayWidth])
         self.viewport = viewport
         self.dayWidth = viewport.dayWidth
@@ -238,8 +241,9 @@ final class CalendarModel {
             projects = rows.map(\.project)
             self.filterTree = filterTree
             projectRows = Dictionary(rows.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
-            blocks = isRecordingMac ? loaded : loaded.filter { !$0.isOpen }
-            self.stretches = stretches
+            let hour = calendar.midnightHour
+            blocks = (isRecordingMac ? loaded : loaded.filter { !$0.isOpen }).map { $0.shown(midnightHour: hour) }
+            self.stretches = stretches.map { $0.shown(midnightHour: hour) }
             self.healthPeriods = healthPeriods
             loadedDays = range
             refreshTotals()
@@ -269,6 +273,7 @@ final class CalendarModel {
     }
 
     private func readSyncedSettings() async throws {
+        calendar = store.displayCalendar(timeZone: calendar.timeZone)
         snapMinutes = try await store.value(.calendarSnapMinutes)
         shownCalendars = try await store.value(.calendarShownCalendars)
         showSleep = try await store.value(.calendarShowSleep)
@@ -346,8 +351,8 @@ final class CalendarModel {
     /// their duration (§3.1).
     private func loadGapLabels() {
         var labels: [TrackingDay: [(DateInterval, String)]] = [:]
-        for (localDay, group) in Dictionary(grouping: blocks, by: \.localDay) {
-            guard let day = TrackingDay(localDay) else {
+        for (shownDay, group) in Dictionary(grouping: blocks, by: \.shownDay) {
+            guard let day = TrackingDay(shownDay) else {
                 continue
             }
             labels[day] = ActivityBlock.gaps(between: group, longerThan: 900).map { ($0, ActivityText.duration(Int($0.duration))) }

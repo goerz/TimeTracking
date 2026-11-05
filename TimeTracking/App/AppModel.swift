@@ -140,6 +140,7 @@ final class AppModel {
             if keys.contains(where: { $0.hasPrefix("calendar.") }) {
                 await reloadHealthViews()
             }
+            await reloadAfterMidnightChange(keys)
         case .sync, .liveState, .adjusted:
             return
         case .health:

@@ -105,13 +105,15 @@ final class ActivityModel {
             }
         }
         do {
+            range.refreshCalendar(store)
             let days = days
             let interval = range.calendar.interval(of: days)
+            let hour = range.calendar.midnightHour
             let loaded = try await activity.blocks(in: interval, devices: nil)
             // Only the recording Mac shows the open block.
-            let blocks = isRecordingMac ? loaded : loaded.filter { !$0.isOpen }
+            let blocks = (isRecordingMac ? loaded : loaded.filter { !$0.isOpen }).map { $0.shown(midnightHour: hour) }
             let newest = blocks.map(\.end).max()
-            let stretches = try await activity.backgroundStretches(in: interval, devices: nil)
+            let stretches = try await activity.backgroundStretches(in: interval, devices: nil).map { $0.shown(midnightHour: hour) }
             let details = isRecordingMac ? try await activity.details(for: blocks.map(\.id)) : [:]
             let input = ActivitySummaryInput(
                 blocks: blocks,

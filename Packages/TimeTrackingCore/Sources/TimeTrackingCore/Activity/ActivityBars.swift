@@ -90,7 +90,7 @@ extension ActivitySummary {
         case .month: Dictionary(grouping: all) { TrackingDay(year: $0.year, month: $0.month, day: 1) }.sorted { $0.key < $1.key }
             .map { ($0.key, $0.value) }
         }
-        let byDay = Dictionary(grouping: blocks) { $0.localDay }
+        let byDay = Dictionary(grouping: blocks) { $0.shownDay }
         let bars = groups.map { key, days in
             bar(
                 key: key,

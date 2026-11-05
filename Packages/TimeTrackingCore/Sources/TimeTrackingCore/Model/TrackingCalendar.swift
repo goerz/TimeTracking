@@ -5,12 +5,21 @@ public import Foundation
 /// Day arithmetic in one time zone. Midnight is `Calendar.startOfDay`, so a
 /// day whose midnight does not exist (a DST change at 00:00) starts at the
 /// first instant that does.
+///
+/// With a `midnightHour` other than 0 the days are the ones the app shows
+/// (§8): each starts at that hour. A day that starts in the morning is named
+/// after the date it starts on, one that starts at noon or later after the
+/// date it ends on, so a day keeps the name of the date most of it lies on.
+/// Storage always uses `midnightHour` 0.
 public struct TrackingCalendar: Sendable {
     public let timeZone: TimeZone
+    /// The hour of the local clock at which a day starts, 0 to 23.
+    public let midnightHour: Int
     private let calendar: Calendar
 
-    public init(timeZone: TimeZone) {
+    public init(timeZone: TimeZone, midnightHour: Int = 0) {
         self.timeZone = timeZone
+        self.midnightHour = SyncedSettingKey<Int>.midnightHour.clamped(midnightHour)
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = timeZone
         self.calendar = calendar
@@ -18,18 +27,40 @@ public struct TrackingCalendar: Sendable {
 
     /// The calendar of an IANA identifier, or of the current zone when the
     /// identifier is unknown.
-    public init(timeZoneIdentifier: String) {
-        self.init(timeZone: TimeZone(identifier: timeZoneIdentifier) ?? .current)
+    public init(timeZoneIdentifier: String, midnightHour: Int = 0) {
+        self.init(timeZone: TimeZone(identifier: timeZoneIdentifier) ?? .current, midnightHour: midnightHour)
     }
 
-    /// The local date of `date`.
+    /// The day of `date`: its local date, shifted by `midnightHour`.
     public func day(containing date: Date) -> TrackingDay {
         let parts = calendar.dateComponents([.year, .month, .day], from: date)
-        return TrackingDay(year: parts.year ?? 1970, month: parts.month ?? 1, day: parts.day ?? 1)
+        let local = TrackingDay(year: parts.year ?? 1970, month: parts.month ?? 1, day: parts.day ?? 1)
+        guard midnightHour != 0 else {
+            return local
+        }
+        return dayChange(on: local).days[date < dayChange(on: local).instant ? 0 : 1]
     }
 
     /// The first instant of `day`.
     public func startOfDay(_ day: TrackingDay) -> Date {
+        guard midnightHour != 0 else {
+            return localMidnight(day)
+        }
+        return dayChange(on: midnightHour < 12 ? day : day.adding(days: -1)).instant
+    }
+
+    /// The instant the local date `date` changes from one day to the next,
+    /// and those two days. Each local date holds exactly one change. An hour
+    /// a DST change skips is replaced by the first instant after it, and of
+    /// an hour it repeats the first one counts.
+    func dayChange(on date: TrackingDay) -> (instant: Date, days: [TrackingDay]) {
+        let midnight = localMidnight(date)
+        let instant = calendar.date(bySettingHour: midnightHour, minute: 0, second: 0, of: midnight) ?? midnight
+        let earlier = midnightHour < 12 ? date.adding(days: -1) : date
+        return (instant, [earlier, earlier.adding(days: 1)])
+    }
+
+    private func localMidnight(_ day: TrackingDay) -> Date {
         var parts = day.components
         parts.hour = 12
         let noon = calendar.date(from: parts) ?? .distantPast
@@ -74,6 +105,46 @@ public struct TrackingCalendar: Sendable {
     /// The day of an entry: the date of its start in its own zone.
     public static func day(of entry: TimeEntry) -> TrackingDay {
         Self(timeZoneIdentifier: entry.timeZone).day(containing: entry.start)
+    }
+
+    /// The day an entry is shown on: the day of its start in its own zone.
+    public func displayDay(of entry: TimeEntry) -> TrackingDay {
+        midnightHour == 0 ? entry.day : zoned(for: entry).day(containing: entry.start)
+    }
+
+    /// `entry` as the app shows it: one piece per day it lies on, each with
+    /// its part of the interval and that day as `day`, and only the last
+    /// one running. Stored entries never change; an entry crossing the day
+    /// change in its own zone becomes two pieces with the same id.
+    public func pieces(of entry: TimeEntry, at now: Date) -> [TimeEntry] {
+        guard midnightHour != 0 else {
+            return [entry]
+        }
+        let calendar = zoned(for: entry)
+        var piece = entry
+        piece.day = calendar.day(containing: entry.start)
+        var pieces: [TimeEntry] = []
+        let end = entry.end ?? now
+        var next = calendar.startOfDay(piece.day.adding(days: 1))
+        while next < end {
+            var earlier = piece
+            earlier.end = next
+            pieces.append(earlier)
+            piece.start = next
+            piece.day = piece.day.adding(days: 1)
+            next = calendar.startOfDay(piece.day.adding(days: 1))
+        }
+        return pieces + [piece]
+    }
+
+    private func zoned(for entry: TimeEntry) -> Self {
+        entry.timeZone == timeZone.identifier ? self : Self(timeZoneIdentifier: entry.timeZone, midnightHour: midnightHour)
+    }
+
+    /// The stored days of the entries that can lie on `days`: a stored
+    /// entry's day and the days of its pieces are at most one apart.
+    public func storedDays(of days: ClosedRange<TrackingDay>) -> ClosedRange<TrackingDay> {
+        midnightHour == 0 ? days : days.lowerBound.adding(days: -1) ... days.upperBound.adding(days: 1)
     }
 
     /// The midnights strictly between `after` and `before` in `zone`.

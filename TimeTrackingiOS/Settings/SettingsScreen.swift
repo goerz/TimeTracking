@@ -15,10 +15,24 @@ struct SettingsScreen: View {
     @State private var showWorkouts = false
     @Environment(\.openURL) private var openURL
 
+    /// The iPad's Calendar settings on a screen of their own.
+    @ViewBuilder private var calendarRow: some View {
+        if let calendar = model.pad?.router.calendar {
+            NavigationLink {
+                Form { CalendarSettingsSections(model: calendar) }
+                    .navigationTitle("Calendar")
+            } label: {
+                Text("Calendar")
+            }
+            .accessibilityIdentifier("settings.calendar")
+        }
+    }
+
     var body: some View {
         NavigationStack {
             Form {
                 iCloudSection
+                MidnightSection(store: model.store)
                 pomodoroSection
                 notificationSection
                 widgetSection
@@ -28,15 +42,7 @@ struct SettingsScreen: View {
                 if model.pad == nil {
                     healthSection
                 }
-                if let calendar = model.pad?.router.calendar {
-                    NavigationLink {
-                        Form { CalendarSettingsSections(model: calendar) }
-                            .navigationTitle("Calendar")
-                    } label: {
-                        Text("Calendar")
-                    }
-                    .accessibilityIdentifier("settings.calendar")
-                }
+                calendarRow
                 aboutSection
             }
             .navigationTitle("Settings")

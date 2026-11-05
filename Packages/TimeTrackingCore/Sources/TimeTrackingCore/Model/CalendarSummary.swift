@@ -62,21 +62,23 @@ public struct CalendarSummary: Sendable, Hashable {
         for day in days {
             totals[day] = DayTotals(activity: 0, tracked: 0, calendar: 0)
         }
-        for listing in entries where shown.contains(listing.entry.day) {
-            let seconds = listing.entry.seconds(at: now)
-            totals[listing.entry.day]?.tracked += seconds
-            let key = listing.entry.projectID
-            var segment = byProject[key] ?? Segment(
-                projectID: key,
-                name: listing.project?.name ?? "No project",
-                color: listing.area?.color,
-                seconds: 0
-            )
-            segment.seconds += seconds
-            byProject[key] = segment
+        for listing in entries {
+            for piece in calendar.pieces(of: listing.entry, at: now) where shown.contains(piece.day) {
+                let seconds = piece.seconds(at: now)
+                totals[piece.day]?.tracked += seconds
+                let key = piece.projectID
+                var segment = byProject[key] ?? Segment(
+                    projectID: key,
+                    name: listing.project?.name ?? "No project",
+                    color: listing.area?.color,
+                    seconds: 0
+                )
+                segment.seconds += seconds
+                byProject[key] = segment
+            }
         }
         for block in activity {
-            if let day = TrackingDay(block.localDay), shown.contains(day) {
+            if let day = TrackingDay(block.shownDay), shown.contains(day) {
                 totals[day]?.activity += block.activeSeconds
             }
         }

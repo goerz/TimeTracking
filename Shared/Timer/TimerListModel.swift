@@ -27,9 +27,13 @@ final class TimerListModel {
     /// Bumped by ⌘↑ (Scroll to Today).
     private(set) var scrollToTopRequest = 0
 
+    /// The shown days (the synced Midnight, read on every reload).
+    @ObservationIgnored private var calendar: TrackingCalendar
+
     init(store: TimeStore, clock: any Clock) {
         self.store = store
         self.clock = clock
+        self.calendar = store.displayCalendar()
     }
 
     /// The rows in display order.
@@ -38,6 +42,7 @@ final class TimerListModel {
     }
 
     func reload() async {
+        calendar = store.displayCalendar()
         do {
             days = try await store.timerList(dayLimit: dayLimit, filter: isFilterVisible ? filter : "")
             canLoadMore = try await store.entryDays(limit: dayLimit + 1).count > dayLimit
@@ -61,7 +66,6 @@ final class TimerListModel {
     /// The header title: "Today", "Yesterday", "Tue, Oct 27", with the year
     /// for other years.
     func title(for day: TrackingDay) -> String {
-        let calendar = TrackingCalendar(timeZone: .current)
         let today = calendar.day(containing: clock.now)
         if day == today {
             return "Today"
@@ -69,7 +73,8 @@ final class TimerListModel {
         if day == today.adding(days: -1) {
             return "Yesterday"
         }
-        let date = calendar.startOfDay(day)
+        // Noon of the date itself: a day can start on the date before.
+        let date = TrackingCalendar(timeZone: calendar.timeZone).startOfDay(day) + 12 * 3600
         let format = day.year == today.year ? "EEE, MMM d" : "EEE, MMM d, yyyy"
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
@@ -81,7 +86,9 @@ final class TimerListModel {
 
     /// ↑ and ↓.
     func moveSelection(by offset: Int) {
-        let ids = rows.map(\.id)
+        // An entry crossing Midnight has a row on each of its days.
+        var seen = Set<EntryID>()
+        let ids = rows.map(\.id).filter { seen.insert($0).inserted }
         guard !ids.isEmpty else {
             return
         }

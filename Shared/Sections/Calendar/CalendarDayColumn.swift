@@ -95,6 +95,7 @@ private struct TrackedColumn: View {
                     EntryCard(
                         model: model,
                         listing: listing,
+                        day: day,
                         size: CGSize(width: laneWidth, height: max(4, frame.height)),
                         dayWidth: CGFloat(model.dayWidth)
                     )
@@ -184,7 +185,7 @@ private struct ActivityColumn: View {
             Color.clear
             healthAndGaps(axis)
             strips(axis)
-            ForEach(model.blocks.filter { $0.localDay == day.description }) { block in
+            ForEach(model.blocks(on: day)) { block in
                 if let frame = axis.frame(of: DateInterval(start: block.start, end: max(block.start, block.end))) {
                     BlockCard(model: model, block: block, size: CGSize(width: width - 4, height: max(4, frame.height)))
                         .offset(x: 2, y: frame.y)
@@ -238,7 +239,7 @@ private struct ActivityColumn: View {
 
     /// The day's background stretches at the column's trailing edge.
     private func strips(_ axis: CalendarDayAxis) -> some View {
-        ForEach(model.stretches.filter { $0.localDay == day.description }) { stretch in
+        ForEach(model.stretches(on: day)) { stretch in
             if let frame = axis.frame(of: DateInterval(start: stretch.start, end: max(stretch.start, stretch.end))) {
                 BackgroundStrip(stretch: stretch)
                     .frame(width: Design.healthLineWidth, height: max(Design.healthLineWidth, frame.height))

@@ -26,7 +26,7 @@ struct ReportEntryList: View {
 
     private var list: some View {
         List(selection: $model.listSelection) {
-            ForEach(model.listings) { listing in
+            ForEach(model.listings, id: \.rowID) { listing in
                 ReportEntryRow(model: model, listing: listing).tag(listing.id)
             }
         }
@@ -127,7 +127,7 @@ private struct ReportEntryRow: View {
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("reports.entry")
         .modifier(EntryEditorPopover(
-            entry: entry,
+            entry: listing.editable,
             editing: Bindable(model).editing,
             store: model.store,
             clock: model.clock,

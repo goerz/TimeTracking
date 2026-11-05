@@ -16,6 +16,8 @@ public struct ActivityBackgroundStretch: Sendable, Hashable, Identifiable {
     public var items: [ActivityItem]
     /// Seconds east of UTC of the local times, from the header `tz`.
     public var utcOffset: Int
+    /// The day the app shows the stretch on, when it isn't `localDay`.
+    private var shownDayOverride: String?
 
     public init(start: Date, end: Date, items: [ActivityItem], utcOffset: Int) {
         self.id = ActivityBlock.makeID(start: start, utcOffset: utcOffset)
@@ -28,6 +30,18 @@ public struct ActivityBackgroundStretch: Sendable, Hashable, Identifiable {
     /// The local date of the stretch, `YYYY-MM-DD`.
     public var localDay: String {
         LocalTimestamp(date: start, utcOffset: utcOffset).dayKey
+    }
+
+    /// The day the app shows the stretch on (`ActivityBlock.shownDay`).
+    public var shownDay: String {
+        shownDayOverride ?? localDay
+    }
+
+    /// The stretch as the app shows it with days starting at `midnightHour`.
+    public func shown(midnightHour: Int) -> Self {
+        var stretch = self
+        stretch.shownDayOverride = ActivityBlock.shownDay(of: start, utcOffset: utcOffset, midnightHour: midnightHour)
+        return stretch
     }
 
     /// The month file the stretch belongs to, `YYYY-MM`.

@@ -147,8 +147,9 @@ final class TimerModel {
             runningLabel = label
             chainStart = chain
             mostRecentOther = other
-            let today = TrackingCalendar(timeZone: .current).day(containing: clock.now)
-            lastStoppedToday = stopped.flatMap { $0.day == today ? $0 : nil }
+            let calendar = store.displayCalendar()
+            let today = calendar.day(containing: clock.now)
+            lastStoppedToday = stopped.flatMap { calendar.displayDay(of: $0) == today ? $0 : nil }
             if stoppedElsewhere {
                 await clearDraft()
             }

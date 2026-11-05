@@ -19,7 +19,7 @@ extension TimeStore {
         guard !projects.isEmpty else {
             return []
         }
-        let calendar = TrackingCalendar(timeZone: timeZone())
+        let calendar = displayCalendar(timeZone: timeZone())
         let days = calendar.interval(of: query.days)
         let range = query.bounds.flatMap { $0.intersection(with: days) } ?? days
         let periods = try healthPeriods(in: range).filter { projects[$0.kind] != nil }
