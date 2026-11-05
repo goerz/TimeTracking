@@ -1,5 +1,5 @@
-// TrackerSettings+Defaults: the default settings.toml, verbatim from
-// spec_activity_tracking.md §7.1.
+// TrackerSettings+Defaults: the default settings.toml, with a comment on
+// every setting (spec_activity_tracking.md §7.1).
 
 extension TrackerSettings {
     /// The default `settings.toml`, written when the shared folder has none.
@@ -67,7 +67,7 @@ extension TrackerSettings {
     [terminal]
     # Pane title patterns that name the open file; the capture group is the path.
     title_patterns = { nvim = '^nvim (/.+)$' }
-    # Long-running commands recorded as secondary items.
+    # Long-running commands recorded as background items.
     job_commands = ["make", "gmake", "latexmk", "pytest", "cargo", "swift", "npm"]
 
     [devices]
