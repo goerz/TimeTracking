@@ -175,7 +175,7 @@ Each spec except the design language has one "Testable behaviors" list numbered 
 
 A test carries the identifier in its display name, `@Test("TM-1 releasing below 200 pt collapses to the bar")`, in an XCUITest method name, `testTM1_collapseBelowThreshold()`, or in `scripts/test_make.sh`, `behavior "ARCH-2 ..."`. One test may cover several numbers. The script `scripts/check_behaviors.sh` (`make check-behaviors`) fails on a number without a test, a test identifier no spec defines, or a non-continuous list.
 
-Code comments cite a spec by its file name in `docs/reference/` and its section, `timer.md §2.1`. The script `scripts/check_citations.py` (`make check-citations`) fails on a citation of a section that does not exist.
+Code comments cite a spec by its file name in `docs/reference/` and its section, `timer.md §2.1`. The script `scripts/check_citations.py` (`make check-citations`) fails on a citation, in a file git tracks, of a section that does not exist.
 
 ### 3.3 What runs where
 

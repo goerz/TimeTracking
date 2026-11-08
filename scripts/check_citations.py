@@ -14,7 +14,8 @@ line, and "rule 4" or "item 6" may follow a number. Sections are the numbered
 headings of the cited file. A `§n` without a file name counts when a spec the
 same file cites has that section; a spec also looks in itself, and a file that
 names no spec in architecture.md, whose conventions it follows. Exits 1 and
-lists every citation that resolves to nothing.
+lists every citation that resolves to nothing. Only files git tracks count, so
+untracked notes never block a push.
 """
 
 import argparse
@@ -44,7 +45,7 @@ def sections_of(root):
 
 def tracked_text_files(root):
     names = subprocess.run(
-        ["git", "ls-files", "--cached", "--others", "--exclude-standard"],
+        ["git", "ls-files", "--cached"],
         cwd=root,
         capture_output=True,
         text=True,
