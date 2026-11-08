@@ -34,4 +34,4 @@ You always edit the whole entry. Clicking either row opens the same stored entry
 
 Some things deliberately ignore the setting, because they are about the real clock. The activity tracker files each block under the real date it starts on, even when it runs past midnight, and the app then places each block on the day it started. Reminders use the hours you set, as clock times. The menu bar's "Started 23:10 yesterday" compares plain dates, because it tells you when the entry started by the clock. The all-day strip in the Calendar shows the events of the date the column is named after.
 
-The [reference](../reference/data_and_sync.md#8-days-weeks-and-time-zones) has the exact rules, including daylight-saving days and travel. To change the setting, see [Move the start of the day](../howto/midnight.md).
+The [reference](../reference/data_and_sync.md#8-days-weeks-and-time-zones) has the exact rules, including daylight-saving days and travel. To change the setting, see [Move the start of the day](../howto/start-of-day.md).
