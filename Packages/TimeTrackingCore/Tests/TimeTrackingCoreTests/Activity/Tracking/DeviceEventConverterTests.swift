@@ -142,6 +142,7 @@ struct DeviceEventConverterTests {
         #expect(workspace(ActivityItem(app: "Safari", location: "https://github.com/other/Lib")) == "other/Lib")
         #expect(workspace(ActivityItem(app: "Safari", location: "https://www.arxiv.org/abs/2401.1")) == "arxiv.org")
         #expect(workspace(ActivityItem(app: "WezTerm", host: "hpc", location: "/scratch/run7")) == "hpc:/scratch/run7")
+        #expect(workspace(ActivityItem(app: "WezTerm", host: "hpc", command: "ssh hpc")) == "hpc:")
         #expect(workspace(ActivityItem(app: "Mail", window: "Inbox")) == "Mail")
     }
 }

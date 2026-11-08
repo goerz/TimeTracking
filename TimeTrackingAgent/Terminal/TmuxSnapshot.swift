@@ -55,6 +55,18 @@ nonisolated struct TmuxSnapshot: Hashable, Sendable {
     /// Where tmux is installed, first match wins.
     static let executables = ["/opt/homebrew/bin/tmux", "/usr/local/bin/tmux", "/usr/bin/tmux"]
 
+    /// `list-clients` of the server at `socket`. The agent runs under
+    /// launchd without a UTF-8 locale, and tmux then writes `_` for the
+    /// tabs between the fields; `-u` keeps them.
+    static func clientsCommand(executable: String, socket: String) -> [String] {
+        [executable, "-u", "-S", socket, "list-clients", "-F", clientFormat]
+    }
+
+    /// `list-panes -a` of the server at `socket`, with `-u` as above.
+    static func panesCommand(executable: String, socket: String) -> [String] {
+        [executable, "-u", "-S", socket, "list-panes", "-a", "-F", paneFormat]
+    }
+
     var clients: [TmuxClient] = []
     var panes: [TmuxPane] = []
     /// The server sockets found.

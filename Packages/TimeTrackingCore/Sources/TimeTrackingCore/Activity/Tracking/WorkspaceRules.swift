@@ -36,7 +36,8 @@ public struct WorkspaceRules {
     /// The workspace of `item`; `localhostFolder` gives the working folder
     /// of the server on a local port.
     public func workspace(of item: ActivityItem, localhostFolder: (Int) -> String? = { _ in nil }) -> String {
-        if !item.host.isEmpty, !item.location.isEmpty {
+        // Without a location (no OSC 7 from the remote shell), `<host>:`.
+        if !item.host.isEmpty {
             return "\(item.host):\(item.location)"
         }
         let path = item.documents.first.map(Self.folder) ?? item.location

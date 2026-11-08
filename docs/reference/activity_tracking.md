@@ -158,7 +158,7 @@ An Item's attributes, from coarse to fine:
 - `documents`: the files the user works on, open in an editor or viewer. Example: `~/Papers/2026_Noise/notes.tex`.
 - `command`: the full command line of the frontmost process, as in the shell history. Example: `nvim notes.tex`.
 - `workspace`: the project the work belongs to, which decides where blocks split and names them in the summary (2.8). It is stored as a full path or name and shown as its last component (`MyApp`). The first rule that applies gives it:
-  1. With a `host`: `<host>:<location>`.
+  1. With a `host`: `<host>:<location>`, and `<host>:` while the remote shell reports no folder.
   2. A path: the nearest enclosing folder holding one of the `root_markers` (`.git`, `Project.toml`, `pyproject.toml`, `Package.swift`, and others, 7.1), with a git worktree resolved to its main repository; without one, the path's folder. The home folder is never a workspace: a path that would give it falls through to rule 5.
   3. A `localhost` URL: the workspace of the working folder of the process listening on its port, so a notebook in the browser belongs with the terminal that runs its server.
   4. Any other URL: the first pattern in `[workspaces] urls` that matches; its capture group names the workspace, so `github\.com/([^/]+/[^/]+)` gives `owner/MyApp`. When a repository among the Samples' workspaces has an `origin` remote with that name, the workspace is the repository's folder instead, so a pull request page joins the code it changes.
@@ -273,7 +273,7 @@ Figure 3. Hovering the 09:52 block. Each workspace shows by name (the last compo
 
 ### 3.1 Terminal
 
-The focused pane's tty comes from a terminal adapter: WezTerm through `wezterm cli`, iTerm2 and Terminal.app through AppleScript. Without one, it is the tty below the frontmost terminal with the most recent input. A tmux client on that tty gives the session, window, and pane, and the active pane's command and cwd; without tmux, the tty's foreground process and its cwd. The cwd is the location, the foreground process's command line the command.
+The focused pane's tty comes from a terminal adapter: WezTerm through `wezterm cli`, iTerm2 and Terminal.app through AppleScript. Without one, it is the tty below the frontmost terminal with the most recent input. A tmux client on that tty gives the session, window, and pane, and the active pane's command and cwd; without tmux, the tty's foreground process and its cwd. The agent runs tmux with `-u`: under launchd it has no UTF-8 locale, and tmux would then write `_` for the tabs between the fields it reports. The cwd is the location, the foreground process's command line the command.
 
 The pane's foreground program refines the Item:
 
@@ -584,7 +584,7 @@ A file that does not decode reads "The settings file has an error on line `<n>`:
 - TRK-5. A matching pane title yields a document only while the pane's command is that editor.
 - TRK-6. An editor RPC silent for 200 ms falls through to process arguments within 100 ms plus the timeout.
 - TRK-7. A Claude Code session inside tmux gives the session title as `session`; a tmux pane without one gives `session:window.pane`.
-- TRK-8. The workspace follows 2.3: the nearest folder with a root marker; a worktree resolved to its main repository; never the home folder; a `localhost` URL takes the workspace of the process listening on its port; a URL pattern's capture names the workspace, and a repository whose `origin` matches the capture gives its folder; a host prefixes the location; otherwise the app.
+- TRK-8. The workspace follows 2.3: the nearest folder with a root marker; a worktree resolved to its main repository; never the home folder; a `localhost` URL takes the workspace of the process listening on its port; a URL pattern's capture names the workspace, and a repository whose `origin` matches the capture gives its folder; a host prefixes the location, and without one gives `<host>:`; otherwise the app.
 - TRK-9. A Safari URL without a `History.db` visit in the last 24 hours is recorded as a private window with no URL; Chromium incognito is never read.
 - TRK-10. A Sample that is `idle`, `locked`, or `otherUser` lists the busy coding agents, tmux sessions with recent input, and running `job_commands` as background Items; an `asleep` one lists none.
 - TRK-11. For each setting of 7.2, a matching fixture leaves no excluded path, domain, session, or title in any Sample, date file, or `current.json`, through every entry point listed there.
@@ -648,3 +648,4 @@ A file that does not decode reads "The settings file has an error on line `<n>`:
 - TRK-69. A clock set 200 days ahead moves the cutoff date by one day per daily drop; a deletion pending on the date before the new cutoff, a date file still downloading, and a device-date waiting for a redo each reach their file before the date freezes.
 - TRK-70. `forget-day` for today and `delete-block` with an end after now delete up to now, and the next tick's Sample is stored.
 - TRK-71. A fetch that skips DeviceEvent records of another app version stores the others, moves the token past all of them, and reports `device_events` `fallback`; the next fetch without such records reports `active`; the daily purge deletes such records before the cutoff date from CloudKit.
+- TRK-72. Every tmux command the agent runs passes `-u`, so a terminal tab whose foreground program is a tmux client gives the session's active pane.

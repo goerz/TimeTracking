@@ -154,8 +154,8 @@ final class AgentHarness {
         files.existing.insert(tmux)
         files.folders["/private/tmp/tmux-501"] = ["default"]
         let socket = "/private/tmp/tmux-501/default"
-        commands.set([tmux, "-S", socket, "list-clients", "-F", TmuxSnapshot.clientFormat], Self.fixture("tmux/list-clients.txt"))
-        commands.set([tmux, "-S", socket, "list-panes", "-a", "-F", TmuxSnapshot.paneFormat], Self.fixture("tmux/list-panes.txt"))
+        commands.set([tmux, "-u", "-S", socket, "list-clients", "-F", TmuxSnapshot.clientFormat], Self.fixture("tmux/list-clients.txt"))
+        commands.set([tmux, "-u", "-S", socket, "list-panes", "-a", "-F", TmuxSnapshot.paneFormat], Self.fixture("tmux/list-panes.txt"))
         let wezterm = "/opt/homebrew/bin/wezterm"
         files.existing.insert(wezterm)
         commands.set([wezterm, "cli", "list-clients", "--format", "json"], Self.fixture("wezterm/list-clients.json"))

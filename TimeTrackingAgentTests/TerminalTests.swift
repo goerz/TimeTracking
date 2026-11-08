@@ -118,6 +118,18 @@ struct TerminalTests {
         #expect(harness.health(.tmux)?.status == .active)
     }
 
+    @Test("TRK-72 every tmux command passes -u, so a pane behind a tmux client in a terminal tab resolves to its session")
+    func tmuxUTF8() async throws {
+        let harness = try AgentHarness()
+        harness.loadTerminalFixtures()
+        harness.focusWezTermPane(1)
+        let pane = try #require(await harness.tick()?.foreground)
+        #expect(pane.session == "paper:0.0")
+        let tmuxCalls = harness.commands.calls.filter { $0.first?.hasSuffix("/tmux") == true }
+        #expect(!tmuxCalls.isEmpty)
+        #expect(tmuxCalls.allSatisfy { $0.dropFirst().first == "-u" }, "\(tmuxCalls)")
+    }
+
     @Test(
         "TRK-10 idle, locked, and otherUser Samples list busy agents, tmux sessions with recent input, and jobs; asleep ones none"
     )

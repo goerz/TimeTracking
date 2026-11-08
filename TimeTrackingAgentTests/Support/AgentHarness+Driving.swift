@@ -101,7 +101,7 @@ extension AgentHarness {
     // MARK: Terminal fixtures
 
     static let tmuxPanesCommand = [
-        "/opt/homebrew/bin/tmux", "-S", "/private/tmp/tmux-501/default", "list-panes", "-a", "-F", TmuxSnapshot.paneFormat,
+        "/opt/homebrew/bin/tmux", "-u", "-S", "/private/tmp/tmux-501/default", "list-panes", "-a", "-F", TmuxSnapshot.paneFormat,
     ]
     static let weztermClientsCommand = ["/opt/homebrew/bin/wezterm", "cli", "list-clients", "--format", "json"]
     static let weztermListCommand = ["/opt/homebrew/bin/wezterm", "cli", "list", "--format", "json"]

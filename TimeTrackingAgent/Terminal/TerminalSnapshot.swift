@@ -24,23 +24,8 @@ struct TerminalSnapshot {
             let folder = environment.tmuxSocketFolder
             for name in (environment.files.list(folder) ?? []).sorted() {
                 let socket = folder + "/" + name
-                guard let clients = await environment.commands.run([
-                    executable,
-                    "-S",
-                    socket,
-                    "list-clients",
-                    "-F",
-                    TmuxSnapshot.clientFormat,
-                ]),
-                    let panes = await environment.commands.run([
-                        executable,
-                        "-S",
-                        socket,
-                        "list-panes",
-                        "-a",
-                        "-F",
-                        TmuxSnapshot.paneFormat,
-                    ])
+                guard let clients = await environment.commands.run(TmuxSnapshot.clientsCommand(executable: executable, socket: socket)),
+                      let panes = await environment.commands.run(TmuxSnapshot.panesCommand(executable: executable, socket: socket))
                 else {
                     continue
                 }
