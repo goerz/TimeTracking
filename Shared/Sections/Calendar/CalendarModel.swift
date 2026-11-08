@@ -172,6 +172,8 @@ final class CalendarModel {
     /// The stored entry whose edit popover is open.
     var editingEntry: EntryID?
     var draft: CalendarDraft?
+    /// The suggestions under the draft's task field (§2.3).
+    let draftTaskField: TaskFieldModel
     var blockDraft: TimeBlockDraft?
     var pendingOverlap: PendingOverlap?
     var cardDrag: CalendarCardDrag?
@@ -207,6 +209,7 @@ final class CalendarModel {
         self.device = device
         self.activity = activity
         self.events = events
+        self.draftTaskField = TaskFieldModel(store: store)
         self.pointsPerHour = CalendarZoom.clamped(device[.calendarPointsPerHour])
         self.showsActivity = device[.calendarShowsActivity]
         self.showsCalendar = device[.calendarShowsCalendar]

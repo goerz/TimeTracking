@@ -20,6 +20,28 @@ extension CalendarModel {
         }
     }
 
+    /// A keystroke in the draft's task field: earlier tasks containing it.
+    func draftTaskEdited(_ text: String) async {
+        draft?.task = text
+        await draftTaskField.suggest(for: text, chipProject: draft?.projectID)
+    }
+
+    /// Tab or a click on a suggestion: its task and project fill the draft.
+    func acceptDraftSuggestion(_ suggestion: TaskSuggestion) {
+        draftTaskField.reset()
+        draft?.task = suggestion.task
+        draft?.projectID = suggestion.projectID
+    }
+
+    /// Return in the task field: the highlighted suggestion fills the
+    /// draft, which is then stored.
+    func submitDraft() async {
+        if let suggestion = draftTaskField.acceptSuggestion() {
+            acceptDraftSuggestion(suggestion)
+        }
+        await commitDraft()
+    }
+
     /// Return in the popover: stores the draft (empty task and no project
     /// allowed). The draft is taken before the first suspension, so a second
     /// commit (Return and the Save button, or Return and a click outside)

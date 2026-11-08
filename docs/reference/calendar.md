@@ -56,7 +56,7 @@ No part of an entry can lie after now. Gestures clamp at the now-line. A drop on
 
 ### 2.3 Drawing
 
-Dragging vertically in empty space draws a provisional entry. Both ends snap to `snapMinutes` (default 5), or 1 minute with ⌥, counted from the column's start, and stop at the now-line and the column's ends. Under 1 minute creates nothing and deselects. Otherwise the entry stays with a dashed border and a popover opens on it, showing its times with the project chip, the task field, Cancel, and Save. Return commits (empty task and no project allowed); Escape removes it; a click elsewhere commits if a project or task was given and cancels otherwise. A draft is stored once, also when several of these come together. The minimum entry length everywhere is 1 minute.
+Dragging vertically in empty space draws a provisional entry. Both ends snap to `snapMinutes` (default 5), or 1 minute with ⌥, counted from the column's start, and stop at the now-line and the column's ends. Under 1 minute creates nothing and deselects. Otherwise the entry stays with a dashed border and a popover opens on it, showing its times with the project chip, the task field, Cancel, and Save. The task field suggests earlier tasks like the Timer's ([timer.md](timer.md) §2.2, no `@` trigger): ↑ and ↓ move, Tab or a click fills in the task and project, Return fills them in and commits, Escape closes the suggestions. Return commits (empty task and no project allowed); Escape removes it; a click elsewhere commits if a project or task was given and cancels otherwise. A draft is stored once, also when several of these come together. The minimum entry length everywhere is 1 minute.
 
 ### 2.4 Moving and resizing
 
@@ -216,3 +216,4 @@ The settings read the calendars without asking for access; like the Calendar col
 40. Dragging a 14:00 to 15:00 block onto the next day's Calendar column one hour down gives 15:00 to 16:00 there, also past the now-line, in one undo step; a 7 minute move snaps to 5 minutes, with ⌥ to the minute; its piece after the day change moves it whole; its edges resize it within the piece's column, down to 1 minute; Escape during a drag changes nothing.
 41. The hover "+" of a time block or event opens the popover of 4.4, and a time block dropped on a Tracked column does the same.
 42. An entry from 23:00 to 01:00 is in the columns of both days; dragging either piece moves it whole, ⌘↓ moves it one snap step, and ⌥⌘↓ lengthens it at its end.
+43. Typing "clar" in a drawn entry's task field suggests "Clarify noise model" of Noise Model; Return stores the entry with that task and project; after Escape closes the suggestions, Return stores "clar" with no project.

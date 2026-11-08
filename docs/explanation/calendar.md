@@ -22,7 +22,7 @@ Two things control the scale. ⌘+ and ⌘− zoom the hours, and ⌘0 resets th
 
 ## Working with entries
 
-Drag vertically in empty space in the Tracked column and a provisional card appears, with a popover for the task and project. Times snap to five minutes by default, or to the minute with ⌥ held. Press Return to keep the entry and Escape to throw it away.
+Drag vertically in empty space in the Tracked column and a provisional card appears, with a popover for the task and project. As in the Timer, typing a task lists earlier ones, and picking one also sets its project. Times snap to five minutes by default, or to the minute with ⌥ held. Press Return to keep the entry and Escape to throw it away.
 
 Drag a card to move it, also onto another day, and drag its top or bottom edge to resize it. Every move is one undo step. A click selects a card, and double-click or Return opens the [editor](timer.md#the-editor). The context menu offers Continue, Edit…, Split Here, Duplicate to Next Day, and Delete.
 
