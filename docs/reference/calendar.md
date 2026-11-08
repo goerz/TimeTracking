@@ -87,7 +87,7 @@ The column shows the day's foreground blocks, plus on the Mac the open block. A 
 
 Background blocks ([activity_tracking.md](activity_tracking.md) §2.7) are thin strips at the column's trailing edge over their time, in a gap between foreground blocks and never on one. The tooltip names their items ("In the background while away: Claude Code refactor-parser 38m"); they have no popover and make no entry.
 
-With Sleep or Workouts on (section 6), the health periods ([data_and_sync.md](data_and_sync.md) §1.9) are thin lines centered in the column over their time, sleep dark blue and workouts dark green. A period that crosses the start of day shows on both days. A line lies under the blocks and over a gap's thin lines. A period's whole duration is a label ("7h 10m") centered on its line on the day it ends, so a night is labeled on the morning it ends; a gap label within 16 points of it is left out. The tooltip reads "Sleep 7h 10m" or "Workout 45m".
+With Sleep or Workouts on (section 6), the health periods ([data_and_sync.md](data_and_sync.md) §1.9) are thin lines centered in the column over their time, sleep dark blue and workouts dark green. A period that crosses the start of day shows on both days. A line lies under the blocks and over a gap's thin lines. A period's whole duration is a label ("7h 10m") centered on its line on the day it ends, so a night is labeled on the morning it ends; a gap label within 16 points of it is left out. The tooltip reads "Sleep 7h 10m" or "Workout 45m". The tooltips of background strips and health lines appear as soon as the pointer is over the line, beside it at the pointer's height, since a line this thin is hard to hold the pointer on until a system tooltip appears.
 
 ### 3.2 Block popover
 

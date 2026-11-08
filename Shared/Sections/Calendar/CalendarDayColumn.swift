@@ -298,7 +298,7 @@ private struct BackgroundStrip: View {
     var body: some View {
         Capsule()
             .fill(Color.activityBlock.opacity(0.5))
-            .help(text)
+            .quickTooltip(text)
             .accessibilityElement()
             .accessibilityLabel(text)
             .accessibilityIdentifier("calendar.background.\(block.id)")
@@ -334,7 +334,7 @@ private struct HealthLine: View {
         Capsule()
             .fill(period.kind == .sleep ? Color.sleepLine : Color.workoutLine)
             .frame(width: Design.healthLineWidth)
-            .help(text)
+            .quickTooltip(text)
             .accessibilityElement()
             .accessibilityLabel(text)
             .accessibilityIdentifier("calendar.health.\(period.kind.rawValue)")
