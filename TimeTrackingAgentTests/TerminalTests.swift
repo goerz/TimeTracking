@@ -1,5 +1,6 @@
-// Terminal sources against the recorded fixtures of Fixtures/Agent/
-// (activity_tracking.md §2.2, §3.1).
+// The terminal source against the recorded fixtures of Fixtures/Agent/:
+// the focused pane, editors, coding agents, background work, and remote
+// shells (activity_tracking.md §2.3, §3.1, §3.5).
 
 import Foundation
 import Testing
@@ -8,7 +9,7 @@ import TimeTrackingCore
 
 @MainActor
 struct TerminalTests {
-    @Test("TRK-3 without a terminal adapter the fallback picks the tty with the most recent input and terminal reports fallback")
+    @Test("TRK-4 without a terminal adapter, the fallback picks the tty with the most recent input and terminal reports fallback")
     func processTreeFallback() async throws {
         let harness = try AgentHarness()
         harness.loadTerminalFixtures()
@@ -17,82 +18,58 @@ struct TerminalTests {
         harness.processes.arguments = [812: ["nvim", "src/main.rs"]]
         harness.files.existing.insert("/Users/alex/Documents/Code/parser/.git")
         harness.processes.ttyInput = ["ttys020": harness.time(-600), "ttys021": harness.time(-10)]
-        let editing = try #require(await harness.engine.tick().primary)
-        #expect(editing == SampleItem(
-            context: "kitty",
-            subject: "~/Documents/Code/parser",
-            detail: "nvim main.rs",
-            groupKey: "~/Documents/Code/parser",
-            app: "net.kovidgoyal.kitty"
+        let editing = try #require(await harness.tick()?.foreground)
+        #expect(editing == ActivityItem(
+            app: "kitty",
+            appID: "net.kovidgoyal.kitty",
+            window: "kitty",
+            location: "~/Documents/Code/parser",
+            documents: ["~/Documents/Code/parser/src/main.rs"],
+            command: "nvim src/main.rs",
+            workspace: "~/Documents/Code/parser"
         ))
-        #expect(harness.health("terminal")?.status == .fallback)
-        #expect(harness.health("terminal")?.reason.isEmpty == false)
+        let terminal = try #require(harness.health(.terminal))
+        #expect(terminal.status == .fallback)
+        #expect(terminal.reason == "kitty can't report its front tab; the tab is guessed from recent activity")
 
-        harness.processes.ttyInput = ["ttys020": harness.time(-5), "ttys021": harness.time(-600)]
+        harness.processes.ttyInput = ["ttys020": harness.time(25), "ttys021": harness.time(-600)]
         harness.advance(30)
-        let shell = try #require(await harness.engine.tick().primary)
-        #expect(shell.subject == "~/Documents/Papers/2026_Noise")
-        #expect(shell.detail.isEmpty)
-        #expect(shell.groupKey == "~/Documents/Papers")
+        let shell = try #require(await harness.tick()?.foreground)
+        #expect(shell.location == "~/Documents/Papers/2026_Noise")
+        #expect(shell.command == "zsh")
+        #expect(shell.documents.isEmpty)
     }
 
-    @Test("TRK-3 with the WezTerm adapter the focused pane's tmux session gives the item and terminal is active")
-    func weztermAdapter() async throws {
+    @Test("TRK-5 a matching pane title yields a document only while the pane's command is that editor")
+    func titleNeedsTheEditor() async throws {
         let harness = try AgentHarness()
         harness.loadTerminalFixtures()
         harness.wezterm()
-        let sample = await harness.engine.tick()
-        #expect(sample.primary?.context == "tmux:paper")
-        #expect(sample.tmuxTarget == "paper:0.0")
-        #expect(harness.health("terminal")?.status == .active)
-        #expect(harness.health("tmux")?.status == .active)
-        // Secondaries: the busy agent session and the lab client with input 20 s ago; make runs in another pane.
-        let background = sample.secondaries.map { "\($0.context) \($0.subject) \($0.detail)" }
-        #expect(background.contains("claude refactor-parser "))
-        #expect(background.contains("tmux:lab ~/Documents/Notebooks/qsl "))
-        #expect(background.contains("tmux:tools ~/Documents/Code/parser make"))
-        #expect(!background.contains { $0.hasPrefix("tmux:paper") })
-    }
+        let editing = try #require(await harness.tick()?.foreground)
+        #expect(editing.session == "paper:0.0")
+        #expect(editing.command == "nvim")
+        #expect(editing.documents == ["~/Documents/Papers/2026_Noise/notes.tex"])
+        #expect(harness.health(.editor)?.status == .active)
 
-    @Test("TRK-4 a matching pane title yields a file only while the pane's command is that editor")
-    func titleNeedsEditor() async throws {
-        let harness = try AgentHarness()
-        harness.loadTerminalFixtures()
-        harness.wezterm()
-        let editing = try #require(await harness.engine.tick().primary)
-        #expect(editing == SampleItem(
-            context: "tmux:paper",
-            subject: "draft",
-            detail: "nvim notes.tex",
-            groupKey: "tmux:paper",
-            app: "com.github.wez.wezterm"
-        ))
-        #expect(harness.health("editor")?.status == .active)
-
-        let stale = AgentHarness.fixture("tmux/list-panes.txt").replacing("1\tnvim\t/Users", with: "1\tzsh\t/Users")
-        harness.commands.set(
-            ["/opt/homebrew/bin/tmux", "-S", "/private/tmp/tmux-501/default", "list-panes", "-a", "-F", TmuxSnapshot.paneFormat],
-            stale
-        )
+        // Neovim quit; the shell left the title as it was.
+        let table = AgentHarness.fixture("ps/terminals.txt")
+            .replacing("  702   701 ttys010  S+   nvim\n", with: "")
+            .replacing("  703   702 ttys010  S+   nvim\n", with: "")
+        harness.commands.set(ProcessTable.command, table)
+        harness.editTmuxPanes([("1\tnvim\t/Users", "1\tzsh\t/Users")])
         harness.advance(30)
-        let shell = try #require(await harness.engine.tick().primary)
-        #expect(shell.detail.isEmpty)
-        #expect(harness.sampleLines().last?.contains("notes.tex") == false)
+        let shell = try #require(await harness.tick()?.foreground)
+        #expect(shell.command == "zsh")
+        #expect(shell.documents.isEmpty)
+        #expect(harness.sampleText.split(separator: "\n").last?.contains("notes.tex") == false)
     }
 
-    @Test("TRK-5 an editor RPC silent for 200 ms falls through to arguments, then cwd, within 100 ms plus the timeout")
+    @Test("TRK-6 an editor RPC silent for 200 ms falls through to the process arguments within 100 ms plus the timeout")
     func silentRPC() async throws {
         let harness = try AgentHarness(editorRPC: NeovimRPCClient())
         harness.loadTerminalFixtures()
         harness.wezterm()
-        let untitled = AgentHarness.fixture("tmux/list-panes.txt").replacing(
-            "\tnvim /Users/alex/Documents/Papers/2026_Noise/notes.tex",
-            with: "\tnvim"
-        )
-        harness.commands.set(
-            ["/opt/homebrew/bin/tmux", "-S", "/private/tmp/tmux-501/default", "list-panes", "-a", "-F", TmuxSnapshot.paneFormat],
-            untitled
-        )
+        harness.editTmuxPanes([("\tnvim /Users/alex/Documents/Papers/2026_Noise/notes.tex", "\tnvim")])
         let folder = harness.root.appending(path: "nvim.alex", directoryHint: .isDirectory)
         let socket = folder.appending(path: "abc123/nvim.703.0", directoryHint: .notDirectory)
         try FileManager.default.createDirectory(at: socket.deletingLastPathComponent(), withIntermediateDirectories: true)
@@ -104,52 +81,105 @@ struct TerminalTests {
 
         // Every tick waits out the 200 ms timeout before falling through. A
         // loaded machine can delay any one tick, so the 100 ms margin must
-        // hold for the fastest of three; a resolver that waits longer than
-        // timeout + 100 ms misses it on all three.
-        #expect(TerminalResolver.rpcTimeout == 0.2)
+        // hold for the fastest of three.
+        #expect(TerminalObserver.rpcTimeout == 0.2)
         let clock = ContinuousClock()
         var elapsed: [Duration] = []
         for attempt in 0 ..< 3 {
             if attempt > 0 {
-                // A silent socket is tried again after the backoff.
-                harness.advance(TerminalResolver.silentBackoff)
+                // A silent socket is asked again after the backoff.
+                harness.advance(TerminalObserver.silentBackoff)
             }
             let started = clock.now
-            let fromArguments = try #require(await harness.engine.tick().primary)
+            let item = try #require(await harness.tick()?.foreground)
             elapsed.append(clock.now - started)
-            #expect(fromArguments.detail == "nvim results.tex")
+            #expect(item.documents == ["~/Documents/Papers/2026_Noise/results.tex"])
         }
         #expect(elapsed.allSatisfy { $0 >= .milliseconds(190) }, "\(elapsed)")
         #expect(try #require(elapsed.min()) < .milliseconds(300), "\(elapsed)")
-        #expect(harness.health("editor")?.status == .fallback)
-
-        harness.processes.arguments = [:]
-        harness.advance(30)
-        let fromCwd = try #require(await harness.engine.tick().primary)
-        #expect(fromCwd.detail == "nvim")
-        #expect(fromCwd.subject == "draft")
+        #expect(harness.health(.editor)?.status == .fallback)
     }
 
-    @Test("TRK-6 a localhost:<port> tab gets the item and group key of the pane that registered the port")
-    func notebookPort() async throws {
+    @Test("TRK-7 a Claude Code session inside tmux gives its title as the session; a tmux pane without one gives session:window.pane")
+    func sessions() async throws {
         let harness = try AgentHarness()
         harness.loadTerminalFixtures()
-        let lab = AgentHarness.fixture("wezterm/list.json").replacing("/dev/ttys001", with: "/dev/ttys003")
-        harness.commands.set(["/opt/homebrew/bin/wezterm", "cli", "list", "--format", "json"], lab)
-        harness.commands.set(
-            [PortRegistry.lsof, "-nP", "-a", "-p", "731,732", "-iTCP", "-sTCP:LISTEN", "-Fn"],
-            AgentHarness.fixture("lsof/julia-listen.txt")
-        )
-        harness.wezterm()
-        let pane = try #require(await harness.engine.tick().primary)
-        #expect(pane.context == "tmux:lab")
-        #expect(pane.groupKey == "tmux:lab")
-        #expect(pane.detail == "julia")
+        harness.focusWezTermPane(0)
+        let agent = try #require(await harness.tick()?.foreground)
+        #expect(agent.session == "refactor-parser")
+        #expect(agent.location == "~/Documents/Code/parser")
+        #expect(agent.command == "claude")
 
-        harness.frontmost("com.apple.Safari", name: "Safari")
-        harness.scripts.results["com.apple.Safari"] = .value(AgentHarness.fixture("applescript/safari-notebook.txt"))
-        harness.advance(30)
-        let tab = await harness.engine.tick()
-        #expect(tab.primary == pane)
+        harness.focusWezTermPane(1)
+        harness.advance(1)
+        let pane = try #require(await harness.tick()?.foreground)
+        #expect(pane.session == "paper:0.0")
+        #expect(harness.health(.terminal)?.status == .active)
+        #expect(harness.health(.tmux)?.status == .active)
+    }
+
+    @Test(
+        "TRK-10 idle, locked, and otherUser Samples list busy agents, tmux sessions with recent input, and jobs; asleep ones none"
+    )
+    func backgroundItems() async throws {
+        let harness = try AgentHarness()
+        harness.loadTerminalFixtures()
+        harness.textEdit()
+        let readings = [
+            PresenceReading(idleSeconds: 600),
+            PresenceReading(idleSeconds: 5, locked: true),
+            PresenceReading(idleSeconds: 5, otherUserOnConsole: true),
+        ]
+        for reading in readings {
+            harness.presence.reading = reading
+            let sample = try #require(await harness.tick())
+            #expect(sample.foreground == nil)
+            // `tools` had its last input 5 minutes ago; its `make` pane is a job.
+            #expect(Set(sample.background.map { "\($0.app) \($0.session)" }) == [
+                "Claude Code refactor-parser", "tmux paper:0.0", "tmux lab:0.0", "tmux tools:1.0",
+            ], "\(sample.state)")
+            let agent = try #require(sample.background.first { $0.app == "Claude Code" })
+            #expect(agent == ActivityItem(
+                app: "Claude Code",
+                appID: "claude",
+                session: "refactor-parser",
+                location: "~/Documents/Code/parser",
+                command: "claude",
+                workspace: "~/Documents/Code/parser"
+            ))
+        }
+        #expect(harness.liveSamples().map(\.state) == [.idle, .locked, .otherUser])
+
+        harness.presence.reading = PresenceReading()
+        await harness.event(.sleep)
+        #expect(harness.latest?.state == .asleep)
+        #expect(harness.latest?.background.isEmpty == true)
+    }
+
+    @Test(
+        "TRK-56 with the remote shell snippet installed, an ssh session's Samples carry the host, folder, remote tmux session, and command"
+    )
+    func remoteShell() async throws {
+        let harness = try AgentHarness()
+        harness.loadTerminalFixtures()
+        let table = AgentHarness.fixture("ps/terminals.txt") + "  900   500 ttys030  Ss   -zsh\n  901   900 ttys030  S+   ssh\n"
+        harness.commands.set(ProcessTable.command, table)
+        harness.commands.set(AgentHarness.weztermListCommand, """
+        [{"pane_id":1,"tty_name":"/dev/ttys030","title":"job:1.0 julia run.jl","cwd":"file://hpc/scratch/run7","is_active":true}]
+        """)
+        harness.processes.arguments = [901: ["ssh", "hpc"]]
+        harness.frontmost("com.github.wez.wezterm", name: "WezTerm", pid: 500, title: "hpc")
+        let item = try #require(await harness.tick()?.foreground)
+        #expect(item == ActivityItem(
+            app: "WezTerm",
+            appID: "com.github.wez.wezterm",
+            window: "hpc",
+            host: "hpc",
+            session: "job:1.0",
+            location: "/scratch/run7",
+            command: "julia run.jl",
+            workspace: "hpc:/scratch/run7"
+        ))
+        #expect(harness.health(.remoteShell)?.status == .active)
     }
 }

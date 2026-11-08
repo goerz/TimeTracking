@@ -55,7 +55,7 @@ extension StoreTransaction {
     }
 
     /// Applies a fetched or conflicting server record by the rules of §3.2:
-    /// the later copy wins entirely; `activity.contextColors` merges as a
+    /// the later copy wins entirely; `activity.appColors` merges as a
     /// union, `LiveState` by the field merge of §4.1. Writes no outbox row
     /// for the server's state; a local copy that wins keeps its data, takes
     /// the server's system fields, and is queued.
@@ -68,8 +68,8 @@ extension StoreTransaction {
         var remote = remote
         remote["splitRootID"] = nil
         let local = try syncRecord(remote.ref)
-        if remote.ref.type == .setting, remote.ref.name == SettingMerge.contextColorsKey, let local {
-            try mergeContextColors(local: local, remote: remote)
+        if remote.ref.type == .setting, remote.ref.name == SettingMerge.appColorsKey, let local {
+            try mergeAppColors(local: local, remote: remote)
             return
         }
         if let local, !remote.wins(over: local) {
@@ -159,19 +159,19 @@ extension StoreTransaction {
         record(reason, before: before, after: entry, causingDevice: nil)
     }
 
-    private func mergeContextColors(local: SyncRecord, remote: SyncRecord) throws {
+    private func mergeAppColors(local: SyncRecord, remote: SyncRecord) throws {
         func colors(_ record: SyncRecord) -> [String: Int] {
             let json = Data((record["value"]?.string ?? "{}").utf8)
             return (try? JSONDecoder().decode([String: Int].self, from: json)) ?? [:]
         }
-        let merged = SettingMerge.mergeContextColors(colors(local), colors(remote))
+        let merged = SettingMerge.mergeAppColors(colors(local), colors(remote))
         if merged == colors(remote) {
             try writeRemote(remote, replacing: local)
             return
         }
         try setSystemFields(remote.ref, remote.systemFields)
         if merged != colors(local) {
-            try set(.activityContextColors, merged)
+            try set(.activityAppColors, merged)
         } else {
             queue(remote.ref)
         }

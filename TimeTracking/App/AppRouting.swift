@@ -2,6 +2,7 @@
 // (timer.md §1.3, menubar.md §2.2).
 
 import Foundation
+import Observation
 import TimeTrackingCore
 
 /// The settings window's panes, in toolbar order (timer.md §8).
@@ -78,8 +79,9 @@ extension AppRouting {
     }
 }
 
-/// Records routing calls (tests).
+/// Records routing calls (tests); observable, so a test can wait for a call.
 @MainActor
+@Observable
 final class RecordingRouter: AppRouting {
     enum Call: Equatable {
         case showTimer(focusTask: Bool)

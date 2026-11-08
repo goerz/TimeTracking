@@ -248,9 +248,8 @@ struct StatusItemTests {
     func trackerWarning() async throws {
         let tick = try TestApp.date("2024-03-14T09:57")
         let state = TrackerState(
-            device: "mac",
-            openBlock: nil,
-            primary: nil,
+            block: nil,
+            foreground: nil,
             presence: TrackerPresence(state: .active, since: tick),
             health: TrackerHealth(lastTick: tick, version: "1.0 (1)", sources: [])
         )

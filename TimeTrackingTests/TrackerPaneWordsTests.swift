@@ -11,15 +11,14 @@ import TimeTrackingCore
 struct TrackerPaneWordsTests {
     private static func state(lastTick: Date, sources: [TrackerSourceHealth]) -> TrackerState {
         TrackerState(
-            device: "mac",
-            openBlock: nil,
-            primary: nil,
+            block: nil,
+            foreground: nil,
             presence: TrackerPresence(state: .active, since: lastTick),
             health: TrackerHealth(lastTick: lastTick, version: "1.0 (42)", sources: sources)
         )
     }
 
-    @Test("TRK-31 the iCloud Drive row is done while the app copies the log, and says activity stays on this Mac only when it does")
+    @Test("TRK-49 the iCloud Drive row is done while the app copies the log, and says activity stays on this Mac only when it does")
     func iCloudRow() async throws {
         let now = try TestApp.date("2024-03-14T10:00")
         func row(_ status: TrackerSourceStatus, _ reason: String) async throws -> TrackerSetupStep {
@@ -38,7 +37,7 @@ struct TrackerPaneWordsTests {
         #expect(try await row(.active, "").detail == "On: this Mac's activity shows on iPhone and iPad, and theirs here.")
     }
 
-    @Test("TRK-31 marks, lists, paths, and settings errors read as words, not symbols, keys, or internals")
+    @Test("TRK-49 marks, lists, paths, and settings errors read as words, not symbols, keys, or internals")
     func paneWords() throws {
         #expect(TrackerSetupStep.Mark.done.accessibilityLabel == "Done")
         #expect(TrackerSetupStep.Mark.attention.accessibilityLabel == "Needs attention")
@@ -64,9 +63,9 @@ struct TrackerPaneWordsTests {
         #expect(TrackerSettingsModel.message(for: CocoaError(.fileWriteNoPermission)).hasPrefix("Couldn't write the settings file: "))
     }
 
-    @Test("TRK-31 the agent's socket replies become sentences for the Calendar's delete alert")
+    @Test("TRK-49 the agent's socket replies become sentences for the Calendar's delete alert")
     func socketReplies() {
-        #expect(TrackerCommandResult.rejection(reason: "no block at 2024-03-14T09:00:00")
+        #expect(TrackerCommandResult.rejection(reason: "nothing at 2024-03-14T09:00:00")
             == .rejected("This activity is no longer in the logs."))
         #expect(TrackerCommandResult.rejection(reason: TrackerReply.stoppingReason)
             == .rejected("The tracker is restarting. Try again in a moment."))
@@ -75,7 +74,7 @@ struct TrackerPaneWordsTests {
         #expect(TrackerCommandResult.notRunning == .rejected("The tracker is not running."))
     }
 
-    @Test("TRK-31 a socket that does not exist reads as a tracker that could not be reached or is not running")
+    @Test("TRK-49 a socket that does not exist reads as a tracker that could not be reached or is not running")
     func socketWithoutTracker() async {
         let missing = FileManager.default.temporaryDirectory.appending(path: "tt-missing-\(UUID().uuidString)/tracker.sock")
         let result = await TrackerSocket(url: missing).send("delete-block 2024-03-14T09:00:00")

@@ -4,12 +4,12 @@
 import SwiftUI
 import TimeTrackingCore
 
-/// A pale neutral card, the same for every context, with a neutral left
-/// border while the pointer is over it (§3.1).
+/// A pale neutral card, the same for every app, with a neutral left border
+/// while the pointer is over it (§3.1); hovering shows the block's summary.
 struct BlockCard: View {
     var model: CalendarModel
     var block: ActivityBlock
-    /// The column: a block across Midnight has a card on each of its days.
+    /// The column: a block across the start of day has a card on each of its days.
     var day: TrackingDay
     var size: CGSize
     @State private var hovering = false
@@ -43,6 +43,7 @@ struct BlockCard: View {
             view.scaleEffect(model.isHighlighted(block) && phase ? 1.04 : 1)
         }
         .onHover { hovering = $0 }
+        .help(BlockSummaryText.text(ActivityBlockSummary(block: block, settings: model.activity.settings), zone: model.calendar.timeZone))
         .accessibilityAddTraits(.isButton)
         .onTapGesture {
             showsPopover = model.click(.block(block.id))
@@ -58,21 +59,19 @@ struct BlockCard: View {
             let axis = model.axis(day)
             Rectangle().fill(.background.opacity(0.5))
                 .frame(height: CGFloat(part.duration * model.pointsPerHour / 3600))
-                .offset(y: CGFloat(axis.offset(of: part.start, inCardOf: block.span)))
+                .offset(y: CGFloat(axis.offset(of: part.start, inCardOf: block.interval)))
         }
     }
 
-    /// The group key's name, then (full height) the dominant item.
+    /// The dominant workspace's name, then (full height) the dominant item.
     private func label(_ style: CalendarZoom.CardStyle) -> some View {
         VStack(alignment: .leading, spacing: 1) {
             HStack(spacing: Design.Spacing.tight) {
-                Text(ActivityContext.groupKeyName(block.groupKey)).fontWeight(.semibold)
+                Text(block.dominantWorkspace.map { ActivityItem.workspaceName($0.workspace) } ?? "").fontWeight(.semibold)
                 glyphs
             }
             if style == .full {
-                Text([block.items.first?.subject, block.items.first?.detail].compactMap(\.self).filter { !$0.isEmpty }
-                    .joined(separator: " "))
-                    .foregroundStyle(.secondary)
+                Text(block.dominantItem?.item.label ?? "").foregroundStyle(.secondary)
             }
         }
         .font(.caption).lineLimit(1)
@@ -82,13 +81,13 @@ struct BlockCard: View {
     }
 
     @ViewBuilder private var glyphs: some View {
-        if block.background.count + max(0, block.items.count - 1) > 0, !block.background.isEmpty {
+        if !block.background.isEmpty {
             Text("+\(block.background.count)").foregroundStyle(.secondary)
         }
-        if block.devices.contains(where: \.isIOSDevice) {
+        if block.hasIOSTime {
             Image(systemName: SymbolName.iPhone).imageScale(.small).accessibilityHidden(true)
         }
-        if block.deviceNames.contains(ActivityDeviceTime.remote) {
+        if block.hasRemoteTime {
             Image(systemName: SymbolName.otherDevices).imageScale(.small).accessibilityHidden(true)
         }
     }

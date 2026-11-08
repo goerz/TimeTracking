@@ -32,7 +32,7 @@ struct SettingsScreen: View {
         NavigationStack {
             Form {
                 iCloudSection
-                MidnightSection(store: model.store)
+                StartOfDaySection(store: model.store)
                 pomodoroSection
                 notificationSection
                 widgetSection

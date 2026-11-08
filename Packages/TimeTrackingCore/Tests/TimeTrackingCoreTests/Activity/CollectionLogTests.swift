@@ -161,8 +161,8 @@ struct CollectionLogTests {
 
     @Test func theSetsAlwaysStartWithEverything() throws {
         let state = try CollectionSharedState(defaults: #require(UserDefaults(suiteName: "CollectionLogTests.\(UUID().uuidString)")))
-        #expect(state.ladderSets == [.everything])
-        state.ladderSets = [LadderSet(id: "mail", label: "Mail")]
-        #expect(state.ladderSets.map(\.id) == ["everything", "mail"])
+        #expect(state.screenTimeSets == [.everything])
+        state.screenTimeSets = [ScreenTimeSet(id: "mail", label: "Mail")]
+        #expect(state.screenTimeSets.map(\.id) == ["everything", "mail"])
     }
 }

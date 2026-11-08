@@ -68,7 +68,7 @@ struct LiveStateTests {
         let batch = try #require(transport.batches.first { $0.contains(Self.liveRef) })
         #expect(batch.contains(SyncRecordRef(.timeEntry, entry.id.rawValue)))
 
-        // Midnight changes nothing in the snapshot.
+        // Passing midnight changes nothing in the snapshot.
         try test.clock.set(test.date("2024-03-15T00:10"))
         let outbox = try await store.outboxCount()
         try await store.checkInvariants()
@@ -160,8 +160,8 @@ struct LiveStateTests {
     static func activity(_ device: String, at time: Date) -> LiveState.MacActivity {
         LiveState.MacActivity(
             device: device,
-            primary: TrackerPrimaryItem(context: "tmux:paper", subject: "draft", detail: "nvim"),
-            groupKey: "tmux:paper",
+            foreground: ActivityItem(app: "WezTerm", appID: "com.github.wez.wezterm", session: "draft", workspace: "~/Papers/2026_Noise"),
+            groupKey: "~/Papers/2026_Noise",
             presence: "active",
             since: time,
             agentRunning: true,

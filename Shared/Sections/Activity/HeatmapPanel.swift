@@ -13,7 +13,7 @@ struct HeatmapPanel: View {
         let heatmap = summary.heatmap
         let cell: CGFloat = heatmap.mode == .days ? 14 : 12
         let gap: CGFloat = heatmap.mode == .days ? 3 : 2
-        let hours = ActivityHeatmap.columns(midnightHour: model.range.calendar.midnightHour)
+        let hours = ActivityHeatmap.columns(startOfDayHour: model.range.calendar.startOfDayHour)
         ActivityPanel(title: "Active time by hour") {
             // A click beside the cells takes the focus by `focusable`: setting it
             // again in a tap gesture loses it. The cells are the buttons.
@@ -96,7 +96,7 @@ struct HeatmapPanel: View {
     private func tooltip(_ row: ActivityHeatmap.Row, _ hour: Int) -> String {
         let tip = summary.cellTooltip(row: row, hour: hour)
         let lines = tip.lines.map { line in
-            "\(model.displayName(line.context))  \(line.text)  \(ActivityText.duration(line.seconds))"
+            "\(line.app)  \(line.text)  \(ActivityText.duration(line.seconds))"
                 + (line.device.map { " (\($0))" } ?? "")
         }
         return ([tip.title, tip.summary, ""] + lines + [tip.moreText].compactMap(\.self)).joined(separator: "\n")

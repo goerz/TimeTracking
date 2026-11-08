@@ -144,11 +144,11 @@ extension CalendarSectionTests {
         #expect(try moved.end == world.test.time("15:30"))
     }
 
-    @Test("PC-40 with Midnight at 04:00 the later piece of a block moves it whole, and its edge stays in that column")
-    func timeBlockAcrossMidnight() async throws {
+    @Test("PC-40 with the start of day at 04:00 the later piece of a block moves it whole, and its edge stays in that column")
+    func timeBlockAcrossStartOfDay() async throws {
         let world = try await World()
         let model = world.model
-        try await world.test.store.set(.midnightHour, 4)
+        try await world.test.store.set(.startOfDayHour, 4)
         let block = try await timeBlock(world, from: "03:00", to: "05:00")
         let later = Self.day("2024-03-14")
         await model.moveTimeBlock(block.id, by: 3600, to: later, from: later)

@@ -1,4 +1,4 @@
-// TickSchedule: when the regular ticks fire (activity_tracking.md §2.1).
+// TickSchedule: when the regular ticks fire (activity_tracking.md §2.4).
 
 import Foundation
 
@@ -9,7 +9,7 @@ nonisolated struct TickSchedule: Hashable, Sendable {
     let interval: TimeInterval
     private(set) var next: Date
 
-    init(start: Date, interval: TimeInterval = AgentEngine.tickInterval) {
+    init(start: Date, interval: TimeInterval = Agent.tickInterval) {
         self.interval = interval
         self.next = start
     }

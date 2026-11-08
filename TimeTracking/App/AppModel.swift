@@ -150,7 +150,7 @@ final class AppModel {
             if keys.contains(where: { $0.hasPrefix("calendar.") }) {
                 await reloadHealthViews()
             }
-            await reloadAfterMidnightChange(keys)
+            await reloadAfterStartOfDayChange(keys)
         case let .runningChangedElsewhere(id):
             runningFromElsewhere = .some(id)
         case .sync, .liveState, .adjusted:

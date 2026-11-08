@@ -97,7 +97,8 @@ struct CalendarView: View {
                     .keyboardShortcut(.defaultAction)
             } message: { block in
                 let range = CalendarText.range(block.start, block.end, zone: model.calendar.timeZone)
-                Text("\(range) · \(ActivityContext.groupKeyName(block.groupKey))\nThis removes it on every device and cannot be undone.")
+                let workspace = block.dominantWorkspace.map { ActivityItem.workspaceName($0.workspace) } ?? ""
+                Text("\(range) · \(workspace)\nThis removes it on every device and cannot be undone.")
             }
             .alert(
                 "Couldn't Delete This Activity",

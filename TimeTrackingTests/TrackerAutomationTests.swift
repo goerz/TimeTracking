@@ -8,7 +8,7 @@ import TimeTrackingCore
 
 @MainActor
 struct TrackerAutomationTests {
-    @Test("TRK-37 Ask for Access asks for every scriptable browser and terminal, and the Automation row lists each open app's answer")
+    @Test("TRK-55 Ask for Access asks for every scriptable browser and terminal, and the Automation row lists each open app's answer")
     func askForAutomation() async throws {
         let automation = FakeAutomationPermission(running: [
             "com.apple.Safari": AutomationOutcome(name: "Safari", answer: .allowed),

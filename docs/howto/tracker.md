@@ -26,7 +26,7 @@ Automation lets the tracker read browser tabs and terminals. Click "Ask for Acce
 
 Full Disk Access adds browser history and the macOS app usage history, which also fills in time when the tracker wasn't running. Grant it to the app, as the row describes, then click "Restart Tracker".
 
-The rows for Neovim, tmux, and Claude Code offer a snippet for those programs' configuration. Click Copy Snippet and paste it into the file the info popover names. The app never installs these for you.
+The rows for Neovim, tmux, Claude Code, and remote shells offer a snippet for those programs' configuration. Click Copy Snippet and paste it into the file the info popover names. The app never installs these for you.
 
 ## Check that it works
 
@@ -36,6 +36,6 @@ If the menu bar dial ever shows an exclamation mark, the tracker has stopped. Op
 
 ## Turn it off
 
-Click "Disable Tracker" in the same pane. What is already recorded stays, and the iPhone and iPad keep showing it.
+Click "Disable Tracker" in the same pane. What is already recorded stays, and the iPhone and iPad keep showing it. The time the tracker is off stays empty, also after you turn it on again.
 
 To change what it records, see [Keep something out of the activity record](exclude.md). The settings file also holds further options, which the [tracker spec](../reference/activity_tracking.md#7-settings-and-exclusions) lists.

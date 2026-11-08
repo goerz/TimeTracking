@@ -29,7 +29,7 @@ final class TimerListModel {
     /// Bumped by ⌘↑ (Scroll to Today).
     private(set) var scrollToTopRequest = 0
 
-    /// The shown days (the synced Midnight, read on every reload).
+    /// The shown days (the synced start of day, read on every reload).
     @ObservationIgnored private var calendar: TrackingCalendar
 
     init(store: TimeStore, clock: any Clock) {
@@ -88,7 +88,7 @@ final class TimerListModel {
 
     /// ↑ and ↓.
     func moveSelection(by offset: Int) {
-        // An entry crossing Midnight has a row on each of its days.
+        // An entry crossing the start of day has a row on each of its days.
         var seen = Set<EntryID>()
         let ids = rows.map(\.id).filter { seen.insert($0).inserted }
         guard !ids.isEmpty else {

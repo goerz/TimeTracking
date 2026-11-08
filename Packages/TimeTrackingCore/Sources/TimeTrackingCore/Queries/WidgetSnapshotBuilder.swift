@@ -56,7 +56,7 @@ public struct WidgetSnapshotBuilder: Sendable {
             macLines: MacActivityLine.lines(live, timeZone: timeZone),
             recent: [],
             pinned: [],
-            reloadAt: Self.reloadDate(after: now, pomodoro: pomodoro, timeZone: timeZone, midnightHour: calendar.midnightHour),
+            reloadAt: Self.reloadDate(after: now, pomodoro: pomodoro, timeZone: timeZone, startOfDayHour: calendar.startOfDayHour),
             relevance: Self.relevance(live: live, at: now)
         )
         guard let store else {
@@ -159,7 +159,7 @@ public struct WidgetSnapshotBuilder: Sendable {
 
     /// The timeline's end: the running phase's end while a Pomodoro phase
     /// counts down on this device, else the start of the next day.
-    public static func reloadDate(after now: Date, pomodoro: PomodoroState, timeZone: TimeZone, midnightHour: Int = 0) -> Date {
+    public static func reloadDate(after now: Date, pomodoro: PomodoroState, timeZone: TimeZone, startOfDayHour: Int = 0) -> Date {
         switch pomodoro {
         case let .focus(end), let .onBreak(end):
             if end > now {
@@ -168,7 +168,7 @@ public struct WidgetSnapshotBuilder: Sendable {
         case .off, .focusOver, .breakOver:
             break
         }
-        let calendar = TrackingCalendar(timeZone: timeZone, midnightHour: midnightHour)
+        let calendar = TrackingCalendar(timeZone: timeZone, startOfDayHour: startOfDayHour)
         return calendar.startOfDay(calendar.day(containing: now).adding(days: 1))
     }
 

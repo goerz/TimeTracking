@@ -4,7 +4,7 @@ TimeTracking keeps two records of your day, and the difference between them shap
 
 Tracked time is what you state: time entries, each with a task and usually a project. It is the only thing that reaches the Timer list, the Reports totals, and the exports. You can edit it freely, because it is your account of your own work.
 
-Recorded activity is what the tracker observes on your Mac, and more coarsely on your iPhone and iPad. Every 30 seconds it notes which app, terminal session, or website has your attention, and it groups those notes into activity blocks. A block says, for example, that from 09:10 to 09:44 you were mostly in a terminal session named "paper". It doesn't know that this was thesis work, and it never guesses: the tracker never assigns a project, area, or client, and never opens your time entries.
+Recorded activity is what the tracker observes on your Mac, and more coarsely on your iPhone and iPad. Every 30 seconds it notes which app, terminal session, or website has your attention and which project folder or site the work belongs to, and it groups those notes into activity blocks. A block says, for example, that from 09:10 to 09:44 you were mostly working in the folder "2026_Noise". It doesn't know that this was thesis work, and it never guesses: the tracker never assigns a project, area, or client, and never opens your time entries.
 
 Keeping the record neutral is the point. If the tracker tried to classify your work, it would be wrong some of the time, and you could no longer trust either number. Because it only reports, you can compare the two records freely.
 

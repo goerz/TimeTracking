@@ -31,7 +31,7 @@ protocol ScreenTimeAuthorizing: AnyObject {
     func measureCap() -> Int
 }
 
-/// Owns the App Group staging file and drives the ladder; the extensions
+/// Owns the App Group staging file and drives Screen Time; the extensions
 /// append to the same file through `CollectionLog`.
 @Observable
 final class CollectionModel: CollectionFlushing {
@@ -39,7 +39,7 @@ final class CollectionModel: CollectionFlushing {
     @ObservationIgnored let staging: DeviceEventStagingFile
     @ObservationIgnored let shared: WidgetSharedState
     @ObservationIgnored let authorization: ScreenTimeAuthorizing
-    @ObservationIgnored let ladder: LadderController
+    @ObservationIgnored let controller: ScreenTimeController
     /// The activity folders, resolved off the main actor (the ubiquity
     /// lookup can block); `nil` skips the settings copy.
     @ObservationIgnored let folders: @Sendable () -> ActivityFolders?
@@ -55,11 +55,11 @@ final class CollectionModel: CollectionFlushing {
 
     private(set) var isEnabled: Bool
     private(set) var screenTime: ScreenTimeStatus
-    private(set) var sets: [LadderSet]
+    private(set) var sets: [ScreenTimeSet]
     private(set) var lastFlushAt: Date?
     private(set) var pendingCount = 0
     private(set) var flushError: String?
-    private(set) var ladderError: String?
+    private(set) var screenTimeError: String?
     /// The exclusions of the App Group copy of `settings.toml` (Privacy section).
     private(set) var privacy = TrackerPrivacySettings()
 
@@ -68,18 +68,18 @@ final class CollectionModel: CollectionFlushing {
         staging: DeviceEventStagingFile,
         shared: WidgetSharedState,
         authorization: ScreenTimeAuthorizing,
-        monitor: any LadderMonitoring,
+        monitor: any ScreenTimeMonitoring,
         folders: @escaping @Sendable () -> ActivityFolders?
     ) {
         self.log = log
         self.staging = staging
         self.shared = shared
         self.authorization = authorization
-        self.ladder = LadderController(store: log.state, monitor: monitor, log: log)
+        self.controller = ScreenTimeController(store: log.state, monitor: monitor, log: log)
         self.folders = folders
         self.isEnabled = log.state.isEnabled
         self.screenTime = authorization.status
-        self.sets = log.state.ladderSets
+        self.sets = log.state.screenTimeSets
         self.lastFlushAt = shared.lastFlushAt
         refresh()
     }
@@ -92,65 +92,65 @@ final class CollectionModel: CollectionFlushing {
     func refresh() {
         isEnabled = state.isEnabled
         screenTime = authorization.status
-        sets = state.ladderSets
+        sets = state.screenTimeSets
         lastFlushAt = shared.lastFlushAt
         pendingCount = (try? staging.readAll().count) ?? 0
     }
 
     // MARK: Switch, authorization, sets
 
-    /// The master switch: on registers the ladder when Screen Time allows
+    /// The master switch: on registers the Screen Time when Screen Time allows
     /// it (the other collectors need nothing); off stops it.
     func setEnabled(_ enabled: Bool) {
         state.isEnabled = enabled
         isEnabled = enabled
         if enabled {
-            configureLadder()
+            configureScreenTime()
         } else {
-            ladder.stopAll()
+            controller.stopAll()
         }
     }
 
     /// The "Allow Screen Time Access" button; never called at launch.
     func requestAuthorization() async {
         screenTime = await authorization.request()
-        configureLadder()
+        configureScreenTime()
     }
 
     /// Adds a named set with `label`, without a selection yet.
     @discardableResult
-    func addSet(label: String) -> LadderSet {
-        let set = LadderSet(label: label)
-        state.ladderSets += [set]
-        sets = state.ladderSets
-        configureLadder()
+    func addSet(label: String) -> ScreenTimeSet {
+        let set = ScreenTimeSet(label: label)
+        state.screenTimeSets += [set]
+        sets = state.screenTimeSets
+        configureScreenTime()
         return set
     }
 
     /// Replaces a set's label or selection ("Everything" keeps its label).
-    func updateSet(_ set: LadderSet) {
+    func updateSet(_ set: ScreenTimeSet) {
         var updated = set
         if set.isEverything {
-            updated.label = LadderSet.everythingLabel
+            updated.label = ScreenTimeSet.everythingLabel
         }
-        state.ladderSets = state.ladderSets.map { $0.id == set.id ? updated : $0 }
-        sets = state.ladderSets
-        configureLadder()
+        state.screenTimeSets = state.screenTimeSets.map { $0.id == set.id ? updated : $0 }
+        sets = state.screenTimeSets
+        configureScreenTime()
     }
 
     /// Deletes a named set; "Everything" cannot be deleted.
     func removeSet(id: String) {
-        guard id != LadderSet.everythingID else {
+        guard id != ScreenTimeSet.everythingID else {
             return
         }
-        state.ladderSets = state.ladderSets.filter { $0.id != id }
-        sets = state.ladderSets
-        configureLadder(removed: [id])
+        state.screenTimeSets = state.screenTimeSets.filter { $0.id != id }
+        sets = state.screenTimeSets
+        configureScreenTime(removed: [id])
     }
 
     /// Registers every set when collecting with Screen Time approved,
     /// measuring the event cap on the first run.
-    private func configureLadder(removed: [String] = []) {
+    private func configureScreenTime(removed: [String] = []) {
         guard isEnabled, screenTime == .approved else {
             return
         }
@@ -160,11 +160,11 @@ final class CollectionModel: CollectionFlushing {
             logger.notice("DeviceActivity accepted at most \(cap, privacy: .public) events")
         }
         do {
-            try ladder.configure(removed: removed)
-            ladderError = nil
+            try controller.configure(removed: removed)
+            screenTimeError = nil
         } catch {
             logger.error("Screen Time refused the app groups: \(error.localizedDescription, privacy: .public)")
-            ladderError = "Screen Time couldn't start measuring these apps. Try again later."
+            screenTimeError = "Screen Time couldn't start measuring these apps. Try again later."
         }
     }
 

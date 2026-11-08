@@ -6,7 +6,9 @@ import Foundation
 /// Reads `wezterm cli list-clients --format json` (the focused pane id) and
 /// `wezterm cli list --format json` (the pane's tty, title, and cwd).
 nonisolated enum WezTermAdapter {
-    static func focused(clients: String, panes: String) -> TerminalResolver.Located? {
+    /// The focused pane; `localHosts` are this Mac's names, which an OSC 7
+    /// cwd of a local shell carries.
+    static func focused(clients: String, panes: String, localHosts: Set<String> = []) -> LocatedPane? {
         guard let clientList = try? JSONDecoder().decode([WezTermClient].self, from: Data(clients.utf8)),
               let paneList = try? JSONDecoder().decode([WezTermPane].self, from: Data(panes.utf8))
         else {
@@ -18,7 +20,9 @@ nonisolated enum WezTermAdapter {
         else {
             return nil
         }
-        return TerminalResolver.Located(tty: pane.ttyName, title: pane.title, cwd: pane.cwd.map(Self.path(fromCwd:)))
+        let host = pane.cwd.flatMap { URL(string: $0)?.host() } ?? ""
+        let remote = !host.isEmpty && host != "localhost" && !localHosts.contains(host.lowercased())
+        return LocatedPane(tty: pane.ttyName, title: pane.title, cwd: pane.cwd.map(Self.path(fromCwd:)), cwdHost: remote ? host : "")
     }
 
     /// The path of `file://host/path`.

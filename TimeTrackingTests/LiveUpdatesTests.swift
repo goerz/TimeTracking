@@ -55,9 +55,14 @@ private struct NoKeyClient: WidgetPushing {
 struct LiveUpdatesTests {
     private static func state(sharedFolder: TrackerSourceStatus, reason: String, at time: Date) -> TrackerState {
         TrackerState(
-            device: "macbook",
-            openBlock: nil,
-            primary: TrackerPrimaryItem(context: "tmux:paper", subject: "draft", detail: "nvim"),
+            block: nil,
+            foreground: ActivityItem(
+                app: "WezTerm",
+                appID: "com.github.wez.wezterm",
+                session: "paper",
+                location: "~/Papers/draft",
+                workspace: "~/Papers/draft"
+            ),
             presence: TrackerPresence(state: .active, since: time),
             health: TrackerHealth(lastTick: time, version: "1.0", sources: [
                 TrackerSourceHealth(id: "shared_folder", name: "iCloud Drive folder", status: sharedFolder, reason: reason),
@@ -154,25 +159,25 @@ struct LiveUpdatesTests {
         let live = Self.live(store: store, clock: clock, state: state)
         await live.tick()
         let activity = try await store.liveState().activity[store.deviceID.rawValue]
-        #expect(activity?.device == "macbook")
+        #expect(activity?.device == "Test Mac")
         #expect(activity?.agentRunning == true)
-        #expect(activity?.primary?.subject == "draft")
+        #expect(activity?.foreground?.workspace == "~/Papers/draft")
     }
 
-    @Test("TRK-20 while the agent cannot write the container, a tick copies the local block log and settings into it")
+    @Test("TRK-34 while the agent cannot write the container, a tick copies the local block log and settings into it")
     func copiesFallbackLog() async throws {
         let root = FileManager.default.temporaryDirectory.appending(path: "tt-live-\(UUID().uuidString)")
         defer { try? FileManager.default.removeItem(at: root) }
         let local = root.appending(path: "local")
         let container = root.appending(path: "container")
         try FileManager.default.createDirectory(at: local.appending(path: "blocks"), withIntermediateDirectories: true)
-        let month = local.appending(path: "blocks/2024-03.jsonl")
-        try Data("{\"format\":1}\n".utf8).write(to: month)
+        let dateFile = local.appending(path: "blocks/2024-03-14.jsonl")
+        try Data("{\"format\":1}\n".utf8).write(to: dateFile)
         try Data("[blocks]\n".utf8).write(to: local.appending(path: "settings.toml"))
         let clock = ManualClock.fixture()
         let store = try await TimeStore.inMemory(clock: clock)
         let mirror = ActivityFolderMirror(local: local, container: container)
-        let copied = container.appending(path: "blocks/2024-03.jsonl")
+        let copied = container.appending(path: "blocks/2024-03-14.jsonl")
 
         let active = Self.live(
             store: store,
@@ -190,44 +195,46 @@ struct LiveUpdatesTests {
         let state = Self.state(sharedFolder: .fallback, reason: ActivityFolderMirror.fallbackReason, at: clock.now)
         let fallback = Self.live(store: store, clock: clock, state: state, mirror: mirror)
         await fallback.tick()
-        #expect(try Data(contentsOf: copied) == Data(contentsOf: month))
+        #expect(try Data(contentsOf: copied) == Data(contentsOf: dateFile))
         #expect(FileManager.default.fileExists(atPath: container.appending(path: "settings.toml").path))
-        try Data("{\"format\":1}\n{\"s\":\"2024-03-14T09:00:00\"}\n".utf8).write(to: month)
+        try Data("{\"format\":1}\n{\"s\":\"2024-03-14T09:00:00\"}\n".utf8).write(to: dateFile)
         await fallback.tick()
-        #expect(try Data(contentsOf: copied) == Data(contentsOf: month))
+        #expect(try Data(contentsOf: copied) == Data(contentsOf: dateFile))
         #expect(fallback.mirrorError == nil)
     }
 
-    @Test("TRK-20 the running app's loop copies each append into the container one 2-second period later, within 5 seconds")
+    @Test("TRK-34 the running app's loop copies each append into the container one 2-second period later, within 5 seconds")
     func copyLoop() async throws {
         let root = FileManager.default.temporaryDirectory.appending(path: "tt-live-\(UUID().uuidString)")
         defer { try? FileManager.default.removeItem(at: root) }
         let local = root.appending(path: "local")
         let container = root.appending(path: "container")
         try FileManager.default.createDirectory(at: local.appending(path: "blocks"), withIntermediateDirectories: true)
-        let month = local.appending(path: "blocks/2024-03.jsonl")
-        try Data("{\"format\":1}\n".utf8).write(to: month)
+        let dateFile = local.appending(path: "blocks/2024-03-14.jsonl")
+        try Data("{\"format\":1}\n".utf8).write(to: dateFile)
         let clock = ManualClock.fixture()
         let store = try await TimeStore.inMemory(clock: clock)
         let state = Self.state(sharedFolder: .fallback, reason: ActivityFolderMirror.fallbackReason, at: clock.now)
         let live = Self.live(store: store, clock: clock, state: state, mirror: ActivityFolderMirror(local: local, container: container))
         let gate = SleepGate()
         live.sleep = { try await gate.sleep($0) }
-        let copied = container.appending(path: "blocks/2024-03.jsonl")
+        let copied = container.appending(path: "blocks/2024-03-14.jsonl")
         await live.start(looping: true)
-        #expect(try Data(contentsOf: copied) == Data(contentsOf: month))
+        defer {
+            live.stop()
+            gate.cancel()
+        }
+        #expect(try Data(contentsOf: copied) == Data(contentsOf: dateFile))
         for line in 1 ... 2 {
             await gate.waitForSleep(line)
             let lines = "{\"format\":1}\n" + String(repeating: "{\"s\":\"2024-03-14T09:00:00\"}\n", count: line)
-            try Data(lines.utf8).write(to: month)
-            #expect(try Data(contentsOf: copied) != Data(contentsOf: month))
+            try Data(lines.utf8).write(to: dateFile)
+            #expect(try Data(contentsOf: copied) != Data(contentsOf: dateFile))
             gate.release()
             await gate.waitForSleep(line + 1)
-            #expect(try Data(contentsOf: copied) == Data(contentsOf: month))
+            #expect(try Data(contentsOf: copied) == Data(contentsOf: dateFile))
         }
         #expect(gate.durations.allSatisfy { $0 == LiveUpdates.interval })
         #expect(LiveUpdates.interval <= .seconds(5))
-        live.stop()
-        gate.cancel()
     }
 }

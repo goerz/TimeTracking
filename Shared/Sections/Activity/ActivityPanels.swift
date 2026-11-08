@@ -1,4 +1,4 @@
-// ActivityPanels: the heatmap, bars by day, Contexts, Subjects, In the
+// ActivityPanels: the heatmap, bars by day, Apps, Workspaces, In the
 // background, and Away panels in one or two columns
 // (activity.md §1.4 to §1.8).
 
@@ -16,13 +16,13 @@ struct ActivityPanels: View {
             HStack(alignment: .top, spacing: Design.Spacing.large) {
                 VStack(spacing: Design.Spacing.large) {
                     HeatmapPanel(model: model, summary: summary)
-                    ContextsPanel(model: model, summary: summary)
+                    AppsPanel(model: model, summary: summary)
                     BackgroundPanel(summary: summary)
                 }
                 .frame(width: 564)
                 VStack(spacing: Design.Spacing.large) {
                     BarsPanel(model: model, summary: summary)
-                    SubjectsPanel(model: model)
+                    WorkspacesPanel(model: model)
                     AwayPanel(summary: summary)
                 }
                 .frame(width: 520)
@@ -30,8 +30,8 @@ struct ActivityPanels: View {
             VStack(spacing: Design.Spacing.large) {
                 HeatmapPanel(model: model, summary: summary)
                 BarsPanel(model: model, summary: summary)
-                ContextsPanel(model: model, summary: summary)
-                SubjectsPanel(model: model)
+                AppsPanel(model: model, summary: summary)
+                WorkspacesPanel(model: model)
                 BackgroundPanel(summary: summary)
                 AwayPanel(summary: summary)
             }

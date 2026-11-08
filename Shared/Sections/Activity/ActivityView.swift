@@ -16,7 +16,7 @@ struct ActivityView: View {
                 setupState.frame(maxHeight: .infinity)
             case let .noActivity(notRunning):
                 noActivityState(notRunning: notRunning).frame(maxHeight: .infinity)
-            case .panels, .nothingForContexts:
+            case .panels, .nothingForApps:
                 ScrollView {
                     VStack(alignment: .leading, spacing: Design.Spacing.large) {
                         header
@@ -50,7 +50,7 @@ struct ActivityView: View {
                 Task { await model.escape() }
                 return .handled
             }
-            .environment(\.contextColors, ContextColorLookup(colors: model.contextColors, dark: colorScheme == .dark))
+            .environment(\.appColors, AppColorLookup(colors: model.appColors, dark: colorScheme == .dark))
     }
 
     private func followChanges() async {
@@ -95,7 +95,7 @@ struct ActivityView: View {
         case .setup, .noActivity:
             // The whole section shows these (setupState, noActivityState).
             EmptyView()
-        case .nothingForContexts:
+        case .nothingForApps:
             card {
                 Text("Nothing recorded for the selected apps")
                 Button("Show All Apps") { Task { await model.selectAll() } }
@@ -108,13 +108,13 @@ struct ActivityView: View {
         ContentUnavailableView {
             Label("No Activity Yet", systemImage: SymbolName.activity)
         } description: {
-            if model.isRecordingMac {
+            if model.isMac {
                 Text("Set up the tracker to see where your time goes. Nothing is recorded until you enable it.")
             } else {
                 Text("The tracker runs on your Mac. Set it up in the Mac app's Settings, Tracker pane.")
             }
         } actions: {
-            if model.isRecordingMac {
+            if model.isMac {
                 Button("Open Tracker Settings…") { model.router?.showTrackerSettings() }
             }
         }
@@ -130,7 +130,7 @@ struct ActivityView: View {
                 Text("The tracker was not running.")
             }
         } actions: {
-            if notRunning, model.isRecordingMac {
+            if notRunning, model.isMac {
                 Button("Tracker Settings…") { model.router?.showTrackerSettings() }
             }
         }
@@ -145,13 +145,13 @@ struct ActivityView: View {
     }
 }
 
-/// Context colors for the panels.
-struct ContextColorLookup {
+/// App colors for the panels (§1.3).
+struct AppColorLookup {
     var colors: [String: Int] = [:]
     var dark = false
 
-    func color(_ context: String?) -> Color {
-        guard let context, !ActivityContext(context).isPrivate, let hex = ContextPalette.hex(colors[context], dark: dark) else {
+    func color(_ app: String?) -> Color {
+        guard let app, let hex = AppPalette.hex(colors[app], dark: dark) else {
             return .gray
         }
         return Color(hex: hex)
@@ -159,18 +159,27 @@ struct ContextColorLookup {
 }
 
 extension EnvironmentValues {
-    @Entry var contextColors = ContextColorLookup()
+    @Entry var appColors = AppColorLookup()
 }
 
-/// The glyph of a context (§1.3).
-struct ContextGlyph: View {
-    var context: String
-    @Environment(\.contextColors) private var colors
+/// The glyph of an app (§1.3): a terminal, a compass for every browser,
+/// the device for a Screen Time set, a generic app otherwise.
+struct AppGlyph: View {
+    var app: String
+    var kind: ActivityAppKind
+    @Environment(\.appColors) private var colors
 
     var body: some View {
-        let kind = ActivityContext(context).kind
-        Image(systemName: kind == .session ? "terminal" : kind == .browser ? "safari" : "app").accessibilityHidden(true)
-            .foregroundStyle(colors.color(context))
+        Image(systemName: Self.symbol(kind)).accessibilityHidden(true).foregroundStyle(colors.color(app))
+    }
+
+    static func symbol(_ kind: ActivityAppKind) -> String {
+        switch kind {
+        case .terminal: "terminal"
+        case .browser: "safari"
+        case .screenTime: "iphone"
+        case .other: "app"
+        }
     }
 }
 
@@ -182,10 +191,10 @@ private struct ActivityChips: View {
     var body: some View {
         let ranking = model.summary?.ranking ?? []
         FlowChips(spacing: Design.Spacing.compact) {
-            chip("All", selected: model.contexts.isEmpty) { Task { await model.selectAll() } }
+            chip("All", selected: model.apps.isEmpty) { Task { await model.selectAll() } }
             ForEach(ranking.prefix(8)) { total in
-                chip(model.displayName(total.context), context: total.context, selected: model.contexts.contains(total.context)) {
-                    Task { await model.toggle(total.context) }
+                chip(total.app, total: total, selected: model.apps.contains(total.app)) {
+                    Task { await model.toggle(total.app) }
                 }
                 .help(ActivityText.duration(total.seconds))
             }
@@ -199,11 +208,11 @@ private struct ActivityChips: View {
         .accessibilityIdentifier("activity.chips")
     }
 
-    private func chip(_ title: String, context: String? = nil, selected: Bool, action: @escaping () -> Void) -> some View {
+    private func chip(_ title: String, total: ActivitySummary.AppTotal? = nil, selected: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack(spacing: Design.Spacing.tight) {
-                if let context {
-                    ContextGlyph(context: context)
+                if let total {
+                    AppGlyph(app: total.app, kind: total.kind)
                 }
                 Text(title).lineLimit(1)
             }
@@ -218,13 +227,13 @@ private struct ActivityChips: View {
     private var morePopover: some View {
         VStack(alignment: .leading) {
             TextField("Search", text: $model.moreSearch)
-            List(model.summary?.moreContexts(search: model.moreSearch, displayName: model.displayName) ?? []) { total in
+            List(model.summary?.moreApps(search: model.moreSearch) ?? []) { total in
                 Button {
-                    Task { await model.toggle(total.context) }
+                    Task { await model.toggle(total.app) }
                 } label: {
                     HStack {
-                        ContextGlyph(context: total.context)
-                        Text(model.displayName(total.context))
+                        AppGlyph(app: total.app, kind: total.kind)
+                        Text(total.app)
                         Spacer()
                         Text(ActivityText.duration(total.seconds)).foregroundStyle(.secondary)
                     }
@@ -254,7 +263,7 @@ private struct ActivityFooter: View {
                 Text(waitingText).foregroundStyle(.secondary).accessibilityIdentifier("activity.waitingForICloud")
             }
             Spacer()
-            if model.isRecordingMac {
+            if model.isMac {
                 Button("Tracker Settings…") { model.router?.showTrackerSettings() }
                     .buttonStyle(.borderless)
             }

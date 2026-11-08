@@ -65,9 +65,9 @@ final class CalendarModel {
     /// Called after entry writes (the Timer re-reads).
     @ObservationIgnored var entriesChanged: () async -> Void = {}
     /// Whether this device shows the open block, gap labels, and Delete This Activity.
-    @ObservationIgnored var isRecordingMac = true
+    @ObservationIgnored var isMac = true
 
-    /// The days the columns show (the synced Midnight, read on every reload).
+    /// The days the columns show (the synced start of day, read on every reload).
     var calendar: TrackingCalendar
 
     /// The strip of days (§1.2). Every sideways scroll changes it, so only
@@ -111,8 +111,8 @@ final class CalendarModel {
     // Loaded data.
     private(set) var entries: [EntryListing] = []
     private(set) var blocks: [ActivityBlock] = []
-    /// The tracker's background stretches: work while the user was away (§3.1).
-    private(set) var stretches: [ActivityBackgroundStretch] = []
+    /// The tracker's background blocks: work while the user was away (§3.1).
+    private(set) var backgroundBlocks: [ActivityBlock] = []
     private(set) var timeBlocks: [TimeBlock] = []
     private(set) var externalEvents: [CalendarEvent] = []
     private(set) var calendars: [CalendarInfo] = []
@@ -247,7 +247,7 @@ final class CalendarModel {
                 projects: rows
             )
             let loaded = try await activity.blocks(in: interval, devices: nil)
-            let stretches = try await activity.backgroundStretches(in: interval, devices: nil)
+            let background = try await activity.backgroundBlocks(in: interval, devices: nil)
             let healthPeriods = try await loadHealthPeriods(in: interval)
             guard generation == loadGeneration else {
                 return
@@ -256,13 +256,12 @@ final class CalendarModel {
             projects = rows.map(\.project)
             self.filterTree = filterTree
             projectRows = Dictionary(rows.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
-            let hour = calendar.midnightHour
-            blocks = (isRecordingMac ? loaded : loaded.filter { !$0.isOpen }).map { $0.shown(midnightHour: hour) }
-            self.stretches = stretches.map { $0.shown(midnightHour: hour) }
+            blocks = isMac ? loaded : loaded.filter { !$0.isOpen }
+            backgroundBlocks = background
             self.healthPeriods = healthPeriods
             loadedDays = range
             refreshTotals()
-            if isRecordingMac {
+            if isMac {
                 loadGapLabels()
             }
             await loadEvents(around: interval, generation: generation)
@@ -366,10 +365,8 @@ final class CalendarModel {
     /// their duration (§3.1).
     private func loadGapLabels() {
         var labels: [TrackingDay: [(DateInterval, String)]] = [:]
-        for (shownDay, group) in Dictionary(grouping: blocks, by: \.shownDay) {
-            guard let day = TrackingDay(shownDay) else {
-                continue
-            }
+        let hour = calendar.startOfDayHour
+        for (day, group) in Dictionary(grouping: blocks, by: { $0.shownDay(startOfDayHour: hour) }) {
             labels[day] = ActivityBlock.gaps(between: group, longerThan: 900).map { ($0, ActivityText.duration(Int($0.duration))) }
         }
         gapLabels = labels

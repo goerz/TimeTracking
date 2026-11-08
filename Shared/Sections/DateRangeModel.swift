@@ -27,7 +27,7 @@ final class DateRangeModel {
     private(set) var pendingFirstDay: TrackingDay?
     /// Bumped on every change, so sections reload.
     private(set) var revision = 0
-    /// The zone's calendar with the synced Midnight (rebuilt on a zone
+    /// The zone's calendar with the synced start of day (rebuilt on a zone
     /// change by the view, and by `refreshCalendar` on every reload).
     var calendar = TrackingCalendar(timeZone: .current)
 
@@ -121,10 +121,10 @@ final class DateRangeModel {
         earliest = try? await store.earliestEntryDay()
     }
 
-    /// The Midnight setting, which another device may have changed.
+    /// Rereads the start of day, which another device may have changed.
     func refreshCalendar(_ store: TimeStore) {
         let current = store.displayCalendar(timeZone: calendar.timeZone)
-        if current.midnightHour != calendar.midnightHour {
+        if current.startOfDayHour != calendar.startOfDayHour {
             calendar = current
         }
     }

@@ -27,7 +27,7 @@ final class FamilyControlsAuthorization: ScreenTimeAuthorizing {
     }
 
     func measureCap() -> Int {
-        DeviceActivityLadderMonitor.measureCap()
+        DeviceActivityScreenTimeMonitor.measureCap()
     }
 }
 
@@ -37,7 +37,7 @@ final class FixedScreenTime: ScreenTimeAuthorizing {
     var requested = 0
     let cap: Int
 
-    init(status: ScreenTimeStatus, cap: Int = LadderPlan.defaultCap) {
+    init(status: ScreenTimeStatus, cap: Int = ScreenTimePlan.defaultCap) {
         self.status = status
         self.cap = cap
     }

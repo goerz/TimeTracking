@@ -30,7 +30,7 @@ extension CollectionModel {
             staging: staging,
             shared: shared,
             authorization: FamilyControlsAuthorization(),
-            monitor: DeviceActivityLadderMonitor()
+            monitor: DeviceActivityScreenTimeMonitor()
         ) {
             ActivityFolders.resolve(identity: identity)
         }
@@ -39,7 +39,7 @@ extension CollectionModel {
     }
 
     /// A collection in `folder` over `server` with fixed Screen Time
-    /// authorization and a recording ladder monitor.
+    /// authorization and a recording Screen Time monitor.
     static func local(
         folder: URL,
         defaults: UserDefaults,
@@ -47,7 +47,7 @@ extension CollectionModel {
         clock: any Clock,
         server: InMemoryDeviceEventServer = InMemoryDeviceEventServer(),
         screenTime: ScreenTimeStatus = .denied,
-        monitor: RecordingLadderMonitor = RecordingLadderMonitor(),
+        monitor: RecordingScreenTimeMonitor = RecordingScreenTimeMonitor(),
         folders: ActivityFolders? = nil
     ) -> CollectionModel {
         let staging = DeviceEventStagingFile(folder: folder) { events in
@@ -66,12 +66,12 @@ extension CollectionModel {
     }
 }
 
-/// Records ladder registrations (tests, UI testing).
-final nonisolated class RecordingLadderMonitor: LadderMonitoring {
-    private let registrations = Mutex<[LadderRegistration]>([])
+/// Records Screen Time registrations (tests, UI testing).
+final nonisolated class RecordingScreenTimeMonitor: ScreenTimeMonitoring {
+    private let registrations = Mutex<[ScreenTimeRegistration]>([])
     private let stopped = Mutex<[String]>([])
 
-    var all: [LadderRegistration] {
+    var all: [ScreenTimeRegistration] {
         registrations.withLock { $0 }
     }
 
@@ -79,7 +79,7 @@ final nonisolated class RecordingLadderMonitor: LadderMonitoring {
         stopped.withLock { $0 }
     }
 
-    func startMonitoring(_ registration: LadderRegistration, for _: LadderSet) {
+    func startMonitoring(_ registration: ScreenTimeRegistration, for _: ScreenTimeSet) {
         registrations.withLock { $0.append(registration) }
     }
 

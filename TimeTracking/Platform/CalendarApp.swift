@@ -1,5 +1,5 @@
-// CalendarApp: opens an event in Calendar.app and names installed apps
-// (calendar.md §4.3, activity.md §1.3).
+// CalendarApp: opens an event in Calendar.app
+// (calendar.md §4.3).
 
 import AppKit
 import TimeTrackingCore
@@ -12,15 +12,5 @@ enum CalendarApp {
         if let url = URL(string: "ical://ekevent/\(seconds)?method=show&options=more") {
             NSWorkspace.shared.open(url)
         }
-    }
-}
-
-/// Names of installed apps.
-enum InstalledApps {
-    static func name(forBundleIdentifier identifier: String) -> String? {
-        guard !identifier.isEmpty, let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: identifier) else {
-            return nil
-        }
-        return FileManager.default.displayName(atPath: url.path).replacingOccurrences(of: ".app", with: "")
     }
 }

@@ -7,7 +7,7 @@ public import Foundation
 /// footer (ios.md §2.3).
 public enum MacActivityLine {
     /// One line per Mac whose tracker runs, most recently updated first, at
-    /// most two: "MacBook · paper (tmux) · draft", "iMac · notes.pdf · idle since 14:02".
+    /// most two: "MacBook · WezTerm · MyApp", "iMac · Skim · 2026_Noise · idle since 14:02".
     public static func lines(_ state: LiveState, timeZone: TimeZone, limit: Int = 2) -> [String] {
         state.activity.values
             .filter(\.agentRunning)
@@ -18,8 +18,8 @@ public enum MacActivityLine {
 
     static func line(_ activity: LiveState.MacActivity, timeZone: TimeZone) -> String {
         var parts = [activity.device]
-        if let item = item(activity.primary) {
-            parts.append(item)
+        if let foreground = activity.foreground {
+            parts.append(item(foreground))
         }
         if let presence = presence(activity, timeZone: timeZone) {
             parts.append(presence)
@@ -27,20 +27,11 @@ public enum MacActivityLine {
         return parts.joined(separator: " · ")
     }
 
-    /// The context as Activity names it and the subject, "paper (tmux) ·
-    /// draft"; the subject alone when the context is a plain app name (no
-    /// `kind:name` form).
-    static func item(_ primary: TrackerPrimaryItem?) -> String? {
-        guard let primary else {
-            return nil
-        }
-        if primary.subject.isEmpty {
-            return primary.context.isEmpty ? nil : primary.contextName
-        }
-        if primary.context.contains(":") {
-            return "\(primary.contextName) · \(primary.subject)"
-        }
-        return primary.subject
+    /// The foreground item's app and workspace, "WezTerm · MyApp"; the
+    /// workspace alone when it equals the app.
+    static func item(_ foreground: ActivityItem) -> String {
+        let workspace = foreground.workspaceName
+        return workspace == foreground.appName ? workspace : "\(foreground.appName) · \(workspace)"
     }
 
     /// Nothing while in use with input; "in use", "idle since 14:02",
@@ -56,6 +47,7 @@ public enum MacActivityLine {
         case .locked: "locked"
         case .asleep: "asleep"
         case .otherUser: "another user"
+        case .paused: ""
         }
         guard !word.isEmpty else {
             return nil

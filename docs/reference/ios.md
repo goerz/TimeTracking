@@ -4,7 +4,7 @@ One iOS target runs on iPhone and iPad. The iPhone gets the Timer in pocket form
 
 This spec states only what differs on a touch device. The Timer is that of [timer.md](timer.md), the picker and project dialog those of [projects.md](projects.md), and the intents, entities, and URL scheme those of [automation.md](automation.md). iOS has no Apple Watch app, Live Activities, idle detection, or "remind me to track time" reminders.
 
-Days shown here (the Timer list, widget totals, Today's Total, the iPad's sections) run from Midnight to Midnight, the synced setting of [data_and_sync.md](data_and_sync.md) §8; entries are stored whole and cut at that hour when shown.
+Days shown here (the Timer list, widget totals, Today's Total, the iPad's sections) run from one start of day to the next, the synced setting of [data_and_sync.md](data_and_sync.md) §8; entries are stored whole and cut at that hour when shown.
 
 ## 1. Processes
 
@@ -13,7 +13,7 @@ Days shown here (the Timer list, widget totals, Today's Total, the iPad's sectio
 | App | `TimeTrackingiOS` | Screens, sync, notifications, the push token upload, the collection flush |
 | Widget extension | `TimeTrackingWidgets` | Widgets, controls, the widget push handler |
 | App Intents extension | `TimeTrackingIntents` | The Focus filter and `LogActivityEventIntent` |
-| DeviceActivity monitor | `TimeTrackingMonitor` | Appending ladder events |
+| DeviceActivity monitor | `TimeTrackingMonitor` | Appending Screen Time events |
 | Safari web extension | `TimeTrackingWebExtension` | Appending browsing events |
 
 All five share the App Group `group.<APP_ID>`; the app and the widget extension also use the iCloud container `iCloud.<APP_ID>`.
@@ -36,7 +36,7 @@ Starting while another entry runs, from any surface, stops it at the new start. 
 
 ### 2.3 The Mac's current activity
 
-Each Mac whose `LiveState` part has `agentRunning` true ([data_and_sync.md](data_and_sync.md) §4.1) gets a line under the card, at most two, most recently updated first: the device, the primary item's context and subject, and the presence ("MacBook · paper (tmux) · draft"; the subject alone when the context is a plain app name). The presence is omitted while the Mac is in use with input, else "in use", or "idle", "locked", "asleep", or "another user" with "since 14:02". On the iPad, a tap opens the Activity tab.
+Each Mac whose `LiveState` part has `agentRunning` true ([data_and_sync.md](data_and_sync.md) §4.1) gets a line under the card, at most two, most recently updated first: the device, the foreground item's app and workspace, and the presence ("MacBook · WezTerm · MyApp"; the workspace by its last component, alone when it equals the app). The presence is omitted while the Mac is in use with input, else "in use", or "idle", "locked", "asleep", or "another user" with "since 14:02". On the iPad, a tap opens the Activity tab.
 
 ### 2.4 Project picker and quick creation
 
@@ -71,21 +71,21 @@ A sheet from the toolbar; longer settings push a screen of their own and show th
 | Section | Setting | Default | Scope |
 |---|---|---|---|
 | iCloud | Status, "Waiting to sync", "Device name", "Sync Now" | | Device |
-| (none) | Midnight: 00:00 to 23:00 ([data_and_sync.md](data_and_sync.md) §8) | 00:00 | Synced |
+| (none) | "Start of day": 00:00 to 23:00 ([data_and_sync.md](data_and_sync.md) §8) | 00:00 | Synced |
 | Pomodoro | Focus (1 to 180 min), Break (1 to 60 min) | 25, 5 | Synced |
 | Pomodoro | Play a sound when a focus or break ends | On | Device |
 | Notifications | "Remind me when an entry runs long", "Remind after" N hours (1 to 12) | On, 4 h; iPad off, so two devices do not remind at once | Device |
 | Widgets | "Pinned projects": the ordered `pinnedProjectIDs` | Empty | Synced |
 | Widgets | "Task for pinned buttons": "The project's last task" or "No task" | Last task | Device |
 | Activity | "Activity collection": the master switch, Screen Time status and request, app groups, setup steps with check marks, "Last sent", "Waiting to send", "Send Now" | Off | Device |
-| Activity | "Privacy": a read-only view of the exclusions in `Activity/settings.toml`, edited in the Mac's Tracker pane | | Shared file |
+| Activity | "Privacy": a read-only view of the exclusions in `Activity/settings.toml`, which the user edits on the Mac ([activity_tracking.md](activity_tracking.md) §7) | | Shared file |
 | Apple Health (iPhone) | "Sleep" and "Workouts" ([calendar.md](calendar.md) §6); turning one on asks for access and imports (§7 item 6) | Off | Synced |
 | Calendar (iPad) | The Mac's Calendar pane ([calendar.md](calendar.md) §6) | 5 min, no calendars | Synced |
 | About | Version and build, the app's Shortcuts link | | |
 
 While notifications are denied, the footer reads "Notifications are off, so focus, break, and reminder alerts won't appear." with "Open Settings".
 
-On screen an app set is an "app group" ([design.md](design.md) §11), with its name and the apps, categories, and sites chosen in the system's picker. Collected activity goes to Activity, so the texts name that, never the log files. A failed send shows "Couldn't send your activity to iCloud. The app will try again." and a refused ladder "Screen Time couldn't start measuring these apps. Try again later."
+On screen an app set is an "app group" ([design.md](design.md) §11), with its name and the apps, categories, and sites chosen in the system's picker. Collected activity goes to Activity, so the texts name that, never the log files. A failed send shows "Couldn't send your activity to iCloud. The app will try again." and a refused Screen Time registration "Screen Time couldn't start measuring these apps. Try again later."
 
 ## 3. Widgets
 
@@ -172,7 +172,7 @@ The app handles the URLs of [automation.md](automation.md) §6. On the iPad, `pl
 2. Offline. Every change commits locally first, so every surface works offline. While the outbox holds changes, a sync pill under the card shows waiting for the network, sending lasting over 10 s, or an error.
 3. Adjustments. When the library reports an adjustment to an entry this device created, the Timer shows a banner "Another device changed an entry" with "Show", which opens the edit sheet with a one-line explanation ("Stopped at 10:14 because an entry started on MacBook"). The row keeps a badge until its sheet has opened once.
 4. Fan-out. After every applied sync and local write, the app reloads widgets and controls, ends the Pomodoro when nothing runs any more, reschedules the long-running reminder, uploads the push token, updates the App Shortcut parameters when projects changed, and flushes the collection file when due (9.6).
-5. Midnight. While the app runs it looks every minute and runs the fan-out when the shown day has changed ([data_and_sync.md](data_and_sync.md) §8), so the running part moves to the new day. A change of the Midnight setting does the same and reloads the iPad's sections.
+5. Start of day. While the app runs it looks every minute and runs the fan-out when the shown day has changed ([data_and_sync.md](data_and_sync.md) §8), so the running part moves to the new day. A change of the "Start of day" setting does the same and reloads the iPad's sections.
 6. Apple Health. The iPhone, never the iPad, imports sleep and workouts while `calendar.showSleep` or `calendar.showWorkouts` are on ([data_and_sync.md](data_and_sync.md) §1.9): at every wake after the fetch and when either setting changes in the foreground, then it sends. Only in the foreground does it first ask HealthKit for read access, Workouts including the distance types, so a refresh task never shows the sheet. A failed read (protected data on a locked device) leaves that kind's periods and import time as they were. An import that read at least one kind records the synced import status, at most hourly unless the device or kinds change, which the Calendar settings report.
 
 ## 8. Notifications
@@ -190,27 +190,27 @@ Actions run in the background. Keep Running schedules the next `longRunning` N h
 
 ## 9. Activity collection
 
-Collection is opt-in per device. Collectors record raw, labeled events, never map them to projects, and apply exclusions before writing; the Mac agent merges them into blocks ([activity_tracking.md](activity_tracking.md) §6.2).
+Collection is opt-in per device. Collectors record raw, labeled events, never map them to projects, and apply exclusions before writing; the Mac agent turns them into Samples ([activity_tracking.md](activity_tracking.md) §6.2).
 
 ### 9.1 The collection file
 
-Every collector appends one JSON line to `Activity/events.jsonl` in the App Group ([data_and_sync.md](data_and_sync.md) §6), with appends serialized across processes. A flush uploads the lines as `DeviceEvent` records and then removes those up to the acknowledged `lastFlushedSeq`, so an event appended meanwhile stays and an interrupted flush resumes without duplicates. Times are the device clock with the zone offset.
+Every collector appends one JSON line to `Activity/events.jsonl` in the App Group ([data_and_sync.md](data_and_sync.md) §6), holding the lock `Activity/events.lock`, so appends from several processes never interleave; an append after a torn last line starts a new line, so only the torn event is lost. A flush uploads the lines as `DeviceEvent` records and then replaces the file with the lines after the acknowledged `lastFlushedSeq`, which `Activity/events.state` keeps with the next `sequence` to assign, writing a new file and renaming it over the old one; so a killed flush leaves the old file or the new one, an event appended meanwhile stays, and an interrupted flush resumes without duplicates. Without a readable `events.state`, the next `sequence` follows the highest in the file. Times are the device clock with the zone offset, which becomes the record's `utcOffset`; each line has a `sequence`, and a flush adds the device's `deviceID` and `deviceName`.
 
 | Source | Label | Kind | Payload |
 |---|---|---|---|
-| `ladder` | The app set's label | `minute` | `{"n": 37}`, the step reached today; `"early": true` for a rejected callback |
+| `screenTime` | The app set's label | `minute` | `{"n": 37}`, the step reached today; `"early": true` for a rejected callback |
 | `focus` | The Focus filter's label | `on`, `off` | `{"collect": false}` on an `on` that suspends collectors |
 | `intent` | The automation's label | the `ActivityEventKind` raw value | none |
 | `webext` | The reduced URL (9.5) | `tab` | none |
 | `app` | "TimeTracking" | `foreground`, `background` | none |
 
-### 9.2 DeviceActivity ladder
+### 9.2 Screen Time thresholds
 
 The app requests Family Controls authorization from the Activity collection screen, never at launch. The monitor extension only appends (its memory ceiling is about 6 MB). With Screen Time denied, every other collector still works.
 
 Each app set has a free-text label (suggested "Mail", "Messages", "Social", "Browsing", "Reading", "Work apps") and an opaque selection; only the label reaches the log. "Everything" measures all use of the device, is created automatically, and cannot be changed or deleted.
 
-For each set, one repeating schedule runs from real midnight to real midnight, whatever the Midnight setting, with threshold events; the callback for step k appends a `ladder` line with `n = k`. "Everything" climbs in 1-minute steps to 60, a named set to 10, then both in 5-minute steps, never past a whole day. The day's first registration uses absolute thresholds with past activity; later ones use the minutes remaining after the last counted step.
+For each set, one repeating schedule runs from real midnight to real midnight, whatever the "Start of day" setting, with threshold events; the callback for step k appends a `screenTime` line with `n = k`. "Everything" climbs in 1-minute steps to 60, a named set to 10, then both in 5-minute steps, never past a whole day. The day's first registration uses absolute thresholds with past activity; later ones use the minutes remaining after the last counted step.
 
 The event cap is undocumented, so the first run measures it by registering 1, 2, 4, …, 512 events and keeping the largest count accepted. Named sets together get 16% of the cap (at least 10 each, at most half the cap) and "Everything" the rest: with a cap of 100 and one named set, "Everything" reaches 180 minutes and the named set 40. A set registers one window of its budget's size at a time; at the window's last step the extension registers the next.
 
@@ -218,7 +218,7 @@ A callback counts only if it comes no earlier than the last counted step's time 
 
 ### 9.3 Focus filter
 
-The filter has the parameters `label` ("Name") and `collect` ("Record Safari Sites and Automations", default true; false suspends the Safari and automation collectors while that Focus is on). It appends `on` when performed with a label and `off`, for the label last logged, when the system performs it with default parameters at the Focus's end; an `on` for another label first ends the current one. The system does not say which Focuses exist, so its suggestions are fixed: Work, Personal, Sleep, Fitness, Reading, Driving.
+The filter has the parameters `label` ("Name") and `collect` ("Record Safari Sites and Automations", default true; false suspends the Safari and automation collectors while that Focus is on). It appends `on` when performed with a label and `off`, for the label last logged, when the system performs it with default parameters at the Focus's end; an `on` for another label first ends the current one. Only a Focus that suspends collection changes the activity record, where its time is paused ([activity_tracking.md](activity_tracking.md) §6.2); one that doesn't leaves no trace there. The system does not say which Focuses exist, so its suggestions are fixed: Work, Personal, Sleep, Fitness, Reading, Driving.
 
 ### 9.4 Automations
 
@@ -289,7 +289,7 @@ The iPad reads the block log and `LiveState`; it never writes the block log or r
 - IOS-4. Create Project from the picker with a new client and area creates all three and assigns the project to the running entry (2.4).
 - IOS-5. Continue on a row with an archived project shows the restore alert; Cancel starts nothing.
 - IOS-6. A full leading swipe on a row continues it.
-- IOS-7. The card's elapsed time and the Now widget count from the entry's start: with Midnight at 00:00, at 00:30 an entry started at 23:00 shows 1:30:00, and the Today total includes 0:30:00 of it.
+- IOS-7. The card's elapsed time and the Now widget count from the entry's start: with the start of day at 00:00, at 00:30 an entry started at 23:00 shows 1:30:00, and the Today total includes 0:30:00 of it.
 - IOS-8. Saving 23:00 to 01:00 in the edit sheet stores one entry; an end later than now or before the start is refused; an overlap shows the notice with Keep and Revert (2.7).
 - IOS-9. Starting a Pomodoro schedules `pomodoroFocusDone` for `focusEnd`; continuing another entry leaves the phase and `focusEnd` unchanged; stopping so that nothing runs, on any device, sets `off` and removes pending notifications.
 - IOS-10. After termination and relaunch the Pomodoro state and notification are intact; a relaunch after `focusEnd` shows `focusOver` with "Start Break"; the replay never changes an entry.
@@ -310,7 +310,7 @@ The iPad reads the block log and `LiveState`; it never writes the block log or r
 - IOS-25. When the invariant pass stops an entry this device started, the banner appears and the row is badged until its sheet opens.
 - IOS-26. The `longRunning` notification is scheduled at the entry's start plus the configured hours, also for an entry started on the Mac; Keep Running reschedules N hours later; Stop stops the entry.
 - IOS-27. Concurrent appends from two processes never interleave lines; `lastFlushedSeq` advances only after CloudKit acknowledges the batch; two overlapping flushes keep an event appended while both were uploading.
-- IOS-28. A ladder callback earlier than its ledger time is logged with `"early": true`, not counted, and re-registered.
+- IOS-28. A Screen Time callback earlier than its ledger time is logged with `"early": true`, not counted, and re-registered.
 - IOS-29. Turning a configured Focus on and off appends `on` and `off` lines with its label while the app is not running.
 - IOS-30. The Safari handler drops `exclude_domains`, reduces `private_domains` to the domain, and strips query strings and fragments.
 - IOS-31. A wrapper intent flushes only when the last flush is more than 5 minutes old.
@@ -329,9 +329,9 @@ The iPad reads the block log and `LiveState`; it never writes the block log or r
 - IOS-44. In every section tab of the iPad, in portrait and landscape, the sidebar opens and closes with its button and the tabs then still switch by tap.
 - IOS-45. A widget's Stop and the long-running notification's Stop stop only the entry they showed, checked and stopped in one write; an entry started since keeps running.
 - IOS-46. A widget provider resolving while another provider's CloudKit fetch is still under way fetches too; a fetch counts for the 10-second reuse only once it returned.
-- IOS-47. The app's ladder configuration and the monitor extension's callbacks read and write a set's ledger while holding the App Group lock; the device ID is created under the same lock.
-- IOS-48. With Midnight at 04:00, a widget's today at 02:00 holds the stopped parts of the day and a live timer from the running entry's own start, and its timeline ends at 04:00.
-- IOS-49. The iPhone's Settings show Midnight.
+- IOS-47. The app's Screen Time configuration and the monitor extension's callbacks read and write a set's ledger while holding the App Group lock; the device ID is created under the same lock.
+- IOS-48. With the start of day at 04:00, a widget's today at 02:00 holds the stopped parts of the day and a live timer from the running entry's own start, and its timeline ends at 04:00.
+- IOS-49. The iPhone's Settings show "Start of day".
 - IOS-50. With "Play a sound" off a phase's notification is silent; on, it has its bundled sound; `longRunning` and `syncAdjusted` use the default sound.
 - IOS-51. Typing in the edit sheet's task field lists up to four earlier tasks; `@` opens no picker; a tap on a suggestion sets the sheet's task and project, Done stores them, and Cancel leaves the entry unchanged.
 - IOS-52. Turning the timer control off on an entry known only from `LiveState` fetches changes first and then stops it, or fails with the iCloud message; an entry started here since the widgets' last state is the one it stops.

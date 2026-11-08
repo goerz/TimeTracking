@@ -1,4 +1,4 @@
-// ActivityRowAction: a row of the Apps or Subjects list that a click and
+// ActivityRowAction: a row of the Apps or Workspaces list that a click and
 // Space act on (activity.md §1.6, §2).
 
 import SwiftUI

@@ -88,6 +88,8 @@ struct AgentEnvironment {
     var clock: any Clock
     var timeZone: TimeZone
     var homeDirectory: String
+    /// This Mac's host names, lowercased; an OSC 7 folder with another host is a remote shell's.
+    var localHostNames: Set<String> = []
     /// The folder of tmux's server sockets (`$TMUX_TMPDIR/tmux-<uid>` or `/private/tmp/tmux-<uid>`).
     var tmuxSocketFolder: String
     /// The folder of Neovim's server sockets (`$TMPDIR/nvim.<user>`).
@@ -101,6 +103,9 @@ struct AgentEnvironment {
     var editorRPC: any EditorRPC
     var history: any BrowserHistory
     var knowledge: any KnowledgeSource
+    /// The display name of an installed app by bundle identifier; the
+    /// identifier itself for an app that isn't installed.
+    var appName: (String) -> String = \.self
 }
 
 // swiftlint:enable discouraged_optional_collection

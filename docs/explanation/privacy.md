@@ -4,15 +4,15 @@ The tracker is off until you turn it on. Nothing is recorded before you click "E
 
 ## On the Mac
 
-Once enabled, the tracker takes a sample every 30 seconds, and at once when you switch apps or tmux panes or lock the screen. A sample holds the time, whether you are present, and what the frontmost window shows: the app or terminal session, the piece of work (a site, a folder, a window), and the thing in hand (a file or a page).
+Once enabled, the tracker takes a sample every 30 seconds, and at once when you switch apps or tmux panes or lock the screen. A sample holds the time, whether you are present, and what has your attention: the app and its window, the terminal session, the folder or web address, the files open in an editor, the command running in the terminal, and the project folder or site the work belongs to.
 
 It reads this from window titles, browser tabs, terminal sessions, and the macOS app usage history, as far as you grant the permissions. Each source has a fallback. Without Accessibility access the tracker records only app names; without Full Disk Access it records Safari pages by site only. The Tracker pane shows which sources are on, limited, or off, and what each one costs you.
 
-Some things are never recorded: keystrokes, the clipboard, screenshots, message bodies, terminal command lines (they can carry passwords and tokens), password manager contents, and anything of a private browser window beyond the browser's name.
+Some things are never recorded: keystrokes, the clipboard, screenshots, message bodies, password manager contents, and anything of a private browser window beyond the browser's name. Command lines and web addresses can carry passwords and tokens, so before they leave the Mac, the tracker replaces the parts that look like secrets with `(private)`.
 
 ## What leaves the Mac
 
-The tracker keeps two kinds of logs. The block log is a summary: for each stretch of activity, its time and main items. It goes to iCloud Drive, so your iPhone and iPad can show it. The detail log holds finer records, such as every page visited and every file modified, and it stays on the Mac that recorded it, in local files. That is why the iPad's Activity tab can't drill into a site and why the panel there says "Details stay on the Mac that recorded them".
+The samples stay on the Mac, in a local database, for 90 days. From them the tracker forms the block log: for each stretch of activity, its time and every item with its seconds, with secrets removed as described above. The block log goes to iCloud Drive, so your iPhone and iPad can show it.
 
 The only other thing that leaves is the Mac's current activity, a single line, so your iPhone can show what the Mac is doing.
 

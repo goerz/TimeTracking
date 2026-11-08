@@ -99,8 +99,9 @@ public struct CloudKitDeviceEventUploader: Sendable {
 /// The Mac agent's `DeviceEventSource` over the zone's change feed.
 ///
 /// There is no push subscription: `changes` fires every `pollInterval`
-/// (the 5-minute fallback of activity_tracking.md §2.3). `purge`
-/// reads the whole zone and deletes the records older than the date; the
+/// (the 5-minute fetch of activity_tracking.md §2.5). `purge` reads the
+/// whole zone and deletes the records older than the date except the
+/// last of each device and source (`DeviceEvent.kept(of:before:)`); the
 /// agent calls it once a day.
 public struct CloudKitDeviceEventSource: DeviceEventSource {
     public let database: CKDatabase
@@ -113,35 +114,77 @@ public struct CloudKitDeviceEventSource: DeviceEventSource {
         self.pollInterval = pollInterval
     }
 
-    public func events(since token: ChangeToken?) async throws -> ([DeviceEvent], ChangeToken) {
-        var events: [DeviceEvent] = []
-        var current = token.flatMap { CloudKitRecords.unarchiveToken($0.data) }
+    /// The events added since `token` and the token after them. A record
+    /// that fails to load fails the fetch, so the token doesn't move past
+    /// it; an expired token starts over from the beginning, which stores
+    /// nothing twice (events are keyed by record name).
+    public func events(since token: ChangeToken?) async throws -> DeviceEventBatch {
+        let start = token.flatMap { CloudKitRecords.unarchiveToken($0.data) }
+        var page: Page
         do {
-            while true {
-                let changes = try await database.recordZoneChanges(inZoneWith: zoneID, since: current)
-                for result in changes.modificationResultsByID.values {
-                    if case let .success(modification) = result, let event = CloudKitDeviceEvents.event(modification.record) {
-                        events.append(event)
-                    }
-                }
-                current = changes.changeToken
-                if !changes.moreComing {
-                    break
-                }
+            do {
+                page = try await changes(since: start)
+            } catch let error as CKError where error.code == .changeTokenExpired {
+                page = try await changes(since: nil)
             }
         } catch let error as CKError where error.code == .zoneNotFound || error.code == .userDeletedZone {
             // No iOS device has flushed yet.
-            return ([], token ?? ChangeToken(data: Data()))
+            return DeviceEventBatch(events: [], token: token ?? ChangeToken(data: Data()))
         } catch {
             throw CloudKitTransport.transportError(error)
         }
-        let data = current.flatMap(CloudKitRecords.archive) ?? token?.data ?? Data()
-        return (events.sorted { ($0.time, $0.sequence) < ($1.time, $1.sequence) }, ChangeToken(data: data))
+        let data = page.token.flatMap(CloudKitRecords.archive) ?? token?.data ?? Data()
+        return DeviceEventBatch(
+            events: page.events.sorted { ($0.time, $0.sequence) < ($1.time, $1.sequence) },
+            token: ChangeToken(data: data),
+            unreadable: page.unreadable.count
+        )
     }
 
+    /// What the change feed holds since a token.
+    private struct Page {
+        var events: [DeviceEvent] = []
+        /// Device event records that don't decode, with their time.
+        var unreadable: [(id: CKRecord.ID, time: Date?)] = []
+        var token: CKServerChangeToken?
+    }
+
+    /// Every page of changes since `token`, and the token after the last.
+    private func changes(since token: CKServerChangeToken?) async throws -> Page {
+        var page = Page(token: token)
+        while true {
+            let changes = try await database.recordZoneChanges(inZoneWith: zoneID, since: page.token)
+            for result in changes.modificationResultsByID.values {
+                let record = try result.get().record
+                if let event = CloudKitDeviceEvents.event(record) {
+                    page.events.append(event)
+                } else if record.recordType == CloudKitDeviceEvents.recordType {
+                    page.unreadable.append((record.recordID, (record["time"] as? Date) ?? record.creationDate))
+                }
+            }
+            page.token = changes.changeToken
+            if !changes.moreComing {
+                return page
+            }
+        }
+    }
+
+    /// Deletes the events older than `date` except each device's and
+    /// source's last, and the device event records older than `date` that
+    /// this version can't read, which no Mac will convert.
     public func purge(before date: Date) async throws {
-        let (events, _) = try await events(since: nil)
-        let old = events.filter { $0.time < date }.map { CKRecord.ID(recordName: $0.recordName, zoneID: zoneID) }
+        let page: Page
+        do {
+            page = try await changes(since: nil)
+        } catch let error as CKError where error.code == .zoneNotFound || error.code == .userDeletedZone {
+            return
+        } catch {
+            throw CloudKitTransport.transportError(error)
+        }
+        let kept = DeviceEvent.kept(of: page.events, before: date)
+        let old = page.events.filter { $0.time < date && !kept.contains($0.recordName) }
+            .map { CKRecord.ID(recordName: $0.recordName, zoneID: zoneID) }
+            + page.unreadable.filter { ($0.time ?? .distantFuture) < date }.map(\.id)
         for start in stride(from: 0, to: old.count, by: CloudKitDeviceEvents.batchSize) {
             let batch = Array(old[start ..< min(start + CloudKitDeviceEvents.batchSize, old.count)])
             do {

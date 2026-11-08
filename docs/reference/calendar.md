@@ -12,9 +12,9 @@ Below the filter bar, a summary strip covers the shown days: "Tracked" with its 
 
 ### 1.2 Days and scrolling
 
-A day column runs from Midnight to Midnight ([data_and_sync.md](data_and_sync.md) §8), 00:00 by default, in the device's current time zone, so it is 23 or 25 hours tall on daylight-saving days. The hour labels start at that hour, and today is the shown day that contains now: with Midnight at 04:00, 02:00 on Tuesday still belongs to Monday. Weeks run Monday to Sunday.
+A day column runs from one start of day to the next ([data_and_sync.md](data_and_sync.md) §8), 00:00 by default, in the device's current time zone, so it is 23 or 25 hours tall on daylight-saving days. The hour labels start at that hour, and today is the shown day that contains now: with the start of day at 04:00, 02:00 on Tuesday still belongs to Monday. Weeks run Monday to Sunday.
 
-Anything that crosses the day change (an entry, an activity block when Midnight is not 00:00, an external event, a time block) is drawn as one piece per day. Dragging a piece of an entry or time block moves the whole; an entry's edges resize it within the piece's column, and its totals count each piece on its own day. An activity block counts whole on the day of its start.
+Anything that crosses the day change (an entry, an activity block, an external event, a time block) is drawn as one piece per day. Dragging a piece of an entry or time block moves the whole; an entry's edges resize it within the piece's column, and its totals count each piece on its own day. An activity block counts whole on the day of its start.
 
 The strip has no first or last day and loads the days around the view as it moves. Every day is `dayWidth` points wide, from 96 to 1600 (default 260), so the window's width decides how many days show, and the days at either edge may be cut off. The logarithmic slider, ⌥⌘[ and ⌥⌘] (a factor of 1.25), and a horizontal pinch on the iPad change it, keeping the time at the viewport's center in place.
 
@@ -22,7 +22,7 @@ A trackpad's sideways swipe, ⇧ with a mouse wheel, a drag on the day headers, 
 
 Today (⌘T), and every launch, puts today at position ⌈n / 2⌉ from the left of the `n` whole days in view, with a day starting at the left edge. A new window width keeps the left edge. A click on a day header's weekday and date slides that day to the left edge, and ⌥-click shows it alone, as wide as the viewport. The URL `timetracking://planner/calendar?date=YYYY-MM-DD` moves that day to the left edge. Today has a highlighted header and a tint; Saturday and Sunday are shaded. All days share one vertical scroll position; on opening, the current time sits one third down the viewport from the first frame, so nothing scrolls when the data arrives.
 
-The router's `showCalendar(day:hour:highlight:)` ([projects.md](projects.md) §1.3) moves `day` to the left edge, scrolls `hour` to the top (the day's first activity block when nil, else 08:00), turns the Activity column on, and pulses the block cards of `highlight` (one hour of that day, or one context on that day) for 1.5 s. Both zooms stay as they are.
+The router's `showCalendar(day:hour:highlight:)` ([projects.md](projects.md) §1.3) moves `day` to the left edge, scrolls `hour` to the top (the day's first activity block when nil, else 08:00), turns the Activity column on, and pulses the block cards of `highlight` (one hour of that day, or one app on that day) for 1.5 s. Both zooms stay as they are.
 
 ### 1.3 Vertical zoom
 
@@ -34,7 +34,7 @@ Hour labels appear every two hours below 36 points per hour, every hour up to 12
 
 The day's width is split among its visible columns by weight: Activity 1, Tracked 2, Calendar 1.5. Tracked always shows; Activity and Calendar are toggles, default on. Each column's glyph in the day header is its toggle, and a hidden column leaves its glyph, struck through, at its edge of the Tracked cell ("Show Calendar Column"). View › Show Activity Column (⌥⌘A) and Show Calendar Column (⌥⌘K) do the same.
 
-A day header shows weekday and date, an overlap warning (2.6), and above each visible column its total, led by the column's glyph so every number names its column: "6h 38m", "2h 21m", "1h". A column under 72 points rounds its total to whole hours ("4h"; "45m" below one hour) and draws activity cards without text; one under 50 points shows only the glyph, and the exact total is in the tooltip. Column names follow while the day is at least 240 points wide and the column at least 120. All-day events sit in a strip under the header: a column named D shows the all-day events of date D, whatever Midnight is.
+A day header shows weekday and date, an overlap warning (2.6), and above each visible column its total, led by the column's glyph so every number names its column: "6h 38m", "2h 21m", "1h". A column under 72 points rounds its total to whole hours ("4h"; "45m" below one hour) and draws activity cards without text; one under 50 points shows only the glyph, and the exact total is in the tooltip. Column names follow while the day is at least 240 points wide and the column at least 120. All-day events sit in a strip under the header: a column named D shows the all-day events of date D, whatever the start of day is.
 
 ### 1.5 The now-line
 
@@ -83,15 +83,15 @@ Trim (default) shortens the changed entry to abut the neighbor; Overlap forces t
 
 ### 3.1 Blocks
 
-The column shows the day's blocks, plus on the Mac today's open block. A card is a light neutral tint, the same for every context: context colors ([activity.md](activity.md) §1.3) would mostly repeat the terminal's or the browser's color and compete with the entries' area colors beside them. Line 1 is the dominant workspace as the Activity section names it ("paper (tmux)"), line 2 the dominant item's subject and detail. Background items add a "+1" badge. A block mostly reconstructed from macOS app usage history (`rec` over half of `a`) is hatched, one with time on an iPhone or iPad carries a phone glyph, and one with `remote` time a cloud glyph. Parts covered by entries are dimmed to 50% opacity. On the Mac, a gap over 15 minutes between blocks of any device shows its duration as a faint label ("22m").
+The column shows the day's foreground blocks, plus on the Mac the open block. A card is a light neutral tint, the same for every app: app colors ([activity.md](activity.md) §1.3) would mostly repeat the terminal's or the browser's color and compete with the entries' area colors beside them. Line 1 is the dominant workspace by its last component ("MyApp"), line 2 the dominant item, labeled as in the block summary ([activity_tracking.md](activity_tracking.md) §2.8). Background items add a "+1" badge. A block mostly reconstructed from macOS app usage history (`rc` over half of its active time) is hatched, one with time on an iPhone or iPad carries a phone glyph, and one with `remote` time a cloud glyph. Parts covered by entries are dimmed to 50% opacity. On the Mac, a gap over 15 minutes between blocks of any device shows its duration as a faint label ("22m").
 
-Background stretches ([activity_tracking.md](activity_tracking.md) §2.7) are thin strips at the column's trailing edge over their time, in a gap and never on a block. The tooltip names their items ("In the background while away: Claude refactor-parser 38m"); they have no popover and make no entry.
+Background blocks ([activity_tracking.md](activity_tracking.md) §2.7) are thin strips at the column's trailing edge over their time, in a gap between foreground blocks and never on one. The tooltip names their items ("In the background while away: Claude Code refactor-parser 38m"); they have no popover and make no entry.
 
-With Sleep or Workouts on (section 6), the health periods ([data_and_sync.md](data_and_sync.md) §1.9) are thin lines centered in the column over their time, sleep dark blue and workouts dark green. A period that crosses Midnight shows on both days. A line lies under the blocks and over a gap's thin lines. A period's whole duration is a label ("7h 10m") centered on its line on the day it ends, so a night is labeled on the morning it ends; a gap label within 16 points of it is left out. The tooltip reads "Sleep 7h 10m" or "Workout 45m".
+With Sleep or Workouts on (section 6), the health periods ([data_and_sync.md](data_and_sync.md) §1.9) are thin lines centered in the column over their time, sleep dark blue and workouts dark green. A period that crosses the start of day shows on both days. A line lies under the blocks and over a gap's thin lines. A period's whole duration is a label ("7h 10m") centered on its line on the day it ends, so a night is labeled on the morning it ends; a gap label within 16 points of it is left out. The tooltip reads "Sleep 7h 10m" or "Workout 45m".
 
 ### 3.2 Block popover
 
-A click selects the block and opens a popover beside it; ⇧-click or ⌘-click extends the selection (2.5) without one. It shows the time range, duration, and device ("09:10 – 09:44 · 34m · MacBook"; with several devices each with its time; `remote` reads "Other devices (Safari)"), the dominant workspace's share ("paper (tmux), 71% of this time"), "34m, 31m active" when `a` is less than the span, and any reconstructed time ("12m reconstructed from macOS app usage history"). Below come the items in log order, the background items, and "Create Entry…".
+Hovering a block shows its summary ([activity_tracking.md](activity_tracking.md) §2.8). A click selects the block and opens a popover beside it; ⇧-click or ⌘-click extends the selection (2.5) without one. The popover has the summary's header and footer, every foreground item grouped by workspace, every background item, and "Create Entry…". The device `remote` reads "Other devices (Safari)".
 
 ### 3.3 Entries from a block
 
@@ -99,7 +99,7 @@ The hover "+" button, a drag into the Tracked column (vertical position ignored)
 
 ### 3.4 Delete This Activity
 
-Blocks are shown as recorded, and deleting one goes through the agent, the log's only writer. On the Mac, a closed block's context menu has "Delete This Activity…". It asks "Delete this activity?" with the block's range and workspace name and "This removes it on every device and cannot be undone.", with Cancel as the default. Delete sends `delete-block <s> <e>` with the shown range to the tracker agent ([activity_tracking.md](activity_tracking.md) §7.3); the card disappears when the rewritten month file arrives, and an `error` answer shows in an alert titled "Couldn't Delete This Activity" with the app's sentence for the reply, never the reply itself. Entries are untouched.
+Blocks are shown as recorded, and deleting one goes through the agent, the log's only writer. On the Mac, a closed block's context menu has "Delete This Activity…". It asks "Delete this activity?" with the block's range and workspace name and "This removes it on every device and cannot be undone.", with Cancel as the default. Delete sends `delete-block <s> <e>` with the shown range to the tracker agent ([activity_tracking.md](activity_tracking.md) §7.3); the card disappears when the rewritten date file arrives, and an `error` answer shows in an alert titled "Couldn't Delete This Activity" with the app's sentence for the reply, never the reply itself. Entries are untouched.
 
 ## 4. Calendar column
 
@@ -199,17 +199,17 @@ The settings read the calendars without asking for access; like the Calendar col
 23. The Calendar menu lists the iCloud account's writable calendars and not a read-only one or another account's; choosing "Work" writes its identifier and title, and a device on which that identifier differs resolves "Work" by title; "New Calendar…" with "Time Blocks" taken creates "Time Blocks 2".
 24. With Sleep on and Workouts off, a night from 23:00 to 06:30 is drawn on both of its days and a workout is not; turning Workouts on adds it, turning Sleep off removes the night.
 25. The Apple Health status line: with both toggles off there is none; with no import status it says no iPhone has read Apple Health; after an import of sleep alone, with Workouts on it waits for workouts; with both read and no workout periods it says none were found; with periods of every shown kind it says when it read them; the status syncs from the iPhone.
-26. The activity column has the day's background stretches, each named by its items and their time ("In the background while away: Claude refactor-parser 38m").
+26. The activity column has the day's background blocks, each named by its items and their time ("In the background while away: Claude Code refactor-parser 38m").
 27. With a day width of 250 points, a 1000 point viewport shows 4 days and a 1100 point one 5, the fifth cut off, with the left edge kept; doubling the day width keeps the center time; the width clamps to [96, 1600]; ⌥-click makes one day as wide as the viewport; the slider is logarithmic; Saturday and Sunday are the shaded days.
 28. With "Noise Model" checked in Filters, the other entries are faded and the tracked totals count only Noise Model's, with its token in the filter bar; the search "draft" lets through only entries with "draft" in the task or the project, area, or client name; while the search field has the focus the plain keys are off.
 29. A night from 23:00 to 06:30 is labeled "7h 30m" on the day it ends; a workout from 23:15 to midnight is labeled "45m" on its own day.
 30. At 72 points per hour a 33-minute entry's card spans exactly its interval and shows its title and duration on one line; a 25-minute running entry's card ends on the now-line.
 31. Two commits of one draft arriving together (Return and Save, or Return and a click elsewhere) store one entry.
 32. A reload that finishes after a later one changes nothing, and the days count as loaded only once their data is in.
-33. With Midnight at 04:00, a column starts at 04:00; an entry from 03:00 to 05:00 is in the columns of both days, each total counting its hour; a drag of the later piece down an hour moves the entry to 04:00 to 06:00; a block from the night reaches both columns and counts on the day of its start; a heatmap click at 09:00 scrolls five hours below the column's top.
-34. With Midnight at 04:00, dragging an entry across the real midnight inside a column keeps one entry, and one undo restores it.
-35. With Midnight at 04:00 or at 22:00, an all-day event on March 14 is in the strip of the column named March 14 and no other; an event spanning March 14 and 15 is in both.
-36. With Midnight at 04:00, a block from 03:30 to 04:30 with an entry over 04:10 to 04:20 is dimmed 10 minutes below the top of its card in the later column and not at all in the earlier one.
+33. With the start of day at 04:00, a column starts at 04:00; an entry from 03:00 to 05:00 is in the columns of both days, each total counting its hour; a drag of the later piece down an hour moves the entry to 04:00 to 06:00; a block from the night reaches both columns and counts on the day of its start; a heatmap click at 09:00 scrolls five hours below the column's top.
+34. With the start of day at 04:00, dragging an entry across the real midnight inside a column keeps one entry, and one undo restores it.
+35. With the start of day at 04:00 or at 22:00, an all-day event on March 14 is in the strip of the column named March 14 and no other; an event spanning March 14 and 15 is in both.
+36. With the start of day at 04:00, a block from 03:30 to 04:30 with an entry over 04:10 to 04:20 is dimmed 10 minutes below the top of its card in the later column and not at all in the earlier one.
 37. A click on a card selects it alone; ⇧-click and ⌘-click add a card of any kind to the selection and take a selected one out; ⌥-click selects like a plain click; a block's popover opens on a plain click only.
 38. A 7 minute move with ⌥ moves the start 7 minutes; the time label shows the start the drop would give; Escape during a drag leaves the entry and the selection as they were, and the next drag works; a drop on an Activity or Calendar column, on the time axis, or above the columns in view changes nothing; a drop on the next day's Tracked column moves the entry there.
 39. A time block linked to "Noise Model" of "University" shows "Noise Model · University" in its area's color with no entry of the project loaded; an unlinked block has no project line.

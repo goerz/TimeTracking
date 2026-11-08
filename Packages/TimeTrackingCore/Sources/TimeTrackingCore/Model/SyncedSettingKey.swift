@@ -57,8 +57,8 @@ extension SyncedSettingKey<Int> {
 
     /// The hour of the local clock at which the app's days start, 0 to 23
     /// (data_and_sync.md §8). Only display and reports follow it.
-    public static var midnightHour: Self {
-        Self("day.midnightHour", default: 0)
+    public static var startOfDayHour: Self {
+        Self("day.startHour", default: 0)
     }
 
     /// The values the setting allows (timer.md §5.2): 1 to 180
@@ -68,7 +68,7 @@ extension SyncedSettingKey<Int> {
         switch self {
         case .pomodoroFocusMinutes: 1 ... 180
         case .pomodoroBreakMinutes: 1 ... 60
-        case .midnightHour: 0 ... 23
+        case .startOfDayHour: 0 ... 23
         default: Int.min ... Int.max
         }
     }
@@ -86,9 +86,9 @@ extension SyncedSettingKey<[ProjectID]> {
 }
 
 extension SyncedSettingKey<[String: Int]> {
-    /// Context to hue index; merges as a union, the smaller index winning.
-    public static var activityContextColors: Self {
-        Self("activity.contextColors", default: [:])
+    /// App to hue index; merges as a union, the smaller index winning.
+    public static var activityAppColors: Self {
+        Self("activity.appColors", default: [:])
     }
 }
 

@@ -18,7 +18,7 @@ The header above each day shows every column's total, so you can compare recorde
 
 The strip of days has no beginning or end. Scroll sideways with a trackpad swipe, or hold ⇧ with a mouse wheel, and days load as you go. The arrows in the toolbar and the ← and → keys snap one day at a time. ⌘T returns to today, and a click on a day's date slides it to the left edge. ⌥-click shows that one day alone, as wide as the window.
 
-Two things control the scale. ⌘+ and ⌘− zoom the hours, and ⌘0 resets them. The slider at the right of the summary strip, or ⌥⌘[ and ⌥⌘], makes days narrower or wider, so the window's width decides how many days fit. A day column runs from [Midnight](midnight.md) to Midnight.
+Two things control the scale. ⌘+ and ⌘− zoom the hours, and ⌘0 resets them. The slider at the right of the summary strip, or ⌥⌘[ and ⌥⌘], makes days narrower or wider, so the window's width decides how many days fit. A day column runs from one [start of day](start-of-day.md) to the next.
 
 ## Working with entries
 
@@ -36,7 +36,7 @@ Overlaps of a minute or less are trimmed without asking.
 
 ## Activity cards
 
-Each card names the workspace that dominated that stretch, such as "paper (tmux)", and the main subject inside it. Parts already covered by an entry are dimmed, so what remains bright is time you have not accounted for. A click opens the details: how long, on which device, and the main items in order. A phone glyph marks time on an iPhone or iPad.
+Each card names the workspace that dominated that stretch, such as "MyApp", and the main item inside it. Parts already covered by an entry are dimmed, so what remains bright is time you have not accounted for. Hovering shows a summary: how long, why it ended, on which devices, and the items grouped by workspace. A click lists every item. A phone glyph marks time on an iPhone or iPad.
 
 Hover over a card and click "+", drag it into the Tracked column, or press Space on a selected card, and you get a provisional entry over the longest stretch no entry covers yet. Gaps longer than 15 minutes show their length, and thin strips at the edge of the column mark background work that went on while you were away.
 

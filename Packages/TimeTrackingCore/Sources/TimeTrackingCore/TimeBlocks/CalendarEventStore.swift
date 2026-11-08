@@ -105,7 +105,7 @@ public struct CalendarEvent: Sendable, Hashable, Identifiable {
     }
 
     /// Whether this all-day event falls on the calendar date `day`. It
-    /// belongs to dates, not to shown days, so Midnight plays no part
+    /// belongs to dates, not to shown days, so the start of day plays no part
     /// (calendar.md §1.4).
     public func isAllDay(on day: TrackingDay, in zone: TimeZone) -> Bool {
         let date = TrackingCalendar(timeZone: zone).interval(of: day)

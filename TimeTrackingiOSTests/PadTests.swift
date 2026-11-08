@@ -209,8 +209,8 @@ struct PadTests {
         let test = try await Self.pad(blocks: [TestBlocks.block("08:00", "08:30"), TestBlocks.block("09:30", "10:00", open: true)])
         let activity = try #require(test.model.pad?.router.activity)
         let mac = LiveState.MacActivity(
-            device: "macbook",
-            primary: nil,
+            device: "MacBook",
+            foreground: nil,
             groupKey: nil,
             presence: "active",
             since: nil,

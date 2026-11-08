@@ -208,9 +208,9 @@ final class PhoneModel {
             if keys.contains(where: { $0.hasPrefix("calendar.") }) {
                 await pad?.storeChanged()
             }
-            if keys.contains(SyncedSettingKey<Int>.midnightHour.name) {
+            if keys.contains(SyncedSettingKey<Int>.startOfDayHour.name) {
                 await fanOut(structureChanged: false)
-                await pad?.midnightChanged()
+                await pad?.startOfDayChanged()
             }
         case .health:
             await pad?.storeChanged()

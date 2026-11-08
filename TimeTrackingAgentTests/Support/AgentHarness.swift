@@ -1,6 +1,6 @@
-// AgentHarness: an engine over fakes, folders in a temporary directory, and
-// a ManualClock at the fixture time (architecture.md §3.3: tests drive
-// the tick, never sleep).
+// AgentHarness: an agent over fakes, folders in a temporary directory, and
+// a ManualClock at the fixture time (architecture.md §3.3: tests drive the
+// tick, never sleep).
 
 import Foundation
 import TimeTrackingCore
@@ -13,11 +13,13 @@ final class FixtureBundleToken {}
 final class AgentHarness {
     static let home = "/Users/alex"
     static let zone = TimeZone(identifier: "America/New_York") ?? .gmt
-    static let device = "macbook"
-    static let macFolder = "mac-1"
+    static let macID = "mac-uuid"
+    static let macName = "MacBook"
 
     let root: URL
     let clock = ManualClock.fixture(in: AgentHarness.zone)
+    /// The agent's clock: `clock`, moved forward on each read while its step is set.
+    let stepping: SteppingClock
     let presence = FakePresence()
     let focus = FakeFocus()
     let commands = FakeCommands()
@@ -30,45 +32,34 @@ final class AgentHarness {
     let folders: ActivityFolders
     // Set last in init, after the fakes it is built from.
     // swiftlint:disable:next implicitly_unwrapped_optional
-    private(set) var engine: AgentEngine!
-    var schedule: TickSchedule
+    private(set) var agent: Agent!
 
-    /// A harness whose `settings.toml` holds `settings` (the defaults when
-    /// `nil`) with `min_block` set to `minBlock`: `"0s"` unless a test
-    /// covers short blocks, so tests of other rules keep their short blocks;
-    /// `nil` keeps the file's value or the default.
-    init(
-        settings: String? = nil,
-        minBlock: String? = "0s",
-        canWriteShared: Bool = true,
-        recordFolder: URL? = nil,
-        editorRPC: (any EditorRPC)? = nil
-    ) throws {
-        let settings = Self.settings(settings, minBlock: minBlock)
+    /// An agent whose `settings.toml` holds `settings` (none: the defaults).
+    init(settings: String? = nil, canWriteShared: Bool = true, recordFolder: URL? = nil, editorRPC: (any EditorRPC)? = nil) throws {
         self.root = try TemporaryFolder.make("agent-tests")
+        self.stepping = SteppingClock(base: clock)
         let shared = root.appending(path: "iCloud/Activity", directoryHint: .isDirectory)
         let local = root.appending(path: "Group/Activity", directoryHint: .isDirectory)
         self.folders = ActivityFolders(shared: shared, local: local)
         try FileManager.default.createDirectory(at: shared, withIntermediateDirectories: true)
         try FileManager.default.createDirectory(at: local, withIntermediateDirectories: true)
-        self.schedule = TickSchedule(start: clock.now)
         if let settings {
             let folder = canWriteShared ? shared : local
             try settings.write(to: folder.appending(path: "settings.toml", directoryHint: .notDirectory), atomically: true, encoding: .utf8)
         }
-        files.existing.insert(Self.home + "/Documents")
         var configuration = AgentConfiguration(
             agentFolder: root.appending(path: "Group", directoryHint: .isDirectory),
             folders: folders,
-            device: Self.device,
-            macFolder: Self.macFolder,
+            macName: Self.macName,
+            macDeviceID: Self.macID,
             version: "1.0 (1)"
         )
         configuration.canWriteShared = { _ in canWriteShared }
         var environment = AgentEnvironment(
-            clock: clock,
+            clock: stepping,
             timeZone: Self.zone,
             homeDirectory: Self.home,
+            localHostNames: ["alex-mbp.local"],
             tmuxSocketFolder: "/private/tmp/tmux-501",
             neovimSocketFolder: root.appending(path: "nvim.alex").path,
             presence: presence,
@@ -81,84 +72,68 @@ final class AgentHarness {
             history: history,
             knowledge: knowledge
         )
+        environment.appName = { $0 == "com.apple.mail" ? "Mail" : $0 }
         var recorder: Recorder?
         if let recordFolder {
             let created = Recorder(
                 folder: recordFolder,
                 homeDirectory: Self.home,
                 userName: "alex",
-                hostNames: ["alex-mbp.local", "alex-mbp"]
+                hostNames: ["alex-mbp.local", "alex-mbp"],
+                zone: Self.zone,
+                macName: Self.macName
             )
             environment = environment.recording(with: created)
             recorder = created
         }
-        self.engine = try AgentEngine(environment: environment, configuration: configuration, store: SampleStore(url: nil))
-        engine.recorder = recorder
+        self.agent = try Agent(environment: environment, configuration: configuration, store: SampleStore(url: nil))
+        agent.recorder = recorder
+        try agent.start()
     }
 
     deinit {
         try? FileManager.default.removeItem(at: root)
     }
 
-    /// Replaces the engine by a new one over the same store, folders, and
-    /// fakes, as when the agent starts again.
+    /// A new agent over the same store, folders, and fakes, as when the agent starts again.
     func restart() throws {
-        let recorder = engine.recorder
-        engine = try AgentEngine(environment: engine.environment, configuration: engine.configuration, store: engine.store)
-        engine.recorder = recorder
-        schedule = TickSchedule(start: clock.now)
-    }
-
-    /// `settings` with `min_block = minBlock` in its `[blocks]` table.
-    static func settings(_ settings: String?, minBlock: String?) -> String? {
-        guard let minBlock else {
-            return settings
-        }
-        let line = "min_block = \"\(minBlock)\""
-        let text = settings ?? ""
-        guard let range = text.range(of: "[blocks]\n") else {
-            return text + "\n[blocks]\n\(line)\n"
-        }
-        return text.replacingCharacters(in: range, with: "[blocks]\n\(line)\n")
+        let recorder = agent.recorder
+        agent = try Agent(environment: agent.environment, configuration: agent.configuration, store: agent.store)
+        agent.recorder = recorder
+        try agent.start()
     }
 
     // MARK: Driving
 
-    /// Runs the regular ticks of the next `duration` seconds, moving the clock.
+    /// Lets the queue run what is due at the current time: a due tick, queued steps, rebuild passes.
+    func drain() async {
+        await agent.queue.drain()
+    }
+
+    /// Runs the next `duration` seconds: the clock moves in 30-second
+    /// steps, and the queue runs the tick due at each.
     func run(for duration: TimeInterval) async {
-        let end = clock.now.addingTimeInterval(duration)
-        while schedule.next < end {
-            clock.set(max(clock.now, schedule.next))
-            schedule.fired(at: clock.now)
-            await engine.tick()
+        let end = clock.now + duration
+        while clock.now < end {
+            await drain()
+            clock.set(min(end, clock.now + Agent.tickInterval))
         }
-        clock.set(end)
-        schedule = TickSchedule(start: end)
+        await drain()
     }
 
-    /// Moves the clock to the fixture time plus `seconds` and fetches the
-    /// device events there.
-    func syncDevices(at seconds: TimeInterval) async {
-        clock.set(time(seconds))
-        schedule = TickSchedule(start: clock.now)
-        await engine.syncDeviceEvents(now: clock.now)
-    }
-
-    /// Moves the clock by `seconds`.
     func advance(_ seconds: TimeInterval) {
         clock.advance(by: seconds)
     }
 
     /// The fixture time plus `seconds`.
     func time(_ seconds: TimeInterval) -> Date {
-        ManualClock.fixtureNow(in: Self.zone).addingTimeInterval(seconds)
+        ManualClock.fixtureNow(in: Self.zone) + seconds
     }
 
     // MARK: Fixtures
 
     /// `Fixtures/Agent/` is a resource folder of the test bundle (its files
-    /// land flat in the bundle, so their names are unique). The source tree
-    /// itself is not read: it may sit in a TCC-protected folder.
+    /// land flat in the bundle, so their names are unique).
     static func fixtureURL(_ path: String) -> URL {
         let name = PathText.lastComponent(path)
         let ext = PathText.pathExtension(name)
@@ -171,16 +146,8 @@ final class AgentHarness {
         (try? String(contentsOf: fixtureURL(path), encoding: .utf8)) ?? ""
     }
 
-    /// A temporary folder with copies of the sample day and its expected blocks; returns the day's file.
-    static func sampleDayCopy() throws -> URL {
-        let folder = try TemporaryFolder.make("samples")
-        for name in ["2024-03-14.jsonl", "2024-03-14.expected.jsonl"] {
-            try FileManager.default.copyItem(at: fixtureURL(name), to: folder.appending(path: name, directoryHint: .notDirectory))
-        }
-        return folder.appending(path: "2024-03-14.jsonl", directoryHint: .notDirectory)
-    }
-
-    /// The terminal fixtures: `ps`, one tmux server, and its clients and panes.
+    /// The terminal fixtures: `ps`, one tmux server, its clients and panes,
+    /// WezTerm, and a Claude Code session.
     func loadTerminalFixtures() {
         commands.set(ProcessTable.command, Self.fixture("ps/terminals.txt"))
         let tmux = "/opt/homebrew/bin/tmux"
@@ -210,44 +177,23 @@ final class AgentHarness {
 
     // MARK: Output
 
-    func samples() -> [Sample] {
-        ((try? engine.store.allRows()) ?? []).map(\.sample)
+    var samples: [Sample] {
+        (try? agent.store.samples(SampleSelection(range: DateInterval(start: .distantPast, end: .distantFuture)))) ?? []
     }
 
-    func sampleLines() -> [String] {
-        (try? engine.store.lines()) ?? []
-    }
-
-    var blockLogText: String {
-        (try? Replay.monthFilesText(in: engine.logs.blocksFolder)) ?? ""
-    }
-
-    var detailLogText: String {
-        (try? Replay.monthFilesText(in: engine.logs.detailFolder)) ?? ""
-    }
-
-    var blocks: [ActivityBlock] {
-        BlockLogFile(data: Data(blockLogText.utf8)).blocks
-    }
-
-    var details: [ActivityBlockDetail] {
-        BlockLogFile(data: Data(detailLogText.utf8)).entries.compactMap(\.detail)
-    }
-
-    var currentStateText: String {
-        (try? String(contentsOf: engine.logs.currentStateURL, encoding: .utf8)) ?? ""
+    /// The blocks of the date file of `day` (`YYYY-MM-DD`).
+    func blocks(_ day: String) -> [ActivityBlock] {
+        guard let date = TrackingDay(day), case let .text(text) = agent.choice.log.content(for: date) else {
+            return []
+        }
+        return BlockLogFile.parse(text).blocks
     }
 
     var currentState: TrackerState? {
-        try? TrackerState.parse(Data(currentStateText.utf8), timeZone: Self.zone)
+        (try? Data(contentsOf: folders.currentStateURL)).flatMap { try? TrackerState.parse($0) }
     }
 
-    /// Everything the agent wrote, for leak checks.
-    var allOutput: String {
-        sampleLines().joined(separator: "\n") + blockLogText + detailLogText + currentStateText
-    }
-
-    func health(_ id: String) -> TrackerSourceHealth? {
-        engine.health.all.first { $0.id == id }
+    func health(_ id: SourceID) -> TrackerSourceHealth? {
+        currentState?.health.sources.first { $0.id == id.rawValue }
     }
 }

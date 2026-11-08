@@ -1,25 +1,33 @@
-// Recorder: `--record <folder>` writes adapter outputs and the run's samples
-// as fixtures, anonymized (activity_tracking.md §5,
-// architecture.md §3.4).
+// Recorder: `--record <folder>` writes adapter outputs and the run's Samples
+// as fixtures, anonymized (activity_tracking.md §5, architecture.md §3.4).
 
 import Foundation
 import TimeTrackingCore
 
-/// Writes `<folder>/<adapter>/<NNN>-<name>.txt` for every adapter output and
-/// `<folder>/samples/<day>.jsonl` for the samples, with home-directory
-/// paths, host names, and URL paths replaced by placeholders.
+/// Writes `<folder>/<adapter>/<NNN>-<name>.txt` for every adapter output, and
+/// `<folder>/samples.jsonl` and `fixture.json` as a replay fixture
+/// (`SampleFixture`), with home-directory paths, host names, and URL paths
+/// replaced by placeholders.
 @MainActor
 final class Recorder {
     let folder: URL
     private var anonymizer: Anonymizer
     private var counters: [String: Int] = [:]
-    private var sampleHeaders: [String: Int] = [:]
-    private static let browserContexts = Set(BrowserApp.known.values.map(\.context))
+    private let zone: TimeZone
 
-    init(folder: URL, homeDirectory: String, userName: String, hostNames: [String]) {
+    init(folder: URL, homeDirectory: String, userName: String, hostNames: [String], zone: TimeZone, macName: String) {
         self.folder = folder
-        self.anonymizer = Anonymizer(homeDirectory: homeDirectory, userName: userName, hostNames: hostNames)
+        // The Mac's computer name is one of its host names.
+        self.anonymizer = Anonymizer(homeDirectory: homeDirectory, userName: userName, hostNames: hostNames + [macName])
+        self.zone = zone
+        let description = SampleFixture.Description(zone: zone.identifier, mac: Self.macID, names: [Self.macID: anonymizer.text(macName)])
+        if let data = try? JSONEncoder().encode(description) {
+            write(String(decoding: data, as: UTF8.self), to: folder.appending(path: "fixture.json"), append: false)
+        }
     }
+
+    /// The Mac's device id in recorded Samples.
+    static let macID = "mac"
 
     /// Records one adapter output.
     func record(output: String, adapter: String, name: String) {
@@ -31,44 +39,36 @@ final class Recorder {
         write(anonymizer.text(output), to: url, append: false)
     }
 
-    /// Appends one sample to its day's file.
-    func record(_ sample: Sample, utcOffset: Int) {
-        let day = ActivityTimestamp.day(sample.time, utcOffset: utcOffset)
-        let url = folder.appending(path: "samples", directoryHint: .isDirectory).appending(
-            path: "\(day).jsonl",
-            directoryHint: .notDirectory
-        )
-        var text = ""
-        if sampleHeaders[day] != utcOffset {
-            sampleHeaders[day] = utcOffset
-            text += SampleCodec.headerLine(utcOffset: utcOffset, device: "mac") + "\n"
-        }
-        text += SampleCodec.line(anonymized(sample), utcOffset: utcOffset) + "\n"
-        write(text, to: url, append: true)
+    /// Appends one Sample to `samples.jsonl`, the Mac's id replaced.
+    func record(_ sample: Sample) {
+        var anonymous = sample.mapItems { anonymized($0) }
+        anonymous.deviceID = Self.macID
+        let line = SampleFixture.line(anonymous, utcOffset: zone.secondsFromGMT(for: sample.time))
+        write(line + "\n", to: folder.appending(path: "samples.jsonl"), append: true)
     }
 
-    private func anonymized(_ sample: Sample) -> Sample {
-        var result = sample
-        result.primary = sample.primary.map(anonymized)
-        result.secondaries = sample.secondaries.map(anonymized)
-        result.title = anonymizer.text(sample.title)
-        result.url = anonymizer.text(sample.url)
-        result.tmuxTarget = anonymizer.text(sample.tmuxTarget)
-        return result
-    }
-
-    private func anonymized(_ item: SampleItem) -> SampleItem {
+    private func anonymized(_ item: ActivityItem) -> ActivityItem {
         var result = item
-        if Self.browserContexts.contains(item.context), item.subject != ExclusionRules.privateMarker {
-            result.subject = anonymizer.urlPath(item.subject, keepFirst: true)
-            result.detail = anonymizer.urlPath(item.detail, keepFirst: false)
-            result.groupKey = anonymizer.urlPath(item.groupKey, keepFirst: true)
-        } else {
-            result.subject = anonymizer.text(item.subject)
-            result.detail = anonymizer.text(item.detail)
-            result.groupKey = anonymizer.text(item.groupKey)
-        }
+        result.window = anonymizer.text(item.window)
+        result.host = anonymizer.text(item.host)
+        result.session = anonymizer.text(item.session)
+        result.location = anonymizer.text(item.location)
+        result.documents = item.documents.map { anonymizer.text($0) }
+        result.command = anonymizer.text(item.command)
+        result.workspace = anonymizedWorkspace(item)
         return result
+    }
+
+    /// A workspace a URL pattern named (`owner/MyApp` of a GitHub page) is
+    /// URL path, anonymized like the location's path; a path, a domain, or
+    /// an app name is anonymized as text.
+    private func anonymizedWorkspace(_ item: ActivityItem) -> String {
+        let workspace = item.workspace
+        let isPath = workspace.hasPrefix("/") || workspace.hasPrefix("~")
+        guard !isPath, workspace.contains("/"), item.location.contains("://") else {
+            return anonymizer.text(workspace)
+        }
+        return anonymizer.urlPath(workspace, keepFirst: false)
     }
 
     private func write(_ text: String, to url: URL, append: Bool) {

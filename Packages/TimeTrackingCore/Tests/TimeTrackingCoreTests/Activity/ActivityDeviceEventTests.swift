@@ -39,7 +39,7 @@ struct ActivityDeviceEventTests {
         DeviceEvent(
             deviceID: "phone-1",
             time: Date(timeIntervalSince1970: TimeInterval(milliseconds) / 1000),
-            source: .ladder,
+            source: .screenTime,
             label: label,
             kind: "minute",
             payload: #"{"n":3}"#
@@ -171,6 +171,29 @@ struct ActivityDeviceEventTests {
         }
     }
 
+    @Test("IOS-27 an append after a torn last line starts a new line: only the torn event is lost")
+    func appendAfterATornLine() async throws {
+        try await withTemporaryFolder { temporary in
+            let staging = DeviceEventStagingFile(folder: temporary.url) { _ in }
+            try staging.append(Self.event(1000))
+            try ActivityFixture.append("{\"deviceID\":\"pho", to: staging.fileURL)
+            try staging.append(Self.event(2000))
+            #expect(try staging.readAll() == [Self.numbered(Self.event(1000), 1), Self.numbered(Self.event(2000), 2)])
+        }
+    }
+
+    @Test("IOS-27 without a readable events.state the next sequence follows the highest in the file")
+    func lostStateKeepsNumbering() async throws {
+        try await withTemporaryFolder { temporary in
+            let staging = DeviceEventStagingFile(folder: temporary.url) { _ in }
+            try staging.append(Self.event(1000))
+            try staging.append(Self.event(2000))
+            try Data("garbage".utf8).write(to: staging.stateURL)
+            try staging.append(Self.event(3000))
+            #expect(try staging.readAll().map(\.sequence) == [1, 2, 3])
+        }
+    }
+
     @Test("IOS-27 two overlapping flushes keep an event appended while both were uploading")
     func overlappingFlushesKeepALateEvent() async throws {
         try await withTemporaryFolder { temporary in
@@ -204,13 +227,16 @@ struct ActivityDeviceEventTests {
         let server = InMemoryDeviceEventServer()
         try await server.upload([Self.numbered(Self.event(1000), 1), Self.numbered(Self.event(2000), 2)])
         let source = server.source
-        let (first, token) = try await source.events(since: nil)
+        let firstBatch = try await source.events(since: nil)
+        let (first, token) = (firstBatch.events, firstBatch.token)
         #expect(first.map(\.sequence) == [1, 2])
         try await server.upload([Self.numbered(Self.event(2000), 2), Self.numbered(Self.event(3000), 3)])
-        let (second, next) = try await source.events(since: token)
+        let secondBatch = try await source.events(since: token)
+        let (second, next) = (secondBatch.events, secondBatch.token)
         #expect(second.map(\.sequence) == [2, 3])
-        #expect(try await source.events(since: next).0.isEmpty)
+        #expect(try await source.events(since: next).events.isEmpty)
+        // The device's last event of the source before the date stays.
         try await source.purge(before: Date(timeIntervalSince1970: 2.5))
-        #expect(await server.all.map(\.sequence) == [3])
+        #expect(await server.all.map(\.sequence) == [2, 3])
     }
 }

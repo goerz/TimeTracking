@@ -73,7 +73,7 @@ The one exception to SF Symbols is the Pomodoro's apple: SF Symbols has no fruit
 - Saturdays and Sundays in the Calendar have `Color.weekendTint` (the primary color at 3.5%) behind their header and columns; today's accent tint wins.
 - Errors use `Color.errorText` (system red). `ErrorLine` shows the message under a control with the warning symbol, in `.caption` on the Mac and `.footnote` on iOS; a dialog's inline field error is plain text in the same color.
 - Area colors (user-chosen RGB) are data: they fill calendar cards, chart segments, and the area dot. A malformed value shows gray. Text on an area color picks black or white by contrast.
-- The tracker's block cards in the Calendar use `Color.activityBlock` (the secondary label color) for every context, the left border only on hover; context colors appear only in the Activity section ([activity.md](activity.md) §1.3). Sleep and workout lines are dark blue and dark green.
+- The tracker's block cards in the Calendar use `Color.activityBlock` (the secondary label color) for every app, the left border only on hover; app colors appear only in the Activity section ([activity.md](activity.md) §1.3). Sleep and workout lines are dark blue and dark green.
 - Everything else uses semantic colors and works in light and dark appearance and with Increase Contrast.
 
 ## 7. Components
@@ -133,12 +133,12 @@ User-visible text names what the user sees and gets, never how the code works. T
 | Knowledge store | app usage history |
 | activity block | activity ("Delete This Activity…"); counted, "periods of activity" |
 | time block | time block (only these are "blocks") |
-| context | app; a tmux session keeps its name and a tmux badge |
-| workspace, `kind:name` key | the app, session, or folder name as Activity shows it |
-| not itemized | brief activity |
+| Item, `app` | app |
+| workspace (a full path or name) | its last component ("MyApp") |
+| Sample | not shown; "recorded activity" where it must be named |
 | store, database, record | your entries, your data |
 | outbox, pending changes | waiting to sync |
-| app set (iOS Screen Time ladder) | app group |
+| app set (iOS Screen Time set) | app group |
 | activity log (the files) | Activity (the section) wherever the user's view is meant; "activity logs" only for the files, in the Tracker pane |
 | event, labeled event (iOS collection) | what was recorded ("when a Focus turns on") |
 | fetch, upload, flush | check, send |

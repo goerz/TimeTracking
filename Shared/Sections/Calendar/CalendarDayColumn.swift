@@ -177,7 +177,7 @@ private struct TrackedColumn: View {
 // MARK: Activity
 
 /// The tracker's blocks, covered parts dimmed, gap labels, and background
-/// stretches (§3.1).
+/// blocks (§3.1).
 private struct ActivityColumn: View {
     var model: CalendarModel
     var day: TrackingDay
@@ -190,7 +190,7 @@ private struct ActivityColumn: View {
             healthAndGaps(axis)
             strips(axis)
             ForEach(model.blocks(on: day)) { block in
-                if let frame = axis.frame(of: block.span) {
+                if let frame = axis.frame(of: block.interval) {
                     BlockCard(model: model, block: block, day: day, size: CGSize(width: width - 4, height: max(4, frame.height)))
                         .offset(x: 2, y: frame.y)
                 }
@@ -207,7 +207,7 @@ private struct ActivityColumn: View {
     /// out, so it never covers the label.
     @ViewBuilder
     private func healthAndGaps(_ axis: CalendarDayAxis) -> some View {
-        let gaps = model.isRecordingMac ? model.gapLabels[day] ?? [] : []
+        let gaps = model.isMac ? model.gapLabels[day] ?? [] : []
         let periods = model.healthPeriods(on: day)
         let labeled = periods.compactMap { period in
             period.labelDay(in: model.calendar) == day ? axis.frame(of: period.interval).map { (period, $0) } : nil
@@ -241,11 +241,11 @@ private struct ActivityColumn: View {
         }
     }
 
-    /// The day's background stretches at the column's trailing edge.
+    /// The day's background blocks at the column's trailing edge.
     private func strips(_ axis: CalendarDayAxis) -> some View {
-        ForEach(model.stretches(on: day)) { stretch in
-            if let frame = axis.frame(of: DateInterval(start: stretch.start, end: max(stretch.start, stretch.end))) {
-                BackgroundStrip(stretch: stretch)
+        ForEach(model.backgroundBlocks(on: day)) { block in
+            if let frame = axis.frame(of: block.interval) {
+                BackgroundStrip(block: block, text: block.backgroundText(jobCommands: model.activity.settings.terminal.jobCommands))
                     .frame(width: Design.healthLineWidth, height: max(Design.healthLineWidth, frame.height))
                     .offset(x: width - Design.healthLineWidth - 2, y: frame.y)
             }
@@ -289,17 +289,19 @@ private struct GapLabel: View {
 }
 
 /// Background work while the user was away: a narrow strip at the column's
-/// trailing edge over the stretch, in the block color at half strength (§3.1).
+/// trailing edge over the background block, in the block color at half strength (§3.1).
 private struct BackgroundStrip: View {
-    var stretch: ActivityBackgroundStretch
+    var block: ActivityBlock
+    /// "In the background while away: Claude Code refactor-parser 38m".
+    var text: String
 
     var body: some View {
         Capsule()
             .fill(Color.activityBlock.opacity(0.5))
-            .help(stretch.summaryText)
+            .help(text)
             .accessibilityElement()
-            .accessibilityLabel(stretch.summaryText)
-            .accessibilityIdentifier("calendar.background.\(stretch.id)")
+            .accessibilityLabel(text)
+            .accessibilityIdentifier("calendar.background.\(block.id)")
     }
 }
 

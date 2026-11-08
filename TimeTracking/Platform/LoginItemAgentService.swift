@@ -11,10 +11,12 @@ import TimeTrackingCore
 final class LoginItemAgentService: AgentService {
     private let service: SMAppService
     private let label: String
+    private let identity: AppIdentity
 
     init(identity: AppIdentity) {
         self.service = SMAppService.agent(plistName: identity.agentPlistName)
         self.label = identity.agentBundleID
+        self.identity = identity
     }
 
     var registration: AgentRegistration {
@@ -41,6 +43,30 @@ final class LoginItemAgentService: AgentService {
 
     func openLoginItems() {
         SMAppService.openSystemSettingsLoginItems()
+    }
+
+    func markDisabled() {
+        guard let group = identity.groupContainerURL else {
+            return
+        }
+        let url = identity.supportDirectory(in: group).appending(path: "disabled", directoryHint: .notDirectory)
+        if !FileManager.default.fileExists(atPath: url.path) {
+            FileManager.default.createFile(atPath: url.path, contents: nil)
+        }
+    }
+
+    /// Off the main actor: the ubiquity container lookup and the
+    /// coordinated write can block.
+    func recordHere() async throws {
+        let identity = identity
+        try await Task.detached {
+            guard let folders = ActivityFolders.resolve(identity: identity), let log = folders.blockFolders.first,
+                  let deviceID = HardwareUUID.current
+            else {
+                throw AgentServiceError.noBlockLog
+            }
+            try BlockLogOwner.claim(log, for: deviceID)
+        }.value
     }
 
     /// `launchctl kickstart -k gui/<uid>/<label>`: launchd stops the agent
@@ -90,12 +116,14 @@ final class LoginItemAgentService: AgentService {
 }
 
 /// Errors of the login item services.
-enum AgentServiceError: LocalizedError, Equatable {
+nonisolated enum AgentServiceError: LocalizedError, Equatable {
     case restartFailed(status: Int32)
+    case noBlockLog
 
     var errorDescription: String? {
         switch self {
         case .restartFailed: "The tracker could not be restarted. Disable and enable it to try again."
+        case .noBlockLog: "The activity folder could not be found, so this Mac can't record."
         }
     }
 }

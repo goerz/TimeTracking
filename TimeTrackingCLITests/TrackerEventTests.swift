@@ -57,7 +57,7 @@ struct TrackerEventTests {
         return await (line.value, result)
     }
 
-    @Test("TRK-21 tracker-event writes its arguments as one line and exits 0 on ok")
+    @Test("TRK-54 tracker-event writes its arguments as one line and exits 0 on ok")
     func sendsOneLine() async throws {
         let (line, result) = try await exchange(["tmux", "after-select-pane"], reply: "ok")
         #expect(line == "tmux after-select-pane")
@@ -65,7 +65,7 @@ struct TrackerEventTests {
         #expect(result.standardError.isEmpty)
     }
 
-    @Test("TRK-21 tracker-event quotes words with spaces and reports an error reply with exit 1")
+    @Test("TRK-54 tracker-event quotes words with spaces and reports an error reply with exit 1")
     func reportsErrors() async throws {
         let (line, result) = try await exchange(["tmux", "client-session-changed", "Alex's session"], reply: "error no block")
         #expect(line == #"tmux client-session-changed "Alex's session""#)

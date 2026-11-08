@@ -14,7 +14,7 @@ struct CollectionPhone {
     let test: TestPhone
     let collection: CollectionModel
     let server: InMemoryDeviceEventServer
-    let monitor: RecordingLadderMonitor
+    let monitor: RecordingScreenTimeMonitor
     let root: URL
 
     init(screenTime: ScreenTimeStatus = .denied, settings: PhoneSettings = .ephemeral()) async throws {
@@ -27,7 +27,7 @@ struct CollectionPhone {
             local: root.appending(path: "Group/Activity", directoryHint: .isDirectory)
         )
         let server = InMemoryDeviceEventServer()
-        let monitor = RecordingLadderMonitor()
+        let monitor = RecordingScreenTimeMonitor()
         let defaults = try #require(UserDefaults(suiteName: "CollectionTests.\(UUID().uuidString)"))
         var made: CollectionModel?
         self.test = try await TestPhone(settings: settings, collection: { clock, shared in
@@ -101,15 +101,15 @@ struct CollectionTests {
         ])
     }
 
-    @Test func approvedScreenTimeRegistersTheLadderAndMeasuresTheCap() async throws {
+    @Test func approvedScreenTimeRegistersTheThresholdsAndMeasuresTheCap() async throws {
         let phone = try await CollectionPhone(screenTime: .approved)
         let collection = phone.collection
         collection.setEnabled(true)
-        #expect(collection.state.eventCap == LadderPlan.defaultCap)
+        #expect(collection.state.eventCap == ScreenTimePlan.defaultCap)
         #expect(phone.monitor.all.map(\.setID) == ["everything"])
         let mail = collection.addSet(label: "Mail")
         #expect(phone.monitor.all.suffix(2).map(\.setID) == ["everything", mail.id])
-        collection.removeSet(id: LadderSet.everythingID)
+        collection.removeSet(id: ScreenTimeSet.everythingID)
         #expect(collection.sets.map(\.id) == ["everything", mail.id])
         collection.removeSet(id: mail.id)
         #expect(phone.monitor.stops == [mail.id])

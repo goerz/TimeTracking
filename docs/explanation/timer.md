@@ -35,7 +35,7 @@ Continuing always makes a new entry and leaves the old one as it was. The list t
 
 ## The list
 
-Rows are grouped under "Today", "Yesterday", and then dates, each with its day total. The day boundaries follow the [Midnight setting](midnight.md). The running entry is the first row of its day, and today's total ticks along with it. The list loads the 14 most recent days that have entries; "Load Earlier Entries" appends 14 more.
+Rows are grouped under "Today", "Yesterday", and then dates, each with its day total. The day boundaries follow the [start of day](start-of-day.md). The running entry is the first row of its day, and today's total ticks along with it. The list loads the 14 most recent days that have entries; "Load Earlier Entries" appends 14 more.
 
 Clicking a row opens its editor, and double-clicking continues it. ⌘F shows a filter field: only entries whose task, project, client, or area contains the text remain, and the day totals then sum just those.
 

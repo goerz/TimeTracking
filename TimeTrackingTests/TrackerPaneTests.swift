@@ -11,15 +11,14 @@ import TimeTrackingCore
 struct TrackerPaneTests {
     private static func state(lastTick: Date, sources: [TrackerSourceHealth]) -> TrackerState {
         TrackerState(
-            device: "mac",
-            openBlock: nil,
-            primary: nil,
+            block: nil,
+            foreground: nil,
             presence: TrackerPresence(state: .active, since: lastTick),
             health: TrackerHealth(lastTick: lastTick, version: "1.0 (42)", sources: sources)
         )
     }
 
-    @Test("TRK-31 the dot, button, and setup marks follow the registration and health; nothing registers before Enable Tracker")
+    @Test("TRK-49 the dot, button, and setup marks follow the registration and health; nothing registers before Enable Tracker")
     func paneStatus() async throws {
         let now = try TestApp.date("2024-03-14T10:00")
         let sources = [
@@ -61,7 +60,44 @@ struct TrackerPaneTests {
         #expect(test.agent.openedLoginItems == 1)
     }
 
-    @Test("TRK-31 while the pane is visible the status is re-read every 5 seconds, so a change shows within 5 seconds")
+    @Test("TRK-67 while another Mac records, the iCloud Drive row offers Record on This Mac; it and Enable Tracker claim the log")
+    func recordHere() async throws {
+        let now = try TestApp.date("2024-03-14T10:00")
+        let source = TrackerSourceHealth(id: "shared_folder", name: "iCloud Drive", status: .off, reason: BlockLogOwner.otherMacReason)
+        let test = try await TestApp(trackerState: Self.state(lastTick: now - 12, sources: [source]))
+        let tracker = test.app.tracker
+        await tracker.refresh()
+        let row = try #require(tracker.setupSteps.first { $0.id == "icloud" })
+        #expect(row.actions == [.recordHere])
+        #expect(row.detail == "Off: another Mac records activity.")
+        await tracker.recordHere()
+        #expect(test.agent.recordHereCalls == 1)
+        await tracker.pressButton()
+        #expect(test.agent.registerCalls == 1)
+        #expect(test.agent.recordHereCalls == 2)
+    }
+
+    @Test("TRK-57 Disable Tracker and a login item found off leave the disabled marker; an enabled tracker leaves none")
+    func disabledMarker() async throws {
+        let now = try TestApp.date("2024-03-14T10:00")
+        let test = try await TestApp(trackerState: Self.state(lastTick: now - 12, sources: []))
+        let tracker = test.app.tracker
+        test.agent.registration = .enabled
+        let before = test.agent.disabledMarks
+        await tracker.refresh()
+        #expect(test.agent.disabledMarks == before)
+        // Turned off in System Settings › Login Items.
+        test.agent.registration = .notRegistered
+        await tracker.refresh()
+        #expect(test.agent.disabledMarks == before + 1)
+        test.agent.registration = .enabled
+        await tracker.refresh()
+        await tracker.disable()
+        #expect(test.agent.disabledMarks > before + 1)
+        #expect(tracker.registration == .notRegistered)
+    }
+
+    @Test("TRK-49 while the pane is visible the status is re-read every 5 seconds, so a change shows within 5 seconds")
     func paneRefreshLoop() async throws {
         let now = try TestApp.date("2024-03-14T10:00")
         let test = try await TestApp(trackerState: Self.state(lastTick: now - 12, sources: []))
@@ -85,79 +121,7 @@ struct TrackerPaneTests {
         await loop.value
     }
 
-    @Test("TRK-32 the pane writes settings.toml only to create the default file and to add a drafted exclusion, keeping every other byte")
-    func settingsFile() throws {
-        let folder = FileManager.default.temporaryDirectory.appending(path: "TrackerPaneTests-\(UUID().uuidString)")
-        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: folder) }
-        let url = folder.appending(path: "settings.toml")
-        let model = TrackerSettingsModel(settingsURL: url)
-        #expect(model.entries(.excludeDomains).isEmpty)
-        #expect(!FileManager.default.fileExists(atPath: url.path))
-        // Opening the file creates the commented defaults.
-        #expect(model.ensureFile())
-        #expect(try String(contentsOf: url, encoding: .utf8) == TrackerSettings.defaultFileContents)
-        // A hand edit is never overwritten.
-        let handEdited = TrackerSettings.defaultFileContents + "\n# My own note\n"
-        try Data(handEdited.utf8).write(to: url)
-        #expect(model.ensureFile())
-        #expect(try String(contentsOf: url, encoding: .utf8) == handEdited)
-        // An exclusion from Activity is inserted, and nothing else changes.
-        model.prepare(.domain("example.com"))
-        model.addPendingExclusion()
-        #expect(model.pendingExclusion == nil)
-        #expect(model.lastAdded == PendingExclusion(list: .excludeDomains, value: "example.com"))
-        #expect(model.entries(.excludeDomains) == ["example.com"])
-        let saved = try String(contentsOf: url, encoding: .utf8)
-        #expect(saved.replacingOccurrences(of: "\"example.com\"", with: "") == handEdited)
-        #expect(try FileManager.default.contentsOfDirectory(atPath: folder.path) == ["settings.toml"])
-    }
-
-    @Test("TRK-32 a settings file still in iCloud Drive is downloaded, never replaced by the defaults")
-    func settingsFilePlaceholder() throws {
-        let folder = FileManager.default.temporaryDirectory.appending(path: "TrackerPaneTests-\(UUID().uuidString)")
-        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: folder) }
-        try Data().write(to: folder.appending(path: ".settings.toml.icloud"))
-        let model = TrackerSettingsModel(settingsURL: folder.appending(path: "settings.toml"))
-        #expect(!model.ensureFile())
-        #expect(model.message != nil)
-        #expect(!FileManager.default.fileExists(atPath: folder.appending(path: "settings.toml").path))
-    }
-
-    @Test("TRK-36 each hook of the snippets names its event, so the tracker accepts it, runs in the background, and stays silent on errors")
-    func snippets() throws {
-        let lines = TrackerSnippets.tmux.split(separator: "\n").map(String.init)
-        #expect(lines.first == "set -g focus-events on")
-        #expect(lines.count == TrackerSnippets.tmuxHooks.count + 1)
-        #expect(!TrackerSnippets.tmux.contains("pane-focus-in"))
-        for hook in TrackerSnippets.tmuxHooks {
-            let line = try #require(lines.first { $0.hasPrefix("set-hook -g \(hook) ") })
-            #expect(line.contains("'run-shell -b \""))
-            let command = try #require(line.split(separator: "\"").dropFirst().first)
-            #expect(command.hasSuffix(" >/dev/null 2>&1 || true"))
-            let event = command.replacingOccurrences(of: "tracker-event ", with: "").replacingOccurrences(
-                of: " >/dev/null 2>&1 || true",
-                with: ""
-            )
-            #expect(try TrackerCommand.parse(event + "\n") == .tmuxEvent(hook: hook, arguments: []))
-        }
-        let json = try JSONSerialization.jsonObject(with: Data(TrackerSnippets.agentHooks.utf8)) as? [String: Any]
-        let hooks = try #require(json?["hooks"] as? [String: [[String: Any]]])
-        #expect(Set(hooks.keys) == ["UserPromptSubmit", "Stop", "SessionEnd"])
-        for (name, entries) in hooks {
-            let inner = try #require(entries.first?["hooks"] as? [[String: String]])
-            let command = try #require(inner.first?["command"])
-            #expect(command.hasSuffix(" >/dev/null 2>&1 &"))
-            let event = command.replacingOccurrences(of: "tracker-event ", with: "").replacingOccurrences(
-                of: " >/dev/null 2>&1 &",
-                with: ""
-            )
-            #expect(try TrackerCommand.parse(event + "\n") == .agentEvent(hook: name, arguments: []))
-        }
-    }
-
-    @Test("TRK-33 Full Disk Access names and reveals the app bundle (Debug: <APP_NAME> Debug); Accessibility names and reveals the agent")
+    @Test("TRK-51 Full Disk Access names and reveals the app bundle (Debug: <APP_NAME> Debug); Accessibility names and reveals the agent")
     func setupNamesTheBundles() async throws {
         let test = try await TestApp()
         let tracker = test.app.tracker
@@ -200,7 +164,7 @@ struct TrackerPaneTests {
         #expect(!model.setupSteps.flatMap(\.actions).map(\.title).contains("Show Tracker in Finder"))
     }
 
-    @Test("TRK-34 while the tracker runs without Full Disk Access, Restart Tracker restarts the agent and re-reads the status")
+    @Test("TRK-52 while the tracker runs without Full Disk Access, Restart Tracker restarts the agent and re-reads the status")
     func restartTracker() async throws {
         let now = try TestApp.date("2024-03-14T10:00")
         let denied = [
@@ -230,7 +194,7 @@ struct TrackerPaneTests {
         #expect(tracker.lastError == nil)
     }
 
-    @Test("TRK-35 the Open at login step is done when the app opens at login; otherwise its action turns it on")
+    @Test("TRK-53 the Open at login step is done when the app opens at login; otherwise its action turns it on")
     func openAtLoginStep() async throws {
         let test = try await TestApp()
         let tracker = test.app.tracker

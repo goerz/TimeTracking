@@ -7,25 +7,28 @@ import Foundation
 ///
 /// Feed it the parsed `current.json` on every change and at least every
 /// 30 seconds (`update(_:)`). Presence, `agentRunning`, and `health`
-/// changes are written at once; `primary` and `groupKey` changes at most
+/// changes are written at once; `foreground` and `groupKey` changes at most
 /// once per 30 seconds, a change inside the window being written at its end
 /// with the values current then; a `lastTick` change alone writes nothing.
 public actor LiveStatePublisher {
-    /// The window of primary-item and group-key writes.
-    public static let primaryInterval: TimeInterval = 30
+    /// The window of foreground and group-key writes.
+    public static let foregroundInterval: TimeInterval = 30
 
     private let store: TimeStore
     private let deviceID: DeviceID
+    /// This Mac's name, the entry's `device`.
+    private let deviceName: String
     private let clock: any Clock
     private var published: LiveState.MacActivity?
     private var loaded = false
-    private var lastPrimaryWrite: Date?
-    /// When a held-back primary change is due.
+    private var lastForegroundWrite: Date?
+    /// When a held-back foreground change is due.
     public private(set) var nextDue: Date?
 
-    public init(store: TimeStore, deviceID: DeviceID, clock: any Clock) {
+    public init(store: TimeStore, deviceID: DeviceID, deviceName: String, clock: any Clock) {
         self.store = store
         self.deviceID = deviceID
+        self.deviceName = deviceName
         self.clock = clock
     }
 
@@ -38,47 +41,52 @@ public actor LiveStatePublisher {
             published = try await store.liveState().activity[deviceID.rawValue]
             loaded = true
         }
-        guard let candidate = Self.activity(from: state, previous: published, at: now) else {
+        guard let candidate = Self.activity(from: state, device: deviceName, previous: published, at: now) else {
             return false
         }
         guard let published else {
-            try await write(candidate, primaryChanged: true)
+            try await write(candidate, foregroundChanged: true)
             return true
         }
         let immediate = candidate.presence != published.presence || candidate.since != published.since
             || candidate.agentRunning != published.agentRunning || candidate.health != published.health
             || candidate.device != published.device
-        let primaryChanged = candidate.primary != published.primary || candidate.groupKey != published.groupKey
-        if !primaryChanged {
+        let foregroundChanged = candidate.foreground != published.foreground || candidate.groupKey != published.groupKey
+        if !foregroundChanged {
             nextDue = nil
         }
         if immediate {
-            try await write(candidate, primaryChanged: primaryChanged)
+            try await write(candidate, foregroundChanged: foregroundChanged)
             return true
         }
-        guard primaryChanged else {
+        guard foregroundChanged else {
             return false
         }
-        if let last = lastPrimaryWrite, now < last + Self.primaryInterval {
-            nextDue = last + Self.primaryInterval
+        if let last = lastForegroundWrite, now < last + Self.foregroundInterval {
+            nextDue = last + Self.foregroundInterval
             return false
         }
-        try await write(candidate, primaryChanged: true)
+        try await write(candidate, foregroundChanged: true)
         return true
     }
 
-    private func write(_ activity: LiveState.MacActivity, primaryChanged: Bool) async throws {
+    private func write(_ activity: LiveState.MacActivity, foregroundChanged: Bool) async throws {
         try await store.setLiveActivity(activity, for: deviceID)
         published = activity
-        if primaryChanged {
-            lastPrimaryWrite = activity.updatedAt
+        if foregroundChanged {
+            lastForegroundWrite = activity.updatedAt
             nextDue = nil
         }
     }
 
     /// The entry `current.json` gives at `now`; without the file, the
     /// previous entry with `agentRunning` false, or nothing if none.
-    static func activity(from state: TrackerState?, previous: LiveState.MacActivity?, at now: Date) -> LiveState.MacActivity? {
+    static func activity(
+        from state: TrackerState?,
+        device: String,
+        previous: LiveState.MacActivity?,
+        at now: Date
+    ) -> LiveState.MacActivity? {
         guard let state else {
             guard var previous, previous.agentRunning else {
                 return previous
@@ -88,9 +96,9 @@ public actor LiveStatePublisher {
             return previous
         }
         return LiveState.MacActivity(
-            device: state.device,
-            primary: state.primary,
-            groupKey: state.openBlock?.groupKey,
+            device: device,
+            foreground: state.foreground,
+            groupKey: state.block?.dominantWorkspace?.workspace,
             presence: state.presence.state.rawValue,
             since: state.presence.since,
             agentRunning: state.isRunning(at: now),

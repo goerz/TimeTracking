@@ -1,5 +1,5 @@
 // SourceReport: what a resolver found out about a source during a tick
-// (activity_tracking.md §2.3, §4.4).
+// (activity_tracking.md §3.5, §4.4).
 
 import TimeTrackingCore
 

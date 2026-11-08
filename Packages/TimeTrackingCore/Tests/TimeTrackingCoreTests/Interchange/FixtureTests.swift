@@ -125,7 +125,7 @@ struct FixtureTests {
         try await dataset.activityLog(to: folder.url)
         let reader = FileActivityStore(folders: ActivityFolders(shared: folder.url, local: folder.url, isFallback: true))
         let calendar = try TrackingCalendar(timeZone: #require(TimeZone(identifier: "America/New_York")))
-        let blocks = try await reader.blocks(in: calendar.interval(of: dataset.days), devices: nil)
+        let blocks = await reader.blocks(in: calendar.interval(of: dataset.days), devices: nil)
         #expect(blocks.count > 40)
         #expect(Set(blocks.map(\.utcOffset)).count >= 2)
     }

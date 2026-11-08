@@ -93,6 +93,8 @@ struct TrackerPane: View {
             Button(action.title) { SystemSettings.reveal(url) }.accessibilityIdentifier(identifier)
         case .restartTracker:
             Button(action.title) { Task { await app.tracker.restartTracker() } }.accessibilityIdentifier(identifier)
+        case .recordHere:
+            Button(action.title) { Task { await app.tracker.recordHere() } }.accessibilityIdentifier(identifier)
         case .askAutomation:
             Button(action.title) { Task { await app.tracker.askForAutomation() } }.accessibilityIdentifier(identifier)
         case .openAtLogin:

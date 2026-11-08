@@ -1,211 +1,230 @@
-// Tests for the Devices module: iPhone and iPad events merged into `device`
-// blocks (activity_tracking.md §2.3, §6.2, §7.2; TRK-8, 11, 26, 28).
+// The remote activity loop and the shared block log: DeviceEvents of an
+// iPhone fetched and redone per device-date, device names, frozen dates on
+// a new Mac, and the source list (activity_tracking.md §2.2, §2.5, §3.5,
+// §4.1, §6.2).
 
 import Foundation
+import GRDB
+import Synchronization
 import Testing
 import TimeTrackingCore
 @testable import TimeTrackingAgent
 
 @MainActor
 struct DeviceTests {
-    static let phone = "phone-0123456789"
+    static let phone = "phone-0123"
 
-    /// An event of the phone `seconds` after the fixture time.
-    static func event(
-        _ seconds: TimeInterval,
-        _ source: DeviceEvent.Source,
-        _ label: String,
-        _ kind: String,
-        payload: [String: any Sendable] = [:],
-        sequence: Int
-    ) -> DeviceEvent {
-        DeviceEvent(
-            deviceID: phone,
-            time: ManualClock.fixtureNow(in: AgentHarness.zone).addingTimeInterval(seconds),
-            source: source,
-            label: label,
-            kind: kind,
-            payload: DeviceEvent.payloadText(payload),
-            sequence: sequence,
-            utcOffset: -14_400,
-            deviceName: "iPhone"
-        )
-    }
-
-    /// Ladder minutes `steps` of `label`, step k at `start + 60 k` seconds.
-    static func minutes(_ label: String, _ steps: ClosedRange<Int>, start: TimeInterval) -> [DeviceEvent] {
-        steps.map { step in
-            event(start + TimeInterval(60 * step), .ladder, label, "minute", payload: ["n": step], sequence: step)
+    /// Screen Time threshold `n` of `label` for each step, step k at `firstAt` plus k − 1 minutes.
+    static func minutes(_ label: String, _ steps: ClosedRange<Int>, firstAt: String, name: String = "iPhone") -> [DeviceEvent] {
+        let first = AgentHarness.instant(firstAt)
+        return steps.map { step in
+            DeviceEvent(
+                deviceID: phone,
+                time: first + TimeInterval(60 * (step - steps.lowerBound)),
+                source: .screenTime,
+                label: label,
+                kind: "minute",
+                payload: DeviceEvent.payloadText(["n": step]),
+                sequence: step,
+                utcOffset: AgentHarness.zone.secondsFromGMT(for: first),
+                deviceName: name
+            )
         }
     }
 
-    /// A harness whose engine reads `server`.
+    /// A harness whose agent fetches from a server in memory.
     static func harness(settings: String? = nil) throws -> (AgentHarness, InMemoryDeviceEventServer) {
         let harness = try AgentHarness(settings: settings)
         let server = InMemoryDeviceEventServer()
-        harness.engine.deviceEvents = server.source
+        harness.agent.deviceEvents = server.source
         return (harness, server)
     }
 
-    @Test("TRK-28 ladder minutes 1 to 20, a 10 minute gap, and minutes 21 to 30 give two device blocks split at the gap")
-    func ladderMinutesSplitAtTheGap() async throws {
-        let (harness, server) = try Self.harness()
-        let first = Self.minutes("Mail", 1 ... 20, start: 0)
-        let second = Self.minutes("Mail", 21 ... 30, start: 600)
-        try await server.upload(first + second)
-        await harness.syncDevices(at: 3600)
-        let blocks = harness.blocks
-        #expect(blocks.count == 2)
-        #expect(blocks.allSatisfy { $0.deviceNames == ["iPhone"] })
-        #expect(blocks.map(\.groupKey) == ["Mail", "Mail"])
-        #expect(blocks.map { $0.items.first?.context } == ["Mail", "Mail"])
-        #expect(blocks.map { $0.items.first?.subject } == ["Mail", "Mail"])
-        #expect(blocks.map(\.activeSeconds) == [1200, 600])
-        #expect(blocks[0].start == harness.time(0))
-        #expect(blocks[0].end == harness.time(1200))
-        #expect(blocks[1].start == harness.time(1800))
-        #expect(blocks[1].end == harness.time(2400))
-        #expect(harness.blockLogText.contains(#""dev":[["iPhone",1200]]"#))
-        #expect(harness.health("device_events")?.status == .active)
-        #expect(harness.health("device_events")?.reason.isEmpty == true)
-    }
-
-    @Test func lateEventsReplaceTheDaysBlocks() async throws {
-        let (harness, server) = try Self.harness()
-        try await server.upload(Self.minutes("Mail", 1 ... 10, start: 0))
-        await harness.syncDevices(at: 900)
-        #expect(harness.blocks.map(\.activeSeconds) == [600])
-        let before = harness.blockLogText
-        // A fetch with nothing new leaves the file as it was.
-        await harness.syncDevices(at: 1200)
-        #expect(harness.blockLogText == before)
-        try await server.upload(Self.minutes("Mail", 11 ... 15, start: 0))
-        await harness.syncDevices(at: 1500)
-        #expect(harness.blocks.map(\.activeSeconds) == [900])
-        #expect(harness.details.count == 1)
-        #expect(try harness.engine.store.deviceEventCount() == 15)
-    }
-
-    @Test func namedSetsWinOverEverythingAndEarlyStepsDoNotCount() async throws {
-        let (harness, server) = try Self.harness()
-        var events = Self.minutes("Everything", 1 ... 10, start: 0)
-        events += [3, 4, 5].map { step in
-            Self.event(TimeInterval(60 * step), .ladder, "Mail", "minute", payload: ["n": step - 2], sequence: 100 + step)
-        }
-        events.append(Self.event(61, .ladder, "Everything", "minute", payload: ["n": 5, "early": true], sequence: 200))
+    /// Uploads `events`, then lets the agent fetch them and form blocks.
+    static func sync(_ harness: AgentHarness, _ server: InMemoryDeviceEventServer, _ events: [DeviceEvent]) async throws {
         try await server.upload(events)
-        await harness.syncDevices(at: 3600)
-        let block = try #require(harness.blocks.first)
-        #expect(harness.blocks.count == 1)
-        #expect(block.activeSeconds == 600)
-        let seconds = Dictionary(uniqueKeysWithValues: block.items.map { ($0.context, $0.seconds) })
-        #expect(seconds == ["iPhone": 420, "Mail": 180])
+        await harness.agent.fetchDeviceEvents()
+        await harness.drain()
     }
 
-    @Test func tabsAutomationsAndTheAppBecomeItems() async throws {
+    private func phoneSamples(_ harness: AgentHarness, on day: String) -> [Sample] {
+        let start = AgentHarness.instant("\(day)T00:00:00")
+        return harness.samples.filter { $0.deviceID == Self.phone && $0.time >= start && $0.time < start + 86_400 }
+    }
+
+    @Test(
+        "TRK-17 a new DeviceEvent replaces the device's iOS Samples of its date; a fetch without new events marks no date"
+    )
+    func newEventsReplaceTheDate() async throws {
         let (harness, server) = try Self.harness()
-        try await server.upload([
-            Self.event(0, .intent, "Mail", ActivityEventKind.appOpened.rawValue, sequence: 1),
-            Self.event(240, .intent, "Mail", ActivityEventKind.appClosed.rawValue, sequence: 2),
-            Self.event(240, .webext, "github.com/owner/repo/pull/12", "tab", sequence: 3),
-            Self.event(300, .app, "TimeTracking", "foreground", sequence: 4),
-            Self.event(420, .app, "TimeTracking", "background", sequence: 5),
-        ])
-        await harness.syncDevices(at: 3600)
-        let block = try #require(harness.blocks.first)
-        #expect(harness.blocks.count == 1)
-        let items = block.items.map { "\($0.context) \($0.subject) \($0.detail) \($0.seconds)" }
-        #expect(items == ["Mail Mail  240", "safari github.com/owner/repo pull/12 60", "TimeTracking TimeTracking  120"])
-        #expect(block.end == harness.time(420))
-    }
-
-    @Test func aFocusThatSuspendsCollectionClosesTheBlock() async throws {
-        let (harness, server) = try Self.harness()
-        var events = Self.minutes("Everything", 1 ... 6, start: 0)
-        events.append(Self.event(180, .focus, "Sleep", "on", payload: ["collect": false], sequence: 50))
-        try await server.upload(events)
-        await harness.syncDevices(at: 3600)
-        #expect(harness.blocks.map(\.activeSeconds) == [180, 180])
-        #expect(harness.blocks.map(\.end) == [harness.time(180), harness.time(360)])
-    }
-
-    @Test("TRK-8 the device merge applies exclude_domains and private_domains to web extension items")
-    func theDeviceMergeAppliesTheExclusions() async throws {
-        let (harness, server) = try Self.harness(settings: """
-        [privacy]
-        exclude_domains = ["bank.example"]
-        private_domains = ["mail.example"]
-        """)
-        try await server.upload([
-            Self.event(0, .webext, "bank.example/accounts/42", "tab", sequence: 1),
-            Self.event(60, .webext, "mail.example/inbox/7", "tab", sequence: 2),
-            Self.event(120, .webext, "example.com/docs", "tab", sequence: 3),
-        ])
-        await harness.syncDevices(at: 3600)
-        let output = harness.blockLogText + harness.detailLogText
-        #expect(!output.contains("bank.example"))
-        #expect(!output.contains("accounts"))
-        #expect(!output.contains("inbox"))
-        let subjects = harness.details.flatMap(\.items).map(\.subject).sorted()
-        #expect(subjects == ["(private)", "example.com", "mail.example"])
-    }
-
-    @Test("TRK-11 a device block open at midnight ends at 00:00:00")
-    func deviceBlocksEndAtMidnight() async throws {
-        let (harness, server) = try Self.harness()
-        // 23:54 to 23:59 and a tab at 23:59:30 on the phone; the steps restart after midnight.
-        let late = 14 * 3600 - 300.0
-        var events = Self.minutes("Everything", 1 ... 5, start: late - 60)
-        events.append(Self.event(late + 270, .webext, "example.com/a", "tab", sequence: 9))
-        events += (1 ... 5).map { step in
-            Self.event(
-                14 * 3600 + TimeInterval(60 * step),
-                .ladder,
-                "Everything",
-                "minute",
-                payload: ["n": step],
-                sequence: 10 + step
+        try harness.startedOn("2024-03-01")
+        try await Self.sync(
+            harness,
+            server,
+            Self.minutes("Social", 1 ... 5, firstAt: "2024-03-13T08:01:00") + Self.minutes(
+                "Social",
+                1 ... 10,
+                firstAt: "2024-03-14T08:01:00"
             )
-        }
-        try await server.upload(events)
-        await harness.syncDevices(at: 15 * 3600)
-        let blocks = harness.blocks
-        #expect(blocks.count == 2)
-        let days = blocks.map { block in
-            [block.start, block.end.addingTimeInterval(-1)].map { ActivityTimestamp.day($0, utcOffset: block.utcOffset) }
-        }
-        #expect(days == [["2024-03-14", "2024-03-14"], ["2024-03-15", "2024-03-15"]])
-        #expect(ActivityTimestamp.text(blocks[0].end, utcOffset: -14_400) == "2024-03-15T00:00:00")
+        )
+        let yesterday = phoneSamples(harness, on: "2024-03-13")
+        // One Sample per threshold minute, at its start.
+        #expect(yesterday.count == 5)
+        let first = phoneSamples(harness, on: AgentHarness.today)
+        #expect(first.first?.time == AgentHarness.instant("2024-03-14T08:00:00"))
+        #expect(first.last?.time == AgentHarness.instant("2024-03-14T08:09:00"))
+        #expect(first.allSatisfy { $0.source == .screenTime && $0.foreground?.app == "Social" })
+
+        try await Self.sync(harness, server, Self.minutes("Social", 11 ... 15, firstAt: "2024-03-14T08:11:00"))
+        let second = phoneSamples(harness, on: AgentHarness.today)
+        #expect(second.first?.time == AgentHarness.instant("2024-03-14T08:00:00"))
+        #expect(second.last?.time == AgentHarness.instant("2024-03-14T08:14:00"))
+        #expect(second.count == 15)
+        #expect(phoneSamples(harness, on: "2024-03-13") == yesterday)
+        #expect(harness.blocks(AgentHarness.today).first?.foreground.map(\.device) == ["iPhone"])
+
+        // Nothing new: no write marks a date.
+        let marks = Mutex<[Set<TrackingDay>]>([])
+        let observation = DatabaseRegionObservation(tracking: Table("meta"))
+        let cancellable = observation.start(
+            in: harness.agent.store.database,
+            onError: { _ in },
+            onChange: { database in
+                let days = (try? database.meta(.changedDays)) ?? []
+                marks.withLock { $0.append(days) }
+            }
+        )
+        await harness.agent.fetchDeviceEvents()
+        await harness.drain()
+        cancellable.cancel()
+        let recorded = marks.withLock { $0 }
+        #expect(!recorded.isEmpty)
+        let unmarked = recorded.allSatisfy(\.isEmpty)
+        #expect(unmarked)
+        #expect(phoneSamples(harness, on: AgentHarness.today) == second)
+        #expect(try harness.agent.store.meta(.pendingRemoteDays)?.isEmpty ?? true)
     }
 
-    @Test("TRK-26 merged DeviceEvent records older than 90 days are deleted")
-    func oldDeviceEventsArePurged() async throws {
+    @Test("TRK-59 renaming an iPhone changes its name in every rebuilt block, also of dates without new events")
+    func renamedDevice() async throws {
         let (harness, server) = try Self.harness()
-        let old = Self.event(-91 * 86_400, .app, "TimeTracking", "foreground", sequence: 1)
-        let recent = Self.event(-86_400, .app, "TimeTracking", "foreground", sequence: 2)
-        try await server.upload([old, recent])
-        await harness.syncDevices(at: 0)
-        #expect(await server.all == [recent])
-        #expect(try harness.engine.store.deviceEventCount() == 1)
+        try harness.startedOn("2024-03-01")
+        try await Self.sync(
+            harness,
+            server,
+            Self.minutes("Social", 1 ... 20, firstAt: "2024-03-13T08:01:00") + Self.minutes(
+                "Social",
+                1 ... 20,
+                firstAt: "2024-03-14T08:01:00"
+            )
+        )
+        let days = ["2024-03-13", AgentHarness.today]
+        for day in days {
+            #expect(harness.blocks(day).flatMap(\.foreground).map(\.device) == ["iPhone"], "\(day)")
+        }
+
+        try await Self.sync(harness, server, Self.minutes("Social", 21 ... 21, firstAt: "2024-03-14T09:00:00", name: "Alex's iPhone"))
+        for day in days {
+            let devices = harness.blocks(day).flatMap(\.foreground).map(\.device)
+            #expect(!devices.isEmpty && devices.allSatisfy { $0 == "Alex's iPhone" }, "\(day): \(devices)")
+        }
+        #expect(!harness.blockLogText.contains("\"d\":\"iPhone\""))
     }
 
-    @Test func withoutCloudKitTheSourceIsOff() async throws {
+    @Test("TRK-64 with synced_safari_history off, synced_safari is not in health.sources; on, it is")
+    func syncedSafariSource() async throws {
         let harness = try AgentHarness()
-        await harness.syncDevices(at: 0)
-        #expect(harness.health("device_events")?.status == .off)
-        #expect(harness.currentStateText.contains("iCloud is not available; iPhone and iPad activity doesn't reach this Mac"))
+        await harness.tick()
+        let ids = try #require(harness.currentState?.health.sources.map(\.id))
+        #expect(!ids.contains("synced_safari"))
+        #expect(ids.contains("device_events"))
+
+        let enabled = try AgentHarness(settings: "[devices]\nsynced_safari_history = true\n")
+        await enabled.agent.fetchDeviceEvents()
+        await enabled.drain()
+        await enabled.tick()
+        #expect(enabled.currentState?.health.sources.map(\.id).contains("synced_safari") == true)
     }
 
-    @Test func aFailedFetchKeepsTheTokenAndReportsIt() async throws {
-        struct Offline: Error {}
+    @Test("TRK-19 off, the remote cycle stores no safariHistory Sample and never opens CloudTabs.db; on, the visits become Samples")
+    func syncedSafariVisits() async throws {
+        func visits(_ harness: AgentHarness) {
+            harness.history.safari = (0 ..< 3).map { index in
+                let visit = HistoryVisit(
+                    time: harness.time(TimeInterval(-3600 + index * 120)),
+                    browser: "safari",
+                    url: "https://example.com/\(index)",
+                    title: "Page \(index)"
+                )
+                return (visit, 1)
+            }
+            harness.history.tabs = [CloudTabDevice(name: "iPhone", urls: ["https://example.com/0"])]
+        }
+        let disabled = try AgentHarness()
+        visits(disabled)
+        await disabled.agent.fetchDeviceEvents()
+        await disabled.drain()
+        #expect(disabled.history.cloudTabsReads == 0)
+        #expect(!disabled.samples.contains { $0.source == .safariHistory })
+
+        let enabled = try AgentHarness(settings: "[devices]\nsynced_safari_history = true\n")
+        visits(enabled)
+        await enabled.agent.fetchDeviceEvents()
+        await enabled.drain()
+        #expect(enabled.history.cloudTabsReads == 1)
+        let synced = enabled.samples.filter { $0.source == .safariHistory }
+        // Two minutes per visit but the last, which lasts one; the last Sample of each a minute before its end.
+        #expect(synced.count == 3 + 3 + 1)
+        #expect(Set(synced.map(\.deviceID)) == [ActivityBlockItem.remoteDevice])
+        #expect(enabled.agent.health.status(.syncedSafari) == .active)
+    }
+
+    @Test(
+        "TRK-65 on a new Mac, dates before the first start are frozen: the first fetch leaves them, reapply-exclusions edits them"
+    )
+    func frozenDatesOnANewMac() async throws {
         let (harness, server) = try Self.harness()
-        try await server.upload(Self.minutes("Mail", 1 ... 3, start: 0))
-        await server.setFailing(Offline())
-        await harness.syncDevices(at: 600)
-        #expect(harness.blocks.isEmpty)
-        #expect(harness.health("device_events")?.reason == "Couldn't reach iCloud; trying again in 5 minutes")
-        await server.setFailing(nil)
-        await harness.syncDevices(at: 900)
-        #expect(harness.blocks.count == 1)
+        let news = ActivityItem(
+            app: "Safari",
+            appID: "com.apple.Safari",
+            location: "https://news.example.com/story/42",
+            workspace: "news.example.com"
+        )
+        let mail = ActivityItem(app: "Mail", appID: "com.apple.mail", window: "Inbox")
+        let old = try harness.writeDateFile("2024-03-10", [
+            AgentHarness.block("2024-03-10T09:00:00", "2024-03-10T09:30:00", mail),
+            AgentHarness.block("2024-03-10T10:00:00", "2024-03-10T10:30:00", news),
+            AgentHarness.block("2024-03-10T11:00:00", "2024-03-10T11:30:00", mail),
+        ])
+        try await Self.sync(harness, server, Self.minutes("Social", 1 ... 20, firstAt: "2024-03-10T08:01:00"))
+        #expect(harness.dateFileText("2024-03-10") == old)
+        #expect(phoneSamples(harness, on: "2024-03-10").isEmpty)
+
+        try harness.writeSettings("[privacy]\nexclude_domains = [\"news.example.com\"]\n")
+        #expect(await harness.request("reapply-exclusions 2024-03-10 2024-03-10") == "ok")
+        let edited = try #require(harness.dateFileText("2024-03-10"))
+        let before = old.split(separator: "\n")
+        let after = edited.split(separator: "\n")
+        #expect(after.count == before.count)
+        #expect(zip(before, after).filter { $0 != $1 }.count == 1)
+        #expect(after[2].contains("(private)"))
+        #expect(!edited.contains("news.example.com"))
+    }
+
+    @Test(
+        "TRK-71 a fetch skips records of another app version, stores the others, and reports device_events fallback; the purge deletes them"
+    )
+    func unreadableRecordsSkipped() async throws {
+        let (harness, server) = try Self.harness()
+        await server.uploadUnreadable("old-ladder-1", at: AgentHarness.instant("2024-03-14T08:00:00"))
+        try await Self.sync(harness, server, Self.minutes("Social", 1 ... 5, firstAt: "2024-03-14T08:01:00"))
+        #expect(harness.samples.contains { $0.deviceID == Self.phone })
+        #expect(harness.agent.health.status(.deviceEvents) == .fallback)
+        // The token moved past the record: the next fetch doesn't see it again.
+        try await Self.sync(harness, server, [])
+        #expect(harness.agent.health.status(.deviceEvents) == .active)
+
+        try await server.source.purge(before: AgentHarness.instant("2024-03-15T00:00:00"))
+        #expect(await server.unreadableNames.isEmpty)
     }
 }

@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" id="tt-fig-summary" viewBox="0 0 760 470" role="img" aria-label="A Calendar activity column from 09:00 to 13:00 with four blocks, and the summary of the hovered 09:52 to 11:05 block: its workspaces MyApp, 2026_Noise, and Social with their shares and items, two background items, and a footer.">
+<style>
+#tt-fig-summary { width: 100%; height: auto; display: block; margin: 0 auto; max-width: 760px; }
+#tt-fig-summary text { font-family: var(--font-stack, -apple-system, sans-serif); font-size: 12px; fill: var(--tt-fg, #1c2529); }
+#tt-fig-summary .note { fill: var(--tt-muted, #5c6b72); }
+#tt-fig-summary .rel { fill: var(--tt-fg, #1c2529); }
+#tt-fig-summary .zlabel { font-weight: 600; fill: var(--tt-muted, #5c6b72); }
+#tt-fig-summary .lname { font-size: 14px; font-weight: 600; }
+#tt-fig-summary .cname { font-size: 14px; font-weight: 600; }
+#tt-fig-summary .cname.sm { font-size: 12px; }
+#tt-fig-summary .sname { font-family: var(--font-stack--monospace, ui-monospace, monospace); font-size: 13px; font-weight: 600; }
+#tt-fig-summary .mono { font-family: var(--font-stack--monospace, ui-monospace, monospace); }
+#tt-fig-summary .link { fill: var(--tt-accent, #0b6e75); text-decoration: underline; }
+#tt-fig-summary .wake { fill: var(--tt-accent, #0b6e75); }
+#tt-fig-summary .ptext { font-size: 13px; font-weight: 600; fill: var(--tt-warn, #a4560a); }
+#tt-fig-summary .ptext.planned { fill: var(--tt-muted, #5c6b72); font-weight: 500; }
+#tt-fig-summary .pill { fill: var(--tt-warn-soft, #fbeedd); stroke: var(--tt-warn, #a4560a); stroke-width: 1.3; }
+#tt-fig-summary .pill.planned { fill: none; stroke: var(--tt-muted, #5c6b72); stroke-dasharray: 4 3; }
+#tt-fig-summary .box { fill: var(--tt-panel, #ffffff); stroke: var(--tt-line, #b6c2c8); stroke-width: 1.2; }
+#tt-fig-summary .box.dev { stroke: var(--tt-fg, #1c2529); stroke-width: 1.4; }
+#tt-fig-summary .store { fill: var(--tt-local, #eeeff3); stroke: var(--tt-line, #b6c2c8); stroke-width: 1.2; }
+#tt-fig-summary .frame { fill: none; stroke: var(--tt-line, #b6c2c8); stroke-width: 1.2; stroke-dasharray: 6 4; }
+#tt-fig-summary .rule { stroke: var(--tt-line, #b6c2c8); }
+#tt-fig-summary .lead { fill: none; stroke: var(--tt-fg, #1c2529); stroke-width: 1.1; }
+#tt-fig-summary path.wl, #tt-fig-summary line.wl { fill: none; stroke: var(--tt-accent, #0b6e75); stroke-width: 1.2; stroke-dasharray: 5 4; }
+#tt-fig-summary .loop { fill: none; stroke: var(--tt-warn, #a4560a); stroke-width: 2; }
+#tt-fig-summary .ahead { fill: var(--tt-fg, #1c2529); }
+#tt-fig-summary .lhead { fill: var(--tt-warn, #a4560a); }
+#tt-fig-summary .whead { fill: var(--tt-accent, #0b6e75); }
+#tt-fig-summary .soft { fill: var(--tt-accent-soft, #e0eff0); stroke: var(--tt-accent, #0b6e75); stroke-width: 1; }
+#tt-fig-summary .hot { fill: var(--tt-accent, #0b6e75); }
+#tt-fig-summary .hot-text { fill: var(--tt-panel, #ffffff); }
+#tt-fig-summary .bgblock { fill: none; stroke: var(--tt-accent, #0b6e75); stroke-width: 1; stroke-dasharray: 4 3; }
+#tt-fig-summary .bar-bg { fill: var(--tt-rule, #dde3e6); }
+#tt-fig-summary .bar { fill: var(--tt-accent, #0b6e75); }
+#tt-fig-summary .pop { fill: var(--tt-panel, #ffffff); stroke: var(--tt-line, #b6c2c8); stroke-width: 1; }
+#tt-fig-summary .devtext { font-weight: 600; fill: var(--tt-warn, #a4560a); }
+#tt-fig-summary .b { font-weight: 600; }
+#tt-fig-summary .head { font-size: 15px; font-weight: 600; }
+#tt-fig-summary .small { font-size: 11px; }
+</style>
+<defs><marker id="tt-fig-summary-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ahead" d="M0 0 L10 5 L0 10 z"/></marker><marker id="tt-fig-summary-lh" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path class="lhead" d="M0 0 L10 5 L0 10 z"/></marker><marker id="tt-fig-summary-wh" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="whead" d="M0 0 L10 5 L0 10 z"/></marker></defs>
+<!-- Activity column: 09:00 to 13:00 -->
+<line class="rule" x1="70" y1="24" x2="70" y2="444"/>
+<line class="rule" x1="70" y1="24.0" x2="220" y2="24.0"/>
+<text class="note small" x="62.0" y="28.0" text-anchor="end">09:00</text>
+<line class="rule" x1="70" y1="129.0" x2="220" y2="129.0"/>
+<text class="note small" x="62.0" y="133.0" text-anchor="end">10:00</text>
+<line class="rule" x1="70" y1="234.0" x2="220" y2="234.0"/>
+<text class="note small" x="62.0" y="238.0" text-anchor="end">11:00</text>
+<line class="rule" x1="70" y1="339.0" x2="220" y2="339.0"/>
+<text class="note small" x="62.0" y="343.0" text-anchor="end">12:00</text>
+<line class="rule" x1="70" y1="444.0" x2="220" y2="444.0"/>
+<text class="note small" x="62.0" y="448.0" text-anchor="end">13:00</text>
+<rect class="soft" x="80" y="41.5" width="130" height="59.5" rx="4"/>
+<text class="small" x="87.0" y="55.5" text-anchor="start">2026_Noise</text>
+<rect class="hot" x="80" y="115.0" width="130" height="127.8" rx="4"/>
+<text class="small hot-text" x="87.0" y="129.0" text-anchor="start">MyApp</text>
+<rect class="bgblock" x="80" y="260.2" width="130" height="75.2" rx="4"/>
+<text class="small" x="87.0" y="274.2" text-anchor="start">background</text>
+<rect class="soft" x="80" y="365.2" width="130" height="70.0" rx="4"/>
+<text class="small" x="87.0" y="379.2" text-anchor="start">Mail</text>
+<!-- Summary popover -->
+<rect class="pop" x="270" y="24" width="470" height="364" rx="10"/>
+<!-- Pointer from the hovered block to the popover -->
+<line class="rule" x1="210" y1="164.0" x2="270" y2="164.0"/>
+<text class="" x="286" y="50"><tspan class="head">09:52 – 11:05</tspan></text><text class="note" x="724" y="50" text-anchor="end">1 h 13 min</text>
+<text class="note" x="286" y="70">Active 1 h 06 min · went idle · MacBook, <tspan class="devtext">iPhone</tspan></text>
+<text class="b" x="286" y="98">MyApp <tspan class="note" font-weight="400">~/Code/MyApp</tspan></text><text class="b" x="604" y="98" text-anchor="end">41 min</text><rect class="bar-bg" x="614" y="90" width="70" height="6" rx="3"/><rect class="bar" x="614" y="90" width="43.4" height="6" rx="3"/><text class="note small" x="724" y="98" text-anchor="end">62%</text>
+<text class="" x="298" y="117">WezTerm · refactor-parser</text><text class="note" x="724" y="117" text-anchor="end">24 min</text>
+<text class="" x="298" y="136">Safari · Fix parser #123</text><text class="note" x="724" y="136" text-anchor="end">11 min</text>
+<text class="" x="298" y="155">WezTerm · parser.swift</text><text class="note" x="724" y="155" text-anchor="end">6 min</text>
+<text class="b" x="286" y="183">2026_Noise <tspan class="note" font-weight="400">~/Papers/2026_Noise</tspan></text><text class="b" x="604" y="183" text-anchor="end">13 min</text><rect class="bar-bg" x="614" y="175" width="70" height="6" rx="3"/><rect class="bar" x="614" y="175" width="14.0" height="6" rx="3"/><text class="note small" x="724" y="183" text-anchor="end">20%</text>
+<text class="" x="298" y="202">Skim · notes.pdf</text><text class="note" x="724" y="202" text-anchor="end">9 min</text>
+<text class="" x="298" y="221">WezTerm · notes.tex</text><text class="note" x="724" y="221" text-anchor="end">4 min</text>
+<text class="b" x="286" y="249">Social <tspan class="note" font-weight="400">Screen Time set</tspan></text><text class="b" x="604" y="249" text-anchor="end">12 min</text><rect class="bar-bg" x="614" y="241" width="70" height="6" rx="3"/><rect class="bar" x="614" y="241" width="12.6" height="6" rx="3"/><text class="note small" x="724" y="249" text-anchor="end">18%</text>
+<text x="298" y="268"><tspan class="devtext">iPhone</tspan> Social</text><text class="note" x="724" y="268" text-anchor="end">12 min</text>
+<line class="rule" x1="286" y1="284" x2="724" y2="284"/>
+<text class="b note small" x="286" y="302">Background</text>
+<text x="286" y="321">Claude Code · refactor-parser <tspan class="note">MyApp</tspan></text><text class="note" x="724" y="321" text-anchor="end">38 min</text>
+<text x="286" y="340">tmux · make test <tspan class="note">MyApp</tspan></text><text class="note" x="724" y="340" text-anchor="end">9 min</text>
+<line class="rule" x1="286" y1="356" x2="724" y2="356"/>
+<text class="note small" x="286" y="374">4 min rebuilt from app usage history · Click for every item</text>
+</svg>

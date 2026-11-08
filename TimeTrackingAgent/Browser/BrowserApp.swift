@@ -15,24 +15,23 @@ nonisolated enum BrowserScripting: Hashable, Sendable {
     case unscriptable
 }
 
-/// A browser: context name and scripting.
+/// A browser: how its active tab is read.
 nonisolated struct BrowserApp: Hashable, Sendable {
-    var context: String
     var scripting: BrowserScripting
 
     /// Safari on the Mac.
     static let safariBundleID = "com.apple.Safari"
 
     static let known: [String: Self] = [
-        safariBundleID: Self(context: "safari", scripting: .safari),
-        "com.apple.SafariTechnologyPreview": Self(context: "safari", scripting: .safari),
-        "com.google.Chrome": Self(context: "chrome", scripting: .chromium),
-        "com.google.Chrome.canary": Self(context: "chrome", scripting: .chromium),
-        "company.thebrowser.Browser": Self(context: "arc", scripting: .arc),
-        "com.brave.Browser": Self(context: "brave", scripting: .chromium),
-        "com.microsoft.edgemac": Self(context: "edge", scripting: .chromium),
-        "com.vivaldi.Vivaldi": Self(context: "vivaldi", scripting: .chromium),
-        "org.mozilla.firefox": Self(context: "firefox", scripting: .unscriptable),
+        safariBundleID: Self(scripting: .safari),
+        "com.apple.SafariTechnologyPreview": Self(scripting: .safari),
+        "com.google.Chrome": Self(scripting: .chromium),
+        "com.google.Chrome.canary": Self(scripting: .chromium),
+        "company.thebrowser.Browser": Self(scripting: .arc),
+        "com.brave.Browser": Self(scripting: .chromium),
+        "com.microsoft.edgemac": Self(scripting: .chromium),
+        "com.vivaldi.Vivaldi": Self(scripting: .chromium),
+        "org.mozilla.firefox": Self(scripting: .unscriptable),
     ]
 
     /// The script for the active tab, answering `mode`, URL, and title on three lines.
@@ -76,7 +75,7 @@ nonisolated struct BrowserApp: Hashable, Sendable {
     }
 
     /// The Chromium profile folders' parents, relative to the home folder.
-    static let chromiumProfileRoots: [(context: String, folder: String)] = [
+    static let chromiumProfileRoots: [(browser: String, folder: String)] = [
         ("chrome", "Library/Application Support/Google/Chrome"),
         ("arc", "Library/Application Support/Arc/User Data"),
         ("brave", "Library/Application Support/BraveSoftware/Brave-Browser"),

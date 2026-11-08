@@ -67,18 +67,18 @@ struct StorePerformanceTests {
         #expect(exportSeconds < 10, "export: \(exportSeconds) s")
     }
 
-    @Test("blocks(in:) for 7 days under 50 ms with the month files cached, on the large dataset's block log")
+    @Test("blocks(in:) for 7 days under 50 ms with the date files cached, on the large dataset's block log")
     func blockTargets() async throws {
         let dataset = SyntheticDataset.large()
         let folder = try TemporaryFolder()
         defer { folder.remove() }
         try await dataset.activityLog(to: folder.url)
         let zone = try #require(TimeZone(identifier: dataset.timeZone))
-        let reader = FileActivityStore(folders: ActivityFolders(shared: folder.url, local: folder.url, isFallback: true), timeZone: zone)
+        let reader = FileActivityStore(folders: ActivityFolders(shared: folder.url, local: folder.url, isFallback: true))
         let last = dataset.days.upperBound
         let week = TrackingCalendar(timeZone: zone).interval(of: last.adding(days: -6) ... last)
-        #expect(try await !reader.blocks(in: week, devices: nil).isEmpty)
-        let time = try await ReportPerformanceTests.milliseconds { _ = try await reader.blocks(in: week, devices: nil) }
+        #expect(await !reader.blocks(in: week, devices: nil).isEmpty)
+        let time = await ReportPerformanceTests.milliseconds { _ = await reader.blocks(in: week, devices: nil) }
         #expect(time < 50, "blocks(in:) for 7 days: \(time) ms")
     }
 

@@ -8,7 +8,7 @@ import TimeTrackingCore
 struct BarsPanel: View {
     var model: ActivityModel
     var summary: ActivitySummary
-    @Environment(\.contextColors) private var colors
+    @Environment(\.appColors) private var colors
     /// The bar or segment under the pointer.
     @State private var hovered: ActivityBars.Target?
     @FocusState private var isFocused: Bool
@@ -19,7 +19,7 @@ struct BarsPanel: View {
             chart(bars)
                 .chartOverlay { proxy in pointerArea(proxy, bars: bars) }
                 .overlay(alignment: .top) {
-                    if let text = shownTarget.flatMap({ bars.tooltip(of: $0, displayName: model.displayName) }) {
+                    if let text = shownTarget.flatMap({ bars.tooltip(of: $0) { $0 } }) {
                         tooltip(text)
                     }
                 }
@@ -174,9 +174,8 @@ struct BarsPanel: View {
 
     private func color(_ series: ActivityBars.Series) -> Color {
         switch series {
-        case let .context(context): colors.color(context)
-        case .otherContexts: .gray.opacity(0.6)
-        case .notItemized: .gray.opacity(0.35)
+        case let .app(app): colors.color(app)
+        case .otherApps: .gray.opacity(0.6)
         }
     }
 }

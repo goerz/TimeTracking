@@ -27,7 +27,8 @@ extension TrackerStatusModel {
     }
 
     /// iCloud Drive; while the tracker cannot write the container, the app
-    /// copies its activity there, which counts as done.
+    /// copies its activity there, which counts as done. While another Mac
+    /// records, "Record on This Mac" takes over (§4.1).
     private var iCloudStep: TrackerSetupStep {
         var result = step(
             "icloud",
@@ -39,7 +40,11 @@ extension TrackerStatusModel {
             ),
             actions: [.noAction]
         )
-        if ActivityFolderMirror.isNeeded(for: state) {
+        let health = state?.health.sources.first { $0.id == "shared_folder" }
+        if health?.reason == BlockLogOwner.otherMacReason {
+            result.detail = "Off: another Mac records activity."
+            result.actions = [.recordHere]
+        } else if ActivityFolderMirror.isNeeded(for: state) {
             result.mark = .done
             result.detail = "On: this Mac's activity is copied to iCloud Drive while the app is open, and shows on iPhone and iPad."
         }

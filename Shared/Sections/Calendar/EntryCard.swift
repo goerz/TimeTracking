@@ -9,7 +9,7 @@ import TimeTrackingCore
 struct EntryCard: View {
     var model: CalendarModel
     var listing: EntryListing
-    /// The column: an entry across Midnight has a card on each of its days.
+    /// The column: an entry across the start of day has a card on each of its days.
     var day: TrackingDay
     var size: CGSize
     /// The card's top left corner from the day's left edge and the columns' top.

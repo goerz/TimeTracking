@@ -158,7 +158,8 @@ public struct IdleDetector: Hashable, Sendable {
             // Still away: the prompt waits for the return.
             noteLock(at: presence.since)
             return false
-        case .active, .idle:
+        case .active, .idle, .paused:
+            // The Mac's presence is never `paused`, which only iOS Samples carry.
             return true
         }
     }

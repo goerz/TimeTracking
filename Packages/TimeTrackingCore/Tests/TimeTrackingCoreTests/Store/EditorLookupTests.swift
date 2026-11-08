@@ -90,15 +90,15 @@ struct EditorLookupTests {
         #expect(EntryEditRules.check(start: now - 60, end: now, now: now) == .success(EntryEditResult(start: now - 60, end: now)))
     }
 
-    @Test("assignContextColors adds new contexts, stores the setting, and keeps existing indexes")
-    func contextColors() async throws {
+    @Test("PA-5 assignAppColors gives a new app the least-used index, stores the setting, and keeps existing indexes")
+    func appColors() async throws {
         let test = try await TestStore()
-        let first = try await test.store.assignContextColors(["safari", "tmux:(private)"])
-        #expect(first == ["safari": 0])
-        #expect(try await test.store.value(.activityContextColors) == first)
-        let second = try await test.store.assignContextColors(["mail", "safari"])
-        #expect(second == ["safari": 0, "mail": 1])
-        #expect(try await test.store.value(.activityContextColors) == second)
+        let first = try await test.store.assignAppColors(["Safari", "WezTerm"])
+        #expect(first == ["Safari": 0, "WezTerm": 1])
+        #expect(try await test.store.value(.activityAppColors) == first)
+        let second = try await test.store.assignAppColors(["Mail", "Safari"])
+        #expect(second == ["Safari": 0, "WezTerm": 1, "Mail": 2])
+        #expect(try await test.store.value(.activityAppColors) == second)
     }
 
     @Test("OverlapAmount lists the entries overlapping by more than zero, in order, with the overlap")

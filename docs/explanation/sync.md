@@ -22,7 +22,7 @@ Deleted things don't vanish from the sync at once. Each deletion leaves a marker
 
 ## What syncs and what doesn't
 
-Your clients, areas, projects, and entries sync, and so do settings that describe you rather than a device: Midnight, the Pomodoro durations, pinned projects, and the Calendar's settings. Settings that belong to one device stay there, such as the idle threshold, keyboard shortcuts, the menu bar display, and window positions.
+Your clients, areas, projects, and entries sync, and so do settings that describe you rather than a device: the start of day, the Pomodoro durations, pinned projects, and the Calendar's settings. Settings that belong to one device stay there, such as the idle threshold, keyboard shortcuts, the menu bar display, and window positions.
 
 Time blocks travel through your iCloud calendar like any event, and activity through files in iCloud Drive. A running Pomodoro stays on its device on purpose: it is a rhythm you follow at one screen, so one started on the Mac is invisible on the phone.
 

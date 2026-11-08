@@ -13,19 +13,18 @@ nonisolated enum TerminalAdapterKind: String, Hashable, Sendable {
     case terminal
 }
 
-/// A terminal app: its context name and adapter, if any.
+/// A terminal app: the adapter that finds its focused pane, if any.
 nonisolated struct TerminalApp: Hashable, Sendable {
-    var context: String
     var adapter: TerminalAdapterKind?
 
     static let known: [String: Self] = [
-        "com.github.wez.wezterm": Self(context: "wezterm", adapter: .wezterm),
-        "com.googlecode.iterm2": Self(context: "iterm2", adapter: .iterm),
-        "com.apple.Terminal": Self(context: "terminal", adapter: .terminal),
-        "net.kovidgoyal.kitty": Self(context: "kitty", adapter: nil),
-        "org.alacritty": Self(context: "alacritty", adapter: nil),
-        "com.mitchellh.ghostty": Self(context: "ghostty", adapter: nil),
-        "dev.warp.Warp-Stable": Self(context: "warp", adapter: nil),
+        "com.github.wez.wezterm": Self(adapter: .wezterm),
+        "com.googlecode.iterm2": Self(adapter: .iterm),
+        "com.apple.Terminal": Self(adapter: .terminal),
+        "net.kovidgoyal.kitty": Self(adapter: nil),
+        "org.alacritty": Self(adapter: nil),
+        "com.mitchellh.ghostty": Self(adapter: nil),
+        "dev.warp.Warp-Stable": Self(adapter: nil),
     ]
 
     /// Where `wezterm` is installed, first match wins.

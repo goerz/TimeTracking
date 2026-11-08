@@ -70,8 +70,13 @@ public enum DemoSeed {
             }
             if let dataset {
                 try dataset.activityLog(of: entries, timeZone: timeZone, to: activity)
-                let files = try manager.contentsOfDirectory(at: folder, includingPropertiesForKeys: nil)
-                blocks = try files.reduce(0) { count, file in try count + BlockLogFile(contentsOf: file).blocks.count }
+                let log = BlockLogFolder(url: folder)
+                blocks = log.days().reduce(0) { count, day in
+                    guard case let .text(text) = log.content(for: day) else {
+                        return count
+                    }
+                    return count + BlockLogFile.parse(text).blocks.count
+                }
             }
         }
         return Report(days: shift.days, entries: entries.count, clipped: moved.clipped, dropped: moved.dropped, blocks: blocks)

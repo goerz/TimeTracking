@@ -14,7 +14,7 @@ Repairing the past is a normal activity. The Calendar lets you draw, move, resiz
 
 Plans belong next to the record. A time block is an event in an ordinary iCloud calendar, so a plan reaches every device and calendar app without any special sync. The app shows it beside your entries and draws no conclusions: there is no score and no "done" state, because a plan you didn't follow isn't a failure to be reported.
 
-Your data is yours. Everything lives in the private iCloud database of your own account, and there is no server, account, or web service in between. The JSON export and the command-line tool give you all of it, and scripts may read the database directly. The tracker's detail stays on the Mac that recorded it, and [you decide what it records at all](privacy.md).
+Your data is yours. Everything lives in the private iCloud database of your own account, and there is no server, account, or web service in between. The JSON export and the command-line tool give you all of it, and scripts may read the database directly. The tracker's samples stay on the Mac that recorded them, and [you decide what it records at all](privacy.md).
 
 The app targets one person. There are no teams, invoices, or approvals. "Client" means who the work is for, which may just as well be your household as a paying customer.
 

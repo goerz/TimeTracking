@@ -17,9 +17,9 @@ extension TrackerSettingsModel {
         lastAdded = nil
         switch draft {
         case let .app(bundleIdentifier):
-            pendingExclusion = PendingExclusion(list: .excludeApps, value: bundleIdentifier ?? "")
-        case let .tmuxSession(name):
-            pendingExclusion = PendingExclusion(list: .excludeTmuxSessions, value: name)
+            pendingExclusion = PendingExclusion(list: .excludeApps, value: bundleIdentifier)
+        case let .path(path):
+            pendingExclusion = PendingExclusion(list: .excludePaths, value: path)
         case let .domain(domain):
             pendingExclusion = PendingExclusion(list: .excludeDomains, value: domain)
         }

@@ -4,8 +4,8 @@
 import TimeTrackingCore
 
 extension ActivityModel {
-    private var midnightHour: Int {
-        range.calendar.midnightHour
+    private var startOfDayHour: Int {
+        range.calendar.startOfDayHour
     }
 
     // MARK: Heatmap
@@ -15,11 +15,11 @@ extension ActivityModel {
         guard let heatmap = summary?.heatmap, focusedCell.flatMap(heatmap.row(of:)) == nil else {
             return
         }
-        focusedCell = heatmap.firstCell(midnightHour: midnightHour)
+        focusedCell = heatmap.firstCell(startOfDayHour: startOfDayHour)
     }
 
     func moveFocusedCell(_ move: ActivityFocusMove) {
-        focusedCell = summary?.heatmap.cell(move, from: focusedCell, midnightHour: midnightHour)
+        focusedCell = summary?.heatmap.cell(move, from: focusedCell, startOfDayHour: startOfDayHour)
     }
 
     /// Return on a cell: as a click.

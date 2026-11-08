@@ -46,7 +46,7 @@ public struct CalendarSummary: Sendable, Hashable {
     public var activity: Int
     public var days: [TrackingDay: DayTotals]
 
-    /// Sums `entries` (the running one up to `now`), activity blocks' `a`,
+    /// Sums `entries` (the running one up to `now`), activity blocks' active time,
     /// and time blocks clipped to each day.
     public init(
         days: [TrackingDay],
@@ -78,7 +78,8 @@ public struct CalendarSummary: Sendable, Hashable {
             }
         }
         for block in activity {
-            if let day = TrackingDay(block.shownDay), shown.contains(day) {
+            let day = block.shownDay(startOfDayHour: calendar.startOfDayHour)
+            if shown.contains(day) {
                 totals[day]?.activity += block.activeSeconds
             }
         }

@@ -108,11 +108,11 @@ extension TimeStore: TimeStoreWriting {
     }
 
     /// The calendar of the days the app shows in `timeZone`, by the synced
-    /// `midnightHour`. Reads the store on the caller's thread, so synchronous
+    /// `startOfDayHour`. Reads the store on the caller's thread, so synchronous
     /// code gets it too; never call it inside a transaction.
     public nonisolated func displayCalendar(timeZone: TimeZone = .current) -> TrackingCalendar {
-        let hour = try? reader.read { try StoreQueries.settingValue(.midnightHour, in: $0) }
-        return TrackingCalendar(timeZone: timeZone, midnightHour: hour ?? 0)
+        let hour = try? reader.read { try StoreQueries.settingValue(.startOfDayHour, in: $0) }
+        return TrackingCalendar(timeZone: timeZone, startOfDayHour: hour ?? 0)
     }
 
     /// Creates or refreshes this device's record (at most hourly).

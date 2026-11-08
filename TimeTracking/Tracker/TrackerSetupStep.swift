@@ -28,6 +28,8 @@ struct TrackerSetupStep: Identifiable, Equatable {
         /// "Show <name> in Finder": reveals that bundle.
         case showInFinder(name: String, url: URL)
         case restartTracker
+        /// "Record on This Mac": this Mac takes over the block log.
+        case recordHere
         /// "Ask for Access": the macOS Automation prompt for each open
         /// browser and terminal.
         case askAutomation
@@ -43,6 +45,7 @@ struct TrackerSetupStep: Identifiable, Equatable {
             case .openSettings: "Open System Settings"
             case let .showInFinder(name, _): "Show \(name) in Finder"
             case .restartTracker: "Restart Tracker"
+            case .recordHere: "Record on This Mac"
             case .askAutomation: "Ask for Access"
             case .openAtLogin: "Open at Login"
             case .copySnippet: "Copy Snippet"
@@ -59,6 +62,7 @@ struct TrackerSetupStep: Identifiable, Equatable {
             case .openSettings: "settings"
             case .showInFinder: "finder"
             case .restartTracker: "restart"
+            case .recordHere: "recordHere"
             case .askAutomation: "ask"
             case .openAtLogin: "openAtLogin"
             case .copySnippet: "copy"

@@ -47,7 +47,7 @@ final class SetupUITests: XCTestCase {
     }
 
     @MainActor
-    func testTRK33_setupRowsNameTheBundles() {
+    func testTRK51_setupRowsNameTheBundles() {
         let app = XCUIApplication.timeTracking()
         app.launch()
         let later = app.buttons["onboarding.later"]

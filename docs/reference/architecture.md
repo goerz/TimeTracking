@@ -37,7 +37,7 @@ User interface targets hold views, view state, and platform glue only. A view mo
 | `Shared/` | Views compiled into both apps; platform differences are `#if os(macOS)` around a modifier |
 | `WidgetShared/`, `CollectionShared/` | Code compiled into the iOS app and the widget extension, and into the iOS app and the monitor extension |
 | `AppResources/` | The app icon and `AccentColor` asset, in the Mac app, the agent, and the iOS app ([design.md](design.md) §9) |
-| `TimeTrackingAgent/` | The tracker; links the library and GRDB; `LSUIElement`; flags `--record <folder>`, `--replay <file>`, `--unregister` |
+| `TimeTrackingAgent/` | The tracker; links the library and GRDB; `LSUIElement`; flags `--record <folder>`, `--replay <fixture>`, `--unregister` |
 | `TrackerEvent/` | Connects to the agent's socket, writes one line, exits; links only Foundation |
 | `TimeTrackingCLI/` | Argument parsing and output formatting; everything else through the library; never touches CloudKit |
 | iOS extensions | Rendering and forwarding only |
@@ -230,7 +230,7 @@ Source folders carry their target's name (1.3); `Packages/TimeTrackingCore/`, `C
 13. Running `make help` lists every target of 2.5 under its group heading.
 14. Running `make clean` keeps `build.noindex/Build/Products`; `make distclean` removes `build.noindex/`, keeps `local.mk`, and refuses while `launchctl print gui/<uid>/<BUNDLE_ID>.debug.agent` succeeds.
 15. Running `make lint` exits non-zero on a SwiftLint violation, a formatting difference, or an `#available` check, without building; a build with a compiler warning fails.
-16. The agent run with `--replay Fixtures/Agent/samples/<day>.jsonl` writes the blocks of `<day>.expected.jsonl` (byte for byte after normalizing the header's `dev` field) and exits 0.
+16. The agent run with `--replay Fixtures/Agent/<fixture>` forms from the fixture's Samples the date files of the fixture's expected block log, byte for byte, and exits 0.
 17. Launching either app with `-UITesting YES -Fixture small` shows the fixture's data, writes nothing to the on-disk store, and performs no CloudKit operation.
 18. Running `make sim-create` creates both simulators if absent and does nothing if they exist; `make test` passes with them freshly created.
 19. The Debug Mac app, Debug agent, and Debug tool open the same `store.sqlite` under `~/Library/Group Containers/<TEAM>.<BUNDLE_ID>.debug/` and never a file in the Release container.

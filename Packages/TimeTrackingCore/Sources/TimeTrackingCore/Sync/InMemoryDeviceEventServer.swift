@@ -11,6 +11,8 @@ public actor InMemoryDeviceEventServer {
     private var log: [(position: Int, name: String)] = []
     private var counter = 0
     private var events: [String: DeviceEvent] = [:]
+    /// Records of another app version, which the Mac can't read, by name.
+    private var unreadable: [String: Date] = [:]
     private var failing: (any Error)?
 
     public init() {}
@@ -33,24 +35,45 @@ public actor InMemoryDeviceEventServer {
         }
     }
 
+    /// Saves a record of another app version at `time` under `name`, as
+    /// an older iOS app's would be.
+    public func uploadUnreadable(_ name: String, at time: Date) {
+        log.removeAll { $0.name == name }
+        counter += 1
+        log.append((counter, name))
+        unreadable[name] = time
+    }
+
+    /// The names of the stored records of another app version.
+    public var unreadableNames: Set<String> {
+        Set(unreadable.keys)
+    }
+
     /// Every stored event, oldest first.
     public var all: [DeviceEvent] {
         events.values.sorted { ($0.time, $0.sequence) < ($1.time, $1.sequence) }
     }
 
-    func changes(after position: Int) throws -> ([DeviceEvent], Int) {
+    func changes(after position: Int) throws -> DeviceEventBatch {
         if let failing {
             throw failing
         }
         let names = log.filter { $0.position > position }.map(\.name)
-        return (names.compactMap { events[$0] }, counter)
+        return DeviceEventBatch(
+            events: names.compactMap { events[$0] },
+            token: ChangeToken(data: Data(String(counter).utf8)),
+            unreadable: names.count { unreadable[$0] != nil }
+        )
     }
 
     func purge(before date: Date) {
-        let old = Set(events.values.filter { $0.time < date }.map(\.recordName))
+        let kept = DeviceEvent.kept(of: Array(events.values), before: date)
+        let old = Set(events.values.filter { $0.time < date && !kept.contains($0.recordName) }.map(\.recordName))
+            .union(unreadable.filter { $0.value < date }.keys)
         log.removeAll { old.contains($0.name) }
         for name in old {
             events[name] = nil
+            unreadable[name] = nil
         }
     }
 
@@ -64,10 +87,9 @@ public actor InMemoryDeviceEventServer {
 public struct InMemoryDeviceEventSource: DeviceEventSource {
     public let server: InMemoryDeviceEventServer
 
-    public func events(since token: ChangeToken?) async throws -> ([DeviceEvent], ChangeToken) {
+    public func events(since token: ChangeToken?) async throws -> DeviceEventBatch {
         let position = token.flatMap { Int(String(decoding: $0.data, as: UTF8.self)) } ?? 0
-        let (events, next) = try await server.changes(after: position)
-        return (events, ChangeToken(data: Data(String(next).utf8)))
+        return try await server.changes(after: position)
     }
 
     // The protocol's purge throws; this one cannot fail.

@@ -1,12 +1,12 @@
 # Keep something out of the activity record
 
-## Exclude an app, session, or site
+## Exclude an app, folder, or site
 
-1. Open Activity (⌘5) and find the row in the Apps panel, or a site in "Where the time went".
+1. Open Activity (⌘5) and find the row in the Apps panel, or a folder or site in "Where the time went".
 2. Right-click it and choose "Exclude <name> from Tracking…".
 3. The Tracker pane opens with the value filled in. Click "Add to Settings File".
 
-An excluded app records nothing from now on, and its time becomes a gap. An excluded tmux session keeps its time and hides its name. An excluded site shows as a private browser window. Past data disappears from all totals at once, while the log files stay as they are.
+An excluded app records nothing from now on, and its time becomes a gap. An excluded folder keeps its time and shows as `(private)`. An excluded site shows as a private browser window. Past data disappears from all totals at once, while the log files stay as they are.
 
 ## Hide a folder, or keep only an app's name
 

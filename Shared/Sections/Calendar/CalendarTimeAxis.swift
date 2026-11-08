@@ -16,7 +16,7 @@ struct CalendarTimeAxis: View {
             let now = model.days.contains(model.today) ? axis.nowOffset(model.clock.now) : nil
             ForEach(Array(stride(from: step, to: 24 * 60, by: step)), id: \.self) { minute in
                 let y = CGFloat(minute) / 60 * model.pointsPerHour
-                Text(ActivityText.clock(hour: (minute / 60 + model.calendar.midnightHour) % 24, minute: minute % 60))
+                Text(ActivityText.clock(hour: (minute / 60 + model.calendar.startOfDayHour) % 24, minute: minute % 60))
                     .font(.caption).monospacedDigit()
                     .foregroundStyle(.secondary)
                     // The now bubble covers the hour label it would overlap.

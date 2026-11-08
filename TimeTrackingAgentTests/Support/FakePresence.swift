@@ -172,8 +172,8 @@ final class FakeKnowledge: KnowledgeSource {
 actor FakeDeviceEvents: DeviceEventSource {
     private(set) var purges: [Date] = []
 
-    nonisolated func events(since _: ChangeToken?) async throws -> ([DeviceEvent], ChangeToken) {
-        ([], ChangeToken(data: Data()))
+    nonisolated func events(since _: ChangeToken?) async throws -> DeviceEventBatch {
+        DeviceEventBatch(events: [], token: ChangeToken(data: Data()))
     }
 
     func purge(before date: Date) async throws {

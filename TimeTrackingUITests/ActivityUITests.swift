@@ -138,7 +138,7 @@ final class ActivityUITests: XCTestCase {
         let app = launch()
         let total = element(app, "activity.total")
         let unfiltered = text(total)
-        let rows = app.descendants(matching: .any).matching(NSPredicate(format: "identifier BEGINSWITH 'activity.context.'"))
+        let rows = app.descendants(matching: .any).matching(NSPredicate(format: "identifier BEGINSWITH 'activity.app.'"))
         reveal(app, rows.firstMatch).click()
         XCTAssertTrue(eventually { self.text(total) != unfiltered }, text(total))
         app.typeKey(.space, modifierFlags: [])

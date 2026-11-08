@@ -25,7 +25,7 @@ nonisolated enum TrackerCommandResult: Equatable, Sendable {
 
     /// The rejection for the agent's reason of an `error <reason>` reply.
     static func rejection(reason: String) -> Self {
-        if reason.hasPrefix(TrackerReply.noBlockReason) {
+        if reason.hasPrefix(TrackerReply.nothingReason) {
             return .rejected("This activity is no longer in the logs.")
         }
         if reason == TrackerReply.stoppingReason {

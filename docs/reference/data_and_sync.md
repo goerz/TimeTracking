@@ -2,7 +2,7 @@
 
 The shared library (`TimeTrackingCore`) is linked by every executable. It holds the entities and their invariants, the store, iCloud sync, the live-update path to the iPhone and iPad widgets, JSON export and import, the reader for the tracker's logs, and the queries behind every view and script. User interfaces hold views and view state only.
 
-In this spec, lowercase "midnight" is the real midnight of the local clock, and capitalized "Midnight" is the setting of section 8.
+In this spec, "midnight" is always 00:00 of the local clock, and the start of day is the hour that the setting "Start of day" of section 8 picks.
 
 ## 1. Entities
 
@@ -69,10 +69,10 @@ Synced settings are records; device settings live in the App Group's `UserDefaul
 
 | Key | Scope | Default |
 |---|---|---|
-| `day.midnightHour` | synced | 0, range 0 to 23 (section 8) |
+| `day.startHour` | synced | 0, range 0 to 23 (section 8) |
 | `pomodoro.focusMinutes`, `pomodoro.breakMinutes` | synced | 25, 5 |
 | `pinnedProjectIDs` | synced | empty |
-| `activity.contextColors` | synced | empty (context to hue index) |
+| `activity.appColors` | synced | empty (app to hue index) |
 | `calendar.snapMinutes` | synced | 5 |
 | `calendar.shownCalendars` | synced | empty |
 | `calendar.timeBlockCalendarID`, `calendar.timeBlockCalendarTitle` | synced | nil (no title means "Time Blocks") |
@@ -84,7 +84,7 @@ Synced settings are records; device settings live in the App Group's `UserDefaul
 | `idle.thresholdMinutes` | device | 10 |
 | `deviceID` | device | a UUID created on first use |
 
-Synced settings merge per key by last writer, except `activity.contextColors`, which merges as the union, the smaller index winning for a context assigned differently. A new context takes the hue index used by the fewest contexts, lowest on ties.
+Synced settings merge per key by last writer, except `activity.appColors`, which merges as the union, the smaller index winning for an app assigned differently. A new app takes the hue index used by the fewest apps, lowest on ties.
 
 ### 1.7 Bookkeeping
 
@@ -117,7 +117,7 @@ After an import in which at least one kind succeeded, the iPhone writes `calenda
 
 The store is the product's own SQLite schema rather than SwiftData, because the running-entry rule needs a custom merge, reports need SQL, and scripts need a stable format. It is one database in WAL mode at `<App Group container>/Library/Application Support/TimeTracking/store.sqlite` (architecture.md §1.5; Debug builds have their own). The tracker agent does not open it. Timestamps are Unix seconds except `modified_at` (milliseconds); booleans are 0/1.
 
-Entity tables (`client`, `area`, `project`, `time_entry`, `setting`, `device`, `health_period`) hold the fields of section 1 in snake case, with `setting` as `key` and JSON `value`. The `time_entry` table adds the computed `day` (`YYYY-MM-DD`, the local date of `start` in `time_zone`) and `task_key` (the folded task). The tables `meta` (`schema_version`, currently 4, and `store_id`), `live_state`, `outbox`, `sync_state`, and `purged_record` (hard-deleted ids, so `restore` can report `retentionExpired`) are internal. Scripts read entries through this view, whose `day` is the date of the entry's start in its own zone, whatever Midnight says; an entry can span dates, so its `seconds` can exceed a day:
+Entity tables (`client`, `area`, `project`, `time_entry`, `setting`, `device`, `health_period`) hold the fields of section 1 in snake case, with `setting` as `key` and JSON `value`. The `time_entry` table adds the computed `day` (`YYYY-MM-DD`, the local date of `start` in `time_zone`) and `task_key` (the folded task). The tables `meta` (`schema_version`, currently 4, and `store_id`), `live_state`, `outbox`, `sync_state`, and `purged_record` (hard-deleted ids, so `restore` can report `retentionExpired`) are internal. Scripts read entries through this view, whose `day` is the date of the entry's start in its own zone, whatever the start of day is; an entry can span dates, so its `seconds` can exceed a day:
 
 ```sql
 CREATE VIEW entries AS
@@ -189,9 +189,9 @@ One record named `LiveState` in zone `TimeTracking`, mirrored in the `live_state
 |---|---|---|
 | running | String (JSON) or absent | `{"entryID", "projectID", "task", "projectName", "clientName", "areaColor", "start"}`; project fields null for no project; `start` RFC 3339 UTC. Absent when nothing runs. A device before schema version 4 writes `chainStart`, read as `start`. |
 | changedAt | Date | Last change of the running part, milliseconds. |
-| activity | String (JSON) | Map from a Mac's device id to `{"device", "primary", "groupKey", "presence", "since", "agentRunning", "lastTick", "health", "updatedAt"}`. |
+| activity | String (JSON) | Map from a Mac's device id to `{"device", "foreground", "groupKey", "presence", "since", "agentRunning", "lastTick", "health", "updatedAt"}`. |
 
-The activity fields come from that Mac's `current.json` (tracker spec §4.4): `primary` is `[context, subject, detail]` or null, `groupKey` the open block's `g` or null, and `health` the ids of sources whose status is not `active`.
+The activity fields come from that Mac's `current.json` (tracker spec §4.4): `foreground` is the current foreground Item, with the keys of the block log (tracker spec §4.2), or null, `groupKey` the open block's dominant workspace, computed from its items, or null, and `health` the ids of the sources the tracker lists whose status is not `active`.
 
 On a conflict the running part with the later `changedAt` wins, and per Mac the activity entry with the later `updatedAt` wins; ties pick the greater JSON text. Entries present on one side only are kept.
 
@@ -199,7 +199,7 @@ On a conflict the running part with the later `changedAt` wins, and per Mac the 
 
 Running part, any writing process: after each write transaction the library computes the snapshot and, if it differs from the local row, writes it with `changedAt = now` and queues `LiveState` in the same transaction. A row naming the same entry and project is kept while that project has not arrived, so a receiver never replaces a complete snapshot with a partial one. Applying a remote `LiveState` updates the local row first, so the receiver writes nothing.
 
-Activity part, Mac app only: the app watches the local `current.json` and writes this Mac's entry. Changes of `presence`, `agentRunning`, or `health` are written at once; changes of `primary` or `groupKey` at most once per 30 seconds, a change inside the window being written at its end with the then current values. A `lastTick` change alone writes nothing; `agentRunning` is re-evaluated every 30 seconds. Without `current.json` the entry stays, with `agentRunning` false.
+Activity part, Mac app only: the app watches the local `current.json` and writes this Mac's entry. Changes of `presence`, `agentRunning`, or `health` are written at once; changes of `foreground` or `groupKey` at most once per 30 seconds, a change inside the window being written at its end with the then current values. A `lastTick` change alone writes nothing; `agentRunning` is re-evaluated every 30 seconds. Without `current.json` the entry stays, with `agentRunning` false.
 
 ### 4.3 Widget pushes
 
@@ -252,16 +252,15 @@ The tracker spec defines the formats and folders ([activity_tracking.md](activit
 
 | Artifact | Location | Writer | Readers |
 |---|---|---|---|
-| `Activity/blocks/<mac>/YYYY-MM.jsonl` | iCloud Drive container, outside `Documents/`; local fallback in the App Group | Each Mac's agent, only its own subfolder | Mac app, iPhone, iPad, scripts |
+| `Activity/blocks/YYYY-MM-DD.jsonl` | iCloud Drive container, outside `Documents/`; local fallback in the App Group | The agent | Mac app, iPhone, iPad, scripts |
 | `Activity/settings.toml` | Same folder | The Mac app's Tracker pane | Agent, iOS app (exclusions), the Activity section (`idle_close`) |
 | `Activity/current.json` | Mac, local | Agent, every tick | Mac app |
-| `Activity/detail/YYYY-MM-DD.jsonl` | Mac, local | Agent | The recording Mac; scripts |
 | `DeviceEvent` records | CloudKit zone `ActivityEvents` | iOS app | Agent |
-| `Activity/events.jsonl` | iOS, App Group | iOS extensions and app | iOS app (flushes to CloudKit, truncates) |
+| `Activity/events.jsonl`, with `events.lock` and `events.state` | iOS, App Group | iOS extensions and app | iOS app (flushes to CloudKit, replaces the file) |
 
-The iPhone and iPad learn the Mac's current activity only from `LiveState`. A `DeviceEvent` carries `deviceID`, `time`, `source` (`ladder`, `focus`, `intent`, `webext`, `app`), `label`, `kind`, and an optional JSON `payload`. The record name `<deviceID>-<time in ms>-<sequence>` makes an interrupted flush resume without duplicates. The agent merges events into the user's timeline (tracker spec §2.4) and deletes records older than 90 days.
+The iPhone and iPad learn the Mac's current activity only from `LiveState`. A `DeviceEvent` carries `deviceID`, `deviceName`, `time`, `utcOffset`, `source` (`screenTime`, `focus`, `intent`, `webext`, `app`), `label`, `kind`, an optional JSON `payload`, and `sequence`. The record name `<deviceID>-<time in ms>-<sequence>` makes an interrupted flush resume without duplicates. The agent turns events into Samples and deletes old records, both as the tracker spec §2.5 says.
 
-The reader skips headers, counts malformed lines for health, converts local times with the latest header's `tz`, and re-reads a month file when it changes. Blocks with the same id count once. Exclusions in the current `settings.toml` apply to every read, and a device filter keeps each block's part on those devices. Block detail exists only on the recording Mac. A block is mostly reconstructed when reconstructed time exceeds half its active time. On the iPad the app asks iCloud Drive for the current month's file and rechecks every 60 seconds. The tracker closes blocks at midnight, so the reader never splits them.
+The reader skips the header and unknown lines and keys, counts malformed lines for health, takes each block's instants from the UTC offsets in `s` and `e`, and re-reads a date file when it changes. Exclusions in the current `settings.toml` apply to every read, and a device filter keeps each block's part on those devices. A block is mostly reconstructed when `rc` exceeds half its active time. A block may run past 00:00 and counts whole on the date it starts (tracker spec §4.1), so the reader never splits it. On the iPad the app asks iCloud Drive for today's file and rechecks every 60 seconds.
 
 ## 7. Query layer
 
@@ -297,7 +296,7 @@ Targets on the `large` fixture (9.1) in an optimized build on a current Mac, che
 | Single-entry write | under 5 ms |
 | `entries(on:)`, `days(ending:count: 7)`, `entries(in:)` for 7 days | under 10 ms |
 | `distinctTasks` with a 2-character prefix | under 20 ms |
-| `blocks(in:)` for 7 days, month files cached; opening the store | under 50 ms |
+| `blocks(in:)` for 7 days, date files cached; opening the store | under 50 ms |
 | `report` over one year, four levels, by day | under 100 ms |
 | `report` over ten years, four levels, by month | under 300 ms |
 | Export of the whole store | under 10 s |
@@ -305,13 +304,13 @@ Targets on the `large` fixture (9.1) in an optimized build on a current Mac, che
 
 ## 8. Days, weeks, and time zones
 
-An entry's `day` is the date of its `start` in its own `timeZone`, and the entry can span any number of dates; after travel, entries keep their recorded day. The tracker's blocks close at midnight and carry their local date too.
+An entry's `day` is the date of its `start` in its own `timeZone`, and the entry can span any number of dates; after travel, entries keep their recorded day. An activity block belongs to the local date it starts on and may run past midnight (tracker spec §4.1).
 
-The synced setting Midnight (`day.midnightHour`, whole hours, default 00:00) sets the hour of the local clock at which the days the app shows and reports start: the Timer list, Calendar, Reports, Activity, Projects totals, widgets, and the tool's day ranges and `report`. People set it to the middle of their night. It changes no stored data and nothing the tracker collects, so changing it is instant, reversible, and rewrites no record. With Midnight at 00:00, shown days are the local dates. Views read `TimeStore.displayCalendar(timeZone:)` and rebuild it on a time zone change or a change of the setting; a stored `day` comes from the plain `TrackingCalendar(timeZone:)`.
+The synced setting "Start of day" (`day.startHour`, whole hours, default 00:00) sets the hour of the local clock at which the days the app shows and reports start: the Timer list, Calendar, Reports, Activity, Projects totals, widgets, and the tool's day ranges and `report`. People set it to the middle of their night. It changes no stored data and nothing the tracker collects, so changing it is instant, reversible, and rewrites no record. A device that holds a `day.midnightHour` record and no `day.startHour` writes its value as `day.startHour` and deletes the old record. With the start of day at 00:00, shown days are the local dates. Views read `TimeStore.displayCalendar(timeZone:)` and rebuild it on a time zone change or a change of the setting; a stored `day` comes from the plain `TrackingCalendar(timeZone:)`.
 
-A shown day that starts before noon is named after the date it starts on; one that starts at noon or later after the date it ends on, so with Midnight at 04:00 "Tuesday" runs Tuesday 04:00 to Wednesday 04:00, and with 22:00 Monday 22:00 to Tuesday 22:00. Each local date holds one day change. Days last 23 or 25 hours across DST changes. An hour a DST change skips is replaced by the first instant after it; of an hour it repeats, the first counts. Weeks are Monday to Sunday of shown days, with ISO 8601 numbers.
+A shown day that starts before noon is named after the date it starts on; one that starts at noon or later after the date it ends on, so with the start of day at 04:00 "Tuesday" runs Tuesday 04:00 to Wednesday 04:00, and with 22:00 Monday 22:00 to Tuesday 22:00. Each local date holds one day change. Days last 23 or 25 hours across DST changes. An hour a DST change skips is replaced by the first instant after it; of an hour it repeats, the first counts. Weeks are Monday to Sunday of shown days, with ISO 8601 numbers.
 
-Shown, an entry is one *piece* per day it lies on in its own zone (`TrackingCalendar.pieces(of:at:)`), with the entry's id: each has its part of the interval and its day, only the last one runs, and each counts as an entry of its day, so sums over days stay plain sums. Editing always acts on the stored entry, and in a list the first row of an entry presents its editor. The apps look every minute and reload when the shown day has changed, so the running entry's part moves to the new day. The tool's `entries` lists stored entries by their start ([automation.md](automation.md) §3.2). Activity blocks and background stretches keep one shown day, that of their start, because their items cannot be divided; the Calendar draws them in every column they reach.
+Shown, an entry is one *piece* per day it lies on in its own zone (`TrackingCalendar.pieces(of:at:)`), with the entry's id: each has its part of the interval and its day, only the last one runs, and each counts as an entry of its day, so sums over days stay plain sums. Editing always acts on the stored entry, and in a list the first row of an entry presents its editor. The apps look every minute and reload when the shown day has changed, so the running entry's part moves to the new day. The tool's `entries` lists stored entries by their start ([automation.md](automation.md) §3.2). Activity blocks, foreground and background, keep one shown day, that of their start, because their items cannot be divided; the Calendar draws them in every column they reach.
 
 Durations are integer seconds throughout; rounding happens only in formatting.
 
@@ -346,11 +345,11 @@ Durations are integer seconds throughout; rounding happens only in formatting.
 27. A renames a project while B archives it, partitioned; both converge on the later change. A deletes an entry and B later edits it offline; the entry is live on both.
 28. An entry whose project arrives in a later batch is kept and reported until the project arrives.
 29. A `serverRecordChanged` rejection resolves without a second rejection; `zoneNotFound` re-sends every live record and tombstone; tombstones older than 180 days disappear on both devices.
-30. Settings changed on both devices converge per key to the later value; `activity.contextColors` converges to the union, the smaller index winning.
+30. Settings changed on both devices converge per key to the later value; `activity.appColors` converges to the union, the smaller index winning.
 31. Outbox rows from a second store instance without an engine (the CLI) are sent by the instance holding the engine.
 32. A `start` writes the `live_state` snapshot of 4.1 (with `clientName` and `start`) and queues `LiveState` in the entry's transaction and batch; a `stop` writes `running` absent; passing midnight changes nothing in the snapshot.
 33. A device applying that batch queues no `LiveState`; renaming the running project there queues a snapshot with the new name; a conflict merges as in 4.1.
-34. The `LiveStatePublisher`, fed `current.json` files, writes at once on a presence, `agentRunning`, or `health` change, writes primary-item changes at most once per 30 seconds with the latest values, sets `agentRunning` false within 30 seconds after `last_tick` turns 2 minutes old, and writes nothing when only `last_tick` advances.
+34. The `LiveStatePublisher`, fed `current.json` files, writes at once on a presence, `agentRunning`, or `health` change, writes foreground changes at most once per 30 seconds with the latest values, sets `agentRunning` false within 30 seconds after `last_tick` turns 2 minutes old, and writes nothing when only `last_tick` advances.
 35. With a fake transport, a confirmed `LiveState` save on the Mac sends one request per iPhone or iPad with a token and none to others; a fetched `LiveState` with a changed running part sends, one changing only another Mac's activity does not; activity-only pushes to a token are at most one per 60 seconds; without the APNs key the status is `noKey` and nothing is sent.
 36. Export lists every live record with the fields of 5.1 in the stated order; two exports of unchanged data differ only in `generatedAt`; `includeDeleted` adds tombstones.
 37. Export, import into an empty store with `includeSettings`, and export again gives the same document except `generatedAt` and `storeID`.
@@ -358,10 +357,10 @@ Durations are integer seconds throughout; rounding happens only in formatting.
 39. An entry ending before its start, a color `teal`, two running entries, an unknown project, or a future entry fails with `invalidDocument` naming the JSON path, and the store is unchanged.
 40. A client without a general area gets one with id UUIDv5(namespace: client id, name: `general-area`), once.
 41. An imported entry from 22:00 to 02:00 stays one entry; an export from before schema version 4 imports with its contiguous pieces merged, and importing it again changes nothing; an imported running entry starting before the local one stops at the local start; missing `timeZone` and `deviceID` default as in 5.2; `dryRun` reports the same and changes nothing.
-42. A month file with a header, three blocks, a time zone change header, and a malformed line yields three blocks with correct instants and one counted parse error.
-43. The query `blocks(in:)` across a month boundary reads both files and returns blocks by start, filtered by device when asked to each block's part on it, without excluded contexts.
+42. A date file with a header, three blocks whose `s` carry two different UTC offsets, and a malformed line yields three blocks with correct instants and one counted parse error.
+43. The query `blocks(in:)` across two dates reads both date files and returns blocks by start, a block that runs past 00:00 once, on its start date, filtered by device when asked to each block's part on it, without excluded items.
 44. Aggregating by hour of day a block from 09:50 to 10:20 gives 600 s to hour 9 and 1200 s to hour 10.
-45. The call `currentState()` is `nil` without `current.json`; a rewrite produces a change event and today's `blocks(in:)` includes one block with `isOpen`; `detail(for:)` is `nil` without the detail log.
+45. The call `currentState()` is `nil` without `current.json`; a rewrite produces a change event, and `blocks(in:)` includes the open block with `isOpen`, also when it started yesterday.
 46. In `Europe/Berlin`, the March and October transition days are 23 and 25 hours long; 23:59:59 and 00:00:00 fall on consecutive days; weeks start on Monday and ISO week 1 of 2027 begins on 2027-01-04.
 47. A daily report over entries across midnight gives each day its piece, day buckets sum to the total, and each `DayGroup.totalSeconds` equals the report's value; the running entry counts to the query time and sets `includesRunning`.
 48. A report by area puts a moved project's entries under its new area.
@@ -369,20 +368,21 @@ Durations are integer seconds throughout; rounding happens only in formatting.
 50. Replacing the sleep periods from March 10 with the same night and a new nap keeps the night's record and creates one; a night starting March 9 is ignored; a shifted night tombstones the old record; after a sync the other device holds the same live periods and an empty outbox.
 51. Asleep samples 23:00 to 01:00, 00:30 to 02:00, and 02:20 to 04:00 make one period 23:00 to 04:00, one at 06:00 another; an in-bed night without asleep samples is a period; two overlapping workouts are one; the first import starts 60 days before now, a later one 3 days before the previous; importing the same samples again changes nothing.
 52. A run 18:00 to 18:45 (running, 7012 m), a copy 18:01 to 18:40 (6990 m), and a walk 18:45 to 19:00 make two workout periods: 18:00 to 18:45 running with 7012 m, and the walk; importing them over the same periods stored without details keeps the records, fills in activity and distance, and the other device receives them; the workout import key is `health.importedThrough.workout.3`.
-53. The query `backgroundStretches(in:)` returns the stretches overlapping the interval, with the items of the asked devices and without excluded contexts; `blocks(in:)` never returns them.
+53. The query `backgroundBlocks(in:)` returns the background blocks overlapping the interval, with the items of the asked devices and without excluded items; `blocks(in:)` returns foreground blocks only.
 54. When another process writes and posts and this process writes and posts before its listener runs, this process's observers still receive `.entries([])`, and `.settings` with each key the other process changed.
 55. An edit made while its record is being sent stays queued after the send is confirmed and goes out with the next send; a batch's outbox sequence and records are read in one transaction.
-56. With Midnight at 04:00, 03:59:59 on March 14 lies on March 13 and 04:00 on March 14, whose day lasts 24 hours; with 22:00, 21:59 on March 14 lies on March 14 and 22:00 on March 15, which starts on March 14; with 0 a day is the local date.
-57. In New York with Midnight at 02:00, March 10, 2024 starts at 03:00 and lasts 23 hours; with 01:00, November 3 starts at the first 01:00 and lasts 25 hours, and the second 01:00 lies on it.
-58. Midnight changes no stored entry: entries across it stay one record with their `day`; shown, an entry from 03:00 to 05:00 is pieces ending and starting at 04:00 with one id and the days March 12 and 13, a running entry's last piece runs, and an entry in another zone cuts at that zone's Midnight.
-59. Midnight is 00:00 by default, syncs as a setting, and reaches `displayCalendar` on the other device.
-60. Polling at 03:59 and 04:00 with Midnight at 04:00 reports one change of shown day, then none, and a change of Midnight that moves the day reports one.
-61. With Midnight at 04:00 in Berlin, an entry from Saturday 2026-03-28 02:00 to Monday 06:00 reports 2, 23, 24, and 2 hours on the four days it lies on, each counting as one entry.
+56. With the start of day at 04:00, 03:59:59 on March 14 lies on March 13 and 04:00 on March 14, whose day lasts 24 hours; with 22:00, 21:59 on March 14 lies on March 14 and 22:00 on March 15, which starts on March 14; with 0 a day is the local date.
+57. In New York with the start of day at 02:00, March 10, 2024 starts at 03:00 and lasts 23 hours; with 01:00, November 3 starts at the first 01:00 and lasts 25 hours, and the second 01:00 lies on it.
+58. The start of day changes no stored entry: entries across it stay one record with their `day`; shown, an entry from 03:00 to 05:00 is pieces ending and starting at 04:00 with one id and the days March 12 and 13, a running entry's last piece runs, and an entry in another zone cuts at that zone's start of day.
+59. The start of day is 00:00 by default, syncs as a setting, and reaches `displayCalendar` on the other device.
+60. Polling at 03:59 and 04:00 with the start of day at 04:00 reports one change of shown day, then none, and a change of the start of day that moves the day reports one.
+61. With the start of day at 04:00 in Berlin, an entry from Saturday 2026-03-28 02:00 to Monday 06:00 reports 2, 23, 24, and 2 hours on the four days it lies on, each counting as one entry.
 62. A store at schema version 3 migrates to 4: a chain becomes its earliest live piece with the end of the last, keeping that piece's task, with `modifiedAt` one past the latest piece, and the later pieces are tombstones in the outbox; a running chain over several nights keeps running; a chain broken by an edit, a gap left by a tombstoned piece, and ordinary entries stay; a `live_state` row naming a merged piece names the entry.
 63. Merging twice changes nothing, the store has no `split_root_id` afterwards, and reopening it queues nothing.
 64. Two devices that migrate the same chains and sync hold equal rows and an empty outbox, and a third device receives the merged entries; an edit made after one device migrated survives another device migrating later.
 65. A `TimeEntry` record with `splitRootID` decodes, its field is ignored, and a piece from such a device stays an entry; a `LiveState` with `chainStart` decodes.
+66. A device holding `day.midnightHour` at 04:00 and no `day.startHour` ends with `day.startHour` at 04:00 and no `day.midnightHour`, on every synced device; one holding both keeps `day.startHour`.
 
 ### 9.1 Fixtures
 
-The deterministic generators `SyntheticDataset.small`, `.medium`, and `.large(seed:)` produce 3 clients, 6 areas, 15 projects, one month, about 250 entries; 8, 25, 90, three years, about 7,000; and 10, 40, 120, ten years, about 24,000. Their entries include evening work, entries past midnight, tombstones, and archived projects. A dataset can fill a store, produce the 5.1 document, and write block-log files with one time zone change.
+The deterministic generators `SyntheticDataset.small`, `.medium`, and `.large(seed:)` produce 3 clients, 6 areas, 15 projects, one month, about 250 entries; 8, 25, 90, three years, about 7,000; and 10, 40, 120, ten years, about 24,000. Their entries include evening work, entries past midnight, tombstones, and archived projects. A dataset can fill a store, produce the 5.1 document, and write block-log date files with one time zone change.

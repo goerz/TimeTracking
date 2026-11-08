@@ -67,6 +67,10 @@ final class TrackerStatusModel {
             return
         }
         registration = agent.registration
+        if registration != .enabled {
+            // The login item turned off in System Settings counts as a disable.
+            agent.markDisabled()
+        }
         appLoginItem = loginItem.registration
         state = read
         warningActive = TrackerWarning.isActive(registration: registration, state: state, presentSince: presentSince, now: clock.now)
@@ -140,10 +144,12 @@ final class TrackerStatusModel {
         }
     }
 
-    /// "Enable Tracker": the only place that registers the agent.
+    /// "Enable Tracker": the only place that registers the agent; this Mac
+    /// becomes the one that records.
     func enable() async {
         do {
             try agent.register()
+            try await agent.recordHere()
             lastError = nil
         } catch {
             lastError = error.localizedDescription
@@ -186,9 +192,21 @@ final class TrackerStatusModel {
         appLoginItem = loginItem.registration
     }
 
+    /// "Record on This Mac": this Mac takes over the block log from another.
+    func recordHere() async {
+        do {
+            try await agent.recordHere()
+            lastError = nil
+        } catch {
+            lastError = error.localizedDescription
+        }
+        await refresh()
+    }
+
     /// "Disable Tracker" after confirmation.
     func disable() async {
         do {
+            agent.markDisabled()
             try await agent.unregister()
             lastError = nil
         } catch {

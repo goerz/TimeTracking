@@ -10,34 +10,57 @@ import TimeTrackingCore
 
 @MainActor
 struct ActivitySectionTests {
-    static func block(_ day: String, _ start: String, _ end: String, _ items: [(String, Int)]) throws -> ActivityBlock {
+    /// One foreground item: an app, its bundle identifier, the workspace,
+    /// the location, and the seconds.
+    struct Use {
+        var app: String
+        var appID: String
+        var workspace = ""
+        var location = ""
+        var seconds: Int
+
+        static func wezterm(_ seconds: Int) -> Self {
+            Self(app: "WezTerm", appID: "com.github.wez.wezterm", workspace: "~/Papers/paper", location: "~/Papers/paper", seconds: seconds)
+        }
+
+        static func safari(_ seconds: Int) -> Self {
+            Self(
+                app: "Safari",
+                appID: "com.apple.Safari",
+                workspace: "github.com/owner/repo",
+                location: "https://github.com/owner/repo",
+                seconds: seconds
+            )
+        }
+
+        static func mail(_ seconds: Int) -> Self {
+            Self(app: "Mail", appID: "com.apple.mail", seconds: seconds)
+        }
+    }
+
+    static func block(_ day: String, _ start: String, _ end: String, _ uses: [Use]) throws -> ActivityBlock {
         let begin = try TestApp.date("\(day)T\(start)")
         return try ActivityBlock(
             start: begin,
             end: TestApp.date("\(day)T\(end)"),
-            activeSeconds: items.reduce(0) { $0 + $1.1 },
-            devices: [ActivityDeviceTime(name: "macbook", seconds: items.reduce(0) { $0 + $1.1 }, isRecordingMac: true)],
-            groupKey: items.first?.0 ?? "",
-            groupShare: 1,
-            items: items.map { ActivityItem(context: $0.0, subject: "s", detail: "", seconds: $0.1, device: "macbook") },
-            utcOffset: TimeZone.current.secondsFromGMT(for: begin)
+            utcOffset: TimeZone.current.secondsFromGMT(for: begin),
+            foreground: uses.map { use in
+                ActivityBlockItem(
+                    device: "MacBook",
+                    seconds: use.seconds,
+                    item: ActivityItem(app: use.app, appID: use.appID, location: use.location, workspace: use.workspace)
+                )
+            }
         )
     }
 
-    /// The week of 2024-03-11 (today Thursday the 14th) with two contexts.
+    /// The week of 2024-03-11 (today Thursday the 14th) with three apps.
     static func week() throws -> [ActivityBlock] {
         try [
-            block("2024-03-11", "09:00", "10:00", [("safari", 1800), ("tmux:paper", 1500)]),
-            block("2024-03-12", "09:00", "09:30", [("mail", 1500)]),
-            block("2024-03-14", "08:00", "09:00", [("tmux:paper", 3000)]),
+            block("2024-03-11", "09:00", "10:00", [.safari(1800), .wezterm(1500)]),
+            block("2024-03-12", "09:00", "09:30", [.mail(1500)]),
+            block("2024-03-14", "08:00", "09:00", [.wezterm(3000)]),
         ]
-    }
-
-    static func router(_ test: TestApp, blocks: [ActivityBlock], state: TrackerState? = nil) -> (SectionRouter, InMemoryActivityStore) {
-        let activity = InMemoryActivityStore(blocks: blocks, trackerState: state)
-        let router = SectionRouter(store: test.store, clock: test.clock, device: test.app.settings.device, activity: activity)
-        router.range.set(.preset(.thisWeek))
-        return (router, activity)
     }
 
     @Test("PA-22 a slow reload finishing after a later one leaves the later range's figures and no loading indicator")
@@ -79,39 +102,31 @@ struct ActivitySectionTests {
         let model = router.activity
         await model.reload()
         #expect(model.summary?.total == 7800)
-        await model.toggle("tmux:paper")
+        await model.toggle("WezTerm")
         #expect(model.summary?.total == 4500)
-        await model.toggle("mail")
-        #expect(model.contexts == ["tmux:paper", "mail"])
+        await model.toggle("Mail")
+        #expect(model.apps == ["WezTerm", "Mail"])
         await model.selectAll()
-        #expect(model.contexts.isEmpty)
-        await model.showOnly("mail")
+        #expect(model.apps.isEmpty)
+        await model.showOnly("Mail")
         await model.shiftPeriod(by: -1)
         await model.shiftPeriod(by: 1)
-        #expect(model.contexts == ["mail"])
+        #expect(model.apps == ["Mail"])
         router.range.select(.lastMonth)
         await model.reload()
-        #expect(model.contexts.isEmpty)
-        await model.showOnly("safari")
-        #expect(model.subjectKind == .sites)
+        #expect(model.apps.isEmpty)
+        router.range.set(.preset(.thisWeek))
+        await model.reload()
+        await model.showOnly("Safari")
+        #expect(model.workspaceKind == .sites)
         model.mainWindowReopened()
-        #expect(model.contexts.isEmpty)
+        #expect(model.apps.isEmpty)
     }
 
     @Test("PA-16 the Mac footer's dot matches the Tracker pane's status for the same current.json")
     func footer() async throws {
         let now = try TestApp.date("2024-03-14T10:00")
-        let state = TrackerState(
-            device: "macbook",
-            openBlock: nil,
-            primary: nil,
-            presence: TrackerPresence(state: .active, since: now - 600),
-            health: TrackerHealth(
-                lastTick: now - 12,
-                version: "1.0",
-                sources: [TrackerSourceHealth(id: "terminal", name: "Terminal", status: .active)]
-            )
-        )
+        let state = Self.state(at: now, sources: [TrackerSourceHealth(id: "terminal", name: "Terminal", status: .active)])
         let test = try await TestApp(trackerState: state)
         test.agent.registration = .enabled
         await test.app.tracker.refresh()
@@ -121,11 +136,11 @@ struct ActivitySectionTests {
         #expect(router.activity.health?.statusLine == test.app.tracker.liveness.statusLine(now: now))
         #expect(router.activity.health?.dot == .green)
         // The iPad footer: LiveState's lastTick, no sources.
-        router.activity.isRecordingMac = false
+        router.activity.isMac = false
         router.activity.remoteActivity = {
             LiveState.MacActivity(
-                device: "macbook",
-                primary: nil,
+                device: "MacBook",
+                foreground: nil,
                 groupKey: nil,
                 presence: "active",
                 since: nil,
@@ -142,13 +157,7 @@ struct ActivitySectionTests {
     @Test("PA-16 while the footer is visible it re-reads the tracker's status every 10 seconds")
     func footerRefreshLoop() async throws {
         let now = try TestApp.date("2024-03-14T10:00")
-        let state = TrackerState(
-            device: "macbook",
-            openBlock: nil,
-            primary: nil,
-            presence: TrackerPresence(state: .active, since: now - 600),
-            health: TrackerHealth(lastTick: now - 12, version: "1.0", sources: [])
-        )
+        let state = Self.state(at: now)
         let test = try await TestApp(trackerState: state)
         let (router, _) = Self.router(test, blocks: [], state: state)
         let model = router.activity
@@ -177,7 +186,7 @@ struct ActivitySectionTests {
         let (router, _) = try Self.router(test, blocks: Self.week())
         let model = router.activity
         await model.reload()
-        await model.showOnly("tmux:paper")
+        await model.showOnly("WezTerm")
         let summary = try #require(model.summary)
         let row = try #require(summary.heatmap.rows.first { $0.label == "Mon 11" })
         model.showInCalendar(row: row, hour: 9)
@@ -187,7 +196,7 @@ struct ActivitySectionTests {
         #expect(router.calendar.firstDay == TrackingDay(year: 2024, month: 3, day: 11))
         #expect(router.calendar.scrollRequest?.hour == 9)
         router.select(.activity)
-        #expect(model.contexts == ["tmux:paper"])
+        #expect(model.apps == ["WezTerm"])
         #expect(model.range.range == .preset(.thisWeek))
     }
 
@@ -214,10 +223,12 @@ struct ActivitySectionTests {
     func awayFollowsIdleClose() async throws {
         let test = try await TestApp()
         let blocks = try [
-            Self.block("2024-03-14", "08:00", "08:30", [("mail", 1800)]),
-            Self.block("2024-03-14", "08:40", "09:00", [("mail", 1200)]),
+            Self.block("2024-03-14", "08:00", "08:30", [.mail(1800)]),
+            Self.block("2024-03-14", "08:40", "09:00", [.mail(1200)]),
         ]
-        let activity = InMemoryActivityStore(blocks: blocks, idleClose: 900)
+        var settings = TrackerSettings.defaults
+        settings.blocks.idleClose = 900
+        let activity = InMemoryActivityStore(blocks: blocks, settings: settings)
         let router = SectionRouter(store: test.store, clock: test.clock, device: test.app.settings.device, activity: activity)
         router.range.set(.preset(.thisWeek))
         await router.activity.reload()
@@ -231,17 +242,7 @@ struct ActivitySectionTests {
     ])
     func setupNeedsAccessibility(window: TrackerSourceStatus, registration: AgentRegistration, setUp: Bool) async throws {
         let now = try TestApp.date("2024-03-14T10:00")
-        let state = TrackerState(
-            device: "macbook",
-            openBlock: nil,
-            primary: nil,
-            presence: TrackerPresence(state: .active, since: now - 600),
-            health: TrackerHealth(
-                lastTick: now - 12,
-                version: "1.0",
-                sources: [TrackerSourceHealth(id: "window", name: "Window titles", status: window)]
-            )
-        )
+        let state = Self.state(at: now, sources: [TrackerSourceHealth(id: "window", name: "Window titles", status: window)])
         let test = try await TestApp(trackerState: state)
         test.agent.registration = registration
         await test.app.tracker.refresh()
@@ -256,12 +257,37 @@ struct ActivitySectionTests {
         let test = try await TestApp()
         let (router, _) = try Self.router(test, blocks: Self.week())
         router.openTrackerSettings = test.app.sections.openTrackerSettings
-        router.activity.exclude(context: "tmux:paper")
-        #expect(test.app.trackerSettings.pendingExclusion == PendingExclusion(list: .excludeTmuxSessions, value: "paper"))
+        let model = router.activity
+        await model.reload()
+        model.exclude(app: "Mail")
+        #expect(test.app.trackerSettings.pendingExclusion == PendingExclusion(list: .excludeApps, value: "com.apple.mail"))
         #expect(test.router.calls.last == .openSettings(.tracker))
-        router.activity.exclude(site: "github.com/owner/repo")
+        let folder = try #require(model.workspaceRows.first { $0.workspace == "~/Papers/paper" })
+        model.exclude(workspace: folder)
+        #expect(test.app.trackerSettings.pendingExclusion == PendingExclusion(list: .excludePaths, value: "~/Papers/paper"))
+        let site = try #require(model.workspaceRows.first { $0.workspace == "github.com/owner/repo" })
+        model.exclude(workspace: site)
         #expect(test.app.trackerSettings.pendingExclusion == PendingExclusion(list: .excludeDomains, value: "github.com"))
         #expect(test.app.trackerSettings.entries(.excludeDomains).isEmpty)
+    }
+}
+
+@MainActor
+extension ActivitySectionTests {
+    static func router(_ test: TestApp, blocks: [ActivityBlock], state: TrackerState? = nil) -> (SectionRouter, InMemoryActivityStore) {
+        let activity = InMemoryActivityStore(blocks: blocks, trackerState: state)
+        let router = SectionRouter(store: test.store, clock: test.clock, device: test.app.settings.device, activity: activity)
+        router.range.set(.preset(.thisWeek))
+        return (router, activity)
+    }
+
+    static func state(at now: Date, sources: [TrackerSourceHealth] = []) -> TrackerState {
+        TrackerState(
+            block: nil,
+            foreground: nil,
+            presence: TrackerPresence(state: .active, since: now - 600),
+            health: TrackerHealth(lastTick: now - 12, version: "1.0", sources: sources)
+        )
     }
 }
 
@@ -334,36 +360,20 @@ final class GatedActivityReader: ActivityReading {
     }
 
     // swiftlint:disable:next discouraged_optional_collection
-    func backgroundStretches(in interval: DateInterval, devices: Set<String>?) -> [ActivityBackgroundStretch] {
-        base.backgroundStretches(in: interval, devices: devices)
-    }
-
-    func detail(for id: ActivityBlock.ID) -> ActivityBlockDetail? {
-        base.detail(for: id)
-    }
-
-    func details(for ids: [ActivityBlock.ID]) async throws -> [ActivityBlock.ID: ActivityBlockDetail] {
-        try await base.details(for: ids)
+    func backgroundBlocks(in interval: DateInterval, devices: Set<String>?) -> [ActivityBlock] {
+        base.backgroundBlocks(in: interval, devices: devices)
     }
 
     func currentState() -> TrackerState? {
         base.currentState()
     }
 
-    func aggregate(in interval: DateInterval, by key: ActivityGroupKey, device: String?) -> [ActivityAggregate] {
-        base.aggregate(in: interval, by: key, device: device)
-    }
-
-    func bundleIdentifier(forContext context: String) -> String? {
-        base.bundleIdentifier(forContext: context)
+    var settings: TrackerSettings {
+        base.settings
     }
 
     var exclusions: ExclusionRules {
         base.exclusions
-    }
-
-    var idleClose: TimeInterval {
-        base.idleClose
     }
 
     var changes: AsyncStream<ActivityChange> {

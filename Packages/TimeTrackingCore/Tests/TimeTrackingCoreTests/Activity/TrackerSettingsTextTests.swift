@@ -16,7 +16,7 @@ struct TrackerSettingsTextTests {
         return edited.replacingCharacters(in: range, with: "")
     }
 
-    @Test("TRK-32 an exclusion added from Activity goes into the default file's empty array and keeps every other byte")
+    @Test("TRK-50 an exclusion added from Activity goes into the default file's empty array and keeps every other byte")
     func emptyArrayInTheDefaultFile() throws {
         let text = TrackerSettings.defaultFileContents
         let edited = try TrackerSettingsText.appending("com.example.vault", to: "exclude_apps", in: "privacy", of: text)
@@ -25,14 +25,14 @@ struct TrackerSettingsTextTests {
         #expect(try TrackerSettings(tomlText: edited).privacy.excludeApps == ["com.example.vault"])
     }
 
-    @Test("TRK-32 a commented empty array keeps its comment")
+    @Test("TRK-50 a commented empty array keeps its comment")
     func commentedArray() throws {
         let text = "[privacy]\nexclude_domains = []   # e.g. banks\n"
         let edited = try TrackerSettingsText.appending("bank.example", to: "exclude_domains", in: "privacy", of: text)
         #expect(edited == "[privacy]\nexclude_domains = [\"bank.example\"]   # e.g. banks\n")
     }
 
-    @Test("TRK-32 one-line arrays grow at the end, with or without a trailing comma")
+    @Test("TRK-50 one-line arrays grow at the end, with or without a trailing comma")
     func oneLineArrays() throws {
         let text = "[privacy]\nexclude_apps = [\"a.b\", 'c.d']\nexclude_domains = [\"x.org\",]\n"
         let apps = try TrackerSettingsText.appending("e.f", to: "exclude_apps", in: "privacy", of: text)
@@ -41,7 +41,7 @@ struct TrackerSettingsTextTests {
         #expect(domains == "[privacy]\nexclude_apps = [\"a.b\", 'c.d']\nexclude_domains = [\"x.org\", \"y.org\"]\n")
     }
 
-    @Test("TRK-32 a multi-line array gets a new line in its own indentation")
+    @Test("TRK-50 a multi-line array gets a new line in its own indentation")
     func multiLineArray() throws {
         let text = """
         [privacy]
@@ -66,7 +66,7 @@ struct TrackerSettingsTextTests {
         #expect(try TrackerSettings(tomlText: edited).privacy.excludeApps == ["a.b", "c.d", "e.f"])
     }
 
-    @Test("TRK-32 a missing key goes at the end of its table, a missing table at the end of the file")
+    @Test("TRK-50 a missing key goes at the end of its table, a missing table at the end of the file")
     func missingKeyAndTable() throws {
         let text = "[privacy]\nexclude_apps = []\n\n[browser]\nsummary_domain_only = []\n"
         let key = try TrackerSettingsText.appending("work", to: "exclude_tmux_sessions", in: "privacy", of: text)
@@ -77,7 +77,7 @@ struct TrackerSettingsTextTests {
         #expect(empty == "[privacy]\nexclude_tmux_sessions = [\"work\"]\n")
     }
 
-    @Test("TRK-32 a value already listed changes nothing; quotes and backslashes are escaped; a key that is no setting throws")
+    @Test("TRK-50 a value already listed changes nothing; quotes and backslashes are escaped; a key that is no setting throws")
     func duplicatesEscapesAndErrors() throws {
         let text = "[privacy]\nexclude_title_keywords = [\"Secret\"]\n"
         #expect(try TrackerSettingsText.appending("Secret", to: "exclude_title_keywords", in: "privacy", of: text) == text)
@@ -94,7 +94,7 @@ struct TrackerSettingsTextTests {
         }
     }
 
-    @Test("TRK-32 the errors shown under the settings file name the line, the setting, or the expected list")
+    @Test("TRK-50 the errors shown under the settings file name the line, the setting, or the expected list")
     func errorMessages() {
         func message(_ text: String) -> String {
             do {
@@ -115,12 +115,12 @@ struct TrackerSettingsTextTests {
         #expect(list == "In the settings file, exclude_apps under [privacy] must be a list, like [\"com.example.app\"].")
     }
 
-    @Test("TRK-32 a header-like line inside a multi-line string or array is not a table")
+    @Test("TRK-50 a header-like line inside a multi-line string or array is not a table")
     func headersOnlyAtTopLevel() throws {
         let text = """
-        [browser.categories]
-        research = [
-          "arxiv.org",
+        [workspaces]
+        root_markers = [
+          ".git",
         ]
 
         [privacy]
@@ -128,6 +128,6 @@ struct TrackerSettingsTextTests {
         """
         let edited = try TrackerSettingsText.appending("z.org", to: "exclude_domains", in: "privacy", of: text)
         #expect(try TrackerSettings(tomlText: edited).privacy.excludeDomains == ["z.org"])
-        #expect(try TrackerSettings(tomlText: edited).browser.categories["research"] == ["arxiv.org"])
+        #expect(try TrackerSettings(tomlText: edited).workspaces.rootMarkers == [".git"])
     }
 }

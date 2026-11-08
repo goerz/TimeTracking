@@ -1,6 +1,6 @@
-// ActivityModel: the Activity section's filter, device, subject view, and
-// drill-downs (activity.md). Every figure comes from the
-// library's `ActivitySummary`; this model holds selection and requests.
+// ActivityModel: the Activity section's app filter, device, workspace view,
+// and drill-downs (activity.md). Every figure comes from the library's
+// `ActivitySummary`; this model holds selection and requests.
 
 import Foundation
 import Observation
@@ -21,16 +21,14 @@ final class ActivityModel {
     @ObservationIgnored var trackerSetUp: () async -> Bool = { false }
     /// The Macs' `LiveState` activity (iPad footer).
     @ObservationIgnored var remoteActivity: () async -> LiveState.MacActivity? = { nil }
-    /// The app name of a bundle identifier (Mac: installed apps).
-    @ObservationIgnored var appName: (String) -> String? = { _ in nil }
-    @ObservationIgnored var isRecordingMac = true
-    /// Whether the current month's block file has not arrived (iPad).
+    /// Whether this device shows the open block and the exclusion shortcuts (the iPad doesn't).
+    @ObservationIgnored var isMac = true
+    /// Whether today's date file has not arrived (iPad).
     @ObservationIgnored var waitingForICloud: () async -> Bool = { false }
-    @ObservationIgnored var homeDirectory = NSHomeDirectory()
 
     let range: DateRangeModel
-    /// The selected contexts; empty is All.
-    private(set) var contexts: Set<String> = []
+    /// The selected apps; empty is All.
+    private(set) var apps: Set<String> = []
     /// The "All devices" popup.
     var selectedDevice: String? {
         didSet {
@@ -40,13 +38,13 @@ final class ActivityModel {
         }
     }
 
-    var subjectKind: ActivitySubjectKind = .all
-    /// The subject whose details replace the list.
-    private(set) var drill: ActivitySubjectRow?
+    var workspaceKind: ActivityWorkspaceKind = .all
+    /// The workspace whose items replace the list.
+    private(set) var drill: ActivityWorkspaceRow?
     var moreSearch = ""
     var showsMore = false
-    var showsAllContexts = false
-    var showsAllSubjects = false
+    var showsAllApps = false
+    var showsAllWorkspaces = false
     /// The date popover, also opened by View › Date Range… (⇧⌘D).
     var showsDatePopover = false
     /// The heatmap cell the arrow keys stand on.
@@ -61,7 +59,7 @@ final class ActivityModel {
     private(set) var summary: ActivitySummary?
     private(set) var health: ActivityHealth?
     private(set) var emptyState: ActivityEmptyState = .panels
-    private(set) var contextColors: [String: Int] = [:]
+    private(set) var appColors: [String: Int] = [:]
     private(set) var isLoading = false
     /// "Waiting for iCloud" (iPad), with the newest activity's end.
     private(set) var iCloudWaiting = false
@@ -98,7 +96,7 @@ final class ActivityModel {
     /// nothing (a long range read can outlast a short one).
     func reload() async {
         if range.revision != seenRevision, range.revision != arrowRevision, seenRevision >= 0 {
-            contexts = []
+            apps = []
             drill = nil
         }
         seenRevision = range.revision
@@ -114,23 +112,21 @@ final class ActivityModel {
             range.refreshCalendar(store)
             let days = days
             let interval = range.calendar.interval(of: days)
-            let hour = range.calendar.midnightHour
+            let hour = range.calendar.startOfDayHour
             let loaded = try await activity.blocks(in: interval, devices: nil)
             // Only the recording Mac shows the open block.
-            let blocks = (isRecordingMac ? loaded : loaded.filter { !$0.isOpen }).map { $0.shown(midnightHour: hour) }
+            let blocks = isMac ? loaded : loaded.filter { !$0.isOpen }
             let newest = blocks.map(\.end).max()
-            let stretches = try await activity.backgroundStretches(in: interval, devices: nil).map { $0.shown(midnightHour: hour) }
-            let details = isRecordingMac ? try await activity.details(for: blocks.map(\.id)) : [:]
-            let input = ActivitySummaryInput(
+            let input = try await ActivitySummaryInput(
                 blocks: blocks,
+                backgroundBlocks: activity.backgroundBlocks(in: interval, devices: nil),
                 days: days,
                 today: range.today,
-                contexts: contexts,
+                apps: apps,
                 device: selectedDevice,
-                details: details,
-                idleClose: activity.idleClose,
-                exclusions: activity.exclusions,
-                stretches: stretches
+                startOfDayHour: hour,
+                settings: activity.settings,
+                exclusions: activity.exclusions
             )
             let summary = await Task.detached { ActivitySummary(input) }.value
             guard generation == loadGeneration else {
@@ -152,8 +148,8 @@ final class ActivityModel {
                 return
             }
             self.emptyState = emptyState
-            if let assigned = try? await store.assignContextColors(summary.ranking.map(\.context)), generation == loadGeneration {
-                contextColors = assigned
+            if let assigned = try? await store.assignAppColors(summary.ranking.map(\.app)), generation == loadGeneration {
+                appColors = assigned
             }
         } catch {
             Logging.logger(category: "Sections").error("Activity: \(String(describing: error), privacy: .public)")
@@ -179,7 +175,7 @@ final class ActivityModel {
 
     /// The footer's dot, status line, and sources.
     func loadHealth() async {
-        if isRecordingMac {
+        if isMac {
             health = await ActivityHealth(registration: registration(), state: activity.currentState(), now: clock.now)
         } else {
             iCloudWaiting = await waitingForICloud()
@@ -187,48 +183,46 @@ final class ActivityModel {
         }
     }
 
-    /// The color index of a context (`nil`: gray).
-    func colorIndex(_ context: String) -> Int? {
-        ActivityContext(context).isPrivate ? nil : contextColors[context]
-    }
-
-    func displayName(_ context: String) -> String {
-        ActivityContext(context).displayName(bundleIdentifier: activity.bundleIdentifier(forContext: context), appName: appName)
+    /// The color index of an app.
+    func colorIndex(_ app: String) -> Int? {
+        appColors[app]
     }
 
     // MARK: Filter (§1.3)
 
-    /// A chip or a Contexts row: toggles the context.
-    func toggle(_ context: String) async {
-        contexts.formSymmetricDifference([context])
+    /// A chip or an Apps row: toggles the app.
+    func toggle(_ app: String) async {
+        apps.formSymmetricDifference([app])
         filterChanged()
         await reload()
     }
 
     /// "All" clears the filter.
     func selectAll() async {
-        contexts = []
+        apps = []
         filterChanged()
         await reload()
     }
 
     /// "Show Only <name>".
-    func showOnly(_ context: String) async {
-        contexts = [context]
+    func showOnly(_ app: String) async {
+        apps = [app]
         filterChanged()
         await reload()
     }
 
+    /// Sites when every selected app is a browser, else All (§1.6).
     private func filterChanged() {
-        subjectKind = ActivitySubjectKind.automatic(for: contexts)
+        let kinds = (summary?.ranking ?? []).filter { apps.contains($0.app) }.map(\.kind)
+        workspaceKind = apps.isEmpty ? .all : ActivityWorkspaceKind.automatic(for: kinds)
         drill = nil
     }
 
     /// The main window reopened: the filter resets.
     func mainWindowReopened() {
-        contexts = []
+        apps = []
         drill = nil
-        subjectKind = .all
+        workspaceKind = .all
     }
 
     /// ⌥⌘← / ⌥⌘→ and the arrows keep the filter.
@@ -242,24 +236,24 @@ final class ActivityModel {
         await reload()
     }
 
-    /// Escape: leaves a subject drill-down, else clears the filter.
+    /// Escape: leaves a workspace drill-down, else clears the filter.
     func escape() async {
         if drill != nil {
             drill = nil
-        } else if !contexts.isEmpty {
+        } else if !apps.isEmpty {
             await selectAll()
         }
     }
 
-    // MARK: Subjects (§1.6)
+    // MARK: Workspaces (§1.6)
 
-    var subjectRows: [ActivitySubjectRow] {
-        (summary?.subjectRows ?? []).filter { $0.matches(subjectKind) }
+    var workspaceRows: [ActivityWorkspaceRow] {
+        (summary?.workspaceRows ?? []).filter { $0.matches(workspaceKind) }
     }
 
-    /// The chevron of a row with details (recording Mac only).
-    func open(_ row: ActivitySubjectRow) {
-        guard isRecordingMac, row.hasDetails else {
+    /// The chevron of a row with items lists them, on every device.
+    func open(_ row: ActivityWorkspaceRow) {
+        guard row.hasItems else {
             return
         }
         drill = row
@@ -269,8 +263,12 @@ final class ActivityModel {
         drill = nil
     }
 
-    var drillDetail: ActivitySubjectDetail? {
-        drill.flatMap { summary?.subjectDetail($0, homeDirectory: homeDirectory) }
+    /// "WezTerm › MyApp": the drilled workspace's app and name.
+    var drillBreadcrumb: String? {
+        drill.map { row in
+            let app = row.apps.first(where: apps.contains) ?? row.apps.first
+            return [app, row.name].compactMap(\.self).joined(separator: " › ")
+        }
     }
 
     // MARK: Drill-down into the Calendar (§3)
@@ -283,35 +281,40 @@ final class ActivityModel {
         router?.showCalendar(day: day, hour: hour, highlight: .hour(hour))
     }
 
-    /// A bar (no hour) or a segment (its context highlighted).
+    /// A bar (no hour) or a segment (its app highlighted).
     func showInCalendar(_ target: ActivityBars.Target, in bars: ActivityBars) {
         guard let day = bars.bar(of: target)?.days.first else {
             return
         }
         var highlight: BlockHighlight?
-        if case let .context(context) = target.series {
-            highlight = .context(context)
+        if case let .app(app) = target.series {
+            highlight = .app(app)
         }
         router?.showCalendar(day: day, hour: nil, highlight: highlight)
     }
 
-    /// "Show in Calendar" on a context row: the range's first day, its blocks highlighted.
-    func showContextInCalendar(_ context: String) {
-        router?.showCalendar(day: days.lowerBound, hour: nil, highlight: .context(context))
+    /// "Show in Calendar" on an Apps row: the range's first day, its blocks highlighted.
+    func showAppInCalendar(_ app: String) {
+        router?.showCalendar(day: days.lowerBound, hour: nil, highlight: .app(app))
     }
 
     // MARK: Exclusions (§4)
 
-    /// "Exclude <name> from Tracking…" for a context (apps and sessions).
-    func exclude(context: String) {
-        guard let draft = TrackerExclusionDraft.forContext(context, bundleIdentifier: activity.bundleIdentifier(forContext: context)) else {
+    /// "Exclude <name> from Tracking…" for an app (browsers are excluded per site).
+    func exclude(app: String) {
+        guard let total = summary?.ranking.first(where: { $0.app == app }),
+              let draft = TrackerExclusionDraft.forApp(appID: total.appID, kind: total.kind)
+        else {
             return
         }
         router?.showTrackerSettings(exclusion: draft)
     }
 
-    /// "Exclude <site> from Tracking…" for a site row.
-    func exclude(site: String) {
-        router?.showTrackerSettings(exclusion: .forSite(site))
+    /// "Exclude <name> from Tracking…" for a folder or site row.
+    func exclude(workspace row: ActivityWorkspaceRow) {
+        guard let draft = TrackerExclusionDraft.forWorkspace(row) else {
+            return
+        }
+        router?.showTrackerSettings(exclusion: draft)
     }
 }

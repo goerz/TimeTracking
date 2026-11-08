@@ -14,7 +14,7 @@ One screen: the running entry above the recent list.
 
 A card at the top holds the task field, the project chip, and a row with the Pomodoro button, the elapsed time, Discard, and Start or Stop. It works like the [Mac's bar](timer.md#the-running-entry-bar), including `@` for the project picker and suggestions under the field. Tapping the elapsed time opens the running entry's edit sheet.
 
-Below the card, a line shows what your Mac is doing if its tracker runs, such as "MacBook · paper (tmux) · draft", followed by the same day-grouped list as on the Mac. Tap a row to edit it, tap ▶ or swipe fully to the right to continue it, and swipe left to delete it. Long-press for the full menu. Pull down to reveal the search field.
+Below the card, a line shows what your Mac is doing if its tracker runs, such as "MacBook · WezTerm · MyApp", followed by the same day-grouped list as on the Mac. Tap a row to edit it, tap ▶ or swipe fully to the right to continue it, and swipe left to delete it. Long-press for the full menu. Pull down to reveal the search field.
 
 ## What is different on iOS
 

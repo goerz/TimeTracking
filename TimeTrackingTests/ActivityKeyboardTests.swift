@@ -7,7 +7,7 @@ import TimeTrackingCore
 
 @MainActor
 struct ActivityKeyboardTests {
-    @Test("PA-26 clicking a segment opens the Calendar at its day with its context highlighted; above the stack nothing is")
+    @Test("PA-26 clicking a segment opens the Calendar at its day with its app highlighted; above the stack nothing is")
     func segmentDrill() async throws {
         let test = try await TestApp()
         let (router, _) = try ActivitySectionTests.router(test, blocks: ActivitySectionTests.week())
@@ -17,7 +17,7 @@ struct ActivityKeyboardTests {
         let monday = try #require(bars.bars.first)
         let day = TrackingDay(year: 2024, month: 3, day: 11)
         model.showInCalendar(ActivityBars.Target(bar: monday.id, series: monday.series(atSeconds: 2000)), in: bars)
-        #expect(router.calendarRequest == CalendarRequest(day: day, hour: nil, highlight: .context("safari")))
+        #expect(router.calendarRequest == CalendarRequest(day: day, hour: nil, highlight: .app("Safari")))
         model.showInCalendar(ActivityBars.Target(bar: monday.id, series: monday.series(atSeconds: 9000)), in: bars)
         #expect(router.calendarRequest == CalendarRequest(day: day, hour: nil, highlight: nil))
     }
@@ -51,6 +51,6 @@ struct ActivityKeyboardTests {
         #expect(router.calendarRequest == CalendarRequest(day: monday, hour: nil, highlight: nil))
         model.moveFocusedBar(.above)
         model.openFocusedBar()
-        #expect(router.calendarRequest == CalendarRequest(day: monday, hour: nil, highlight: .context("tmux:paper")))
+        #expect(router.calendarRequest == CalendarRequest(day: monday, hour: nil, highlight: .app("WezTerm")))
     }
 }

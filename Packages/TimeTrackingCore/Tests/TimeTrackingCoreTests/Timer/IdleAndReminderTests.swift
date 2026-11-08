@@ -134,9 +134,8 @@ struct IdleAndReminderTests {
         let now = try date("2024-03-14T10:00")
         func state(tick: Date) -> TrackerState {
             TrackerState(
-                device: "mac",
-                openBlock: nil,
-                primary: nil,
+                block: nil,
+                foreground: nil,
                 presence: TrackerPresence(state: .active, since: tick),
                 health: TrackerHealth(lastTick: tick, version: "1.0 (1)", sources: [])
             )
@@ -149,14 +148,13 @@ struct IdleAndReminderTests {
         #expect(!TrackerWarning.isActive(registration: .enabled, state: state(tick: now - 5), presentSince: now - 600, now: now))
     }
 
-    @Test("TRK-31 the pane's status follows the liveness rule: running, delayed at 90 s, not running at 2 min, off when unregistered")
+    @Test("TRK-33 the pane's status follows the liveness rule: running, delayed at 90 s, not running at 2 min, off when unregistered")
     func liveness() throws {
         let now = try date("2024-03-14T10:00")
         func state(age: TimeInterval) -> TrackerState {
             TrackerState(
-                device: "mac",
-                openBlock: nil,
-                primary: nil,
+                block: nil,
+                foreground: nil,
                 presence: TrackerPresence(state: .active, since: now),
                 health: TrackerHealth(lastTick: now - age, version: "1.0 (1)", sources: [])
             )

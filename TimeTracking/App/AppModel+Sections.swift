@@ -66,6 +66,5 @@ extension AppModel {
             }
             return ActivityEmptyState.trackerSetUp(registration: tracker.registration, state: tracker.state)
         }
-        activity.appName = { InstalledApps.name(forBundleIdentifier: $0) }
     }
 }

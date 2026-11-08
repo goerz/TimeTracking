@@ -17,11 +17,11 @@ final class HistoryDatabases: BrowserHistory {
     let safariPath: String
     let cloudTabsPaths: [String]
     /// Context and `History` file of each Chromium profile.
-    let chromiumProfiles: () -> [(context: String, path: String)]
+    let chromiumProfiles: () -> [(browser: String, path: String)]
     private var copies: [String: DatabaseCopy] = [:]
     private let folder: URL
 
-    init(safariPath: String, cloudTabsPaths: [String], chromiumProfiles: @escaping () -> [(context: String, path: String)]) {
+    init(safariPath: String, cloudTabsPaths: [String], chromiumProfiles: @escaping () -> [(browser: String, path: String)]) {
         self.safariPath = safariPath
         self.cloudTabsPaths = cloudTabsPaths
         self.chromiumProfiles = chromiumProfiles
@@ -38,12 +38,12 @@ final class HistoryDatabases: BrowserHistory {
             ]
         ) {
             var result: [(String, String)] = []
-            for (context, relative) in BrowserApp.chromiumProfileRoots {
+            for (browser, relative) in BrowserApp.chromiumProfileRoots {
                 let root = home + "/" + relative
                 for profile in (try? FileManager.default.contentsOfDirectory(atPath: root)) ?? [] {
                     let path = root + "/" + profile + "/History"
                     if FileManager.default.fileExists(atPath: path) {
-                        result.append((context, path))
+                        result.append((browser, path))
                     }
                 }
             }
@@ -105,7 +105,7 @@ final class HistoryDatabases: BrowserHistory {
                 ).map { row in
                     let micro: Int64 = row["time"]
                     let time = Date(timeIntervalSince1970: TimeInterval(micro) / 1_000_000 - Self.chromiumEpochOffset)
-                    return HistoryVisit(time: time, browser: profile.context, url: row["url"], title: row["title"])
+                    return HistoryVisit(time: time, browser: profile.browser, url: row["url"], title: row["title"])
                 }
             }
             result += visits ?? []

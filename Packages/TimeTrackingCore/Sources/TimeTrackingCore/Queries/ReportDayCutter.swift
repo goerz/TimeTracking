@@ -7,12 +7,12 @@ import GRDB
 /// Cuts entry rows at every day change they cross. Reports scan many entries
 /// over few dates, so each date's start is worked out once per zone.
 struct ReportDayCutter {
-    let midnightHour: Int
+    let startOfDayHour: Int
     let now: Int64
     private var zones: [String: ZoneDays] = [:]
 
-    init(midnightHour: Int, now: Int64) {
-        self.midnightHour = midnightHour
+    init(startOfDayHour: Int, now: Int64) {
+        self.startOfDayHour = startOfDayHour
         self.now = now
     }
 
@@ -20,8 +20,8 @@ struct ReportDayCutter {
     /// `end`, in order; an entry without length lies on the day of its start.
     mutating func parts(of row: Row) -> [(day: TrackingDay, seconds: Int)] {
         let name: String = row["time_zone"]
-        let hour = midnightHour
-        return zones[name, default: ZoneDays(TrackingCalendar(timeZoneIdentifier: name, midnightHour: hour))].parts(
+        let hour = startOfDayHour
+        return zones[name, default: ZoneDays(TrackingCalendar(timeZoneIdentifier: name, startOfDayHour: hour))].parts(
             date: row["day"],
             start: row["start"],
             end: (row["end"] as Int64?) ?? now

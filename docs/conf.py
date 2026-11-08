@@ -4,16 +4,21 @@ project = "TimeTracking"
 author = "Michael Goerz"
 copyright = "2026, Michael Goerz"
 
-extensions = ["myst_parser", "sphinx_design"]
+extensions = ["myst_parser", "sphinx_design", "sphinxcontrib.mermaid"]
 exclude_patterns = [".venv", "_build", "README.md"]
 source_suffix = {".md": "markdown"}
 root_doc = "index"
 
-# The specs write placeholders such as <task> as plain text, and no page needs
-# raw HTML, so both stay literal.
+# The specs write placeholders such as <task> as plain text, so inline HTML
+# stays literal. Figures that need HTML come in through the raw directive.
 myst_disable_syntax = ["html_block", "html_inline"]
 myst_enable_extensions = ["attrs_block", "colon_fence"]
 myst_heading_anchors = 3
+
+# Diagrams written as ```{mermaid} blocks render in the browser, in the light
+# or dark theme Furo shows.
+mermaid_version = "11.4.1"
+mermaid_height = "auto"
 
 # Straight quotes become curly; "--" in prose stays as written.
 smartquotes_action = "q"

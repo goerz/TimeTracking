@@ -8,8 +8,8 @@ import TimeTrackingCore
 struct ActivityGapsTests {
     private static let day = "2026-10-27"
 
-    private static func block(_ start: String, _ end: String, device: String = "macbook") throws -> ActivityBlock {
-        try ActivitySummaryTests.block(day, start, end, [], device: device)
+    private static func block(_ start: String, _ end: String, device: String = "MacBook") throws -> ActivityBlock {
+        try ActivityFixture.block(day, start, end, [(ActivityFixture.app("Mail"), 60)], device: device)
     }
 
     private static func interval(_ start: String, _ end: String) throws -> DateInterval {

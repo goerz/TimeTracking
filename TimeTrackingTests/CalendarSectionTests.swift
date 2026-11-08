@@ -21,12 +21,11 @@ struct CalendarSectionTests {
 
         init(
             blocks: [ActivityBlock] = [],
-            stretches: [ActivityBackgroundStretch] = [],
             events: InMemoryCalendarEventStore = InMemoryCalendarEventStore()
         ) async throws {
             let test = try await TestApp()
             self.test = test
-            self.activity = InMemoryActivityStore(blocks: blocks, stretches: stretches)
+            self.activity = InMemoryActivityStore(blocks: blocks)
             self.events = events
             self.router = SectionRouter(
                 store: test.store,
@@ -52,19 +51,20 @@ struct CalendarSectionTests {
         TrackingDay(text) ?? TrackingDay(year: 2000, month: 1, day: 1)
     }
 
-    @Test("PC-26 the activity column has the day's background stretches, each named by its items and their time while away")
-    func backgroundStretches() async throws {
+    @Test("PC-26 the activity column has the day's background blocks, each named by its items and their time while away")
+    func backgroundBlocks() async throws {
         let start = ManualClock.fixtureNow().addingTimeInterval(-3 * 3600)
-        let item = ActivityItem(context: "claude", subject: "refactor-parser", detail: "", seconds: 2280, device: "macbook")
-        let stretch = ActivityBackgroundStretch(
+        let item = ActivityItem(app: "Claude Code", session: "refactor-parser", command: "claude", workspace: "~/Code/parser")
+        let block = ActivityBlock(
             start: start,
             end: start.addingTimeInterval(2310),
-            items: [item],
-            utcOffset: TimeZone.current.secondsFromGMT(for: start)
+            utcOffset: TimeZone.current.secondsFromGMT(for: start),
+            background: [ActivityBlockItem(device: "MacBook", seconds: 2280, item: item)]
         )
-        let world = try await World(stretches: [stretch])
-        #expect(world.model.stretches == [stretch])
-        #expect(stretch.summaryText == "In the background while away: Claude refactor-parser 38m")
+        let world = try await World(blocks: [block])
+        #expect(world.model.backgroundBlocks == [block])
+        #expect(world.model.blocks(on: world.model.firstDay).isEmpty)
+        #expect(block.backgroundText(jobCommands: []) == "In the background while away: Claude Code refactor-parser 38m")
     }
 
     @Test("PC-2 with today Thursday and room for 5 whole days, ⌘T makes Tuesday first, Monday for 7, Thursday for 1 and 2")
@@ -245,11 +245,11 @@ struct CalendarSectionTests {
         model.confirmDeleteFromLog(closed)
         #expect(model.blockToDelete == closed)
         await model.deleteBlockFromLog(confirmed: true)
-        let range = ActivityTimestamp.text(closed.start, utcOffset: closed.utcOffset) + " "
-            + ActivityTimestamp.text(closed.end, utcOffset: closed.utcOffset)
+        let range = ActivityTimestamp.textWithOffset(closed.start, utcOffset: closed.utcOffset) + " "
+            + ActivityTimestamp.textWithOffset(closed.end, utcOffset: closed.utcOffset)
         #expect(world.commands.commands == ["delete-block \(range)"])
         #expect(!model.canDeleteFromLog(open))
-        model.isRecordingMac = false
+        model.isMac = false
         #expect(!model.canDeleteFromLog(closed))
     }
 

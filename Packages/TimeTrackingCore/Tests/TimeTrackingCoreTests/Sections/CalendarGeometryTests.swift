@@ -234,12 +234,8 @@ struct CalendarGeometryTests {
         let block = try ActivityBlock(
             start: Self.time("2026-10-29T09:00"),
             end: Self.time("2026-10-29T09:30"),
-            activeSeconds: 1500,
-            devices: [ActivityDeviceTime(name: "macbook", seconds: 1500)],
-            groupKey: "safari",
-            groupShare: 1,
-            items: [],
-            utcOffset: -4 * 3600
+            utcOffset: -4 * 3600,
+            foreground: [ActivityBlockItem(device: "MacBook", seconds: 1500, item: ActivityItem(app: "Safari", appID: "com.apple.Safari"))]
         )
         let timeBlock = try DateInterval(start: Self.time("2026-10-29T23:00"), end: Self.time("2026-10-30T01:00"))
         let summary = try CalendarSummary(

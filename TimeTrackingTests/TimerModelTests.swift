@@ -7,10 +7,10 @@ import TimeTrackingCore
 
 @MainActor
 struct TimerModelTests {
-    @Test("MB-20 the menu's Last line names an entry stopped today that started before Midnight")
-    func lastStoppedAcrossMidnight() async throws {
+    @Test("MB-20 the menu's Last line names an entry stopped today that started before the start of day")
+    func lastStoppedAcrossStartOfDay() async throws {
         let test = try await TestApp()
-        try await test.store.set(.midnightHour, 4)
+        try await test.store.set(.startOfDayHour, 4)
         _ = try await test.store.create(EntryDraft(
             projectID: nil,
             task: "Dawn",

@@ -220,20 +220,20 @@ struct WidgetSnapshotTests {
         #expect(shared.pushToken == .some(nil))
     }
 
-    @Test("The Mac activity line: running trackers only, newest first, at most two; the subject alone for plain apps")
+    @Test("The Mac activity line: running trackers only, newest first, at most two; the workspace alone when it is the app")
     func macLines() throws {
         let zone = try #require(TimeZone(identifier: "Europe/Berlin"))
         let since = try TestStore.date("2024-03-14T14:02", zone)
         func activity(
             _ device: String,
-            _ primary: TrackerPrimaryItem?,
+            _ foreground: ActivityItem?,
             _ presence: String,
             running: Bool = true,
             at offset: TimeInterval
         ) -> LiveState.MacActivity {
             LiveState.MacActivity(
                 device: device,
-                primary: primary,
+                foreground: foreground,
                 groupKey: nil,
                 presence: presence,
                 since: since,
@@ -244,18 +244,23 @@ struct WidgetSnapshotTests {
             )
         }
         let state = LiveState(activity: [
-            "a": activity("MacBook", TrackerPrimaryItem(context: "tmux:paper", subject: "draft"), "active", at: 10),
-            "b": activity("iMac", TrackerPrimaryItem(context: "skim", subject: "notes.pdf"), "idle", at: 20),
+            "a": activity("MacBook", ActivityItem(app: "WezTerm", session: "draft", workspace: "~/Code/MyApp"), "active", at: 10),
+            "b": activity(
+                "iMac",
+                ActivityItem(app: "Skim", documents: ["~/Papers/2026_Noise/notes.pdf"], workspace: "~/Papers/2026_Noise"),
+                "idle",
+                at: 20
+            ),
             "c": activity("Old", nil, "active", running: false, at: 30),
             "d": activity("Mini", nil, "asleep", at: 0),
         ])
         #expect(MacActivityLine.lines(state, timeZone: zone) == [
-            "iMac · notes.pdf · idle since 14:02",
-            "MacBook · paper (tmux) · draft",
+            "iMac · Skim · 2026_Noise · idle since 14:02",
+            "MacBook · WezTerm · MyApp",
         ])
         let words = LiveState(activity: [
-            "a": activity("A", TrackerPrimaryItem(context: "skim", subject: ""), "passive", at: 3),
-            "b": activity("B", nil, "other_user", at: 2),
+            "a": activity("A", ActivityItem(app: "Skim"), "passive", at: 3),
+            "b": activity("B", nil, "otherUser", at: 2),
             "c": activity("C", nil, "locked", at: 1),
         ])
         #expect(MacActivityLine.lines(words, timeZone: zone, limit: 3) == [

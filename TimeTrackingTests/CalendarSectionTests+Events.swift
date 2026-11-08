@@ -274,13 +274,13 @@ extension CalendarSectionTests {
 }
 
 extension CalendarSectionTests {
-    @Test("PC-33 a column starts at Midnight, an entry across it is in both columns, and its later piece drags within that column")
-    func midnightColumns() async throws {
+    @Test("PC-33 a column starts at the start of day, an entry across it is in both columns, and its later piece drags within that column")
+    func startOfDayColumns() async throws {
         let block = try TestBlocks.block("03:30", "04:30")
         let world = try await World(blocks: [block])
         let model = world.model
         let store = world.test.store
-        try await store.set(.midnightHour, 4)
+        try await store.set(.startOfDayHour, 4)
         let entry = try await store.create(EntryDraft(
             projectID: nil,
             task: "Night",
@@ -295,7 +295,7 @@ extension CalendarSectionTests {
         #expect(model.entries(on: later).map(\.id) == [entry.id])
         #expect(model.blocks(on: earlier).count == 1)
         #expect(model.blocks(on: later).count == 1)
-        #expect(model.blocks[0].shownDay == earlier.description)
+        #expect(model.blocks[0].shownDay(startOfDayHour: 4) == earlier)
         #expect(model.dayTotals[earlier]?.tracked == 3600)
         #expect(model.dayTotals[later]?.tracked == 3600)
         #expect(model.axisHour(clock: 9) == 5)
@@ -306,7 +306,7 @@ extension CalendarSectionTests {
         #expect(try moved.end == TestApp.date("2024-03-14T06:00"))
     }
 
-    @Test("PC-35 a column named D shows the all-day events of date D, whatever Midnight is")
+    @Test("PC-35 a column named D shows the all-day events of date D, whatever the start of day is")
     func allDayStrip() async throws {
         let world = try await World()
         let model = world.model
@@ -324,7 +324,7 @@ extension CalendarSectionTests {
             isAllDay: true
         )
         for hour in [0, 4, 22] {
-            try await world.test.store.set(.midnightHour, hour)
+            try await world.test.store.set(.startOfDayHour, hour)
             await model.reload()
             #expect(model.allDayEvents(on: Self.day("2024-03-13")).isEmpty, "\(hour)")
             #expect(model.allDayEvents(on: Self.day("2024-03-14")).map(\.id) == [holiday.id, trip.id], "\(hour)")
@@ -333,12 +333,12 @@ extension CalendarSectionTests {
         }
     }
 
-    @Test("PC-36 a block crossing Midnight is dimmed per column, measured from the top of that column's card")
-    func midnightDimming() async throws {
+    @Test("PC-36 a block crossing the start of day is dimmed per column, measured from the top of that column's card")
+    func startOfDayDimming() async throws {
         let block = try TestBlocks.block("03:30", "04:30")
         let world = try await World(blocks: [block])
         let model = world.model
-        try await world.test.store.set(.midnightHour, 4)
+        try await world.test.store.set(.startOfDayHour, 4)
         _ = try await world.test.entry("Night", from: "2024-03-14T04:10", to: "2024-03-14T04:20")
         await model.reload()
         let shown = try #require(model.blocks.first)
@@ -347,21 +347,21 @@ extension CalendarSectionTests {
         #expect(model.coveredParts(of: shown, on: earlier).isEmpty)
         let part = try #require(model.coveredParts(of: shown, on: later).first)
         #expect(try part == DateInterval(start: TestApp.date("2024-03-14T04:10"), end: TestApp.date("2024-03-14T04:20")))
-        #expect(model.axis(later).offset(of: part.start, inCardOf: shown.span) == 12)
+        #expect(model.axis(later).offset(of: part.start, inCardOf: shown.interval) == 12)
         // Before the day change the card starts with the block.
         _ = try await world.test.entry("Earlier", from: "2024-03-14T03:40", to: "2024-03-14T03:50")
         await model.reload()
         let early = try #require(model.coveredParts(of: shown, on: earlier).first)
         #expect(try early.start == TestApp.date("2024-03-14T03:40"))
-        #expect(model.axis(earlier).offset(of: early.start, inCardOf: shown.span) == 12)
+        #expect(model.axis(earlier).offset(of: early.start, inCardOf: shown.interval) == 12)
     }
 
-    @Test("PC-34 with Midnight at 04:00 a drag across the real midnight keeps one entry, and one undo restores it")
+    @Test("PC-34 with the start of day at 04:00 a drag across the real midnight keeps one entry, and one undo restores it")
     func midnightDragUndo() async throws {
         let world = try await World()
         let model = world.model
         let store = world.test.store
-        try await store.set(.midnightHour, 4)
+        try await store.set(.startOfDayHour, 4)
         let entry = try await store.create(EntryDraft(
             projectID: nil,
             task: "Late",

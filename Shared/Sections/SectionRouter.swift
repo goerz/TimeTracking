@@ -41,8 +41,8 @@ nonisolated enum MainSection: String, Codable, CaseIterable, Identifiable, Senda
 nonisolated enum BlockHighlight: Hashable, Sendable {
     /// One hour of the day.
     case hour(Int)
-    /// One context on the day.
-    case context(String)
+    /// One app on the day, by the items' `app`.
+    case app(String)
 }
 
 /// A pending `showCalendar` request; the Calendar section consumes it.

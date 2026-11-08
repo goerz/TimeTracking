@@ -32,7 +32,7 @@ Entries can't lie in the future, so for a block that has not started this only s
 
 ## Let the tracker fill in the left column
 
-The Activity column stays empty until you enable the tracker, which is optional. If you want it, follow [Set up the activity tracker](../howto/tracker.md) and work for an hour. Gray cards then appear in the column, each naming the app, session, or site that held your attention.
+The Activity column stays empty until you enable the tracker, which is optional. If you want it, follow [Set up the activity tracker](../howto/tracker.md) and work for an hour. Gray cards then appear in the column, each naming the project folder, site, or app that held your attention.
 
 These cards are a record, not entries. Where you forgot to start the timer, hover over a card and click "+", and the popover offers an entry over the longest part of the card that nothing else covers. Give it a project and press Return. [Turn activity into time entries](../howto/entries-from-activity.md) has the details.
 

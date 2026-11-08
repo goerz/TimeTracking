@@ -1,24 +1,25 @@
-// PortRegistry: notebook server ports and the panes that own them
-// (activity_tracking.md §2.2 rule 2, §3.1, §3.3).
+// PortRegistry: notebook server ports and the folders their servers run in
+// (activity_tracking.md §2.3 rule 3, §3.1).
 
 // nil means "cannot read", which differs from an empty answer.
 // swiftlint:disable discouraged_optional_collection
 
 import Foundation
 
-/// Maps a `localhost` port to the item of the interpreter pane listening on it.
+/// Maps a `localhost` port to the working folder of the interpreter pane
+/// listening on it, so a notebook in the browser joins that folder's workspace.
 struct PortRegistry {
     /// How often one pane's listening ports are looked up again.
     static let rescanInterval: TimeInterval = 60
     static let lsof = "/usr/sbin/lsof"
 
-    private var ports: [Int: SampleItem] = [:]
+    private var folders: [Int: String] = [:]
     private var portsByPane: [Int32: [Int]] = [:]
     private var scanned: [Int32: Date] = [:]
 
-    /// The item of the pane that registered `port`.
-    func item(forPort port: Int) -> SampleItem? {
-        ports[port]
+    /// The working folder of the pane listening on `port`.
+    func folder(forPort port: Int) -> String? {
+        folders[port]
     }
 
     /// Whether the pane's ports are due for a lookup at `now`; marks them looked up.
@@ -41,10 +42,10 @@ struct PortRegistry {
         return await commands.run([Self.lsof, "-nP", "-a", "-p", pids, "-iTCP", "-sTCP:LISTEN", "-Fn"]).map(ports(inLsofOutput:))
     }
 
-    /// Records `item` as the owner of the pane's ports.
-    mutating func remember(_ item: SampleItem, forPaneOf pid: Int32) {
+    /// Records `folder` as the working folder of the pane's ports.
+    mutating func remember(_ folder: String, forPaneOf pid: Int32) {
         for port in portsByPane[pid] ?? [] {
-            ports[port] = item
+            folders[port] = folder
         }
     }
 

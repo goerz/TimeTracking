@@ -6,20 +6,20 @@ public import Foundation
 /// day whose midnight does not exist (a DST change at 00:00) starts at the
 /// first instant that does.
 ///
-/// With a `midnightHour` other than 0 the days are the ones the app shows
+/// With a `startOfDayHour` other than 0 the days are the ones the app shows
 /// (§8): each starts at that hour. A day that starts in the morning is named
 /// after the date it starts on, one that starts at noon or later after the
 /// date it ends on, so a day keeps the name of the date most of it lies on.
-/// Storage always uses `midnightHour` 0.
+/// Storage always uses `startOfDayHour` 0.
 public struct TrackingCalendar: Sendable {
     public let timeZone: TimeZone
     /// The hour of the local clock at which a day starts, 0 to 23.
-    public let midnightHour: Int
+    public let startOfDayHour: Int
     private let calendar: Calendar
 
-    public init(timeZone: TimeZone, midnightHour: Int = 0) {
+    public init(timeZone: TimeZone, startOfDayHour: Int = 0) {
         self.timeZone = timeZone
-        self.midnightHour = SyncedSettingKey<Int>.midnightHour.clamped(midnightHour)
+        self.startOfDayHour = SyncedSettingKey<Int>.startOfDayHour.clamped(startOfDayHour)
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = timeZone
         self.calendar = calendar
@@ -27,15 +27,15 @@ public struct TrackingCalendar: Sendable {
 
     /// The calendar of an IANA identifier, or of the current zone when the
     /// identifier is unknown.
-    public init(timeZoneIdentifier: String, midnightHour: Int = 0) {
-        self.init(timeZone: TimeZone(identifier: timeZoneIdentifier) ?? .current, midnightHour: midnightHour)
+    public init(timeZoneIdentifier: String, startOfDayHour: Int = 0) {
+        self.init(timeZone: TimeZone(identifier: timeZoneIdentifier) ?? .current, startOfDayHour: startOfDayHour)
     }
 
-    /// The day of `date`: its local date, shifted by `midnightHour`.
+    /// The day of `date`: its local date, shifted by `startOfDayHour`.
     public func day(containing date: Date) -> TrackingDay {
         let parts = calendar.dateComponents([.year, .month, .day], from: date)
         let local = TrackingDay(year: parts.year ?? 1970, month: parts.month ?? 1, day: parts.day ?? 1)
-        guard midnightHour != 0 else {
+        guard startOfDayHour != 0 else {
             return local
         }
         return dayChange(on: local).days[date < dayChange(on: local).instant ? 0 : 1]
@@ -43,10 +43,10 @@ public struct TrackingCalendar: Sendable {
 
     /// The first instant of `day`.
     public func startOfDay(_ day: TrackingDay) -> Date {
-        guard midnightHour != 0 else {
+        guard startOfDayHour != 0 else {
             return localMidnight(day)
         }
-        return dayChange(on: midnightHour < 12 ? day : day.adding(days: -1)).instant
+        return dayChange(on: startOfDayHour < 12 ? day : day.adding(days: -1)).instant
     }
 
     /// The instant the local date `date` changes from one day to the next,
@@ -55,8 +55,8 @@ public struct TrackingCalendar: Sendable {
     /// an hour it repeats the first one counts.
     func dayChange(on date: TrackingDay) -> (instant: Date, days: [TrackingDay]) {
         let midnight = localMidnight(date)
-        let instant = calendar.date(bySettingHour: midnightHour, minute: 0, second: 0, of: midnight) ?? midnight
-        let earlier = midnightHour < 12 ? date.adding(days: -1) : date
+        let instant = calendar.date(bySettingHour: startOfDayHour, minute: 0, second: 0, of: midnight) ?? midnight
+        let earlier = startOfDayHour < 12 ? date.adding(days: -1) : date
         return (instant, [earlier, earlier.adding(days: 1)])
     }
 
@@ -135,14 +135,14 @@ public struct TrackingCalendar: Sendable {
     }
 
     private func zoned(for entry: TimeEntry) -> Self {
-        entry.timeZone == timeZone.identifier ? self : Self(timeZoneIdentifier: entry.timeZone, midnightHour: midnightHour)
+        entry.timeZone == timeZone.identifier ? self : Self(timeZoneIdentifier: entry.timeZone, startOfDayHour: startOfDayHour)
     }
 
     /// The instants `days` can cover in any zone, for finding the entries
     /// with a piece on them by interval overlap: each entry's pieces follow
     /// its own zone, and no zone's offset from GMT exceeds 16 hours.
     public func reach(of days: ClosedRange<TrackingDay>) -> DateInterval {
-        let interval = Self(timeZone: .gmt, midnightHour: midnightHour).interval(of: days)
+        let interval = Self(timeZone: .gmt, startOfDayHour: startOfDayHour).interval(of: days)
         return DateInterval(start: interval.start - 16 * 3600, end: interval.end + 16 * 3600)
     }
 }

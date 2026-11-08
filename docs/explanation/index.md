@@ -9,7 +9,7 @@ These pages explain why TimeTracking works the way it does. The first group cove
 intent
 concepts
 tracked-and-recorded
-midnight
+start-of-day
 sync
 privacy
 ```

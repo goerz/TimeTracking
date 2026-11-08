@@ -27,9 +27,9 @@ TimeTracking is a personal time tracker for the Mac, iPhone, and iPad. It record
 | Task | The free-text description of a time entry ("Clarify noise model"), autocompleted from earlier entries. |
 | Time entry | A tracked interval: start, end (or running), project (optional), task. At most one entry runs at a time, across all devices. An entry is stored whole and can span any number of dates, a forgotten timer included. |
 | Piece | An entry's part on one shown day. Display and reports cut entries into pieces; nothing stores them. |
-| Midnight | The synced setting for the hour the app's days start, 00:00 by default (see "Days" under Cross-cutting rules). Written lowercase, "midnight" is the real one on the clock. |
+| Start of day | The synced setting for the hour the app's days start, 00:00 by default (see "Days" under Cross-cutting rules). Lowercase "midnight" is always 00:00 on the clock. |
 | Pomodoro | A count-down display of focus and break phases over the running entry, kept per device. It never starts, stops, or splits entries. |
-| Activity block | A contiguous stretch of attention, recorded by the tracker with items at three levels: context, subject, detail. Not a time entry; a source for one. The tracker never assigns projects, so its logs stay a neutral record. |
+| Activity block | A contiguous stretch of attention, formed by the tracker from its Samples, with the items it credits (app, window, session, location, documents, command, and workspace of each) and their seconds per device. Not a time entry; a source for one. The tracker never assigns projects, so its logs stay a neutral record. |
 | Time block | A plan ("write the intro, 9 to 11"): an event in an iCloud calendar, optionally linked to a project, so it reaches every device and calendar app. Informational only. |
 | Calendar event | An event from a calendar of the system calendar store that the user chose to show. |
 
@@ -105,7 +105,7 @@ A status item showing the running time or Pomodoro countdown, with a menu of the
 
 Spec: [activity_tracking.md](activity_tracking.md)
 
-An opt-in background login item that records where attention goes on the Mac, in blocks, and merges in what iOS collects. It writes an append-only block log to iCloud Drive and local files on the Mac, and never opens the time-entry store. Exclusions apply before anything is written.
+An opt-in background login item that records where attention goes on the Mac, in blocks, and merges in what iOS collects. It keeps its Samples on the Mac, writes the block log to iCloud Drive with one file per date, each replaced whole when its blocks change, and never opens the time-entry store. Exclusions apply before anything is written.
 
 ### iPhone and iPad app
 
@@ -122,19 +122,19 @@ The `timetracking` command-line tool, App Intents (Shortcuts, Siri, Spotlight), 
 ## Data flow
 
 1. The user starts an entry in any interface. The library stores it, writes `LiveState`, and syncs. The Mac sends a widget push to every iPhone and iPad; open apps receive the change through CloudKit. If two devices start entries while offline, the later start wins and the earlier entry stops at it.
-2. The tracker samples attention every 30 seconds, forms blocks, and appends them to the block log. The Mac app reads the log and publishes the current activity into `LiveState`. The iPhone and iPad read the same log without the Mac-only details.
+2. The tracker samples attention every 30 seconds, forms blocks, and writes them to the block log. The Mac app reads the log and publishes the current activity into `LiveState`. The iPhone and iPad read the same log.
 3. In the Calendar, the user makes ordinary entries from blocks, time blocks, and events.
 4. Reports and the scripting surface query the store through the same library, and every write goes through its operations.
-5. iOS extensions append device events to a staging file; the app flushes them to CloudKit as `DeviceEvent` records; the Mac agent merges them into blocks as a separate source.
+5. iOS extensions append device events to a staging file; the app flushes them to CloudKit as `DeviceEvent` records; the Mac agent turns them into Samples, which join the Mac's in its blocks.
 
 ## Cross-cutting rules
 
-- Days: entries are stored whole, and the tracker uses real days, so activity blocks close at local midnight. What the app shows and reports (Timer list, Calendar, Reports, Activity, Projects, widgets, the tool's day ranges) follows Midnight ([data_and_sync.md](data_and_sync.md) §8). Display and reports cut entries into pieces at that hour, so daily sums stay plain sums and totals agree, and changing the setting rewrites nothing. Weeks run Monday to Sunday.
-- Settings are synced (Midnight, Pomodoro durations, pinned projects, context colors, the Calendar's settings) or per device (idle threshold, shortcuts, menu bar display, window frames).
+- Days: entries are stored whole, and an activity block belongs to the real local date it starts on, even when it runs past midnight. What the app shows and reports (Timer list, Calendar, Reports, Activity, Projects, widgets, the tool's day ranges) follows the start of day ([data_and_sync.md](data_and_sync.md) §8). Display and reports cut entries into pieces at that hour, so daily sums stay plain sums and totals agree, and changing the setting rewrites nothing. Weeks run Monday to Sunday.
+- Settings are synced (the start of day, Pomodoro durations, pinned projects, app colors, the Calendar's settings) or per device (idle threshold, shortcuts, menu bar display, window frames).
 - Platforms: macOS 27 and iOS and iPadOS 27 only, with no availability checks. The apps are built from source with the Makefile and development-signed (APNs sandbox, CloudKit development environment); there is no App Store or TestFlight distribution.
 - Every testable behavior has a test carrying its identifier `<prefix>-<n>` (ARCH, DATA, TM, MB, PP, PC, PR, PA, TRK, IOS, AUTO); `make check-behaviors` enforces the mapping.
 - The Mac app, agent, and tools are not sandboxed and share one App Group container; the iOS app and its extensions are sandboxed.
-- Privacy: raw activity detail stays on the Mac, only block summaries sync, and exclusions apply before anything is written.
+- Privacy: the tracker's Samples stay on the Mac, only blocks sync, with secrets redacted, and exclusions apply before anything is written.
 - Every entity is soft-deleted; tombstones sync and are kept 180 days. Durations are rounded only for display.
 - Keyboard first on the Mac and iPad: every action has a menu command and, where frequent, a shortcut.
 - The Mac and iPad ask for full calendar access for the Calendar section; the iPhone needs none.

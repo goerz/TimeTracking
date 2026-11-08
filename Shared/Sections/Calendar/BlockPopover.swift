@@ -1,67 +1,73 @@
-// BlockPopover: an activity block's range, items, secondaries, and
-// Create Entry… (calendar.md §3.2).
+// BlockPopover: an activity block's summary with every item, and Create
+// Entry… (calendar.md §3.2; activity_tracking.md §2.8).
 
 import SwiftUI
 import TimeTrackingCore
 
-/// The block popover: range, items, secondaries, Create Entry… (§3.2).
+/// The summary's header and footer, every foreground item grouped by
+/// workspace, every background item, and Create Entry… (§3.2).
 struct BlockPopover: View {
     var model: CalendarModel
     var block: ActivityBlock
 
     var body: some View {
+        let summary = ActivityBlockSummary(block: block, settings: model.activity.settings, extent: .everything)
         VStack(alignment: .leading, spacing: Design.Spacing.small) {
-            header
-            ForEach(Array(block.items.enumerated()), id: \.offset) { _, item in
-                HStack {
-                    Text(ActivityContext(item.context).label()).fontWeight(.semibold)
-                    Text([item.subject, item.detail].filter { !$0.isEmpty }.joined(separator: " ")).lineLimit(1)
-                    Spacer()
-                    if block.devices.count > 1 {
-                        Text(ActivityContext.deviceName(item.device)).foregroundStyle(.secondary)
-                    }
-                    Text(ActivityText.duration(item.seconds)).monospacedDigit()
-                }
-                .font(.caption)
-            }
-            ForEach(Array(block.background.enumerated()), id: \.offset) { _, item in
-                let title = ActivityBackgroundRow.title(context: item.context, subject: item.subject)
-                Text("In the background: \(title), \(ActivityText.duration(item.seconds))").font(.caption)
-                    .foregroundStyle(.secondary)
+            Text(BlockSummaryText.range(summary, zone: model.calendar.timeZone)).font(.headline)
+            Text(BlockSummaryText.detail(summary)).foregroundStyle(.secondary)
+            groupRows(summary)
+            backgroundRows(summary)
+            if let footer = BlockSummaryText.footer(summary) {
+                Text(footer).font(.caption).foregroundStyle(.secondary)
             }
             Divider()
             Button("Create Entry…") { model.createEntry(from: block) }
         }
         .padding()
-        .frame(width: 340)
+        .frame(width: 360)
     }
 
-    /// Range, duration, devices; the group key's share; active time; reconstructed time.
-    @ViewBuilder private var header: some View {
-        let zone = model.calendar.timeZone
-        let span = Int(block.end.timeIntervalSince(block.start))
-        Text("\(CalendarText.range(block.start, block.end, zone: zone)) · \(ActivityText.duration(span)) · \(device)")
-            .font(.headline)
-        Text("\(ActivityContext.groupKeyName(block.groupKey)), \(Int((block.groupShare * 100).rounded()))% of this time")
-            .foregroundStyle(.secondary)
-        if block.activeSeconds < span {
-            Text("\(ActivityText.duration(span)), \(ActivityText.duration(block.activeSeconds)) active").foregroundStyle(.secondary)
+    /// Every foreground item, grouped by workspace.
+    private func groupRows(_ summary: ActivityBlockSummary) -> some View {
+        ForEach(summary.groups, id: \.workspace) { group in
+            HStack {
+                Text(group.name).fontWeight(.semibold)
+                if !group.subtitle.isEmpty {
+                    Text(group.subtitle).foregroundStyle(.secondary).lineLimit(1)
+                }
+                Spacer()
+                Text(ActivityText.duration(group.seconds)).monospacedDigit()
+                Text("\(Int((group.share * 100).rounded()))%").foregroundStyle(.secondary)
+            }
+            ForEach(Array(group.lines.enumerated()), id: \.offset) { _, line in
+                HStack {
+                    if let device = line.otherDevice {
+                        Text(ActivityDeviceName.display(device)).font(.caption2).foregroundStyle(.orange)
+                    }
+                    Text(line.label).lineLimit(1)
+                    Spacer()
+                    Text(ActivityText.duration(line.seconds)).monospacedDigit().foregroundStyle(.secondary)
+                }
+                .padding(.leading, Design.Spacing.medium)
+            }
         }
-        if block.reconstructedSeconds > 0 {
-            let text = block.reconstructedSeconds >= block.activeSeconds
-                ? "Reconstructed from macOS app usage history"
-                : "\(ActivityText.duration(block.reconstructedSeconds)) reconstructed from macOS app usage history"
-            Text(text).font(.caption).foregroundStyle(.secondary)
-        }
+        .font(.caption)
     }
 
-    /// The devices, with their active time when there are several; `remote`
-    /// reads "Other devices (Safari)".
-    private var device: String {
-        guard block.devices.count > 1 else {
-            return block.deviceNames.first.map(ActivityContext.deviceName) ?? ""
+    /// Every background item, under a heading.
+    @ViewBuilder
+    private func backgroundRows(_ summary: ActivityBlockSummary) -> some View {
+        if !summary.background.isEmpty {
+            Text("Background").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+            ForEach(Array(summary.background.enumerated()), id: \.offset) { _, line in
+                HStack {
+                    Text(line.label).lineLimit(1)
+                    Text(line.workspaceName).foregroundStyle(.secondary)
+                    Spacer()
+                    Text(ActivityText.duration(line.seconds)).monospacedDigit().foregroundStyle(.secondary)
+                }
+                .font(.caption)
+            }
         }
-        return block.devices.map { "\(ActivityContext.deviceName($0.name)) \(ActivityText.duration($0.seconds))" }
-            .joined(separator: ", ")
     }
 }

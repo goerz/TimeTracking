@@ -186,23 +186,23 @@ struct MultiStoreSyncTests {
         }
     }
 
-    @Test("DATA-30 settings converge per key to the later value; activity.contextColors to the union")
+    @Test("DATA-30 settings converge per key to the later value; activity.appColors to the union")
     func settingsMerge() async throws {
         let net = try await Network()
         let (peerA, peerB) = (net.peers[0], net.peers[1])
         await net.partition(true)
         try await peerA.store.set(.pomodoroFocusMinutes, 30)
-        try await peerA.store.set(.activityContextColors, ["mail": 1, "tmux:paper": 2])
+        try await peerA.store.set(.activityAppColors, ["Mail": 1, "WezTerm": 2])
         net.clock.advance(by: 5)
         try await peerB.store.set(.pomodoroFocusMinutes, 45)
-        try await peerB.store.set(.activityContextColors, ["mail": 0, "safari": 3])
+        try await peerB.store.set(.activityAppColors, ["Mail": 0, "Safari": 3])
         await net.partition(false)
         try await net.converge()
         for peer in net.peers {
             #expect(try await peer.store.value(.pomodoroFocusMinutes) == 45)
-            #expect(try await peer.store.value(.activityContextColors) == ["mail": 0, "tmux:paper": 2, "safari": 3])
+            #expect(try await peer.store.value(.activityAppColors) == ["Mail": 0, "WezTerm": 2, "Safari": 3])
         }
-        #expect(SettingMerge.hueIndex(forNewContextIn: ["a": 0, "b": 1, "c": 0], hueCount: 3) == 2)
+        #expect(SettingMerge.hueIndex(forNewAppIn: ["a": 0, "b": 1, "c": 0], hueCount: 3) == 2)
     }
 
     @Test("DATA-31 outbox rows of a second instance without an engine are sent by the engine's instance")
@@ -298,14 +298,14 @@ struct MultiStoreSyncTests {
 }
 
 extension MultiStoreSyncTests {
-    @Test("DATA-59 Midnight defaults to 00:00, syncs like any setting, and reaches every device's calendar")
-    func midnightSyncs() async throws {
+    @Test("DATA-59 the start of day defaults to 00:00, syncs like any setting, and reaches every device's calendar")
+    func startOfDaySyncs() async throws {
         let net = try await Network()
         let (peerA, peerB) = (net.peers[0], net.peers[1])
-        #expect(peerB.store.displayCalendar().midnightHour == 0)
-        try await peerA.store.set(.midnightHour, 4)
+        #expect(peerB.store.displayCalendar().startOfDayHour == 0)
+        try await peerA.store.set(.startOfDayHour, 4)
         try await net.converge()
-        #expect(try await peerB.store.value(.midnightHour) == 4)
-        #expect(peerB.store.displayCalendar().midnightHour == 4)
+        #expect(try await peerB.store.value(.startOfDayHour) == 4)
+        #expect(peerB.store.displayCalendar().startOfDayHour == 4)
     }
 }

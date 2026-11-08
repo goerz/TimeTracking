@@ -75,7 +75,7 @@ extension CalendarModel {
         viewport.show(request.day)
         showsActivity = true
         await reload()
-        let firstBlock = blocks.filter { $0.shownDay == request.day.description }.map(\.start).min()
+        let firstBlock = blocks.filter { $0.shownDay(startOfDayHour: calendar.startOfDayHour) == request.day }.map(\.start).min()
         let hour = request.hour.map(axisHour(clock:))
             ?? firstBlock.map { axis(request.day).y($0) / pointsPerHour }
             ?? axisHour(clock: 8)
@@ -90,7 +90,7 @@ extension CalendarModel {
 
     /// Whether `block` pulses for the current highlight.
     func isHighlighted(_ block: ActivityBlock) -> Bool {
-        guard let highlight, block.shownDay == highlight.day.description else {
+        guard let highlight, block.shownDay(startOfDayHour: calendar.startOfDayHour) == highlight.day else {
             return false
         }
         switch highlight.highlight {
@@ -99,8 +99,8 @@ extension CalendarModel {
             let end = axis(highlight.day).y(block.end) / pointsPerHour
             let top = axisHour(clock: hour)
             return start < top + 1 && end > top
-        case let .context(context):
-            return block.contexts.contains(context)
+        case let .app(app):
+            return block.foreground.contains { $0.item.appName == app }
         }
     }
 

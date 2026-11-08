@@ -1,22 +1,15 @@
-// Entries from activity blocks, time blocks, and events, and Delete This
-// Activity (calendar.md §3.3, §3.4, §4.4).
+// CalendarModel+Blocks: entries from activity blocks, time blocks, and
+// events, and Delete This Activity (calendar.md §3.3, §3.4, §4.4).
 
 import Foundation
 import TimeTrackingCore
-
-extension ActivityBlock {
-    /// The block's time.
-    var span: DateInterval {
-        DateInterval(start: start, end: max(start, end))
-    }
-}
 
 extension CalendarModel {
     /// The block's longest untracked stretch, clamped at now (§3.3).
     func untrackedStretch(of block: ActivityBlock) -> DateInterval? {
         let tracked = entries.map { $0.entry.interval(at: clock.now) }
         return CalendarCoverage.longestUntracked(
-            block.span,
+            block.interval,
             entries: tracked,
             now: clock.now
         )
@@ -25,7 +18,7 @@ extension CalendarModel {
     /// The parts of `block` in the column of `day` covered by entries
     /// (dimmed to 50 %).
     func coveredParts(of block: ActivityBlock, on day: TrackingDay) -> [DateInterval] {
-        guard let shown = block.span.intersection(with: calendar.interval(of: day)) else {
+        guard let shown = block.interval.intersection(with: calendar.interval(of: day)) else {
             return []
         }
         return CalendarCoverage.covered(shown, by: entries.map { $0.entry.interval(at: clock.now) })
@@ -39,8 +32,7 @@ extension CalendarModel {
             return
         }
         draft = CalendarDraft(
-            day: calendar.midnightHour == 0 ? TrackingDay(block.localDay) ?? calendar.day(containing: stretch.start)
-                : calendar.day(containing: stretch.start),
+            day: calendar.startOfDayHour == 0 ? block.day : calendar.day(containing: stretch.start),
             interval: stretch,
             projectID: nil,
             task: ""
@@ -90,7 +82,7 @@ extension CalendarModel {
 
     /// Whether the block's menu offers "Delete This Activity…" (Mac, closed blocks).
     func canDeleteFromLog(_ block: ActivityBlock) -> Bool {
-        sendTrackerCommand != nil && isRecordingMac && !block.isOpen
+        sendTrackerCommand != nil && isMac && !block.isOpen
     }
 
     /// Asks first; Delete sends one `delete-block <s> <e>`, the range shown,
@@ -111,8 +103,8 @@ extension CalendarModel {
             return
         }
         let command = TrackerCommand.deleteBlock(
-            start: ActivityTimestamp.text(block.start, utcOffset: block.utcOffset),
-            end: ActivityTimestamp.text(block.end, utcOffset: block.utcOffset)
+            start: ActivityTimestamp.textWithOffset(block.start, utcOffset: block.utcOffset),
+            end: ActivityTimestamp.textWithOffset(block.end, utcOffset: block.endUTCOffset)
         )
         if let error = await send(command.line) {
             trackerError = error

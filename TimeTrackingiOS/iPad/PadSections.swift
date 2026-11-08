@@ -19,7 +19,7 @@ final class PadSections {
     /// The block log in the iCloud container (`nil` under `-UITesting`).
     @ObservationIgnored let blockLog: FileActivityStore?
     /// Whether the current month's block file has not arrived from iCloud.
-    @ObservationIgnored var currentMonthMissing: () async -> Bool = { false }
+    @ObservationIgnored var todayFileMissing: () async -> Bool = { false }
 
     init(
         store: TimeStore,
@@ -47,17 +47,17 @@ final class PadSections {
     private func wire() {
         let store = store
         let calendar = router.calendar
-        calendar.isRecordingMac = false
+        calendar.isMac = false
         calendar.sendTrackerCommand = nil
         let activity = router.activity
-        activity.isRecordingMac = false
+        activity.isMac = false
         activity.trackerSetUp = { false }
         activity.remoteActivity = {
             let state = await (try? store.liveState()) ?? LiveState()
             return state.activity.values.max { $0.updatedAt < $1.updatedAt }
         }
         activity.waitingForICloud = { [weak self] in
-            await self?.currentMonthMissing() ?? false
+            await self?.todayFileMissing() ?? false
         }
     }
 
@@ -73,8 +73,8 @@ final class PadSections {
 
     /// Entries or structure changed: the opened tabs re-read (the Calendar
     /// only once it has opened, so no change asks for calendar access).
-    /// The synced Midnight changed: every section shows other days.
-    func midnightChanged() async {
+    /// The synced start of day changed: every section shows other days.
+    func startOfDayChanged() async {
         await storeChanged()
         if opened.contains(.activity) {
             await router.activity.reload()
@@ -114,15 +114,15 @@ extension PadSections {
         )
         if let folders, !folders.isFallback {
             let calendar = TrackingCalendar(timeZone: .current)
-            sections.currentMonthMissing = {
-                let month = String(calendar.day(containing: clock.now).description.prefix(7))
-                return await Task.detached { !ICloudBlockDownloads.request(folder: folders.sharedBlocks, month: month) }.value
+            sections.todayFileMissing = {
+                let today = calendar.day(containing: clock.now)
+                return await Task.detached { !ICloudBlockDownloads.request(folder: folders.sharedBlocks, day: today) }.value
             }
         }
         await blockLog?.startWatching()
         Task {
             while !Task.isCancelled {
-                _ = await sections.currentMonthMissing()
+                _ = await sections.todayFileMissing()
                 try? await Task.sleep(for: .seconds(60))
             }
         }

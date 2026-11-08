@@ -68,7 +68,7 @@ extension LiveState.MacActivity {
     public var json: String {
         var writer = JSONObjectWriter()
         writer.add("device", device)
-        writer.add("primary", primary.map { [$0.context, $0.subject, $0.detail] })
+        writer.addRaw("foreground", foreground?.jsonText ?? "null")
         writer.add("groupKey", groupKey)
         writer.add("presence", presence)
         writer.add("since", since.map(LiveStateTime.text))
@@ -87,7 +87,7 @@ extension LiveState.MacActivity {
         }
         self.init(
             device: device,
-            primary: Self.primary(object["primary"]),
+            foreground: (object["foreground"] as? [String: Any]).map(ActivityItem.init(json:)),
             groupKey: object["groupKey"] as? String,
             presence: object["presence"] as? String,
             since: (object["since"] as? String).flatMap(LiveStateTime.date),
@@ -96,13 +96,6 @@ extension LiveState.MacActivity {
             health: object["health"] as? [String] ?? [],
             updatedAt: updatedAt
         )
-    }
-
-    private static func primary(_ value: Any?) -> TrackerPrimaryItem? {
-        guard let parts = value as? [String], parts.count == 3 else {
-            return nil
-        }
-        return TrackerPrimaryItem(context: parts[0], subject: parts[1], detail: parts[2])
     }
 }
 

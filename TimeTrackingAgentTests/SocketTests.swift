@@ -1,5 +1,5 @@
-// The socket: pushed events and rewrite commands (activity_tracking.md
-// §3.1, §7.3).
+// The socket's requests: unknown commands, delete-block, forget-day, and
+// reapply-exclusions (activity_tracking.md §2.6, §7.3).
 
 import Foundation
 import Testing
@@ -8,148 +8,140 @@ import TimeTrackingCore
 
 @MainActor
 struct SocketTests {
-    /// Sends `line` from another thread (the server answers on the main actor).
-    private func send(_ line: String, to url: URL) async -> TrackerReply {
-        await Task.detached { TrackerSocketClient(socketURL: url, timeout: 5).send(line: line) }.value
+    static let story = "https://news.example.com/story/42"
+
+    /// Two blocks in TextEdit, 10:00 to 10:12 and 10:18 to 10:30, each ended by a lock.
+    private func twoBlocks(_ harness: AgentHarness) async {
+        harness.textEdit()
+        await harness.workThenLock(for: 720)
+        await harness.unlock()
+        harness.textEdit("Plan")
+        await harness.workThenLock(for: 720)
     }
 
-    @Test("TRK-21 a tracker-event line advances the tick within 1 second; an unknown command gets error and changes nothing")
-    func socketEvents() async throws {
+    /// Three blocks on 2024-03-10, a date before the agent's first start.
+    @discardableResult
+    private func frozenDate(_ harness: AgentHarness) throws -> String {
+        let mail = ActivityItem(app: "Mail", appID: "com.apple.mail", window: "Inbox")
+        let news = ActivityItem(
+            app: "Safari",
+            appID: "com.apple.Safari",
+            window: "Story",
+            location: Self.story,
+            workspace: "news.example.com"
+        )
+        return try harness.writeDateFile("2024-03-10", [
+            AgentHarness.block("2024-03-10T09:00:00", "2024-03-10T09:30:00", mail),
+            AgentHarness.block("2024-03-10T10:00:00", "2024-03-10T10:30:00", news),
+            AgentHarness.block("2024-03-10T11:00:00", "2024-03-10T11:30:00", mail),
+        ])
+    }
+
+    @Test("TRK-35 an unknown socket command gets error and changes nothing")
+    func unknownCommand() async throws {
         let harness = try AgentHarness()
-        await harness.engine.tick()
+        await twoBlocks(harness)
         let url = harness.root.appending(path: "Group/tracker.sock", directoryHint: .notDirectory)
-        let server = SocketServer(url: url) { line in await harness.engine.handle(line: line) }
+        let server = SocketServer(url: url) { [harness] line in await harness.agent.handle(line: line) }
         try server.start()
         defer { server.stop() }
-
-        // The line runs the tick before the reply (no timer: the manual
-        // clock only moves by advance). The 1-second bound must hold for
-        // the fastest of three round trips, so one delayed by a loaded
-        // machine does not fail it.
-        let clock = ContinuousClock()
-        var latencies: [Duration] = []
-        for attempt in 1 ... 3 {
-            harness.advance(7)
-            let started = clock.now
-            let reply = await send("tmux after-select-pane", to: url)
-            latencies.append(clock.now - started)
-            #expect(reply == .success)
-            #expect(harness.samples().count == 1 + attempt)
-            #expect(harness.samples().last?.time == harness.time(TimeInterval(7 * attempt)))
-        }
-        #expect(try #require(latencies.min()) < .seconds(1), "\(latencies)")
-        #expect(harness.health("tmux_events")?.status == .active)
-        #expect(await send(TrackerCommand.agentEvent(hook: "Stop", arguments: []).line, to: url) == .success)
-        #expect(harness.health("agent_events")?.status == .active)
-
-        let before = harness.currentStateText
-        let count = harness.samples().count
+        let output = harness.allOutput
+        let deleted = try harness.agent.store.meta(.deletedRanges)
         harness.advance(5)
-        let unknown = await send("frobnicate now", to: url)
-        guard case let .error(reason) = unknown else {
-            Issue.record("expected an error, got \(unknown)")
+        let reply = await Task.detached { TrackerSocketClient(socketURL: url, timeout: 5).send(line: "frobnicate now") }.value
+        guard case let .error(reason) = reply else {
+            Issue.record("expected an error, got \(reply)")
             return
         }
-        #expect(reason.contains("unknown command"))
-        #expect(harness.samples().count == count)
-        #expect(harness.currentStateText == before)
-        #expect(await send("forget-day yesterday", to: url) != .success)
+        #expect(reason.contains("frobnicate"))
+        #expect(await harness.request("forget-day yesterday").hasPrefix("error"))
+        #expect(harness.allOutput == output)
+        #expect(try harness.agent.store.meta(.deletedRanges) == deleted)
     }
 
-    /// Two days of blocks: Safari on a domain to exclude, then TextEdit, on 2024-03-13 and 2024-03-14.
-    private func twoDays() async throws -> AgentHarness {
+    @Test(
+        "TRK-36 delete-block over two blocks deletes them and their Samples; late DeviceEvents and app usage form no block there"
+    )
+    func deleteBlock() async throws {
         let harness = try AgentHarness()
-        for day in ["2024-03-13", "2024-03-14"] {
-            let start = try #require(ActivityTimestamp.date("\(day)T09:00:00", timeZone: AgentHarness.zone))
-            harness.clock.set(start)
-            harness.schedule = TickSchedule(start: start)
-            harness.engine.handle(.unlock, at: start)
-            let url = "https://news.example.com/story/42"
-            harness.frontmost("com.apple.Safari", name: "Safari")
-            harness.scripts.results["com.apple.Safari"] = .value("normal\n\(url)\nStory")
-            harness.history.safari.append((HistoryVisit(time: start, browser: "safari", url: url, title: "Story"), 0))
-            await harness.run(for: 300)
-            harness.engine.handle(.lock, at: harness.clock.now)
-            harness.engine.handle(.unlock, at: harness.clock.now)
-            harness.frontmost("com.apple.TextEdit", name: "TextEdit", title: "Notes \(day)")
-            await harness.run(for: 300)
-            harness.engine.handle(.lock, at: harness.clock.now)
-        }
-        return harness
-    }
+        let server = InMemoryDeviceEventServer()
+        harness.agent.deviceEvents = server.source
+        await twoBlocks(harness)
+        let blocks = harness.blocks(AgentHarness.today)
+        try #require(blocks.count == 2)
+        let first = blocks[0]
+        let last = blocks[1]
+        let end = ActivityTimestamp.textWithOffset(last.end, utcOffset: last.endUTCOffset)
+        #expect(await harness.request("delete-block \(first.id) \(end)") == "ok")
+        #expect(harness.blocks(AgentHarness.today).isEmpty)
+        #expect(!harness.samples.contains { $0.time >= first.start && $0.time < last.end })
+        #expect(try harness.agent.store.meta(.deletedRanges) == [DeletedRange(start: first.start, end: last.end)])
 
-    /// The lines of the March block log, or of the March detail files.
-    private func lines(_: AgentHarness, _ folder: URL) throws -> [String] {
-        let names = try FileManager.default.contentsOfDirectory(atPath: folder.path).filter { $0.hasPrefix("2024-03") }.sorted()
-        return try names.flatMap { name in
-            try String(contentsOf: folder.appending(path: name), encoding: .utf8).split(separator: "\n").map(String.init)
-        }
-    }
-
-    @Test("TRK-22 reapply-exclusions removes a newly excluded domain from both logs and the samples, other lines byte-identical")
-    func reapplyExclusions() async throws {
-        let harness = try await twoDays()
-        let blocksBefore = try lines(harness, harness.engine.logs.blocksFolder)
-        let detailBefore = try lines(harness, harness.engine.logs.detailFolder)
-        #expect(harness.blockLogText.contains("news.example.com"))
-        let settings = harness.folders.shared.appending(path: "settings.toml")
-        try "[privacy]\nexclude_domains = [\"news.example.com\"]\n".write(to: settings, atomically: true, encoding: .utf8)
-        #expect(harness.engine.rewrite(.reapplyExclusions(from: "2024-03-14", to: "2024-03-14")) == .success)
-        let blocksAfter = try lines(harness, harness.engine.logs.blocksFolder)
-        let detailAfter = try lines(harness, harness.engine.logs.detailFolder)
-        #expect(blocksAfter.count == blocksBefore.count)
-        let changedBlocks = zip(blocksBefore, blocksAfter).filter { $0 != $1 }
-        #expect(changedBlocks.count == 1)
-        #expect(changedBlocks.first?.0.contains("2024-03-14T09:0") == true)
-        #expect(changedBlocks.allSatisfy { !$0.1.contains("news.example.com") })
-        let changedDetails = zip(detailBefore, detailAfter).filter { $0 != $1 }
-        #expect(changedDetails.count == 1)
-        #expect(changedDetails.allSatisfy { !$0.1.contains("news.example.com") })
-        // The other day keeps its lines and samples as they were.
-        #expect(blocksAfter.contains { $0.contains("2024-03-13T09:0") && $0.contains("news.example.com") })
-        let day = try #require(ActivityTimestamp.date("2024-03-14T00:00:00", timeZone: AgentHarness.zone))
-        let samplesOfDay = try harness.engine.store.lines(from: day, to: day.addingTimeInterval(86_400))
-        #expect(!samplesOfDay.isEmpty)
-        #expect(samplesOfDay.allSatisfy { !$0.contains("news.example.com") })
-        let samplesBefore = try harness.engine.store.lines(from: .distantPast, to: day)
-        #expect(samplesBefore.contains { $0.contains("news.example.com") })
-    }
-
-    @Test("TRK-22 TRK-23 a [blocks] change that reapply-exclusions reads first reaches the Blocker at the next tick")
-    func reapplyExclusionsKeepsBlockSettings() async throws {
-        let harness = try AgentHarness(settings: "[blocks]\nidle_close = \"5m\"\n")
-        await harness.engine.tick()
-        #expect(harness.engine.settings.blocks.idleClose == 300)
-        let url = harness.folders.shared.appending(path: "settings.toml", directoryHint: .notDirectory)
-        try "[blocks]\nidle_close = \"2m\"\nsplit_after = \"10m\"\n".write(to: url, atomically: true, encoding: .utf8)
-        let line = TrackerCommand.reapplyExclusions(from: "2024-03-14", to: "2024-03-14").line
-        #expect(await harness.engine.handle(line: line) == TrackerReply.success.line)
+        // The iPhone's Screen Time for that time arrives late, and macOS app usage is read for it.
+        try await server.upload(DeviceTests.minutes("Social", 1 ... 20, firstAt: "2024-03-14T10:01:00"))
+        await harness.agent.fetchDeviceEvents()
+        harness.knowledge.result = .data(
+            apps: [KnowledgeAppInterval(start: first.start, end: last.end, bundleID: "com.apple.mail")],
+            web: [],
+            displayOff: []
+        )
+        try harness.agent.fillGaps()
         harness.advance(30)
-        await harness.engine.tick()
-        #expect(harness.engine.settings.blocks.idleClose == 120)
-        #expect(harness.engine.settings.blocks.idleClose == 120)
-        #expect(harness.engine.settings.blocks.splitAfter == 600)
+        await harness.drain()
+        #expect(!harness.samples.contains { $0.time >= first.start && $0.time < last.end })
+        #expect(harness.blocks(AgentHarness.today).isEmpty)
+        #expect(harness.agent.choice.log.days().map(\.description) == [AgentHarness.today])
     }
 
-    @Test("TRK-22 delete-block and forget-day remove their block or day from both logs and the samples")
-    func deleteAndForget() async throws {
-        let harness = try await twoDays()
-        let blocksBefore = try lines(harness, harness.engine.logs.blocksFolder)
-        let target = try #require(harness.blocks.first { $0.localDay == "2024-03-14" })
-        let start = ActivityTimestamp.text(target.start, utcOffset: target.utcOffset)
-        #expect(harness.engine.rewrite(.deleteBlock(start: start)) == .success)
-        let afterDelete = try lines(harness, harness.engine.logs.blocksFolder)
-        #expect(afterDelete.count == blocksBefore.count - 1)
-        #expect(afterDelete.allSatisfy { blocksBefore.contains($0) })
-        #expect(!harness.detailLogText.contains("\"s\":\"\(start)\""))
-        #expect(try harness.engine.store.rows(from: target.start, to: target.end).isEmpty)
-        #expect(harness.engine.rewrite(.deleteBlock(start: start)) != .success)
+    @Test("TRK-36 on a frozen date, delete-block removes the blocks from the file and leaves the other lines byte-identical")
+    func deleteBlockOnAFrozenDate() async throws {
+        let harness = try AgentHarness()
+        await harness.tick()
+        let old = try frozenDate(harness)
+        #expect(await harness.request("delete-block 2024-03-10T10:00:00-04:00 2024-03-10T10:30:00-04:00") == "ok")
+        let lines = try #require(harness.dateFileText("2024-03-10")).split(separator: "\n")
+        let oldLines = old.split(separator: "\n")
+        #expect(lines == [oldLines[0], oldLines[1], oldLines[3]])
+        #expect(await harness.request("delete-block 2024-03-10T10:00:00-04:00 2024-03-10T10:30:00-04:00").hasPrefix("error nothing at"))
+    }
 
-        #expect(harness.engine.rewrite(.forgetDay("2024-03-13")) == .success)
-        #expect(!harness.blocks.contains { $0.localDay == "2024-03-13" })
-        #expect(!harness.detailLogText.contains("2024-03-13T"))
-        let day = try #require(ActivityTimestamp.date("2024-03-13T00:00:00", timeZone: AgentHarness.zone))
-        #expect(try harness.engine.store.rows(from: day, to: day.addingTimeInterval(86_400)).isEmpty)
-        #expect(harness.blocks.contains { $0.localDay == "2024-03-14" })
+    @Test(
+        "TRK-37 reapply-exclusions removes a newly excluded domain from the Samples and frozen files in range, and from the rebuilt dates"
+    )
+    func reapplyExclusions() async throws {
+        let harness = try AgentHarness()
+        harness.safari(Self.story, title: "Story")
+        await harness.workThenLock(for: 720)
+        let old = try frozenDate(harness)
+        #expect(harness.blockLogText.contains("news.example.com"))
+        #expect(harness.sampleText.contains("news.example.com"))
+
+        try harness.writeSettings("[privacy]\nexclude_domains = [\"news.example.com\"]\n")
+        #expect(await harness.request("reapply-exclusions 2024-03-10 2024-03-14") == "ok")
+        #expect(!harness.sampleText.contains("news.example.com"))
+        #expect(!harness.blockLogText.contains("news.example.com"))
+        #expect(!harness.blockLogText.contains("Story"))
+        #expect(harness.blocks(AgentHarness.today).count == 1)
+        let lines = try #require(harness.dateFileText("2024-03-10")).split(separator: "\n")
+        let oldLines = old.split(separator: "\n")
+        #expect(lines.count == oldLines.count)
+        #expect(zip(lines, oldLines).map { $0 == $1 } == [true, true, false, true])
+    }
+
+    @Test("TRK-37 forget-day deletes a date the same way: its Samples up to now, and on a frozen date its blocks")
+    func forgetDay() async throws {
+        let harness = try AgentHarness()
+        await twoBlocks(harness)
+        try frozenDate(harness)
+        #expect(harness.blocks(AgentHarness.today).count == 2)
+        #expect(await harness.request("forget-day \(AgentHarness.today)") == "ok")
+        #expect(harness.blocks(AgentHarness.today).isEmpty)
+        #expect(!harness.samples.contains { $0.time < harness.clock.now })
+        let start = AgentHarness.instant("2024-03-14T00:00:00")
+        #expect(try harness.agent.store.meta(.deletedRanges) == [DeletedRange(start: start, end: harness.clock.now)])
+
+        #expect(await harness.request("forget-day 2024-03-10") == "ok")
+        #expect(harness.blocks("2024-03-10").isEmpty)
+        #expect(await harness.request("forget-day 2024-03-11").hasPrefix("error nothing at"))
     }
 }

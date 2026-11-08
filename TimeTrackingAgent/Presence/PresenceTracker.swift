@@ -69,7 +69,7 @@ nonisolated struct PresenceTracker: Hashable, Sendable {
             return true
         }
         if let domain {
-            return BrowserItemRules.matchesDomain(domain, settings.passiveDomains)
+            return ExclusionRules.matchesDomain(domain, settings.passiveDomains)
         }
         return false
     }

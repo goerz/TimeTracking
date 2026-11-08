@@ -1,8 +1,7 @@
-// AgentConfiguration: the agent's folders, device name, and version
-// (activity_tracking.md §4.1, §4.4; architecture.md §1.5).
+// AgentConfiguration: the agent's folders, this Mac's id and name, and the
+// version (activity_tracking.md §2.2, §4.1, §4.4; architecture.md §1.5).
 
 import Foundation
-import IOKit
 import TimeTrackingCore
 
 /// Where the agent keeps its files and how it names itself.
@@ -10,14 +9,20 @@ struct AgentConfiguration {
     /// The agent folder `<group container>/Library/Application Support/TimeTracking/`.
     var agentFolder: URL
     var folders: ActivityFolders
-    var device: String
-    /// The name of this Mac's subfolder of `blocks/` (§4.1): the hardware
-    /// UUID, which stays when the Mac is renamed.
-    var macFolder: String
+    /// The Mac's computer name, which names its BlockItems.
+    var macName: String
+    /// The Mac's device id in Samples and `blocks/owner`: its hardware
+    /// UUID, which stays when the Mac is renamed (§2.2).
+    var macDeviceID: String
     /// `1.0 (42)`.
     var version: String
     /// Whether the agent may write the shared folder (tests deny it).
     var canWriteShared: (URL) -> Bool = SharedFolderChoice.canWrite
+
+    /// The file the Mac app writes when the tracker is disabled (§2.4).
+    var disabledURL: URL {
+        agentFolder.appending(path: "disabled", directoryHint: .notDirectory)
+    }
 
     var samplesURL: URL {
         agentFolder.appending(path: "samples.sqlite", directoryHint: .notDirectory)
@@ -37,30 +42,33 @@ struct AgentConfiguration {
         return "\(short) (\(build))"
     }
 
+    /// A `--record` run: its store, lock, socket, and activity folder
+    /// inside the record folder, so it leaves the installed agent's alone.
+    func recording(in folder: URL) -> Self {
+        var result = self
+        result.agentFolder = folder.appending(path: "agent", directoryHint: .isDirectory)
+        let activity = result.agentFolder.appending(path: "Activity", directoryHint: .isDirectory)
+        result.folders = ActivityFolders(shared: activity, local: activity, isFallback: true)
+        return result
+    }
+
+    var lockURL: URL {
+        agentFolder.appending(path: "agent.lock", directoryHint: .notDirectory)
+    }
+
     /// The configuration of the installed agent of `identity`, or `nil`
     /// without a group container.
     static func live(identity: AppIdentity) -> Self? {
         guard let group = identity.groupContainerURL, let folders = ActivityFolders.resolve(identity: identity) else {
             return nil
         }
-        let name = Host.current().localizedName ?? ProcessInfo.processInfo.hostName
+        let name = LocalHost.computerName
         return Self(
             agentFolder: identity.supportDirectory(in: group),
             folders: folders,
-            device: name,
-            macFolder: hardwareUUID ?? name.replacing("/", with: "-").replacing(":", with: "-"),
+            macName: name,
+            macDeviceID: HardwareUUID.current ?? name,
             version: bundleVersion
         )
-    }
-
-    /// The Mac's hardware UUID, lower-case (`IOPlatformUUID`).
-    static var hardwareUUID: String? {
-        let service = IOServiceGetMatchingService(kIOMainPortDefault, IOServiceMatching("IOPlatformExpertDevice"))
-        guard service != 0 else {
-            return nil
-        }
-        defer { IOObjectRelease(service) }
-        let value = IORegistryEntryCreateCFProperty(service, kIOPlatformUUIDKey as CFString, kCFAllocatorDefault, 0)
-        return (value?.takeRetainedValue() as? String)?.lowercased()
     }
 }

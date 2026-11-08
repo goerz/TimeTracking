@@ -55,7 +55,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let agent = Self.agentService(identity: identity, uiTesting: uiTesting, realAgent: host.arguments.realAgent)
         let folders = uiTesting ? nil : await Self.activityFolders(identity)
         let activity = if uiTesting {
-            await Self.fixtureActivity(host.arguments, clock: host.arguments.clock(honorFixedNow: identity?.isDebug ?? true))
+            await Self.fixtureActivity(host.arguments)
         } else {
             folders.map { FileActivityStore(folders: $0) }
         }
@@ -120,7 +120,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         InMemoryCalendarEventStore(access: arguments.calendarAccess ? .fullAccess : .denied)
     }
 
-    private static func fixtureActivity(_ arguments: LaunchArguments, clock: any Clock) async -> FileActivityStore? {
+    private static func fixtureActivity(_ arguments: LaunchArguments) async -> FileActivityStore? {
         guard let name = arguments.fixture, name != "empty", let dataset = SyntheticDataset.fixture(named: name) else {
             return nil
         }
@@ -134,7 +134,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             logger.error("UI testing block log: \(error.localizedDescription, privacy: .public)")
             return nil
         }
-        return FileActivityStore(folders: ActivityFolders(shared: folder, local: folder, isFallback: true), clock: clock)
+        return FileActivityStore(folders: ActivityFolders(shared: folder, local: folder, isFallback: true))
     }
 
     private static func activityFolders(_ identity: AppIdentity?) async -> ActivityFolders? {

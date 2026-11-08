@@ -9,7 +9,7 @@ import TimeTrackingCore
 struct ActivityCollectionScreen: View {
     @Bindable var collection: CollectionModel
     /// A group made by "Custom…", whose editor opens at once.
-    @State private var newGroup: LadderSet?
+    @State private var newGroup: ScreenTimeSet?
 
     var body: some View {
         Form {
@@ -35,7 +35,7 @@ struct ActivityCollectionScreen: View {
         .navigationTitle("Activity Collection")
         .navigationBarTitleDisplayMode(.inline)
         .navigationDestination(item: $newGroup) { group in
-            LadderSetEditor(collection: collection, set: group)
+            ScreenTimeSetEditor(collection: collection, set: group)
         }
     }
 
@@ -52,7 +52,7 @@ struct ActivityCollectionScreen: View {
             if collection.screenTime == .approved {
                 appGroups
             }
-            if let error = collection.ladderError {
+            if let error = collection.screenTimeError {
                 ErrorLine(text: error)
             }
         } header: {
@@ -70,7 +70,7 @@ struct ActivityCollectionScreen: View {
     @ViewBuilder private var appGroups: some View {
         ForEach(collection.sets) { set in
             NavigationLink(set.label) {
-                LadderSetEditor(collection: collection, set: set)
+                ScreenTimeSetEditor(collection: collection, set: set)
             }
             .deleteDisabled(set.isEverything)
         }
@@ -80,7 +80,7 @@ struct ActivityCollectionScreen: View {
             }
         }
         Menu {
-            ForEach(LadderSet.suggestedLabels, id: \.self) { label in
+            ForEach(ScreenTimeSet.suggestedLabels, id: \.self) { label in
                 Button(label) { collection.addSet(label: label) }
             }
             Divider()

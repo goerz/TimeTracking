@@ -32,6 +32,6 @@ Filters narrows the report to clients, areas, and projects, which appear as remo
 
 ## How time is counted
 
-Entries that cross the day change count their part on each day, as described under [Midnight](midnight.md), so the days add up to the total. The running entry counts up to now. If you chose to, [sleep and workouts](../howto/health.md) count as a project of an area you pick.
+Entries that cross the day change count their part on each day, as described in [The start of day](start-of-day.md), so the days add up to the total. The running entry counts up to now. If you chose to, [sleep and workouts](../howto/health.md) count as a project of an area you pick.
 
 Export gives you a CSV of whichever card is showing; see [Export a report as CSV](../howto/export.md). The output is byte for byte what the command-line tool writes for the same range and filters. The [Reports spec](../reference/reports.md) has the details.

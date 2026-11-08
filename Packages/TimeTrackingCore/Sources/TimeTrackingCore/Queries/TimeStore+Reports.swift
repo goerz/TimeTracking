@@ -220,7 +220,7 @@ extension TimeStore: Reporting {
     /// as one entry of its day.
     func shownGroups(days: ClosedRange<TrackingDay>, scan: ReportScan, in calendar: TrackingCalendar) throws -> [ReportGroup] {
         let reach = calendar.reach(of: days)
-        var cutter = ReportDayCutter(midnightHour: calendar.midnightHour, now: scan.now)
+        var cutter = ReportDayCutter(startOfDayHour: calendar.startOfDayHour, now: scan.now)
         var groups: [ReportGroupKey: ReportGroup] = [:]
         try read { database in
             let rows = try Row.fetchCursor(

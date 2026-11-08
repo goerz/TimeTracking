@@ -41,7 +41,7 @@ final class SettingsUITests: XCTestCase {
     }
 
     @MainActor
-    func testTM46_midnightMovesTheCalendarsHours() {
+    func testTM46_startOfDayMovesTheCalendarsHours() {
         let app = XCUIApplication.timeTracking(fixture: "small")
         app.launchPastOnboarding()
         app.typeKey("2", modifierFlags: .command)
@@ -50,7 +50,7 @@ final class SettingsUITests: XCTestCase {
         XCTAssertTrue([label.label, label.value as? String].contains("01:00"))
         app.typeKey(",", modifierFlags: .command)
         _ = settingsFrame(app, pane: "General")
-        let picker = app.descendants(matching: .any)["settings.midnight"]
+        let picker = app.descendants(matching: .any)["settings.startOfDay"]
         XCTAssertTrue(picker.waitForExistence(timeout: 5))
         picker.click()
         app.menuItems["04:00"].click()

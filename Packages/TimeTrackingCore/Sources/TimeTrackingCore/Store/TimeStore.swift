@@ -190,11 +190,13 @@ public actor TimeStore {
     // MARK: Transactions
 
     /// Runs one write transaction: the operation, the invariant pass, the
-    /// outbox rows, commit, then the notification and observer events.
+    /// rename of a legacy setting key, the outbox rows, commit, then the
+    /// notification and observer events.
     func write<R>(_ body: (StoreTransaction) throws -> R) throws -> R {
         let (result, outcome) = try perform { transaction in
             let result = try body(transaction)
             try transaction.runInvariantPass()
+            try transaction.renameLegacySettings()
             try transaction.updateLiveStateSnapshot()
             return result
         }

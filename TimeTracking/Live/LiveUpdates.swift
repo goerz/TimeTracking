@@ -60,7 +60,7 @@ final class LiveUpdates {
         self.store = store
         self.clock = clock
         self.coordinator = SyncCoordinator(store: store, factory: engineFactory)
-        self.publisher = LiveStatePublisher(store: store, deviceID: store.deviceID, clock: clock)
+        self.publisher = LiveStatePublisher(store: store, deviceID: store.deviceID, deviceName: deviceName, clock: clock)
         self.sender = WidgetPushSender(store: store, client: pushClient, clock: clock)
         self.pushClient = pushClient
         self.readTrackerState = readTrackerState
@@ -98,13 +98,14 @@ final class LiveUpdates {
         guard looping else {
             return
         }
+        // Ends with its owner too, so a lost `stop()` can't leave it spinning.
         loop = Task { [weak self] in
-            while !Task.isCancelled {
-                try? await self?.sleep(Self.interval)
-                guard !Task.isCancelled else {
+            while !Task.isCancelled, let sleep = self?.sleep {
+                try? await sleep(Self.interval)
+                guard !Task.isCancelled, let self else {
                     return
                 }
-                await self?.tick()
+                await tick()
             }
         }
     }

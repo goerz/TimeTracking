@@ -170,8 +170,8 @@ struct FixtureShiftTests {
         let all = try await store.entries(in: DateInterval(start: .distantPast, end: .distantFuture))
         #expect(all.allSatisfy { ($0.end ?? $0.start) <= now })
         #expect(all.count == report.entries)
-        let months = try FileManager.default.contentsOfDirectory(atPath: activity.appending(path: "blocks").path).sorted()
-        #expect(months == ["2026-10.jsonl"])
+        let dates = try FileManager.default.contentsOfDirectory(atPath: activity.appending(path: "blocks").path)
+        #expect(!dates.isEmpty && dates.allSatisfy { $0.hasPrefix("2026-10-") && $0.hasSuffix(".jsonl") })
 
         let releaseFolder = try TemporaryFolder()
         defer { releaseFolder.remove() }

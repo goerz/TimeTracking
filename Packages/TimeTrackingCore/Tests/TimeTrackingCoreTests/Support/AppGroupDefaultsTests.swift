@@ -33,17 +33,17 @@ struct AppGroupDefaultsTests {
     @Test("Collection state reads and writes Booleans, text, dates, numbers, and JSON data under collection.* keys")
     func collectionState() throws {
         let defaults = try Self.suite()
-        let named = LadderSet(id: "set-1", label: "Work")
-        let ladder = LadderSetState(day: "2024-03-14", generation: 2, window: [1, 2, 4], countedStep: 2, countedAt: Self.instant)
+        let named = ScreenTimeSet(id: "set-1", label: "Work")
+        let ledger = ScreenTimeSetState(day: "2024-03-14", generation: 2, window: [1, 2, 4], countedStep: 2, countedAt: Self.instant)
         defaults.set(true, forKey: "collection.enabled")
         defaults.set("Work", forKey: "collection.focus.label")
         defaults.set(true, forKey: "collection.focus.suspends")
         defaults.set(Self.instant, forKey: "collection.lastWebEventAt")
         defaults.set(Self.instant + 1, forKey: "collection.lastFocusEventAt")
         defaults.set(Self.instant + 2, forKey: "collection.lastIntentEventAt")
-        try defaults.set(JSONEncoder().encode([LadderSet.everything, named]), forKey: "collection.ladder.sets")
+        try defaults.set(JSONEncoder().encode([ScreenTimeSet.everything, named]), forKey: "collection.ladder.sets")
         defaults.set(240, forKey: "collection.ladder.eventCap")
-        try defaults.set(JSONEncoder().encode(ladder), forKey: "collection.ladder.state.set-1")
+        try defaults.set(JSONEncoder().encode(ledger), forKey: "collection.ladder.state.set-1")
 
         let state = CollectionSharedState(defaults: defaults)
         #expect(state.isEnabled)
@@ -52,13 +52,13 @@ struct AppGroupDefaultsTests {
         #expect(state.lastWebEventAt == Self.instant)
         #expect(state.lastFocusEventAt == Self.instant + 1)
         #expect(state.lastIntentEventAt == Self.instant + 2)
-        #expect(state.ladderSets == [.everything, named])
+        #expect(state.screenTimeSets == [.everything, named])
         #expect(state.eventCap == 240)
-        #expect(state.ladderState(for: "set-1") == ladder)
+        #expect(state.screenTimeState(for: "set-1") == ledger)
 
         state.isEnabled = false
         state.eventCap = 120
-        state.setLadderState(nil, for: "set-1")
+        state.setScreenTimeState(nil, for: "set-1")
         #expect(defaults.object(forKey: "collection.enabled") as? Bool == false)
         #expect(defaults.object(forKey: "collection.ladder.eventCap") as? Int == 120)
         #expect(defaults.object(forKey: "collection.ladder.state.set-1") == nil)

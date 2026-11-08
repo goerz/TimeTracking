@@ -14,7 +14,7 @@ With Sleep or Workouts on and an area chosen under "In Reports" in the Calendar 
 
 ### 2.1 Days
 
-Days run from Midnight to Midnight ([data_and_sync.md](data_and_sync.md) §8), 00:00 by default, and today is the shown day that contains now. Each entry counts for the days it lies on, the running entry up to now; an entry across the day change counts its part on each day and as one entry on each. The entry list shows those parts as rows with their times, and editing a row edits the stored entry; the first row of an entry in the list anchors the popover. Weeks run Monday to Sunday, numbered per ISO 8601; weeks, months, and years are whole shown days, so with Midnight at 04:00 a week starts on Monday at 04:00.
+Days run from one start of day to the next ([data_and_sync.md](data_and_sync.md) §8), 00:00 by default, and today is the shown day that contains now. Each entry counts for the days it lies on, the running entry up to now; an entry across the day change counts its part on each day and as one entry on each. The entry list shows those parts as rows with their times, and editing a row edits the stored entry; the first row of an entry in the list anchors the popover. Weeks run Monday to Sunday, numbered per ISO 8601; weeks, months, and years are whole shown days, so with the start of day at 04:00 a week starts on Monday at 04:00.
 
 ### 2.2 Presets and the date popover
 
@@ -144,5 +144,5 @@ The router's `showReports(range:filter:)` sets the range, replaces the filters (
 - PR-21. With a running entry in the range the Logged time tile changes within 60 seconds; with none, no periodic timer runs.
 - PR-22. Calling `showReports` with a project and "All time" sets exactly that filter, turns "Include archived projects" on, clears the search, and shows the Breakdown.
 - PR-23. With Sleep on and mapped to the area Health, a night from 23:00 to 06:30 adds 6h 30m to the second day as the project Sleep under Health; unmapped, with Sleep off, or with a task filter it counts nothing; the search "sleep" finds it; `entries(matching:)` does not list it.
-- PR-24. With Midnight at 04:00, reports, the entry list, and the Projects totals cut an entry there: each part counts on its day as one entry, `days(ending:count:)` gives the same totals, and a row keeps the stored entry behind it for editing.
-- PR-25. With Midnight at 04:00, a running entry counts up to now on the day it lies on, and a night's sleep is cut at 04:00.
+- PR-24. With the start of day at 04:00, reports, the entry list, and the Projects totals cut an entry there: each part counts on its day as one entry, `days(ending:count:)` gives the same totals, and a row keeps the stored entry behind it for editing.
+- PR-25. With the start of day at 04:00, a running entry counts up to now on the day it lies on, and a night's sleep is cut at 04:00.

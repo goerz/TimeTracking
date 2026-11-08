@@ -42,6 +42,6 @@ With a hardware keyboard, the iPad's menu bar has the Mac's menus and keys, and 
 
 ## What the iPad doesn't do
 
-The menu bar item, global shortcuts, idle detection, the Mac's reminders, the command-line tool, and the tracker all stay on the Mac. In the Activity tab, the iPad reads the synced log and shows no open block, drill-down, or cause of away time. It can [collect its own activity](../howto/ios-activity.md), like the iPhone, and it asks for calendar access the first time the Calendar tab opens.
+The menu bar item, global shortcuts, idle detection, the Mac's reminders, the command-line tool, and the tracker all stay on the Mac. In the Activity tab, the iPad reads the synced log and shows no open block. It can [collect its own activity](../howto/ios-activity.md), like the iPhone, and it asks for calendar access the first time the Calendar tab opens.
 
 The [iPad section of the iOS spec](../reference/ios.md#10-the-ipad) has the complete mapping.

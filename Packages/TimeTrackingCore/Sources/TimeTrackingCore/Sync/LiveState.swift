@@ -51,11 +51,12 @@ public struct LiveState: Hashable, Sendable {
 
     /// One Mac's activity, copied from its `current.json`.
     public struct MacActivity: Hashable, Sendable {
-        /// The device name of `current.json`.
+        /// The Mac's name.
         public var device: String
-        /// The primary item, `[context, subject, detail]` in JSON; `nil` while idle.
-        public var primary: TrackerPrimaryItem?
-        /// The open block's group key `g`, or `nil`.
+        /// The foreground Item of `current.json`, with the keys of the
+        /// block log in JSON; `nil` while the user is not attentive.
+        public var foreground: ActivityItem?
+        /// The open block's dominant workspace, or `nil`.
         public var groupKey: String?
         /// The presence state (`active`, `passive`, `idle`, …), or `nil` without `current.json`.
         public var presence: String?
@@ -70,7 +71,7 @@ public struct LiveState: Hashable, Sendable {
 
         public init(
             device: String,
-            primary: TrackerPrimaryItem?,
+            foreground: ActivityItem?,
             groupKey: String?,
             presence: String?,
             since: Date?,
@@ -80,7 +81,7 @@ public struct LiveState: Hashable, Sendable {
             updatedAt: Date
         ) {
             self.device = device
-            self.primary = primary
+            self.foreground = foreground
             self.groupKey = groupKey
             self.presence = presence
             self.since = since

@@ -21,29 +21,31 @@ extension CalendarModel {
     }
 
     /// The clock's `hour` as hours below a column's top: a column starts at
-    /// Midnight.
+    /// the start of day.
     func axisHour(clock hour: Int) -> Double {
-        Double((hour - calendar.midnightHour + 24) % 24)
+        Double((hour - calendar.startOfDayHour + 24) % 24)
     }
 
     func axis(_ day: TrackingDay) -> CalendarDayAxis {
         CalendarDayAxis(day: day, calendar: calendar, pointsPerHour: pointsPerHour)
     }
 
-    /// The blocks in the column of `day`: those of the day, and with a
-    /// Midnight also one from the day before that reaches into it.
+    /// The blocks in the column of `day`: those of the day, and one from the
+    /// day before that runs past the start of the day into it.
     func blocks(on day: TrackingDay) -> [ActivityBlock] {
-        let span = calendar.interval(of: day)
-        return blocks.filter { block in
-            block.shownDay == day.description || (calendar.midnightHour != 0 && block.start < span.end && block.end > span.start)
-        }
+        Self.blocks(blocks, on: day, calendar: calendar)
     }
 
-    /// The background stretches in the column of `day`, likewise.
-    func stretches(on day: TrackingDay) -> [ActivityBackgroundStretch] {
+    /// The background blocks in the column of `day`, likewise.
+    func backgroundBlocks(on day: TrackingDay) -> [ActivityBlock] {
+        Self.blocks(backgroundBlocks, on: day, calendar: calendar)
+    }
+
+    /// The blocks of `day`, and those of other days that reach into its column.
+    private static func blocks(_ blocks: [ActivityBlock], on day: TrackingDay, calendar: TrackingCalendar) -> [ActivityBlock] {
         let span = calendar.interval(of: day)
-        return stretches.filter { stretch in
-            stretch.shownDay == day.description || (calendar.midnightHour != 0 && stretch.start < span.end && stretch.end > span.start)
+        return blocks.filter { block in
+            block.shownDay(startOfDayHour: calendar.startOfDayHour) == day || (block.start < span.end && block.end > span.start)
         }
     }
 

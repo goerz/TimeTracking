@@ -14,7 +14,7 @@ public struct ShownDayWatcher: Sendable {
     }
 
     /// Whether the shown day differs from the last one seen, which `now`
-    /// then becomes. A change of Midnight counts when it moves the day.
+    /// then becomes. A change of the start of day counts when it moves the day.
     public mutating func dayChanged(calendar: TrackingCalendar, now: Date) -> Bool {
         let today = calendar.day(containing: now)
         defer { day = today }

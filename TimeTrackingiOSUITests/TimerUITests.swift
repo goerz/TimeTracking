@@ -24,13 +24,13 @@ final class TimerUITests: XCTestCase {
     }
 
     @MainActor
-    func testIOS49_settingsShowMidnight() {
+    func testIOS49_settingsShowStartOfDay() {
         let app = XCUIApplication.timeTracking(fixture: "small")
         app.launch()
         let settings = app.buttons["timer.settings"]
         XCTAssertTrue(settings.waitForExistence(timeout: 10))
         settings.tap()
-        XCTAssertTrue(app.descendants(matching: .any)["settings.midnight"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.descendants(matching: .any)["settings.startOfDay"].waitForExistence(timeout: 5))
     }
 
     @MainActor

@@ -202,10 +202,10 @@ struct WholeEntryTests {
         #expect(TrackingPeriod(.week, containing: TrackingDay(year: 2027, month: 1, day: 3)).description == "2026-W53")
     }
 
-    @Test("DATA-61 a report cuts an entry at every day change in its own zone, across a DST day and with Midnight at another hour")
+    @Test("DATA-61 a report cuts an entry at every day change in its own zone, across a DST day and with the start of day at another hour")
     func reportCutsManyTimes() async throws {
         let test = try await TestStore(now: "2026-03-31T12:00")
-        try await test.store.set(.midnightHour, 4)
+        try await test.store.set(.startOfDayHour, 4)
         let saturday = TrackingDay(year: 2026, month: 3, day: 28)
         let sunday = saturday.adding(days: 1)
         let monday = sunday.adding(days: 1)

@@ -55,9 +55,9 @@ extension AppModel {
         }
     }
 
-    /// The synced Midnight among `keys`: every view shows other days.
-    func reloadAfterMidnightChange(_ keys: Set<String>) async {
-        if keys.contains(SyncedSettingKey<Int>.midnightHour.name) {
+    /// The synced start of day among `keys`: every view shows other days.
+    func reloadAfterStartOfDayChange(_ keys: Set<String>) async {
+        if keys.contains(SyncedSettingKey<Int>.startOfDayHour.name) {
             await storeChanged(.structure)
             await sections.activity.reload()
         }

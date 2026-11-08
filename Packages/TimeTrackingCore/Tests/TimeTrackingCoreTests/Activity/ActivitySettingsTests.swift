@@ -16,11 +16,15 @@ struct ActivitySettingsTests {
         #expect(settings.blocks.summaryLines == 6)
         #expect(settings.terminal.titlePatterns == ["nvim": "^nvim (/.+)$"])
         #expect(settings.privacy.privateAgentPaths == ["~"])
-        #expect(settings.browser.categories["code"]?.first == "github.com")
+        #expect(settings.workspaces.rootMarkers.first == ".git")
+        #expect(settings.workspaces.urls.first == #"github\.com/([^/]+/[^/]+)"#)
+        #expect(settings.blocks.maxBackgroundBlock == 3 * 3600 && settings.blocks.minBackgroundItem == 300)
+        #expect(settings.privacy.redactOptions.contains("--token"))
+        #expect(settings.privacy.redactPatterns == [#"(?i)authorization:\s*(.+)"#, #"://([^/@\s]+)@"#])
         #expect(try TrackerSettings(tomlText: "") == TrackerSettings.defaults)
     }
 
-    @Test("TRK-56 a key the tracker doesn't know is ignored, and the default file holds no removed setting")
+    @Test("TRK-47 a key the tracker doesn't know is ignored, and the default file holds no removed setting")
     func unknownKeysAreIgnored() throws {
         let text = """
         [terminal]
@@ -111,9 +115,9 @@ struct ActivitySettingsTests {
         #expect(rules.isPrivateAgentPath("/Users/example/"))
         #expect(!rules.isPrivateAgentPath("~/Documents"))
         #expect(rules.excludesTmuxSession("private"))
-        #expect(rules.excludesContext("tmux:PRIVATE", bundleIdentifier: nil))
-        #expect(rules.excludesContext("vault", bundleIdentifier: "COM.EXAMPLE.VAULT"))
-        #expect(!rules.excludesContext("safari", bundleIdentifier: "com.apple.Safari"))
+        #expect(rules.excludesTmuxSession("PRIVATE"))
+        #expect(rules.excludesApp("COM.EXAMPLE.VAULT"))
+        #expect(!rules.excludesApp("com.apple.Safari"))
         #expect(rules.isNameOnlyApp("com.1Password.1password"))
         #expect(rules.excludesDomain("online.Bank.example"))
         #expect(rules.excludesDomain("https://bank.example/login"))

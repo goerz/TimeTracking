@@ -60,7 +60,7 @@ Clicking the chip, ⌘J, Space on the chip (Tab reaches it from the task field),
 
 ## 3. The list
 
-Entries are grouped by the days of the Midnight setting ([data_and_sync.md](data_and_sync.md) §8). An entry across the day change has a row on each of its days with that part's times, and its editor opens the stored entry. Headers read "Today", "Yesterday", then "EEE, MMM d" ("Tue, Oct 27"), with the year for other years, and show the day total `h:mm:ss`. Each entry is its own row, and empty days are omitted. The list loads the 14 most recent days with entries; "Load Earlier Entries" appends 14 more.
+Entries are grouped by the days of the "Start of day" setting ([data_and_sync.md](data_and_sync.md) §8). An entry across the day change has a row on each of its days with that part's times, and its editor opens the stored entry. Headers read "Today", "Yesterday", then "EEE, MMM d" ("Tue, Oct 27"), with the year for other years, and show the day total `h:mm:ss`. Each entry is its own row, and empty days are omitted. The list loads the 14 most recent days with entries; "Load Earlier Entries" appends 14 more.
 
 The running entry is the first row of its day, with its live duration in the accent color and no continue button; it is not selectable, and a click opens its edit popover. It counts toward today's total, which ticks every second; a filter it does not match hides its row and its seconds.
 
@@ -145,7 +145,7 @@ The Pomodoro belongs to the person, not the entry. A new or continued entry from
 
 ### 6.1 Signal
 
-Every 10 s the app reads the seconds since the last input event, and it records sleep, wake, power-off, session switches, and screen lock and unlock. While the tracker is running ([activity_tracking.md](activity_tracking.md) §4.4), its `presence` adds to this: `passive` (a video, a call) suppresses the prompt while it lasts, and `locked`, `asleep`, and `other_user` supply their exact `since`. The idle start is the earliest of now minus the idle seconds and the time of a lock, sleep, or user switch within the current absence.
+Every 10 s the app reads the seconds since the last input event, and it records sleep, wake, power-off, session switches, and screen lock and unlock. While the tracker is running ([activity_tracking.md](activity_tracking.md) §4.4), its `presence` adds to this: `passive` (a video, a call) suppresses the prompt while it lasts, and `locked`, `asleep`, and `otherUser` supply their exact `since`. The idle start is the earliest of now minus the idle seconds and the time of a lock, sleep, or user switch within the current absence.
 
 ### 6.2 Settings (Settings > Idle, device)
 
@@ -158,7 +158,7 @@ Every 10 s the app reads the seconds since the last input event, and it records 
 
 ### 6.3 The prompt
 
-When input resumes after an idle period of at least the threshold (or a lock or sleep with "Ask when I return") while an entry runs and presence was not `passive`, the Mini Timer comes forward with the sheet "You have been away": "Idle since 14:02 (23 minutes).", "Running: <task> · <project>", and the options below. If the app is not frontmost, the `idle` notification is posted too. A new idle period extends an open prompt, and the prompt closes if the entry stops on another device. Midnight is no change of the running entry, so the prompt stays open.
+When input resumes after an idle period of at least the threshold (or a lock or sleep with "Ask when I return") while an entry runs and presence was not `passive`, the Mini Timer comes forward with the sheet "You have been away": "Idle since 14:02 (23 minutes).", "Running: <task> · <project>", and the options below. If the app is not frontmost, the `idle` notification is posted too. A new idle period extends an open prompt, and the prompt closes if the entry stops on another device. Passing the start of day doesn't change the running entry, so the prompt stays open.
 
 | Option | Effect | Key |
 |---|---|---|
@@ -173,7 +173,7 @@ With "Stop the entry at that moment", a lock or sleep stops the entry at that ti
 
 ## 7. Reminders (Settings > Reminders, device)
 
-"Remind me to track time" is off by default. While on, idle, unlocked, and inside the hours on a selected day, the app sends the `reminder` notification every N minutes, counted from the latest of the last stop, the last reminder, and the app's start. The defaults are every 10 min (1 to 240), between 09:00 and 17:00 (end exclusive), Monday to Friday, snooze for 60 min (5 to 480, in steps of 5). The hours and days are clock times and don't follow the Midnight setting.
+"Remind me to track time" is off by default. While on, idle, unlocked, and inside the hours on a selected day, the app sends the `reminder` notification every N minutes, counted from the latest of the last stop, the last reminder, and the app's start. The defaults are every 10 min (1 to 240), between 09:00 and 17:00 (end exclusive), Monday to Friday, snooze for 60 min (5 to 480, in steps of 5). The hours and days are clock times and don't follow the "Start of day" setting.
 
 A start, on any device, removes a delivered reminder; its Start New and Continue Latest do nothing while an entry runs, so they never stop an entry started since.
 
@@ -183,7 +183,7 @@ Settings… (⌘,) has seven toolbar panes: General, Pomodoro, Idle, Reminders, 
 
 ### 8.1 General
 
-The pane holds "Open at login" (off; the first-launch sheet proposes it), "At launch, show" (Main window or Mini Timer; default Main window, 1.3), the synced Midnight setting (00:00 to 23:00, default 00:00; [data_and_sync.md](data_and_sync.md) §8), and the section "Menu bar and Dock" ([menubar.md](menubar.md) §6).
+The pane holds "Open at login" (off; the first-launch sheet proposes it), "At launch, show" (Main window or Mini Timer; default Main window, 1.3), the synced "Start of day" setting (00:00 to 23:00, default 00:00; [data_and_sync.md](data_and_sync.md) §8), and the section "Menu bar and Dock" ([menubar.md](menubar.md) §6).
 
 The section "iCloud" shows the status lines "Sync" and "Widget updates" ([data_and_sync.md](data_and_sync.md) §3.1, §4.3). An info button on the latter explains the widget pushes and how to install the APNs key (`make apns-key P8=…`).
 
@@ -293,8 +293,8 @@ The two Pomodoro categories use bundled sounds with "Play a sound" on and are si
 - TM-42. With an editor (the Mac popover or the iPhone edit sheet) open on an entry whose Stop another device then changes, editing Start stores the new start and keeps the other device's stop.
 - TM-43. Starting an entry, here or on another device, removes a delivered "Nothing is being tracked" reminder, and its Start New and Continue Latest do nothing while an entry runs.
 - TM-44. Return accepts no suggestion or picker line loaded for text the user has since typed past; with the `@` picker open it waits for the current lines, assigns the project, and starts nothing.
-- TM-45. With Midnight at 04:00, the list's days and their totals are the shown days: an entry across it has a row with its part on each day, a night across real midnight lies on one day, and a row's editor opens the stored entry.
-- TM-46. Choosing Midnight in the General pane moves the Calendar's first hour label to that hour, and 00:00 restores it.
+- TM-45. With the start of day at 04:00, the list's days and their totals are the shown days: an entry across it has a row with its part on each day, a night across real midnight lies on one day, and a row's editor opens the stored entry.
+- TM-46. Choosing an hour under "Start of day" in the General pane moves the Calendar's first hour label to that hour, and 00:00 restores it.
 - TM-47. Real midnight is no change of the running entry: the Mini Timer doesn't show, an open idle prompt stays open, the Pomodoro's phase stays, and a task being typed stays.
 - TM-48. With "Show the Mini Timer when an entry starts" and "when an entry stops" on, a start or stop from the menu bar, a notification, an intent, or another device shows the Mini Timer with the task field focused, and one from a Timer, the main menu, the Calendar, a URL, the tool, idle detection, or deleting the running entry shows nothing.
 - TM-49. With idle from 23:50 and the prompt answered at 00:30, Split, Discard and Continue, and Discard stop the entry at 23:50; Keep changes nothing. A lock stop reaches back the same way, and a stop never reaches before the entry's start.

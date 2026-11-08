@@ -22,7 +22,6 @@ struct ActivityFoldersTests {
         #expect(folders.sharedBlocks.path == "/tmp/Mobile Documents/iCloud~example/Activity/blocks")
         #expect(folders.settingsURL.path == "/tmp/Mobile Documents/iCloud~example/Activity/settings.toml")
         #expect(folders.currentStateURL.path == "/tmp/Group/Library/Application Support/TimeTracking/Activity/current.json")
-        #expect(folders.detailFolder.lastPathComponent == "detail")
         #expect(folders.eventsURL.lastPathComponent == "events.jsonl")
         #expect(folders.blockFolders.count == 2)
     }

@@ -144,7 +144,7 @@ final class TimerModel {
             mostRecentOther = other
             let calendar = store.displayCalendar()
             let today = calendar.day(containing: clock.now)
-            // The day it ended on: it can start the day before Midnight.
+            // The day it ended on: it can start the day before the start of day.
             lastStoppedToday = stopped.flatMap { calendar.pieces(of: $0, at: clock.now).last?.day == today ? $0 : nil }
             if stoppedElsewhere {
                 await clearDraft()

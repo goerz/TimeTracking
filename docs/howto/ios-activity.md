@@ -12,9 +12,9 @@ Allow Screen Time access when asked. The group "Everything" then measures all us
 
 Turn on the app's extension under Settings, Apps, Safari, Extensions, and allow it on all websites. The extension sends the domain and path of the active tab, never query strings or page titles. [Exclusions](exclude.md) from the Mac's settings file apply here too, and the app's Privacy screen shows them.
 
-## Mark Focus modes
+## Pause collection during a Focus
 
-In the system's Settings, Focus, add the app's Focus filter, "Log Activity", to a Focus and give it a name such as "Work". The record then shows when that Focus was on. "Record Safari Sites and Automations", on by default, can suspend those two sources while a Focus is on.
+In the system's Settings, Focus, add the app's Focus filter, "Log Activity", to a Focus such as "Personal", give it a name, and turn off "Record Safari Sites and Automations". While that Focus is on, Safari sites and automations are not recorded, and the time counts as a pause in the record unless you are using your Mac or Screen Time measures the device. A Focus with the switch on leaves no trace.
 
 ## Add automations
 

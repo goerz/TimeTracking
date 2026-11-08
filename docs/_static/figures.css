@@ -8,3 +8,55 @@ figcaption {
     font-size: var(--font-size--small);
     text-align: center;
 }
+
+/* Colors of the inline SVG figures (docs/reference/figures/), for Furo's
+   light theme, its dark theme, and its automatic one. */
+body {
+    --tt-fg: var(--color-foreground-primary);
+    --tt-muted: var(--color-foreground-muted);
+    --tt-panel: var(--color-background-primary);
+    --tt-line: #b6c2c8;
+    --tt-rule: #dde3e6;
+    --tt-local: #eeeff3;
+    --tt-accent: #0b6e75;
+    --tt-accent-soft: #e0eff0;
+    --tt-warn: #a4560a;
+    --tt-warn-soft: #fbeedd;
+}
+
+body[data-theme="dark"] {
+    --tt-line: #46555c;
+    --tt-rule: #2d383d;
+    --tt-local: #1a1e26;
+    --tt-accent: #55c2ca;
+    --tt-accent-soft: #17343a;
+    --tt-warn: #eeaa5c;
+    --tt-warn-soft: #3a2a16;
+}
+
+@media (prefers-color-scheme: dark) {
+    body:not([data-theme="light"]) {
+        --tt-line: #46555c;
+        --tt-rule: #2d383d;
+        --tt-local: #1a1e26;
+        --tt-accent: #55c2ca;
+        --tt-accent-soft: #17343a;
+        --tt-warn: #eeaa5c;
+        --tt-warn-soft: #3a2a16;
+    }
+}
+
+/* Figure 2 of activity_tracking.md links Item to each enumeration only to
+   place the enumerations in a row below the records; the links stay hidden.
+   Mermaid names each edge id_<from>_<to>_<n>. */
+pre.mermaid path[id^="id_Item_State_"],
+pre.mermaid path[id^="id_Item_Source_"],
+pre.mermaid path[id^="id_Item_EndReason_"] {
+    display: none;
+}
+
+/* A caption below an inline SVG figure or a diagram. */
+.tt-caption {
+    font-size: var(--font-size--small);
+    color: var(--color-foreground-secondary);
+}

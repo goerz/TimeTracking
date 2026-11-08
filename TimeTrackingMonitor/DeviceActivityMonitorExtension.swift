@@ -1,6 +1,6 @@
 // DeviceActivityMonitorExtension: the DeviceActivity monitor's principal
 // class (ios.md §9.2). It forwards the callbacks to the library's
-// LadderController and only appends to the collection file.
+// ScreenTimeController and only appends to the collection file.
 
 import DeviceActivity
 import Foundation
@@ -11,11 +11,11 @@ final nonisolated class DeviceActivityMonitorExtension: DeviceActivityMonitor {
     private static let logger = Logging.logger(category: "Monitor")
 
     /// The controller over the App Group's state and collection file.
-    private var controller: LadderController? {
+    private var controller: ScreenTimeController? {
         guard let identity = AppIdentity.main, let log = CollectionLog.extensionLog(identity: identity) else {
             return nil
         }
-        return LadderController(store: CollectionSharedState(identity: identity), monitor: DeviceActivityLadderMonitor(), log: log)
+        return ScreenTimeController(store: CollectionSharedState(identity: identity), monitor: DeviceActivityScreenTimeMonitor(), log: log)
     }
 
     override func intervalDidStart(for activity: DeviceActivityName) {
@@ -23,7 +23,7 @@ final nonisolated class DeviceActivityMonitorExtension: DeviceActivityMonitor {
         do {
             try controller?.intervalDidStart(setID: activity.rawValue)
         } catch {
-            Self.logger.error("Registering the day's ladder failed: \(error.localizedDescription, privacy: .public)")
+            Self.logger.error("Registering the day's Screen Time failed: \(error.localizedDescription, privacy: .public)")
         }
     }
 
@@ -32,7 +32,7 @@ final nonisolated class DeviceActivityMonitorExtension: DeviceActivityMonitor {
         do {
             try controller?.thresholdReached(event.rawValue)
         } catch {
-            Self.logger.error("Logging a ladder step failed: \(error.localizedDescription, privacy: .public)")
+            Self.logger.error("Logging a Screen Time step failed: \(error.localizedDescription, privacy: .public)")
         }
     }
 }

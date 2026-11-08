@@ -23,7 +23,7 @@ exclude
 widgets
 ios-activity
 health
-midnight
+start-of-day
 ```
 
 ```{toctree}

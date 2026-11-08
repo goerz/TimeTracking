@@ -40,11 +40,11 @@ The header lines form one disabled item with a hosted view, because AppKit grays
 | Situation | Lines |
 |---|---|
 | Running entry | The task (or "No task"), truncated at 60 characters; the area dot (hollow for no project), the project and " · Client" (or "No project"); `Started HH:MM · h:mm elapsed`, with "yesterday" or the date after the time when the entry started on an earlier calendar date ("Started 23:10 yesterday · 1:05 elapsed") |
-| No running entry | "Not tracking"; then `Last: <task>, stopped HH:MM` if the latest stopped entry lies on the current day of the Midnight setting |
+| No running entry | "Not tracking"; then `Last: <task>, stopped HH:MM` if the latest stopped entry lies on the current day of the "Start of day" setting |
 | Pomodoro on | One more line with the phase glyph: `Focus · m:ss left`, `Break · m:ss left`, `Focus ended · +m:ss`, or `Break ended · +m:ss` |
 | Tracker warning | An orange `exclamationmark.triangle` and "Tracker not running since HH:MM" |
 
-"Yesterday" compares plain dates, whatever the Midnight setting says, because the line states when the entry started by the clock. Times use the locale's format.
+"Yesterday" compares plain dates, whatever the "Start of day" setting says, because the line states when the entry started by the clock. Times use the locale's format.
 
 ### 2.2 Commands
 
@@ -123,4 +123,4 @@ Device settings in Settings > General, section "Menu bar and Dock".
 - MB-17. The dial is the empty ring with nothing running, a minute hand while an entry runs (95 min 20 s: 35/60 of a turn), the phase's progress during a Pomodoro (10 minutes into a 25-minute focus: 0.4), and the full ring once the phase has ended; with "Show timer" off the item still ticks each minute; the image is a 16 pt template, 18 pt wide with the badge.
 - MB-18. The countdown keeps the width of its phase's full length: 9:59 left of a 25-minute focus reads ` ` + `9:59` (a figure space first); a 5-minute break needs no padding.
 - MB-19. An entry started at 23:30 that runs while the Mac sleeps past midnight stays one entry, the item counts from its start, and the wake shows its part under the new day; a time zone change reloads the same way.
-- MB-20. With Midnight at 04:00, the "Last:" line names an entry from 03:00 to 05:00 today.
+- MB-20. With the start of day at 04:00, the "Last:" line names an entry from 03:00 to 05:00 today.
