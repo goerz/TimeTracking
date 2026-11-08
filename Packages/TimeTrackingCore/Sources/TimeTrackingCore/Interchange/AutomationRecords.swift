@@ -118,11 +118,11 @@ public enum AutomationRecords {
         return .object(["error": .object(members)])
     }
 
-    private static func areaReference(_ area: Area) -> JSONValue {
+    static func areaReference(_ area: Area) -> JSONValue {
         .object(["id": .string(area.id.rawValue), "name": .string(area.name), "color": .string(area.color.uppercased())])
     }
 
-    private static func clientReference(_ client: Client) -> JSONValue {
+    static func clientReference(_ client: Client) -> JSONValue {
         .object(["id": .string(client.id.rawValue), "name": .string(client.name)])
     }
 }

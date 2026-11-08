@@ -111,7 +111,7 @@ Time blocks are events in one calendar of the store's iCloud (CalDAV) source, so
 
 ### 4.2 Time blocks
 
-A time block is an informational plan: the app creates, moves, resizes, edits, and deletes blocks, and nothing else (no done state, no comparison with tracked time). Scripts create blocks with any calendar tool. The store has no time-block entity and the CLI no block command.
+A time block is an informational plan: the app creates, moves, resizes, edits, and deletes blocks, and nothing else (no done state, no comparison with tracked time). Scripts create blocks with any calendar tool or with `timetracking block`, which finds the calendar and links projects by these rules ([automation.md](automation.md) §3.14). The store has no time-block entity.
 
 The event's `title` is the block title, and its `startDate` and `endDate` the interval. A `url` of `timetracking://project/<uuid>` naming an existing project links it, and wins because it survives renames. Otherwise the first `notes` line `Project: <name>` (key case-insensitive, trimmed) links the single active project with that name, ignoring case and diacritics. Otherwise the block is unlinked, with the reason in its tooltip ("No project named “Admin”", "Several projects are named “Admin”", or "The linked project no longer exists"). The app writes only the URL and never rewrites notes.
 

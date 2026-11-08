@@ -6,6 +6,8 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>NSCalendarsFullAccessUsageDescription</key>
+	<string>The block commands read and change time blocks, which are events in your time-block calendar.</string>
 	<key>TTAppID</key>
 	<string>$(TT_APP_ID)</string>
 	<key>TTAppGroup</key>

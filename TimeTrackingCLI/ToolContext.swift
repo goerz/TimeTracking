@@ -88,6 +88,43 @@ nonisolated struct ToolContext {
         return DeviceID(UUID.version5(namespace: namespace, name: "tool:" + url.standardizedFileURL.path))
     }
 
+    // MARK: Activity and calendars
+
+    /// The activity folders: `TIMETRACKING_ACTIVITY` (one folder holding
+    /// `blocks/`, `current.json`, and `settings.toml`), else the shared
+    /// folder in iCloud Drive and the local one in the App Group.
+    var activityFolders: ActivityFolders? {
+        if let path = ProcessInfo.processInfo.environment["TIMETRACKING_ACTIVITY"], !path.isEmpty {
+            let folder = URL(filePath: path, directoryHint: .isDirectory)
+            return ActivityFolders(shared: folder, local: folder, isFallback: true)
+        }
+        return identity.flatMap { ActivityFolders.resolveWithoutEntitlement(identity: $0) }
+    }
+
+    /// The reader of the block log and `current.json`.
+    func activityReader() throws(AutomationError) -> FileActivityStore {
+        guard let folders = activityFolders else {
+            throw .storeUnavailable("No activity folder: the App Group container is unavailable.")
+        }
+        return FileActivityStore(folders: folders)
+    }
+
+    /// EventKit, or in Debug builds the file `TIMETRACKING_CALENDAR`
+    /// names; with the identifier the app resolved on this Mac.
+    func timeBlockContext() throws(AutomationError) -> TimeBlockContext {
+        let scheme = identity?.urlScheme ?? "timetracking"
+        if identity?.isDebug ?? false, let path = ProcessInfo.processInfo.environment["TIMETRACKING_CALENDAR"], !path.isEmpty {
+            do {
+                return try TimeBlockContext(events: FixtureCalendarStore(url: URL(filePath: path)), deviceCalendarID: nil, scheme: scheme)
+            } catch {
+                throw .failure("Can't read \(path): \(error.localizedDescription)")
+            }
+        }
+        // Another store file has no device state of its own.
+        let resolved = arguments.storePath == nil ? DeviceSettings(identity: identity)[.calendarTimeBlockCalendar] : ""
+        return TimeBlockContext(events: EventKitCalendarStore(), deviceCalendarID: resolved.isEmpty ? nil : resolved, scheme: scheme)
+    }
+
     // MARK: Output
 
     /// Whether to write ANSI colors: stdout is a terminal, and neither

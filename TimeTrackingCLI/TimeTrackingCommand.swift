@@ -18,6 +18,7 @@ struct TimeTrackingCommand: AsyncParsableCommand {
             ProjectsCommand.self, ClientsCommand.self, AreasCommand.self,
             ProjectCommand.self, AreaCommand.self, ClientCommand.self,
             CheckCommand.self, ImportCommand.self, ExportCommand.self,
+            ActivityCommand.self, TrackerCommand.self, BlockCommand.self,
         ]
     )
 
@@ -102,7 +103,7 @@ struct TimeTrackingCommand: AsyncParsableCommand {
         var rest = Array(arguments[index...])
         // After the subcommand path (one or two words), before its arguments.
         var insertion = 1
-        if rest.count > 1, ["entry", "project", "area", "client"].contains(rest[0]), !rest[1].hasPrefix("-") {
+        if rest.count > 1, ["entry", "project", "area", "client", "block"].contains(rest[0]), !rest[1].hasPrefix("-") {
             insertion = 2
         }
         rest.insert(contentsOf: leading, at: insertion)

@@ -143,11 +143,14 @@ public enum TimeBlockCalendar {
     /// Blocks` when unset) in the iCloud source, else by the device's
     /// resolved identifier; only when all fail it creates "Time Blocks"
     /// there and asks to write the settings.
+    /// With `creating` false (the tool, which leaves creating the calendar
+    /// to the app), a failed lookup is `.noICloudAccount` as well.
     public static func resolve(
         store: any CalendarEventStore,
         settingID: String?,
         settingTitle: String? = nil,
-        deviceID: String?
+        deviceID: String?,
+        creating: Bool = true
     ) -> Resolution {
         guard store.access() == .fullAccess else {
             return Resolution(state: .noAccess)
@@ -164,7 +167,7 @@ public enum TimeBlockCalendar {
         if let deviceID, let calendar = calendars.first(where: { $0.id == deviceID }) {
             return Resolution(state: .ready(calendar), resolvedID: calendar.id)
         }
-        guard let source else {
+        guard let source, creating else {
             return Resolution(state: .noICloudAccount)
         }
         return create(store: store, source: source)

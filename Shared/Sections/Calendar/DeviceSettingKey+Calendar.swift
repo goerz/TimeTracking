@@ -36,10 +36,3 @@ extension DeviceSettingKey where Value == ReportFilters {
         Self("planner.calendar.filters", default: ReportFilters())
     }
 }
-
-extension DeviceSettingKey where Value == String {
-    /// The resolved time-block calendar identifier (device state).
-    static var calendarTimeBlockCalendar: Self {
-        Self("planner.calendar.timeBlockCalendar", default: "")
-    }
-}

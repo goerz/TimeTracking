@@ -1,6 +1,6 @@
 # Scripting Surface
 
-Every way a program other than the app's user interface reads or changes tracked time: the command-line tool `timetracking`, App Intents, and the `timetracking` URL scheme, plus the CSV formats, the description file, and `check`. Everything runs on the device against the local store; there is no web API or `x-callback-url`. App Intents stand in for an AppleScript dictionary because one definition serves Shortcuts, Siri, and Spotlight on both platforms. Time blocks are calendar events ([calendar.md](calendar.md)), so no command touches them.
+Every way a program other than the app's user interface reads or changes tracked time: the command-line tool `timetracking`, App Intents, and the `timetracking` URL scheme, plus the CSV formats, the description file, and `check`. Everything runs on the device against the local store; there is no web API or `x-callback-url`. App Intents stand in for an AppleScript dictionary because one definition serves Shortcuts, Siri, and Spotlight on both platforms. The tool also reads the tracker's block log and status ([activity_tracking.md](activity_tracking.md)) and changes time blocks, which are events of the time-block calendar ([calendar.md](calendar.md) §4).
 
 ## 1. Principles
 
@@ -8,7 +8,7 @@ Every way a program other than the app's user interface reads or changes tracked
 2. Read commands, including `check` without `--fix` and `import --dry-run`, open the store read-only and leave no mark.
 3. Every listing has a JSON form and, where tabular, a CSV form. Their shapes change only with a format version bump; human-readable tables may change.
 4. Scripts refer to projects, areas, and clients by name; every JSON record also carries the UUID.
-5. URLs start, stop, continue, and show. Intents never delete. The tool deletes one entry at a time, only with `--yes`.
+5. URLs start, stop, continue, and show. Intents never delete. The tool deletes one entry or time block at a time, only with `--yes`.
 
 ## 2. Store access
 
@@ -20,7 +20,7 @@ The tool runs in its own process, works without the app running, and writes thro
 
 Every subcommand has `--help`; there are no abbreviations, and `timetracking --generate-completion-script zsh|bash|fish` writes completions. The `ALIAS` setting in `local.mk` adds a second name.
 
-These options may come before or after the subcommand: `--json` and `--csv` (mutually exclusive), `--store PATH` (`TIMETRACKING_STORE` does the same; the option wins), `--quiet` or `-q` (no output on success for write commands), and `--no-color` (also with `NO_COLOR` or when stdout is not a terminal). Without a subcommand, `--store-path` prints the resolved store path and `--version` the tool and schema versions. The variable `TIMETRACKING_NOW` (ISO 8601) fixes "now" in Debug builds only. Times are read and printed in the system time zone.
+These options may come before or after the subcommand: `--json` and `--csv` (mutually exclusive), `--store PATH` (`TIMETRACKING_STORE` does the same; the option wins), `--quiet` or `-q` (no output on success for write commands), and `--no-color` (also with `NO_COLOR` or when stdout is not a terminal). Without a subcommand, `--store-path` prints the resolved store path and `--version` the tool and schema versions. The variable `TIMETRACKING_NOW` (ISO 8601) fixes "now" in Debug builds only. `TIMETRACKING_ACTIVITY` names a folder that holds `blocks/`, `current.json`, and `settings.toml` in place of the activity folders, and in Debug builds `TIMETRACKING_CALENDAR` names a JSON file of calendars and events in place of EventKit (the tool tests use both). Times are read and printed in the system time zone.
 
 ### 3.2 Dates and ranges
 
@@ -38,7 +38,7 @@ A write command prints one line describing the change (`Started "Clarify noise m
 
 ### 3.4 Subcommands
 
-The subcommands are `status`, `start`, `stop`, `continue`, `entries`, `entry`, `report`, `health`, `projects`, `clients`, `areas`, `project`, `area`, `client`, `check`, `import`, and `export`.
+The subcommands are `status`, `start`, `stop`, `continue`, `entries`, `entry`, `report`, `health`, `projects`, `clients`, `areas`, `project`, `area`, `client`, `check`, `import`, `export`, `activity`, `tracker`, and `block`.
 
 ### 3.5 Status, start, stop, continue
 
@@ -114,13 +114,68 @@ Import reads only this format. Converters from other trackers are external scrip
 | 0 | Success; for `check`, no inconsistencies (left) |
 | 1 | Other failure (I/O) |
 | 2 | Usage error: unknown option, malformed date or color, range too large, missing `--yes`, conflicting options |
-| 3 | Named project, area, client, or entry not found, or ambiguous |
+| 3 | Named project, area, client, entry, or time block not found, or ambiguous |
 | 4 | Refused by a store rule: nothing running, archived project, duplicate name, overlap without `--force`, a time in the future |
-| 5 | Store unavailable: missing, locked past the busy timeout, or a newer schema version |
+| 5 | Store unavailable: missing, locked past the busy timeout, or a newer schema version; for `block`, no calendar access or no time-block calendar |
 | 6 | `check` found an inconsistency |
 | 7 | An input file (description or import) failed to parse or validate |
 
 Errors go to stderr as one line starting with `error:`, or with `--json` as `{"error": {"code": 3, "message": "…", "candidates": [...]}}`. On error stdout stays empty.
+
+### 3.12 Activity
+
+The command `activity [range] [--open] [--kind foreground|background] [--untracked [--min N]]` lists the blocks of the block log ([activity_tracking.md](activity_tracking.md) §4.2) whose start lies in the range (default today), foreground and background, by start. A block counts whole on the shown day of its start, so with the start of day at 04:00 a block from 03:30 counts on the day before. The open block of `current.json` is listed only with `--open`. The tool reads the date files in iCloud Drive at their place under `~/Library/Mobile Documents`, since it has no iCloud entitlement, else the local fallback, and applies the exclusions of the current `settings.toml` like every reader ([data_and_sync.md](data_and_sync.md) §6).
+
+A foreground block's coverage follows the Calendar's dimming ([calendar.md](calendar.md) §3.1): `uncovered` lists the stretches of its span, clamped at now, that no entry covers, and `coveredSeconds` is the rest of the span. With `--untracked` only foreground blocks with an uncovered stretch of at least `--min` minutes (default 10) are listed, each with only those stretches. JSON:
+
+```json
+{
+  "from": "2026-10-29", "to": "2026-10-30",
+  "files": [{"date": "2026-10-29", "status": "present"}],
+  "blocks": [{"start": "2026-10-29T08:30:00+01:00", "end": "2026-10-29T09:40:00+01:00", "day": "2026-10-29",
+              "kind": "foreground", "open": false, "endReason": "idle", "seconds": 4200, "activeSeconds": 4000, "reconstructedSeconds": 120,
+              "devices": [{"device": "MacBook", "seconds": 3000}, {"device": "iPhone", "seconds": 1000}],
+              "workspaces": [{"workspace": "~/Code/MyApp", "name": "MyApp", "seconds": 3000, "share": 0.75},
+                             {"workspace": "Social", "name": "Social", "seconds": 1000, "share": 0.25}],
+              "dominantWorkspace": "~/Code/MyApp",
+              "coveredSeconds": 2412, "uncovered": [{"start": "2026-10-29T09:00:00+01:00", "end": "2026-10-29T09:29:48+01:00", "seconds": 1788}],
+              "foreground": [{"device": "MacBook", "seconds": 3000, "app": "WezTerm", "appID": "com.github.wez.wezterm", "window": "Research", "host": null,
+                              "session": "refactor-parser", "location": "~/Code/MyApp", "documents": [], "command": "claude --resume", "workspace": "~/Code/MyApp"}],
+              "background": []}]
+}
+```
+
+The list `files` has each local date from the range's first to its last, up to today, with the status `present`, `missing`, or `notDownloaded` (iCloud Drive holds only a placeholder, whose download the tool asks for), so a script tells an empty day from one it could not read; the table prints a line for each date that is not present. In a block, `seconds` is its span and `activeSeconds` the sum of its foreground seconds; `devices`, `workspaces` (with each one's `share` of their sum, to three decimals), and `dominantWorkspace` total the foreground items, or a background block's background items. A background block has `coveredSeconds` and `uncovered` null; the open block has `endReason` null. Items carry the attribute names of [activity_tracking.md](activity_tracking.md) §2.2, with null for an absent value. The command has no CSV form.
+
+### 3.13 Tracker status
+
+The command `tracker` prints the tracker's state from `current.json` ([activity_tracking.md](activity_tracking.md) §4.4) and the block log, and exits 0 whatever the state:
+
+```json
+{
+  "status": "running", "lastTick": "2026-10-29T09:59:30+01:00", "version": "1.0 (42)",
+  "presence": {"state": "active", "since": "2026-10-29T09:56:00+01:00", "lastInput": "2026-10-29T09:59:00+01:00"},
+  "foreground": {"app": "WezTerm", "appID": "com.github.wez.wezterm", "window": null, "host": null, "session": "refactor-parser",
+                 "location": "~/Code/MyApp", "documents": [], "command": "claude --resume", "workspace": "~/Code/MyApp"},
+  "sources": [{"id": "terminal", "name": "Terminal tab", "status": "active", "reason": null}],
+  "recording": {"thisMac": "<hardware UUID>", "owner": "<hardware UUID>", "thisMacRecords": true},
+  "newestDateFile": {"date": "2026-10-29", "modified": "2026-10-29T09:41:02+01:00"},
+  "asOf": "2026-10-29T10:00:00+01:00"
+}
+```
+
+The `status` follows the liveness rule: `running`, `delayed` (the last tick is 90 seconds old or older), or `notRunning` (2 minutes or older, or no `current.json`, which leaves the fields that come from it null and `sources` empty). The `sources` are those the tracker lists ([activity_tracking.md](activity_tracking.md) §3.5), with `reason` null for an `active` one. The value `thisMacRecords` compares `blocks/owner` with this Mac's hardware UUID, and is null without a readable owner file. `newestDateFile` is the latest date with a date file, a placeholder included.
+
+### 3.14 Time blocks
+
+The `block` commands read and change time blocks through EventKit. They find the time-block calendar as the app does ([calendar.md](calendar.md) §4.1), by `calendar.timeBlockCalendarID`, by `calendar.timeBlockCalendarTitle` in the iCloud account, or by the identifier the app resolved on this Mac, and never create it. macOS asks once for calendar access, on behalf of the app that runs the tool, such as the terminal. Without access or without the calendar they exit 5.
+
+- `block list [range]` lists the blocks whose start lies in the range (default today), by start: `{"from", "to", "calendar": {"id", "title"}, "blocks": [block records]}`. A block record is `{"id", "title", "start", "end", "duration", "notes", "url", "project", "area", "client", "unlinkedReason"}`; `project`, `area`, and `client` are nested as in the entry record and resolved by the rule of [calendar.md](calendar.md) §4.2, and `unlinkedReason` is the tooltip's text, null when linked or when nothing names a project.
+- `block create TITLE --start TIME --end TIME [--project NAME] [--notes TEXT]` creates a block and links its project by the project's URL, as the app does.
+- `block edit ID` changes `--title`, `--start`, `--end`, `--notes` (an empty text removes them), and `--project` or `--no-project`, which removes the URL; a `Project:` line in the notes still links.
+- `block delete ID --yes` deletes one block; without `--yes` it prints the block to stderr and exits 2.
+
+The id is the event's identifier and occurrence start, `<identifier>|<seconds>`, as `block list` prints it; a block that moves gets a new id, which create and edit print. Names resolve as in 3.3 (exit 3 for an unknown or ambiguous project, 4 for an archived one), an end not after the start exits 4, and times may lie in the future. A write prints one line, or with `--json` `{"blocks": [block record]}`. A change to a recurring event applies to that occurrence.
 
 ## 4. The description file and `check`
 
@@ -281,3 +336,8 @@ The tool tests build the Debug tool, create a fixture store from a JSON export, 
 47. With the start of day at 04:00, at 02:00 `today` is the previous date and `status` sums its parts, `report` over a day cuts entries at 04:00, and `entries` over it lists the stored entries starting in it.
 48. Today's Total counts an entry's part on the day, also of an entry that started before the start of day, and agrees with `status`.
 49. With the start of day at 09:00, the `entries` table puts an entry at 08:00 on October 29 under "Subtotal 2026-10-28" while its row shows its real date.
+50. Over a block log with a foreground and a background block on 2026-10-29, `activity --json` lists both by start with `kind`, the span, active and reconstructed seconds, devices and workspaces with shares summing the items, the dominant workspace, and items with the long attribute names; the open block of `current.json` appears only with `--open`; over 2026-10-26 to 2026-10-29, `files` reports a missing date, an iCloud placeholder as `notDownloaded`, and two present dates, and the table names the placeholder; with the start of day at 04:00, a block at 02:30 counts on the day before.
+51. A foreground block from 08:30 to 09:40 with entries over 08:00 to 09:00 and from 09:29:48 on has `coveredSeconds` 2412 and one uncovered stretch from 09:00 to 09:29:48; `--untracked --min 29` lists it, `--min 30` does not, and `--min` without `--untracked` exits 2.
+52. With the last tick 30, 100, and 130 seconds before now, `tracker --json` reports `running`, `delayed`, and `notRunning`; without `current.json` `notRunning` with `lastTick` null and exit 0; `thisMacRecords` is null without `blocks/owner`, false when it names another Mac, and true when it names this one.
+53. With a time-block calendar file, `block list --json` links a block by a `Project:` notes line and reports a URL to a deleted project as unlinked with its reason; `block create --project "Noise paper"` writes the project's URL; `--project Admin` (two clients) and an unknown name exit 3, an archived project and an end before the start exit 4; `block edit --no-project` removes the URL and keeps the notes; `block delete` without `--yes` prints the block to stderr, exits 2, and deletes nothing, and with `--yes` deletes only that block.
+54. Without calendar access, or without a calendar the time-block rule finds, the `block` commands exit 5 with stdout empty.

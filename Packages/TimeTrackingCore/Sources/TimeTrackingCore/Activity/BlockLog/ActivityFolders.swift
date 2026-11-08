@@ -46,6 +46,21 @@ public struct ActivityFolders: Sendable, Hashable {
         return Self(identity: identity, groupContainer: group, ubiquityContainer: ubiquity)
     }
 
+    /// The folders as a process without the iCloud entitlement (the
+    /// command-line tool) finds them: the ubiquity container at its fixed
+    /// place under `~/Library/Mobile Documents`, where iCloud Drive keeps
+    /// it on the Mac, when it holds `Activity/`; else the local fallback.
+    public static func resolveWithoutEntitlement(identity: AppIdentity, homeDirectory: String = NSHomeDirectory()) -> Self? {
+        guard let group = identity.groupContainerURL else {
+            return nil
+        }
+        let container = URL(filePath: homeDirectory, directoryHint: .isDirectory)
+            .appending(path: "Library/Mobile Documents", directoryHint: .isDirectory)
+            .appending(path: identity.cloudKitContainer.replacing(".", with: "~"), directoryHint: .isDirectory)
+        let exists = FileManager.default.fileExists(atPath: container.appending(path: "Activity").path)
+        return Self(identity: identity, groupContainer: group, ubiquityContainer: exists ? container : nil)
+    }
+
     /// `blocks/` of the shared folder.
     public var sharedBlocks: URL {
         shared.appending(path: "blocks", directoryHint: .isDirectory)

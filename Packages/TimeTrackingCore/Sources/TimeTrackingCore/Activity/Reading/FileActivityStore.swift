@@ -106,6 +106,34 @@ public actor FileActivityStore: ActivityReading {
         dateFiles.values.reduce(0) { $0 + $1.malformedLines }
     }
 
+    /// Whether the date file of `day` can be read: present, missing, or
+    /// held by iCloud Drive only as a placeholder (its download is asked for).
+    public func dateFileStatus(of day: TrackingDay) -> ActivityDateFileStatus {
+        var status = ActivityDateFileStatus.missing
+        for folder in folders.blockFolders {
+            let url = folder.fileURL(for: day)
+            if ActivityFile.isPendingDownload(url) {
+                status = .notDownloaded
+            } else if FileManager.default.fileExists(atPath: url.path) {
+                return .present
+            }
+        }
+        return status
+    }
+
+    /// The latest date that has a date file (present or a placeholder),
+    /// with that file's modification time.
+    public func newestDateFile() -> (day: TrackingDay, modified: Date?)? {
+        var newest: (day: TrackingDay, modified: Date?)?
+        for folder in folders.blockFolders {
+            guard let day = folder.days().last, newest.map({ day > $0.day }) ?? true else {
+                continue
+            }
+            newest = (day, FileStamp(url: folder.fileURL(for: day))?.modified)
+        }
+        return newest
+    }
+
     // MARK: Change detection
 
     /// Compares `current.json`, `settings.toml`, and the date files with the

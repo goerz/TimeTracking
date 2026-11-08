@@ -45,6 +45,18 @@ timetracking entry delete <id> --yes
 
 The commands refuse overlaps unless you add `--force`, and they refuse times in the future. To get an entry's id, list entries with `--json`.
 
+## Read activity and plan time blocks
+
+```sh
+timetracking activity                       # today's blocks from the tracker
+timetracking activity --untracked --min 15  # stretches no entry covers yet
+timetracking tracker                        # is the tracker running, and is anything limited?
+timetracking block list --week week
+timetracking block create "Write section 2" --start 2026-10-29T13:00 --end 2026-10-29T15:00 --project "Noise paper"
+```
+
+With `--json`, `activity` gives each block's items and the stretches no entry covers, which `entry create` can then fill. The `block` commands change events of your time-block calendar, so the first one makes macOS ask whether your terminal may use your calendars.
+
 ## Manage projects
 
 ```sh
