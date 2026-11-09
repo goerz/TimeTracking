@@ -42,6 +42,35 @@ struct SummaryAndPrivacyTests {
         #expect(ActivityBlockSummary(block: block, settings: settings, extent: .everything).groups.flatMap(\.lines).count == 5)
     }
 
+    @Test("TRK-48 summary: items that read the same are one line with their seconds added, where the first of them was")
+    func blockSummaryMergesSameLabel() throws {
+        func page(_ number: Int) -> ActivityItem {
+            ActivityItem(
+                app: "Skim",
+                window: "notes.pdf – Page \(number) of 20",
+                documents: ["~/Papers/2026_Noise/notes.pdf"],
+                workspace: "~/Papers/2026_Noise"
+            )
+        }
+        let draft = ActivityItem(app: "WezTerm", session: "paper:draft.1", workspace: "~/Papers/2026_Noise")
+        let build = { (location: String) in
+            ActivityItem(app: "tmux", session: "paper:build.0", location: location, command: "make test", workspace: "~/Papers/2026_Noise")
+        }
+        let block = try ActivityFixture.block(
+            "2024-03-14",
+            "09:00",
+            "10:00",
+            [(page(1), 120), (page(2), 300), (draft, 600), (page(3), 60)],
+            background: [(build("~/Papers/2026_Noise"), 200), (ActivityFixture.agent, 250), (build("~/Papers/2026_Noise/notes"), 100)]
+        )
+        let summary = ActivityBlockSummary(block: block, settings: TrackerSettings(), extent: .everything)
+        let lines = summary.groups.flatMap(\.lines)
+        #expect(lines.map(\.label) == ["Skim · notes.pdf", "WezTerm · paper:draft.1"])
+        #expect(lines.map(\.seconds) == [480, 600])
+        #expect(summary.background.map(\.label) == ["tmux · make test", "Claude Code · refactor-parser"])
+        #expect(summary.background.map(\.seconds) == [300, 250])
+    }
+
     @Test(
         "TRK-12 each default redaction filter replaces only the secret with (private) in what leaves the Mac; the Sample keeps it"
     )

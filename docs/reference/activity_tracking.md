@@ -263,9 +263,9 @@ The Calendar's activity column shows blocks, and hovering one shows its summary 
 Figure 3. Hovering the 09:52 block. Each workspace shows by name (the last component of its path), with the full path beside it, its share of the active time, and its items. Synthetic values.
 
 - The header gives the block's start, end, and length, then the active time (the sum of its foreground seconds), why it ended, and the devices that contributed. Another device's name stands out, here the iPhone.
-- Foreground items group by workspace, the largest first, each with its share of the active time. Within a group, items are ordered by time, and each is labeled with its app and the first it has of a document's name, the session, or the window.
+- Foreground items group by workspace, the largest first, each with its share of the active time. Within a group, items are ordered by time, and each is labeled with its app and the first it has of a document's name, the session, or the window. Items that read the same (one document in Skim, its window title naming each page) are one line with their seconds added, where the first of them was.
 - Up to `summary_lines` (6) item lines show, and a workspace below `summary_min_share` (5%) of the active time folds into "+n more".
-- Background items follow, at most three, with their workspace, each labeled with its app and its command for a job (`job_commands`), else its session.
+- Background items follow, the largest first and at most three, with their workspace, each labeled with its app and its command for a job (`job_commands`), else its session; those with the same label and workspace are one line.
 - The footer says how much of the time was rebuilt from app usage history, and is absent when none was.
 - The end reasons read: went idle, screen locked, Mac slept, user switched, Focus paused collection, moved on to other work, reached its longest length, tracker stopped.
 
@@ -624,7 +624,7 @@ A file that does not decode reads "The settings file has an error on line `<n>`:
 - TRK-45. A command still running at its deadline is stopped and answers nothing; the tick goes on.
 - TRK-46. With `settings.toml` replaced by an iCloud Drive placeholder, the agent and the readers keep the exclusions they had.
 - TRK-47. A settings file with a key the tracker doesn't know decodes like the same file without it.
-- TRK-48. The block summary follows 2.8: workspaces by share, at most `summary_lines` item lines, workspaces under `summary_min_share` folded into "+n more", at most three background items, and the footer only with reconstructed time.
+- TRK-48. The block summary follows 2.8: workspaces by share, at most `summary_lines` item lines, items that read the same merged into one line, workspaces under `summary_min_share` folded into "+n more", at most three background items, and the footer only with reconstructed time.
 - TRK-49. The pane's dot, button, and setup marks follow 7.4 and update within 5 seconds; the agent is not registered until "Enable Tracker".
 - TRK-50. The pane writes `settings.toml` only to create the default file when there is none (never over a hand-edited file, and never while an iCloud Drive placeholder stands for it) and to add a drafted exclusion, which changes nothing in the file but the one inserted value.
 - TRK-51. The Full Disk Access row names the app by its bundle file name (`<APP_NAME>`, in Debug `<APP_NAME> Debug`) in its steps and its Finder button, which reveals the app bundle; the Accessibility row names and reveals `TimeTrackingAgent` (in Debug `TimeTrackingAgent Debug`).

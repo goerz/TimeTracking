@@ -93,18 +93,22 @@ public struct ActivityBlockSummary: Sendable, Hashable {
         self.groups = groups
         self.moreCount = hidden
 
-        let background = block.background.sorted { $0.seconds > $1.seconds }.map { item in
+        let background = Self.merged(block.background.map { item in
             BackgroundLine(
                 label: Self.backgroundLabel(item.item, jobCommands: settings.terminal.jobCommands),
                 workspaceName: item.item.workspaceName,
                 seconds: item.seconds
             )
-        }
+        })
+        .enumerated()
+        .sorted { $0.element.seconds == $1.element.seconds ? $0.offset < $1.offset : $0.element.seconds > $1.element.seconds }
+        .map(\.element)
         self.background = extent == .summary ? Array(background.prefix(Self.backgroundLimit)) : background
     }
 
     /// The groups of the foreground items, the largest first; within a
-    /// group the items keep the block's order, which is the order of their time.
+    /// group the lines keep the block's order, which is the order of their
+    /// time, and lines that read the same are one.
     private static func makeGroups(of items: [ActivityBlockItem], mainDevice: String?, active: Int) -> [Group] {
         var order: [String] = []
         var byWorkspace: [String: [ActivityBlockItem]] = [:]
@@ -126,18 +130,35 @@ public struct ActivityBlockSummary: Sendable, Hashable {
                 subtitle: isScreenTime ? "Screen Time set" : (workspace == name ? "" : workspace),
                 seconds: seconds,
                 share: Double(seconds) / Double(active),
-                lines: members.map { member in
+                lines: merged(members.map { member in
                     Line(
                         label: member.item.label,
                         otherDevice: member.device == mainDevice ? nil : member.device,
                         seconds: member.seconds
                     )
-                }
+                })
             )
         }
         return groups.enumerated()
             .sorted { $0.element.seconds == $1.element.seconds ? $0.offset < $1.offset : $0.element.seconds > $1.element.seconds }
             .map(\.element)
+    }
+
+    /// Lines that read the same as one line with their seconds added, where
+    /// the first of them was: Items that differ only in what the label
+    /// leaves out, such as a viewer's page in its window title.
+    private static func merged<L: MergeableLine>(_ lines: [L]) -> [L] {
+        var result: [L] = []
+        var index: [L.Key: Int] = [:]
+        for line in lines {
+            if let position = index[line.key] {
+                result[position].seconds += line.seconds
+            } else {
+                index[line.key] = result.count
+                result.append(line)
+            }
+        }
+        return result
     }
 
     /// A background item's label: its app and its command for a job of
@@ -146,5 +167,25 @@ public struct ActivityBlockSummary: Sendable, Hashable {
         let program = item.command.split(separator: " ").first.map { String($0.split(separator: "/").last ?? $0) } ?? ""
         let detail = jobCommands.contains(program) ? item.command : item.session
         return detail.isEmpty ? item.appName : "\(item.appName) · \(detail)"
+    }
+}
+
+/// A summary line that merges with another that reads the same.
+private protocol MergeableLine {
+    associatedtype Key: Hashable
+
+    var key: Key { get }
+    var seconds: Int { get set }
+}
+
+extension ActivityBlockSummary.Line: MergeableLine {
+    fileprivate var key: [String?] {
+        [label, otherDevice]
+    }
+}
+
+extension ActivityBlockSummary.BackgroundLine: MergeableLine {
+    fileprivate var key: [String] {
+        [label, workspaceName]
     }
 }
